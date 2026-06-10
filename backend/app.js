@@ -5,12 +5,12 @@ import { backendDistPath, frontendDistPath } from './config/paths.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { createApiRouter } from './routes/api.js';
 
-export function createApp({ authService, env, inventoryService, auditService, userService, expenseService, dsrFinanceService, monthEndSummaryService, profitService, backupService, databaseManager, tenantService, permissionService }) {
+export function createApp({ authService, env, inventoryService, auditService, userService, expenseService, dsrFinanceService, monthEndSummaryService, profitService, backupService, databaseManager, tenantService, permissionService, systemService, errorLogService }) {
   const app = express();
 
   app.set('trust proxy', 1);
   app.use(express.json());
-  app.use('/api', createApiRouter({ authService, env, inventoryService, auditService, userService, expenseService, dsrFinanceService, monthEndSummaryService, profitService, backupService, databaseManager, tenantService, permissionService }));
+  app.use('/api', createApiRouter({ authService, env, inventoryService, auditService, userService, expenseService, dsrFinanceService, monthEndSummaryService, profitService, backupService, databaseManager, tenantService, permissionService, systemService, errorLogService }));
 
   const staticRoot = fs.existsSync(backendDistPath) ? backendDistPath : frontendDistPath;
 
@@ -21,7 +21,7 @@ export function createApp({ authService, env, inventoryService, auditService, us
     });
   }
 
-  app.use(errorHandler);
+  app.use(errorHandler(errorLogService));
 
   return app;
 }

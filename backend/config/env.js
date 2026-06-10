@@ -4,6 +4,7 @@ const SESSION_DAYS = Number(process.env.SESSION_DAYS || 7);
 
 const isDevRun = process.env.npm_lifecycle_event === 'dev';
 const DATABASE_URL = (isDevRun && process.env.DEV_DATABASE_URL) || process.env.DATABASE_URL;
+const DATABASE_LABEL = isDevRun && process.env.DEV_DATABASE_URL ? 'dev' : 'live';
 
 if (!DATABASE_URL) {
   throw new Error('DATABASE_URL is required. Add it to your .env file.');
@@ -15,6 +16,7 @@ if (!Number.isFinite(SESSION_DAYS) || SESSION_DAYS <= 0) {
 
 export const env = {
   DATABASE_URL,
+  DATABASE_LABEL,
   DEFAULT_SUPER_ADMIN_EMAIL: process.env.DEFAULT_SUPER_ADMIN_EMAIL || 'admin@arinda.local',
   DEFAULT_SUPER_ADMIN_NAME: process.env.DEFAULT_SUPER_ADMIN_NAME || 'Super Admin',
   DEFAULT_SUPER_ADMIN_PASSWORD: process.env.DEFAULT_SUPER_ADMIN_PASSWORD || 'Admin@12345',

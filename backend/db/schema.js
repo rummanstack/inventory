@@ -44,10 +44,23 @@ export async function createSchema(pool) {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
 
+    CREATE TABLE IF NOT EXISTS error_logs (
+      id TEXT PRIMARY KEY,
+      tenant_id TEXT,
+      user_id TEXT,
+      method TEXT,
+      path TEXT,
+      status_code INTEGER,
+      message TEXT,
+      stack TEXT,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
     CREATE INDEX IF NOT EXISTS idx_user_sessions_token_hash ON user_sessions(token_hash);
     CREATE INDEX IF NOT EXISTS idx_user_sessions_user_id ON user_sessions(user_id);
     CREATE INDEX IF NOT EXISTS idx_activity_logs_created_at ON activity_logs(created_at DESC);
     CREATE INDEX IF NOT EXISTS idx_activity_logs_user_id ON activity_logs(user_id);
+    CREATE INDEX IF NOT EXISTS idx_error_logs_created_at ON error_logs(created_at DESC);
 
     CREATE TABLE IF NOT EXISTS expenses (
       id TEXT PRIMARY KEY,

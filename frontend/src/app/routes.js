@@ -15,6 +15,8 @@ import {
   Users,
   UserCog,
   Database,
+  Activity,
+  Bug,
 } from 'lucide-react';
 import DashboardPage from '../features/dashboard/pages/DashboardPage';
 import ActivityLogsPage from '../features/activity-logs/pages/ActivityLogsPage';
@@ -34,6 +36,8 @@ import PermissionsPage from '../features/permissions/pages/PermissionsPage';
 import UsersPage from '../features/users/pages/UsersPage';
 import PlatformAdminPage from '../features/platform/pages/PlatformAdminPage';
 import ProfilePage from '../features/profile/pages/ProfilePage';
+import SystemHealthPage from '../features/system/pages/SystemHealthPage';
+import ErrorLogsPage from '../features/system/pages/ErrorLogsPage';
 
 export const APP_ROUTES = [
   { id: 'dashboard', path: '/dashboard', labelKey: 'nav.dashboard', icon: BarChart3, component: DashboardPage, group: 'overview', permission: 'view_state' },
@@ -48,12 +52,14 @@ export const APP_ROUTES = [
   { id: 'month-end-summary', path: '/month-end-summary', labelKey: 'nav.monthEndSummary', icon: BarChart3, component: MonthEndSummaryPage, group: 'finance', permission: 'manage_dsr_finance' },
   { id: 'profit', path: '/profit', labelKey: 'nav.profit', icon: TrendingUp, component: ProfitPage, group: 'finance', permission: 'manage_dsr_finance' },
   { id: 'activity-logs', path: '/activity-logs', labelKey: 'nav.activityLogs', icon: ClipboardList, component: ActivityLogsPage, group: 'governance', permission: 'view_activity_logs' },
-  { id: 'database-backup', path: '/database-backup', labelKey: 'nav.databaseBackup', icon: Database, component: DatabaseBackupPage, group: 'governance', permission: 'manage_backups' },
+  { id: 'database-backup', path: '/database-backup', labelKey: 'nav.databaseBackup', icon: Database, component: DatabaseBackupPage, group: 'developer', permission: 'manage_backups' },
   { id: 'org-settings', path: '/settings/organization', labelKey: 'nav.orgSettings', icon: Settings, component: OrgSettingsPage, group: 'governance', permission: 'manage_org' },
   { id: 'permissions', path: '/settings/permissions', labelKey: 'nav.permissions', icon: KeyRound, component: PermissionsPage, group: 'governance', roles: ['system_developer', 'super_admin'] },
   { id: 'users', path: '/settings/users', labelKey: 'nav.users', icon: UserCog, component: UsersPage, group: 'governance', permission: 'manage_users' },
   { id: 'platform', path: '/platform', labelKey: 'nav.platform', icon: ShieldCheck, component: PlatformAdminPage, group: 'governance', role: 'platform_admin' },
   { id: 'profile', path: '/profile', labelKey: 'nav.profile', icon: UserCog, component: ProfilePage },
+  { id: 'system-health', path: '/system-health', labelKey: 'nav.systemHealth', icon: Activity, component: SystemHealthPage, group: 'developer', role: 'system_developer' },
+  { id: 'error-logs', path: '/error-logs', labelKey: 'nav.errorLogs', icon: Bug, component: ErrorLogsPage, group: 'developer', role: 'system_developer' },
 ];
 
 export function getRouteLabel(pathname, t = (key) => key) {

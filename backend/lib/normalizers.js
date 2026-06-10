@@ -1,0 +1,143 @@
+import { createId } from "./ids.js";
+
+export function cleanInteger(value) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? Math.max(0, Math.floor(parsed)) : 0;
+}
+
+export function cleanMoney(value) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+export function normalizeProduct(input) {
+  return {
+    id: input.id || createId("p"),
+    name: String(input.name || "").trim(),
+    category: String(input.category || "").trim(),
+    piecesPerCase: cleanInteger(input.piecesPerCase),
+    purchasePrice: cleanMoney(input.purchasePrice),
+    sellingPrice: cleanMoney(input.sellingPrice),
+    stockPieces: cleanInteger(input.stockPieces),
+    orderIndex:
+      input.orderIndex !== undefined && input.orderIndex !== null && String(input.orderIndex).trim() !== ""
+        ? cleanInteger(input.orderIndex)
+        : null,
+  };
+}
+
+export function normalizeDsr(input) {
+  return {
+    id: input.id || createId("dsr"),
+    name: String(input.name || "").trim(),
+    phone: String(input.phone || "").trim(),
+    area: String(input.area || "").trim(),
+    status: input.status === "Inactive" ? "Inactive" : "Active",
+  };
+}
+
+export function normalizeIssue(input) {
+  return {
+    id: input.id || createId("issue"),
+    date: String(input.date || "").trim(),
+    dsrId: String(input.dsrId || "").trim(),
+    dsrName: String(input.dsrName || "").trim(),
+    area: String(input.area || "").trim(),
+    phone: String(input.phone || "").trim(),
+    items: Array.isArray(input.items)
+      ? input.items.map((item) => ({
+          productId: String(item.productId || "").trim(),
+          productName: String(item.productName || "").trim(),
+          piecesPerCase: cleanInteger(item.piecesPerCase),
+          issuedPieces: cleanInteger(item.issuedPieces),
+          rate: cleanMoney(item.rate),
+        }))
+      : [],
+  };
+}
+
+export function normalizeSettlement(input) {
+  const items = Array.isArray(input.items)
+    ? input.items.map((item) => {
+        const issuedPieces = cleanInteger(item.issuedPieces);
+        const returnedPieces = cleanInteger(item.returnedPieces);
+        const damagedPieces = Math.min(cleanInteger(item.damagedPieces), returnedPieces);
+        const soldPieces = Math.max(issuedPieces - returnedPieces, 0);
+        const rate = cleanMoney(item.rate);
+
+        return {
+          id: item.id || createId("settlement-item"),
+          productId: String(item.productId || "").trim(),
+          productName: String(item.productName || "").trim(),
+          piecesPerCase: cleanInteger(item.piecesPerCase),
+          issuedPieces,
+          returnedPieces,
+          damagedPieces,
+          soldPieces,
+          rate,
+          payable: soldPieces * rate,
+        };
+      })
+    : [];
+
+  const extraReturns = Array.isArray(input.extraReturns)
+    ? Object.values(
+        input.extraReturns.reduce((map, item) => {
+          const productId = String(item.productId || "").trim();
+          const returnedPieces = cleanInteger(item.returnedPieces);
+          const damagedPieces = Math.min(cleanInteger(item.damagedPieces), returnedPieces);
+
+          if (!productId || returnedPieces <= 0) {
+            return map;
+          }
+
+          const existing = map[productId] || {
+            id: item.id || createId("settlement-extra-return"),
+            productId,
+            productName: String(item.productName || "").trim(),
+            piecesPerCase: cleanInteger(item.piecesPerCase),
+            returnedPieces: 0,
+            damagedPieces: 0,
+          };
+
+          existing.returnedPieces += returnedPieces;
+          existing.damagedPieces = Math.min(existing.damagedPieces + damagedPieces, existing.returnedPieces);
+          if (!existing.productName) {
+            existing.productName = String(item.productName || "").trim();
+          }
+          if (!existing.piecesPerCase) {
+            existing.piecesPerCase = cleanInteger(item.piecesPerCase);
+          }
+
+          map[productId] = existing;
+          return map;
+        }, {}),
+      )
+    : [];
+
+  const totalPayable = items.reduce((sum, item) => sum + item.payable, 0);
+  const previousDue = Math.max(0, cleanMoney(input.previousDue));
+  const discount = Math.max(0, cleanMoney(input.discount));
+  const extraReturnValue = Math.max(0, cleanMoney(input.extraReturnValue));
+  const receivableTotal = Math.max(0, totalPayable + previousDue - discount - extraReturnValue);
+  const amountPaid = Math.min(Math.max(0, cleanMoney(input.amountPaid)), receivableTotal);
+
+  return {
+    id: input.id || createId("settlement"),
+    date: String(input.date || "").trim(),
+    dsrId: String(input.dsrId || "").trim(),
+    dsrName: String(input.dsrName || "").trim(),
+    area: String(input.area || "").trim(),
+    phone: String(input.phone || "").trim(),
+    issueIds: Array.isArray(input.issueIds) ? input.issueIds.map((item) => String(item)) : [],
+    items,
+    extraReturns,
+    totalPayable,
+    previousDue,
+    discount,
+    extraReturnValue,
+    amountPaid,
+    dueAmount: receivableTotal - amountPaid,
+    status: "Completed",
+  };
+}

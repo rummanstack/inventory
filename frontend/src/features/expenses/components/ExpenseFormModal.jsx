@@ -1,0 +1,113 @@
+import { useMemo, useState } from 'react';
+import { Save } from 'lucide-react';
+import { Alert, Modal } from '../../../components/ui.jsx';
+import { DatePickerField } from '../../../components/date-picker.jsx';
+import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
+
+const EXPENSE_CATEGORY_KEYS = [
+  ['Bank', 'expenses.categories.bank'],
+  ['Salary', 'expenses.categories.salary'],
+  ['Office', 'expenses.categories.office'],
+  ['Rent', 'expenses.categories.rent'],
+  ['Vehicle', 'expenses.categories.vehicle'],
+  ['Other', 'expenses.categories.other'],
+];
+
+export default function ExpenseFormModal({ expense, defaultDate, onClose, onSave }) {
+  const { t } = useInventoryApp();
+  const isEdit = Boolean(expense);
+  const initialDate = expense?.date || defaultDate;
+  const [form, setForm] = useState({
+    date: initialDate,
+    category: expense?.category || 'Other',
+    amount: expense?.amount ?? '',
+    note: expense?.note || '',
+  });
+  const [error, setError] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  const categoryOptions = useMemo(
+    () => EXPENSE_CATEGORY_KEYS.map(([value, labelKey]) => ({ value, label: t(labelKey) })),
+    [t],
+  );
+
+  function updateField(field, value) {
+    setForm((current) => ({ ...current, [field]: value }));
+  }
+
+  async function submitForm(event) {
+    event.preventDefault();
+
+    if (!form.date) {
+      setError(t('expenses.requiredDate'));
+      return;
+    }
+
+    if (!form.note.trim()) {
+      setError(t('expenses.requiredNote'));
+      return;
+    }
+
+    const amount = Number(form.amount);
+    if (!(amount > 0)) {
+      setError(t('expenses.requiredAmount'));
+      return;
+    }
+
+    setSaving(true);
+    setError('');
+    const result = await onSave({
+      id: expense?.id,
+      date: form.date,
+      category: form.category,
+      amount,
+      note: form.note.trim(),
+    });
+    setSaving(false);
+
+    if (!result?.ok) {
+      setError(result?.message || t('expenses.saveFailed'));
+    }
+  }
+
+  return (
+    <Modal title={isEdit ? t('expenses.editTitle') : t('expenses.addTitle')} description={t('expenses.modalDescription')} onClose={onClose} width="max-w-2xl">
+      <form className="space-y-4" onSubmit={submitForm}>
+        {error ? <Alert type="error">{error}</Alert> : null}
+        <div className="grid gap-4 md:grid-cols-2">
+          <div>
+            <label className="label">{t('expenses.date')}</label>
+            <DatePickerField value={form.date} onChange={(value) => updateField('date', value)} />
+          </div>
+          <div>
+            <label className="label">{t('expenses.category')}</label>
+            <select className="input" value={form.category} onChange={(event) => updateField('category', event.target.value)}>
+              {categoryOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="label">{t('expenses.amount')}</label>
+            <input className="input" type="number" min="0" step="0.01" value={form.amount} onChange={(event) => updateField('amount', event.target.value)} />
+          </div>
+          <div className="md:col-span-2">
+            <label className="label">{t('expenses.note')}</label>
+            <textarea className="input min-h-28" value={form.note} onChange={(event) => updateField('note', event.target.value)} placeholder={t('expenses.notePlaceholder')} />
+          </div>
+        </div>
+        <div className="flex justify-end gap-2 pt-2">
+          <button type="button" className="btn-secondary" onClick={onClose} disabled={saving}>
+            {t('common.cancel')}
+          </button>
+          <button type="submit" className="btn-primary" disabled={saving}>
+            <Save size={18} />
+            {saving ? t('common.saving') : t('expenses.saveExpense')}
+          </button>
+        </div>
+      </form>
+    </Modal>
+  );
+}

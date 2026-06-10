@@ -1,0 +1,60 @@
+import pg from "pg";
+
+const { Pool, types } = pg;
+
+types.setTypeParser(1082, (val) => val);
+
+function createPool(connectionString) {
+  return new Pool({
+    connectionString,
+    ssl: connectionString.includes("sslmode=no-verify") ? { rejectUnauthorized: false } : undefined,
+  });
+}
+
+function withPostgresDatabase(connectionString) {
+  const url = new URL(connectionString);
+  url.pathname = "/postgres";
+  return url.toString();
+}
+
+export class DatabaseManager {
+  constructor(connectionString) {
+    this.originalDatabaseUrl = connectionString;
+    this.activeDatabaseUrl = connectionString;
+    this.pool = createPool(connectionString);
+  }
+
+  getPool() {
+    return this.pool;
+  }
+
+  getActiveDatabaseUrl() {
+    return this.activeDatabaseUrl;
+  }
+
+  isUsingFallbackDatabase() {
+    return this.activeDatabaseUrl !== this.originalDatabaseUrl;
+  }
+
+  async switchToFallbackDatabase() {
+    await this.pool.end();
+    this.activeDatabaseUrl = withPostgresDatabase(this.originalDatabaseUrl);
+    this.pool = createPool(this.activeDatabaseUrl);
+    return this.pool;
+  }
+
+  async withTransaction(work) {
+    const client = await this.pool.connect();
+    try {
+      await client.query("BEGIN");
+      const result = await work(client);
+      await client.query("COMMIT");
+      return result;
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+}

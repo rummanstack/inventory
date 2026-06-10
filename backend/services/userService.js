@@ -1,0 +1,258 @@
+import { assert } from "../lib/errors.js";
+import { createId } from "../lib/ids.js";
+import { hashPassword, verifyPassword } from "../lib/passwords.js";
+import { USER_ROLES, TENANT_ROLE_VALUES } from "../lib/roles.js";
+import {
+  deleteUser as deleteUserRepo,
+  findUserByEmail,
+  findUserById,
+  insertUser,
+  listUsers as listUsersRepo,
+  updateUser as updateUserRepo,
+} from "../repositories/userRepository.js";
+import { findTenantById, listTenants as listTenantsRepo } from "../repositories/tenantRepository.js";
+
+function normalizeEmail(email) {
+  return String(email || "")
+    .trim()
+    .toLowerCase();
+}
+
+function normalizeName(name) {
+  return String(name || "").trim();
+}
+
+function allowedRolesForActor(actorRole) {
+  if (actorRole === USER_ROLES.SYSTEM_DEVELOPER) {
+    return TENANT_ROLE_VALUES;
+  }
+
+  if (actorRole === USER_ROLES.SUPER_ADMIN) {
+    return TENANT_ROLE_VALUES;
+  }
+
+  return TENANT_ROLE_VALUES.filter((role) => role !== USER_ROLES.SUPER_ADMIN);
+}
+
+function normalizeRole(role, actor) {
+  const value = String(role || "").trim();
+  assert(allowedRolesForActor(actor.role).includes(value), "Invalid role.");
+  return value;
+}
+
+function normalizeStatus(status) {
+  const value = String(status || "")
+    .trim()
+    .toLowerCase();
+  assert(["active", "inactive"].includes(value), "Invalid status.");
+  return value;
+}
+
+export class UserService {
+  constructor(databaseManager, { auditService }) {
+    this.databaseManager = databaseManager;
+    this.auditService = auditService;
+  }
+
+  async listUsers(actor) {
+    const client = await this.databaseManager.getPool().connect();
+    try {
+      if (actor.role === USER_ROLES.SYSTEM_DEVELOPER) {
+        const [users, tenants] = await Promise.all([listUsersRepo(client, null), listTenantsRepo(client)]);
+        const tenantNames = new Map(tenants.map((tenant) => [tenant.id, tenant.name]));
+        return users.map((user) => ({ ...user, tenantName: tenantNames.get(user.tenantId) || (user.tenantId ? user.tenantId : 'Platform') }));
+      }
+
+      return await listUsersRepo(client, actor.tenantId);
+    } finally {
+      client.release();
+    }
+  }
+
+  async createUser(input, actor) {
+    const name = normalizeName(input.name);
+    const email = normalizeEmail(input.email);
+    const password = String(input.password || "");
+    const role = normalizeRole(input.role || allowedRolesForActor(actor.role)[0], actor);
+    const status = normalizeStatus(input.status || "active");
+
+    assert(name && email && password, "Name, email, and password are required.");
+
+    await this.databaseManager.withTransaction(async (client) => {
+      let tenantId = actor.tenantId;
+
+      if (actor.role === USER_ROLES.SYSTEM_DEVELOPER) {
+        assert(input.tenantId, "An organization is required.");
+        const tenant = await findTenantById(client, input.tenantId);
+        assert(tenant, "Organization not found.");
+        tenantId = tenant.id;
+      }
+
+      const existingUser = await findUserByEmail(client, email, tenantId);
+      assert(!existingUser, "A user with this email already exists.");
+
+      const user = {
+        id: createId("user"),
+        name,
+        email,
+        passwordHash: await hashPassword(password),
+        role,
+        status,
+        tenantId,
+      };
+
+      await insertUser(client, user);
+      await this.auditService.record(client, {
+        tenantId,
+        userId: actor.id,
+        actionType: "user.create",
+        entityType: "user",
+        entityId: user.id,
+        description: `${actor.name} created user ${user.email}`,
+        metadata: { role, status },
+      });
+    });
+
+    return this.listUsers(actor);
+  }
+
+  async updateUser(userId, input, actor) {
+    let nextEmail = "";
+
+    await this.databaseManager.withTransaction(async (client) => {
+      const existingUser = await findUserById(client, userId);
+      assert(existingUser, "User not found.", 404);
+
+      if (actor.role !== USER_ROLES.SYSTEM_DEVELOPER) {
+        assert(existingUser.tenant_id === actor.tenantId, "User not found.", 404);
+      }
+
+      assert(allowedRolesForActor(actor.role).includes(existingUser.role), "Forbidden.", 403);
+
+      const nextName = input.name === undefined ? existingUser.name : normalizeName(input.name);
+      nextEmail = input.email === undefined ? existingUser.email : normalizeEmail(input.email);
+      const nextRole = input.role === undefined ? existingUser.role : normalizeRole(input.role, actor);
+      const nextStatus = input.status === undefined ? existingUser.status : normalizeStatus(input.status);
+      const nextPasswordHash = input.password ? await hashPassword(String(input.password)) : null;
+
+      if (nextEmail !== existingUser.email) {
+        const duplicateUser = await findUserByEmail(client, nextEmail, existingUser.tenant_id);
+        assert(!duplicateUser || duplicateUser.id === userId, "A user with this email already exists.");
+      }
+
+      await updateUserRepo(client, {
+        id: userId,
+        tenantId: existingUser.tenant_id,
+        name: nextName,
+        email: nextEmail,
+        passwordHash: nextPasswordHash,
+        role: nextRole,
+        status: nextStatus,
+      });
+
+      await this.auditService.record(client, {
+        tenantId: existingUser.tenant_id,
+        userId: actor.id,
+        actionType: "user.update",
+        entityType: "user",
+        entityId: userId,
+        description: `${actor.name} updated user ${nextEmail}`,
+        metadata: {
+          role: nextRole,
+          status: nextStatus,
+          passwordChanged: Boolean(nextPasswordHash),
+        },
+      });
+    });
+
+    return this.listUsers(actor);
+  }
+
+  async updateProfile(actor, input) {
+    let updatedUser = null;
+
+    await this.databaseManager.withTransaction(async (client) => {
+      const existingUser = await findUserById(client, actor.id);
+      assert(existingUser, "User not found.", 404);
+
+      const nextName = input.name === undefined ? existingUser.name : normalizeName(input.name);
+      const nextEmail = input.email === undefined ? existingUser.email : normalizeEmail(input.email);
+      assert(nextName, "Name is required.");
+      assert(nextEmail, "Email is required.");
+
+      let nextPasswordHash = null;
+      if (input.password) {
+        const newPassword = String(input.password);
+        assert(newPassword.length >= 6, "Password must be at least 6 characters.");
+        const currentPassword = String(input.currentPassword || "");
+        assert(currentPassword, "Current password is required to set a new password.");
+        const valid = await verifyPassword(currentPassword, existingUser.password_hash);
+        assert(valid, "Current password is incorrect.");
+        nextPasswordHash = await hashPassword(newPassword);
+      }
+
+      if (nextEmail !== existingUser.email) {
+        const duplicateUser = await findUserByEmail(client, nextEmail, existingUser.tenant_id);
+        assert(!duplicateUser || duplicateUser.id === actor.id, "A user with this email already exists.");
+      }
+
+      await updateUserRepo(client, {
+        id: actor.id,
+        tenantId: existingUser.tenant_id,
+        name: nextName,
+        email: nextEmail,
+        passwordHash: nextPasswordHash,
+        role: existingUser.role,
+        status: existingUser.status,
+      });
+
+      await this.auditService.record(client, {
+        tenantId: existingUser.tenant_id,
+        userId: actor.id,
+        actionType: "user.profile_update",
+        entityType: "user",
+        entityId: actor.id,
+        description: `${actor.name} updated their profile`,
+        metadata: { passwordChanged: Boolean(nextPasswordHash) },
+      });
+
+      updatedUser = {
+        id: actor.id,
+        name: nextName,
+        email: nextEmail,
+        role: existingUser.role,
+        status: existingUser.status,
+        tenantId: existingUser.tenant_id || null,
+      };
+    });
+
+    return updatedUser;
+  }
+
+  async deleteUser(userId, actor) {
+    await this.databaseManager.withTransaction(async (client) => {
+      const existingUser = await findUserById(client, userId);
+      assert(existingUser, "User not found.", 404);
+
+      if (actor.role !== USER_ROLES.SYSTEM_DEVELOPER) {
+        assert(existingUser.tenant_id === actor.tenantId, "User not found.", 404);
+      }
+
+      assert(existingUser.id !== actor.id, "You cannot delete your own account.");
+      assert(allowedRolesForActor(actor.role).includes(existingUser.role), "Forbidden.", 403);
+
+      await deleteUserRepo(client, userId, existingUser.tenant_id);
+      await this.auditService.record(client, {
+        tenantId: existingUser.tenant_id,
+        userId: actor.id,
+        actionType: "user.delete",
+        entityType: "user",
+        entityId: userId,
+        description: `${actor.name} deleted user ${existingUser.email}`,
+        metadata: { role: existingUser.role },
+      });
+    });
+
+    return this.listUsers(actor);
+  }
+}

@@ -112,7 +112,7 @@ async function applySettlementInventoryDelta(client, previousItems, nextItems, t
     const nextReturned = nextReturnedTotals.get(productId) || 0;
     const previousDamaged = previousDamagedTotals.get(productId) || 0;
     const nextDamaged = nextDamagedTotals.get(productId) || 0;
-    const goodDifference = (nextReturned - nextDamaged) - (previousReturned - previousDamaged);
+    const goodDifference = nextReturned - previousReturned;
     const damagedDifference = nextDamaged - previousDamaged;
 
     if (goodDifference === 0 && damagedDifference === 0) {
@@ -142,12 +142,12 @@ function syncSettlementItemsWithIssue(issueItems, settlementItems) {
   return issueItems.map((issueItem) => {
     const previousSettlementItem = settlementMap.get(issueItem.productId);
     const returnedPieces = cleanInteger(previousSettlementItem?.returnedPieces);
+    const damagedPieces = cleanInteger(previousSettlementItem?.damagedPieces);
     assert(
-      returnedPieces <= issueItem.issuedPieces,
+      returnedPieces + damagedPieces <= issueItem.issuedPieces,
       `${issueItem.productName} returned quantity cannot be greater than issued quantity after the issue update.`,
     );
-    const damagedPieces = Math.min(cleanInteger(previousSettlementItem?.damagedPieces), returnedPieces);
-    const soldPieces = issueItem.issuedPieces - returnedPieces;
+    const soldPieces = Math.max(issueItem.issuedPieces - returnedPieces - damagedPieces, 0);
     const rate = Number(issueItem.rate || 0);
 
     return {

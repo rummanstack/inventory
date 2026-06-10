@@ -114,7 +114,7 @@ export function useSettlementViewModel({ products, dsrs, today, saveSettlementAc
     const input = returns[row.key] || {};
     const returnedPieces = toPieces(input.caseQty, input.pieceQty, row.piecesPerCase);
     const damagedPieces = toPieces(input.damagedCaseQty, input.damagedPieceQty, row.piecesPerCase);
-    const soldPieces = calculateSold(row.issuedPieces, returnedPieces);
+    const soldPieces = calculateSold(row.issuedPieces, returnedPieces + damagedPieces);
 
     return {
       ...row,
@@ -122,7 +122,7 @@ export function useSettlementViewModel({ products, dsrs, today, saveSettlementAc
       damagedPieces,
       soldPieces,
       payable: calculatePayable(soldPieces, row.rate),
-      invalid: returnedPieces > row.issuedPieces || damagedPieces > returnedPieces,
+      invalid: returnedPieces + damagedPieces > row.issuedPieces,
     };
   });
 
@@ -131,7 +131,9 @@ export function useSettlementViewModel({ products, dsrs, today, saveSettlementAc
   const extraReturnValue = extraReturns.reduce((sum, row) => {
     const product = products.find((p) => p.id === row.productId);
     const rate = Number(product?.sellingPrice || 0);
-    return sum + toPieces(row.caseQty, row.pieceQty, row.piecesPerCase) * rate;
+    const returnedPieces = toPieces(row.caseQty, row.pieceQty, row.piecesPerCase);
+    const damagedPieces = toPieces(row.damagedCaseQty, row.damagedPieceQty, row.piecesPerCase);
+    return sum + (returnedPieces + damagedPieces) * rate;
   }, 0);
   const previousDue = Math.max(0, Number(previousDueInput || 0));
   const discount = Math.max(0, Number(discountInput || 0));

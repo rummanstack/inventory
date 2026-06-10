@@ -61,8 +61,8 @@ export function normalizeSettlement(input) {
     ? input.items.map((item) => {
         const issuedPieces = cleanInteger(item.issuedPieces);
         const returnedPieces = cleanInteger(item.returnedPieces);
-        const damagedPieces = Math.min(cleanInteger(item.damagedPieces), returnedPieces);
-        const soldPieces = Math.max(issuedPieces - returnedPieces, 0);
+        const damagedPieces = cleanInteger(item.damagedPieces);
+        const soldPieces = Math.max(issuedPieces - returnedPieces - damagedPieces, 0);
         const rate = cleanMoney(item.rate);
 
         return {
@@ -85,9 +85,9 @@ export function normalizeSettlement(input) {
         input.extraReturns.reduce((map, item) => {
           const productId = String(item.productId || "").trim();
           const returnedPieces = cleanInteger(item.returnedPieces);
-          const damagedPieces = Math.min(cleanInteger(item.damagedPieces), returnedPieces);
+          const damagedPieces = cleanInteger(item.damagedPieces);
 
-          if (!productId || returnedPieces <= 0) {
+          if (!productId || (returnedPieces <= 0 && damagedPieces <= 0)) {
             return map;
           }
 
@@ -101,7 +101,7 @@ export function normalizeSettlement(input) {
           };
 
           existing.returnedPieces += returnedPieces;
-          existing.damagedPieces = Math.min(existing.damagedPieces + damagedPieces, existing.returnedPieces);
+          existing.damagedPieces += damagedPieces;
           if (!existing.productName) {
             existing.productName = String(item.productName || "").trim();
           }

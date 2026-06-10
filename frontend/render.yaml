@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: arinda-inventory-system
+    env: node
+    buildCommand: npm run render-build
+    startCommand: npm start

@@ -1,0 +1,69 @@
+import { useState } from 'react';
+import { PackagePlus } from 'lucide-react';
+import { Alert, Modal } from '../../../components/ui.jsx';
+import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
+import { formatCasePiece, toPieces } from '../../../utils/calculations.js';
+
+export default function StockUpdateModal({ product, onClose, onSave }) {
+  const { t } = useInventoryApp();
+  const [caseQty, setCaseQty] = useState(0);
+  const [pieceQty, setPieceQty] = useState(0);
+  const [error, setError] = useState('');
+  const [saving, setSaving] = useState(false);
+  const addPieces = toPieces(caseQty, pieceQty, product.piecesPerCase);
+  const nextStock = product.stockPieces + addPieces;
+
+  async function submitForm(event) {
+    event.preventDefault();
+    if (addPieces <= 0) {
+      setError(t('products.stockError'));
+      return;
+    }
+
+    setSaving(true);
+    setError('');
+    const result = await onSave(product.id, addPieces);
+    setSaving(false);
+
+    if (!result?.ok) {
+      setError(result?.message || t('products.stockUpdateFailed'));
+    }
+  }
+
+  return (
+    <Modal title={t('products.addStock')} description={product.name} onClose={onClose} width="max-w-xl">
+      <form className="space-y-4" onSubmit={submitForm}>
+        {error ? <Alert type="error">{error}</Alert> : null}
+        <div className="grid gap-4 rounded-xl border border-slate-200 bg-slate-50 p-4 sm:grid-cols-2">
+          <div>
+            <p className="text-xs font-bold uppercase text-slate-500">{t('products.currentStock')}</p>
+            <p className="mt-1 text-lg font-bold text-slate-950">{formatCasePiece(product.stockPieces, product.piecesPerCase)}</p>
+          </div>
+          <div>
+            <p className="text-xs font-bold uppercase text-slate-500">{t('products.afterUpdate')}</p>
+            <p className="mt-1 text-lg font-bold text-emerald-700">{formatCasePiece(nextStock, product.piecesPerCase)}</p>
+          </div>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label className="label">{t('products.addCase')}</label>
+            <input className="input" type="number" min="0" value={caseQty} onChange={(event) => setCaseQty(event.target.value)} />
+          </div>
+          <div>
+            <label className="label">{t('products.addPiece')}</label>
+            <input className="input" type="number" min="0" value={pieceQty} onChange={(event) => setPieceQty(event.target.value)} />
+          </div>
+        </div>
+        <div className="flex justify-end gap-2 pt-2">
+          <button type="button" className="btn-secondary" onClick={onClose} disabled={saving}>
+            {t('common.cancel')}
+          </button>
+          <button type="submit" className="btn-primary" disabled={saving}>
+            <PackagePlus size={18} />
+            {saving ? t('common.saving') : t('products.updateStock')}
+          </button>
+        </div>
+      </form>
+    </Modal>
+  );
+}

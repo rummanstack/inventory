@@ -1,0 +1,65 @@
+import {
+  CircleDollarSign,
+  BarChart3,
+  Boxes,
+  Building2,
+  ClipboardList,
+  FileText,
+  HandCoins,
+  KeyRound,
+  RotateCcw,
+  Settings,
+  ShieldCheck,
+  TrendingUp,
+  Truck,
+  Users,
+  UserCog,
+  Database,
+} from 'lucide-react';
+import DashboardPage from '../features/dashboard/pages/DashboardPage';
+import ActivityLogsPage from '../features/activity-logs/pages/ActivityLogsPage';
+import DsrPage from '../features/dsrs/pages/DsrPage';
+import HistoryPage from '../features/history/pages/HistoryPage';
+import ExpensesPage from '../features/expenses/pages/ExpensesPage';
+import DsrFinancePage from '../features/dsr-finance/pages/DsrFinancePage';
+import MonthEndSummaryPage from '../features/month-end-summary/pages/MonthEndSummaryPage';
+import ProfitPage from '../features/profit/pages/ProfitPage';
+import MorningIssuePage from '../features/morning-issue/pages/MorningIssuePage';
+import ProductsPage from '../features/products/pages/ProductsPage';
+import DailyReportsPage from '../features/reports/pages/DailyReportsPage';
+import EveningSettlementPage from '../features/settlements/pages/EveningSettlementPage';
+import DatabaseBackupPage from '../features/database-backup/pages/DatabaseBackupPage';
+import OrgSettingsPage from '../features/settings/pages/OrgSettingsPage';
+import PermissionsPage from '../features/permissions/pages/PermissionsPage';
+import UsersPage from '../features/users/pages/UsersPage';
+import PlatformAdminPage from '../features/platform/pages/PlatformAdminPage';
+import ProfilePage from '../features/profile/pages/ProfilePage';
+
+export const APP_ROUTES = [
+  { id: 'dashboard', path: '/dashboard', labelKey: 'nav.dashboard', icon: BarChart3, component: DashboardPage, group: 'overview', permission: 'view_state' },
+  { id: 'products', path: '/products', labelKey: 'nav.products', icon: Boxes, component: ProductsPage, group: 'operations', permission: 'view_state' },
+  { id: 'dsrs', path: '/dsrs', labelKey: 'nav.dsrs', icon: Users, component: DsrPage, group: 'operations', permission: 'view_state' },
+  { id: 'morning-issue', path: '/morning-issue', labelKey: 'nav.morningIssue', icon: Truck, component: MorningIssuePage, group: 'operations', permission: 'create_issues' },
+  { id: 'settlements', path: '/settlements', labelKey: 'nav.eveningSettlement', icon: RotateCcw, component: EveningSettlementPage, group: 'operations', permission: 'create_settlements' },
+  { id: 'reports', path: '/reports', labelKey: 'nav.reports', icon: FileText, component: DailyReportsPage, group: 'operations', permission: 'view_state' },
+  { id: 'history', path: '/history', labelKey: 'nav.history', icon: ClipboardList, component: HistoryPage, group: 'operations', permission: 'view_state' },
+  { id: 'expenses', path: '/expenses', labelKey: 'nav.expenses', icon: CircleDollarSign, component: ExpensesPage, group: 'finance', permission: 'manage_expenses' },
+  { id: 'dsr-finance', path: '/dsr-finance', labelKey: 'nav.dsrFinance', icon: HandCoins, component: DsrFinancePage, group: 'finance', permission: 'manage_dsr_finance' },
+  { id: 'month-end-summary', path: '/month-end-summary', labelKey: 'nav.monthEndSummary', icon: BarChart3, component: MonthEndSummaryPage, group: 'finance', permission: 'manage_dsr_finance' },
+  { id: 'profit', path: '/profit', labelKey: 'nav.profit', icon: TrendingUp, component: ProfitPage, group: 'finance', permission: 'manage_dsr_finance' },
+  { id: 'activity-logs', path: '/activity-logs', labelKey: 'nav.activityLogs', icon: ClipboardList, component: ActivityLogsPage, group: 'governance', permission: 'view_activity_logs' },
+  { id: 'database-backup', path: '/database-backup', labelKey: 'nav.databaseBackup', icon: Database, component: DatabaseBackupPage, group: 'governance', permission: 'manage_backups' },
+  { id: 'org-settings', path: '/settings/organization', labelKey: 'nav.orgSettings', icon: Settings, component: OrgSettingsPage, group: 'governance', permission: 'manage_org' },
+  { id: 'permissions', path: '/settings/permissions', labelKey: 'nav.permissions', icon: KeyRound, component: PermissionsPage, group: 'governance', roles: ['system_developer', 'super_admin'] },
+  { id: 'users', path: '/settings/users', labelKey: 'nav.users', icon: UserCog, component: UsersPage, group: 'governance', permission: 'manage_users' },
+  { id: 'platform', path: '/platform', labelKey: 'nav.platform', icon: ShieldCheck, component: PlatformAdminPage, group: 'governance', role: 'platform_admin' },
+  { id: 'profile', path: '/profile', labelKey: 'nav.profile', icon: UserCog, component: ProfilePage },
+];
+
+export function getRouteLabel(pathname, t = (key) => key) {
+  const matchedRoute = [...APP_ROUTES]
+    .sort((left, right) => right.path.length - left.path.length)
+    .find((route) => pathname === route.path || pathname.startsWith(`${route.path}/`));
+
+  return matchedRoute ? t(matchedRoute.labelKey) : t('nav.dashboard');
+}

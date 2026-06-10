@@ -1,0 +1,12 @@
+{
+  "name": "arinda-inventory-system-root",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "npm --prefix backend run dev",
+    "start": "npm --prefix backend start",
+    "render-build": "node scripts/render-build.mjs",
+    "frontend:build": "npm --prefix frontend run build",
+    "frontend:dev": "npm --prefix frontend run dev"
+  }
+}

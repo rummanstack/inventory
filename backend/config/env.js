@@ -1,7 +1,9 @@
-const DATABASE_URL = process.env.DATABASE_URL;
 const PORT = Number(process.env.PORT || 3001);
 const NODE_ENV = process.env.NODE_ENV || 'development';
 const SESSION_DAYS = Number(process.env.SESSION_DAYS || 7);
+
+const isDevRun = process.env.npm_lifecycle_event === 'dev';
+const DATABASE_URL = (isDevRun && process.env.DEV_DATABASE_URL) || process.env.DATABASE_URL;
 
 if (!DATABASE_URL) {
   throw new Error('DATABASE_URL is required. Add it to your .env file.');

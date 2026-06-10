@@ -12,6 +12,7 @@ export default function AppSidebar({ mobileOpen, setMobileOpen, user, tenant, la
       label: t(`navGroups.${section}`),
       routes: APP_ROUTES.filter((route) => {
         if (route.group !== section) return false;
+        if (section === 'developer') return user?.role === 'system_developer';
         if (user?.role === 'system_developer') return route.id !== 'org-settings';
         if (route.permission && !can(route.permission)) return false;
         if (route.role && user?.role !== route.role) return false;

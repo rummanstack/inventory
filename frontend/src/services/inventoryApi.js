@@ -81,6 +81,18 @@ export const inventoryApi = {
     return apiRequest(`/activity-logs${query ? `?${query}` : ""}`);
   },
 
+  getSystemHealth() {
+    return apiRequest("/system/health");
+  },
+
+  listErrorLogs({ page, pageSize } = {}) {
+    const params = new URLSearchParams();
+    if (page) params.set("page", page);
+    if (pageSize) params.set("pageSize", pageSize);
+    const query = params.toString();
+    return apiRequest(`/system/error-logs${query ? `?${query}` : ""}`);
+  },
+
   getExpenseReport({ date, month } = {}) {
     const params = new URLSearchParams();
     if (date) {

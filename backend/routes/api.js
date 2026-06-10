@@ -14,6 +14,7 @@ import { SettlementController } from "../controllers/settlementController.js";
 import { TenantController } from "../controllers/tenantController.js";
 import { OrgController } from "../controllers/orgController.js";
 import { PermissionController } from "../controllers/permissionController.js";
+import { SystemController } from "../controllers/systemController.js";
 import { requireAuth } from "../middleware/requireAuth.js";
 import { requireActiveTenant } from "../middleware/requireActiveTenant.js";
 import { requirePlatformAdmin } from "../middleware/requirePlatformAdmin.js";
@@ -35,6 +36,8 @@ export function createApiRouter({
   databaseManager,
   tenantService,
   permissionService,
+  systemService,
+  errorLogService,
 }) {
   const router = Router();
   const authController = new AuthController(authService, env);
@@ -52,6 +55,7 @@ export function createApiRouter({
   const tenantController = new TenantController(tenantService);
   const orgController = new OrgController(tenantService);
   const permissionController = new PermissionController(permissionService);
+  const systemController = new SystemController(systemService, errorLogService, env);
 
   router.post("/auth/login", authController.login);
   router.post("/auth/logout", authController.logout);
@@ -66,6 +70,10 @@ export function createApiRouter({
   router.post("/platform/tenants", requirePlatformAdmin, tenantController.create);
   router.patch("/platform/tenants/:id", requirePlatformAdmin, tenantController.update);
   router.patch("/platform/tenants/:id/status", requirePlatformAdmin, tenantController.setStatus);
+
+  // System developer routes — no tenant required, system_developer only
+  router.get("/system/health", requireRoles(USER_ROLES.SYSTEM_DEVELOPER), systemController.health);
+  router.get("/system/error-logs", requireRoles(USER_ROLES.SYSTEM_DEVELOPER), systemController.errorLogs);
 
   // All business routes require an active tenant subscription
   router.use(requireActiveTenant);

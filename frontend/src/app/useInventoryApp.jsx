@@ -407,6 +407,8 @@ export function InventoryAppProvider({ children }) {
       setLanguage,
       t,
       can: (permission) => user?.role === 'system_developer' || permissions.includes(permission),
+      hasFeature: (feature) =>
+        !feature || user?.role === 'system_developer' || user?.role === 'platform_admin' || !tenant?.features || tenant.features.includes(feature),
       user,
       tenant,
       setTenant,

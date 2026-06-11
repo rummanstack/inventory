@@ -7,6 +7,12 @@ import {
   setTenantStatus,
   updateTenant,
 } from "../repositories/tenantRepository.js";
+import {
+  hasTenantFeatureConfig,
+  listTenantFeatures,
+  replaceTenantFeatures,
+} from "../repositories/tenantFeatureRepository.js";
+import { TENANT_FEATURES } from "../lib/features.js";
 import { assert } from "../lib/errors.js";
 
 export class TenantService {
@@ -76,6 +82,38 @@ export class TenantService {
       const existing = await findTenantById(client, tenantId);
       assert(existing, "Organization not found", 404);
       return await setTenantStatus(client, tenantId, status);
+    } finally {
+      client.release();
+    }
+  }
+
+  async getTenantFeatures(tenantId) {
+    const client = await this.databaseManager.getPool().connect();
+    try {
+      const configured = await hasTenantFeatureConfig(client, tenantId);
+      if (!configured) {
+        return [...TENANT_FEATURES];
+      }
+      return await listTenantFeatures(client, tenantId);
+    } finally {
+      client.release();
+    }
+  }
+
+  async updateTenantFeatures(tenantId, features) {
+    assert(Array.isArray(features), "features must be an array", 400);
+
+    const cleanFeatures = [...new Set(features.map((feature) => String(feature)))];
+    for (const feature of cleanFeatures) {
+      assert(TENANT_FEATURES.includes(feature), `Unknown feature: ${feature}`, 400);
+    }
+
+    const client = await this.databaseManager.getPool().connect();
+    try {
+      const existing = await findTenantById(client, tenantId);
+      assert(existing, "Organization not found", 404);
+      await replaceTenantFeatures(client, tenantId, cleanFeatures);
+      return cleanFeatures;
     } finally {
       client.release();
     }

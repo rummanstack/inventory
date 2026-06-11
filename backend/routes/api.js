@@ -40,7 +40,7 @@ export function createApiRouter({
   errorLogService,
 }) {
   const router = Router();
-  const authController = new AuthController(authService, env);
+  const authController = new AuthController(authService, env, tenantService);
   const productController = new ProductController(inventoryService);
   const dsrController = new DsrController(inventoryService);
   const issueController = new IssueController(inventoryService);
@@ -70,6 +70,8 @@ export function createApiRouter({
   router.post("/platform/tenants", requirePlatformAdmin, tenantController.create);
   router.patch("/platform/tenants/:id", requirePlatformAdmin, tenantController.update);
   router.patch("/platform/tenants/:id/status", requirePlatformAdmin, tenantController.setStatus);
+  router.get("/platform/tenants/:id/features", requirePlatformAdmin, tenantController.getFeatures);
+  router.patch("/platform/tenants/:id/features", requirePlatformAdmin, tenantController.updateFeatures);
 
   // System developer routes — no tenant required, system_developer only
   router.get("/system/health", requireRoles(USER_ROLES.SYSTEM_DEVELOPER), systemController.health);

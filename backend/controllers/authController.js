@@ -12,27 +12,38 @@ function createCookieOptions(env) {
 }
 
 export class AuthController {
-  constructor(authService, env) {
+  constructor(authService, env, tenantService) {
     this.authService = authService;
     this.env = env;
+    this.tenantService = tenantService;
+  }
+
+  async withFeatures(tenant) {
+    if (!tenant) return tenant;
+    const features = await this.tenantService.getTenantFeatures(tenant.id);
+    return { ...tenant, features };
   }
 
   login = async (req, res, next) => {
     try {
       const { token, user, tenant } = await this.authService.login(req.body);
       res.cookie(this.env.SESSION_COOKIE_NAME, token, createCookieOptions(this.env));
-      res.json({ user, tenant, permissions: getRolePermissions(user.role, user.tenantId) });
+      res.json({ user, tenant: await this.withFeatures(tenant), permissions: getRolePermissions(user.role, user.tenantId) });
     } catch (error) {
       next(error);
     }
   };
 
-  me = async (req, res) => {
-    res.json({
-      user: req.currentUser,
-      tenant: req.currentTenant,
-      permissions: getRolePermissions(req.currentUser.role, req.currentUser.tenantId),
-    });
+  me = async (req, res, next) => {
+    try {
+      res.json({
+        user: req.currentUser,
+        tenant: await this.withFeatures(req.currentTenant),
+        permissions: getRolePermissions(req.currentUser.role, req.currentUser.tenantId),
+      });
+    } catch (error) {
+      next(error);
+    }
   };
 
   logout = async (req, res, next) => {

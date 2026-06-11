@@ -4,7 +4,7 @@ import { cx } from '../components/ui';
 import { APP_ROUTES } from './routes';
 import LanguageSwitcher from './LanguageSwitcher';
 
-export default function AppSidebar({ mobileOpen, setMobileOpen, user, tenant, language, onLanguageChange, onLogout, t, can }) {
+export default function AppSidebar({ mobileOpen, setMobileOpen, user, tenant, language, onLanguageChange, onLogout, t, can, hasFeature }) {
   const sections = ['overview', 'operations', 'finance', 'governance', 'developer'];
   const groupedRoutes = sections
     .map((section) => ({
@@ -17,6 +17,7 @@ export default function AppSidebar({ mobileOpen, setMobileOpen, user, tenant, la
         if (route.permission && !can(route.permission)) return false;
         if (route.role && user?.role !== route.role) return false;
         if (route.roles && !route.roles.includes(user?.role)) return false;
+        if (!hasFeature(route.feature)) return false;
         return true;
       }),
     }))

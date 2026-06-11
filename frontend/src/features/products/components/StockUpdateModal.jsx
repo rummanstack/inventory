@@ -21,11 +21,6 @@ export default function StockUpdateModal({ product, onClose, onSave }) {
       return;
     }
 
-    if (!reason.trim()) {
-      setError(t('common.editReasonRequired'));
-      return;
-    }
-
     setSaving(true);
     setError('');
     const result = await onSave(product.id, addPieces, reason.trim());
@@ -61,8 +56,8 @@ export default function StockUpdateModal({ product, onClose, onSave }) {
           </div>
         </div>
         <div>
-          <label className="label">{t('common.editReasonLabel')}</label>
-          <textarea className="input min-h-20" value={reason} onChange={(event) => setReason(event.target.value)} placeholder={t('common.editReasonPlaceholder')} />
+          <label className="label">{t('products.stockNoteLabel')}</label>
+          <textarea className="input min-h-20" value={reason} onChange={(event) => setReason(event.target.value)} placeholder={t('products.stockNotePlaceholder')} />
         </div>
         <div className="flex justify-end gap-2 pt-2">
           <button type="button" className="btn-secondary" onClick={onClose} disabled={saving}>

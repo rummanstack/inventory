@@ -10,7 +10,7 @@ export default function MorningIssuePage() {
   const vm = useMorningIssueViewModel({ products: productDirectory, dsrs: dsrDirectory, today, saveIssueAction: saveIssue, t });
   const canCreateIssue = can('create_issues');
   const canUpdateIssue = can('update_issues');
-  const canEditIssue = vm.existingIssue ? canUpdateIssue : canCreateIssue;
+  const canEditIssue = (vm.existingIssue ? canUpdateIssue : canCreateIssue) && !vm.existingSettlement;
 
   return (
     <div>
@@ -55,6 +55,11 @@ export default function MorningIssuePage() {
             <Alert type="info">{t('morningIssue.existingInfo')}</Alert>
           </div>
         ) : null}
+        {vm.existingSettlement ? (
+          <div className="mt-4">
+            <Alert type="warning">{t('morningIssue.settlementLocked')}</Alert>
+          </div>
+        ) : null}
       </div>
 
       <div className="surface overflow-hidden">
@@ -65,7 +70,7 @@ export default function MorningIssuePage() {
           </div>
           <div className="flex flex-wrap gap-2">
             {canEditIssue ? (
-              <button type="button" className="btn-primary" onClick={vm.saveIssue} disabled={vm.saving || !productDirectory.length || Boolean(vm.invalidRows.length)}>
+              <button type="button" className="btn-primary" onClick={vm.saveIssue} disabled={vm.saving || !productDirectory.length || Boolean(vm.invalidRows.length) || Boolean(vm.existingSettlement)}>
                 <Save size={18} />
                 {vm.saving ? t('common.saving') : vm.existingIssue ? t('morningIssue.updateIssue') : t('morningIssue.saveIssue')}
               </button>
@@ -113,7 +118,7 @@ export default function MorningIssuePage() {
                           <p className={cx('font-semibold', row.invalid ? 'text-rose-700' : 'text-slate-950')}>{formatCasePiece(row.issuedPieces, row.piecesPerCase)}</p>
                           {row.invalid ? <p className="text-xs font-semibold text-rose-700">{t('morningIssue.exceedsStock')}</p> : null}
                         </td>
-                        <td className="table-cell">{formatCurrency(row.sellingPrice)}</td>
+                        <td className="table-cell">{formatCurrency(row.rate)}</td>
                         <td className="table-cell text-right font-bold">{formatCurrency(row.issueValue)}</td>
                       </tr>
                     );

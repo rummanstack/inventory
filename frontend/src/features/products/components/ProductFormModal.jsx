@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Save } from 'lucide-react';
 import { Alert, Modal } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
-import AuditHistory from '../../audit/components/AuditHistory.jsx';
 import { cleanNumber } from '../../../utils/calculations.js';
 
 export default function ProductFormModal({ product, onClose, onSave }) {
@@ -86,7 +85,6 @@ export default function ProductFormModal({ product, onClose, onSave }) {
             <input className="input" type="number" min="0" step="1" value={form.orderIndex} onChange={(event) => updateField('orderIndex', event.target.value)} placeholder="0" />
           </div>
         </div>
-        {isEdit ? <AuditHistory entityType="product" entityId={product.id} /> : null}
         <div className="flex justify-end gap-2 pt-2">
           <button type="button" className="btn-secondary" onClick={onClose} disabled={saving}>
             {t('common.cancel')}

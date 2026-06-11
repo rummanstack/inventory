@@ -159,7 +159,13 @@ export function useSettlementViewModel({ products, dsrs, today, saveSettlementAc
   });
 
   const totalPayable = displayRows.reduce((sum, item) => sum + item.payable, 0);
-  const totalExtraReturnedPieces = extraReturns.reduce((sum, item) => sum + toPieces(item.caseQty, item.pieceQty, item.piecesPerCase), 0);
+  const totalExtraReturnedPieces = extraReturns.reduce(
+    (sum, item) =>
+      sum +
+      toPieces(item.caseQty, item.pieceQty, item.piecesPerCase) +
+      toPieces(item.damagedCaseQty, item.damagedPieceQty, item.piecesPerCase),
+    0,
+  );
   const extraReturnValue = extraReturns.reduce((sum, row) => {
     const product = products.find((p) => p.id === row.productId);
     const rate = Number(product?.sellingPrice || 0);
@@ -176,7 +182,13 @@ export function useSettlementViewModel({ products, dsrs, today, saveSettlementAc
   const dueAmount = receivableTotal - amountPaid;
   const todayDue = totalPayable - discount - extraReturnValue - amountPaid;
   const hasInvalidReturns = displayRows.some((row) => row.invalid);
-  const hasInvalidExtraReturns = extraReturns.some((row) => !row.productId || toPieces(row.caseQty, row.pieceQty, row.piecesPerCase) <= 0);
+  const hasInvalidExtraReturns = extraReturns.some(
+    (row) =>
+      !row.productId ||
+      toPieces(row.caseQty, row.pieceQty, row.piecesPerCase) +
+        toPieces(row.damagedCaseQty, row.damagedPieceQty, row.piecesPerCase) <=
+        0,
+  );
   const discountTooHigh = receivableBeforePayment < -0.004;
   const amountPaidTooHigh = amountPaid > receivableTotal + 0.004;
   const hasErrors = hasInvalidReturns || hasInvalidExtraReturns || discountTooHigh || amountPaidTooHigh;

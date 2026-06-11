@@ -23,6 +23,7 @@ import { requireAuth } from "../middleware/requireAuth.js";
 import { requireActiveTenant } from "../middleware/requireActiveTenant.js";
 import { requirePlatformAdmin } from "../middleware/requirePlatformAdmin.js";
 import { requirePermission, requireRoles } from "../middleware/requireRole.js";
+import { createRateLimiter } from "../middleware/rateLimiter.js";
 import { PERMISSIONS } from "../lib/permissions.js";
 import { USER_ROLES } from "../lib/roles.js";
 
@@ -68,12 +69,21 @@ export function createApiRouter({
   const permissionController = new PermissionController(permissionService);
   const systemController = new SystemController(systemService, errorLogService, env);
 
-  router.post("/auth/login", authController.login);
+  const loginRateLimiter = createRateLimiter({ windowMs: 15 * 60 * 1000, max: 20 });
+  const authRateLimiter = createRateLimiter({ windowMs: 15 * 60 * 1000, max: 20 });
+
+  router.post("/auth/login", loginRateLimiter, authController.login);
+  router.post("/auth/forgot-password", authRateLimiter, authController.forgotPassword);
+  router.post("/auth/reset-password", authRateLimiter, authController.resetPassword);
   router.post("/auth/logout", authController.logout);
 
   router.use(requireAuth(authService, env));
 
   router.get("/auth/me", authController.me);
+  router.get("/auth/sessions", authController.listSessions);
+  router.delete("/auth/sessions/:id", authController.revokeSession);
+  router.post("/auth/sessions/revoke-others", authController.revokeOtherSessions);
+  router.get("/auth/login-history", authController.loginHistory);
   router.patch("/profile", userController.updateProfile);
 
   // Platform admin routes — no tenant required, platform_admin only
@@ -106,8 +116,15 @@ export function createApiRouter({
 
   router.get("/users", requirePermission(PERMISSIONS.MANAGE_USERS), userController.list);
   router.post("/users", requirePermission(PERMISSIONS.MANAGE_USERS), userController.create);
+  router.get(
+    "/users/password-reset-requests",
+    requirePermission(PERMISSIONS.MANAGE_USERS),
+    userController.listPasswordResetRequests,
+  );
   router.patch("/users/:id", requirePermission(PERMISSIONS.MANAGE_USERS), userController.update);
   router.delete("/users/:id", requirePermission(PERMISSIONS.MANAGE_USERS), userController.remove);
+  router.post("/users/:id/reset-password", requirePermission(PERMISSIONS.MANAGE_USERS), userController.resetPassword);
+  router.post("/users/:id/unlock", requirePermission(PERMISSIONS.MANAGE_USERS), userController.unlock);
 
   router.get("/activity-logs", requirePermission(PERMISSIONS.VIEW_ACTIVITY_LOGS), activityLogController.list);
   router.post("/audit/print", auditController.recordPrint);

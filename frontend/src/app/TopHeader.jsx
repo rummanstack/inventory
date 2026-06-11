@@ -1,4 +1,4 @@
-import { CalendarDays, CheckCircle2, LogOut, Menu, UserCircle } from 'lucide-react';
+import { CalendarDays, CheckCircle2, LogOut, Menu, ShieldCheck, UserCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { formatDate } from '../utils/calculations';
 
@@ -32,6 +32,9 @@ export default function TopHeader({ title, today, user, onLogout, onOpenMenu, t 
           >
             <UserCircle size={17} className="text-[var(--secondary-strong)]" />
             <span className="max-w-44 truncate">{user?.name}</span>
+          </Link>
+          <Link to="/security" title={t('nav.security')} className="icon-btn">
+            <ShieldCheck size={17} />
           </Link>
           <button type="button" className="icon-btn" title={t('auth.logout')} onClick={onLogout}>
             <LogOut size={17} />

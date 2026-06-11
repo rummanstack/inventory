@@ -72,6 +72,42 @@ export const inventoryApi = {
     return apiRequest("/profile", { method: "PATCH", body: JSON.stringify(fields) });
   },
 
+  forgotPassword({ email, orgSlug }) {
+    return apiRequest("/auth/forgot-password", { method: "POST", body: JSON.stringify({ email, orgSlug }) });
+  },
+
+  resetPassword({ token, password }) {
+    return apiRequest("/auth/reset-password", { method: "POST", body: JSON.stringify({ token, password }) });
+  },
+
+  listSessions() {
+    return apiRequest("/auth/sessions");
+  },
+
+  revokeSession(sessionId) {
+    return apiRequest(`/auth/sessions/${sessionId}`, { method: "DELETE" });
+  },
+
+  revokeOtherSessions() {
+    return apiRequest("/auth/sessions/revoke-others", { method: "POST" });
+  },
+
+  getLoginHistory() {
+    return apiRequest("/auth/login-history");
+  },
+
+  adminResetUserPassword(userId) {
+    return apiRequest(`/users/${userId}/reset-password`, { method: "POST" });
+  },
+
+  unlockUser(userId) {
+    return apiRequest(`/users/${userId}/unlock`, { method: "POST" });
+  },
+
+  listPasswordResetRequests() {
+    return apiRequest("/users/password-reset-requests");
+  },
+
   listActivityLogs({ page, pageSize, search, module, actionType, userId, dateFrom, dateTo, tenantId } = {}) {
     const params = new URLSearchParams();
     if (page) params.set("page", page);

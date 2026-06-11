@@ -22,3 +22,43 @@ export async function verifyPassword(password, storedHash) {
 
   return expected.length === actual.length && crypto.timingSafeEqual(expected, actual);
 }
+
+export function validatePasswordStrength(password) {
+  const value = String(password || "");
+  if (value.length < 8) {
+    return "Password must be at least 8 characters long.";
+  }
+  if (!/[a-z]/.test(value)) {
+    return "Password must include at least one lowercase letter.";
+  }
+  if (!/[A-Z]/.test(value)) {
+    return "Password must include at least one uppercase letter.";
+  }
+  if (!/[0-9]/.test(value)) {
+    return "Password must include at least one number.";
+  }
+  return null;
+}
+
+const TEMP_PASSWORD_UPPER = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+const TEMP_PASSWORD_LOWER = "abcdefghijkmnopqrstuvwxyz";
+const TEMP_PASSWORD_DIGITS = "23456789";
+
+function pickChar(pool) {
+  return pool[crypto.randomInt(pool.length)];
+}
+
+export function generateTempPassword() {
+  const all = TEMP_PASSWORD_UPPER + TEMP_PASSWORD_LOWER + TEMP_PASSWORD_DIGITS;
+  const chars = [pickChar(TEMP_PASSWORD_UPPER), pickChar(TEMP_PASSWORD_LOWER), pickChar(TEMP_PASSWORD_DIGITS)];
+  for (let i = chars.length; i < 10; i += 1) {
+    chars.push(pickChar(all));
+  }
+
+  for (let i = chars.length - 1; i > 0; i -= 1) {
+    const j = crypto.randomInt(i + 1);
+    [chars[i], chars[j]] = [chars[j], chars[i]];
+  }
+
+  return chars.join("");
+}

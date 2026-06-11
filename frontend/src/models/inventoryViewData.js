@@ -77,14 +77,45 @@ export function buildSheetData({ date, dsrId, dsrs, issues, settlements, product
   const settlement = getSettlementFor(settlements, date, dsrId);
   const dsr = getDsrSnapshot(dsrs, issues, settlements, dsrId, date);
   const status = settlement ? 'Completed' : aggregate.issueIds.length > 0 ? 'Pending' : 'No Issue';
+  const productMap = new Map(products.map((product) => [product.id, product]));
   const items = settlement
-    ? settlement.items
+    ? settlement.items.map((item) => {
+        const returnedPieces = Number(item.returnedPieces || 0);
+        const damagedPieces = Number(item.damagedPieces || 0);
+        const rate = Number(item.rate || 0);
+        return {
+          ...item,
+          returnValue: (returnedPieces + damagedPieces) * rate,
+        };
+      })
     : aggregate.rows.map((row) => ({
         ...row,
         returnedPieces: 0,
+        damagedPieces: 0,
         soldPieces: 0,
         payable: 0,
+        returnValue: 0,
       }));
+  const extraReturns = settlement
+    ? (settlement.extraReturns || []).map((item) => {
+        const product = productMap.get(item.productId);
+        const returnedPieces = Number(item.returnedPieces || 0);
+        const damagedPieces = Number(item.damagedPieces || 0);
+        const rate = Number(item.rate || product?.sellingPrice || 0);
+        return {
+          ...item,
+          productName: item.productName || product?.name || 'Archived product',
+          piecesPerCase: item.piecesPerCase || product?.piecesPerCase || 1,
+          returnedPieces,
+          damagedPieces,
+          rate,
+          returnValue: Number(item.returnValue || 0) || (returnedPieces + damagedPieces) * rate,
+        };
+      })
+    : [];
+  const issuedReturnValue = items.reduce((sum, item) => sum + Number(item.returnValue || 0), 0);
+  const extraReturnValue = settlement ? settlement.extraReturnValue || 0 : 0;
+  const totalPayable = settlement ? settlement.totalPayable : 0;
 
   return {
     businessName: tenantName || 'Arinda Enterprise',
@@ -95,15 +126,18 @@ export function buildSheetData({ date, dsrId, dsrs, issues, settlements, product
     phone: dsr.phone,
     status,
     items,
-    extraReturns: settlement ? settlement.extraReturns || [] : [],
-    totalPayable: settlement ? settlement.totalPayable : 0,
+    extraReturns,
+    grossIssueValue: totalPayable + issuedReturnValue,
+    totalPayable,
     previousDue: settlement ? settlement.previousDue || 0 : 0,
     discount: settlement ? settlement.discount || 0 : 0,
-    extraReturnValue: settlement ? settlement.extraReturnValue || 0 : 0,
+    issuedReturnValue,
+    extraReturnValue,
+    totalReturnValue: issuedReturnValue + extraReturnValue,
     amountPaid: settlement ? settlement.amountPaid || 0 : 0,
-    todayDue: settlement ? Math.max(0, (settlement.totalPayable || 0) - (settlement.discount || 0) - (settlement.extraReturnValue || 0) - (settlement.amountPaid || 0)) : 0,
+    todayDue: settlement ? Math.max(0, (settlement.totalPayable || 0) - (settlement.discount || 0) - extraReturnValue - (settlement.amountPaid || 0)) : 0,
     totalReceivable: settlement
-      ? Math.max(0, (settlement.totalPayable || 0) + (settlement.previousDue || 0) - (settlement.discount || 0) - (settlement.extraReturnValue || 0))
+      ? Math.max(0, (settlement.totalPayable || 0) + (settlement.previousDue || 0) - (settlement.discount || 0) - extraReturnValue)
       : 0,
     dueAmount: settlement ? settlement.dueAmount || 0 : 0,
   };

@@ -331,6 +331,40 @@ export function InventoryAppProvider({ children }) {
     }
   }
 
+  async function saveCustomer(customer) {
+    try {
+      const result = customer.id ? await inventoryApi.updateCustomer(customer) : await inventoryApi.createCustomer(customer);
+      pushToast('success', customer.id ? t('customers.editTitle') : t('customers.addTitle'), `${customer.shopName} ${customer.id ? t('alerts.updated') : t('alerts.created')}`);
+      return { ok: true, customer: result.customer };
+    } catch (error) {
+      const message = getFriendlyError(error, t);
+      pushToast('error', t('alerts.requestFailed'), message);
+      return { ok: false, message };
+    }
+  }
+
+  async function deleteCustomer(customer) {
+    const confirmMessage = t('customers.deleteConfirm', { name: customer.shopName });
+    if (!(await confirm({
+      title: t('customers.deleteTitle'),
+      description: interpolateConfirm(confirmMessage, { name: customer.shopName }),
+      confirmLabel: t('common.delete'),
+      tone: 'rose',
+    }))) {
+      return { ok: false };
+    }
+
+    try {
+      await inventoryApi.deleteCustomer(customer.id);
+      pushToast('success', t('common.delete'), `${customer.shopName} ${t('alerts.deleted')}`);
+      return { ok: true };
+    } catch (error) {
+      const message = getFriendlyError(error, t);
+      pushToast('error', t('alerts.deleteFailed'), message);
+      return { ok: false, message };
+    }
+  }
+
   async function saveIssue(issue) {
     try {
       await inventoryApi.saveIssue(issue);
@@ -430,6 +464,8 @@ export function InventoryAppProvider({ children }) {
       addStock,
       saveDsr,
       deleteDsr,
+      saveCustomer,
+      deleteCustomer,
       saveIssue,
       saveSettlement,
       updateProfile,

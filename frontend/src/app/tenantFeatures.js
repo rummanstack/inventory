@@ -4,6 +4,7 @@
 export const TENANT_FEATURE_ROUTES = [
   { feature: 'products', labelKey: 'nav.products' },
   { feature: 'dsrs', labelKey: 'nav.dsrs' },
+  { feature: 'customers', labelKey: 'nav.customers' },
   { feature: 'morning-issue', labelKey: 'nav.morningIssue' },
   { feature: 'settlements', labelKey: 'nav.eveningSettlement' },
   { feature: 'reports', labelKey: 'nav.reports' },

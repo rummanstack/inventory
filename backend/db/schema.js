@@ -281,6 +281,29 @@ export async function createSchema(pool) {
     CREATE INDEX IF NOT EXISTS idx_stock_movements_reference
       ON stock_movements(reference_type, reference_id);
 
+    CREATE TABLE IF NOT EXISTS customers (
+      id              TEXT PRIMARY KEY,
+      tenant_id       TEXT REFERENCES tenants(id),
+      shop_name       TEXT NOT NULL,
+      owner_name      TEXT NOT NULL DEFAULT '',
+      phone           TEXT NOT NULL DEFAULT '',
+      address         TEXT NOT NULL DEFAULT '',
+      market          TEXT NOT NULL DEFAULT '',
+      assigned_dsr_id TEXT REFERENCES dsrs(id) ON DELETE SET NULL,
+      opening_due     NUMERIC NOT NULL DEFAULT 0,
+      current_due     NUMERIC NOT NULL DEFAULT 0,
+      status          TEXT NOT NULL DEFAULT 'ACTIVE',
+      note            TEXT NOT NULL DEFAULT '',
+      created_by      TEXT REFERENCES users(id) ON DELETE SET NULL,
+      created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_customers_tenant_id ON customers(tenant_id);
+    CREATE INDEX IF NOT EXISTS idx_customers_assigned_dsr_id ON customers(assigned_dsr_id);
+    CREATE INDEX IF NOT EXISTS idx_customers_shop_name ON customers(shop_name);
+    CREATE INDEX IF NOT EXISTS idx_customers_status ON customers(status);
+
     CREATE TABLE IF NOT EXISTS role_permissions (
       role TEXT NOT NULL,
       tenant_id TEXT NOT NULL DEFAULT 'global',

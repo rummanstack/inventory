@@ -11,6 +11,7 @@ import { IssueController } from "../controllers/issueController.js";
 import { ProductController } from "../controllers/productController.js";
 import { StockMovementController } from "../controllers/stockMovementController.js";
 import { DsrDueLedgerController } from "../controllers/dsrDueLedgerController.js";
+import { CustomerController } from "../controllers/customerController.js";
 import { UserController } from "../controllers/userController.js";
 import { SettlementController } from "../controllers/settlementController.js";
 import { TenantController } from "../controllers/tenantController.js";
@@ -37,6 +38,7 @@ export function createApiRouter({
   backupService,
   stockMovementService,
   dsrDueLedgerService,
+  customerService,
   databaseManager,
   tenantService,
   permissionService,
@@ -49,6 +51,7 @@ export function createApiRouter({
   const stockMovementController = new StockMovementController(stockMovementService);
   const dsrDueLedgerController = new DsrDueLedgerController(dsrDueLedgerService);
   const dsrController = new DsrController(inventoryService);
+  const customerController = new CustomerController(customerService);
   const issueController = new IssueController(inventoryService);
   const settlementController = new SettlementController(inventoryService);
   const activityLogController = new ActivityLogController(auditService);
@@ -163,6 +166,12 @@ export function createApiRouter({
   router.post("/dsrs", requirePermission(PERMISSIONS.MANAGE_DSRS), dsrController.create);
   router.put("/dsrs/:id", requirePermission(PERMISSIONS.MANAGE_DSRS), dsrController.update);
   router.delete("/dsrs/:id", requirePermission(PERMISSIONS.MANAGE_DSRS), dsrController.remove);
+
+  router.get("/customers", requirePermission(PERMISSIONS.VIEW_STATE), customerController.list);
+  router.get("/customers/:id", requirePermission(PERMISSIONS.VIEW_STATE), customerController.get);
+  router.post("/customers", requirePermission(PERMISSIONS.MANAGE_CUSTOMERS), customerController.create);
+  router.put("/customers/:id", requirePermission(PERMISSIONS.MANAGE_CUSTOMERS), customerController.update);
+  router.delete("/customers/:id", requirePermission(PERMISSIONS.MANAGE_CUSTOMERS), customerController.remove);
 
   router.get("/issues", requirePermission(PERMISSIONS.VIEW_STATE), issueController.list);
   router.post("/issues", requirePermission(PERMISSIONS.CREATE_ISSUES), issueController.create);

@@ -37,6 +37,25 @@ export function normalizeDsr(input) {
   };
 }
 
+export function normalizeCustomer(input) {
+  const openingDue = Math.max(0, cleanMoney(input.openingDue));
+  const hasCurrentDue = input.currentDue !== undefined && input.currentDue !== null && String(input.currentDue).trim() !== "";
+
+  return {
+    id: input.id || createId("customer"),
+    shopName: String(input.shopName || "").trim(),
+    ownerName: String(input.ownerName || "").trim(),
+    phone: String(input.phone || "").trim(),
+    address: String(input.address || "").trim(),
+    market: String(input.market || "").trim(),
+    assignedDsrId: String(input.assignedDsrId || "").trim() || null,
+    openingDue,
+    currentDue: hasCurrentDue ? Math.max(0, cleanMoney(input.currentDue)) : openingDue,
+    status: input.status === "INACTIVE" ? "INACTIVE" : "ACTIVE",
+    note: String(input.note || "").trim(),
+  };
+}
+
 export function normalizeIssue(input) {
   return {
     id: input.id || createId("issue"),

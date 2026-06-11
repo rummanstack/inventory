@@ -11,6 +11,7 @@ import {
   Settings,
   ShieldCheck,
   TrendingUp,
+  Store,
   Truck,
   Users,
   UserCog,
@@ -40,11 +41,13 @@ import ProfilePage from '../features/profile/pages/ProfilePage';
 import SystemHealthPage from '../features/system/pages/SystemHealthPage';
 import ErrorLogsPage from '../features/system/pages/ErrorLogsPage';
 import DsrDueStatementPage from '../features/dsr-due-ledger/pages/DsrDueStatementPage';
+import CustomersPage from '../features/customers/pages/CustomersPage';
 
 export const APP_ROUTES = [
   { id: 'dashboard', path: '/dashboard', labelKey: 'nav.dashboard', icon: BarChart3, component: DashboardPage, group: 'overview', permission: 'view_state' },
   { id: 'products', path: '/products', labelKey: 'nav.products', icon: Boxes, component: ProductsPage, group: 'operations', permission: 'view_state', feature: 'products' },
   { id: 'dsrs', path: '/dsrs', labelKey: 'nav.dsrs', icon: Users, component: DsrPage, group: 'operations', permission: 'view_state', feature: 'dsrs' },
+  { id: 'customers', path: '/customers', labelKey: 'nav.customers', icon: Store, component: CustomersPage, group: 'operations', permission: 'view_state', feature: 'customers' },
   { id: 'morning-issue', path: '/morning-issue', labelKey: 'nav.morningIssue', icon: Truck, component: MorningIssuePage, group: 'operations', permission: 'create_issues', feature: 'morning-issue' },
   { id: 'settlements', path: '/settlements', labelKey: 'nav.eveningSettlement', icon: RotateCcw, component: EveningSettlementPage, group: 'operations', permission: 'create_settlements', feature: 'settlements' },
   { id: 'reports', path: '/reports', labelKey: 'nav.reports', icon: FileText, component: DailyReportsPage, group: 'operations', permission: 'view_state', feature: 'reports' },

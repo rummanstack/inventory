@@ -1,8 +1,32 @@
 import { ClipboardList } from 'lucide-react';
 import { Alert, Badge, EmptyState, Pagination, SectionHeader, StatCard, TableSkeleton } from '../../../components/ui.jsx';
+import { DatePickerField } from '../../../components/date-picker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { formatDateTime, formatNumber } from '../../../utils/calculations.js';
 import { useActivityLogsViewModel } from '../viewmodels/useActivityLogsViewModel';
+
+const AUDIT_MODULES = [
+  'products',
+  'dsrs',
+  'customers',
+  'expenses',
+  'morning-issue',
+  'settlements',
+  'dsr-finance',
+  'due-ledger',
+  'users',
+  'system',
+];
+
+function formatValue(value) {
+  if (value === null || value === undefined || value === '') {
+    return '-';
+  }
+  if (typeof value === 'object') {
+    return JSON.stringify(value);
+  }
+  return String(value);
+}
 
 function actionTone(actionType = '') {
   if (actionType.includes('delete')) {
@@ -44,6 +68,44 @@ export default function ActivityLogsPage() {
             onChange={(event) => vm.setSearch(event.target.value)}
             placeholder={t('activityLogs.searchPlaceholder')}
           />
+          <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div>
+              <label className="label">{t('activityLogs.filterModule')}</label>
+              <select className="input" value={vm.module} onChange={(event) => vm.setModule(event.target.value)}>
+                <option value="">{t('activityLogs.allModules')}</option>
+                {AUDIT_MODULES.map((moduleKey) => (
+                  <option key={moduleKey} value={moduleKey}>
+                    {t(`activityLogs.modules.${moduleKey}`)}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="label">{t('activityLogs.filterAction')}</label>
+              <input className="input" value={vm.actionType} onChange={(event) => vm.setActionType(event.target.value)} placeholder="product.update" />
+            </div>
+            <div>
+              <label className="label">{t('activityLogs.filterDateFrom')}</label>
+              <DatePickerField value={vm.dateFrom} onChange={vm.setDateFrom} />
+            </div>
+            <div>
+              <label className="label">{t('activityLogs.filterDateTo')}</label>
+              <DatePickerField value={vm.dateTo} onChange={vm.setDateTo} />
+            </div>
+            {vm.canFilterByOrg ? (
+              <div>
+                <label className="label">{t('activityLogs.filterOrganization')}</label>
+                <select className="input" value={vm.tenantId} onChange={(event) => vm.setTenantId(event.target.value)}>
+                  <option value="">{t('activityLogs.allOrganizations')}</option>
+                  {vm.tenants.map((tenant) => (
+                    <option key={tenant.id} value={tenant.id}>
+                      {tenant.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ) : null}
+          </div>
         </div>
         <StatCard title={t('activityLogs.totalLogs')} value={formatNumber(vm.total)} helper={t('activityLogs.totalLogsHelper')} />
       </div>
@@ -64,7 +126,8 @@ export default function ActivityLogsPage() {
                 <th className="px-4 py-3">{t('activityLogs.action')}</th>
                 <th className="px-4 py-3">{t('activityLogs.entity')}</th>
                 <th className="px-4 py-3 hidden sm:table-cell">{t('activityLogs.description')}</th>
-                <th className="px-4 py-3 hidden lg:table-cell">{t('activityLogs.metadata')}</th>
+                <th className="px-4 py-3 hidden lg:table-cell">{t('activityLogs.changes')}</th>
+                <th className="px-4 py-3 hidden lg:table-cell">{t('activityLogs.reason')}</th>
               </tr>
             </thead>
             {vm.loading ? null : (
@@ -88,7 +151,20 @@ export default function ActivityLogsPage() {
                       <p className="truncate">{log.description}</p>
                     </td>
                     <td className="table-cell hidden lg:table-cell max-w-[18rem]">
-                      <p className="truncate text-xs text-slate-500">{JSON.stringify(log.metadata || {})}</p>
+                      {Object.keys(log.afterData || {}).length ? (
+                        <ul className="space-y-1">
+                          {Object.keys(log.afterData).map((field) => (
+                            <li key={field} className="text-xs text-slate-500">
+                              <span className="font-bold">{field}</span>: {formatValue(log.beforeData?.[field])} → {formatValue(log.afterData?.[field])}
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <span className="text-xs text-slate-400">-</span>
+                      )}
+                    </td>
+                    <td className="table-cell hidden lg:table-cell max-w-[14rem]">
+                      <p className="truncate text-xs text-slate-500">{log.reason || '-'}</p>
                     </td>
                   </tr>
                 ))}
@@ -97,7 +173,7 @@ export default function ActivityLogsPage() {
           </table>
           {vm.loading ? (
             <div className="p-5">
-              <TableSkeleton columns={6} showHeader={false} />
+              <TableSkeleton columns={7} showHeader={false} />
             </div>
           ) : null}
         </div>

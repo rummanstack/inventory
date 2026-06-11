@@ -1,5 +1,6 @@
 import { assert } from "../lib/errors.js";
 import { createId } from "../lib/ids.js";
+import { diffFields } from "../lib/auditDiff.js";
 import { summarizeByAmount } from "../lib/aggregation.js";
 import { normalizeIsoDate, normalizeIsoMonth, startOfMonth, startOfNextMonth } from "../lib/dateRanges.js";
 import { findDsrById } from "../repositories/dsrRepository.js";
@@ -122,16 +123,24 @@ export class DsrFinanceService {
       assert(dsrResult.rowCount > 0, "Select a valid DSR.");
 
       if (input.id) {
+        assert(String(input.reason || "").trim(), "Edit reason is required.");
+
         const existingRecord = await findRecordById(client, config, record.id, actor.tenantId);
         assert(existingRecord, `${config.label} not found.`, 404);
 
         await updateRecord(client, config, record, actor.tenantId);
+
+        const { before, after } = diffFields(existingRecord, record, ["date", "dsrId", "amount", "note"]);
+
         await this.recordActivity(client, actor, {
           actionType: `${config.actionBase}.update`,
           entityType: config.entityType,
           entityId: record.id,
           description: `${actor.name} updated ${config.label} for ${dsrResult.rows[0].name}`,
           metadata: { date: record.date, dsrId: record.dsrId, amount: record.amount },
+          before,
+          after,
+          reason: input.reason,
         });
       } else {
         record.performedBy = actor.id;
@@ -185,6 +194,10 @@ export class DsrFinanceService {
       actionType: payload.actionType,
       entityType: payload.entityType,
       entityId: payload.entityId,
+      module: payload.module,
+      before: payload.before,
+      after: payload.after,
+      reason: payload.reason,
       description: payload.description,
       metadata: {
         actorName: actor.name,

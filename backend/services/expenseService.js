@@ -1,5 +1,6 @@
 import { assert } from "../lib/errors.js";
 import { createId } from "../lib/ids.js";
+import { diffFields } from "../lib/auditDiff.js";
 import { summarizeByAmount } from "../lib/aggregation.js";
 import { normalizeIsoDate, normalizeIsoMonth, startOfMonth, startOfNextMonth } from "../lib/dateRanges.js";
 import { buildPageResult, parsePagination } from "../lib/pagination.js";
@@ -92,10 +93,15 @@ export class ExpenseService {
 
     return this.databaseManager.withTransaction(async (client) => {
       if (input.id) {
+        assert(String(input.reason || "").trim(), "Edit reason is required.");
+
         const existingExpense = await findExpenseById(client, expense.id, actor.tenantId);
         assert(existingExpense, "Expense not found.", 404);
 
         await updateExpense(client, expense, actor.tenantId);
+
+        const { before, after } = diffFields(existingExpense, expense, ["date", "category", "amount", "note"]);
+
         await this.auditService.record(client, {
           tenantId: actor.tenantId,
           userId: actor.id,
@@ -104,6 +110,9 @@ export class ExpenseService {
           entityId: expense.id,
           description: `${actor.name} updated expense ${expense.category}`,
           metadata: { date: expense.date, category: expense.category, amount: expense.amount },
+          before,
+          after,
+          reason: input.reason,
         });
       } else {
         expense.createdBy = actor.id;

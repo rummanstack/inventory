@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Save } from 'lucide-react';
 import { Alert, Modal } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
+import AuditHistory from '../../audit/components/AuditHistory.jsx';
 
 export default function DsrFormModal({ dsr, onClose, onSave }) {
   const { t } = useInventoryApp();
@@ -13,8 +14,10 @@ export default function DsrFormModal({ dsr, onClose, onSave }) {
     status: dsr?.status || 'Active',
     openingDue: dsr?.openingDue || 0,
   });
+  const [reason, setReason] = useState('');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+  const openingDueChanged = isEdit && Math.max(0, Number(form.openingDue || 0)) !== Number(dsr?.openingDue || 0);
 
   function updateField(field, value) {
     setForm((current) => ({ ...current, [field]: value }));
@@ -27,9 +30,22 @@ export default function DsrFormModal({ dsr, onClose, onSave }) {
       return;
     }
 
+    if (openingDueChanged && !reason.trim()) {
+      setError(t('common.editReasonRequired'));
+      return;
+    }
+
     setSaving(true);
     setError('');
-    const result = await onSave({ id: dsr?.id, ...form, name: form.name.trim(), phone: form.phone.trim(), area: form.area.trim(), openingDue: Math.max(0, Number(form.openingDue || 0)) });
+    const result = await onSave({
+      id: dsr?.id,
+      ...form,
+      name: form.name.trim(),
+      phone: form.phone.trim(),
+      area: form.area.trim(),
+      openingDue: Math.max(0, Number(form.openingDue || 0)),
+      reason: reason.trim(),
+    });
     setSaving(false);
 
     if (!result?.ok) {
@@ -65,7 +81,14 @@ export default function DsrFormModal({ dsr, onClose, onSave }) {
             <label className="label">{t('dsr.openingDue')}</label>
             <input className="input" type="number" min="0" step="0.01" value={form.openingDue} onChange={(event) => updateField('openingDue', event.target.value)} placeholder="0.00" />
           </div>
+          {openingDueChanged ? (
+            <div className="sm:col-span-2">
+              <label className="label">{t('common.dueAdjustmentReasonLabel')}</label>
+              <textarea className="input min-h-20" value={reason} onChange={(event) => setReason(event.target.value)} placeholder={t('common.editReasonPlaceholder')} />
+            </div>
+          ) : null}
         </div>
+        {isEdit ? <AuditHistory entityType="dsr" entityId={dsr.id} /> : null}
         <div className="flex justify-end gap-2 pt-2">
           <button type="button" className="btn-secondary" onClick={onClose} disabled={saving}>
             {t('common.cancel')}

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Save } from 'lucide-react';
 import { Alert, Modal } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
+import AuditHistory from '../../audit/components/AuditHistory.jsx';
 
 export default function CustomerFormModal({ customer, onClose, onSave }) {
   const { t, dsrDirectory } = useInventoryApp();
@@ -114,6 +115,7 @@ export default function CustomerFormModal({ customer, onClose, onSave }) {
             <textarea className="input" rows={3} value={form.note} onChange={(event) => updateField('note', event.target.value)} placeholder={t('customers.noteLabel')} />
           </div>
         </div>
+        {isEdit ? <AuditHistory entityType="customer" entityId={customer.id} /> : null}
         <div className="flex justify-end gap-2 pt-2">
           <button type="button" className="btn-secondary" onClick={onClose} disabled={saving}>
             {t('common.cancel')}

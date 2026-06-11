@@ -19,9 +19,19 @@ export function mapCustomer(row) {
   };
 }
 
+function mapTrashedCustomer(row) {
+  return {
+    ...mapCustomer(row),
+    deletedAt: row.deleted_at,
+    deletedById: row.deleted_by_id,
+    deletedByName: row.deleted_by_name || null,
+    deleteReason: row.delete_reason || '',
+  };
+}
+
 function buildFilters({ search, status, assignedDsrId, tenantId }) {
   const params = [tenantId];
-  const conditions = ["c.tenant_id = $1"];
+  const conditions = ["c.tenant_id = $1", "c.deleted_at IS NULL"];
 
   if (search) {
     params.push(`%${search}%`);
@@ -109,8 +119,52 @@ export function updateCustomer(client, customer) {
   );
 }
 
-export function deleteCustomer(client, customerId, tenantId) {
-  return client.query("DELETE FROM customers WHERE id = $1 AND tenant_id = $2", [customerId, tenantId]);
+export function softDeleteCustomer(client, customerId, tenantId, { deletedById, deleteReason } = {}) {
+  return client.query(
+    `UPDATE customers
+     SET deleted_at = NOW(), deleted_by_id = $3, delete_reason = $4
+     WHERE id = $1 AND tenant_id = $2 AND deleted_at IS NULL`,
+    [customerId, tenantId, deletedById || null, deleteReason || ""],
+  );
+}
+
+export function restoreCustomer(client, customerId, tenantId) {
+  return client.query(
+    `UPDATE customers
+     SET deleted_at = NULL, deleted_by_id = NULL, delete_reason = ''
+     WHERE id = $1 AND tenant_id = $2 AND deleted_at IS NOT NULL
+     RETURNING *`,
+    [customerId, tenantId],
+  );
+}
+
+export function permanentlyDeleteCustomer(client, customerId, tenantId) {
+  return client.query(
+    "DELETE FROM customers WHERE id = $1 AND tenant_id = $2 AND deleted_at IS NOT NULL",
+    [customerId, tenantId],
+  );
+}
+
+export async function countTrashedCustomers(client, tenantId) {
+  const result = await client.query(
+    "SELECT COUNT(*)::INTEGER AS count FROM customers WHERE tenant_id = $1 AND deleted_at IS NOT NULL",
+    [tenantId],
+  );
+  return result.rows[0].count;
+}
+
+export async function listTrashedCustomers(client, { tenantId, limit, offset }) {
+  const result = await client.query(
+    `SELECT c.*, d.name AS assigned_dsr_name, u.name AS deleted_by_name
+     FROM customers c
+     LEFT JOIN dsrs d ON d.id = c.assigned_dsr_id
+     LEFT JOIN users u ON u.id = c.deleted_by_id
+     WHERE c.tenant_id = $1 AND c.deleted_at IS NOT NULL
+     ORDER BY c.deleted_at DESC
+     LIMIT $2 OFFSET $3`,
+    [tenantId, limit, offset],
+  );
+  return result.rows.map(mapTrashedCustomer);
 }
 
 export function findCustomerById(client, customerId, tenantId) {
@@ -118,7 +172,7 @@ export function findCustomerById(client, customerId, tenantId) {
     `SELECT c.*, d.name AS assigned_dsr_name
      FROM customers c
      LEFT JOIN dsrs d ON d.id = c.assigned_dsr_id
-     WHERE c.id = $1 AND c.tenant_id = $2
+     WHERE c.id = $1 AND c.tenant_id = $2 AND c.deleted_at IS NULL
      LIMIT 1`,
     [customerId, tenantId],
   );

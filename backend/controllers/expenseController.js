@@ -32,7 +32,31 @@ export class ExpenseController {
 
   remove = async (req, res, next) => {
     try {
-      res.json(await this.expenseService.removeExpense(req.params.id, req.currentUser));
+      res.json(await this.expenseService.removeExpense(req.params.id, req.currentUser, req.body?.reason));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  listTrash = async (req, res, next) => {
+    try {
+      res.json(await this.expenseService.listTrashedExpenses(req.query, req.currentUser));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  restore = async (req, res, next) => {
+    try {
+      res.json(await this.expenseService.restoreExpense(req.params.id, req.currentUser));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  permanentlyDelete = async (req, res, next) => {
+    try {
+      res.json(await this.expenseService.permanentlyDeleteExpense(req.params.id, req.currentUser));
     } catch (error) {
       next(error);
     }

@@ -13,4 +13,5 @@ export const TENANT_FEATURES = [
   "month-end-summary",
   "profit",
   "activity-logs",
+  "trash",
 ];

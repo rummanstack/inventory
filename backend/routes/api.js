@@ -110,9 +110,12 @@ export function createApiRouter({
   router.get("/activity-logs", requirePermission(PERMISSIONS.VIEW_ACTIVITY_LOGS), activityLogController.list);
 
   router.get("/expenses", requirePermission(PERMISSIONS.MANAGE_EXPENSES), expenseController.report);
+  router.get("/expenses/trash", requirePermission(PERMISSIONS.MANAGE_EXPENSES), expenseController.listTrash);
   router.post("/expenses", requirePermission(PERMISSIONS.MANAGE_EXPENSES), expenseController.create);
   router.patch("/expenses/:id", requirePermission(PERMISSIONS.MANAGE_EXPENSES), expenseController.update);
   router.delete("/expenses/:id", requirePermission(PERMISSIONS.MANAGE_EXPENSES), expenseController.remove);
+  router.post("/expenses/:id/restore", requirePermission(PERMISSIONS.MANAGE_EXPENSES), expenseController.restore);
+  router.delete("/expenses/:id/permanent", requirePermission(PERMISSIONS.PERMANENT_DELETE), expenseController.permanentlyDelete);
 
   router.get("/dsr-cash-receipts", requirePermission(PERMISSIONS.MANAGE_DSR_FINANCE), dsrFinanceController.cashReport);
   router.post("/dsr-cash-receipts", requirePermission(PERMISSIONS.MANAGE_DSR_FINANCE), dsrFinanceController.cashCreate);
@@ -150,11 +153,14 @@ export function createApiRouter({
   router.get("/database-backup/history", requirePermission(PERMISSIONS.MANAGE_BACKUPS), backupController.history);
 
   router.get("/products/directory", requirePermission(PERMISSIONS.VIEW_STATE), productController.directory);
+  router.get("/products/trash", requirePermission(PERMISSIONS.MANAGE_PRODUCTS), productController.listTrash);
   router.get("/products", requirePermission(PERMISSIONS.VIEW_STATE), productController.list);
   router.post("/products", requirePermission(PERMISSIONS.MANAGE_PRODUCTS), productController.create);
   router.put("/products/:id", requirePermission(PERMISSIONS.MANAGE_PRODUCTS), productController.update);
   router.delete("/products/:id", requirePermission(PERMISSIONS.MANAGE_PRODUCTS), productController.remove);
   router.post("/products/:id/stock", requirePermission(PERMISSIONS.MANAGE_PRODUCTS), productController.addStock);
+  router.post("/products/:id/restore", requirePermission(PERMISSIONS.MANAGE_PRODUCTS), productController.restore);
+  router.delete("/products/:id/permanent", requirePermission(PERMISSIONS.PERMANENT_DELETE), productController.permanentlyDelete);
   router.get("/stock-movements", requirePermission(PERMISSIONS.VIEW_STATE), stockMovementController.list);
 
   router.get("/dsr-due-ledger", requirePermission(PERMISSIONS.VIEW_STATE), dsrDueLedgerController.list);
@@ -162,16 +168,22 @@ export function createApiRouter({
   router.get("/dsr-due-ledger/balance", requirePermission(PERMISSIONS.VIEW_STATE), dsrDueLedgerController.balance);
 
   router.get("/dsrs/directory", requirePermission(PERMISSIONS.VIEW_STATE), dsrController.directory);
+  router.get("/dsrs/trash", requirePermission(PERMISSIONS.MANAGE_DSRS), dsrController.listTrash);
   router.get("/dsrs", requirePermission(PERMISSIONS.VIEW_STATE), dsrController.list);
   router.post("/dsrs", requirePermission(PERMISSIONS.MANAGE_DSRS), dsrController.create);
   router.put("/dsrs/:id", requirePermission(PERMISSIONS.MANAGE_DSRS), dsrController.update);
   router.delete("/dsrs/:id", requirePermission(PERMISSIONS.MANAGE_DSRS), dsrController.remove);
+  router.post("/dsrs/:id/restore", requirePermission(PERMISSIONS.MANAGE_DSRS), dsrController.restore);
+  router.delete("/dsrs/:id/permanent", requirePermission(PERMISSIONS.PERMANENT_DELETE), dsrController.permanentlyDelete);
 
+  router.get("/customers/trash", requirePermission(PERMISSIONS.MANAGE_CUSTOMERS), customerController.listTrash);
   router.get("/customers", requirePermission(PERMISSIONS.VIEW_STATE), customerController.list);
   router.get("/customers/:id", requirePermission(PERMISSIONS.VIEW_STATE), customerController.get);
   router.post("/customers", requirePermission(PERMISSIONS.MANAGE_CUSTOMERS), customerController.create);
   router.put("/customers/:id", requirePermission(PERMISSIONS.MANAGE_CUSTOMERS), customerController.update);
   router.delete("/customers/:id", requirePermission(PERMISSIONS.MANAGE_CUSTOMERS), customerController.remove);
+  router.post("/customers/:id/restore", requirePermission(PERMISSIONS.MANAGE_CUSTOMERS), customerController.restore);
+  router.delete("/customers/:id/permanent", requirePermission(PERMISSIONS.PERMANENT_DELETE), customerController.permanentlyDelete);
 
   router.get("/issues", requirePermission(PERMISSIONS.VIEW_STATE), issueController.list);
   router.post("/issues", requirePermission(PERMISSIONS.CREATE_ISSUES), issueController.create);

@@ -55,7 +55,8 @@ export function useDsrFinanceViewModel(kind, { confirm }) {
   }
 
   async function deleteRecord(recordId, confirmOptions) {
-    if (!(await confirm(confirmOptions))) {
+    const { confirmed } = await confirm(confirmOptions);
+    if (!confirmed) {
       return;
     }
 

@@ -50,12 +50,13 @@ export default function UsersPage() {
   }
 
   async function handleDelete(user) {
-    if (!(await confirm({
+    const { confirmed } = await confirm({
       title: t('users.deleteTitle'),
       description: t('users.deleteConfirm', { name: user.name }).replace('{name}', user.name),
       confirmLabel: t('common.delete'),
       tone: 'rose',
-    }))) {
+    });
+    if (!confirmed) {
       return;
     }
 

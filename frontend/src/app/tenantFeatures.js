@@ -14,4 +14,5 @@ export const TENANT_FEATURE_ROUTES = [
   { feature: 'month-end-summary', labelKey: 'nav.monthEndSummary' },
   { feature: 'profit', labelKey: 'nav.profit' },
   { feature: 'activity-logs', labelKey: 'nav.activityLogs' },
+  { feature: 'trash', labelKey: 'nav.trash' },
 ];

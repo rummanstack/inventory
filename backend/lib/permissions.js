@@ -17,6 +17,7 @@ export const PERMISSIONS = {
   MANAGE_BACKUPS: "manage_backups",
   MANAGE_ORG: "manage_org",
   MANAGE_TENANTS: "manage_tenants",
+  PERMANENT_DELETE: "permanent_delete",
 };
 
 export const TENANT_BUSINESS_PERMISSIONS = [
@@ -34,6 +35,7 @@ export const TENANT_BUSINESS_PERMISSIONS = [
   PERMISSIONS.MANAGE_USERS,
   PERMISSIONS.MANAGE_BACKUPS,
   PERMISSIONS.MANAGE_ORG,
+  PERMISSIONS.PERMANENT_DELETE,
 ];
 
 export const ROLE_PERMISSIONS = {

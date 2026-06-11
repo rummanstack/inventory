@@ -9,9 +9,19 @@ export function mapDsr(row) {
   };
 }
 
+function mapTrashedDsr(row) {
+  return {
+    ...mapDsr(row),
+    deletedAt: row.deleted_at,
+    deletedById: row.deleted_by_id,
+    deletedByName: row.deleted_by_name || null,
+    deleteReason: row.delete_reason || '',
+  };
+}
+
 export async function countDsrs(client, { search, tenantId } = {}) {
   const params = [tenantId];
-  const conditions = ["tenant_id = $1"];
+  const conditions = ["tenant_id = $1", "deleted_at IS NULL"];
 
   if (search) {
     params.push(`%${search}%`);
@@ -25,7 +35,7 @@ export async function countDsrs(client, { search, tenantId } = {}) {
 
 export async function listDsrsPage(client, { search, tenantId, limit, offset }) {
   const params = [tenantId];
-  const conditions = ["tenant_id = $1"];
+  const conditions = ["tenant_id = $1", "deleted_at IS NULL"];
 
   if (search) {
     params.push(`%${search}%`);
@@ -43,7 +53,7 @@ export async function listDsrsPage(client, { search, tenantId, limit, offset }) 
 
 export async function listAllActiveDsrsLite(client, tenantId) {
   const result = await client.query(
-    "SELECT id, name, area, phone, status, opening_due FROM dsrs WHERE tenant_id = $1 ORDER BY name ASC",
+    "SELECT id, name, area, phone, status, opening_due FROM dsrs WHERE tenant_id = $1 AND deleted_at IS NULL ORDER BY name ASC",
     [tenantId],
   );
   return result.rows.map(mapDsr);
@@ -68,15 +78,58 @@ export function updateDsr(client, dsr) {
   );
 }
 
-export function deleteDsr(client, dsrId, tenantId) {
-  return client.query("DELETE FROM dsrs WHERE id = $1 AND tenant_id = $2", [dsrId, tenantId]);
+export function softDeleteDsr(client, dsrId, tenantId, { deletedById, deleteReason } = {}) {
+  return client.query(
+    `UPDATE dsrs
+     SET deleted_at = NOW(), deleted_by_id = $3, delete_reason = $4
+     WHERE id = $1 AND tenant_id = $2 AND deleted_at IS NULL`,
+    [dsrId, tenantId, deletedById || null, deleteReason || ""],
+  );
+}
+
+export function restoreDsr(client, dsrId, tenantId) {
+  return client.query(
+    `UPDATE dsrs
+     SET deleted_at = NULL, deleted_by_id = NULL, delete_reason = ''
+     WHERE id = $1 AND tenant_id = $2 AND deleted_at IS NOT NULL
+     RETURNING *`,
+    [dsrId, tenantId],
+  );
+}
+
+export function permanentlyDeleteDsr(client, dsrId, tenantId) {
+  return client.query(
+    "DELETE FROM dsrs WHERE id = $1 AND tenant_id = $2 AND deleted_at IS NOT NULL",
+    [dsrId, tenantId],
+  );
+}
+
+export async function countTrashedDsrs(client, tenantId) {
+  const result = await client.query(
+    "SELECT COUNT(*)::INTEGER AS count FROM dsrs WHERE tenant_id = $1 AND deleted_at IS NOT NULL",
+    [tenantId],
+  );
+  return result.rows[0].count;
+}
+
+export async function listTrashedDsrs(client, { tenantId, limit, offset }) {
+  const result = await client.query(
+    `SELECT d.*, u.name AS deleted_by_name
+     FROM dsrs d
+     LEFT JOIN users u ON u.id = d.deleted_by_id
+     WHERE d.tenant_id = $1 AND d.deleted_at IS NOT NULL
+     ORDER BY d.deleted_at DESC
+     LIMIT $2 OFFSET $3`,
+    [tenantId, limit, offset],
+  );
+  return result.rows.map(mapTrashedDsr);
 }
 
 export function findDsrById(client, dsrId, tenantId) {
   if (tenantId) {
-    return client.query("SELECT * FROM dsrs WHERE id = $1 AND tenant_id = $2 LIMIT 1", [dsrId, tenantId]);
+    return client.query("SELECT * FROM dsrs WHERE id = $1 AND tenant_id = $2 AND deleted_at IS NULL LIMIT 1", [dsrId, tenantId]);
   }
-  return client.query("SELECT * FROM dsrs WHERE id = $1 LIMIT 1", [dsrId]);
+  return client.query("SELECT * FROM dsrs WHERE id = $1 AND deleted_at IS NULL LIMIT 1", [dsrId]);
 }
 
 export function syncDsrHistory(client, dsr) {

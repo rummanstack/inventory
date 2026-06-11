@@ -46,12 +46,13 @@ export function useExpenseViewModel({ confirm }) {
   }
 
   async function deleteExpense(expenseId, confirmOptions) {
-    if (!(await confirm(confirmOptions))) {
+    const { confirmed, reason } = await confirm(confirmOptions);
+    if (!confirmed) {
       return;
     }
 
     try {
-      await inventoryApi.deleteExpense(expenseId);
+      await inventoryApi.deleteExpense(expenseId, reason);
       await refreshReport();
       pushToast('success', t('common.delete'), t('alerts.deleted'));
     } catch (requestError) {

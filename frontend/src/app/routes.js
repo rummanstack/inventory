@@ -12,6 +12,7 @@ import {
   ShieldCheck,
   TrendingUp,
   Store,
+  Trash2,
   Truck,
   Users,
   UserCog,
@@ -42,6 +43,7 @@ import SystemHealthPage from '../features/system/pages/SystemHealthPage';
 import ErrorLogsPage from '../features/system/pages/ErrorLogsPage';
 import DsrDueStatementPage from '../features/dsr-due-ledger/pages/DsrDueStatementPage';
 import CustomersPage from '../features/customers/pages/CustomersPage';
+import TrashPage from '../features/trash/pages/TrashPage';
 
 export const APP_ROUTES = [
   { id: 'dashboard', path: '/dashboard', labelKey: 'nav.dashboard', icon: BarChart3, component: DashboardPage, group: 'overview', permission: 'view_state' },
@@ -58,6 +60,7 @@ export const APP_ROUTES = [
   { id: 'profit', path: '/profit', labelKey: 'nav.profit', icon: TrendingUp, component: ProfitPage, group: 'finance', permission: 'manage_dsr_finance', feature: 'profit' },
   { id: 'dsr-due-statement', path: '/dsr-due-statement', labelKey: 'nav.dsrDueStatement', icon: Wallet, component: DsrDueStatementPage, group: 'finance', permission: 'manage_dsr_finance', feature: 'dsr-finance' },
   { id: 'activity-logs', path: '/activity-logs', labelKey: 'nav.activityLogs', icon: ClipboardList, component: ActivityLogsPage, group: 'governance', permission: 'view_activity_logs', feature: 'activity-logs' },
+  { id: 'trash', path: '/trash', labelKey: 'nav.trash', icon: Trash2, component: TrashPage, group: 'governance', permission: 'view_state', feature: 'trash' },
   { id: 'database-backup', path: '/database-backup', labelKey: 'nav.databaseBackup', icon: Database, component: DatabaseBackupPage, group: 'developer', permission: 'manage_backups' },
   { id: 'org-settings', path: '/settings/organization', labelKey: 'nav.orgSettings', icon: Settings, component: OrgSettingsPage, group: 'governance', permission: 'manage_org' },
   { id: 'permissions', path: '/settings/permissions', labelKey: 'nav.permissions', icon: KeyRound, component: PermissionsPage, group: 'governance', roles: ['system_developer', 'super_admin'] },

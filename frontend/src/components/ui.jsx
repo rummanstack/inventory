@@ -103,6 +103,9 @@ export function ConfirmationDialog({
   tone = 'rose',
   onConfirm,
   onCancel,
+  requireReason = false,
+  reasonLabel,
+  reasonPlaceholder,
 }) {
   const tones = {
     rose: 'border-rose-200 bg-rose-50 text-rose-700',
@@ -111,6 +114,14 @@ export function ConfirmationDialog({
     emerald: 'border-emerald-200 bg-emerald-50 text-emerald-700',
     slate: 'border-slate-200 bg-slate-100 text-slate-700',
   };
+
+  const [reason, setReason] = useState('');
+
+  useEffect(() => {
+    if (open) {
+      setReason('');
+    }
+  }, [open]);
 
   if (!open) {
     return null;
@@ -147,12 +158,23 @@ export function ConfirmationDialog({
               <p className="mt-3 text-sm font-medium leading-6 text-slate-600">{description}</p>
             </div>
           </div>
+          {requireReason ? (
+            <div className="mt-4">
+              {reasonLabel ? <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-500">{reasonLabel}</label> : null}
+              <textarea
+                className="input min-h-[80px] w-full resize-y"
+                value={reason}
+                onChange={(event) => setReason(event.target.value)}
+                placeholder={reasonPlaceholder}
+              />
+            </div>
+          ) : null}
         </div>
         <div className="flex flex-col-reverse gap-2 px-5 py-4 sm:flex-row sm:items-center sm:justify-end">
           <button type="button" className="btn-secondary" onClick={onCancel}>
             {cancelLabel}
           </button>
-          <button type="button" className={cx('btn-primary', toneButton[tone] || toneButton.rose)} onClick={onConfirm}>
+          <button type="button" className={cx('btn-primary', toneButton[tone] || toneButton.rose)} onClick={() => onConfirm(reason)}>
             {confirmLabel}
           </button>
         </div>

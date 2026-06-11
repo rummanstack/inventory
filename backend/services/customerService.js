@@ -3,7 +3,11 @@ import { normalizeCustomer } from "../lib/normalizers.js";
 import { buildPageResult, parsePagination } from "../lib/pagination.js";
 import {
   countCustomers,
-  deleteCustomer,
+  countTrashedCustomers,
+  listTrashedCustomers,
+  permanentlyDeleteCustomer,
+  restoreCustomer,
+  softDeleteCustomer,
   findCustomerById,
   insertCustomer,
   listCustomersPage,
@@ -107,21 +111,73 @@ export class CustomerService {
     });
   }
 
-  async removeCustomer(customerId, actor) {
+  async removeCustomer(customerId, actor, reason) {
     return this.databaseManager.withTransaction(async (client) => {
       const existingResult = await findCustomerById(client, customerId, actor.tenantId);
       assert(existingResult.rowCount > 0, "Customer not found.", 404);
 
-      await deleteCustomer(client, customerId, actor.tenantId);
+      await softDeleteCustomer(client, customerId, actor.tenantId, {
+        deletedById: actor.id,
+        deleteReason: reason,
+      });
 
       await this.recordActivity(client, actor, {
         actionType: "customer.delete",
         entityType: "customer",
         entityId: customerId,
-        description: `${actor.name} deleted customer ${existingResult.rows[0].shop_name}`,
+        description: `${actor.name} moved customer ${existingResult.rows[0].shop_name} to trash${reason ? ` (${reason})` : ""}`,
       });
 
       return { ok: true };
     });
+  }
+
+  async restoreCustomer(customerId, actor) {
+    return this.databaseManager.withTransaction(async (client) => {
+      const result = await restoreCustomer(client, customerId, actor.tenantId);
+      assert(result.rowCount > 0, "Customer not found in trash.", 404);
+
+      await this.recordActivity(client, actor, {
+        actionType: "customer.restore",
+        entityType: "customer",
+        entityId: customerId,
+        description: `${actor.name} restored customer ${result.rows[0].shop_name} from trash`,
+      });
+
+      return { ok: true };
+    });
+  }
+
+  async permanentlyDeleteCustomer(customerId, actor) {
+    return this.databaseManager.withTransaction(async (client) => {
+      const result = await permanentlyDeleteCustomer(client, customerId, actor.tenantId);
+      assert(result.rowCount > 0, "Customer not found in trash.", 404);
+
+      await this.recordActivity(client, actor, {
+        actionType: "customer.permanent_delete",
+        entityType: "customer",
+        entityId: customerId,
+        description: `${actor.name} permanently deleted customer ${customerId}`,
+      });
+
+      return { ok: true };
+    });
+  }
+
+  async listTrashedCustomers(query = {}, actor) {
+    const { page, pageSize, limit, offset } = parsePagination(query);
+    const tenantId = actor.tenantId;
+
+    const client = await this.databaseManager.getPool().connect();
+    try {
+      const [items, total] = await Promise.all([
+        listTrashedCustomers(client, { tenantId, limit, offset }),
+        countTrashedCustomers(client, tenantId),
+      ]);
+
+      return buildPageResult({ items, total, page, pageSize });
+    } finally {
+      client.release();
+    }
   }
 }

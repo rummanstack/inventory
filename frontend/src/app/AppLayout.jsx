@@ -39,7 +39,10 @@ export default function AppLayout() {
         confirmLabel={confirmation?.confirmLabel || t('common.delete')}
         cancelLabel={confirmation?.cancelLabel || t('common.cancel')}
         tone={confirmation?.tone || 'rose'}
-        onConfirm={() => closeConfirmation(true)}
+        requireReason={confirmation?.requireReason || false}
+        reasonLabel={confirmation?.reasonLabel}
+        reasonPlaceholder={confirmation?.reasonPlaceholder}
+        onConfirm={(reason) => closeConfirmation(true, reason)}
         onCancel={() => closeConfirmation(false)}
       />
     </div>

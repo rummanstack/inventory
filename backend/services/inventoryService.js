@@ -16,7 +16,11 @@ import { insertDueLedgerEntry, getLatestDueLedgerEntry } from "../repositories/d
 import {
   syncDsrHistory,
   countDsrs,
-  deleteDsr,
+  countTrashedDsrs,
+  listTrashedDsrs,
+  permanentlyDeleteDsr,
+  restoreDsr,
+  softDeleteDsr,
   findDsrById,
   insertDsr,
   listAllActiveDsrsLite,
@@ -37,7 +41,11 @@ import {
 import {
   addProductStock,
   countProducts,
-  deleteProduct,
+  countTrashedProducts,
+  listTrashedProducts,
+  permanentlyDeleteProduct,
+  restoreProduct,
+  softDeleteProduct,
   findProductForUpdate,
   insertProduct,
   listAllActiveProductsLite,
@@ -520,18 +528,66 @@ export class InventoryService {
     });
   }
 
-  async removeProduct(productId, actor) {
+  async removeProduct(productId, actor, reason) {
     return this.databaseManager.withTransaction(async (client) => {
-      const result = await deleteProduct(client, productId, actor.tenantId);
+      const result = await softDeleteProduct(client, productId, actor.tenantId, {
+        deletedById: actor.id,
+        deleteReason: reason,
+      });
       assert(result.rowCount > 0, "Product not found.", 404);
       await this.recordActivity(client, actor, {
         actionType: "product.delete",
         entityType: "product",
         entityId: productId,
-        description: `${actor.name} deleted product ${productId}`,
+        description: `${actor.name} moved product ${productId} to trash${reason ? ` (${reason})` : ""}`,
       });
       return { ok: true };
     });
+  }
+
+  async restoreProduct(productId, actor) {
+    return this.databaseManager.withTransaction(async (client) => {
+      const result = await restoreProduct(client, productId, actor.tenantId);
+      assert(result.rowCount > 0, "Product not found in trash.", 404);
+      await this.recordActivity(client, actor, {
+        actionType: "product.restore",
+        entityType: "product",
+        entityId: productId,
+        description: `${actor.name} restored product ${result.rows[0].name} from trash`,
+      });
+      return { ok: true };
+    });
+  }
+
+  async permanentlyDeleteProduct(productId, actor) {
+    return this.databaseManager.withTransaction(async (client) => {
+      const result = await permanentlyDeleteProduct(client, productId, actor.tenantId);
+      assert(result.rowCount > 0, "Product not found in trash.", 404);
+      await this.recordActivity(client, actor, {
+        actionType: "product.permanent_delete",
+        entityType: "product",
+        entityId: productId,
+        description: `${actor.name} permanently deleted product ${productId}`,
+      });
+      return { ok: true };
+    });
+  }
+
+  async listTrashedProducts(query = {}, actor) {
+    const { page, pageSize, limit, offset } = parsePagination(query);
+    const tenantId = actor.tenantId;
+
+    const client = await this.databaseManager.getPool().connect();
+    try {
+      const [items, total] = await Promise.all([
+        listTrashedProducts(client, { tenantId, limit, offset }),
+        countTrashedProducts(client, tenantId),
+      ]);
+
+      return buildPageResult({ items, total, page, pageSize });
+    } finally {
+      client.release();
+    }
   }
 
   async addStock(productId, addPiecesInput, actor) {
@@ -641,18 +697,66 @@ export class InventoryService {
     });
   }
 
-  async removeDsr(dsrId, actor) {
+  async removeDsr(dsrId, actor, reason) {
     return this.databaseManager.withTransaction(async (client) => {
-      const result = await deleteDsr(client, dsrId, actor.tenantId);
+      const result = await softDeleteDsr(client, dsrId, actor.tenantId, {
+        deletedById: actor.id,
+        deleteReason: reason,
+      });
       assert(result.rowCount > 0, "DSR not found.", 404);
       await this.recordActivity(client, actor, {
         actionType: "dsr.delete",
         entityType: "dsr",
         entityId: dsrId,
-        description: `${actor.name} deleted DSR ${dsrId}`,
+        description: `${actor.name} moved DSR ${dsrId} to trash${reason ? ` (${reason})` : ""}`,
       });
       return { ok: true };
     });
+  }
+
+  async restoreDsr(dsrId, actor) {
+    return this.databaseManager.withTransaction(async (client) => {
+      const result = await restoreDsr(client, dsrId, actor.tenantId);
+      assert(result.rowCount > 0, "DSR not found in trash.", 404);
+      await this.recordActivity(client, actor, {
+        actionType: "dsr.restore",
+        entityType: "dsr",
+        entityId: dsrId,
+        description: `${actor.name} restored DSR ${result.rows[0].name} from trash`,
+      });
+      return { ok: true };
+    });
+  }
+
+  async permanentlyDeleteDsr(dsrId, actor) {
+    return this.databaseManager.withTransaction(async (client) => {
+      const result = await permanentlyDeleteDsr(client, dsrId, actor.tenantId);
+      assert(result.rowCount > 0, "DSR not found in trash.", 404);
+      await this.recordActivity(client, actor, {
+        actionType: "dsr.permanent_delete",
+        entityType: "dsr",
+        entityId: dsrId,
+        description: `${actor.name} permanently deleted DSR ${dsrId}`,
+      });
+      return { ok: true };
+    });
+  }
+
+  async listTrashedDsrs(query = {}, actor) {
+    const { page, pageSize, limit, offset } = parsePagination(query);
+    const tenantId = actor.tenantId;
+
+    const client = await this.databaseManager.getPool().connect();
+    try {
+      const [items, total] = await Promise.all([
+        listTrashedDsrs(client, { tenantId, limit, offset }),
+        countTrashedDsrs(client, tenantId),
+      ]);
+
+      return buildPageResult({ items, total, page, pageSize });
+    } finally {
+      client.release();
+    }
   }
 
   async saveIssue(input, actor) {

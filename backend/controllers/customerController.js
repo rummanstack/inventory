@@ -40,7 +40,31 @@ export class CustomerController {
 
   remove = async (req, res, next) => {
     try {
-      res.json(await this.customerService.removeCustomer(req.params.id, req.currentUser));
+      res.json(await this.customerService.removeCustomer(req.params.id, req.currentUser, req.body?.reason));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  listTrash = async (req, res, next) => {
+    try {
+      res.json(await this.customerService.listTrashedCustomers(req.query, req.currentUser));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  restore = async (req, res, next) => {
+    try {
+      res.json(await this.customerService.restoreCustomer(req.params.id, req.currentUser));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  permanentlyDelete = async (req, res, next) => {
+    try {
+      res.json(await this.customerService.permanentlyDeleteCustomer(req.params.id, req.currentUser));
     } catch (error) {
       next(error);
     }

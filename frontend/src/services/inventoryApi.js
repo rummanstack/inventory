@@ -125,8 +125,24 @@ export const inventoryApi = {
     return apiRequest(`/expenses/${expense.id}`, { method: "PATCH", body: JSON.stringify(expense) });
   },
 
-  deleteExpense(expenseId) {
-    return apiRequest(`/expenses/${expenseId}`, { method: "DELETE" });
+  deleteExpense(expenseId, reason) {
+    return apiRequest(`/expenses/${expenseId}`, { method: "DELETE", body: JSON.stringify({ reason }) });
+  },
+
+  listExpensesTrash({ page, pageSize } = {}) {
+    const params = new URLSearchParams();
+    if (page) params.set("page", page);
+    if (pageSize) params.set("pageSize", pageSize);
+    const query = params.toString();
+    return apiRequest(`/expenses/trash${query ? `?${query}` : ""}`);
+  },
+
+  restoreExpense(expenseId) {
+    return apiRequest(`/expenses/${expenseId}/restore`, { method: "POST" });
+  },
+
+  permanentlyDeleteExpense(expenseId) {
+    return apiRequest(`/expenses/${expenseId}/permanent`, { method: "DELETE" });
   },
 
   getCashReceiptReport({ date, month, dsrId } = {}) {
@@ -262,8 +278,24 @@ export const inventoryApi = {
     return apiRequest(`/products/${product.id}`, { method: "PUT", body: JSON.stringify(product) });
   },
 
-  deleteProduct(productId) {
-    return apiRequest(`/products/${productId}`, { method: "DELETE" });
+  deleteProduct(productId, reason) {
+    return apiRequest(`/products/${productId}`, { method: "DELETE", body: JSON.stringify({ reason }) });
+  },
+
+  listProductsTrash({ page, pageSize } = {}) {
+    const params = new URLSearchParams();
+    if (page) params.set("page", page);
+    if (pageSize) params.set("pageSize", pageSize);
+    const query = params.toString();
+    return apiRequest(`/products/trash${query ? `?${query}` : ""}`);
+  },
+
+  restoreProduct(productId) {
+    return apiRequest(`/products/${productId}/restore`, { method: "POST" });
+  },
+
+  permanentlyDeleteProduct(productId) {
+    return apiRequest(`/products/${productId}/permanent`, { method: "DELETE" });
   },
 
   addProductStock(productId, addPieces) {
@@ -353,8 +385,24 @@ export const inventoryApi = {
     return apiRequest(`/dsrs/${dsr.id}`, { method: "PUT", body: JSON.stringify(dsr) });
   },
 
-  deleteDsr(dsrId) {
-    return apiRequest(`/dsrs/${dsrId}`, { method: "DELETE" });
+  deleteDsr(dsrId, reason) {
+    return apiRequest(`/dsrs/${dsrId}`, { method: "DELETE", body: JSON.stringify({ reason }) });
+  },
+
+  listDsrsTrash({ page, pageSize } = {}) {
+    const params = new URLSearchParams();
+    if (page) params.set("page", page);
+    if (pageSize) params.set("pageSize", pageSize);
+    const query = params.toString();
+    return apiRequest(`/dsrs/trash${query ? `?${query}` : ""}`);
+  },
+
+  restoreDsr(dsrId) {
+    return apiRequest(`/dsrs/${dsrId}/restore`, { method: "POST" });
+  },
+
+  permanentlyDeleteDsr(dsrId) {
+    return apiRequest(`/dsrs/${dsrId}/permanent`, { method: "DELETE" });
   },
 
   createCustomer(customer) {
@@ -365,8 +413,24 @@ export const inventoryApi = {
     return apiRequest(`/customers/${customer.id}`, { method: "PUT", body: JSON.stringify(customer) });
   },
 
-  deleteCustomer(customerId) {
-    return apiRequest(`/customers/${customerId}`, { method: "DELETE" });
+  deleteCustomer(customerId, reason) {
+    return apiRequest(`/customers/${customerId}`, { method: "DELETE", body: JSON.stringify({ reason }) });
+  },
+
+  listCustomersTrash({ page, pageSize } = {}) {
+    const params = new URLSearchParams();
+    if (page) params.set("page", page);
+    if (pageSize) params.set("pageSize", pageSize);
+    const query = params.toString();
+    return apiRequest(`/customers/trash${query ? `?${query}` : ""}`);
+  },
+
+  restoreCustomer(customerId) {
+    return apiRequest(`/customers/${customerId}/restore`, { method: "POST" });
+  },
+
+  permanentlyDeleteCustomer(customerId) {
+    return apiRequest(`/customers/${customerId}/permanent`, { method: "DELETE" });
   },
 
   saveIssue(issue) {

@@ -26,9 +26,19 @@ function mapProductLite(row) {
   };
 }
 
+function mapTrashedProduct(row) {
+  return {
+    ...mapProduct(row),
+    deletedAt: row.deleted_at,
+    deletedById: row.deleted_by_id,
+    deletedByName: row.deleted_by_name || null,
+    deleteReason: row.delete_reason || '',
+  };
+}
+
 export async function countProducts(client, { search, tenantId } = {}) {
   const params = [tenantId];
-  const conditions = ["tenant_id = $1"];
+  const conditions = ["tenant_id = $1", "deleted_at IS NULL"];
 
   if (search) {
     params.push(`%${search}%`);
@@ -42,7 +52,7 @@ export async function countProducts(client, { search, tenantId } = {}) {
 
 export async function listProductsPage(client, { search, tenantId, limit, offset }) {
   const params = [tenantId];
-  const conditions = ["tenant_id = $1"];
+  const conditions = ["tenant_id = $1", "deleted_at IS NULL"];
 
   if (search) {
     params.push(`%${search}%`);
@@ -60,7 +70,7 @@ export async function listProductsPage(client, { search, tenantId, limit, offset
 
 export async function listAllActiveProductsLite(client, tenantId) {
   const result = await client.query(
-    "SELECT id, name, category, pieces_per_case, purchase_price, selling_price, stock_pieces, damaged_pieces, order_index FROM products WHERE tenant_id = $1 ORDER BY order_index ASC, name ASC",
+    "SELECT id, name, category, pieces_per_case, purchase_price, selling_price, stock_pieces, damaged_pieces, order_index FROM products WHERE tenant_id = $1 AND deleted_at IS NULL ORDER BY order_index ASC, name ASC",
     [tenantId],
   );
   return result.rows.map(mapProductLite);
@@ -104,20 +114,63 @@ export function updateProduct(client, product) {
   );
 }
 
-export function deleteProduct(client, productId, tenantId) {
-  return client.query("DELETE FROM products WHERE id = $1 AND tenant_id = $2", [productId, tenantId]);
+export function softDeleteProduct(client, productId, tenantId, { deletedById, deleteReason } = {}) {
+  return client.query(
+    `UPDATE products
+     SET deleted_at = NOW(), deleted_by_id = $3, delete_reason = $4
+     WHERE id = $1 AND tenant_id = $2 AND deleted_at IS NULL`,
+    [productId, tenantId, deletedById || null, deleteReason || ""],
+  );
+}
+
+export function restoreProduct(client, productId, tenantId) {
+  return client.query(
+    `UPDATE products
+     SET deleted_at = NULL, deleted_by_id = NULL, delete_reason = ''
+     WHERE id = $1 AND tenant_id = $2 AND deleted_at IS NOT NULL
+     RETURNING *`,
+    [productId, tenantId],
+  );
+}
+
+export function permanentlyDeleteProduct(client, productId, tenantId) {
+  return client.query(
+    "DELETE FROM products WHERE id = $1 AND tenant_id = $2 AND deleted_at IS NOT NULL",
+    [productId, tenantId],
+  );
+}
+
+export async function countTrashedProducts(client, tenantId) {
+  const result = await client.query(
+    "SELECT COUNT(*)::INTEGER AS count FROM products WHERE tenant_id = $1 AND deleted_at IS NOT NULL",
+    [tenantId],
+  );
+  return result.rows[0].count;
+}
+
+export async function listTrashedProducts(client, { tenantId, limit, offset }) {
+  const result = await client.query(
+    `SELECT p.*, u.name AS deleted_by_name
+     FROM products p
+     LEFT JOIN users u ON u.id = p.deleted_by_id
+     WHERE p.tenant_id = $1 AND p.deleted_at IS NOT NULL
+     ORDER BY p.deleted_at DESC
+     LIMIT $2 OFFSET $3`,
+    [tenantId, limit, offset],
+  );
+  return result.rows.map(mapTrashedProduct);
 }
 
 export function addProductStock(client, productId, addPieces, tenantId) {
   return client.query(
     `UPDATE products
      SET stock_pieces = stock_pieces + $3
-     WHERE id = $1 AND tenant_id = $2
+     WHERE id = $1 AND tenant_id = $2 AND deleted_at IS NULL
      RETURNING *`,
     [productId, tenantId, addPieces],
   );
 }
 
 export function findProductForUpdate(client, productId, tenantId) {
-  return client.query("SELECT * FROM products WHERE id = $1 AND tenant_id = $2 FOR UPDATE", [productId, tenantId]);
+  return client.query("SELECT * FROM products WHERE id = $1 AND tenant_id = $2 AND deleted_at IS NULL FOR UPDATE", [productId, tenantId]);
 }

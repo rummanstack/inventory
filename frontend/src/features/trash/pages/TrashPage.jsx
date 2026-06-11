@@ -1,0 +1,238 @@
+import { useEffect, useMemo, useState } from 'react';
+import { Boxes, CircleDollarSign, RotateCcw, Store, Trash2, Users } from 'lucide-react';
+import { Alert, EmptyState, Pagination, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
+import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
+import { inventoryApi } from '../../../services/inventoryApi.js';
+import { formatDateTime } from '../../../utils/calculations.js';
+
+export default function TrashPage() {
+  const {
+    t,
+    can,
+    restoreProduct,
+    permanentlyDeleteProduct,
+    restoreCustomer,
+    permanentlyDeleteCustomer,
+    restoreDsr,
+    permanentlyDeleteDsr,
+    restoreExpense,
+    permanentlyDeleteExpense,
+  } = useInventoryApp();
+
+  const tabs = useMemo(
+    () => [
+      {
+        key: 'products',
+        labelKey: 'nav.products',
+        icon: Boxes,
+        permission: 'manage_products',
+        list: inventoryApi.listProductsTrash,
+        restore: restoreProduct,
+        permanentlyDelete: permanentlyDeleteProduct,
+        getName: (item) => item.name,
+      },
+      {
+        key: 'customers',
+        labelKey: 'nav.customers',
+        icon: Store,
+        permission: 'manage_customers',
+        list: inventoryApi.listCustomersTrash,
+        restore: restoreCustomer,
+        permanentlyDelete: permanentlyDeleteCustomer,
+        getName: (item) => item.shopName,
+      },
+      {
+        key: 'dsrs',
+        labelKey: 'nav.dsrs',
+        icon: Users,
+        permission: 'manage_dsrs',
+        list: inventoryApi.listDsrsTrash,
+        restore: restoreDsr,
+        permanentlyDelete: permanentlyDeleteDsr,
+        getName: (item) => item.name,
+      },
+      {
+        key: 'expenses',
+        labelKey: 'nav.expenses',
+        icon: CircleDollarSign,
+        permission: 'manage_expenses',
+        list: inventoryApi.listExpensesTrash,
+        restore: restoreExpense,
+        permanentlyDelete: permanentlyDeleteExpense,
+        getName: (item) => item.category,
+      },
+    ],
+    [
+      restoreProduct,
+      permanentlyDeleteProduct,
+      restoreCustomer,
+      permanentlyDeleteCustomer,
+      restoreDsr,
+      permanentlyDeleteDsr,
+      restoreExpense,
+      permanentlyDeleteExpense,
+    ],
+  );
+
+  const visibleTabs = tabs.filter((tab) => can(tab.permission));
+  const [activeKey, setActiveKey] = useState(visibleTabs[0]?.key || null);
+  const activeTab = visibleTabs.find((tab) => tab.key === activeKey) || visibleTabs[0] || null;
+
+  const canPermanentDelete = can('permanent_delete');
+
+  const [items, setItems] = useState([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    setPage(1);
+  }, [activeKey]);
+
+  useEffect(() => {
+    if (!activeTab) {
+      return;
+    }
+
+    let cancelled = false;
+
+    async function load() {
+      setLoading(true);
+      setError('');
+      try {
+        const result = await activeTab.list({ page, pageSize: 20 });
+        if (cancelled) return;
+        setItems(result.items || []);
+        setTotalPages(result.totalPages || 0);
+      } catch (err) {
+        if (cancelled) return;
+        setError(err?.message || t('alerts.requestFailed'));
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [activeTab, page, t]);
+
+  async function reload() {
+    if (!activeTab) return;
+    setLoading(true);
+    try {
+      const result = await activeTab.list({ page, pageSize: 20 });
+      setItems(result.items || []);
+      setTotalPages(result.totalPages || 0);
+    } catch (err) {
+      setError(err?.message || t('alerts.requestFailed'));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleRestore(item) {
+    const result = await activeTab.restore(item);
+    if (result.ok) {
+      reload();
+    }
+  }
+
+  async function handlePermanentDelete(item) {
+    const result = await activeTab.permanentlyDelete(item);
+    if (result.ok) {
+      reload();
+    }
+  }
+
+  if (!visibleTabs.length) {
+    return (
+      <div>
+        <SectionHeader eyebrow={t('trash.eyebrow')} description={t('trash.description')} />
+        <EmptyState title={t('trash.noAccessTitle')} description={t('trash.noAccessDescription')} icon={Trash2} />
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <SectionHeader eyebrow={t('trash.eyebrow')} description={t('trash.description')} />
+
+      <div className="mb-4 flex flex-wrap gap-2">
+        {visibleTabs.map((tab) => {
+          const Icon = tab.icon;
+          return (
+            <button
+              key={tab.key}
+              type="button"
+              className={`btn-secondary ${activeKey === tab.key ? 'bg-slate-900 text-white hover:bg-slate-900' : ''}`}
+              onClick={() => setActiveKey(tab.key)}
+            >
+              <Icon size={16} />
+              {t(tab.labelKey)}
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="surface overflow-hidden">
+        {loading ? (
+          <div className="p-5">
+            <TableSkeleton columns={5} showHeader={false} />
+          </div>
+        ) : error ? (
+          <div className="p-5">
+            <Alert type="error">{error}</Alert>
+          </div>
+        ) : !items.length ? (
+          <div className="p-5">
+            <EmptyState title={t('trash.emptyTitle')} description={t('trash.emptyDescription')} icon={Trash2} />
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="table-head">
+                <tr>
+                  <th className="px-4 py-3">{t('trash.name')}</th>
+                  <th className="hidden px-4 py-3 sm:table-cell">{t('trash.deletedAt')}</th>
+                  <th className="hidden px-4 py-3 md:table-cell">{t('trash.deletedBy')}</th>
+                  <th className="hidden px-4 py-3 lg:table-cell">{t('trash.reason')}</th>
+                  <th className="px-4 py-3 text-right">{t('common.actions')}</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {items.map((item) => (
+                  <tr key={item.id} className="hover:bg-slate-50">
+                    <td className="table-cell font-semibold text-slate-950">{activeTab.getName(item) || '-'}</td>
+                    <td className="hidden table-cell sm:table-cell">{formatDateTime(item.deletedAt)}</td>
+                    <td className="hidden table-cell md:table-cell">{item.deletedByName || '-'}</td>
+                    <td className="hidden table-cell lg:table-cell">{item.deleteReason || '-'}</td>
+                    <td className="table-cell">
+                      <div className="flex justify-end gap-2">
+                        <button type="button" className="icon-btn text-emerald-600 hover:text-emerald-700" title={t('trash.restore')} onClick={() => handleRestore(item)}>
+                          <RotateCcw size={16} />
+                        </button>
+                        {canPermanentDelete ? (
+                          <button type="button" className="icon-btn text-rose-600 hover:text-rose-700" title={t('trash.permanentDelete')} onClick={() => handlePermanentDelete(item)}>
+                            <Trash2 size={16} />
+                          </button>
+                        ) : null}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+        {!loading && !error && items.length ? (
+          <div className="border-t border-slate-100 px-5 py-4">
+            <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+}

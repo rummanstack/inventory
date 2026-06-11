@@ -85,19 +85,19 @@ export function InventoryAppProvider({ children }) {
     setToasts((current) => current.filter((toast) => toast.id !== id));
   }
 
-  function closeConfirmation(result) {
+  function closeConfirmation(result, reason = '') {
     const resolver = confirmResolverRef.current;
     confirmResolverRef.current = null;
     setConfirmation(null);
     if (resolver) {
-      resolver(Boolean(result));
+      resolver({ confirmed: Boolean(result), reason });
     }
   }
 
   function confirm(options) {
     return new Promise((resolve) => {
       if (confirmResolverRef.current) {
-        confirmResolverRef.current(false);
+        confirmResolverRef.current({ confirmed: false, reason: '' });
       }
 
       confirmResolverRef.current = resolve;
@@ -107,6 +107,9 @@ export function InventoryAppProvider({ children }) {
         confirmLabel: options.confirmLabel || t('common.delete'),
         cancelLabel: options.cancelLabel || t('common.cancel'),
         tone: options.tone || 'rose',
+        requireReason: options.requireReason || false,
+        reasonLabel: options.reasonLabel,
+        reasonPlaceholder: options.reasonPlaceholder,
       });
     });
   }
@@ -146,6 +149,15 @@ export function InventoryAppProvider({ children }) {
     try {
       const result = await inventoryApi.getProductsDirectory();
       setProductDirectory(result.products || []);
+    } catch {
+      // Best effort - the directory will catch up on the next full refresh.
+    }
+  }
+
+  async function refreshDsrDirectory() {
+    try {
+      const result = await inventoryApi.getDsrsDirectory();
+      setDsrDirectory(result.dsrs || []);
     } catch {
       // Best effort - the directory will catch up on the next full refresh.
     }
@@ -261,17 +273,21 @@ export function InventoryAppProvider({ children }) {
 
   async function deleteProduct(product) {
     const confirmMessage = t('products.deleteConfirm', { name: product.name });
-    if (!(await confirm({
+    const { confirmed, reason } = await confirm({
       title: t('products.deleteTitle'),
       description: interpolateConfirm(confirmMessage, { name: product.name }),
       confirmLabel: t('common.delete'),
       tone: 'rose',
-    }))) {
+      requireReason: true,
+      reasonLabel: t('common.deleteReasonLabel'),
+      reasonPlaceholder: t('common.deleteReasonPlaceholder'),
+    });
+    if (!confirmed) {
       return { ok: false };
     }
 
     try {
-      await inventoryApi.deleteProduct(product.id);
+      await inventoryApi.deleteProduct(product.id, reason);
       removeFromProductDirectory(product.id);
       pushToast('success', t('common.delete'), `${product.name} ${t('alerts.deleted')}`);
       return { ok: true };
@@ -310,17 +326,21 @@ export function InventoryAppProvider({ children }) {
 
   async function deleteDsr(dsr) {
     const confirmMessage = t('dsr.deleteConfirm', { name: dsr.name });
-    if (!(await confirm({
+    const { confirmed, reason } = await confirm({
       title: t('dsr.deleteTitle'),
       description: interpolateConfirm(confirmMessage, { name: dsr.name }),
       confirmLabel: t('common.delete'),
       tone: 'rose',
-    }))) {
+      requireReason: true,
+      reasonLabel: t('common.deleteReasonLabel'),
+      reasonPlaceholder: t('common.deleteReasonPlaceholder'),
+    });
+    if (!confirmed) {
       return { ok: false };
     }
 
     try {
-      await inventoryApi.deleteDsr(dsr.id);
+      await inventoryApi.deleteDsr(dsr.id, reason);
       removeFromDsrDirectory(dsr.id);
       pushToast('success', t('common.delete'), `${dsr.name} ${t('alerts.deleted')}`);
       return { ok: true };
@@ -345,17 +365,21 @@ export function InventoryAppProvider({ children }) {
 
   async function deleteCustomer(customer) {
     const confirmMessage = t('customers.deleteConfirm', { name: customer.shopName });
-    if (!(await confirm({
+    const { confirmed, reason } = await confirm({
       title: t('customers.deleteTitle'),
       description: interpolateConfirm(confirmMessage, { name: customer.shopName }),
       confirmLabel: t('common.delete'),
       tone: 'rose',
-    }))) {
+      requireReason: true,
+      reasonLabel: t('common.deleteReasonLabel'),
+      reasonPlaceholder: t('common.deleteReasonPlaceholder'),
+    });
+    if (!confirmed) {
       return { ok: false };
     }
 
     try {
-      await inventoryApi.deleteCustomer(customer.id);
+      await inventoryApi.deleteCustomer(customer.id, reason);
       pushToast('success', t('common.delete'), `${customer.shopName} ${t('alerts.deleted')}`);
       return { ok: true };
     } catch (error) {
@@ -363,6 +387,109 @@ export function InventoryAppProvider({ children }) {
       pushToast('error', t('alerts.deleteFailed'), message);
       return { ok: false, message };
     }
+  }
+
+  async function restoreTrashedItem({ name, restoreFn, onRestored }) {
+    const { confirmed } = await confirm({
+      title: t('trash.restoreTitle'),
+      description: interpolateConfirm(t('trash.restoreConfirm'), { name }),
+      confirmLabel: t('trash.restore'),
+      tone: 'emerald',
+    });
+    if (!confirmed) {
+      return { ok: false };
+    }
+
+    try {
+      await restoreFn();
+      await onRestored?.();
+      pushToast('success', t('trash.restore'), `${name} ${t('trash.restoreSuccess')}`);
+      return { ok: true };
+    } catch (error) {
+      const message = getFriendlyError(error, t);
+      pushToast('error', t('trash.restoreFailed'), message);
+      return { ok: false, message };
+    }
+  }
+
+  async function permanentlyDeleteTrashedItem({ name, deleteFn }) {
+    const { confirmed } = await confirm({
+      title: t('trash.permanentDeleteTitle'),
+      description: interpolateConfirm(t('trash.permanentDeleteConfirm'), { name }),
+      confirmLabel: t('trash.permanentDelete'),
+      tone: 'rose',
+    });
+    if (!confirmed) {
+      return { ok: false };
+    }
+
+    try {
+      await deleteFn();
+      pushToast('success', t('trash.permanentDelete'), `${name} ${t('trash.permanentDeleteSuccess')}`);
+      return { ok: true };
+    } catch (error) {
+      const message = getFriendlyError(error, t);
+      pushToast('error', t('trash.permanentDeleteFailed'), message);
+      return { ok: false, message };
+    }
+  }
+
+  function restoreProduct(product) {
+    return restoreTrashedItem({
+      name: product.name,
+      restoreFn: () => inventoryApi.restoreProduct(product.id),
+      onRestored: refreshProductDirectory,
+    });
+  }
+
+  function permanentlyDeleteProduct(product) {
+    return permanentlyDeleteTrashedItem({
+      name: product.name,
+      deleteFn: () => inventoryApi.permanentlyDeleteProduct(product.id),
+    });
+  }
+
+  function restoreDsr(dsr) {
+    return restoreTrashedItem({
+      name: dsr.name,
+      restoreFn: () => inventoryApi.restoreDsr(dsr.id),
+      onRestored: refreshDsrDirectory,
+    });
+  }
+
+  function permanentlyDeleteDsr(dsr) {
+    return permanentlyDeleteTrashedItem({
+      name: dsr.name,
+      deleteFn: () => inventoryApi.permanentlyDeleteDsr(dsr.id),
+    });
+  }
+
+  function restoreCustomer(customer) {
+    return restoreTrashedItem({
+      name: customer.shopName,
+      restoreFn: () => inventoryApi.restoreCustomer(customer.id),
+    });
+  }
+
+  function permanentlyDeleteCustomer(customer) {
+    return permanentlyDeleteTrashedItem({
+      name: customer.shopName,
+      deleteFn: () => inventoryApi.permanentlyDeleteCustomer(customer.id),
+    });
+  }
+
+  function restoreExpense(expense) {
+    return restoreTrashedItem({
+      name: expense.category,
+      restoreFn: () => inventoryApi.restoreExpense(expense.id),
+    });
+  }
+
+  function permanentlyDeleteExpense(expense) {
+    return permanentlyDeleteTrashedItem({
+      name: expense.category,
+      deleteFn: () => inventoryApi.permanentlyDeleteExpense(expense.id),
+    });
   }
 
   async function saveIssue(issue) {
@@ -461,11 +588,19 @@ export function InventoryAppProvider({ children }) {
       logout,
       saveProduct,
       deleteProduct,
+      restoreProduct,
+      permanentlyDeleteProduct,
       addStock,
       saveDsr,
       deleteDsr,
+      restoreDsr,
+      permanentlyDeleteDsr,
       saveCustomer,
       deleteCustomer,
+      restoreCustomer,
+      permanentlyDeleteCustomer,
+      restoreExpense,
+      permanentlyDeleteExpense,
       saveIssue,
       saveSettlement,
       updateProfile,

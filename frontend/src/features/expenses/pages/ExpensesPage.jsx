@@ -34,6 +34,9 @@ export default function ExpensesPage() {
       description: t('expenses.deleteConfirm', { category: expense?.category || t('expenses.expense') }),
       confirmLabel: t('common.delete'),
       tone: 'rose',
+      requireReason: true,
+      reasonLabel: t('common.deleteReasonLabel'),
+      reasonPlaceholder: t('common.deleteReasonPlaceholder'),
     });
   }
 

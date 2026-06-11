@@ -2,8 +2,13 @@ import { assert } from "../lib/errors.js";
 import { createId } from "../lib/ids.js";
 import { summarizeByAmount } from "../lib/aggregation.js";
 import { normalizeIsoDate, normalizeIsoMonth, startOfMonth, startOfNextMonth } from "../lib/dateRanges.js";
+import { buildPageResult, parsePagination } from "../lib/pagination.js";
 import {
-  deleteExpense,
+  countTrashedExpenses,
+  listTrashedExpenses,
+  permanentlyDeleteExpense,
+  restoreExpense,
+  softDeleteExpense,
   findExpenseById,
   insertExpense,
   listExpensesInRange,
@@ -119,11 +124,14 @@ export class ExpenseService {
     });
   }
 
-  async removeExpense(expenseId, actor) {
+  async removeExpense(expenseId, actor, reason) {
     return this.databaseManager.withTransaction(async (client) => {
       const existingExpense = await findExpenseById(client, expenseId, actor.tenantId);
       assert(existingExpense, "Expense not found.", 404);
-      const result = await deleteExpense(client, expenseId, actor.tenantId);
+      const result = await softDeleteExpense(client, expenseId, actor.tenantId, {
+        deletedById: actor.id,
+        deleteReason: reason,
+      });
       assert(result.rowCount > 0, "Expense not found.", 404);
 
       await this.auditService.record(client, {
@@ -132,11 +140,65 @@ export class ExpenseService {
         actionType: "expense.delete",
         entityType: "expense",
         entityId: expenseId,
-        description: `${actor.name} deleted expense ${existingExpense.category}`,
+        description: `${actor.name} moved expense ${existingExpense.category} to trash${reason ? ` (${reason})` : ""}`,
         metadata: { date: existingExpense.date, category: existingExpense.category, amount: existingExpense.amount },
       });
 
       return { ok: true };
     });
+  }
+
+  async restoreExpense(expenseId, actor) {
+    return this.databaseManager.withTransaction(async (client) => {
+      const result = await restoreExpense(client, expenseId, actor.tenantId);
+      assert(result.rowCount > 0, "Expense not found in trash.", 404);
+
+      await this.auditService.record(client, {
+        tenantId: actor.tenantId,
+        userId: actor.id,
+        actionType: "expense.restore",
+        entityType: "expense",
+        entityId: expenseId,
+        description: `${actor.name} restored expense ${result.rows[0].category} from trash`,
+        metadata: { date: result.rows[0].expense_date, category: result.rows[0].category, amount: result.rows[0].amount },
+      });
+
+      return { ok: true };
+    });
+  }
+
+  async permanentlyDeleteExpense(expenseId, actor) {
+    return this.databaseManager.withTransaction(async (client) => {
+      const result = await permanentlyDeleteExpense(client, expenseId, actor.tenantId);
+      assert(result.rowCount > 0, "Expense not found in trash.", 404);
+
+      await this.auditService.record(client, {
+        tenantId: actor.tenantId,
+        userId: actor.id,
+        actionType: "expense.permanent_delete",
+        entityType: "expense",
+        entityId: expenseId,
+        description: `${actor.name} permanently deleted expense ${expenseId}`,
+      });
+
+      return { ok: true };
+    });
+  }
+
+  async listTrashedExpenses(query = {}, actor) {
+    const { page, pageSize, limit, offset } = parsePagination(query);
+    const tenantId = actor.tenantId;
+
+    const client = await this.databaseManager.getPool().connect();
+    try {
+      const [items, total] = await Promise.all([
+        listTrashedExpenses(client, { tenantId, limit, offset }),
+        countTrashedExpenses(client, tenantId),
+      ]);
+
+      return buildPageResult({ items, total, page, pageSize });
+    } finally {
+      client.release();
+    }
   }
 }

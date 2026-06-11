@@ -39,7 +39,7 @@ export class ProductController {
 
   remove = async (req, res, next) => {
     try {
-      res.json(await this.inventoryService.removeProduct(req.params.id, req.currentUser));
+      res.json(await this.inventoryService.removeProduct(req.params.id, req.currentUser, req.body?.reason));
     } catch (error) {
       next(error);
     }
@@ -49,6 +49,30 @@ export class ProductController {
     try {
       const product = await this.inventoryService.addStock(req.params.id, req.body.addPieces, req.currentUser);
       res.json({ product });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  listTrash = async (req, res, next) => {
+    try {
+      res.json(await this.inventoryService.listTrashedProducts(req.query, req.currentUser));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  restore = async (req, res, next) => {
+    try {
+      res.json(await this.inventoryService.restoreProduct(req.params.id, req.currentUser));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  permanentlyDelete = async (req, res, next) => {
+    try {
+      res.json(await this.inventoryService.permanentlyDeleteProduct(req.params.id, req.currentUser));
     } catch (error) {
       next(error);
     }

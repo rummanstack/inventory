@@ -5,6 +5,7 @@ import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { formatCasePiece, formatCurrency, formatNumber } from '../../../utils/calculations.js';
 import ProductFormModal from '../components/ProductFormModal';
 import StockUpdateModal from '../components/StockUpdateModal';
+import StockLedgerPanel from '../components/StockLedgerPanel';
 import { useProductsViewModel } from '../viewmodels/useProductsViewModel';
 
 export default function ProductsPage() {
@@ -137,6 +138,8 @@ export default function ProductsPage() {
           </div>
         ) : null}
       </div>
+
+      <StockLedgerPanel products={productDirectory} t={t} />
 
       {productModal ? <ProductFormModal product={productModal.product} onClose={() => setProductModal(null)} onSave={async (value) => {
         const result = await saveProduct(value);

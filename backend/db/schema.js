@@ -88,6 +88,21 @@ export async function createSchema(pool) {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
 
+    CREATE TABLE IF NOT EXISTS stock_movements (
+      id             TEXT PRIMARY KEY,
+      tenant_id      TEXT REFERENCES tenants(id),
+      product_id     TEXT NOT NULL,
+      type           TEXT NOT NULL,
+      quantity_in    INTEGER NOT NULL DEFAULT 0,
+      quantity_out   INTEGER NOT NULL DEFAULT 0,
+      balance_after  INTEGER NOT NULL,
+      reference_type TEXT NOT NULL,
+      reference_id   TEXT,
+      note           TEXT NOT NULL DEFAULT '',
+      created_by     TEXT REFERENCES users(id) ON DELETE SET NULL,
+      created_at     TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
     CREATE TABLE IF NOT EXISTS dsrs (
       id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
@@ -225,6 +240,24 @@ export async function createSchema(pool) {
     UPDATE products SET order_index = 9999 WHERE order_index = 0;
 
     ALTER TABLE products ADD COLUMN IF NOT EXISTS damaged_pieces INTEGER NOT NULL DEFAULT 0;
+
+    ALTER TABLE stock_movements ADD COLUMN IF NOT EXISTS tenant_id TEXT REFERENCES tenants(id);
+    ALTER TABLE stock_movements ADD COLUMN IF NOT EXISTS product_id TEXT NOT NULL DEFAULT '';
+    ALTER TABLE stock_movements ADD COLUMN IF NOT EXISTS type TEXT NOT NULL DEFAULT 'MANUAL_ADJUSTMENT';
+    ALTER TABLE stock_movements ADD COLUMN IF NOT EXISTS quantity_in INTEGER NOT NULL DEFAULT 0;
+    ALTER TABLE stock_movements ADD COLUMN IF NOT EXISTS quantity_out INTEGER NOT NULL DEFAULT 0;
+    ALTER TABLE stock_movements ADD COLUMN IF NOT EXISTS balance_after INTEGER NOT NULL DEFAULT 0;
+    ALTER TABLE stock_movements ADD COLUMN IF NOT EXISTS reference_type TEXT NOT NULL DEFAULT 'manual';
+    ALTER TABLE stock_movements ADD COLUMN IF NOT EXISTS reference_id TEXT;
+    ALTER TABLE stock_movements ADD COLUMN IF NOT EXISTS note TEXT NOT NULL DEFAULT '';
+    ALTER TABLE stock_movements ADD COLUMN IF NOT EXISTS created_by TEXT REFERENCES users(id) ON DELETE SET NULL;
+
+    CREATE INDEX IF NOT EXISTS idx_stock_movements_tenant_product_created_at
+      ON stock_movements(tenant_id, product_id, created_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_stock_movements_tenant_created_at
+      ON stock_movements(tenant_id, created_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_stock_movements_reference
+      ON stock_movements(reference_type, reference_id);
 
     CREATE TABLE IF NOT EXISTS role_permissions (
       role TEXT NOT NULL,

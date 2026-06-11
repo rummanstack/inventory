@@ -18,6 +18,7 @@ export default function EveningSettlementPage() {
   const issuedPiecesTotal = vm.displayRows.reduce((sum, row) => sum + Number(row.issuedPieces || 0), 0);
   const soldPiecesTotal = vm.displayRows.reduce((sum, row) => sum + Number(row.soldPieces || 0), 0);
   const returnedPiecesTotal = vm.displayRows.reduce((sum, row) => sum + Number(row.returnedPieces || 0), 0);
+  const damagedPiecesTotal = vm.displayRows.reduce((sum, row) => sum + Number(row.damagedPieces || 0), 0);
 
   function recordSettlementPrint(label) {
     if (!vm.completedSettlement) {
@@ -70,9 +71,10 @@ export default function EveningSettlementPage() {
           <span className="muted-chip">{formatNumber(issuedPiecesTotal)} issued</span>
           <span className="muted-chip">{formatNumber(soldPiecesTotal)} sold</span>
           <span className="muted-chip">{formatNumber(returnedPiecesTotal)} returned</span>
+          <span className="muted-chip">{formatNumber(damagedPiecesTotal)} damaged</span>
+          {vm.totalReturnValue > 0 ? <span className="muted-chip">{formatCurrency(vm.grossIssueValue)} product total</span> : null}
           <span className="muted-chip">{formatCurrency(vm.totalPayable)} payable</span>
-          <span className="muted-chip">{formatNumber(vm.totalExtraReturnedPieces)} extra</span>
-          {vm.extraReturnValue > 0 ? <span className="muted-chip">-{formatCurrency(vm.extraReturnValue)} extra return</span> : null}
+          {vm.totalReturnValue > 0 ? <span className="muted-chip">-{formatCurrency(vm.totalReturnValue)} return value</span> : null}
           {vm.discount > 0 ? <span className="muted-chip">-{formatCurrency(vm.discount)} discount</span> : null}
         </div>
       </div>
@@ -210,16 +212,22 @@ export default function EveningSettlementPage() {
                   <h3 className="text-sm font-black uppercase tracking-[0.14em] text-slate-700">{t('settlement.summaryTitle')}</h3>
                   <dl className="mt-3 space-y-2 text-sm">
                     <div className="flex items-center justify-between">
+                      <dt className="font-semibold text-slate-600">{t('settlement.productTotal')}</dt>
+                      <dd className="font-black text-slate-950">{formatCurrency(vm.totalReturnValue > 0 ? vm.grossIssueValue : vm.totalPayable)}</dd>
+                    </div>
+                    {vm.totalReturnValue > 0 ? (
+                      <div className="flex items-center justify-between">
+                        <dt className="font-semibold text-slate-600">{t('settlement.damagedReturnedPrice')}</dt>
+                        <dd className="font-black text-rose-700">- {formatCurrency(vm.totalReturnValue)}</dd>
+                      </div>
+                    ) : null}
+                    <div className="flex items-center justify-between">
                       <dt className="font-semibold text-slate-600">{t('settlement.todaySales')}</dt>
-                      <dd className="font-black text-slate-950">{formatCurrency(vm.totalPayable)}</dd>
+                      <dd className="font-black text-slate-950">{formatCurrency(vm.totalPayable - vm.extraReturnValue)}</dd>
                     </div>
                     <div className="flex items-center justify-between">
                       <dt className="font-semibold text-slate-600">{t('settlement.previousDue')}</dt>
                       <dd className="font-black text-slate-950">+ {formatCurrency(vm.previousDue)}</dd>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <dt className="font-semibold text-slate-600">{t('settlement.damageReturn')}</dt>
-                      <dd className="font-black text-rose-700">- {formatCurrency(vm.extraReturnValue)}</dd>
                     </div>
                     <div className="flex items-center justify-between gap-3">
                       <dt className="font-semibold text-slate-600">{t('settlement.discount')}</dt>

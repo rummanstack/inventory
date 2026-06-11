@@ -159,6 +159,11 @@ export function useSettlementViewModel({ products, dsrs, today, saveSettlementAc
   });
 
   const totalPayable = displayRows.reduce((sum, item) => sum + item.payable, 0);
+  const issuedReturnValue = displayRows.reduce(
+    (sum, item) => sum + (Number(item.returnedPieces || 0) + Number(item.damagedPieces || 0)) * Number(item.rate || 0),
+    0,
+  );
+  const grossIssueValue = totalPayable + issuedReturnValue;
   const totalExtraReturnedPieces = extraReturns.reduce(
     (sum, item) =>
       sum +
@@ -358,7 +363,10 @@ export function useSettlementViewModel({ products, dsrs, today, saveSettlementAc
     displayRows,
     extraReturns,
     totalExtraReturnedPieces,
+    grossIssueValue,
+    issuedReturnValue,
     extraReturnValue,
+    totalReturnValue: issuedReturnValue + extraReturnValue,
     totalPayable,
     discount,
     amountPaid,

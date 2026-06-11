@@ -372,29 +372,42 @@ function syncSettlementItemsWithIssue(issueItems, settlementItems) {
   });
 }
 
-async function calculateExtraReturnValue(client, extraReturns, tenantId) {
+async function buildTrustedExtraReturns(client, extraReturns, tenantId) {
   const productIds = [...new Set((Array.isArray(extraReturns) ? extraReturns : []).map((item) => item.productId).filter(Boolean))];
   if (!productIds.length) {
-    return 0;
+    return [];
   }
 
   const productMap = await lockProducts(client, productIds, tenantId);
-  return extraReturns.reduce((sum, item) => {
+  return extraReturns.map((item) => {
     const product = productMap.get(item.productId);
     const returnedPieces = cleanInteger(item.returnedPieces);
     const damagedPieces = cleanInteger(item.damagedPieces);
-    return sum + (returnedPieces + damagedPieces) * Number(product.selling_price || 0);
-  }, 0);
+    const rate = Number(product.selling_price || 0);
+    const returnValue = (returnedPieces + damagedPieces) * rate;
+
+    return {
+      ...item,
+      productName: product.name,
+      piecesPerCase: cleanInteger(product.pieces_per_case),
+      returnedPieces,
+      damagedPieces,
+      rate,
+      returnValue,
+    };
+  });
 }
 
 async function buildTrustedSettlementBase(client, base, issueItems, tenantId) {
   const items = syncSettlementItemsWithIssue(issueItems, base.items);
   const totalPayable = items.reduce((sum, item) => sum + Number(item.payable || 0), 0);
-  const extraReturnValue = await calculateExtraReturnValue(client, base.extraReturns || [], tenantId);
+  const extraReturns = await buildTrustedExtraReturns(client, base.extraReturns || [], tenantId);
+  const extraReturnValue = extraReturns.reduce((sum, item) => sum + Number(item.returnValue || 0), 0);
 
   return {
     ...base,
     items,
+    extraReturns,
     totalPayable,
     extraReturnValue,
   };

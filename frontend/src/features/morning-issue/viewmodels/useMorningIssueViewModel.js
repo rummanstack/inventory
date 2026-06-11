@@ -13,6 +13,7 @@ export function useMorningIssueViewModel({ products, dsrs, today, saveIssueActio
   const [saving, setSaving] = useState(false);
   const [existingIssue, setExistingIssue] = useState(null);
   const [existingSettlement, setExistingSettlement] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
@@ -29,8 +30,11 @@ export function useMorningIssueViewModel({ products, dsrs, today, saveIssueActio
     if (!date || !dsrId) {
       setExistingIssue(null);
       setExistingSettlement(null);
+      setLoading(false);
       return undefined;
     }
+
+    setLoading(true);
 
     Promise.all([
       inventoryApi.listIssues({ dsrId, dateFrom: date, dateTo: date, pageSize: SCOPED_LOOKUP_PAGE_SIZE }),
@@ -48,6 +52,11 @@ export function useMorningIssueViewModel({ products, dsrs, today, saveIssueActio
         if (!cancelled) {
           setExistingIssue(null);
           setExistingSettlement(null);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setLoading(false);
         }
       });
 
@@ -161,6 +170,7 @@ export function useMorningIssueViewModel({ products, dsrs, today, saveIssueActio
     saving,
     existingIssue,
     existingSettlement,
+    loading,
     issueRows,
     invalidRows,
     selectedRows,

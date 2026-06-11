@@ -1,5 +1,5 @@
 import { AlertTriangle, Save, Truck } from 'lucide-react';
-import { Alert, EmptyState, SectionHeader, cx } from '../../../components/ui.jsx';
+import { Alert, EmptyState, SectionHeader, TableSkeleton, cx } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/date-picker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { formatCasePiece, formatCurrency, formatNumber } from '../../../utils/calculations.js';
@@ -62,6 +62,11 @@ export default function MorningIssuePage() {
         ) : null}
       </div>
 
+      {vm.loading ? (
+        <div className="mt-6">
+          <TableSkeleton rows={6} columns={7} />
+        </div>
+      ) : (
       <div className="surface overflow-hidden">
         <div className="flex flex-col gap-3 border-b border-slate-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -147,6 +152,7 @@ export default function MorningIssuePage() {
           </div>
         )}
       </div>
+      )}
     </div>
   );
 }

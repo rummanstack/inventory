@@ -13,7 +13,11 @@ import {
   finalizeSettlementAmounts,
 } from "../lib/normalizers.js";
 import { DSR_DUE_LEDGER_TYPES } from "../lib/dsrDueLedger.js";
-import { insertDueLedgerEntry, getLatestDueLedgerEntry } from "../repositories/dsrDueLedgerRepository.js";
+import {
+  insertDueLedgerEntry,
+  getLatestDueLedgerEntry,
+  getFirstDueLedgerEntryForReference,
+} from "../repositories/dsrDueLedgerRepository.js";
 import {
   syncDsrHistory,
   countDsrs,
@@ -405,6 +409,25 @@ function finalizeSettlementAmountsStrict(base, previousDue) {
     "Cash received cannot be greater than the total receivable amount.",
   );
   return finalizeSettlementAmounts(base, normalizedPreviousDue);
+}
+
+function getDueLedgerChange(entry) {
+  return Number(entry.debit || 0) - Number(entry.credit || 0);
+}
+
+async function getSettlementPreviousDueBaseline(client, previousSettlement, tenantId) {
+  const firstEntry = await getFirstDueLedgerEntryForReference(client, {
+    tenantId,
+    dsrId: previousSettlement.dsr_id,
+    referenceType: "settlement",
+    referenceId: previousSettlement.id,
+  });
+
+  if (!firstEntry) {
+    return Math.max(0, cleanMoney(previousSettlement.previous_due));
+  }
+
+  return Math.max(0, cleanMoney(firstEntry.balanceAfter) - getDueLedgerChange(firstEntry));
 }
 
 export class InventoryService {
@@ -1018,6 +1041,10 @@ export class InventoryService {
 
         const previousSettlement = existingSettlement.rows[0];
         const previousItems = Array.isArray(previousSettlement.items) ? previousSettlement.items : [];
+        assert(
+          String(previousSettlement.settlement_date) === base.date && String(previousSettlement.dsr_id) === base.dsrId,
+          "Settlement date and DSR cannot be changed after settlement is completed.",
+        );
 
         const duplicateSettlement = await findDuplicateSettlement(
           client,
@@ -1064,12 +1091,11 @@ export class InventoryService {
         const oldCollection = Number(previousSettlement.amount_paid || 0);
         const oldNet = oldSaleDue - oldCollection;
 
+        const previousDueForNew = await getSettlementPreviousDueBaseline(client, previousSettlement, tenantId);
         const latestEntry = await getLatestDueLedgerEntry(client, trustedBase.dsrId, tenantId);
         const latestBalance = latestEntry
           ? latestEntry.balanceAfter
-          : Number(previousSettlement.previous_due || 0) + oldNet;
-
-        const previousDueForNew = latestBalance - oldNet;
+          : previousDueForNew + oldNet;
         const settlement = finalizeSettlementAmountsStrict(trustedBase, previousDueForNew);
 
         const settlementResult = await updateSettlement(client, settlement);

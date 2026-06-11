@@ -58,6 +58,17 @@ function buildSelect() {
       ON users.id = dsr_due_ledger.created_by`;
 }
 
+function orderByLedger(direction) {
+  const sort = direction === "ASC" ? "ASC" : "DESC";
+  return `dsr_due_ledger.created_at ${sort},
+          CASE dsr_due_ledger.type
+            WHEN 'SALE_DUE' THEN 10
+            WHEN 'COLLECTION' THEN 20
+            ELSE 30
+          END ${sort},
+          dsr_due_ledger.id ${sort}`;
+}
+
 export function insertDueLedgerEntry(client, entry) {
   return client.query(
     `INSERT INTO dsr_due_ledger (
@@ -71,9 +82,10 @@ export function insertDueLedgerEntry(client, entry) {
        reference_type,
        reference_id,
        note,
-       created_by
+       created_by,
+       created_at
      )
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, clock_timestamp())
      RETURNING *`,
     [
       entry.id,
@@ -93,8 +105,25 @@ export function insertDueLedgerEntry(client, entry) {
 
 export async function getLatestDueLedgerEntry(client, dsrId, tenantId) {
   const result = await client.query(
-    `SELECT * FROM dsr_due_ledger WHERE dsr_id = $1 AND tenant_id = $2 ORDER BY created_at DESC, id DESC LIMIT 1`,
+    `SELECT * FROM dsr_due_ledger
+     WHERE dsr_id = $1 AND tenant_id = $2
+     ORDER BY ${orderByLedger("DESC")}
+     LIMIT 1`,
     [dsrId, tenantId],
+  );
+  return result.rowCount > 0 ? mapDueLedgerEntry(result.rows[0]) : null;
+}
+
+export async function getFirstDueLedgerEntryForReference(client, { tenantId, dsrId, referenceType, referenceId }) {
+  const result = await client.query(
+    `SELECT * FROM dsr_due_ledger
+     WHERE tenant_id = $1
+       AND dsr_id = $2
+       AND reference_type = $3
+       AND reference_id = $4
+     ORDER BY ${orderByLedger("ASC")}
+     LIMIT 1`,
+    [tenantId, dsrId, referenceType, referenceId],
   );
   return result.rowCount > 0 ? mapDueLedgerEntry(result.rows[0]) : null;
 }
@@ -113,7 +142,7 @@ export async function listDueLedgerPage(client, { tenantId, dsrId, dateFrom, dat
   const result = await client.query(
     `${buildSelect()}
      ${where}
-     ORDER BY dsr_due_ledger.created_at DESC, dsr_due_ledger.id DESC
+     ORDER BY ${orderByLedger("DESC")}
      LIMIT $${params.length - 1} OFFSET $${params.length}`,
     params,
   );
@@ -127,7 +156,7 @@ export async function listDueLedgerInRange(client, { tenantId, dsrId, dateFrom, 
   const result = await client.query(
     `${buildSelect()}
      ${where}
-     ORDER BY dsr_due_ledger.created_at ASC, dsr_due_ledger.id ASC`,
+     ORDER BY ${orderByLedger("ASC")}`,
     params,
   );
 
@@ -142,7 +171,8 @@ export async function getBalanceBefore(client, { tenantId, dsrId, dateFrom }) {
   const result = await client.query(
     `SELECT balance_after FROM dsr_due_ledger
      WHERE dsr_id = $1 AND tenant_id = $2 AND created_at < $3::date
-     ORDER BY created_at DESC, id DESC LIMIT 1`,
+     ORDER BY ${orderByLedger("DESC")}
+     LIMIT 1`,
     [dsrId, tenantId, dateFrom],
   );
 

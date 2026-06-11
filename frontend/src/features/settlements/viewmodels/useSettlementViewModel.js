@@ -164,12 +164,19 @@ export function useSettlementViewModel({ products, dsrs, today, saveSettlementAc
     const damagedPieces = toPieces(row.damagedCaseQty, row.damagedPieceQty, row.piecesPerCase);
     return sum + (returnedPieces + damagedPieces) * rate;
   }, 0);
-  const discount = Math.max(0, Number(discountInput || 0));
-  const receivableTotal = Math.max(0, totalPayable + previousDue - discount - extraReturnValue);
-  const amountPaid = Math.min(Math.max(0, Number(amountPaidInput || 0)), receivableTotal);
-  const dueAmount = Math.max(receivableTotal - amountPaid, 0);
-  const todayDue = Math.max(0, totalPayable - discount - extraReturnValue - amountPaid);
+  const discountRaw = Number(discountInput || 0);
+  const discount = Number.isFinite(discountRaw) ? Math.max(0, discountRaw) : 0;
+  const amountPaidRaw = Number(amountPaidInput || 0);
+  const amountPaid = Number.isFinite(amountPaidRaw) ? Math.max(0, amountPaidRaw) : 0;
+  const receivableBeforePayment = totalPayable + previousDue - discount - extraReturnValue;
+  const receivableTotal = Math.max(0, receivableBeforePayment);
+  const dueAmount = receivableTotal - amountPaid;
+  const todayDue = totalPayable - discount - extraReturnValue - amountPaid;
   const hasInvalidReturns = displayRows.some((row) => row.invalid);
+  const hasInvalidExtraReturns = extraReturns.some((row) => !row.productId || toPieces(row.caseQty, row.pieceQty, row.piecesPerCase) <= 0);
+  const discountTooHigh = receivableBeforePayment < -0.004;
+  const amountPaidTooHigh = amountPaid > receivableTotal + 0.004;
+  const hasErrors = hasInvalidReturns || hasInvalidExtraReturns || discountTooHigh || amountPaidTooHigh;
   const sheet = buildSheetData({ date, dsrId, dsrs, issues: scopedIssues, settlements: scopedSettlements, products, tenantName });
 
   function updateReturn(rowKey, field, value) {
@@ -249,8 +256,18 @@ export function useSettlementViewModel({ products, dsrs, today, saveSettlementAc
       return;
     }
 
-    if (extraReturns.some((row) => !row.productId || toPieces(row.caseQty, row.pieceQty, row.piecesPerCase) <= 0)) {
+    if (hasInvalidExtraReturns) {
       setMessage({ type: 'error', text: t('settlement.extraReturnInvalid') });
+      return;
+    }
+
+    if (discountTooHigh) {
+      setMessage({ type: 'error', text: t('settlement.discountTooHigh') });
+      return;
+    }
+
+    if (amountPaidTooHigh) {
+      setMessage({ type: 'error', text: t('settlement.amountPaidTooHigh') });
       return;
     }
 
@@ -321,9 +338,14 @@ export function useSettlementViewModel({ products, dsrs, today, saveSettlementAc
     extraReturnValue,
     totalPayable,
     discount,
+    amountPaid,
+    receivableTotal,
     todayDue,
     dueAmount,
     hasInvalidReturns,
+    discountTooHigh,
+    amountPaidTooHigh,
+    hasErrors,
     sheet,
     updateReturn,
     addExtraReturn,

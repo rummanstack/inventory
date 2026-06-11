@@ -188,50 +188,94 @@ export default function EveningSettlementPage() {
                 </div>
               )}
             </div>
-            <div className="flex flex-col gap-3 border-t border-slate-100 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="border-t border-slate-100 p-4">
               {vm.hasInvalidReturns ? (
-                <div className="inline-flex items-center gap-2 text-sm font-semibold text-rose-700">
+                <div className="mb-4 inline-flex items-center gap-2 text-sm font-semibold text-rose-700">
                   <AlertTriangle size={17} />
                   {t('settlement.invalidReturns')}
                 </div>
-              ) : (
-                <div className="text-sm font-semibold text-slate-600">{t('settlement.returnHint')}</div>
-              )}
-              <div className="flex flex-wrap items-end justify-end gap-2">
-                <div className="w-full sm:w-36 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
-                  <p className="text-[11px] font-black uppercase tracking-[0.14em] text-slate-500">{t('settlement.previousDue')}</p>
-                  <p className="mt-1 text-lg font-black text-slate-950">{formatCurrency(vm.previousDue)}</p>
+              ) : null}
+
+              <div className="grid gap-4 lg:grid-cols-[1.5fr_1fr]">
+                <div className="rounded-[22px] border border-slate-200 bg-slate-50 p-4">
+                  <h3 className="text-sm font-black uppercase tracking-[0.14em] text-slate-700">{t('settlement.summaryTitle')}</h3>
+                  <dl className="mt-3 space-y-2 text-sm">
+                    <div className="flex items-center justify-between">
+                      <dt className="font-semibold text-slate-600">{t('settlement.todaySales')}</dt>
+                      <dd className="font-black text-slate-950">{formatCurrency(vm.totalPayable)}</dd>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <dt className="font-semibold text-slate-600">{t('settlement.previousDue')}</dt>
+                      <dd className="font-black text-slate-950">+ {formatCurrency(vm.previousDue)}</dd>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <dt className="font-semibold text-slate-600">{t('settlement.damageReturn')}</dt>
+                      <dd className="font-black text-rose-700">- {formatCurrency(vm.extraReturnValue)}</dd>
+                    </div>
+                    <div className="flex items-center justify-between gap-3">
+                      <dt className="font-semibold text-slate-600">{t('settlement.discount')}</dt>
+                      <dd className="flex items-center gap-2">
+                        <span className="font-black text-rose-700">-</span>
+                        <input className="input h-9 w-28 text-right" type="number" min="0" step="0.01" value={vm.discountInput} onChange={(event) => vm.setDiscountInput(event.target.value)} disabled={vm.saving} />
+                      </dd>
+                    </div>
+                    <div className="flex items-center justify-between border-t border-slate-200 pt-2">
+                      <dt className="font-black uppercase tracking-[0.1em] text-slate-700">{t('settlement.totalReceivable')}</dt>
+                      <dd className="font-black text-slate-950">{formatCurrency(vm.receivableTotal)}</dd>
+                    </div>
+                    <div className="flex items-center justify-between gap-3">
+                      <dt className="font-semibold text-slate-600">{t('settlement.cashReceived')}</dt>
+                      <dd className="flex items-center gap-2">
+                        <input className="input h-9 w-28 text-right" type="number" min="0" step="0.01" value={vm.amountPaidInput} onChange={(event) => vm.setAmountPaidInput(event.target.value)} disabled={vm.saving} />
+                      </dd>
+                    </div>
+                    <div className="flex items-center justify-between border-t-2 border-slate-300 pt-2">
+                      <dt className="text-base font-black uppercase tracking-[0.1em] text-slate-950">{t('settlement.newDue')}</dt>
+                      <dd className={cx('text-lg font-black', vm.dueAmount > 0 ? 'text-rose-700' : 'text-emerald-700')}>
+                        {formatCurrency(Math.max(0, vm.dueAmount))}
+                      </dd>
+                    </div>
+                  </dl>
+                  {vm.discountTooHigh ? (
+                    <div className="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-rose-700">
+                      <AlertTriangle size={16} />
+                      {t('settlement.discountTooHigh')}
+                    </div>
+                  ) : null}
+                  {vm.amountPaidTooHigh ? (
+                    <div className="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-rose-700">
+                      <AlertTriangle size={16} />
+                      {t('settlement.amountPaidTooHigh')}
+                    </div>
+                  ) : null}
                 </div>
-                <div className="w-full sm:w-36">
-                  <label className="label">{t('settlement.discount')}</label>
-                  <input className="input h-11" type="number" min="0" step="0.01" value={vm.discountInput} onChange={(event) => vm.setDiscountInput(event.target.value)} disabled={vm.saving} />
+
+                <div className="flex flex-col gap-3">
+                  <div className="rounded-[22px] border border-emerald-200 bg-emerald-50 px-4 py-3">
+                    <p className="text-[11px] font-black uppercase tracking-[0.14em] text-emerald-700">{t('settlement.todayDue')}</p>
+                    <p className="mt-1 text-lg font-black text-emerald-900">{formatCurrency(Math.max(0, vm.todayDue))}</p>
+                    <p className="mt-1 text-xs font-medium text-emerald-700">{t('settlement.todayDueHelper')}</p>
+                  </div>
+                  <div className="flex flex-col gap-2 sm:flex-row lg:flex-col">
+                    {vm.completedSettlement && canUpdateSettlement ? (
+                      <button type="button" className="btn-secondary justify-center" onClick={() => window.print()}>
+                        <Printer size={18} />
+                        {t('settlement.printSheet')}
+                      </button>
+                    ) : null}
+                    {canEditSettlement ? (
+                      <button type="button" className="btn-primary justify-center" onClick={vm.completeSettlement} disabled={vm.saving || vm.hasErrors}>
+                        <CheckCircle2 size={18} />
+                        {vm.saving ? t('common.saving') : vm.completedSettlement ? t('settlement.updateSettlement') : t('settlement.completeSettlement')}
+                      </button>
+                    ) : (
+                      <span className="text-sm font-semibold text-slate-400">-</span>
+                    )}
+                  </div>
+                  {!vm.hasInvalidReturns && !vm.discountTooHigh && !vm.amountPaidTooHigh ? (
+                    <p className="text-sm font-semibold text-slate-600">{t('settlement.returnHint')}</p>
+                  ) : null}
                 </div>
-                <div className="w-full sm:w-40">
-                  <label className="label">{t('settlement.amountPaid')}</label>
-                  <input className="input h-11" type="number" min="0" step="0.01" value={vm.amountPaidInput} onChange={(event) => vm.setAmountPaidInput(event.target.value)} disabled={vm.saving} />
-                </div>
-                <div className="w-full sm:w-36 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3">
-                  <p className="text-[11px] font-black uppercase tracking-[0.14em] text-emerald-700">{t('settlement.todayDue')}</p>
-                  <p className="mt-1 text-lg font-black text-emerald-900">{formatCurrency(vm.todayDue)}</p>
-                </div>
-                <div className="w-full sm:w-36 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
-                  <p className="text-[11px] font-black uppercase tracking-[0.14em] text-slate-500">{t('settlement.due')}</p>
-                  <p className="mt-1 text-lg font-black text-slate-950">{formatCurrency(vm.dueAmount)}</p>
-                </div>
-                {vm.completedSettlement && canUpdateSettlement ? (
-                  <button type="button" className="btn-secondary" onClick={() => window.print()}>
-                    <Printer size={18} />
-                    {t('settlement.printSheet')}
-                  </button>
-                ) : null}
-                {canEditSettlement ? (
-                  <button type="button" className="btn-primary" onClick={vm.completeSettlement} disabled={vm.saving || vm.hasInvalidReturns}>
-                    <CheckCircle2 size={18} />
-                    {vm.saving ? t('common.saving') : vm.completedSettlement ? t('settlement.updateSettlement') : t('settlement.completeSettlement')}
-                  </button>
-                ) : (
-                  <span className="text-sm font-semibold text-slate-400">-</span>
-                )}
               </div>
             </div>
           </>

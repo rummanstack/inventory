@@ -102,6 +102,9 @@ export function buildSheetData({ date, dsrId, dsrs, issues, settlements, product
     extraReturnValue: settlement ? settlement.extraReturnValue || 0 : 0,
     amountPaid: settlement ? settlement.amountPaid || 0 : 0,
     todayDue: settlement ? Math.max(0, (settlement.totalPayable || 0) - (settlement.discount || 0) - (settlement.extraReturnValue || 0) - (settlement.amountPaid || 0)) : 0,
+    totalReceivable: settlement
+      ? Math.max(0, (settlement.totalPayable || 0) + (settlement.previousDue || 0) - (settlement.discount || 0) - (settlement.extraReturnValue || 0))
+      : 0,
     dueAmount: settlement ? settlement.dueAmount || 0 : 0,
   };
 }

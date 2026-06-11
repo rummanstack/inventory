@@ -98,13 +98,18 @@ export default function PrintableSheet({ sheet, printTarget = false, targetId })
 
       <div className="mt-6 flex flex-wrap items-end justify-end gap-x-4 gap-y-2 border-b border-slate-200 pb-3 text-sm">
         <div className="text-center">
-          <p className="text-[10px] font-bold uppercase text-slate-500">Previous Due</p>
-          <p className="font-bold text-slate-950">{formatCurrency(sheet.previousDue || 0)}</p>
+          <p className="text-[10px] font-bold uppercase text-slate-500">Today Sell</p>
+          <p className="font-bold text-slate-950">{formatCurrency(sheet.totalPayable)}</p>
         </div>
         <span className="text-slate-300">|</span>
         <div className="text-center">
-          <p className="text-[10px] font-bold uppercase text-slate-500">Today Sell</p>
-          <p className="font-bold text-slate-950">{formatCurrency(sheet.totalPayable)}</p>
+          <p className="text-[10px] font-bold uppercase text-slate-500">Previous Due</p>
+          <p className="font-bold text-slate-950">+ {formatCurrency(sheet.previousDue || 0)}</p>
+        </div>
+        <span className="text-slate-300">|</span>
+        <div className="text-center">
+          <p className="text-[10px] font-bold uppercase text-slate-500">Damage/Return</p>
+          <p className="font-bold text-slate-950">- {formatCurrency(sheet.extraReturnValue || 0)}</p>
         </div>
         <span className="text-slate-300">|</span>
         <div className="text-center">
@@ -113,24 +118,19 @@ export default function PrintableSheet({ sheet, printTarget = false, targetId })
         </div>
         <span className="text-slate-300">|</span>
         <div className="text-center">
-          <p className="text-[10px] font-bold uppercase text-slate-500">Extra Return</p>
-          <p className="font-bold text-slate-950">- {formatCurrency(sheet.extraReturnValue || 0)}</p>
+          <p className="text-[10px] font-bold uppercase text-slate-500">Total Receivable</p>
+          <p className="font-bold text-slate-950">{formatCurrency(sheet.totalReceivable || 0)}</p>
         </div>
         <span className="text-slate-300">|</span>
         <div className="text-center">
-          <p className="text-[10px] font-bold uppercase text-slate-500">Amount Paid</p>
-          <p className="font-bold text-slate-950">{formatCurrency(sheet.amountPaid || 0)}</p>
-        </div>
-        <span className="text-slate-300">|</span>
-        <div className="text-center">
-          <p className="text-[10px] font-bold uppercase text-slate-500">Today Due</p>
-          <p className="font-bold text-slate-950">{formatCurrency(sheet.todayDue || 0)}</p>
+          <p className="text-[10px] font-bold uppercase text-slate-500">Cash Received</p>
+          <p className="font-bold text-slate-950">- {formatCurrency(sheet.amountPaid || 0)}</p>
         </div>
       </div>
 
       <div className="mt-3 flex items-center gap-3">
         <div className="h-px flex-1 bg-slate-950" />
-        <p className="text-base font-black text-slate-950">Total Due: {formatCurrency(sheet.dueAmount || 0)}</p>
+        <p className="text-base font-black text-slate-950">New Due: {formatCurrency(sheet.dueAmount || 0)}</p>
         <div className="h-px flex-1 bg-slate-950" />
       </div>
 

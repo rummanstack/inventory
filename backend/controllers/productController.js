@@ -47,7 +47,7 @@ export class ProductController {
 
   addStock = async (req, res, next) => {
     try {
-      const product = await this.inventoryService.addStock(req.params.id, req.body.addPieces, req.currentUser);
+      const product = await this.inventoryService.addStock(req.params.id, req.body.addPieces, req.currentUser, req.body.reason);
       res.json({ product });
     } catch (error) {
       next(error);

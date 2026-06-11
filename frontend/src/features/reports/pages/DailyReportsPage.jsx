@@ -4,6 +4,7 @@ import { Alert, Badge, ChartPanel, DonutChart, EmptyState, LoadingState, Section
 import { statusTone } from '../../../models/inventoryViewData.js';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { buildPdfFileName, downloadSheetPdf } from '../../../services/printService.js';
+import { inventoryApi } from '../../../services/inventoryApi';
 import { formatCurrency, formatDate, formatNumber } from '../../../utils/calculations.js';
 import { useDailyReportsViewModel } from '../viewmodels/useDailyReportsViewModel';
 import { getCssVar } from '../../../utils/theme.js';
@@ -11,6 +12,13 @@ import { getCssVar } from '../../../utils/theme.js';
 export default function DailyReportsPage() {
   const { productDirectory, dsrDirectory, today, t, tenant } = useInventoryApp();
   const vm = useDailyReportsViewModel({ products: productDirectory, dsrs: dsrDirectory, today, t, tenantName: tenant?.name });
+
+  function recordReportPrint(label) {
+    if (!vm.selectedSheet) {
+      return;
+    }
+    inventoryApi.recordPrint({ entityType: 'report', entityId: vm.selectedSheet.dsrId, label: `${vm.selectedSheet.date} ${label}` }).catch(() => {});
+  }
 
   return (
     <div>
@@ -117,11 +125,11 @@ export default function DailyReportsPage() {
               <p className="text-sm text-slate-500">{vm.selectedSheet.dsrName} - {formatDate(vm.selectedSheet.date)}</p>
             </div>
             <div className="flex items-center gap-2">
-              <button type="button" className="btn-secondary" onClick={() => downloadSheetPdf('report-print-sheet', buildPdfFileName(vm.selectedSheet))}>
+              <button type="button" className="btn-secondary" onClick={() => { recordReportPrint('pdf'); downloadSheetPdf('report-print-sheet', buildPdfFileName(vm.selectedSheet)); }}>
                 <Download size={18} />
                 {t('reports.downloadPdf')}
               </button>
-              <button type="button" className="btn-primary" onClick={() => window.print()}>
+              <button type="button" className="btn-primary" onClick={() => { recordReportPrint('print'); window.print(); }}>
                 <Printer size={18} />
                 {t('reports.printSheet')}
               </button>

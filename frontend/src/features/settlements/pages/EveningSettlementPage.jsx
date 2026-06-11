@@ -3,7 +3,9 @@ import PrintableSheet from '../../../components/PrintableSheet.jsx';
 import { Alert, Badge, EmptyState, SectionHeader, cx } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/date-picker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
+import AuditHistory from '../../audit/components/AuditHistory.jsx';
 import { buildPdfFileName, downloadSheetPdf } from '../../../services/printService.js';
+import { inventoryApi } from '../../../services/inventoryApi';
 import { formatCasePiece, formatCurrency, formatNumber } from '../../../utils/calculations.js';
 import { useSettlementViewModel } from '../viewmodels/useSettlementViewModel';
 
@@ -16,6 +18,13 @@ export default function EveningSettlementPage() {
   const issuedPiecesTotal = vm.displayRows.reduce((sum, row) => sum + Number(row.issuedPieces || 0), 0);
   const soldPiecesTotal = vm.displayRows.reduce((sum, row) => sum + Number(row.soldPieces || 0), 0);
   const returnedPiecesTotal = vm.displayRows.reduce((sum, row) => sum + Number(row.returnedPieces || 0), 0);
+
+  function recordSettlementPrint(label) {
+    if (!vm.completedSettlement) {
+      return;
+    }
+    inventoryApi.recordPrint({ entityType: 'settlement', entityId: vm.completedSettlement.id, label }).catch(() => {});
+  }
 
   function getExtraReturnOptions(rowId) {
     const selectedProductIds = new Set(vm.extraReturns.filter((row) => row.id !== rowId).map((row) => row.productId));
@@ -256,6 +265,12 @@ export default function EveningSettlementPage() {
                     <p className="mt-1 text-lg font-black text-emerald-900">{formatCurrency(Math.max(0, vm.todayDue))}</p>
                     <p className="mt-1 text-xs font-medium text-emerald-700">{t('settlement.todayDueHelper')}</p>
                   </div>
+                  {vm.completedSettlement ? (
+                    <div>
+                      <label className="label">{t('common.editReasonLabel')}</label>
+                      <textarea className="input min-h-20" value={vm.reasonInput} onChange={(event) => vm.setReasonInput(event.target.value)} placeholder={t('common.editReasonPlaceholder')} disabled={vm.saving} />
+                    </div>
+                  ) : null}
                   <div className="flex flex-col gap-2 sm:flex-row lg:flex-col">
                     {vm.completedSettlement && canUpdateSettlement ? (
                       <button type="button" className="btn-secondary justify-center" onClick={() => window.print()}>
@@ -291,11 +306,11 @@ export default function EveningSettlementPage() {
           <div className="mb-3 flex items-center justify-end gap-2 no-print">
               {canUpdateSettlement ? (
                 <>
-                  <button type="button" className="btn-secondary" onClick={() => downloadSheetPdf('settlement-print-sheet', buildPdfFileName(vm.sheet))}>
+                  <button type="button" className="btn-secondary" onClick={() => { recordSettlementPrint('pdf'); downloadSheetPdf('settlement-print-sheet', buildPdfFileName(vm.sheet)); }}>
                     <Download size={18} />
                     {t('settlement.downloadPdf')}
                   </button>
-                  <button type="button" className="btn-secondary" onClick={() => window.print()}>
+                  <button type="button" className="btn-secondary" onClick={() => { recordSettlementPrint('print'); window.print(); }}>
                     <Printer size={18} />
                     {t('settlement.printSheet')}
                   </button>
@@ -303,6 +318,9 @@ export default function EveningSettlementPage() {
               ) : null}
           </div>
           <PrintableSheet sheet={vm.sheet} printTarget targetId="settlement-print-sheet" />
+          <div className="surface mt-4 p-5">
+            <AuditHistory entityType="settlement" entityId={vm.completedSettlement.id} />
+          </div>
         </div>
       ) : null}
     </div>

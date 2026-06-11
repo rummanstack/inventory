@@ -8,6 +8,7 @@ export default function StockUpdateModal({ product, onClose, onSave }) {
   const { t } = useInventoryApp();
   const [caseQty, setCaseQty] = useState(0);
   const [pieceQty, setPieceQty] = useState(0);
+  const [reason, setReason] = useState('');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
   const addPieces = toPieces(caseQty, pieceQty, product.piecesPerCase);
@@ -20,9 +21,14 @@ export default function StockUpdateModal({ product, onClose, onSave }) {
       return;
     }
 
+    if (!reason.trim()) {
+      setError(t('common.editReasonRequired'));
+      return;
+    }
+
     setSaving(true);
     setError('');
-    const result = await onSave(product.id, addPieces);
+    const result = await onSave(product.id, addPieces, reason.trim());
     setSaving(false);
 
     if (!result?.ok) {
@@ -53,6 +59,10 @@ export default function StockUpdateModal({ product, onClose, onSave }) {
             <label className="label">{t('products.addPiece')}</label>
             <input className="input" type="number" min="0" value={pieceQty} onChange={(event) => setPieceQty(event.target.value)} />
           </div>
+        </div>
+        <div>
+          <label className="label">{t('common.editReasonLabel')}</label>
+          <textarea className="input min-h-20" value={reason} onChange={(event) => setReason(event.target.value)} placeholder={t('common.editReasonPlaceholder')} />
         </div>
         <div className="flex justify-end gap-2 pt-2">
           <button type="button" className="btn-secondary" onClick={onClose} disabled={saving}>

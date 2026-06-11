@@ -30,6 +30,7 @@ export function useSettlementViewModel({ products, dsrs, today, saveSettlementAc
   const [previousDue, setPreviousDue] = useState(0);
   const [discountInput, setDiscountInput] = useState('');
   const [amountPaidInput, setAmountPaidInput] = useState('');
+  const [reasonInput, setReasonInput] = useState('');
   const [message, setMessage] = useState(null);
   const [saving, setSaving] = useState(false);
   const [scopedIssues, setScopedIssues] = useState([]);
@@ -85,6 +86,7 @@ export function useSettlementViewModel({ products, dsrs, today, saveSettlementAc
       setExtraReturns([]);
       setDiscountInput('');
       setAmountPaidInput('');
+      setReasonInput('');
       setMessage(null);
       return;
     }
@@ -106,6 +108,7 @@ export function useSettlementViewModel({ products, dsrs, today, saveSettlementAc
     setDiscountInput(String(Number(completedSettlement.discount || 0)));
     setAmountPaidInput(String(Number(completedSettlement.amountPaid || 0)));
     setExtraReturns((completedSettlement.extraReturns || []).map(toExtraReturnRow));
+    setReasonInput('');
     setMessage(null);
   }, [date, dsrId, issueKey, completedSettlement?.id]);
 
@@ -271,6 +274,11 @@ export function useSettlementViewModel({ products, dsrs, today, saveSettlementAc
       return;
     }
 
+    if (completedSettlement && !reasonInput.trim()) {
+      setMessage({ type: 'error', text: t('common.editReasonRequired') });
+      return;
+    }
+
     const items = displayRows.map((row) => ({
       productId: row.productId,
       productName: row.productName,
@@ -306,6 +314,7 @@ export function useSettlementViewModel({ products, dsrs, today, saveSettlementAc
         returnedPieces: toPieces(row.caseQty, row.pieceQty, row.piecesPerCase),
         damagedPieces: toPieces(row.damagedCaseQty, row.damagedPieceQty, row.piecesPerCase),
       })),
+      ...(completedSettlement ? { reason: reasonInput.trim() } : {}),
     };
 
     setSaving(true);
@@ -329,6 +338,8 @@ export function useSettlementViewModel({ products, dsrs, today, saveSettlementAc
     setDiscountInput,
     amountPaidInput,
     setAmountPaidInput,
+    reasonInput,
+    setReasonInput,
     message,
     saving,
     completedSettlement,

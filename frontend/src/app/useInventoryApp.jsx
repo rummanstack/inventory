@@ -298,9 +298,9 @@ export function InventoryAppProvider({ children }) {
     }
   }
 
-  async function addStock(productId, addPieces) {
+  async function addStock(productId, addPieces, reason) {
     try {
-      const result = await inventoryApi.addProductStock(productId, addPieces);
+      const result = await inventoryApi.addProductStock(productId, addPieces, reason);
       upsertProductDirectory(result.product);
       pushToast('success', t('products.updateStock'), t('products.stockUpdateSuccess'));
       return { ok: true };

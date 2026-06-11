@@ -1,5 +1,6 @@
 import { assert } from "../lib/errors.js";
 import { createId } from "../lib/ids.js";
+import { diffFields } from "../lib/auditDiff.js";
 import { parsePagination, buildPageResult } from "../lib/pagination.js";
 import { STOCK_MOVEMENT_TYPES } from "../lib/stockMovements.js";
 import {
@@ -362,6 +363,10 @@ export class InventoryService {
       actionType: payload.actionType,
       entityType: payload.entityType,
       entityId: payload.entityId,
+      module: payload.module,
+      before: payload.before,
+      after: payload.after,
+      reason: payload.reason,
       description: payload.description,
       metadata: {
         actorName: actor.name,
@@ -590,11 +595,16 @@ export class InventoryService {
     }
   }
 
-  async addStock(productId, addPiecesInput, actor) {
+  async addStock(productId, addPiecesInput, actor, reason) {
     const addPieces = cleanInteger(addPiecesInput);
     assert(addPieces > 0, "Stock update must be greater than zero.");
+    assert(String(reason || "").trim(), "Reason is required for stock changes.");
 
     return this.databaseManager.withTransaction(async (client) => {
+      const existingResult = await findProductForUpdate(client, productId, actor.tenantId);
+      assert(existingResult.rowCount > 0, "Product not found.", 404);
+      const previousStock = Number(existingResult.rows[0].stock_pieces || 0);
+
       const result = await addProductStock(client, productId, addPieces, actor.tenantId);
       assert(result.rowCount > 0, "Product not found.", 404);
       const product = result.rows[0];
@@ -610,12 +620,20 @@ export class InventoryService {
         note: `Manual stock added by ${actor.name}`,
         createdById: actor.id,
       });
+      const { before, after } = diffFields(
+        { stockPieces: previousStock },
+        { stockPieces: Number(product.stock_pieces || 0) },
+        ["stockPieces"],
+      );
       await this.recordActivity(client, actor, {
         actionType: "product.stock_add",
         entityType: "product",
         entityId: productId,
         description: `${actor.name} added stock to product ${productId}`,
         metadata: { addPieces },
+        before,
+        after,
+        reason,
       });
       return mapProduct(product);
     });
@@ -640,6 +658,8 @@ export class InventoryService {
 
         const openingDueDelta = dsr.openingDue - existingOpeningDue;
         if (openingDueDelta !== 0) {
+          assert(String(input.reason || "").trim(), "Reason is required for due adjustments.");
+
           const latestEntry = await getLatestDueLedgerEntry(client, dsr.id, actor.tenantId);
           const latestBalance = latestEntry ? latestEntry.balanceAfter : existingOpeningDue;
           const balanceAfter = latestBalance + openingDueDelta;
@@ -655,6 +675,22 @@ export class InventoryService {
             referenceId: dsr.id,
             note: `Opening due adjusted for ${dsr.name}`,
             createdById: actor.id,
+          });
+
+          const { before, after } = diffFields(
+            { openingDue: existingOpeningDue },
+            { openingDue: dsr.openingDue },
+            ["openingDue"],
+          );
+          await this.recordActivity(client, actor, {
+            actionType: "dsr.due_adjustment",
+            entityType: "dsr",
+            entityId: dsr.id,
+            module: "due-ledger",
+            description: `${actor.name} adjusted opening due for DSR ${dsr.name}`,
+            before,
+            after,
+            reason: input.reason,
           });
         }
 
@@ -961,6 +997,8 @@ export class InventoryService {
 
     return this.databaseManager.withTransaction(async (client) => {
       if (input.id) {
+        assert(String(input.reason || "").trim(), "Edit reason is required.");
+
         const existingSettlement = await findSettlementById(client, base.id, tenantId);
         assert(existingSettlement.rowCount > 0, "Settlement not found.", 404);
 
@@ -1059,12 +1097,33 @@ export class InventoryService {
           });
         }
 
+        const { before: settlementBefore, after: settlementAfter } = diffFields(
+          {
+            totalPayable: Number(previousSettlement.total_payable || 0),
+            discount: Number(previousSettlement.discount || 0),
+            extraReturnValue: Number(previousSettlement.extra_return_value || 0),
+            amountPaid: Number(previousSettlement.amount_paid || 0),
+            dueAmount: Number(previousSettlement.due_amount || 0),
+          },
+          {
+            totalPayable: settlement.totalPayable,
+            discount: settlement.discount,
+            extraReturnValue: settlement.extraReturnValue,
+            amountPaid: settlement.amountPaid,
+            dueAmount: settlement.dueAmount,
+          },
+          ["totalPayable", "discount", "extraReturnValue", "amountPaid", "dueAmount"],
+        );
+
         await this.recordActivity(client, actor, {
           actionType: "settlement.update",
           entityType: "settlement",
           entityId: settlement.id,
           description: `${actor.name} updated evening settlement for ${settlement.dsrName}`,
           metadata: { date: settlement.date, dsrId: settlement.dsrId, totalPayable: settlement.totalPayable },
+          before: settlementBefore,
+          after: settlementAfter,
+          reason: input.reason,
         });
 
         return mapSettlement(settlementResult.rows[0]);

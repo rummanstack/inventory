@@ -338,6 +338,13 @@ export async function createSchema(pool) {
       PRIMARY KEY (tenant_id, feature)
     );
 
+    ALTER TABLE activity_logs ADD COLUMN IF NOT EXISTS module TEXT NOT NULL DEFAULT 'system';
+    ALTER TABLE activity_logs ADD COLUMN IF NOT EXISTS before_data JSONB NOT NULL DEFAULT '{}'::jsonb;
+    ALTER TABLE activity_logs ADD COLUMN IF NOT EXISTS after_data JSONB NOT NULL DEFAULT '{}'::jsonb;
+    ALTER TABLE activity_logs ADD COLUMN IF NOT EXISTS reason TEXT NOT NULL DEFAULT '';
+    CREATE INDEX IF NOT EXISTS idx_activity_logs_module ON activity_logs(module);
+    CREATE INDEX IF NOT EXISTS idx_activity_logs_action_type ON activity_logs(action_type);
+
     UPDATE users SET tenant_id = NULL WHERE role = 'system_developer';
   `);
 }

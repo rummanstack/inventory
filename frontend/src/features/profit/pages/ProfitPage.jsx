@@ -3,6 +3,7 @@ import { Alert, ChartPanel, EmptyState, LoadingState, SectionHeader, StatCard, T
 import { DatePickerField } from '../../../components/date-picker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../services/printService.js';
+import { inventoryApi } from '../../../services/inventoryApi';
 import { formatCurrency, formatDate } from '../../../utils/calculations.js';
 import { useProfitViewModel } from '../viewmodels/useProfitViewModel';
 
@@ -56,6 +57,7 @@ export default function ProfitPage() {
   }));
 
   function handleDownloadPdf() {
+    inventoryApi.recordPrint({ entityType: 'report', entityId: `${vm.dateFrom}_to_${vm.dateTo}`, label: `profit ${vm.dateFrom} to ${vm.dateTo}` }).catch(() => {});
     return downloadSheetPdf('profit-report-table', `profit-report-${vm.dateFrom}-to-${vm.dateTo}.pdf`);
   }
 

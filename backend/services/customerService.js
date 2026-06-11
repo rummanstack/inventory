@@ -32,6 +32,10 @@ export class CustomerService {
       actionType: payload.actionType,
       entityType: payload.entityType,
       entityId: payload.entityId,
+      module: payload.module,
+      before: payload.before,
+      after: payload.after,
+      reason: payload.reason,
       description: payload.description,
       metadata: {
         actorName: actor.name,

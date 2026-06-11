@@ -6,6 +6,7 @@ import { ProfitController } from "../controllers/profitController.js";
 import { BackupController } from "../controllers/backupController.js";
 import { DsrController } from "../controllers/dsrController.js";
 import { ActivityLogController } from "../controllers/activityLogController.js";
+import { AuditController } from "../controllers/auditController.js";
 import { ExpenseController } from "../controllers/expenseController.js";
 import { IssueController } from "../controllers/issueController.js";
 import { ProductController } from "../controllers/productController.js";
@@ -55,6 +56,7 @@ export function createApiRouter({
   const issueController = new IssueController(inventoryService);
   const settlementController = new SettlementController(inventoryService);
   const activityLogController = new ActivityLogController(auditService);
+  const auditController = new AuditController(auditService);
   const userController = new UserController(userService);
   const expenseController = new ExpenseController(expenseService);
   const dsrFinanceController = new DsrFinanceController(dsrFinanceService);
@@ -108,6 +110,8 @@ export function createApiRouter({
   router.delete("/users/:id", requirePermission(PERMISSIONS.MANAGE_USERS), userController.remove);
 
   router.get("/activity-logs", requirePermission(PERMISSIONS.VIEW_ACTIVITY_LOGS), activityLogController.list);
+  router.post("/audit/print", auditController.recordPrint);
+  router.get("/audit/entity/:entityType/:entityId", auditController.entityHistory);
 
   router.get("/expenses", requirePermission(PERMISSIONS.MANAGE_EXPENSES), expenseController.report);
   router.get("/expenses/trash", requirePermission(PERMISSIONS.MANAGE_EXPENSES), expenseController.listTrash);

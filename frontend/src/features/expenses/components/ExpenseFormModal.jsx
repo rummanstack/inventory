@@ -3,6 +3,7 @@ import { Save } from 'lucide-react';
 import { Alert, Modal } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/date-picker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
+import AuditHistory from '../../audit/components/AuditHistory.jsx';
 
 const EXPENSE_CATEGORY_KEYS = [
   ['Bank', 'expenses.categories.bank'],
@@ -23,6 +24,7 @@ export default function ExpenseFormModal({ expense, defaultDate, onClose, onSave
     amount: expense?.amount ?? '',
     note: expense?.note || '',
   });
+  const [reason, setReason] = useState('');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -54,6 +56,11 @@ export default function ExpenseFormModal({ expense, defaultDate, onClose, onSave
       return;
     }
 
+    if (isEdit && !reason.trim()) {
+      setError(t('common.editReasonRequired'));
+      return;
+    }
+
     setSaving(true);
     setError('');
     const result = await onSave({
@@ -62,6 +69,7 @@ export default function ExpenseFormModal({ expense, defaultDate, onClose, onSave
       category: form.category,
       amount,
       note: form.note.trim(),
+      ...(isEdit ? { reason: reason.trim() } : {}),
     });
     setSaving(false);
 
@@ -97,7 +105,14 @@ export default function ExpenseFormModal({ expense, defaultDate, onClose, onSave
             <label className="label">{t('expenses.note')}</label>
             <textarea className="input min-h-28" value={form.note} onChange={(event) => updateField('note', event.target.value)} placeholder={t('expenses.notePlaceholder')} />
           </div>
+          {isEdit ? (
+            <div className="md:col-span-2">
+              <label className="label">{t('common.editReasonLabel')}</label>
+              <textarea className="input min-h-20" value={reason} onChange={(event) => setReason(event.target.value)} placeholder={t('common.editReasonPlaceholder')} />
+            </div>
+          ) : null}
         </div>
+        {isEdit ? <AuditHistory entityType="expense" entityId={expense.id} /> : null}
         <div className="flex justify-end gap-2 pt-2">
           <button type="button" className="btn-secondary" onClick={onClose} disabled={saving}>
             {t('common.cancel')}

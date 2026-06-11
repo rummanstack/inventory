@@ -16,6 +16,7 @@ import {
 import { Bar, Doughnut, Line } from 'react-chartjs-2';
 import { useInventoryApp } from '../app/useInventoryApp.jsx';
 import { getCssVar } from '../utils/theme.js';
+import { formatCurrency, formatNumber } from '../utils/calculations.js';
 
 ChartJS.register(ArcElement, BarElement, CategoryScale, Filler, LinearScale, LineElement, PointElement, ChartTooltip, Legend);
 ChartJS.defaults.font.family = "'Inter', 'Segoe UI Variable', 'Segoe UI', 'Avenir Next', sans-serif";
@@ -274,8 +275,8 @@ function HeatmapTooltip({ anchor, cell }) {
     function updatePosition() {
       const rect = anchor.getBoundingClientRect();
       const tooltip = tooltipRef.current;
-      const width = tooltip ? tooltip.offsetWidth : 176;
-      const height = tooltip ? tooltip.offsetHeight : 132;
+      const width = tooltip ? tooltip.offsetWidth : 240;
+      const height = tooltip ? tooltip.offsetHeight : 220;
       const viewportWidth = window.innerWidth;
       const viewportHeight = window.innerHeight;
       const gap = 10;
@@ -307,11 +308,15 @@ function HeatmapTooltip({ anchor, cell }) {
   const tooltipBodyColor = getCssVar('--chart-tooltip-body', '#e2e8f0');
   const dayDate = new Date(`${cell.date}T00:00:00`);
 
+  const dsrNames = cell.dsrNames || [];
+  const visibleDsrNames = dsrNames.slice(0, 4);
+  const extraDsrCount = dsrNames.length - visibleDsrNames.length;
+
   return createPortal(
     <div
       ref={tooltipRef}
       style={{ position: 'fixed', left: style.left, top: style.top, width: style.width, zIndex: 200, backgroundColor: tooltipBg }}
-      className="pointer-events-none rounded-2xl px-4 py-3 text-left shadow-[0_24px_55px_rgba(15,23,42,0.35)] ring-1 ring-white/10"
+      className="pointer-events-none w-60 rounded-2xl px-4 py-3 text-left shadow-[0_24px_55px_rgba(15,23,42,0.35)] ring-1 ring-white/10"
     >
       <p className="text-[11px] font-black tracking-tight" style={{ color: tooltipTitleColor }}>
         {heatmapFullDateFormatter.format(dayDate)}
@@ -332,6 +337,53 @@ function HeatmapTooltip({ anchor, cell }) {
           <span>{cell.settled}</span>
         </div>
       </div>
+
+      {(cell.issuedPieces || cell.soldPieces || cell.returnedPieces) ? (
+        <div className="mt-2.5 space-y-1 border-t border-white/10 pt-2">
+          <div className="flex items-center justify-between gap-3 text-[11px] font-bold" style={{ color: tooltipBodyColor }}>
+            <span>Pieces issued</span>
+            <span>{formatNumber(cell.issuedPieces)}</span>
+          </div>
+          <div className="flex items-center justify-between gap-3 text-[11px] font-bold" style={{ color: tooltipBodyColor }}>
+            <span>Pieces sold</span>
+            <span>{formatNumber(cell.soldPieces)}</span>
+          </div>
+          <div className="flex items-center justify-between gap-3 text-[11px] font-bold" style={{ color: tooltipBodyColor }}>
+            <span>Pieces returned</span>
+            <span>{formatNumber(cell.returnedPieces)}</span>
+          </div>
+        </div>
+      ) : null}
+
+      {cell.settled ? (
+        <div className="mt-2.5 space-y-1 border-t border-white/10 pt-2">
+          <div className="flex items-center justify-between gap-3 text-[11px] font-bold" style={{ color: tooltipBodyColor }}>
+            <span>Total payable</span>
+            <span>{formatCurrency(cell.totalPayable)}</span>
+          </div>
+          <div className="flex items-center justify-between gap-3 text-[11px] font-bold" style={{ color: tooltipBodyColor }}>
+            <span>Collected</span>
+            <span>{formatCurrency(cell.amountPaid)}</span>
+          </div>
+          <div className="flex items-center justify-between gap-3 text-[11px] font-bold" style={{ color: tooltipBodyColor }}>
+            <span>Due</span>
+            <span>{formatCurrency(cell.dueAmount)}</span>
+          </div>
+        </div>
+      ) : null}
+
+      {dsrNames.length ? (
+        <div className="mt-2.5 border-t border-white/10 pt-2">
+          <p className="text-[9px] font-black uppercase tracking-[0.18em]" style={{ color: getCssVar('--highlight', '#94a3b8') }}>
+            Active DSRs
+          </p>
+          <p className="mt-1 text-[11px] font-semibold leading-snug" style={{ color: tooltipBodyColor }}>
+            {visibleDsrNames.join(', ')}
+            {extraDsrCount > 0 ? ` +${extraDsrCount} more` : ''}
+          </p>
+        </div>
+      ) : null}
+
       <p className="mt-2.5 border-t border-white/10 pt-2 text-[9px] font-black uppercase tracking-[0.18em]" style={{ color: getCssVar('--highlight', '#94a3b8') }}>
         {heatmapActivityLabel(cell)}
       </p>

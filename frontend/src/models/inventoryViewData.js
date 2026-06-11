@@ -181,20 +181,62 @@ function isoSubtractDays(dateISO, days) {
 export function buildActivityHeatmap({ issues, settlements, today, days = 70 }) {
   if (!today) return [];
 
-  const issuedCounts = new Map();
-  const settledCounts = new Map();
-  issues.forEach((issue) => issuedCounts.set(issue.date, (issuedCounts.get(issue.date) || 0) + 1));
-  settlements.forEach((settlement) => settledCounts.set(settlement.date, (settledCounts.get(settlement.date) || 0) + 1));
+  const issuesByDate = new Map();
+  const settlementsByDate = new Map();
+  issues.forEach((issue) => {
+    if (!issuesByDate.has(issue.date)) issuesByDate.set(issue.date, []);
+    issuesByDate.get(issue.date).push(issue);
+  });
+  settlements.forEach((settlement) => {
+    if (!settlementsByDate.has(settlement.date)) settlementsByDate.set(settlement.date, []);
+    settlementsByDate.get(settlement.date).push(settlement);
+  });
 
   const cells = [];
   let max = 0;
   for (let offset = days - 1; offset >= 0; offset -= 1) {
     const date = isoSubtractDays(today, offset);
-    const issued = issuedCounts.get(date) || 0;
-    const settled = settledCounts.get(date) || 0;
+    const dayIssues = issuesByDate.get(date) || [];
+    const daySettlements = settlementsByDate.get(date) || [];
+    const issued = dayIssues.length;
+    const settled = daySettlements.length;
     const count = issued + settled;
     max = Math.max(max, count);
-    cells.push({ date, issued, settled, count, weekday: new Date(`${date}T00:00:00`).getDay() });
+
+    const dsrNames = new Set([
+      ...dayIssues.map((issue) => issue.dsrName).filter(Boolean),
+      ...daySettlements.map((settlement) => settlement.dsrName).filter(Boolean),
+    ]);
+    const issuedPieces = dayIssues.reduce(
+      (sum, issue) => sum + (issue.items || []).reduce((itemSum, item) => itemSum + Number(item.issuedPieces || 0), 0),
+      0,
+    );
+    const soldPieces = daySettlements.reduce(
+      (sum, settlement) => sum + (settlement.items || []).reduce((itemSum, item) => itemSum + Number(item.soldPieces || 0), 0),
+      0,
+    );
+    const returnedPieces = daySettlements.reduce(
+      (sum, settlement) => sum + (settlement.items || []).reduce((itemSum, item) => itemSum + Number(item.returnedPieces || 0), 0),
+      0,
+    );
+    const totalPayable = daySettlements.reduce((sum, settlement) => sum + Number(settlement.totalPayable || 0), 0);
+    const amountPaid = daySettlements.reduce((sum, settlement) => sum + Number(settlement.amountPaid || 0), 0);
+    const dueAmount = daySettlements.reduce((sum, settlement) => sum + Number(settlement.dueAmount || 0), 0);
+
+    cells.push({
+      date,
+      issued,
+      settled,
+      count,
+      weekday: new Date(`${date}T00:00:00`).getDay(),
+      dsrNames: Array.from(dsrNames),
+      issuedPieces,
+      soldPieces,
+      returnedPieces,
+      totalPayable,
+      amountPaid,
+      dueAmount,
+    });
   }
 
   return cells.map((cell) => ({ ...cell, intensity: max ? cell.count / max : 0 }));

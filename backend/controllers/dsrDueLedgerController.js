@@ -26,4 +26,12 @@ export class DsrDueLedgerController {
       next(error);
     }
   };
+
+  settle = async (req, res, next) => {
+    try {
+      res.json(await this.dsrDueLedgerService.settleDue(req.body, req.currentUser));
+    } catch (error) {
+      next(error);
+    }
+  };
 }

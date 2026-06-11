@@ -390,6 +390,13 @@ export const inventoryApi = {
     return apiRequest(`/dsr-due-ledger/balance${query ? `?${query}` : ""}`);
   },
 
+  settleDsrDue({ dsrId, amount, note }) {
+    return apiRequest("/dsr-due-ledger/settle", {
+      method: "POST",
+      body: JSON.stringify({ dsrId, amount, note }),
+    });
+  },
+
   // Platform admin endpoints
   listTenants() {
     return apiRequest("/platform/tenants");

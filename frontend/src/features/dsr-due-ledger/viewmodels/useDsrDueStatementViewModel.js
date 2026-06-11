@@ -60,6 +60,16 @@ export function useDsrDueStatementViewModel({ dsrs }) {
     };
   }, [dsrId, dateFrom, dateTo, version]);
 
+  async function settleDue({ amount, note }) {
+    try {
+      await inventoryApi.settleDsrDue({ dsrId, amount, note });
+      setVersion((value) => value + 1);
+      return { ok: true };
+    } catch (requestError) {
+      return { ok: false, message: requestError.message };
+    }
+  }
+
   return {
     dsrId,
     setDsrId,
@@ -71,5 +81,6 @@ export function useDsrDueStatementViewModel({ dsrs }) {
     loading,
     error,
     refresh: () => setVersion((value) => value + 1),
+    settleDue,
   };
 }

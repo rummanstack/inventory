@@ -22,6 +22,16 @@ export class BackupController {
       backupFile = await this.backupService.createBackupFile(format);
       client = await this.databaseManager.getPool().connect();
 
+      try {
+        await this.backupService.recordDownload(client, req.currentUser, backupFile.filename, format);
+      } catch (auditError) {
+        console.error("Failed to record backup download audit entry");
+        console.error(auditError);
+      } finally {
+        client.release();
+        client = null;
+      }
+
       await new Promise((resolve, reject) => {
         res.download(backupFile.tempPath, backupFile.filename, (error) => {
           if (error) {
@@ -32,13 +42,6 @@ export class BackupController {
           resolve();
         });
       });
-
-      try {
-        await this.backupService.recordDownload(client, req.currentUser, backupFile.filename, format);
-      } catch (auditError) {
-        console.error("Failed to record backup download audit entry");
-        console.error(auditError);
-      }
     } catch (error) {
       next(error);
     } finally {

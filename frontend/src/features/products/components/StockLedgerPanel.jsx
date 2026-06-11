@@ -36,7 +36,7 @@ function formatReference(movement) {
   return `${movement.referenceType || 'reference'} / ${shortId}`;
 }
 
-export default function StockLedgerPanel({ products, t }) {
+export default function StockLedgerPanel({ products, t, refreshKey = 0 }) {
   const today = todayISO();
   const [productId, setProductId] = useState('');
   const [dateFrom, setDateFrom] = useState(subtractDays(today, 29));
@@ -91,7 +91,7 @@ export default function StockLedgerPanel({ products, t }) {
     return () => {
       cancelled = true;
     };
-  }, [page, productId, dateFrom, dateTo, version]);
+  }, [page, productId, dateFrom, dateTo, version, refreshKey]);
 
   return (
     <section className="surface mt-6 overflow-hidden">

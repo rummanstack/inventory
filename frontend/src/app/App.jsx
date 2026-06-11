@@ -20,7 +20,7 @@ function SessionLoadingScreen() {
 }
 
 function AuthenticatedRoutes() {
-  const { authLoading, user, can } = useInventoryApp();
+  const { authLoading, user, can, hasFeature } = useInventoryApp();
   const defaultRoute = user?.role === 'platform_admin' ? '/platform' : '/dashboard';
 
   if (authLoading) {
@@ -40,7 +40,8 @@ function AuthenticatedRoutes() {
           const blocked = user?.role !== 'system_developer' && (
             (route.permission && !can(route.permission)) ||
             (route.role && user?.role !== route.role) ||
-            (route.roles && !route.roles.includes(user?.role))
+            (route.roles && !route.roles.includes(user?.role)) ||
+            !hasFeature(route.feature)
           );
           return (
             <Route

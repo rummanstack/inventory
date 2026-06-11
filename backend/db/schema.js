@@ -233,6 +233,12 @@ export async function createSchema(pool) {
       PRIMARY KEY (role, tenant_id, permission)
     );
 
+    CREATE TABLE IF NOT EXISTS tenant_features (
+      tenant_id TEXT NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+      feature TEXT NOT NULL,
+      PRIMARY KEY (tenant_id, feature)
+    );
+
     UPDATE users SET tenant_id = NULL WHERE role = 'system_developer';
   `);
 }

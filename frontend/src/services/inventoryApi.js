@@ -272,6 +272,14 @@ export const inventoryApi = {
     return apiRequest(`/platform/tenants/${tenantId}/status`, { method: "PATCH", body: JSON.stringify({ status }) });
   },
 
+  getTenantFeatures(tenantId) {
+    return apiRequest(`/platform/tenants/${tenantId}/features`);
+  },
+
+  updateTenantFeatures(tenantId, features) {
+    return apiRequest(`/platform/tenants/${tenantId}/features`, { method: "PATCH", body: JSON.stringify({ features }) });
+  },
+
   updateOrgSettings(fields) {
     return apiRequest("/org", { method: "PATCH", body: JSON.stringify(fields) });
   },

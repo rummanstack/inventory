@@ -9,7 +9,7 @@ import TopHeader from './TopHeader';
 export default function AppLayout() {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { today, user, tenant, loading, loadError, toasts, dismissToast, logout, t, language, setLanguage, can, confirmation, closeConfirmation } = useInventoryApp();
+  const { today, user, tenant, loading, loadError, toasts, dismissToast, logout, t, language, setLanguage, can, hasFeature, confirmation, closeConfirmation } = useInventoryApp();
 
   if (loading) {
     return <PageLoadingState title={t('app.brand')} description={t('status.loadingData')} />;
@@ -18,7 +18,7 @@ export default function AppLayout() {
   return (
     <div className="page-shell">
       <ToastViewport toasts={toasts} onDismiss={dismissToast} />
-      <AppSidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} user={user} tenant={tenant} language={language} onLanguageChange={setLanguage} onLogout={logout} t={t} can={can} />
+      <AppSidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} user={user} tenant={tenant} language={language} onLanguageChange={setLanguage} onLogout={logout} t={t} can={can} hasFeature={hasFeature} />
       <div className="flex h-screen min-h-0 flex-col lg:pl-72">
         <TopHeader title={getRouteLabel(location.pathname, t)} today={today} user={user} onLogout={logout} onOpenMenu={() => setMobileOpen(true)} t={t} />
         <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">

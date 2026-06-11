@@ -10,7 +10,10 @@ export function requireAuth(authService, env) {
   return async (req, res, next) => {
     try {
       const token = readCookie(req, env.SESSION_COOKIE_NAME) || readBearerToken(req);
-      const result = await authService.getUserFromSessionToken(token);
+      const result = await authService.getUserFromSessionToken(token, {
+        ip: req.ip,
+        userAgent: req.headers["user-agent"] || "",
+      });
 
       if (!result) {
         res.status(401).json({ message: "Authentication required." });

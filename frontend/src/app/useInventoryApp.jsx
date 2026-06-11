@@ -548,6 +548,26 @@ export function InventoryAppProvider({ children }) {
     }
   }
 
+  async function forgotPassword(payload) {
+    try {
+      await inventoryApi.forgotPassword(payload);
+      return { ok: true };
+    } catch (error) {
+      const message = getFriendlyError(error, t);
+      return { ok: false, message };
+    }
+  }
+
+  async function resetPassword(payload) {
+    try {
+      await inventoryApi.resetPassword(payload);
+      return { ok: true };
+    } catch (error) {
+      const message = getFriendlyError(error, t);
+      return { ok: false, message };
+    }
+  }
+
   async function updateProfile(fields) {
     try {
       const result = await inventoryApi.updateProfile(fields);
@@ -586,6 +606,8 @@ export function InventoryAppProvider({ children }) {
       closeConfirmation,
       login,
       logout,
+      forgotPassword,
+      resetPassword,
       saveProduct,
       deleteProduct,
       restoreProduct,

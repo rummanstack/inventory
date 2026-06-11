@@ -46,4 +46,31 @@ export class UserController {
       next(error);
     }
   };
+
+  resetPassword = async (req, res, next) => {
+    try {
+      const { tempPassword, users } = await this.userService.resetUserPassword(req.params.id, req.currentUser);
+      res.json({ tempPassword, users });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  unlock = async (req, res, next) => {
+    try {
+      const users = await this.userService.unlockUser(req.params.id, req.currentUser);
+      res.json({ users });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  listPasswordResetRequests = async (req, res, next) => {
+    try {
+      const requests = await this.userService.listPasswordResetRequests(req.currentUser);
+      res.json({ requests });
+    } catch (error) {
+      next(error);
+    }
+  };
 }

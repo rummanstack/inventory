@@ -39,6 +39,7 @@ import PermissionsPage from '../features/permissions/pages/PermissionsPage';
 import UsersPage from '../features/users/pages/UsersPage';
 import PlatformAdminPage from '../features/platform/pages/PlatformAdminPage';
 import ProfilePage from '../features/profile/pages/ProfilePage';
+import SecurityPage from '../features/security/pages/SecurityPage';
 import SystemHealthPage from '../features/system/pages/SystemHealthPage';
 import ErrorLogsPage from '../features/system/pages/ErrorLogsPage';
 import DsrDueStatementPage from '../features/dsr-due-ledger/pages/DsrDueStatementPage';
@@ -67,6 +68,7 @@ export const APP_ROUTES = [
   { id: 'users', path: '/settings/users', labelKey: 'nav.users', icon: UserCog, component: UsersPage, group: 'governance', permission: 'manage_users' },
   { id: 'platform', path: '/platform', labelKey: 'nav.platform', icon: ShieldCheck, component: PlatformAdminPage, group: 'developer', role: 'platform_admin' },
   { id: 'profile', path: '/profile', labelKey: 'nav.profile', icon: UserCog, component: ProfilePage },
+  { id: 'security', path: '/security', labelKey: 'nav.security', icon: ShieldCheck, component: SecurityPage },
   { id: 'system-health', path: '/system-health', labelKey: 'nav.systemHealth', icon: Activity, component: SystemHealthPage, group: 'developer', role: 'system_developer' },
   { id: 'error-logs', path: '/error-logs', labelKey: 'nav.errorLogs', icon: Bug, component: ErrorLogsPage, group: 'developer', role: 'system_developer' },
 ];

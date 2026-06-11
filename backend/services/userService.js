@@ -1,15 +1,20 @@
 import { assert } from "../lib/errors.js";
 import { createId } from "../lib/ids.js";
-import { hashPassword, verifyPassword } from "../lib/passwords.js";
+import { generateTempPassword, hashPassword, validatePasswordStrength, verifyPassword } from "../lib/passwords.js";
 import { USER_ROLES, TENANT_ROLE_VALUES } from "../lib/roles.js";
 import {
+  deleteAllSessionsForUser,
   deleteUser as deleteUserRepo,
   findUserByEmail,
   findUserById,
   insertUser,
   listUsers as listUsersRepo,
+  resetLoginLockState,
+  setMustChangePassword,
+  updatePasswordHashAndClearFlags,
   updateUser as updateUserRepo,
 } from "../repositories/userRepository.js";
+import { listPendingResetRequests } from "../repositories/passwordResetRepository.js";
 import { findTenantById, listTenants as listTenantsRepo } from "../repositories/tenantRepository.js";
 
 function normalizeEmail(email) {
@@ -77,6 +82,8 @@ export class UserService {
     const status = normalizeStatus(input.status || "active");
 
     assert(name && email && password, "Name, email, and password are required.");
+    const passwordStrengthError = validatePasswordStrength(password);
+    assert(!passwordStrengthError, passwordStrengthError);
 
     await this.databaseManager.withTransaction(async (client) => {
       let tenantId = actor.tenantId;
@@ -133,6 +140,11 @@ export class UserService {
       nextEmail = input.email === undefined ? existingUser.email : normalizeEmail(input.email);
       const nextRole = input.role === undefined ? existingUser.role : normalizeRole(input.role, actor);
       const nextStatus = input.status === undefined ? existingUser.status : normalizeStatus(input.status);
+
+      if (input.password) {
+        const passwordStrengthError = validatePasswordStrength(input.password);
+        assert(!passwordStrengthError, passwordStrengthError);
+      }
       const nextPasswordHash = input.password ? await hashPassword(String(input.password)) : null;
 
       if (nextEmail !== existingUser.email) {
@@ -183,7 +195,8 @@ export class UserService {
       let nextPasswordHash = null;
       if (input.password) {
         const newPassword = String(input.password);
-        assert(newPassword.length >= 6, "Password must be at least 6 characters.");
+        const passwordStrengthError = validatePasswordStrength(newPassword);
+        assert(!passwordStrengthError, passwordStrengthError);
         const currentPassword = String(input.currentPassword || "");
         assert(currentPassword, "Current password is required to set a new password.");
         const valid = await verifyPassword(currentPassword, existingUser.password_hash);
@@ -206,6 +219,10 @@ export class UserService {
         status: existingUser.status,
       });
 
+      if (nextPasswordHash) {
+        await setMustChangePassword(client, actor.id, false);
+      }
+
       await this.auditService.record(client, {
         tenantId: existingUser.tenant_id,
         userId: actor.id,
@@ -223,6 +240,7 @@ export class UserService {
         role: existingUser.role,
         status: existingUser.status,
         tenantId: existingUser.tenant_id || null,
+        mustChangePassword: nextPasswordHash ? false : Boolean(existingUser.must_change_password),
       };
     });
 
@@ -254,5 +272,77 @@ export class UserService {
     });
 
     return this.listUsers(actor);
+  }
+
+  async resetUserPassword(userId, actor) {
+    let tempPassword = "";
+    await this.databaseManager.withTransaction(async (client) => {
+      const existingUser = await findUserById(client, userId);
+      assert(existingUser, "User not found.", 404);
+
+      if (actor.role !== USER_ROLES.SYSTEM_DEVELOPER) {
+        assert(existingUser.tenant_id === actor.tenantId, "User not found.", 404);
+      }
+
+      assert(allowedRolesForActor(actor.role).includes(existingUser.role), "Forbidden.", 403);
+
+      tempPassword = generateTempPassword();
+      const passwordHash = await hashPassword(tempPassword);
+      await updatePasswordHashAndClearFlags(client, userId, passwordHash);
+      await setMustChangePassword(client, userId, true);
+      await deleteAllSessionsForUser(client, userId);
+
+      await this.auditService.record(client, {
+        tenantId: existingUser.tenant_id,
+        userId: actor.id,
+        actionType: "user.password_reset_by_admin",
+        entityType: "user",
+        entityId: userId,
+        description: `${actor.name} reset the password for ${existingUser.email}`,
+        metadata: { email: existingUser.email },
+      });
+    });
+
+    const users = await this.listUsers(actor);
+    return { tempPassword, users };
+  }
+
+  async unlockUser(userId, actor) {
+    await this.databaseManager.withTransaction(async (client) => {
+      const existingUser = await findUserById(client, userId);
+      assert(existingUser, "User not found.", 404);
+
+      if (actor.role !== USER_ROLES.SYSTEM_DEVELOPER) {
+        assert(existingUser.tenant_id === actor.tenantId, "User not found.", 404);
+      }
+
+      assert(allowedRolesForActor(actor.role).includes(existingUser.role), "Forbidden.", 403);
+
+      await resetLoginLockState(client, userId);
+
+      await this.auditService.record(client, {
+        tenantId: existingUser.tenant_id,
+        userId: actor.id,
+        actionType: "user.unlock",
+        entityType: "user",
+        entityId: userId,
+        description: `${actor.name} unlocked ${existingUser.email}`,
+        metadata: { email: existingUser.email },
+      });
+    });
+
+    return this.listUsers(actor);
+  }
+
+  async listPasswordResetRequests(actor) {
+    const client = await this.databaseManager.getPool().connect();
+    try {
+      if (actor.role === USER_ROLES.SYSTEM_DEVELOPER) {
+        return listPendingResetRequests(client, null);
+      }
+      return listPendingResetRequests(client, actor.tenantId);
+    } finally {
+      client.release();
+    }
   }
 }

@@ -346,5 +346,40 @@ export async function createSchema(pool) {
     CREATE INDEX IF NOT EXISTS idx_activity_logs_action_type ON activity_logs(action_type);
 
     UPDATE users SET tenant_id = NULL WHERE role = 'system_developer';
+
+    -- Advanced security basics: lockout, sessions metadata, login history, password reset
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS failed_login_count INTEGER NOT NULL DEFAULT 0;
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS locked_until TIMESTAMPTZ;
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS must_change_password BOOLEAN NOT NULL DEFAULT false;
+
+    ALTER TABLE user_sessions ADD COLUMN IF NOT EXISTS ip_address TEXT NOT NULL DEFAULT '';
+    ALTER TABLE user_sessions ADD COLUMN IF NOT EXISTS user_agent TEXT NOT NULL DEFAULT '';
+    ALTER TABLE user_sessions ADD COLUMN IF NOT EXISTS last_seen_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
+    CREATE INDEX IF NOT EXISTS idx_user_sessions_user_id ON user_sessions(user_id);
+
+    CREATE TABLE IF NOT EXISTS login_history (
+      id              TEXT PRIMARY KEY,
+      user_id         TEXT REFERENCES users(id) ON DELETE SET NULL,
+      tenant_id       TEXT REFERENCES tenants(id) ON DELETE SET NULL,
+      email           TEXT NOT NULL,
+      success         BOOLEAN NOT NULL,
+      failure_reason  TEXT NOT NULL DEFAULT '',
+      ip_address      TEXT NOT NULL DEFAULT '',
+      user_agent      TEXT NOT NULL DEFAULT '',
+      created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+    CREATE INDEX IF NOT EXISTS idx_login_history_user_id ON login_history(user_id, created_at DESC);
+
+    CREATE TABLE IF NOT EXISTS password_reset_tokens (
+      id          TEXT PRIMARY KEY,
+      user_id     TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      tenant_id   TEXT REFERENCES tenants(id) ON DELETE CASCADE,
+      token       TEXT UNIQUE NOT NULL,
+      expires_at  TIMESTAMPTZ NOT NULL,
+      used_at     TIMESTAMPTZ,
+      created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+    CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_token ON password_reset_tokens(token);
+    CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_user_id ON password_reset_tokens(user_id);
   `);
 }

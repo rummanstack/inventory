@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Pencil, Plus, Trash2, UserCog } from 'lucide-react';
-import { Alert, Badge, EmptyState, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
+import { Copy, KeyRound, Pencil, Plus, Trash2, UserCog, Unlock } from 'lucide-react';
+import { Alert, Badge, EmptyState, Modal, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import UserFormModal from '../components/UserFormModal';
@@ -18,6 +18,8 @@ export default function UsersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [userModal, setUserModal] = useState(null);
+  const [tempPassword, setTempPassword] = useState(null);
+  const [copied, setCopied] = useState(false);
 
   async function load() {
     try {
@@ -71,6 +73,59 @@ export default function UsersPage() {
     }
   }
 
+  async function handleResetPassword(user) {
+    const { confirmed } = await confirm({
+      title: t('users.resetPassword'),
+      description: t('users.resetPasswordConfirm', { name: user.name }).replace('{name}', user.name),
+      confirmLabel: t('users.resetPassword'),
+      tone: 'amber',
+    });
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      const result = await inventoryApi.adminResetUserPassword(user.id);
+      setUsers(result.users || []);
+      setCopied(false);
+      setTempPassword({ name: user.name, password: result.tempPassword });
+      pushToast('success', t('users.resetPassword'), t('users.resetPasswordSuccess'));
+    } catch (err) {
+      const message = err?.message || t('users.saveFailed');
+      pushToast('error', t('alerts.requestFailed'), message);
+    }
+  }
+
+  async function handleUnlock(user) {
+    const { confirmed } = await confirm({
+      title: t('users.unlock'),
+      description: t('users.unlockConfirm', { name: user.name }).replace('{name}', user.name),
+      confirmLabel: t('users.unlock'),
+      tone: 'amber',
+    });
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      const result = await inventoryApi.unlockUser(user.id);
+      setUsers(result.users || []);
+      pushToast('success', t('users.unlock'), t('users.unlockSuccess'));
+    } catch (err) {
+      const message = err?.message || t('users.saveFailed');
+      pushToast('error', t('alerts.requestFailed'), message);
+    }
+  }
+
+  async function handleCopyTempPassword() {
+    try {
+      await navigator.clipboard.writeText(tempPassword.password);
+      setCopied(true);
+    } catch {
+      setCopied(false);
+    }
+  }
+
   return (
     <div>
       <SectionHeader
@@ -117,9 +172,15 @@ export default function UsersPage() {
                       <Badge tone="slate">{t(`permissions.roles.${user.role}`) || user.role}</Badge>
                     </td>
                     <td className="table-cell">
-                      <Badge tone={user.status === 'active' ? 'emerald' : 'rose'}>
-                        {user.status === 'active' ? t('users.statusActive') : t('users.statusInactive')}
-                      </Badge>
+                      <div className="flex flex-wrap gap-1">
+                        <Badge tone={user.status === 'active' ? 'emerald' : 'rose'}>
+                          {user.status === 'active' ? t('users.statusActive') : t('users.statusInactive')}
+                        </Badge>
+                        {user.lockedUntil && new Date(user.lockedUntil) > new Date() ? (
+                          <Badge tone="rose">{t('users.locked')}</Badge>
+                        ) : null}
+                        {user.mustChangePassword ? <Badge tone="amber">{t('users.mustChangePasswordBadge')}</Badge> : null}
+                      </div>
                     </td>
                     <td className="table-cell">
                       <div className="flex justify-end gap-2">
@@ -128,6 +189,14 @@ export default function UsersPage() {
                             <button type="button" className="icon-btn" title={t('common.edit')} onClick={() => setUserModal({ mode: 'edit', user })}>
                               <Pencil size={16} />
                             </button>
+                            <button type="button" className="icon-btn" title={t('users.resetPassword')} onClick={() => handleResetPassword(user)}>
+                              <KeyRound size={16} />
+                            </button>
+                            {user.lockedUntil && new Date(user.lockedUntil) > new Date() ? (
+                              <button type="button" className="icon-btn" title={t('users.unlock')} onClick={() => handleUnlock(user)}>
+                                <Unlock size={16} />
+                              </button>
+                            ) : null}
                             {user.id !== actor?.id ? (
                               <button type="button" className="icon-btn text-rose-600 hover:text-rose-700" title={t('common.delete')} onClick={() => handleDelete(user)}>
                                 <Trash2 size={16} />
@@ -164,6 +233,21 @@ export default function UsersPage() {
             return result;
           }}
         />
+      ) : null}
+
+      {tempPassword ? (
+        <Modal title={t('users.tempPasswordTitle')} description={tempPassword.name} onClose={() => setTempPassword(null)} width="max-w-md">
+          <div className="space-y-4">
+            <Alert type="warning">{t('users.tempPasswordDescription')}</Alert>
+            <div className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+              <code className="text-lg font-bold tracking-wide text-slate-950">{tempPassword.password}</code>
+              <button type="button" className="btn-secondary" onClick={handleCopyTempPassword}>
+                <Copy size={16} />
+                {copied ? t('users.copied') : t('users.copyPassword')}
+              </button>
+            </div>
+          </div>
+        </Modal>
       ) : null}
     </div>
   );

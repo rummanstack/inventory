@@ -1,5 +1,7 @@
 import { assert } from "../lib/errors.js";
+import { createId } from "../lib/ids.js";
 import { parsePagination, buildPageResult } from "../lib/pagination.js";
+import { STOCK_MOVEMENT_TYPES } from "../lib/stockMovements.js";
 import {
   cleanInteger,
   normalizeDsr,
@@ -39,6 +41,7 @@ import {
   mapProduct,
   updateProduct,
 } from "../repositories/productRepository.js";
+import { insertStockMovement } from "../repositories/stockMovementRepository.js";
 import {
   countSettlements,
   findDuplicateSettlement,
@@ -71,7 +74,30 @@ async function lockProducts(client, productIds, tenantId) {
   return productMap;
 }
 
-async function applyIssueInventoryDelta(client, previousItems, nextItems, tenantId) {
+async function recordStockMovement(client, movement) {
+  const quantityIn = cleanInteger(movement.quantityIn);
+  const quantityOut = cleanInteger(movement.quantityOut);
+
+  if (quantityIn <= 0 && quantityOut <= 0) {
+    return;
+  }
+
+  await insertStockMovement(client, {
+    id: createId("stock-move"),
+    organizationId: movement.tenantId,
+    productId: movement.productId,
+    type: movement.type,
+    quantityIn,
+    quantityOut,
+    balanceAfter: cleanInteger(movement.balanceAfter),
+    referenceType: movement.referenceType,
+    referenceId: movement.referenceId,
+    note: movement.note || "",
+    createdById: movement.createdById,
+  });
+}
+
+async function applyIssueInventoryDelta(client, previousItems, nextItems, tenantId, movementContext = {}) {
   const previousTotals = sumPiecesByProduct(previousItems, "issuedPieces");
   const nextTotals = sumPiecesByProduct(nextItems, "issuedPieces");
   const productIds = [...new Set([...previousTotals.keys(), ...nextTotals.keys()])];
@@ -91,20 +117,72 @@ async function applyIssueInventoryDelta(client, previousItems, nextItems, tenant
       assert(Number(product.stock_pieces) >= difference, `${product.name} does not have enough available stock.`);
     }
 
-    await client.query("UPDATE products SET stock_pieces = stock_pieces - $3 WHERE id = $1 AND tenant_id = $2", [
+    const result = await client.query("UPDATE products SET stock_pieces = stock_pieces - $3 WHERE id = $1 AND tenant_id = $2 RETURNING stock_pieces", [
       productId,
       tenantId,
       difference,
     ]);
+    const balanceAfter = Number(result.rows[0].stock_pieces || 0);
+    await recordStockMovement(client, {
+      tenantId,
+      productId,
+      type: STOCK_MOVEMENT_TYPES.MORNING_ISSUE,
+      quantityIn: difference < 0 ? Math.abs(difference) : 0,
+      quantityOut: difference > 0 ? difference : 0,
+      balanceAfter,
+      referenceType: "issue",
+      referenceId: movementContext.referenceId,
+      note: movementContext.note || "Morning issue stock movement",
+      createdById: movementContext.createdById,
+    });
   }
 }
 
-async function applySettlementInventoryDelta(client, previousItems, nextItems, tenantId) {
+async function applyStockDelta(client, productId, tenantId, stockDifference, damagedDifference) {
+  const result = await client.query(
+    `UPDATE products
+     SET stock_pieces = stock_pieces + $3,
+         damaged_pieces = damaged_pieces + $4
+     WHERE id = $1 AND tenant_id = $2
+     RETURNING stock_pieces, damaged_pieces`,
+    [productId, tenantId, stockDifference, damagedDifference],
+  );
+  assert(result.rowCount > 0, "Product not found.", 404);
+  return {
+    stockPieces: Number(result.rows[0].stock_pieces || 0),
+    damagedPieces: Number(result.rows[0].damaged_pieces || 0),
+  };
+}
+
+async function applySettlementInventoryDelta(
+  client,
+  previousItems,
+  nextItems,
+  previousExtraReturns,
+  nextExtraReturns,
+  tenantId,
+  movementContext = {},
+) {
   const previousReturnedTotals = sumPiecesByProduct(previousItems, "returnedPieces");
   const nextReturnedTotals = sumPiecesByProduct(nextItems, "returnedPieces");
   const previousDamagedTotals = sumPiecesByProduct(previousItems, "damagedPieces");
   const nextDamagedTotals = sumPiecesByProduct(nextItems, "damagedPieces");
-  const productIds = [...new Set([...previousReturnedTotals.keys(), ...nextReturnedTotals.keys()])];
+  const previousExtraReturnedTotals = sumPiecesByProduct(previousExtraReturns, "returnedPieces");
+  const nextExtraReturnedTotals = sumPiecesByProduct(nextExtraReturns, "returnedPieces");
+  const previousExtraDamagedTotals = sumPiecesByProduct(previousExtraReturns, "damagedPieces");
+  const nextExtraDamagedTotals = sumPiecesByProduct(nextExtraReturns, "damagedPieces");
+  const productIds = [
+    ...new Set([
+      ...previousReturnedTotals.keys(),
+      ...nextReturnedTotals.keys(),
+      ...previousDamagedTotals.keys(),
+      ...nextDamagedTotals.keys(),
+      ...previousExtraReturnedTotals.keys(),
+      ...nextExtraReturnedTotals.keys(),
+      ...previousExtraDamagedTotals.keys(),
+      ...nextExtraDamagedTotals.keys(),
+    ].filter(Boolean)),
+  ];
   const productMap = await lockProducts(client, productIds, tenantId);
 
   for (const productId of productIds) {
@@ -112,8 +190,14 @@ async function applySettlementInventoryDelta(client, previousItems, nextItems, t
     const nextReturned = nextReturnedTotals.get(productId) || 0;
     const previousDamaged = previousDamagedTotals.get(productId) || 0;
     const nextDamaged = nextDamagedTotals.get(productId) || 0;
-    const goodDifference = nextReturned - previousReturned;
-    const damagedDifference = nextDamaged - previousDamaged;
+    const previousExtraReturned = previousExtraReturnedTotals.get(productId) || 0;
+    const nextExtraReturned = nextExtraReturnedTotals.get(productId) || 0;
+    const previousExtraDamaged = previousExtraDamagedTotals.get(productId) || 0;
+    const nextExtraDamaged = nextExtraDamagedTotals.get(productId) || 0;
+    const settlementReturnDifference = nextReturned - previousReturned;
+    const extraReturnDifference = nextExtraReturned - previousExtraReturned;
+    const damagedDifference = nextDamaged + nextExtraDamaged - previousDamaged - previousExtraDamaged;
+    const goodDifference = settlementReturnDifference + extraReturnDifference;
 
     if (goodDifference === 0 && damagedDifference === 0) {
       continue;
@@ -126,11 +210,72 @@ async function applySettlementInventoryDelta(client, previousItems, nextItems, t
         `${product.name} does not have enough available stock for this settlement change.`,
       );
     }
+    if (damagedDifference < 0) {
+      assert(
+        Number(product.damaged_pieces || 0) >= Math.abs(damagedDifference),
+        `${product.name} does not have enough damaged stock for this settlement change.`,
+      );
+    }
 
-    await client.query(
-      "UPDATE products SET stock_pieces = stock_pieces + $3, damaged_pieces = damaged_pieces + $4 WHERE id = $1 AND tenant_id = $2",
-      [productId, tenantId, goodDifference, damagedDifference],
-    );
+    let currentBalance = Number(product.stock_pieces || 0);
+    let currentDamaged = Number(product.damaged_pieces || 0);
+
+    const returnMovements = [
+      {
+        type: STOCK_MOVEMENT_TYPES.SETTLEMENT_RETURN,
+        difference: settlementReturnDifference,
+        defaultNote: "Settlement return stock movement",
+      },
+      {
+        type: STOCK_MOVEMENT_TYPES.EXTRA_RETURN,
+        difference: extraReturnDifference,
+        defaultNote: "Extra return stock movement",
+      },
+    ]
+      .filter((entry) => entry.difference !== 0)
+      .sort((left, right) => right.difference - left.difference);
+
+    for (const movement of returnMovements) {
+      if (movement.difference < 0) {
+        assert(
+          currentBalance >= Math.abs(movement.difference),
+          `${product.name} does not have enough available stock for this settlement change.`,
+        );
+      }
+
+      const nextBalance = await applyStockDelta(client, productId, tenantId, movement.difference, 0);
+      currentBalance = nextBalance.stockPieces;
+      await recordStockMovement(client, {
+        tenantId,
+        productId,
+        type: movement.type,
+        quantityIn: movement.difference > 0 ? movement.difference : 0,
+        quantityOut: movement.difference < 0 ? Math.abs(movement.difference) : 0,
+        balanceAfter: currentBalance,
+        referenceType: "settlement",
+        referenceId: movementContext.referenceId,
+        note: movementContext.note || movement.defaultNote,
+        createdById: movementContext.createdById,
+      });
+    }
+
+    if (damagedDifference !== 0) {
+      const nextBalance = await applyStockDelta(client, productId, tenantId, 0, damagedDifference);
+      currentBalance = nextBalance.stockPieces;
+      currentDamaged = nextBalance.damagedPieces;
+      await recordStockMovement(client, {
+        tenantId,
+        productId,
+        type: STOCK_MOVEMENT_TYPES.DAMAGE,
+        quantityIn: damagedDifference < 0 ? Math.abs(damagedDifference) : 0,
+        quantityOut: damagedDifference > 0 ? damagedDifference : 0,
+        balanceAfter: currentBalance,
+        referenceType: "settlement",
+        referenceId: movementContext.referenceId,
+        note: movementContext.note || `Damaged stock movement. Damaged balance: ${currentDamaged} pcs`,
+        createdById: movementContext.createdById,
+      });
+    }
   }
 }
 
@@ -162,17 +307,6 @@ function syncSettlementItemsWithIssue(issueItems, settlementItems) {
       payable: soldPieces * rate,
     };
   });
-}
-
-function getSettlementReturnItems(settlement) {
-  return [
-    ...(Array.isArray(settlement?.items) ? settlement.items : []),
-    ...(Array.isArray(settlement?.extraReturns)
-      ? settlement.extraReturns
-      : Array.isArray(settlement?.extra_returns)
-        ? settlement.extra_returns
-        : []),
-  ];
 }
 
 export class InventoryService {
@@ -379,6 +513,19 @@ export class InventoryService {
     return this.databaseManager.withTransaction(async (client) => {
       const result = await addProductStock(client, productId, addPieces, actor.tenantId);
       assert(result.rowCount > 0, "Product not found.", 404);
+      const product = result.rows[0];
+      await recordStockMovement(client, {
+        tenantId: actor.tenantId,
+        productId,
+        type: STOCK_MOVEMENT_TYPES.MANUAL_ADJUSTMENT,
+        quantityIn: addPieces,
+        quantityOut: 0,
+        balanceAfter: Number(product.stock_pieces || 0),
+        referenceType: "product_stock",
+        referenceId: productId,
+        note: `Manual stock added by ${actor.name}`,
+        createdById: actor.id,
+      });
       await this.recordActivity(client, actor, {
         actionType: "product.stock_add",
         entityType: "product",
@@ -386,7 +533,7 @@ export class InventoryService {
         description: `${actor.name} added stock to product ${productId}`,
         metadata: { addPieces },
       });
-      return mapProduct(result.rows[0]);
+      return mapProduct(product);
     });
   }
 
@@ -480,7 +627,11 @@ export class InventoryService {
         const dsrResult = await findDsrById(client, issue.dsrId, tenantId);
         assert(dsrResult.rowCount > 0, "Select a valid DSR.");
 
-        await applyIssueInventoryDelta(client, previousItems, issue.items, tenantId);
+        await applyIssueInventoryDelta(client, previousItems, issue.items, tenantId, {
+          referenceId: issue.id,
+          createdById: actor.id,
+          note: `Morning issue updated for ${issue.dsrName} on ${issue.date}`,
+        });
         const issueResult = await updateIssue(client, issue);
 
         let settlement = null;
@@ -489,7 +640,11 @@ export class InventoryService {
           const existingSettlement = targetSettlementCheck.rows[0];
           const nextSettlementItems = syncSettlementItemsWithIssue(issue.items, existingSettlement.items);
           const nextTotalPayable = nextSettlementItems.reduce((sum, item) => sum + Number(item.payable || 0), 0);
-          const existingReturnItems = getSettlementReturnItems(existingSettlement);
+          const previousExtraReturns = Array.isArray(existingSettlement.extra_returns)
+            ? existingSettlement.extra_returns
+            : Array.isArray(existingSettlement.extraReturns)
+              ? existingSettlement.extraReturns
+              : [];
           const nextExtraReturns = Array.isArray(existingSettlement.extra_returns)
             ? existingSettlement.extra_returns
             : Array.isArray(existingSettlement.extraReturns)
@@ -498,9 +653,16 @@ export class InventoryService {
 
           await applySettlementInventoryDelta(
             client,
-            existingReturnItems,
-            [...nextSettlementItems, ...nextExtraReturns],
+            Array.isArray(existingSettlement.items) ? existingSettlement.items : [],
+            nextSettlementItems,
+            previousExtraReturns,
+            nextExtraReturns,
             tenantId,
+            {
+              referenceId: existingSettlement.id,
+              createdById: actor.id,
+              note: `Settlement stock adjusted after issue update for ${issue.dsrName} on ${issue.date}`,
+            },
           );
 
           const settlementResult = await updateSettlement(client, {
@@ -548,7 +710,11 @@ export class InventoryService {
         "Morning issue already exists for this DSR and date. Edit that issue instead.",
       );
 
-      await applyIssueInventoryDelta(client, [], issue.items, tenantId);
+      await applyIssueInventoryDelta(client, [], issue.items, tenantId, {
+        referenceId: issue.id,
+        createdById: actor.id,
+        note: `Morning issue created for ${issue.dsrName} on ${issue.date}`,
+      });
       const issueResult = await insertIssue(client, issue);
       await this.recordActivity(client, actor, {
         actionType: "issue.create",
@@ -594,7 +760,11 @@ export class InventoryService {
       const dsrResult = await findDsrById(client, issue.dsrId, tenantId);
       assert(dsrResult.rowCount > 0, "Select a valid DSR.");
 
-      await applyIssueInventoryDelta(client, previousItems, issue.items, tenantId);
+      await applyIssueInventoryDelta(client, previousItems, issue.items, tenantId, {
+        referenceId: issue.id,
+        createdById: actor.id,
+        note: `Morning issue updated for ${issue.dsrName} on ${issue.date}`,
+      });
       const issueResult = await updateIssue(client, issue);
       await this.recordActivity(client, actor, {
         actionType: "issue.update",
@@ -640,10 +810,25 @@ export class InventoryService {
           assert(item.returnedPieces <= item.issuedPieces, "Returned quantity cannot be greater than issued quantity.");
         }
 
-        const previousReturnItems = getSettlementReturnItems(previousSettlement);
-        const nextReturnItems = getSettlementReturnItems(settlement);
+        const previousExtraReturns = Array.isArray(previousSettlement.extra_returns)
+          ? previousSettlement.extra_returns
+          : Array.isArray(previousSettlement.extraReturns)
+            ? previousSettlement.extraReturns
+            : [];
 
-        await applySettlementInventoryDelta(client, previousReturnItems, nextReturnItems, tenantId);
+        await applySettlementInventoryDelta(
+          client,
+          previousItems,
+          settlement.items,
+          previousExtraReturns,
+          settlement.extraReturns || [],
+          tenantId,
+          {
+            referenceId: settlement.id,
+            createdById: actor.id,
+            note: `Evening settlement updated for ${settlement.dsrName} on ${settlement.date}`,
+          },
+        );
         const settlementResult = await updateSettlement(client, settlement);
         await this.recordActivity(client, actor, {
           actionType: "settlement.update",
@@ -666,7 +851,11 @@ export class InventoryService {
         assert(item.returnedPieces <= item.issuedPieces, "Returned quantity cannot be greater than issued quantity.");
       }
 
-      await applySettlementInventoryDelta(client, [], getSettlementReturnItems(settlement), tenantId);
+      await applySettlementInventoryDelta(client, [], settlement.items, [], settlement.extraReturns || [], tenantId, {
+        referenceId: settlement.id,
+        createdById: actor.id,
+        note: `Evening settlement created for ${settlement.dsrName} on ${settlement.date}`,
+      });
       const insertResult = await insertSettlement(client, settlement);
       await this.recordActivity(client, actor, {
         actionType: "settlement.create",

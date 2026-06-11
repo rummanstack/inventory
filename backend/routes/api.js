@@ -9,6 +9,7 @@ import { ActivityLogController } from "../controllers/activityLogController.js";
 import { ExpenseController } from "../controllers/expenseController.js";
 import { IssueController } from "../controllers/issueController.js";
 import { ProductController } from "../controllers/productController.js";
+import { StockMovementController } from "../controllers/stockMovementController.js";
 import { UserController } from "../controllers/userController.js";
 import { SettlementController } from "../controllers/settlementController.js";
 import { TenantController } from "../controllers/tenantController.js";
@@ -33,6 +34,7 @@ export function createApiRouter({
   monthEndSummaryService,
   profitService,
   backupService,
+  stockMovementService,
   databaseManager,
   tenantService,
   permissionService,
@@ -42,6 +44,7 @@ export function createApiRouter({
   const router = Router();
   const authController = new AuthController(authService, env, tenantService);
   const productController = new ProductController(inventoryService);
+  const stockMovementController = new StockMovementController(stockMovementService);
   const dsrController = new DsrController(inventoryService);
   const issueController = new IssueController(inventoryService);
   const settlementController = new SettlementController(inventoryService);
@@ -146,6 +149,7 @@ export function createApiRouter({
   router.put("/products/:id", requirePermission(PERMISSIONS.MANAGE_PRODUCTS), productController.update);
   router.delete("/products/:id", requirePermission(PERMISSIONS.MANAGE_PRODUCTS), productController.remove);
   router.post("/products/:id/stock", requirePermission(PERMISSIONS.MANAGE_PRODUCTS), productController.addStock);
+  router.get("/stock-movements", requirePermission(PERMISSIONS.VIEW_STATE), stockMovementController.list);
 
   router.get("/dsrs/directory", requirePermission(PERMISSIONS.VIEW_STATE), dsrController.directory);
   router.get("/dsrs", requirePermission(PERMISSIONS.VIEW_STATE), dsrController.list);

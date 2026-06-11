@@ -255,6 +255,17 @@ export const inventoryApi = {
     return apiRequest(`/products/${productId}/stock`, { method: "POST", body: JSON.stringify({ addPieces }) });
   },
 
+  listStockMovements({ page, pageSize, productId, dateFrom, dateTo } = {}) {
+    const params = new URLSearchParams();
+    if (page) params.set("page", page);
+    if (pageSize) params.set("pageSize", pageSize);
+    if (productId) params.set("productId", productId);
+    if (dateFrom) params.set("dateFrom", dateFrom);
+    if (dateTo) params.set("dateTo", dateTo);
+    const query = params.toString();
+    return apiRequest(`/stock-movements${query ? `?${query}` : ""}`);
+  },
+
   // Platform admin endpoints
   listTenants() {
     return apiRequest("/platform/tenants");

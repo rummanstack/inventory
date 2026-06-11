@@ -12,6 +12,7 @@ import { ProfitService } from './services/profitService.js';
 import { InventoryService } from './services/inventoryService.js';
 import { UserService } from './services/userService.js';
 import { BackupService } from './services/backupService.js';
+import { StockMovementService } from './services/stockMovementService.js';
 import { TenantService } from './services/tenantService.js';
 import { PermissionService } from './services/permissionService.js';
 import { SystemService } from './services/systemService.js';
@@ -33,11 +34,12 @@ async function start() {
   const monthEndSummaryService = new MonthEndSummaryService(databaseManager);
   const profitService = new ProfitService(databaseManager);
   const backupService = new BackupService(databaseManager, { auditService });
+  const stockMovementService = new StockMovementService(databaseManager);
   const tenantService = new TenantService(databaseManager);
   const permissionService = new PermissionService(databaseManager, { auditService });
   const systemService = new SystemService(databaseManager);
   const errorLogService = new ErrorLogService(databaseManager);
-  const app = createApp({ authService, env, inventoryService, auditService, userService, expenseService, dsrFinanceService, monthEndSummaryService, profitService, backupService, databaseManager, tenantService, permissionService, systemService, errorLogService });
+  const app = createApp({ authService, env, inventoryService, auditService, userService, expenseService, dsrFinanceService, monthEndSummaryService, profitService, backupService, stockMovementService, databaseManager, tenantService, permissionService, systemService, errorLogService });
 
   app.listen(env.PORT, () => {
     console.log(`Server running on http://localhost:${env.PORT}`);

@@ -13,6 +13,7 @@ export default function ProductsPage() {
   const vm = useProductsViewModel();
   const [productModal, setProductModal] = useState(null);
   const [stockModalProduct, setStockModalProduct] = useState(null);
+  const [ledgerRefreshKey, setLedgerRefreshKey] = useState(0);
   const canManageProducts = can('manage_products');
   const outOfStockCount = productDirectory.filter((product) => product.stockPieces === 0).length;
   const veryLowCount = productDirectory.filter((product) => product.stockPieces > 0 && product.stockPieces <= product.piecesPerCase).length;
@@ -139,7 +140,7 @@ export default function ProductsPage() {
         ) : null}
       </div>
 
-      <StockLedgerPanel products={productDirectory} t={t} />
+      <StockLedgerPanel products={productDirectory} t={t} refreshKey={ledgerRefreshKey} />
 
       {productModal ? <ProductFormModal product={productModal.product} onClose={() => setProductModal(null)} onSave={async (value) => {
         const result = await saveProduct(value);
@@ -154,6 +155,7 @@ export default function ProductsPage() {
         if (result.ok) {
           setStockModalProduct(null);
           vm.reload();
+          setLedgerRefreshKey((key) => key + 1);
         }
         return result;
       }} /> : null}

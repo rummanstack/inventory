@@ -32,7 +32,7 @@ function formatReference(entry) {
 export default function DsrDueStatementPage() {
   const { dsrDirectory, t, pushToast } = useInventoryApp();
   const vm = useDsrDueStatementViewModel({ dsrs: dsrDirectory });
-  const entries = vm.statement?.entries || [];
+  const entries = [...(vm.statement?.entries || [])].reverse();
   const [showSettleModal, setShowSettleModal] = useState(false);
 
   async function handleSettleDue(payload) {

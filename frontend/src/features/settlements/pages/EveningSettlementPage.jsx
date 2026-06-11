@@ -275,8 +275,8 @@ export default function EveningSettlementPage() {
                   </div>
                   {vm.completedSettlement ? (
                     <div>
-                      <label className="label">{t('common.editReasonLabel')}</label>
-                      <textarea className="input min-h-20" value={vm.reasonInput} onChange={(event) => vm.setReasonInput(event.target.value)} placeholder={t('common.editReasonPlaceholder')} disabled={vm.saving} />
+                      <label className="label">{t('settlement.editReasonLabel')}</label>
+                      <textarea className="input min-h-20" value={vm.reasonInput} onChange={(event) => vm.setReasonInput(event.target.value)} placeholder={t('settlement.editReasonPlaceholder')} disabled={vm.saving} />
                     </div>
                   ) : null}
                   <div className="flex flex-col gap-2 sm:flex-row lg:flex-col">

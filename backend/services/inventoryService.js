@@ -1047,8 +1047,6 @@ export class InventoryService {
 
     return this.databaseManager.withTransaction(async (client) => {
       if (input.id) {
-        assert(String(input.reason || "").trim(), "Edit reason is required.");
-
         const existingSettlement = await findSettlementById(client, base.id, tenantId);
         assert(existingSettlement.rowCount > 0, "Settlement not found.", 404);
 

@@ -291,11 +291,6 @@ export function useSettlementViewModel({ products, dsrs, today, saveSettlementAc
       return;
     }
 
-    if (completedSettlement && !reasonInput.trim()) {
-      setMessage({ type: 'error', text: t('common.editReasonRequired') });
-      return;
-    }
-
     const items = displayRows.map((row) => ({
       productId: row.productId,
       productName: row.productName,

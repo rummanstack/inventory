@@ -6,7 +6,7 @@ import { useInventoryApp } from './useInventoryApp.jsx';
 import loginHero from '../assets/login-hero.png';
 
 export default function LoginPage() {
-  const { loadError, login, forgotPassword, resetPassword, toasts, dismissToast, t } = useInventoryApp();
+  const { login, forgotPassword, resetPassword, toasts, dismissToast, t } = useInventoryApp();
   const [searchParams] = useSearchParams();
   const resetToken = searchParams.get('token') || '';
   const [view, setView] = useState(resetToken ? 'reset' : 'login');
@@ -36,8 +36,6 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {loadError ? <Alert type="error" className="mb-4">{loadError}</Alert> : null}
-
             {view === 'login' ? (
               <LoginForm login={login} t={t} onForgot={() => setView('forgot')} />
             ) : view === 'forgot' ? (
@@ -56,65 +54,58 @@ export default function LoginPage() {
 function LoginForm({ login, t, onForgot }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [submitError, setSubmitError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
   async function handleSubmit(event) {
     event.preventDefault();
-    setSubmitError('');
     setSubmitting(true);
-    const result = await login({ email, password });
-    if (!result.ok) setSubmitError(result.message);
+    await login({ email, password });
     setSubmitting(false);
   }
 
   return (
-    <>
-      {submitError ? <Alert type="error" className="mb-4">{submitError}</Alert> : null}
+    <form className="space-y-4" onSubmit={handleSubmit}>
+      <label className="block">
+        <span className="label">{t('auth.email')}</span>
+        <span className="relative block">
+          <Mail className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+          <input
+            className="input pl-9"
+            type="email"
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="you@example.com"
+            required
+          />
+        </span>
+      </label>
 
-      <form className="space-y-4" onSubmit={handleSubmit}>
-        <label className="block">
-          <span className="label">{t('auth.email')}</span>
-          <span className="relative block">
-            <Mail className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-            <input
-              className="input pl-9"
-              type="email"
-              autoComplete="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              required
-            />
-          </span>
-        </label>
+      <label className="block">
+        <span className="label">{t('auth.password')}</span>
+        <span className="relative block">
+          <Lock className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+          <input
+            className="input pl-9"
+            type="password"
+            autoComplete="current-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder={t('auth.passwordPlaceholder')}
+            required
+          />
+        </span>
+      </label>
 
-        <label className="block">
-          <span className="label">{t('auth.password')}</span>
-          <span className="relative block">
-            <Lock className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-            <input
-              className="input pl-9"
-              type="password"
-              autoComplete="current-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder={t('auth.passwordPlaceholder')}
-              required
-            />
-          </span>
-        </label>
+      <button type="submit" className="btn-primary mt-2 w-full" disabled={submitting}>
+        {submitting ? <Loader2 size={17} className="animate-spin" /> : <KeyRound size={17} />}
+        {submitting ? t('auth.signingIn') : t('auth.signIn')}
+      </button>
 
-        <button type="submit" className="btn-primary mt-2 w-full" disabled={submitting}>
-          {submitting ? <Loader2 size={17} className="animate-spin" /> : <KeyRound size={17} />}
-          {submitting ? t('auth.signingIn') : t('auth.signIn')}
-        </button>
-
-        <button type="button" className="block w-full text-center text-xs font-bold text-[var(--secondary-strong)] hover:underline" onClick={onForgot}>
-          {t('auth.forgotPassword')}
-        </button>
-      </form>
-    </>
+      <button type="button" className="block w-full text-center text-xs font-bold text-[var(--secondary-strong)] hover:underline" onClick={onForgot}>
+        {t('auth.forgotPassword')}
+      </button>
+    </form>
   );
 }
 

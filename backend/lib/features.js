@@ -3,6 +3,7 @@
 export const TENANT_FEATURES = [
   "products",
   "dsrs",
+  "customers",
   "morning-issue",
   "settlements",
   "reports",

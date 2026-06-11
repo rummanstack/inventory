@@ -215,6 +215,21 @@ export const inventoryApi = {
     return apiRequest("/dsrs/directory");
   },
 
+  listCustomers({ page, pageSize, search, status, assignedDsrId } = {}) {
+    const params = new URLSearchParams();
+    if (page) params.set("page", page);
+    if (pageSize) params.set("pageSize", pageSize);
+    if (search) params.set("search", search);
+    if (status) params.set("status", status);
+    if (assignedDsrId) params.set("assignedDsrId", assignedDsrId);
+    const query = params.toString();
+    return apiRequest(`/customers${query ? `?${query}` : ""}`);
+  },
+
+  getCustomer(customerId) {
+    return apiRequest(`/customers/${customerId}`);
+  },
+
   listIssues({ page, pageSize, search, dsrId, dateFrom, dateTo } = {}) {
     const params = new URLSearchParams();
     if (page) params.set("page", page);
@@ -340,6 +355,18 @@ export const inventoryApi = {
 
   deleteDsr(dsrId) {
     return apiRequest(`/dsrs/${dsrId}`, { method: "DELETE" });
+  },
+
+  createCustomer(customer) {
+    return apiRequest("/customers", { method: "POST", body: JSON.stringify(customer) });
+  },
+
+  updateCustomer(customer) {
+    return apiRequest(`/customers/${customer.id}`, { method: "PUT", body: JSON.stringify(customer) });
+  },
+
+  deleteCustomer(customerId) {
+    return apiRequest(`/customers/${customerId}`, { method: "DELETE" });
   },
 
   saveIssue(issue) {

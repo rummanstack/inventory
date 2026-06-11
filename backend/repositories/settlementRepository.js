@@ -127,6 +127,13 @@ export function findSettlementByDateAndDsr(client, date, dsrId, tenantId) {
   );
 }
 
+export function findLatestSettlementForDsr(client, dsrId, tenantId) {
+  return client.query(
+    "SELECT * FROM settlements WHERE dsr_id = $1 AND tenant_id = $2 ORDER BY settlement_date DESC, created_at DESC LIMIT 1",
+    [dsrId, tenantId],
+  );
+}
+
 export function findDuplicateSettlement(client, date, dsrId, settlementId, tenantId) {
   return client.query(
     "SELECT id FROM settlements WHERE settlement_date = $1 AND dsr_id = $2 AND id <> $3 AND tenant_id = $4 LIMIT 1",

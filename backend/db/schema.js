@@ -112,6 +112,28 @@ export async function createSchema(pool) {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
 
+    ALTER TABLE dsrs ADD COLUMN IF NOT EXISTS opening_due NUMERIC NOT NULL DEFAULT 0;
+
+    CREATE TABLE IF NOT EXISTS dsr_due_ledger (
+      id             TEXT PRIMARY KEY,
+      tenant_id      TEXT REFERENCES tenants(id),
+      dsr_id         TEXT NOT NULL,
+      type           TEXT NOT NULL,
+      debit          NUMERIC NOT NULL DEFAULT 0,
+      credit         NUMERIC NOT NULL DEFAULT 0,
+      balance_after  NUMERIC NOT NULL DEFAULT 0,
+      reference_type TEXT NOT NULL,
+      reference_id   TEXT,
+      note           TEXT NOT NULL DEFAULT '',
+      created_by     TEXT REFERENCES users(id) ON DELETE SET NULL,
+      created_at     TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_dsr_due_ledger_tenant_dsr_created_at
+      ON dsr_due_ledger(tenant_id, dsr_id, created_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_dsr_due_ledger_reference
+      ON dsr_due_ledger(reference_type, reference_id);
+
     CREATE TABLE IF NOT EXISTS dsr_cash_receipts (
       id TEXT PRIMARY KEY,
       receipt_date DATE NOT NULL,

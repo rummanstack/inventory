@@ -27,7 +27,7 @@ export function useSettlementViewModel({ products, dsrs, today, saveSettlementAc
   const [dsrId, setDsrId] = useState(activeDsrs[0]?.id || '');
   const [returns, setReturns] = useState({});
   const [extraReturns, setExtraReturns] = useState([]);
-  const [previousDueInput, setPreviousDueInput] = useState('');
+  const [previousDue, setPreviousDue] = useState(0);
   const [discountInput, setDiscountInput] = useState('');
   const [amountPaidInput, setAmountPaidInput] = useState('');
   const [message, setMessage] = useState(null);
@@ -83,7 +83,6 @@ export function useSettlementViewModel({ products, dsrs, today, saveSettlementAc
     if (!completedSettlement) {
       setReturns({});
       setExtraReturns([]);
-      setPreviousDueInput('');
       setDiscountInput('');
       setAmountPaidInput('');
       setMessage(null);
@@ -103,12 +102,42 @@ export function useSettlementViewModel({ products, dsrs, today, saveSettlementAc
         return map;
       }, {}),
     );
-    setPreviousDueInput(String(Number(completedSettlement.previousDue || 0)));
+    setPreviousDue(Number(completedSettlement.previousDue || 0));
     setDiscountInput(String(Number(completedSettlement.discount || 0)));
     setAmountPaidInput(String(Number(completedSettlement.amountPaid || 0)));
     setExtraReturns((completedSettlement.extraReturns || []).map(toExtraReturnRow));
     setMessage(null);
   }, [date, dsrId, issueKey, completedSettlement?.id]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    if (completedSettlement) {
+      return undefined;
+    }
+
+    if (!dsrId) {
+      setPreviousDue(0);
+      return undefined;
+    }
+
+    inventoryApi
+      .getDsrDueBalance(dsrId)
+      .then((result) => {
+        if (!cancelled) {
+          setPreviousDue(Number(result.balance || 0));
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setPreviousDue(0);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [dsrId, completedSettlement, refreshKey]);
 
   const displayRows = issueData.rows.map((row) => {
     const input = returns[row.key] || {};
@@ -135,7 +164,6 @@ export function useSettlementViewModel({ products, dsrs, today, saveSettlementAc
     const damagedPieces = toPieces(row.damagedCaseQty, row.damagedPieceQty, row.piecesPerCase);
     return sum + (returnedPieces + damagedPieces) * rate;
   }, 0);
-  const previousDue = Math.max(0, Number(previousDueInput || 0));
   const discount = Math.max(0, Number(discountInput || 0));
   const receivableTotal = Math.max(0, totalPayable + previousDue - discount - extraReturnValue);
   const amountPaid = Math.min(Math.max(0, Number(amountPaidInput || 0)), receivableTotal);
@@ -279,8 +307,7 @@ export function useSettlementViewModel({ products, dsrs, today, saveSettlementAc
     dsrId,
     setDsrId,
     returns,
-    previousDueInput,
-    setPreviousDueInput,
+    previousDue,
     discountInput,
     setDiscountInput,
     amountPaidInput,

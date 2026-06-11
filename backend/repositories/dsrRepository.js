@@ -5,6 +5,7 @@ export function mapDsr(row) {
     phone: row.phone,
     area: row.area,
     status: row.status,
+    openingDue: Number(row.opening_due || 0),
   };
 }
 
@@ -42,7 +43,7 @@ export async function listDsrsPage(client, { search, tenantId, limit, offset }) 
 
 export async function listAllActiveDsrsLite(client, tenantId) {
   const result = await client.query(
-    "SELECT id, name, area, phone, status FROM dsrs WHERE tenant_id = $1 ORDER BY name ASC",
+    "SELECT id, name, area, phone, status, opening_due FROM dsrs WHERE tenant_id = $1 ORDER BY name ASC",
     [tenantId],
   );
   return result.rows.map(mapDsr);
@@ -50,20 +51,20 @@ export async function listAllActiveDsrsLite(client, tenantId) {
 
 export function insertDsr(client, dsr) {
   return client.query(
-    `INSERT INTO dsrs (id, tenant_id, name, phone, area, status)
-     VALUES ($1, $2, $3, $4, $5, $6)
+    `INSERT INTO dsrs (id, tenant_id, name, phone, area, status, opening_due)
+     VALUES ($1, $2, $3, $4, $5, $6, $7)
      RETURNING *`,
-    [dsr.id, dsr.tenantId, dsr.name, dsr.phone, dsr.area, dsr.status],
+    [dsr.id, dsr.tenantId, dsr.name, dsr.phone, dsr.area, dsr.status, dsr.openingDue],
   );
 }
 
 export function updateDsr(client, dsr) {
   return client.query(
     `UPDATE dsrs
-     SET name = $3, phone = $4, area = $5, status = $6
+     SET name = $3, phone = $4, area = $5, status = $6, opening_due = $7
      WHERE id = $1 AND tenant_id = $2
      RETURNING *`,
-    [dsr.id, dsr.tenantId, dsr.name, dsr.phone, dsr.area, dsr.status],
+    [dsr.id, dsr.tenantId, dsr.name, dsr.phone, dsr.area, dsr.status, dsr.openingDue],
   );
 }
 

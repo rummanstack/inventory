@@ -4,11 +4,15 @@ import { parsePagination, buildPageResult } from "../lib/pagination.js";
 import { STOCK_MOVEMENT_TYPES } from "../lib/stockMovements.js";
 import {
   cleanInteger,
+  cleanMoney,
   normalizeDsr,
   normalizeIssue,
   normalizeProduct,
-  normalizeSettlement,
+  normalizeSettlementBase,
+  finalizeSettlementAmounts,
 } from "../lib/normalizers.js";
+import { DSR_DUE_LEDGER_TYPES } from "../lib/dsrDueLedger.js";
+import { insertDueLedgerEntry, getLatestDueLedgerEntry } from "../repositories/dsrDueLedgerRepository.js";
 import {
   syncDsrHistory,
   countDsrs,
@@ -45,6 +49,7 @@ import { insertStockMovement } from "../repositories/stockMovementRepository.js"
 import {
   countSettlements,
   findDuplicateSettlement,
+  findLatestSettlementForDsr,
   findSettlementByDateAndDsr,
   findSettlementById,
   insertSettlement,
@@ -94,6 +99,29 @@ async function recordStockMovement(client, movement) {
     referenceId: movement.referenceId,
     note: movement.note || "",
     createdById: movement.createdById,
+  });
+}
+
+async function recordDueLedgerEntry(client, entry) {
+  const debit = cleanMoney(entry.debit);
+  const credit = cleanMoney(entry.credit);
+
+  if (debit <= 0 && credit <= 0) {
+    return;
+  }
+
+  await insertDueLedgerEntry(client, {
+    id: createId("due-ledger"),
+    organizationId: entry.tenantId,
+    dsrId: entry.dsrId,
+    type: entry.type,
+    debit,
+    credit,
+    balanceAfter: entry.balanceAfter,
+    referenceType: entry.referenceType,
+    referenceId: entry.referenceId,
+    note: entry.note || "",
+    createdById: entry.createdById,
   });
 }
 
@@ -545,10 +573,35 @@ export class InventoryService {
       let result;
 
       if (input.id) {
+        const existingResult = await findDsrById(client, dsr.id, actor.tenantId);
+        assert(existingResult.rowCount > 0, "DSR not found.", 404);
+        const existingOpeningDue = Number(existingResult.rows[0].opening_due || 0);
+
         dsr.tenantId = actor.tenantId;
         result = await updateDsr(client, dsr);
         assert(result.rowCount > 0, "DSR not found.", 404);
         await syncDsrHistory(client, dsr);
+
+        const openingDueDelta = dsr.openingDue - existingOpeningDue;
+        if (openingDueDelta !== 0) {
+          const latestEntry = await getLatestDueLedgerEntry(client, dsr.id, actor.tenantId);
+          const latestBalance = latestEntry ? latestEntry.balanceAfter : existingOpeningDue;
+          const balanceAfter = latestBalance + openingDueDelta;
+
+          await recordDueLedgerEntry(client, {
+            tenantId: actor.tenantId,
+            dsrId: dsr.id,
+            type: DSR_DUE_LEDGER_TYPES.MANUAL_ADJUSTMENT,
+            debit: Math.max(0, openingDueDelta),
+            credit: Math.max(0, -openingDueDelta),
+            balanceAfter,
+            referenceType: "dsr",
+            referenceId: dsr.id,
+            note: `Opening due adjusted for ${dsr.name}`,
+            createdById: actor.id,
+          });
+        }
+
         await this.recordActivity(client, actor, {
           actionType: "dsr.update",
           entityType: "dsr",
@@ -559,6 +612,22 @@ export class InventoryService {
       } else {
         dsr.tenantId = actor.tenantId;
         result = await insertDsr(client, dsr);
+
+        if (dsr.openingDue > 0) {
+          await recordDueLedgerEntry(client, {
+            tenantId: actor.tenantId,
+            dsrId: dsr.id,
+            type: DSR_DUE_LEDGER_TYPES.OPENING,
+            debit: dsr.openingDue,
+            credit: 0,
+            balanceAfter: dsr.openingDue,
+            referenceType: "dsr",
+            referenceId: dsr.id,
+            note: `Opening due for ${dsr.name}`,
+            createdById: actor.id,
+          });
+        }
+
         await this.recordActivity(client, actor, {
           actionType: "dsr.create",
           entityType: "dsr",
@@ -779,16 +848,16 @@ export class InventoryService {
   }
 
   async saveSettlement(input, actor) {
-    const settlement = normalizeSettlement(input);
-    settlement.tenantId = actor.tenantId;
-    assert(settlement.date && settlement.dsrId, "Settlement date and DSR are required.");
-    assert(settlement.items.length > 0, "No morning issue found for this DSR and date.");
+    const base = normalizeSettlementBase(input);
+    base.tenantId = actor.tenantId;
+    assert(base.date && base.dsrId, "Settlement date and DSR are required.");
+    assert(base.items.length > 0, "No morning issue found for this DSR and date.");
 
     const tenantId = actor.tenantId;
 
     return this.databaseManager.withTransaction(async (client) => {
       if (input.id) {
-        const existingSettlement = await findSettlementById(client, settlement.id, tenantId);
+        const existingSettlement = await findSettlementById(client, base.id, tenantId);
         assert(existingSettlement.rowCount > 0, "Settlement not found.", 404);
 
         const previousSettlement = existingSettlement.rows[0];
@@ -796,17 +865,17 @@ export class InventoryService {
 
         const duplicateSettlement = await findDuplicateSettlement(
           client,
-          settlement.date,
-          settlement.dsrId,
-          settlement.id,
+          base.date,
+          base.dsrId,
+          base.id,
           tenantId,
         );
         assert(duplicateSettlement.rowCount === 0, "Another settlement already exists for this DSR and date.");
 
-        const issueResult = await findIssueByDateAndDsr(client, settlement.date, settlement.dsrId, tenantId);
+        const issueResult = await findIssueByDateAndDsr(client, base.date, base.dsrId, tenantId);
         assert(issueResult.rowCount > 0, "No morning issue found for this DSR and date.");
 
-        for (const item of settlement.items) {
+        for (const item of base.items) {
           assert(item.returnedPieces <= item.issuedPieces, "Returned quantity cannot be greater than issued quantity.");
         }
 
@@ -819,17 +888,73 @@ export class InventoryService {
         await applySettlementInventoryDelta(
           client,
           previousItems,
-          settlement.items,
+          base.items,
           previousExtraReturns,
-          settlement.extraReturns || [],
+          base.extraReturns || [],
           tenantId,
           {
-            referenceId: settlement.id,
+            referenceId: base.id,
             createdById: actor.id,
-            note: `Evening settlement updated for ${settlement.dsrName} on ${settlement.date}`,
+            note: `Evening settlement updated for ${base.dsrName} on ${base.date}`,
           },
         );
+
+        const oldSaleDue =
+          Number(previousSettlement.total_payable || 0) -
+          Number(previousSettlement.discount || 0) -
+          Number(previousSettlement.extra_return_value || 0);
+        const oldCollection = Number(previousSettlement.amount_paid || 0);
+        const oldNet = oldSaleDue - oldCollection;
+
+        const latestEntry = await getLatestDueLedgerEntry(client, base.dsrId, tenantId);
+        const latestBalance = latestEntry
+          ? latestEntry.balanceAfter
+          : Number(previousSettlement.previous_due || 0) + oldNet;
+
+        const previousDueForNew = latestBalance - oldNet;
+        const settlement = finalizeSettlementAmounts(base, previousDueForNew);
+
         const settlementResult = await updateSettlement(client, settlement);
+
+        const newSaleDue = settlement.totalPayable - settlement.discount - settlement.extraReturnValue;
+        const newCollection = settlement.amountPaid;
+        const saleDueDelta = newSaleDue - oldSaleDue;
+        const collectionDelta = newCollection - oldCollection;
+
+        let currentBalance = latestBalance;
+
+        if (saleDueDelta !== 0) {
+          currentBalance += saleDueDelta;
+          await recordDueLedgerEntry(client, {
+            tenantId,
+            dsrId: base.dsrId,
+            type: DSR_DUE_LEDGER_TYPES.SALE_DUE,
+            debit: Math.max(0, saleDueDelta),
+            credit: Math.max(0, -saleDueDelta),
+            balanceAfter: currentBalance,
+            referenceType: "settlement",
+            referenceId: settlement.id,
+            note: `Sale due adjusted for ${settlement.dsrName} on ${settlement.date}`,
+            createdById: actor.id,
+          });
+        }
+
+        if (collectionDelta !== 0) {
+          currentBalance -= collectionDelta;
+          await recordDueLedgerEntry(client, {
+            tenantId,
+            dsrId: base.dsrId,
+            type: DSR_DUE_LEDGER_TYPES.COLLECTION,
+            debit: Math.max(0, -collectionDelta),
+            credit: Math.max(0, collectionDelta),
+            balanceAfter: currentBalance,
+            referenceType: "settlement",
+            referenceId: settlement.id,
+            note: `Collection adjusted for ${settlement.dsrName} on ${settlement.date}`,
+            createdById: actor.id,
+          });
+        }
+
         await this.recordActivity(client, actor, {
           actionType: "settlement.update",
           entityType: "settlement",
@@ -841,22 +966,77 @@ export class InventoryService {
         return mapSettlement(settlementResult.rows[0]);
       }
 
-      const existingSettlement = await findSettlementByDateAndDsr(client, settlement.date, settlement.dsrId, tenantId);
+      const existingSettlement = await findSettlementByDateAndDsr(client, base.date, base.dsrId, tenantId);
       assert(existingSettlement.rowCount === 0, "Settlement is already completed for this DSR and date.");
 
-      const issueResult = await findIssueByDateAndDsr(client, settlement.date, settlement.dsrId, tenantId);
+      const issueResult = await findIssueByDateAndDsr(client, base.date, base.dsrId, tenantId);
       assert(issueResult.rowCount > 0, "No morning issue found for this DSR and date.");
 
-      for (const item of settlement.items) {
+      for (const item of base.items) {
         assert(item.returnedPieces <= item.issuedPieces, "Returned quantity cannot be greater than issued quantity.");
       }
 
-      await applySettlementInventoryDelta(client, [], settlement.items, [], settlement.extraReturns || [], tenantId, {
-        referenceId: settlement.id,
+      await applySettlementInventoryDelta(client, [], base.items, [], base.extraReturns || [], tenantId, {
+        referenceId: base.id,
         createdById: actor.id,
-        note: `Evening settlement created for ${settlement.dsrName} on ${settlement.date}`,
+        note: `Evening settlement created for ${base.dsrName} on ${base.date}`,
       });
+
+      const latestEntry = await getLatestDueLedgerEntry(client, base.dsrId, tenantId);
+      let latestBalance;
+      if (latestEntry) {
+        latestBalance = latestEntry.balanceAfter;
+      } else {
+        const lastSettlementResult = await findLatestSettlementForDsr(client, base.dsrId, tenantId);
+        if (lastSettlementResult.rowCount > 0) {
+          latestBalance = Number(lastSettlementResult.rows[0].due_amount || 0);
+        } else {
+          const dsrResult = await findDsrById(client, base.dsrId, tenantId);
+          assert(dsrResult.rowCount > 0, "Select a valid DSR.");
+          latestBalance = Number(dsrResult.rows[0].opening_due || 0);
+        }
+      }
+
+      const settlement = finalizeSettlementAmounts(base, latestBalance);
       const insertResult = await insertSettlement(client, settlement);
+
+      const newSaleDue = settlement.totalPayable - settlement.discount - settlement.extraReturnValue;
+      const newCollection = settlement.amountPaid;
+
+      let currentBalance = latestBalance;
+
+      if (newSaleDue !== 0) {
+        currentBalance += newSaleDue;
+        await recordDueLedgerEntry(client, {
+          tenantId,
+          dsrId: base.dsrId,
+          type: DSR_DUE_LEDGER_TYPES.SALE_DUE,
+          debit: Math.max(0, newSaleDue),
+          credit: Math.max(0, -newSaleDue),
+          balanceAfter: currentBalance,
+          referenceType: "settlement",
+          referenceId: settlement.id,
+          note: `Sale due recorded for ${settlement.dsrName} on ${settlement.date}`,
+          createdById: actor.id,
+        });
+      }
+
+      if (newCollection !== 0) {
+        currentBalance -= newCollection;
+        await recordDueLedgerEntry(client, {
+          tenantId,
+          dsrId: base.dsrId,
+          type: DSR_DUE_LEDGER_TYPES.COLLECTION,
+          debit: Math.max(0, -newCollection),
+          credit: Math.max(0, newCollection),
+          balanceAfter: currentBalance,
+          referenceType: "settlement",
+          referenceId: settlement.id,
+          note: `Collection recorded for ${settlement.dsrName} on ${settlement.date}`,
+          createdById: actor.id,
+        });
+      }
+
       await this.recordActivity(client, actor, {
         actionType: "settlement.create",
         entityType: "settlement",

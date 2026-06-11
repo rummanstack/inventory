@@ -10,6 +10,7 @@ import { ExpenseController } from "../controllers/expenseController.js";
 import { IssueController } from "../controllers/issueController.js";
 import { ProductController } from "../controllers/productController.js";
 import { StockMovementController } from "../controllers/stockMovementController.js";
+import { DsrDueLedgerController } from "../controllers/dsrDueLedgerController.js";
 import { UserController } from "../controllers/userController.js";
 import { SettlementController } from "../controllers/settlementController.js";
 import { TenantController } from "../controllers/tenantController.js";
@@ -35,6 +36,7 @@ export function createApiRouter({
   profitService,
   backupService,
   stockMovementService,
+  dsrDueLedgerService,
   databaseManager,
   tenantService,
   permissionService,
@@ -45,6 +47,7 @@ export function createApiRouter({
   const authController = new AuthController(authService, env, tenantService);
   const productController = new ProductController(inventoryService);
   const stockMovementController = new StockMovementController(stockMovementService);
+  const dsrDueLedgerController = new DsrDueLedgerController(dsrDueLedgerService);
   const dsrController = new DsrController(inventoryService);
   const issueController = new IssueController(inventoryService);
   const settlementController = new SettlementController(inventoryService);
@@ -150,6 +153,10 @@ export function createApiRouter({
   router.delete("/products/:id", requirePermission(PERMISSIONS.MANAGE_PRODUCTS), productController.remove);
   router.post("/products/:id/stock", requirePermission(PERMISSIONS.MANAGE_PRODUCTS), productController.addStock);
   router.get("/stock-movements", requirePermission(PERMISSIONS.VIEW_STATE), stockMovementController.list);
+
+  router.get("/dsr-due-ledger", requirePermission(PERMISSIONS.VIEW_STATE), dsrDueLedgerController.list);
+  router.get("/dsr-due-ledger/statement", requirePermission(PERMISSIONS.VIEW_STATE), dsrDueLedgerController.statement);
+  router.get("/dsr-due-ledger/balance", requirePermission(PERMISSIONS.VIEW_STATE), dsrDueLedgerController.balance);
 
   router.get("/dsrs/directory", requirePermission(PERMISSIONS.VIEW_STATE), dsrController.directory);
   router.get("/dsrs", requirePermission(PERMISSIONS.VIEW_STATE), dsrController.list);

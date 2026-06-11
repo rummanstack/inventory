@@ -266,6 +266,33 @@ export const inventoryApi = {
     return apiRequest(`/stock-movements${query ? `?${query}` : ""}`);
   },
 
+  listDsrDueLedger({ page, pageSize, dsrId, dateFrom, dateTo } = {}) {
+    const params = new URLSearchParams();
+    if (page) params.set("page", page);
+    if (pageSize) params.set("pageSize", pageSize);
+    if (dsrId) params.set("dsrId", dsrId);
+    if (dateFrom) params.set("dateFrom", dateFrom);
+    if (dateTo) params.set("dateTo", dateTo);
+    const query = params.toString();
+    return apiRequest(`/dsr-due-ledger${query ? `?${query}` : ""}`);
+  },
+
+  getDsrDueStatement({ dsrId, dateFrom, dateTo } = {}) {
+    const params = new URLSearchParams();
+    if (dsrId) params.set("dsrId", dsrId);
+    if (dateFrom) params.set("dateFrom", dateFrom);
+    if (dateTo) params.set("dateTo", dateTo);
+    const query = params.toString();
+    return apiRequest(`/dsr-due-ledger/statement${query ? `?${query}` : ""}`);
+  },
+
+  getDsrDueBalance(dsrId) {
+    const params = new URLSearchParams();
+    if (dsrId) params.set("dsrId", dsrId);
+    const query = params.toString();
+    return apiRequest(`/dsr-due-ledger/balance${query ? `?${query}` : ""}`);
+  },
+
   // Platform admin endpoints
   listTenants() {
     return apiRequest("/platform/tenants");

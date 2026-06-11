@@ -11,6 +11,7 @@ export default function DsrFormModal({ dsr, onClose, onSave }) {
     phone: dsr?.phone || '',
     area: dsr?.area || '',
     status: dsr?.status || 'Active',
+    openingDue: dsr?.openingDue || 0,
   });
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
@@ -28,7 +29,7 @@ export default function DsrFormModal({ dsr, onClose, onSave }) {
 
     setSaving(true);
     setError('');
-    const result = await onSave({ id: dsr?.id, ...form, name: form.name.trim(), phone: form.phone.trim(), area: form.area.trim() });
+    const result = await onSave({ id: dsr?.id, ...form, name: form.name.trim(), phone: form.phone.trim(), area: form.area.trim(), openingDue: Math.max(0, Number(form.openingDue || 0)) });
     setSaving(false);
 
     if (!result?.ok) {
@@ -59,6 +60,10 @@ export default function DsrFormModal({ dsr, onClose, onSave }) {
               <option value="Active">{t('dsr.statusActive')}</option>
               <option value="Inactive">{t('dsr.statusInactive')}</option>
             </select>
+          </div>
+          <div>
+            <label className="label">{t('dsr.openingDue')}</label>
+            <input className="input" type="number" min="0" step="0.01" value={form.openingDue} onChange={(event) => updateField('openingDue', event.target.value)} placeholder="0.00" />
           </div>
         </div>
         <div className="flex justify-end gap-2 pt-2">

@@ -17,6 +17,7 @@ import {
   Database,
   Activity,
   Bug,
+  Wallet,
 } from 'lucide-react';
 import DashboardPage from '../features/dashboard/pages/DashboardPage';
 import ActivityLogsPage from '../features/activity-logs/pages/ActivityLogsPage';
@@ -38,6 +39,7 @@ import PlatformAdminPage from '../features/platform/pages/PlatformAdminPage';
 import ProfilePage from '../features/profile/pages/ProfilePage';
 import SystemHealthPage from '../features/system/pages/SystemHealthPage';
 import ErrorLogsPage from '../features/system/pages/ErrorLogsPage';
+import DsrDueStatementPage from '../features/dsr-due-ledger/pages/DsrDueStatementPage';
 
 export const APP_ROUTES = [
   { id: 'dashboard', path: '/dashboard', labelKey: 'nav.dashboard', icon: BarChart3, component: DashboardPage, group: 'overview', permission: 'view_state' },
@@ -51,6 +53,7 @@ export const APP_ROUTES = [
   { id: 'dsr-finance', path: '/dsr-finance', labelKey: 'nav.dsrFinance', icon: HandCoins, component: DsrFinancePage, group: 'finance', permission: 'manage_dsr_finance', feature: 'dsr-finance' },
   { id: 'month-end-summary', path: '/month-end-summary', labelKey: 'nav.monthEndSummary', icon: BarChart3, component: MonthEndSummaryPage, group: 'finance', permission: 'manage_dsr_finance', feature: 'month-end-summary' },
   { id: 'profit', path: '/profit', labelKey: 'nav.profit', icon: TrendingUp, component: ProfitPage, group: 'finance', permission: 'manage_dsr_finance', feature: 'profit' },
+  { id: 'dsr-due-statement', path: '/dsr-due-statement', labelKey: 'nav.dsrDueStatement', icon: Wallet, component: DsrDueStatementPage, group: 'finance', permission: 'manage_dsr_finance', feature: 'dsr-finance' },
   { id: 'activity-logs', path: '/activity-logs', labelKey: 'nav.activityLogs', icon: ClipboardList, component: ActivityLogsPage, group: 'governance', permission: 'view_activity_logs', feature: 'activity-logs' },
   { id: 'database-backup', path: '/database-backup', labelKey: 'nav.databaseBackup', icon: Database, component: DatabaseBackupPage, group: 'developer', permission: 'manage_backups' },
   { id: 'org-settings', path: '/settings/organization', labelKey: 'nav.orgSettings', icon: Settings, component: OrgSettingsPage, group: 'governance', permission: 'manage_org' },

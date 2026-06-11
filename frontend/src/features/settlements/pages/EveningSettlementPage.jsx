@@ -198,9 +198,9 @@ export default function EveningSettlementPage() {
                 <div className="text-sm font-semibold text-slate-600">{t('settlement.returnHint')}</div>
               )}
               <div className="flex flex-wrap items-end justify-end gap-2">
-                <div className="w-full sm:w-40">
-                  <label className="label">{t('settlement.previousDue')}</label>
-                  <input className="input h-11" type="number" min="0" step="0.01" value={vm.previousDueInput} onChange={(event) => vm.setPreviousDueInput(event.target.value)} disabled={vm.saving} />
+                <div className="w-full sm:w-36 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                  <p className="text-[11px] font-black uppercase tracking-[0.14em] text-slate-500">{t('settlement.previousDue')}</p>
+                  <p className="mt-1 text-lg font-black text-slate-950">{formatCurrency(vm.previousDue)}</p>
                 </div>
                 <div className="w-full sm:w-36">
                   <label className="label">{t('settlement.discount')}</label>

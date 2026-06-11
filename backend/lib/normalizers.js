@@ -33,6 +33,7 @@ export function normalizeDsr(input) {
     phone: String(input.phone || "").trim(),
     area: String(input.area || "").trim(),
     status: input.status === "Inactive" ? "Inactive" : "Active",
+    openingDue: Math.max(0, cleanMoney(input.openingDue)),
   };
 }
 
@@ -56,7 +57,7 @@ export function normalizeIssue(input) {
   };
 }
 
-export function normalizeSettlement(input) {
+export function normalizeSettlementBase(input) {
   const items = Array.isArray(input.items)
     ? input.items.map((item) => {
         const issuedPieces = cleanInteger(item.issuedPieces);
@@ -116,11 +117,8 @@ export function normalizeSettlement(input) {
     : [];
 
   const totalPayable = items.reduce((sum, item) => sum + item.payable, 0);
-  const previousDue = Math.max(0, cleanMoney(input.previousDue));
   const discount = Math.max(0, cleanMoney(input.discount));
   const extraReturnValue = Math.max(0, cleanMoney(input.extraReturnValue));
-  const receivableTotal = Math.max(0, totalPayable + previousDue - discount - extraReturnValue);
-  const amountPaid = Math.min(Math.max(0, cleanMoney(input.amountPaid)), receivableTotal);
 
   return {
     id: input.id || createId("settlement"),
@@ -133,11 +131,22 @@ export function normalizeSettlement(input) {
     items,
     extraReturns,
     totalPayable,
-    previousDue,
     discount,
     extraReturnValue,
+    amountPaidInput: cleanMoney(input.amountPaid),
+    status: "Completed",
+  };
+}
+
+export function finalizeSettlementAmounts(base, previousDue) {
+  const normalizedPreviousDue = Math.max(0, cleanMoney(previousDue));
+  const receivableTotal = Math.max(0, base.totalPayable + normalizedPreviousDue - base.discount - base.extraReturnValue);
+  const amountPaid = Math.min(Math.max(0, base.amountPaidInput), receivableTotal);
+
+  return {
+    ...base,
+    previousDue: normalizedPreviousDue,
     amountPaid,
     dueAmount: receivableTotal - amountPaid,
-    status: "Completed",
   };
 }

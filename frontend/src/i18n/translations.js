@@ -325,6 +325,7 @@
       period: 'Period',
       noDataTitle: 'No data for this range',
       noDataDescription: 'Try selecting a different date range.',
+      downloadPdf: 'Download PDF',
     },
     activityLogs: {
       title: 'Activity Logs',
@@ -1033,6 +1034,7 @@
       period: 'সময়কাল',
       noDataTitle: 'এই পরিসরে কোনো তথ্য নেই',
       noDataDescription: 'অন্য তারিখ পরিসর নির্বাচন করে দেখুন।',
+      downloadPdf: 'PDF ডাউনলোড',
     },
     activityLogs: {
       title: 'কার্যকলাপ লগ',

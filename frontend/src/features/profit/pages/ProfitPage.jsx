@@ -1,7 +1,8 @@
-import { BadgeDollarSign, PiggyBank, TrendingDown, TrendingUp, Wallet } from 'lucide-react';
+import { BadgeDollarSign, Download, PiggyBank, TrendingDown, TrendingUp, Wallet } from 'lucide-react';
 import { Alert, ChartPanel, EmptyState, LoadingState, SectionHeader, StatCard, TableSkeleton, TrendChart } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/date-picker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
+import { downloadSheetPdf } from '../../../services/printService.js';
 import { formatCurrency, formatDate } from '../../../utils/calculations.js';
 import { useProfitViewModel } from '../viewmodels/useProfitViewModel';
 
@@ -54,6 +55,10 @@ export default function ProfitPage() {
     profit: row.profit,
   }));
 
+  function handleDownloadPdf() {
+    return downloadSheetPdf('profit-report-table', `profit-report-${vm.dateFrom}-to-${vm.dateTo}.pdf`);
+  }
+
   return (
     <div>
       <SectionHeader eyebrow={t('nav.profit')} description={t('profit.description')} />
@@ -73,6 +78,13 @@ export default function ProfitPage() {
           <label className="label">{t('profit.dateTo')}</label>
           <DatePickerField value={vm.dateTo} onChange={vm.setDateTo} />
         </div>
+      </div>
+
+      <div className="mb-6 flex justify-end">
+        <button type="button" className="btn-secondary" onClick={handleDownloadPdf}>
+          <Download size={18} />
+          {t('profit.downloadPdf')}
+        </button>
       </div>
 
       <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -117,7 +129,7 @@ export default function ProfitPage() {
         )}
       </ChartPanel>
 
-      <div className="mt-6 surface overflow-hidden">
+      <div id="profit-report-table" className="mt-6 surface overflow-hidden">
         <div className="border-b border-slate-100 px-5 py-4">
           <h2 className="text-base font-bold text-slate-950">{t('profit.tableTitle')}</h2>
         </div>

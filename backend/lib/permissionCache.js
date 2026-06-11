@@ -13,7 +13,15 @@ function cacheKey(role, scope) {
 }
 
 export function getCachedPermissions(role, tenantId) {
-  return cache.get(cacheKey(role, scopeFor(role, tenantId))) || null;
+  const scope = scopeFor(role, tenantId);
+  const scoped = cache.get(cacheKey(role, scope));
+  if (scoped) return scoped;
+
+  if (scope !== GLOBAL_SCOPE) {
+    return cache.get(cacheKey(role, GLOBAL_SCOPE)) || null;
+  }
+
+  return null;
 }
 
 export function setCachedPermissions(role, tenantId, permissions) {

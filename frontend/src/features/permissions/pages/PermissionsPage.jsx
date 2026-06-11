@@ -11,7 +11,6 @@ export default function PermissionsPage() {
   const [allPermissions, setAllPermissions] = useState([]);
   const [rolePermissions, setRolePermissions] = useState([]);
   const [savingRole, setSavingRole] = useState('');
-  const [successRole, setSuccessRole] = useState('');
 
   useEffect(() => {
     let cancelled = false;
@@ -47,7 +46,6 @@ export default function PermissionsPage() {
         };
       }),
     );
-    setSuccessRole('');
   }
 
   async function handleSave(role) {
@@ -55,16 +53,12 @@ export default function PermissionsPage() {
     if (!entry) return;
 
     setSavingRole(role);
-    setError('');
-    setSuccessRole('');
     try {
       const result = await inventoryApi.updateRolePermissions(role, entry.permissions);
       setRolePermissions(result.roles || []);
-      setSuccessRole(role);
       pushToast('success', t(`permissions.roles.${role}`), t('permissions.saved'));
     } catch (err) {
       const message = err?.message || 'Failed to save permissions.';
-      setError(message);
       pushToast('error', t('alerts.requestFailed'), message);
     } finally {
       setSavingRole('');
@@ -96,8 +90,6 @@ export default function PermissionsPage() {
                 {t('common.save')}
               </button>
             </div>
-
-            {successRole === entry.role ? <Alert type="success">{t('permissions.saved')}</Alert> : null}
 
             <div className="grid gap-2 sm:grid-cols-2">
               {allPermissions.map((permission) => (

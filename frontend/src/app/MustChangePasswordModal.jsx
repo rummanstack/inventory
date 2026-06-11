@@ -21,12 +21,8 @@ export default function MustChangePasswordModal() {
     }
 
     setSubmitting(true);
-    const result = await updateProfile({ currentPassword, password });
+    await updateProfile({ currentPassword, password });
     setSubmitting(false);
-
-    if (!result.ok) {
-      setError(result.message);
-    }
   }
 
   return (

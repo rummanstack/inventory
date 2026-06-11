@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Loader2, Save } from 'lucide-react';
-import { Alert, Badge, SectionHeader } from '../../../components/ui.jsx';
+import { Badge, SectionHeader } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 
 export default function ProfilePage() {
@@ -12,20 +12,14 @@ export default function ProfilePage() {
     password: '',
   });
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
 
   function handleChange(field, value) {
     setForm((prev) => ({ ...prev, [field]: value }));
-    setError('');
-    setSuccess('');
   }
 
   async function handleSubmit(event) {
     event.preventDefault();
     setSaving(true);
-    setError('');
-    setSuccess('');
 
     const payload = { name: form.name.trim(), email: form.email.trim() };
     if (form.password.trim()) {
@@ -37,10 +31,7 @@ export default function ProfilePage() {
     setSaving(false);
 
     if (result.ok) {
-      setSuccess(t('profile.updateSuccess'));
       setForm((prev) => ({ ...prev, currentPassword: '', password: '' }));
-    } else {
-      setError(result.message || t('profile.updateFailed'));
     }
   }
 
@@ -48,9 +39,6 @@ export default function ProfilePage() {
     <div className="space-y-6">
       <SectionHeader eyebrow={t('nav.profile')} title={t('profile.title')} description={t('profile.description')} />
       <form onSubmit={handleSubmit} className="panel-strong max-w-xl space-y-5 p-6">
-        {error ? <Alert type="error">{error}</Alert> : null}
-        {success ? <Alert type="success">{success}</Alert> : null}
-
         <label className="block">
           <span className="label">{t('profile.name')}</span>
           <input

@@ -35,6 +35,7 @@ export function useSettlementViewModel({ products, dsrs, today, saveSettlementAc
   const [saving, setSaving] = useState(false);
   const [scopedIssues, setScopedIssues] = useState([]);
   const [scopedSettlements, setScopedSettlements] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
@@ -49,8 +50,11 @@ export function useSettlementViewModel({ products, dsrs, today, saveSettlementAc
     if (!date || !dsrId) {
       setScopedIssues([]);
       setScopedSettlements([]);
+      setLoading(false);
       return undefined;
     }
+
+    setLoading(true);
 
     Promise.all([
       inventoryApi.listIssues({ dsrId, dateFrom: date, dateTo: date, pageSize: SCOPED_LOOKUP_PAGE_SIZE }),
@@ -68,6 +72,11 @@ export function useSettlementViewModel({ products, dsrs, today, saveSettlementAc
         if (!cancelled) {
           setScopedIssues([]);
           setScopedSettlements([]);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setLoading(false);
         }
       });
 
@@ -354,6 +363,7 @@ export function useSettlementViewModel({ products, dsrs, today, saveSettlementAc
     setReasonInput,
     message,
     saving,
+    loading,
     completedSettlement,
     displayRows,
     extraReturns,

@@ -1,6 +1,6 @@
 import { AlertTriangle, CheckCircle2, ClipboardList, Download, Plus, Printer, Trash2 } from 'lucide-react';
 import PrintableSheet from '../../../components/PrintableSheet.jsx';
-import { Alert, Badge, EmptyState, SectionHeader, cx } from '../../../components/ui.jsx';
+import { Alert, Badge, EmptyState, SectionHeader, TableSkeleton, cx } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/date-picker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import AuditHistory from '../../audit/components/AuditHistory.jsx';
@@ -79,6 +79,11 @@ export default function EveningSettlementPage() {
         </div>
       </div>
 
+      {vm.loading ? (
+        <div className="mt-6">
+          <TableSkeleton rows={6} columns={9} />
+        </div>
+      ) : (
       <div className="surface mt-6 overflow-hidden">
         <div className="flex flex-col gap-3 border-b border-slate-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -308,8 +313,9 @@ export default function EveningSettlementPage() {
           </div>
         )}
       </div>
+      )}
 
-      {vm.completedSettlement ? (
+      {!vm.loading && vm.completedSettlement ? (
         <div className="mt-6">
           <div className="mb-3 flex items-center justify-end gap-2 no-print">
               {canUpdateSettlement ? (

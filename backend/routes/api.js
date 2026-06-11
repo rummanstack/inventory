@@ -187,6 +187,7 @@ export function createApiRouter({
   router.get("/dsr-due-ledger", requirePermission(PERMISSIONS.VIEW_STATE), dsrDueLedgerController.list);
   router.get("/dsr-due-ledger/statement", requirePermission(PERMISSIONS.VIEW_STATE), dsrDueLedgerController.statement);
   router.get("/dsr-due-ledger/balance", requirePermission(PERMISSIONS.VIEW_STATE), dsrDueLedgerController.balance);
+  router.post("/dsr-due-ledger/settle", requirePermission(PERMISSIONS.MANAGE_DSR_FINANCE), dsrDueLedgerController.settle);
 
   router.get("/dsrs/directory", requirePermission(PERMISSIONS.VIEW_STATE), dsrController.directory);
   router.get("/dsrs/trash", requirePermission(PERMISSIONS.MANAGE_DSRS), dsrController.listTrash);

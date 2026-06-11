@@ -1,9 +1,11 @@
-import { RefreshCw, Wallet } from 'lucide-react';
+import { useState } from 'react';
+import { HandCoins, RefreshCw, Wallet } from 'lucide-react';
 import { Alert, Badge, EmptyState, SectionHeader, StatCard, TableSkeleton } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/date-picker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { formatCurrency, formatDateTime } from '../../../utils/calculations.js';
 import { useDsrDueStatementViewModel } from '../viewmodels/useDsrDueStatementViewModel';
+import SettleDueModal from '../components/SettleDueModal';
 
 function ledgerTone(type) {
   if (type === 'COLLECTION' || type === 'ADVANCE_ADJUSTMENT') {
@@ -28,9 +30,19 @@ function formatReference(entry) {
 }
 
 export default function DsrDueStatementPage() {
-  const { dsrDirectory, t } = useInventoryApp();
+  const { dsrDirectory, t, pushToast } = useInventoryApp();
   const vm = useDsrDueStatementViewModel({ dsrs: dsrDirectory });
   const entries = vm.statement?.entries || [];
+  const [showSettleModal, setShowSettleModal] = useState(false);
+
+  async function handleSettleDue(payload) {
+    const result = await vm.settleDue(payload);
+    if (result.ok) {
+      setShowSettleModal(false);
+      pushToast('success', t('dsrDueLedger.settleDue'), t('dsrDueLedger.settleSuccess'));
+    }
+    return result;
+  }
 
   return (
     <div>
@@ -60,10 +72,14 @@ export default function DsrDueStatementPage() {
             <label className="label">{t('dsrDueLedger.dateTo')}</label>
             <DatePickerField value={vm.dateTo} onChange={vm.setDateTo} />
           </div>
-          <div className="flex items-end">
+          <div className="flex items-end gap-2">
             <button type="button" className="btn-secondary" onClick={vm.refresh}>
               <RefreshCw size={16} />
               {t('dsrDueLedger.refresh')}
+            </button>
+            <button type="button" className="btn-primary" disabled={!vm.dsrId} onClick={() => setShowSettleModal(true)}>
+              <HandCoins size={16} />
+              {t('dsrDueLedger.settleDue')}
             </button>
           </div>
         </div>
@@ -136,6 +152,15 @@ export default function DsrDueStatementPage() {
           </div>
         </>
       )}
+
+      {showSettleModal ? (
+        <SettleDueModal
+          dsr={vm.statement?.dsr}
+          balance={vm.statement?.closingBalance}
+          onClose={() => setShowSettleModal(false)}
+          onSave={handleSettleDue}
+        />
+      ) : null}
     </div>
   );
 }

@@ -1,12 +1,18 @@
 import { assert } from "../lib/errors.js";
+import { createId } from "../lib/ids.js";
+import { cleanMoney } from "../lib/normalizers.js";
 import { normalizeIsoDate } from "../lib/dateRanges.js";
 import { parsePagination, buildPageResult } from "../lib/pagination.js";
+import { DSR_DUE_LEDGER_TYPES } from "../lib/dsrDueLedger.js";
+import { findDsrById } from "../repositories/dsrRepository.js";
 import {
   countDueLedgerEntries,
   listDueLedgerPage,
   listDueLedgerInRange,
   getLatestDueLedgerEntry,
   getBalanceBefore,
+  insertDueLedgerEntry,
+  mapDueLedgerEntry,
 } from "../repositories/dsrDueLedgerRepository.js";
 
 const DATE_ERROR = "Ledger date must be in YYYY-MM-DD format.";
@@ -17,8 +23,9 @@ function normalizeOptionalDate(value) {
 }
 
 export class DsrDueLedgerService {
-  constructor(databaseManager) {
+  constructor(databaseManager, { auditService } = {}) {
     this.databaseManager = databaseManager;
+    this.auditService = auditService;
   }
 
   async listLedger(query = {}, actor) {
@@ -141,5 +148,73 @@ export class DsrDueLedgerService {
     } finally {
       client.release();
     }
+  }
+
+  async settleDue(input, actor) {
+    const dsrId = String(input.dsrId || "").trim();
+    const amount = cleanMoney(input.amount);
+    const note = String(input.note || "").trim();
+
+    assert(dsrId, "DSR is required.");
+    assert(amount > 0, "Amount must be greater than zero.");
+
+    return this.databaseManager.withTransaction(async (client) => {
+      const dsrResult = await findDsrById(client, dsrId, actor.tenantId);
+      assert(dsrResult.rowCount > 0, "DSR not found.", 404);
+      const dsr = dsrResult.rows[0];
+
+      const latestEntry = await getLatestDueLedgerEntry(client, dsrId, actor.tenantId);
+      const currentBalance = latestEntry ? latestEntry.balanceAfter : Number(dsr.opening_due || 0);
+      const balanceAfter = currentBalance - amount;
+
+      const result = await insertDueLedgerEntry(client, {
+        id: createId("due-ledger"),
+        organizationId: actor.tenantId,
+        dsrId,
+        type: DSR_DUE_LEDGER_TYPES.COLLECTION,
+        debit: 0,
+        credit: amount,
+        balanceAfter,
+        referenceType: "manual_settlement",
+        referenceId: null,
+        note: note || `Due settled for ${dsr.name}`,
+        createdById: actor.id,
+      });
+
+      await this.recordActivity(client, actor, {
+        actionType: "dsr_due_ledger.settle",
+        entityType: "dsr",
+        entityId: dsrId,
+        module: "due-ledger",
+        description: `${actor.name} settled due of ${amount} for DSR ${dsr.name}`,
+        metadata: { dsrId, amount, balanceAfter, note },
+      });
+
+      return mapDueLedgerEntry(result.rows[0]);
+    });
+  }
+
+  async recordActivity(client, actor, payload) {
+    if (!this.auditService || !actor) {
+      return;
+    }
+
+    await this.auditService.record(client, {
+      tenantId: actor.tenantId,
+      userId: actor.id,
+      actionType: payload.actionType,
+      entityType: payload.entityType,
+      entityId: payload.entityId,
+      module: payload.module,
+      before: payload.before,
+      after: payload.after,
+      reason: payload.reason,
+      description: payload.description,
+      metadata: {
+        actorName: actor.name,
+        actorRole: actor.role,
+        ...payload.metadata,
+      },
+    });
   }
 }

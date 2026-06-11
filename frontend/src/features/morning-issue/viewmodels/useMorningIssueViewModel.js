@@ -12,6 +12,7 @@ export function useMorningIssueViewModel({ products, dsrs, today, saveIssueActio
   const [message, setMessage] = useState(null);
   const [saving, setSaving] = useState(false);
   const [existingIssue, setExistingIssue] = useState(null);
+  const [existingSettlement, setExistingSettlement] = useState(null);
   const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
@@ -27,20 +28,26 @@ export function useMorningIssueViewModel({ products, dsrs, today, saveIssueActio
 
     if (!date || !dsrId) {
       setExistingIssue(null);
+      setExistingSettlement(null);
       return undefined;
     }
 
-    inventoryApi.listIssues({ dsrId, dateFrom: date, dateTo: date, pageSize: SCOPED_LOOKUP_PAGE_SIZE })
-      .then((result) => {
+    Promise.all([
+      inventoryApi.listIssues({ dsrId, dateFrom: date, dateTo: date, pageSize: SCOPED_LOOKUP_PAGE_SIZE }),
+      inventoryApi.listSettlements({ dsrId, dateFrom: date, dateTo: date, pageSize: SCOPED_LOOKUP_PAGE_SIZE }),
+    ])
+      .then(([issueResult, settlementResult]) => {
         if (cancelled) {
           return;
         }
 
-        setExistingIssue((result.items || []).find((issue) => issue.date === date && issue.dsrId === dsrId) || null);
+        setExistingIssue((issueResult.items || []).find((issue) => issue.date === date && issue.dsrId === dsrId) || null);
+        setExistingSettlement((settlementResult.items || []).find((settlement) => settlement.date === date && settlement.dsrId === dsrId) || null);
       })
       .catch(() => {
         if (!cancelled) {
           setExistingIssue(null);
+          setExistingSettlement(null);
         }
       });
 
@@ -69,14 +76,17 @@ export function useMorningIssueViewModel({ products, dsrs, today, saveIssueActio
 
   const issueRows = products.map((product) => {
     const quantity = quantities[product.id] || {};
+    const existingItem = existingIssue?.items.find((item) => item.productId === product.id);
+    const rate = Number(existingItem?.rate || product.sellingPrice || 0);
     const issuedPieces = toPieces(quantity.caseQty, quantity.pieceQty, product.piecesPerCase);
-    const availableStock = product.stockPieces + Number(existingIssue?.items.find((item) => item.productId === product.id)?.issuedPieces || 0);
+    const availableStock = product.stockPieces + Number(existingItem?.issuedPieces || 0);
 
     return {
       ...product,
       availableStock,
       issuedPieces,
-      issueValue: issuedPieces * Number(product.sellingPrice || 0),
+      rate,
+      issueValue: issuedPieces * rate,
       invalid: issuedPieces > availableStock,
     };
   });
@@ -110,6 +120,10 @@ export function useMorningIssueViewModel({ products, dsrs, today, saveIssueActio
       setMessage({ type: 'error', text: t('morningIssue.fixStockRows') });
       return;
     }
+    if (existingSettlement) {
+      setMessage({ type: 'error', text: t('morningIssue.settlementLocked') });
+      return;
+    }
 
     const issue = {
       id: existingIssue?.id,
@@ -123,7 +137,7 @@ export function useMorningIssueViewModel({ products, dsrs, today, saveIssueActio
         productName: row.name,
         piecesPerCase: row.piecesPerCase,
         issuedPieces: row.issuedPieces,
-        rate: row.sellingPrice,
+        rate: row.rate,
       })),
     };
 
@@ -146,6 +160,7 @@ export function useMorningIssueViewModel({ products, dsrs, today, saveIssueActio
     message,
     saving,
     existingIssue,
+    existingSettlement,
     issueRows,
     invalidRows,
     selectedRows,

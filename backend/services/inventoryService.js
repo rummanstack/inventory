@@ -76,7 +76,7 @@ function sumPiecesByProduct(items, field) {
 }
 
 async function lockProducts(client, productIds, tenantId) {
-  const uniqueIds = [...new Set(productIds.filter(Boolean))];
+  const uniqueIds = [...new Set(productIds.filter(Boolean))].sort();
   const productMap = new Map();
 
   for (const productId of uniqueIds) {
@@ -86,6 +86,28 @@ async function lockProducts(client, productIds, tenantId) {
   }
 
   return productMap;
+}
+
+async function buildTrustedIssueItems(client, inputItems, previousItems, tenantId) {
+  const totals = sumPiecesByProduct(inputItems, "issuedPieces");
+  const productMap = await lockProducts(client, [...totals.keys()], tenantId);
+  const previousRates = new Map(
+    (Array.isArray(previousItems) ? previousItems : []).map((item) => [item.productId, Number(item.rate || 0)]),
+  );
+
+  return [...totals.entries()]
+    .filter(([, issuedPieces]) => issuedPieces > 0)
+    .map(([productId, issuedPieces]) => {
+      const product = productMap.get(productId);
+      const previousRate = previousRates.get(productId);
+      return {
+        productId,
+        productName: product.name,
+        piecesPerCase: cleanInteger(product.pieces_per_case),
+        issuedPieces,
+        rate: previousRate > 0 ? previousRate : Number(product.selling_price || 0),
+      };
+    });
 }
 
 async function recordStockMovement(client, movement) {
@@ -346,6 +368,45 @@ function syncSettlementItemsWithIssue(issueItems, settlementItems) {
   });
 }
 
+async function calculateExtraReturnValue(client, extraReturns, tenantId) {
+  const productIds = [...new Set((Array.isArray(extraReturns) ? extraReturns : []).map((item) => item.productId).filter(Boolean))];
+  if (!productIds.length) {
+    return 0;
+  }
+
+  const productMap = await lockProducts(client, productIds, tenantId);
+  return extraReturns.reduce((sum, item) => {
+    const product = productMap.get(item.productId);
+    const returnedPieces = cleanInteger(item.returnedPieces);
+    const damagedPieces = cleanInteger(item.damagedPieces);
+    return sum + (returnedPieces + damagedPieces) * Number(product.selling_price || 0);
+  }, 0);
+}
+
+async function buildTrustedSettlementBase(client, base, issueItems, tenantId) {
+  const items = syncSettlementItemsWithIssue(issueItems, base.items);
+  const totalPayable = items.reduce((sum, item) => sum + Number(item.payable || 0), 0);
+  const extraReturnValue = await calculateExtraReturnValue(client, base.extraReturns || [], tenantId);
+
+  return {
+    ...base,
+    items,
+    totalPayable,
+    extraReturnValue,
+  };
+}
+
+function finalizeSettlementAmountsStrict(base, previousDue) {
+  const normalizedPreviousDue = Math.max(0, cleanMoney(previousDue));
+  const receivableBeforePayment = base.totalPayable + normalizedPreviousDue - base.discount - base.extraReturnValue;
+  assert(receivableBeforePayment >= -0.004, "Discount and extra returns cannot be greater than the total receivable amount.");
+  assert(
+    Math.max(0, base.amountPaidInput) <= Math.max(0, receivableBeforePayment) + 0.004,
+    "Cash received cannot be greater than the total receivable amount.",
+  );
+  return finalizeSettlementAmounts(base, normalizedPreviousDue);
+}
+
 export class InventoryService {
   constructor(databaseManager, { auditService }) {
     this.databaseManager = databaseManager;
@@ -598,7 +659,6 @@ export class InventoryService {
   async addStock(productId, addPiecesInput, actor, reason) {
     const addPieces = cleanInteger(addPiecesInput);
     assert(addPieces > 0, "Stock update must be greater than zero.");
-    assert(String(reason || "").trim(), "Reason is required for stock changes.");
 
     return this.databaseManager.withTransaction(async (client) => {
       const existingResult = await findProductForUpdate(client, productId, actor.tenantId);
@@ -817,24 +877,21 @@ export class InventoryService {
           previousIssue.dsr_id,
           tenantId,
         );
+        assert(settlementCheck.rowCount === 0, "This issue already has a completed settlement and cannot be edited.");
 
-        if (settlementCheck.rowCount > 0) {
-          assert(
-            issue.date === previousIssue.issue_date && issue.dsrId === previousIssue.dsr_id,
-            "When a settlement already exists, the morning issue date and DSR cannot be changed.",
-          );
-        }
-
-        const targetSettlementCheck =
-          issue.date === previousIssue.issue_date && issue.dsrId === previousIssue.dsr_id
-            ? settlementCheck
-            : await findSettlementByDateAndDsr(client, issue.date, issue.dsrId, tenantId);
+        const targetSettlementCheck = await findSettlementByDateAndDsr(client, issue.date, issue.dsrId, tenantId);
+        assert(targetSettlementCheck.rowCount === 0, "Settlement is already completed for this DSR and date.");
 
         const duplicateIssue = await findDuplicateIssue(client, issue.date, issue.dsrId, issue.id, tenantId);
         assert(duplicateIssue.rowCount === 0, "Another morning issue already exists for this DSR and date.");
 
         const dsrResult = await findDsrById(client, issue.dsrId, tenantId);
         assert(dsrResult.rowCount > 0, "Select a valid DSR.");
+        issue.dsrName = dsrResult.rows[0].name;
+        issue.area = dsrResult.rows[0].area;
+        issue.phone = dsrResult.rows[0].phone;
+        issue.items = await buildTrustedIssueItems(client, issue.items, previousItems, tenantId);
+        assert(issue.items.length > 0, "Enter issue quantity for at least one product.");
 
         await applyIssueInventoryDelta(client, previousItems, issue.items, tenantId, {
           referenceId: issue.id,
@@ -842,59 +899,6 @@ export class InventoryService {
           note: `Morning issue updated for ${issue.dsrName} on ${issue.date}`,
         });
         const issueResult = await updateIssue(client, issue);
-
-        let settlement = null;
-
-        if (targetSettlementCheck.rowCount > 0) {
-          const existingSettlement = targetSettlementCheck.rows[0];
-          const nextSettlementItems = syncSettlementItemsWithIssue(issue.items, existingSettlement.items);
-          const nextTotalPayable = nextSettlementItems.reduce((sum, item) => sum + Number(item.payable || 0), 0);
-          const previousExtraReturns = Array.isArray(existingSettlement.extra_returns)
-            ? existingSettlement.extra_returns
-            : Array.isArray(existingSettlement.extraReturns)
-              ? existingSettlement.extraReturns
-              : [];
-          const nextExtraReturns = Array.isArray(existingSettlement.extra_returns)
-            ? existingSettlement.extra_returns
-            : Array.isArray(existingSettlement.extraReturns)
-              ? existingSettlement.extraReturns
-              : [];
-
-          await applySettlementInventoryDelta(
-            client,
-            Array.isArray(existingSettlement.items) ? existingSettlement.items : [],
-            nextSettlementItems,
-            previousExtraReturns,
-            nextExtraReturns,
-            tenantId,
-            {
-              referenceId: existingSettlement.id,
-              createdById: actor.id,
-              note: `Settlement stock adjusted after issue update for ${issue.dsrName} on ${issue.date}`,
-            },
-          );
-
-          const settlementResult = await updateSettlement(client, {
-            id: existingSettlement.id,
-            tenantId,
-            date: issue.date,
-            dsrId: issue.dsrId,
-            dsrName: issue.dsrName,
-            area: issue.area,
-            phone: issue.phone,
-            issueIds: [issue.id],
-            items: nextSettlementItems,
-            extraReturns: nextExtraReturns,
-            totalPayable: nextTotalPayable,
-            previousDue: Number(existingSettlement.previous_due || 0),
-            discount: Number(existingSettlement.discount || 0),
-            extraReturnValue: Number(existingSettlement.extra_return_value || 0),
-            amountPaid: Number(existingSettlement.amount_paid || 0),
-            dueAmount: Number(existingSettlement.due_amount || 0),
-            status: existingSettlement.status,
-          });
-          settlement = mapSettlement(settlementResult.rows[0]);
-        }
 
         await this.recordActivity(client, actor, {
           actionType: "issue.update",
@@ -904,7 +908,7 @@ export class InventoryService {
           metadata: { date: issue.date, dsrId: issue.dsrId, items: issue.items.length },
         });
 
-        return { issue: mapIssue(issueResult.rows[0]), settlement };
+        return { issue: mapIssue(issueResult.rows[0]), settlement: null };
       }
 
       const settlementResult = await findSettlementByDateAndDsr(client, issue.date, issue.dsrId, tenantId);
@@ -912,6 +916,11 @@ export class InventoryService {
 
       const dsrResult = await findDsrById(client, issue.dsrId, tenantId);
       assert(dsrResult.rowCount > 0, "Select a valid DSR.");
+      issue.dsrName = dsrResult.rows[0].name;
+      issue.area = dsrResult.rows[0].area;
+      issue.phone = dsrResult.rows[0].phone;
+      issue.items = await buildTrustedIssueItems(client, issue.items, [], tenantId);
+      assert(issue.items.length > 0, "Enter issue quantity for at least one product.");
 
       const existingIssue = await findIssueByDateAndDsr(client, issue.date, issue.dsrId, tenantId);
       assert(
@@ -968,6 +977,11 @@ export class InventoryService {
 
       const dsrResult = await findDsrById(client, issue.dsrId, tenantId);
       assert(dsrResult.rowCount > 0, "Select a valid DSR.");
+      issue.dsrName = dsrResult.rows[0].name;
+      issue.area = dsrResult.rows[0].area;
+      issue.phone = dsrResult.rows[0].phone;
+      issue.items = await buildTrustedIssueItems(client, issue.items, previousItems, tenantId);
+      assert(issue.items.length > 0, "Enter issue quantity for at least one product.");
 
       await applyIssueInventoryDelta(client, previousItems, issue.items, tenantId, {
         referenceId: issue.id,
@@ -1016,10 +1030,12 @@ export class InventoryService {
 
         const issueResult = await findIssueByDateAndDsr(client, base.date, base.dsrId, tenantId);
         assert(issueResult.rowCount > 0, "No morning issue found for this DSR and date.");
-
-        for (const item of base.items) {
-          assert(item.returnedPieces <= item.issuedPieces, "Returned quantity cannot be greater than issued quantity.");
-        }
+        const trustedBase = await buildTrustedSettlementBase(
+          client,
+          base,
+          Array.isArray(issueResult.rows[0].items) ? issueResult.rows[0].items : [],
+          tenantId,
+        );
 
         const previousExtraReturns = Array.isArray(previousSettlement.extra_returns)
           ? previousSettlement.extra_returns
@@ -1030,14 +1046,14 @@ export class InventoryService {
         await applySettlementInventoryDelta(
           client,
           previousItems,
-          base.items,
+          trustedBase.items,
           previousExtraReturns,
-          base.extraReturns || [],
+          trustedBase.extraReturns || [],
           tenantId,
           {
-            referenceId: base.id,
+            referenceId: trustedBase.id,
             createdById: actor.id,
-            note: `Evening settlement updated for ${base.dsrName} on ${base.date}`,
+            note: `Evening settlement updated for ${trustedBase.dsrName} on ${trustedBase.date}`,
           },
         );
 
@@ -1048,13 +1064,13 @@ export class InventoryService {
         const oldCollection = Number(previousSettlement.amount_paid || 0);
         const oldNet = oldSaleDue - oldCollection;
 
-        const latestEntry = await getLatestDueLedgerEntry(client, base.dsrId, tenantId);
+        const latestEntry = await getLatestDueLedgerEntry(client, trustedBase.dsrId, tenantId);
         const latestBalance = latestEntry
           ? latestEntry.balanceAfter
           : Number(previousSettlement.previous_due || 0) + oldNet;
 
         const previousDueForNew = latestBalance - oldNet;
-        const settlement = finalizeSettlementAmounts(base, previousDueForNew);
+        const settlement = finalizeSettlementAmountsStrict(trustedBase, previousDueForNew);
 
         const settlementResult = await updateSettlement(client, settlement);
 
@@ -1069,7 +1085,7 @@ export class InventoryService {
           currentBalance += saleDueDelta;
           await recordDueLedgerEntry(client, {
             tenantId,
-            dsrId: base.dsrId,
+            dsrId: settlement.dsrId,
             type: DSR_DUE_LEDGER_TYPES.SALE_DUE,
             debit: Math.max(0, saleDueDelta),
             credit: Math.max(0, -saleDueDelta),
@@ -1085,7 +1101,7 @@ export class InventoryService {
           currentBalance -= collectionDelta;
           await recordDueLedgerEntry(client, {
             tenantId,
-            dsrId: base.dsrId,
+            dsrId: settlement.dsrId,
             type: DSR_DUE_LEDGER_TYPES.COLLECTION,
             debit: Math.max(0, -collectionDelta),
             credit: Math.max(0, collectionDelta),
@@ -1134,33 +1150,35 @@ export class InventoryService {
 
       const issueResult = await findIssueByDateAndDsr(client, base.date, base.dsrId, tenantId);
       assert(issueResult.rowCount > 0, "No morning issue found for this DSR and date.");
+      const trustedBase = await buildTrustedSettlementBase(
+        client,
+        base,
+        Array.isArray(issueResult.rows[0].items) ? issueResult.rows[0].items : [],
+        tenantId,
+      );
 
-      for (const item of base.items) {
-        assert(item.returnedPieces <= item.issuedPieces, "Returned quantity cannot be greater than issued quantity.");
-      }
-
-      await applySettlementInventoryDelta(client, [], base.items, [], base.extraReturns || [], tenantId, {
-        referenceId: base.id,
+      await applySettlementInventoryDelta(client, [], trustedBase.items, [], trustedBase.extraReturns || [], tenantId, {
+        referenceId: trustedBase.id,
         createdById: actor.id,
-        note: `Evening settlement created for ${base.dsrName} on ${base.date}`,
+        note: `Evening settlement created for ${trustedBase.dsrName} on ${trustedBase.date}`,
       });
 
-      const latestEntry = await getLatestDueLedgerEntry(client, base.dsrId, tenantId);
+      const latestEntry = await getLatestDueLedgerEntry(client, trustedBase.dsrId, tenantId);
       let latestBalance;
       if (latestEntry) {
         latestBalance = latestEntry.balanceAfter;
       } else {
-        const lastSettlementResult = await findLatestSettlementForDsr(client, base.dsrId, tenantId);
+        const lastSettlementResult = await findLatestSettlementForDsr(client, trustedBase.dsrId, tenantId);
         if (lastSettlementResult.rowCount > 0) {
           latestBalance = Number(lastSettlementResult.rows[0].due_amount || 0);
         } else {
-          const dsrResult = await findDsrById(client, base.dsrId, tenantId);
+          const dsrResult = await findDsrById(client, trustedBase.dsrId, tenantId);
           assert(dsrResult.rowCount > 0, "Select a valid DSR.");
           latestBalance = Number(dsrResult.rows[0].opening_due || 0);
         }
       }
 
-      const settlement = finalizeSettlementAmounts(base, latestBalance);
+      const settlement = finalizeSettlementAmountsStrict(trustedBase, latestBalance);
       const insertResult = await insertSettlement(client, settlement);
 
       const newSaleDue = settlement.totalPayable - settlement.discount - settlement.extraReturnValue;
@@ -1172,7 +1190,7 @@ export class InventoryService {
         currentBalance += newSaleDue;
         await recordDueLedgerEntry(client, {
           tenantId,
-          dsrId: base.dsrId,
+          dsrId: settlement.dsrId,
           type: DSR_DUE_LEDGER_TYPES.SALE_DUE,
           debit: Math.max(0, newSaleDue),
           credit: Math.max(0, -newSaleDue),
@@ -1188,7 +1206,7 @@ export class InventoryService {
         currentBalance -= newCollection;
         await recordDueLedgerEntry(client, {
           tenantId,
-          dsrId: base.dsrId,
+          dsrId: settlement.dsrId,
           type: DSR_DUE_LEDGER_TYPES.COLLECTION,
           debit: Math.max(0, -newCollection),
           credit: Math.max(0, newCollection),

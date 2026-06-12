@@ -462,6 +462,20 @@ export function InventoryAppProvider({ children }) {
     });
   }
 
+  function restoreUser(user) {
+    return restoreTrashedItem({
+      name: user.name,
+      restoreFn: () => inventoryApi.restoreUser(user.id),
+    });
+  }
+
+  function permanentlyDeleteUser(user) {
+    return permanentlyDeleteTrashedItem({
+      name: user.name,
+      deleteFn: () => inventoryApi.permanentlyDeleteUser(user.id),
+    });
+  }
+
   function restoreDsr(dsr) {
     return restoreTrashedItem({
       name: dsr.name,
@@ -625,6 +639,8 @@ export function InventoryAppProvider({ children }) {
       deleteProduct,
       restoreProduct,
       permanentlyDeleteProduct,
+      restoreUser,
+      permanentlyDeleteUser,
       addStock,
       clearDamagedStock,
       saveDsr,

@@ -36,26 +36,31 @@ export function insertUser(client, user) {
 
 export async function findUserByEmail(client, email, tenantId) {
   if (tenantId === null) {
-    const result = await client.query("SELECT * FROM users WHERE LOWER(email) = LOWER($1) AND tenant_id IS NULL", [
+    const result = await client.query("SELECT * FROM users WHERE LOWER(email) = LOWER($1) AND tenant_id IS NULL AND deleted_at IS NULL", [
       email,
     ]);
     return result.rows[0] || null;
   }
 
   if (tenantId) {
-    const result = await client.query("SELECT * FROM users WHERE LOWER(email) = LOWER($1) AND tenant_id = $2", [
+    const result = await client.query("SELECT * FROM users WHERE LOWER(email) = LOWER($1) AND tenant_id = $2 AND deleted_at IS NULL", [
       email,
       tenantId,
     ]);
     return result.rows[0] || null;
   }
 
-  const result = await client.query("SELECT * FROM users WHERE LOWER(email) = LOWER($1)", [email]);
+  const result = await client.query("SELECT * FROM users WHERE LOWER(email) = LOWER($1) AND deleted_at IS NULL", [email]);
   return result.rows[0] || null;
 }
 
 export async function findUserById(client, id) {
-  const result = await client.query("SELECT * FROM users WHERE id = $1", [id]);
+  const result = await client.query("SELECT * FROM users WHERE id = $1 AND deleted_at IS NULL", [id]);
+  return result.rows[0] || null;
+}
+
+export async function findTrashedUserById(client, id) {
+  const result = await client.query("SELECT * FROM users WHERE id = $1 AND deleted_at IS NOT NULL", [id]);
   return result.rows[0] || null;
 }
 
@@ -64,7 +69,7 @@ export async function listUsers(client, tenantId) {
     const result = await client.query(
       `SELECT id, name, email, role, status, tenant_id, created_at, updated_at, locked_until, must_change_password
        FROM users
-       WHERE tenant_id = $1 AND role != 'system_developer'
+       WHERE tenant_id = $1 AND role != 'system_developer' AND deleted_at IS NULL
        ORDER BY created_at DESC, name ASC`,
       [tenantId],
     );
@@ -85,6 +90,7 @@ export async function listUsers(client, tenantId) {
   const result = await client.query(
     `SELECT id, name, email, role, status, tenant_id, created_at, updated_at, locked_until, must_change_password
      FROM users
+     WHERE deleted_at IS NULL
      ORDER BY created_at DESC, name ASC`,
   );
 
@@ -127,6 +133,7 @@ export async function findActiveUserBySessionTokenHash(client, tokenHash) {
      WHERE user_sessions.token_hash = $1
        AND user_sessions.expires_at > NOW()
        AND users.status = 'active'
+       AND users.deleted_at IS NULL
      LIMIT 1`,
     [tokenHash],
   );
@@ -205,8 +212,82 @@ export function touchSession(client, tokenHash, { ipAddress, userAgent }) {
   );
 }
 
-export function deleteUser(client, id, tenantId) {
-  return client.query("DELETE FROM users WHERE id = $1 AND tenant_id IS NOT DISTINCT FROM $2", [id, tenantId]);
+export function softDeleteUser(client, userId, tenantId, { deletedById, deleteReason } = {}) {
+  return client.query(
+    `UPDATE users
+     SET deleted_at = NOW(), deleted_by_id = $3, delete_reason = $4
+     WHERE id = $1 AND tenant_id IS NOT DISTINCT FROM $2 AND deleted_at IS NULL
+     RETURNING *`,
+    [userId, tenantId, deletedById || null, deleteReason || ""],
+  );
+}
+
+export function restoreUser(client, userId, tenantId) {
+  return client.query(
+    `UPDATE users
+     SET deleted_at = NULL, deleted_by_id = NULL, delete_reason = ''
+     WHERE id = $1 AND tenant_id IS NOT DISTINCT FROM $2 AND deleted_at IS NOT NULL
+     RETURNING *`,
+    [userId, tenantId],
+  );
+}
+
+export function permanentlyDeleteUser(client, userId, tenantId) {
+  return client.query(
+    "DELETE FROM users WHERE id = $1 AND tenant_id IS NOT DISTINCT FROM $2 AND deleted_at IS NOT NULL",
+    [userId, tenantId],
+  );
+}
+
+export async function countTrashedUsers(client, tenantId) {
+  if (tenantId) {
+    const result = await client.query(
+      "SELECT COUNT(*)::INTEGER AS count FROM users WHERE tenant_id = $1 AND deleted_at IS NOT NULL",
+      [tenantId],
+    );
+    return result.rows[0].count;
+  }
+
+  const result = await client.query("SELECT COUNT(*)::INTEGER AS count FROM users WHERE deleted_at IS NOT NULL");
+  return result.rows[0].count;
+}
+
+export async function listTrashedUsers(client, { tenantId, limit, offset }) {
+  if (tenantId) {
+    const result = await client.query(
+      `SELECT u.*, d.name AS deleted_by_name
+       FROM users u
+       LEFT JOIN users d ON d.id = u.deleted_by_id
+       WHERE u.tenant_id = $1 AND u.deleted_at IS NOT NULL
+       ORDER BY u.deleted_at DESC
+       LIMIT $2 OFFSET $3`,
+      [tenantId, limit, offset],
+    );
+    return result.rows.map((row) => ({
+      ...mapUser(row),
+      deletedAt: row.deleted_at,
+      deletedById: row.deleted_by_id,
+      deletedByName: row.deleted_by_name || null,
+      deleteReason: row.delete_reason || '',
+    }));
+  }
+
+  const result = await client.query(
+    `SELECT u.*, d.name AS deleted_by_name
+     FROM users u
+     LEFT JOIN users d ON d.id = u.deleted_by_id
+     WHERE u.deleted_at IS NOT NULL
+     ORDER BY u.deleted_at DESC
+     LIMIT $1 OFFSET $2`,
+    [limit, offset],
+  );
+  return result.rows.map((row) => ({
+    ...mapUser(row),
+    deletedAt: row.deleted_at,
+    deletedById: row.deleted_by_id,
+    deletedByName: row.deleted_by_name || null,
+    deleteReason: row.delete_reason || '',
+  }));
 }
 
 export function updateUser(client, user) {

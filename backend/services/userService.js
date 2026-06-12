@@ -3,19 +3,25 @@ import { createId } from "../lib/ids.js";
 import { generateTempPassword, hashPassword, validatePasswordStrength, verifyPassword } from "../lib/passwords.js";
 import { USER_ROLES, TENANT_ROLE_VALUES } from "../lib/roles.js";
 import {
+  countTrashedUsers,
   deleteAllSessionsForUser,
-  deleteUser as deleteUserRepo,
+  findTrashedUserById,
   findUserByEmail,
   findUserById,
   insertUser,
+  listTrashedUsers,
   listUsers as listUsersRepo,
+  permanentlyDeleteUser as permanentlyDeleteUserRepo,
   resetLoginLockState,
+  restoreUser as restoreUserRepo,
   setMustChangePassword,
+  softDeleteUser,
   updatePasswordHashAndClearFlags,
   updateUser as updateUserRepo,
 } from "../repositories/userRepository.js";
 import { listPendingResetRequests } from "../repositories/passwordResetRepository.js";
 import { findTenantById, listTenants as listTenantsRepo } from "../repositories/tenantRepository.js";
+import { parsePagination, buildPageResult } from "../lib/pagination.js";
 
 function normalizeEmail(email) {
   return String(email || "")
@@ -247,7 +253,7 @@ export class UserService {
     return updatedUser;
   }
 
-  async deleteUser(userId, actor) {
+  async deleteUser(userId, actor, reason) {
     await this.databaseManager.withTransaction(async (client) => {
       const existingUser = await findUserById(client, userId);
       assert(existingUser, "User not found.", 404);
@@ -259,19 +265,96 @@ export class UserService {
       assert(existingUser.id !== actor.id, "You cannot delete your own account.");
       assert(allowedRolesForActor(actor.role).includes(existingUser.role), "Forbidden.", 403);
 
-      await deleteUserRepo(client, userId, existingUser.tenant_id);
+      const result = await softDeleteUser(client, userId, existingUser.tenant_id, {
+        deletedById: actor.id,
+        deleteReason: reason,
+      });
+      assert(result.rowCount > 0, "User not found.", 404);
+      await deleteAllSessionsForUser(client, userId);
+
       await this.auditService.record(client, {
         tenantId: existingUser.tenant_id,
         userId: actor.id,
         actionType: "user.delete",
         entityType: "user",
         entityId: userId,
-        description: `${actor.name} deleted user ${existingUser.email}`,
+        description: `${actor.name} moved user ${existingUser.email} to trash${reason ? ` (${reason})` : ""}`,
         metadata: { role: existingUser.role },
       });
     });
 
     return this.listUsers(actor);
+  }
+
+  async restoreUser(userId, actor) {
+    await this.databaseManager.withTransaction(async (client) => {
+      const existingUser = await findTrashedUserById(client, userId);
+      assert(existingUser, "User not found in trash.", 404);
+
+      if (actor.role !== USER_ROLES.SYSTEM_DEVELOPER) {
+        assert(existingUser.tenant_id === actor.tenantId, "User not found in trash.", 404);
+      }
+
+      assert(allowedRolesForActor(actor.role).includes(existingUser.role), "Forbidden.", 403);
+
+      const result = await restoreUserRepo(client, userId, existingUser.tenant_id);
+      assert(result.rowCount > 0, "User not found in trash.", 404);
+
+      await this.auditService.record(client, {
+        tenantId: existingUser.tenant_id,
+        userId: actor.id,
+        actionType: "user.restore",
+        entityType: "user",
+        entityId: userId,
+        description: `${actor.name} restored user ${existingUser.email} from trash`,
+      });
+    });
+
+    return { ok: true };
+  }
+
+  async permanentlyDeleteUser(userId, actor) {
+    await this.databaseManager.withTransaction(async (client) => {
+      const existingUser = await findTrashedUserById(client, userId);
+      assert(existingUser, "User not found in trash.", 404);
+
+      if (actor.role !== USER_ROLES.SYSTEM_DEVELOPER) {
+        assert(existingUser.tenant_id === actor.tenantId, "User not found in trash.", 404);
+      }
+
+      assert(allowedRolesForActor(actor.role).includes(existingUser.role), "Forbidden.", 403);
+
+      const result = await permanentlyDeleteUserRepo(client, userId, existingUser.tenant_id);
+      assert(result.rowCount > 0, "User not found in trash.", 404);
+
+      await this.auditService.record(client, {
+        tenantId: existingUser.tenant_id,
+        userId: actor.id,
+        actionType: "user.permanent_delete",
+        entityType: "user",
+        entityId: userId,
+        description: `${actor.name} permanently deleted user ${existingUser.email}`,
+      });
+    });
+
+    return { ok: true };
+  }
+
+  async listTrashedUsers(query = {}, actor) {
+    const { page, pageSize, limit, offset } = parsePagination(query);
+    const tenantId = actor.role === USER_ROLES.SYSTEM_DEVELOPER ? null : actor.tenantId;
+
+    const client = await this.databaseManager.getPool().connect();
+    try {
+      const [items, total] = await Promise.all([
+        listTrashedUsers(client, { tenantId, limit, offset }),
+        countTrashedUsers(client, tenantId),
+      ]);
+
+      return buildPageResult({ items, total, page, pageSize });
+    } finally {
+      client.release();
+    }
   }
 
   async resetUserPassword(userId, actor) {

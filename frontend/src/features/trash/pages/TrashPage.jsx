@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Boxes, CircleDollarSign, RotateCcw, Store, Trash2, Users } from 'lucide-react';
+import { Boxes, CircleDollarSign, RotateCcw, Store, Trash2, UserCog, Users } from 'lucide-react';
 import { Alert, EmptyState, Pagination, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
@@ -17,6 +17,8 @@ export default function TrashPage() {
     permanentlyDeleteDsr,
     restoreExpense,
     permanentlyDeleteExpense,
+    restoreUser,
+    permanentlyDeleteUser,
   } = useInventoryApp();
 
   const tabs = useMemo(
@@ -61,6 +63,16 @@ export default function TrashPage() {
         permanentlyDelete: permanentlyDeleteExpense,
         getName: (item) => item.category,
       },
+      {
+        key: 'users',
+        labelKey: 'nav.users',
+        icon: UserCog,
+        permission: 'manage_users',
+        list: inventoryApi.listUsersTrash,
+        restore: restoreUser,
+        permanentlyDelete: permanentlyDeleteUser,
+        getName: (item) => item.name,
+      },
     ],
     [
       restoreProduct,
@@ -71,6 +83,8 @@ export default function TrashPage() {
       permanentlyDeleteDsr,
       restoreExpense,
       permanentlyDeleteExpense,
+      restoreUser,
+      permanentlyDeleteUser,
     ],
   );
 

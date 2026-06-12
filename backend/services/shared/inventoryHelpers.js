@@ -91,7 +91,7 @@ export async function applyStockDelta(client, productId, tenantId, stockDifferen
   };
 }
 
-export async function recordActivity(auditService, client, actor, payload) {
+export async function logActivity(auditService, client, actor, payload) {
   if (!auditService || !actor) {
     return;
   }

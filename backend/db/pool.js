@@ -43,6 +43,15 @@ export class DatabaseManager {
     return this.pool;
   }
 
+  async withClient(work) {
+    const client = await this.pool.connect();
+    try {
+      return await work(client);
+    } finally {
+      client.release();
+    }
+  }
+
   async withTransaction(work) {
     const client = await this.pool.connect();
     try {

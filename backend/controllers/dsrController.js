@@ -1,11 +1,11 @@
 export class DsrController {
-  constructor(inventoryService) {
-    this.inventoryService = inventoryService;
+  constructor(dsrService) {
+    this.dsrService = dsrService;
   }
 
   list = async (req, res, next) => {
     try {
-      res.json(await this.inventoryService.listDsrs(req.query, req.currentUser));
+      res.json(await this.dsrService.listDsrs(req.query, req.currentUser));
     } catch (error) {
       next(error);
     }
@@ -13,7 +13,7 @@ export class DsrController {
 
   directory = async (req, res, next) => {
     try {
-      res.json(await this.inventoryService.getDsrsDirectory(req.currentUser));
+      res.json(await this.dsrService.getDsrsDirectory(req.currentUser));
     } catch (error) {
       next(error);
     }
@@ -21,7 +21,7 @@ export class DsrController {
 
   create = async (req, res, next) => {
     try {
-      const dsr = await this.inventoryService.saveDsr(req.body, req.currentUser);
+      const dsr = await this.dsrService.saveDsr(req.body, req.currentUser);
       res.status(201).json({ dsr });
     } catch (error) {
       next(error);
@@ -30,7 +30,7 @@ export class DsrController {
 
   update = async (req, res, next) => {
     try {
-      const dsr = await this.inventoryService.saveDsr({ ...req.body, id: req.params.id }, req.currentUser);
+      const dsr = await this.dsrService.saveDsr({ ...req.body, id: req.params.id }, req.currentUser);
       res.json({ dsr });
     } catch (error) {
       next(error);
@@ -39,7 +39,7 @@ export class DsrController {
 
   remove = async (req, res, next) => {
     try {
-      res.json(await this.inventoryService.removeDsr(req.params.id, req.currentUser, req.body?.reason));
+      res.json(await this.dsrService.removeDsr(req.params.id, req.currentUser, req.body?.reason));
     } catch (error) {
       next(error);
     }
@@ -47,7 +47,7 @@ export class DsrController {
 
   listTrash = async (req, res, next) => {
     try {
-      res.json(await this.inventoryService.listTrashedDsrs(req.query, req.currentUser));
+      res.json(await this.dsrService.listTrashedDsrs(req.query, req.currentUser));
     } catch (error) {
       next(error);
     }
@@ -55,7 +55,7 @@ export class DsrController {
 
   restore = async (req, res, next) => {
     try {
-      res.json(await this.inventoryService.restoreDsr(req.params.id, req.currentUser));
+      res.json(await this.dsrService.restoreDsr(req.params.id, req.currentUser));
     } catch (error) {
       next(error);
     }
@@ -63,7 +63,7 @@ export class DsrController {
 
   permanentlyDelete = async (req, res, next) => {
     try {
-      res.json(await this.inventoryService.permanentlyDeleteDsr(req.params.id, req.currentUser));
+      res.json(await this.dsrService.permanentlyDeleteDsr(req.params.id, req.currentUser));
     } catch (error) {
       next(error);
     }

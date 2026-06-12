@@ -48,7 +48,10 @@ import { createSettlementsRoutes } from "./settlements.routes.js";
 export function createApiRouter({
   authService,
   env,
-  inventoryService,
+  productService,
+  dsrService,
+  issueService,
+  settlementService,
   auditService,
   userService,
   expenseService,
@@ -67,13 +70,13 @@ export function createApiRouter({
 }) {
   const router = Router();
   const authController = new AuthController(authService, env, tenantService);
-  const productController = new ProductController(inventoryService);
+  const productController = new ProductController(productService);
   const stockMovementController = new StockMovementController(stockMovementService);
   const dsrDueLedgerController = new DsrDueLedgerController(dsrDueLedgerService);
-  const dsrController = new DsrController(inventoryService);
+  const dsrController = new DsrController(dsrService);
   const customerController = new CustomerController(customerService);
-  const issueController = new IssueController(inventoryService);
-  const settlementController = new SettlementController(inventoryService);
+  const issueController = new IssueController(issueService);
+  const settlementController = new SettlementController(settlementService);
   const activityLogController = new ActivityLogController(auditService);
   const auditController = new AuditController(auditService);
   const userController = new UserController(userService);

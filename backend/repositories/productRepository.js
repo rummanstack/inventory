@@ -12,20 +12,6 @@ export function mapProduct(row) {
   };
 }
 
-function mapProductLite(row) {
-  return {
-    id: row.id,
-    name: row.name,
-    category: row.category,
-    piecesPerCase: Number(row.pieces_per_case),
-    purchasePrice: Number(row.purchase_price),
-    sellingPrice: Number(row.selling_price),
-    stockPieces: Number(row.stock_pieces),
-    damagedPieces: Number(row.damaged_pieces),
-    orderIndex: Number(row.order_index) >= 9999 ? null : Number(row.order_index),
-  };
-}
-
 function mapTrashedProduct(row) {
   return {
     ...mapProduct(row),
@@ -73,7 +59,7 @@ export async function listAllActiveProductsLite(client, tenantId) {
     "SELECT id, name, category, pieces_per_case, purchase_price, selling_price, stock_pieces, damaged_pieces, order_index FROM products WHERE tenant_id = $1 AND deleted_at IS NULL ORDER BY order_index ASC, name ASC",
     [tenantId],
   );
-  return result.rows.map(mapProductLite);
+  return result.rows.map(mapProduct);
 }
 
 export function insertProduct(client, product) {
@@ -173,4 +159,8 @@ export function addProductStock(client, productId, addPieces, tenantId) {
 
 export function findProductForUpdate(client, productId, tenantId) {
   return client.query("SELECT * FROM products WHERE id = $1 AND tenant_id = $2 AND deleted_at IS NULL FOR UPDATE", [productId, tenantId]);
+}
+
+export function findProductsForUpdate(client, productIds, tenantId) {
+  return client.query("SELECT * FROM products WHERE id = ANY($1) AND tenant_id = $2 AND deleted_at IS NULL FOR UPDATE", [productIds, tenantId]);
 }

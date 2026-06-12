@@ -1,4 +1,4 @@
-function mapUser(row) {
+export function mapUser(row) {
   if (!row) {
     return null;
   }

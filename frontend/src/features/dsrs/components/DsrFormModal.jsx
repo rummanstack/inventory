@@ -5,7 +5,7 @@ import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import AuditHistory from '../../audit/components/AuditHistory.jsx';
 
 export default function DsrFormModal({ dsr, onClose, onSave }) {
-  const { t } = useInventoryApp();
+  const { t, pushToast } = useInventoryApp();
   const isEdit = Boolean(dsr);
   const [form, setForm] = useState({
     name: dsr?.name || '',
@@ -33,6 +33,19 @@ export default function DsrFormModal({ dsr, onClose, onSave }) {
     if (openingDueChanged && !reason.trim()) {
       setError(t('common.editReasonRequired'));
       return;
+    }
+
+    if (isEdit) {
+      const unchanged =
+        form.name.trim() === dsr.name &&
+        form.phone.trim() === dsr.phone &&
+        form.area.trim() === dsr.area &&
+        form.status === dsr.status &&
+        !openingDueChanged;
+      if (unchanged) {
+        pushToast('info', t('dsr.editTitle'), t('alerts.noChanges'));
+        return;
+      }
     }
 
     setSaving(true);

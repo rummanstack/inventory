@@ -12,7 +12,7 @@ const ROLE_OPTIONS_BY_ACTOR = {
 const DEFAULT_ROLE_OPTIONS = ['admin', 'manager', 'operator'];
 
 export default function UserFormModal({ user, onClose, onSave }) {
-  const { t, user: actor } = useInventoryApp();
+  const { t, user: actor, pushToast } = useInventoryApp();
   const isEdit = Boolean(user);
   const needsTenant = actor?.role === 'system_developer' && !isEdit;
   const roleOptions = ROLE_OPTIONS_BY_ACTOR[actor?.role] || DEFAULT_ROLE_OPTIONS;
@@ -57,8 +57,6 @@ export default function UserFormModal({ user, onClose, onSave }) {
       return;
     }
 
-    setSaving(true);
-    setError('');
     const payload = {
       name: form.name.trim(),
       email: form.email.trim(),
@@ -72,6 +70,21 @@ export default function UserFormModal({ user, onClose, onSave }) {
       payload.tenantId = form.tenantId;
     }
 
+    if (isEdit) {
+      const unchanged =
+        !payload.password &&
+        payload.name === user.name &&
+        payload.email === user.email &&
+        payload.role === user.role &&
+        payload.status === user.status;
+      if (unchanged) {
+        pushToast('info', t('users.editTitle'), t('alerts.noChanges'));
+        return;
+      }
+    }
+
+    setSaving(true);
+    setError('');
     const result = await onSave({ id: user?.id, ...payload });
     setSaving(false);
 

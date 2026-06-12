@@ -10,6 +10,7 @@ export default function PermissionsPage() {
   const [error, setError] = useState('');
   const [allPermissions, setAllPermissions] = useState([]);
   const [rolePermissions, setRolePermissions] = useState([]);
+  const [originalPermissions, setOriginalPermissions] = useState({});
   const [savingRole, setSavingRole] = useState('');
 
   useEffect(() => {
@@ -22,6 +23,9 @@ export default function PermissionsPage() {
         if (cancelled) return;
         setAllPermissions(result.allPermissions || []);
         setRolePermissions(result.roles || []);
+        setOriginalPermissions(
+          Object.fromEntries((result.roles || []).map((entry) => [entry.role, [...entry.permissions].sort()])),
+        );
       } catch (err) {
         if (!cancelled) setError(err?.message || 'Failed to load permissions.');
       } finally {
@@ -52,10 +56,21 @@ export default function PermissionsPage() {
     const entry = rolePermissions.find((item) => item.role === role);
     if (!entry) return;
 
+    const current = [...entry.permissions].sort();
+    const original = originalPermissions[role] || [];
+    const unchanged = current.length === original.length && current.every((value, index) => value === original[index]);
+    if (unchanged) {
+      pushToast('info', t(`permissions.roles.${role}`), t('alerts.noChanges'));
+      return;
+    }
+
     setSavingRole(role);
     try {
       const result = await inventoryApi.updateRolePermissions(role, entry.permissions);
       setRolePermissions(result.roles || []);
+      setOriginalPermissions(
+        Object.fromEntries((result.roles || []).map((item) => [item.role, [...item.permissions].sort()])),
+      );
       pushToast('success', t(`permissions.roles.${role}`), t('permissions.saved'));
     } catch (err) {
       const message = err?.message || 'Failed to save permissions.';

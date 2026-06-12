@@ -990,6 +990,8 @@
       deleted: 'deleted',
       loggedIn: 'Logged in',
       loggedOut: 'Logged out',
+      noChanges: 'Nothing changed',
+      noChangesDescription: 'No changes were made.',
     },
     routes: {
       dashboard: 'Dashboard',
@@ -1988,6 +1990,8 @@
       deleted: 'মুছে ফেলা হয়েছে',
       loggedIn: 'লগইন হয়েছে',
       loggedOut: 'লগআউট হয়েছে',
+      noChanges: 'কোনো পরিবর্তন হয়নি',
+      noChangesDescription: 'কোনো তথ্য পরিবর্তন করা হয়নি।',
     },
     routes: {
       dashboard: 'ড্যাশবোর্ড',

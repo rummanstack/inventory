@@ -5,7 +5,7 @@ import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import AuditHistory from '../../audit/components/AuditHistory.jsx';
 
 export default function CustomerFormModal({ customer, onClose, onSave }) {
-  const { t, dsrDirectory } = useInventoryApp();
+  const { t, dsrDirectory, pushToast } = useInventoryApp();
   const isEdit = Boolean(customer);
   const [form, setForm] = useState({
     shopName: customer?.shopName || '',
@@ -33,8 +33,6 @@ export default function CustomerFormModal({ customer, onClose, onSave }) {
       return;
     }
 
-    setSaving(true);
-    setError('');
     const payload = {
       id: customer?.id,
       shopName: form.shopName.trim(),
@@ -49,8 +47,26 @@ export default function CustomerFormModal({ customer, onClose, onSave }) {
     };
     if (isEdit) {
       payload.currentDue = Math.max(0, Number(form.currentDue || 0));
+
+      const unchanged =
+        payload.shopName === customer.shopName &&
+        payload.ownerName === customer.ownerName &&
+        payload.phone === customer.phone &&
+        payload.address === customer.address &&
+        payload.market === customer.market &&
+        payload.assignedDsrId === (customer.assignedDsrId || null) &&
+        payload.openingDue === Number(customer.openingDue ?? 0) &&
+        payload.currentDue === Number(customer.currentDue ?? 0) &&
+        payload.status === customer.status &&
+        payload.note === (customer.note || '');
+      if (unchanged) {
+        pushToast('info', t('customers.editTitle'), t('alerts.noChanges'));
+        return;
+      }
     }
 
+    setSaving(true);
+    setError('');
     const result = await onSave(payload);
     setSaving(false);
 

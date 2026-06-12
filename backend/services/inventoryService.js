@@ -52,6 +52,7 @@ import {
   restoreProduct,
   softDeleteProduct,
   findProductForUpdate,
+  findProductsForUpdate,
   insertProduct,
   listAllActiveProductsLite,
   listProductsPage,
@@ -81,12 +82,15 @@ function sumPiecesByProduct(items, field) {
 
 async function lockProducts(client, productIds, tenantId) {
   const uniqueIds = [...new Set(productIds.filter(Boolean))].sort();
-  const productMap = new Map();
+  if (uniqueIds.length === 0) {
+    return new Map();
+  }
+
+  const result = await findProductsForUpdate(client, uniqueIds, tenantId);
+  const productMap = new Map(result.rows.map((row) => [row.id, row]));
 
   for (const productId of uniqueIds) {
-    const result = await findProductForUpdate(client, productId, tenantId);
-    assert(result.rowCount > 0, "Product not found.", 404);
-    productMap.set(productId, result.rows[0]);
+    assert(productMap.has(productId), "Product not found.", 404);
   }
 
   return productMap;

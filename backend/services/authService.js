@@ -19,6 +19,7 @@ import {
   findUserById,
   insertUserSession,
   listSessionsForUser,
+  mapUser,
   resetLoginLockState,
   setLoginLockState,
   touchSession,
@@ -32,18 +33,6 @@ import {
   markResetTokenUsed,
 } from "../repositories/passwordResetRepository.js";
 import { findTenantById, findTenantBySlug } from "../repositories/tenantRepository.js";
-
-function mapUser(row) {
-  return {
-    id: row.id,
-    name: row.name,
-    email: row.email,
-    role: row.role,
-    status: row.status,
-    tenantId: row.tenant_id || null,
-    mustChangePassword: Boolean(row.must_change_password),
-  };
-}
 
 export class AuthService {
   constructor(databaseManager, { sessionDays, auditService }) {

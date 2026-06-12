@@ -2,6 +2,7 @@ import { assert } from "../lib/errors.js";
 import { normalizeIsoDate } from "../lib/dateRanges.js";
 import { parsePagination, buildPageResult } from "../lib/pagination.js";
 import { countStockMovements, listStockMovementsPage } from "../repositories/stockMovementRepository.js";
+import { STOCK_MOVEMENT_TYPE_VALUES } from "../lib/stockMovements.js";
 
 const DATE_ERROR = "Ledger date must be in YYYY-MM-DD format.";
 
@@ -18,6 +19,7 @@ export class StockMovementService {
   async listMovements(query = {}, actor) {
     const { page, pageSize, limit, offset } = parsePagination(query);
     const productId = String(query.productId || "").trim();
+    const type = String(query.type || "").trim();
     const dateFrom = normalizeOptionalDate(query.dateFrom);
     const dateTo = normalizeOptionalDate(query.dateTo);
 
@@ -25,9 +27,14 @@ export class StockMovementService {
       assert(dateFrom <= dateTo, "Start date must be before or equal to end date.");
     }
 
+    if (type) {
+      assert(STOCK_MOVEMENT_TYPE_VALUES.includes(type), "Invalid stock movement type.");
+    }
+
     const filters = {
       tenantId: actor.tenantId,
       productId: productId || undefined,
+      type: type || undefined,
       dateFrom: dateFrom || undefined,
       dateTo: dateTo || undefined,
     };

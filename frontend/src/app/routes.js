@@ -20,6 +20,7 @@ import {
   Activity,
   Bug,
   Wallet,
+  PackageX,
 } from 'lucide-react';
 import DashboardPage from '../features/dashboard/pages/DashboardPage';
 import ActivityLogsPage from '../features/activity-logs/pages/ActivityLogsPage';
@@ -45,10 +46,12 @@ import ErrorLogsPage from '../features/system/pages/ErrorLogsPage';
 import DsrDueStatementPage from '../features/dsr-due-ledger/pages/DsrDueStatementPage';
 import CustomersPage from '../features/customers/pages/CustomersPage';
 import TrashPage from '../features/trash/pages/TrashPage';
+import DamagedStockPage from '../features/damaged-stock/pages/DamagedStockPage';
 
 export const APP_ROUTES = [
   { id: 'dashboard', path: '/dashboard', labelKey: 'nav.dashboard', icon: BarChart3, component: DashboardPage, group: 'overview', permission: 'view_state' },
   { id: 'products', path: '/products', labelKey: 'nav.products', icon: Boxes, component: ProductsPage, group: 'operations', permission: 'view_state', feature: 'products' },
+  { id: 'damaged-stock', path: '/damaged-stock', labelKey: 'nav.damagedStock', icon: PackageX, component: DamagedStockPage, group: 'operations', permission: 'view_state', feature: 'products' },
   { id: 'dsrs', path: '/dsrs', labelKey: 'nav.dsrs', icon: Users, component: DsrPage, group: 'operations', permission: 'view_state', feature: 'dsrs' },
   { id: 'customers', path: '/customers', labelKey: 'nav.customers', icon: Store, component: CustomersPage, group: 'operations', permission: 'view_state', feature: 'customers' },
   { id: 'morning-issue', path: '/morning-issue', labelKey: 'nav.morningIssue', icon: Truck, component: MorningIssuePage, group: 'operations', permission: 'create_issues', feature: 'morning-issue' },

@@ -20,13 +20,18 @@ function mapStockMovement(row) {
   };
 }
 
-function buildFilterClause({ tenantId, productId, dateFrom, dateTo }, params) {
+function buildFilterClause({ tenantId, productId, type, dateFrom, dateTo }, params) {
   params.push(tenantId);
   const conditions = [`stock_movements.tenant_id = $${params.length}`];
 
   if (productId) {
     params.push(productId);
     conditions.push(`stock_movements.product_id = $${params.length}`);
+  }
+
+  if (type) {
+    params.push(type);
+    conditions.push(`stock_movements.type = $${params.length}`);
   }
 
   if (dateFrom) {

@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import AppLayout from './AppLayout';
 import LoginPage from './LoginPage';
 import { APP_ROUTES } from './routes';
+import { ErrorBoundary } from './ErrorBoundary.jsx';
 import { InventoryAppProvider, useInventoryApp } from './useInventoryApp.jsx';
 import { LoadingState } from '../components/ui.jsx';
 
@@ -59,10 +60,12 @@ function AuthenticatedRoutes() {
 
 export default function App() {
   return (
-    <InventoryAppProvider>
-      <BrowserRouter>
-        <AuthenticatedRoutes />
-      </BrowserRouter>
-    </InventoryAppProvider>
+    <ErrorBoundary>
+      <InventoryAppProvider>
+        <BrowserRouter>
+          <AuthenticatedRoutes />
+        </BrowserRouter>
+      </InventoryAppProvider>
+    </ErrorBoundary>
   );
 }

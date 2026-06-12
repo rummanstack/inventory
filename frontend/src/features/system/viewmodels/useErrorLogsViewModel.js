@@ -1,56 +1,17 @@
-import { useEffect, useState } from 'react';
 import { inventoryApi } from '../../../services/inventoryApi';
-import { usePagination } from '../../../hooks/usePagination';
+import { usePagedList } from '../../../hooks/usePagedList';
 
 export function useErrorLogsViewModel() {
-  const { page, setPage, pageSize } = usePagination();
-  const [logs, setLogs] = useState([]);
-  const [total, setTotal] = useState(0);
-  const [totalPages, setTotalPages] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadLogs() {
-      try {
-        setLoading(true);
-        setError('');
-        const result = await inventoryApi.listErrorLogs({ page, pageSize });
-        if (!cancelled) {
-          setLogs(result.items || []);
-          setTotal(result.total || 0);
-          setTotalPages(result.totalPages || 0);
-        }
-      } catch (requestError) {
-        if (!cancelled) {
-          setError(requestError.message);
-          setLogs([]);
-          setTotal(0);
-          setTotalPages(0);
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    }
-
-    loadLogs();
-    return () => {
-      cancelled = true;
-    };
-  }, [page, pageSize]);
+  const list = usePagedList(({ page, pageSize }) => inventoryApi.listErrorLogs({ page, pageSize }));
 
   return {
-    logs,
-    total,
-    page,
-    pageSize,
-    totalPages,
-    setPage,
-    loading,
-    error,
+    logs: list.items,
+    total: list.total,
+    page: list.page,
+    pageSize: list.pageSize,
+    totalPages: list.totalPages,
+    setPage: list.setPage,
+    loading: list.loading,
+    error: list.error,
   };
 }

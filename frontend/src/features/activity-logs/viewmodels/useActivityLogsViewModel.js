@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { inventoryApi } from '../../../services/inventoryApi';
-import { usePagination } from '../../../hooks/usePagination';
+import { usePagedList } from '../../../hooks/usePagedList';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 
 const SEARCH_DEBOUNCE_MS = 300;
@@ -18,26 +18,36 @@ export function useActivityLogsViewModel() {
   const [dateTo, setDateTo] = useState('');
   const [tenantId, setTenantId] = useState('');
   const [tenants, setTenants] = useState([]);
-  const { page, setPage, pageSize, resetPage } = usePagination();
-  const [logs, setLogs] = useState([]);
-  const [total, setTotal] = useState(0);
-  const [totalPages, setTotalPages] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+
+  const list = usePagedList(
+    ({ page, pageSize }) => inventoryApi.listActivityLogs({
+      page,
+      pageSize,
+      search: debouncedSearch,
+      module: module || undefined,
+      actionType: debouncedActionType || undefined,
+      dateFrom: dateFrom || undefined,
+      dateTo: dateTo || undefined,
+      tenantId: canFilterByOrg ? tenantId || undefined : undefined,
+    }),
+    [debouncedSearch, module, debouncedActionType, dateFrom, dateTo, tenantId, canFilterByOrg],
+  );
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       setDebouncedSearch(search.trim());
       setDebouncedActionType(actionType.trim());
-      resetPage();
+      list.resetPage();
     }, SEARCH_DEBOUNCE_MS);
 
     return () => clearTimeout(timeoutId);
-  }, [search, actionType, resetPage]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search, actionType]);
 
   useEffect(() => {
-    resetPage();
-  }, [module, dateFrom, dateTo, tenantId, resetPage]);
+    list.resetPage();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [module, dateFrom, dateTo, tenantId]);
 
   useEffect(() => {
     if (!canFilterByOrg) {
@@ -49,48 +59,6 @@ export function useActivityLogsViewModel() {
       .then((result) => setTenants(result.tenants || result.items || []))
       .catch(() => setTenants([]));
   }, [canFilterByOrg]);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadLogs() {
-      try {
-        setLoading(true);
-        setError('');
-        const result = await inventoryApi.listActivityLogs({
-          page,
-          pageSize,
-          search: debouncedSearch,
-          module: module || undefined,
-          actionType: debouncedActionType || undefined,
-          dateFrom: dateFrom || undefined,
-          dateTo: dateTo || undefined,
-          tenantId: canFilterByOrg ? tenantId || undefined : undefined,
-        });
-        if (!cancelled) {
-          setLogs(result.items || []);
-          setTotal(result.total || 0);
-          setTotalPages(result.totalPages || 0);
-        }
-      } catch (requestError) {
-        if (!cancelled) {
-          setError(requestError.message);
-          setLogs([]);
-          setTotal(0);
-          setTotalPages(0);
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    }
-
-    loadLogs();
-    return () => {
-      cancelled = true;
-    };
-  }, [page, pageSize, debouncedSearch, module, debouncedActionType, dateFrom, dateTo, tenantId, canFilterByOrg]);
 
   return {
     search,
@@ -107,13 +75,13 @@ export function useActivityLogsViewModel() {
     setTenantId,
     tenants,
     canFilterByOrg,
-    logs,
-    total,
-    page,
-    pageSize,
-    totalPages,
-    setPage,
-    loading,
-    error,
+    logs: list.items,
+    total: list.total,
+    page: list.page,
+    pageSize: list.pageSize,
+    totalPages: list.totalPages,
+    setPage: list.setPage,
+    loading: list.loading,
+    error: list.error,
   };
 }

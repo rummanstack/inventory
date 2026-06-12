@@ -64,8 +64,24 @@ export const inventoryApi = {
     return apiRequest(`/users/${userId}`, { method: "PATCH", body: JSON.stringify(user) });
   },
 
-  deleteUser(userId) {
-    return apiRequest(`/users/${userId}`, { method: "DELETE" });
+  deleteUser(userId, reason) {
+    return apiRequest(`/users/${userId}`, { method: "DELETE", body: JSON.stringify({ reason }) });
+  },
+
+  listUsersTrash({ page, pageSize } = {}) {
+    const params = new URLSearchParams();
+    if (page) params.set("page", page);
+    if (pageSize) params.set("pageSize", pageSize);
+    const query = params.toString();
+    return apiRequest(`/users/trash${query ? `?${query}` : ""}`);
+  },
+
+  restoreUser(userId) {
+    return apiRequest(`/users/${userId}/restore`, { method: "POST" });
+  },
+
+  permanentlyDeleteUser(userId) {
+    return apiRequest(`/users/${userId}/permanent`, { method: "DELETE" });
   },
 
   updateProfile(fields) {

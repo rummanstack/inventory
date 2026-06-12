@@ -31,8 +31,32 @@ export class UserController {
 
   remove = async (req, res, next) => {
     try {
-      const users = await this.userService.deleteUser(req.params.id, req.currentUser);
+      const users = await this.userService.deleteUser(req.params.id, req.currentUser, req.body?.reason);
       res.json({ users });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  listTrash = async (req, res, next) => {
+    try {
+      res.json(await this.userService.listTrashedUsers(req.query, req.currentUser));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  restore = async (req, res, next) => {
+    try {
+      res.json(await this.userService.restoreUser(req.params.id, req.currentUser));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  permanentlyDelete = async (req, res, next) => {
+    try {
+      res.json(await this.userService.permanentlyDeleteUser(req.params.id, req.currentUser));
     } catch (error) {
       next(error);
     }

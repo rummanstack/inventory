@@ -157,10 +157,8 @@ export default function PrintableSheet({ sheet, printTarget = false, targetId })
         </div>
       </div>
 
-      <div className="mt-3 flex items-center gap-3">
-        <div className="h-px flex-1 bg-slate-950" />
+      <div className="mt-3 flex items-center justify-center">
         <p className="text-base font-black text-slate-950">New Due: {formatCurrency(sheet.dueAmount || 0)}</p>
-        <div className="h-px flex-1 bg-slate-950" />
       </div>
 
       <div className="mt-12 flex justify-between text-sm font-semibold text-slate-950">

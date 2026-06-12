@@ -121,10 +121,13 @@ export function createApiRouter({
     requirePermission(PERMISSIONS.MANAGE_USERS),
     userController.listPasswordResetRequests,
   );
+  router.get("/users/trash", requirePermission(PERMISSIONS.MANAGE_USERS), userController.listTrash);
   router.patch("/users/:id", requirePermission(PERMISSIONS.MANAGE_USERS), userController.update);
   router.delete("/users/:id", requirePermission(PERMISSIONS.MANAGE_USERS), userController.remove);
   router.post("/users/:id/reset-password", requirePermission(PERMISSIONS.MANAGE_USERS), userController.resetPassword);
   router.post("/users/:id/unlock", requirePermission(PERMISSIONS.MANAGE_USERS), userController.unlock);
+  router.post("/users/:id/restore", requirePermission(PERMISSIONS.MANAGE_USERS), userController.restore);
+  router.delete("/users/:id/permanent", requirePermission(PERMISSIONS.PERMANENT_DELETE), userController.permanentlyDelete);
 
   router.get("/activity-logs", requirePermission(PERMISSIONS.VIEW_ACTIVITY_LOGS), activityLogController.list);
   router.post("/audit/print", auditController.recordPrint);

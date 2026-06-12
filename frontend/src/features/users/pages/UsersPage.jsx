@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Copy, KeyRound, Pencil, Plus, Trash2, UserCog, Unlock } from 'lucide-react';
+import { Copy, KeyRound, Loader2, Pencil, Plus, Trash2, UserCog, Unlock } from 'lucide-react';
 import { Alert, Badge, EmptyState, Modal, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
@@ -20,6 +20,7 @@ export default function UsersPage() {
   const [userModal, setUserModal] = useState(null);
   const [tempPassword, setTempPassword] = useState(null);
   const [copied, setCopied] = useState(false);
+  const [deletingUserId, setDeletingUserId] = useState(null);
 
   async function load() {
     try {
@@ -62,6 +63,7 @@ export default function UsersPage() {
       return;
     }
 
+    setDeletingUserId(user.id);
     try {
       const result = await inventoryApi.deleteUser(user.id);
       setUsers(result.users || []);
@@ -70,6 +72,8 @@ export default function UsersPage() {
       const message = err?.message || t('users.deleteFailed');
       setError(message);
       pushToast('error', t('alerts.deleteFailed'), message);
+    } finally {
+      setDeletingUserId(null);
     }
   }
 
@@ -198,8 +202,14 @@ export default function UsersPage() {
                               </button>
                             ) : null}
                             {user.id !== actor?.id ? (
-                              <button type="button" className="icon-btn text-rose-600 hover:text-rose-700" title={t('common.delete')} onClick={() => handleDelete(user)}>
-                                <Trash2 size={16} />
+                              <button
+                                type="button"
+                                className="icon-btn text-rose-600 hover:text-rose-700 disabled:opacity-50"
+                                title={t('common.delete')}
+                                onClick={() => handleDelete(user)}
+                                disabled={deletingUserId === user.id}
+                              >
+                                {deletingUserId === user.id ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
                               </button>
                             ) : null}
                           </>

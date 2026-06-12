@@ -311,6 +311,19 @@ export function InventoryAppProvider({ children }) {
     }
   }
 
+  async function clearDamagedStock(productId, quantity, note) {
+    try {
+      const result = await inventoryApi.clearDamagedStock(productId, quantity, note);
+      upsertProductDirectory(result.product);
+      pushToast('success', t('damagedStock.clearTitle'), t('damagedStock.clearSuccess'));
+      return { ok: true };
+    } catch (error) {
+      const message = getFriendlyError(error, t);
+      pushToast('error', t('damagedStock.clearFailed'), message);
+      return { ok: false, message };
+    }
+  }
+
   async function saveDsr(dsr) {
     try {
       const result = dsr.id ? await inventoryApi.updateDsr(dsr) : await inventoryApi.createDsr(dsr);
@@ -613,6 +626,7 @@ export function InventoryAppProvider({ children }) {
       restoreProduct,
       permanentlyDeleteProduct,
       addStock,
+      clearDamagedStock,
       saveDsr,
       deleteDsr,
       restoreDsr,

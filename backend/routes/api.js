@@ -180,6 +180,7 @@ export function createApiRouter({
   router.put("/products/:id", requirePermission(PERMISSIONS.MANAGE_PRODUCTS), productController.update);
   router.delete("/products/:id", requirePermission(PERMISSIONS.MANAGE_PRODUCTS), productController.remove);
   router.post("/products/:id/stock", requirePermission(PERMISSIONS.MANAGE_PRODUCTS), productController.addStock);
+  router.post("/products/:id/clear-damage", requirePermission(PERMISSIONS.MANAGE_PRODUCTS), productController.clearDamage);
   router.post("/products/:id/restore", requirePermission(PERMISSIONS.MANAGE_PRODUCTS), productController.restore);
   router.delete("/products/:id/permanent", requirePermission(PERMISSIONS.PERMANENT_DELETE), productController.permanentlyDelete);
   router.get("/stock-movements", requirePermission(PERMISSIONS.VIEW_STATE), stockMovementController.list);

@@ -352,11 +352,16 @@ export const inventoryApi = {
     return apiRequest(`/products/${productId}/stock`, { method: "POST", body: JSON.stringify({ addPieces, reason }) });
   },
 
-  listStockMovements({ page, pageSize, productId, dateFrom, dateTo } = {}) {
+  clearDamagedStock(productId, quantity, note) {
+    return apiRequest(`/products/${productId}/clear-damage`, { method: "POST", body: JSON.stringify({ quantity, note }) });
+  },
+
+  listStockMovements({ page, pageSize, productId, type, dateFrom, dateTo } = {}) {
     const params = new URLSearchParams();
     if (page) params.set("page", page);
     if (pageSize) params.set("pageSize", pageSize);
     if (productId) params.set("productId", productId);
+    if (type) params.set("type", type);
     if (dateFrom) params.set("dateFrom", dateFrom);
     if (dateTo) params.set("dateTo", dateTo);
     const query = params.toString();

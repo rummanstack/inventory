@@ -735,6 +735,54 @@ export class InventoryService {
     });
   }
 
+  async clearDamagedStock(productId, quantityInput, actor, note) {
+    const quantity = cleanInteger(quantityInput);
+    assert(quantity > 0, "Quantity must be greater than zero.");
+
+    return this.databaseManager.withTransaction(async (client) => {
+      const existingResult = await findProductForUpdate(client, productId, actor.tenantId);
+      assert(existingResult.rowCount > 0, "Product not found.", 404);
+      const previousDamaged = Number(existingResult.rows[0].damaged_pieces || 0);
+      assert(quantity <= previousDamaged, "Quantity exceeds damaged stock.");
+
+      const result = await client.query(
+        `UPDATE products
+         SET damaged_pieces = damaged_pieces - $3
+         WHERE id = $1 AND tenant_id = $2
+         RETURNING *`,
+        [productId, actor.tenantId, quantity],
+      );
+      const product = result.rows[0];
+      await recordStockMovement(client, {
+        tenantId: actor.tenantId,
+        productId,
+        type: STOCK_MOVEMENT_TYPES.DAMAGE_CLEAR,
+        quantityIn: 0,
+        quantityOut: quantity,
+        balanceAfter: Number(product.damaged_pieces || 0),
+        referenceType: "product_damage",
+        referenceId: productId,
+        note: note || `Damaged stock cleared by ${actor.name}`,
+        createdById: actor.id,
+      });
+      const { before, after } = diffFields(
+        { damagedPieces: previousDamaged },
+        { damagedPieces: Number(product.damaged_pieces || 0) },
+        ["damagedPieces"],
+      );
+      await this.recordActivity(client, actor, {
+        actionType: "product.damage_clear",
+        entityType: "product",
+        entityId: productId,
+        description: `${actor.name} cleared damaged stock for product ${productId}`,
+        metadata: { quantity },
+        before,
+        after,
+      });
+      return mapProduct(product);
+    });
+  }
+
   async saveDsr(input, actor) {
     const dsr = normalizeDsr(input);
     assert(dsr.name && dsr.phone && dsr.area, "Name, phone, and area are required.");

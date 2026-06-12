@@ -54,6 +54,15 @@ export class ProductController {
     }
   };
 
+  clearDamage = async (req, res, next) => {
+    try {
+      const product = await this.inventoryService.clearDamagedStock(req.params.id, req.body.quantity, req.currentUser, req.body.note);
+      res.json({ product });
+    } catch (error) {
+      next(error);
+    }
+  };
+
   listTrash = async (req, res, next) => {
     try {
       res.json(await this.inventoryService.listTrashedProducts(req.query, req.currentUser));

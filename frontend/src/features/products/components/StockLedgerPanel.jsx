@@ -36,7 +36,7 @@ function formatReference(movement) {
   return `${movement.referenceType || 'reference'} / ${shortId}`;
 }
 
-export default function StockLedgerPanel({ products, t, refreshKey = 0 }) {
+export default function StockLedgerPanel({ products, t, refreshKey = 0, fixedType }) {
   const today = todayISO();
   const [productId, setProductId] = useState('');
   const [dateFrom, setDateFrom] = useState(subtractDays(today, 29));
@@ -64,6 +64,7 @@ export default function StockLedgerPanel({ products, t, refreshKey = 0 }) {
           page,
           pageSize: LEDGER_PAGE_SIZE,
           productId,
+          type: fixedType,
           dateFrom,
           dateTo,
         });
@@ -91,7 +92,7 @@ export default function StockLedgerPanel({ products, t, refreshKey = 0 }) {
     return () => {
       cancelled = true;
     };
-  }, [page, productId, dateFrom, dateTo, version, refreshKey]);
+  }, [page, productId, dateFrom, dateTo, version, refreshKey, fixedType]);
 
   return (
     <section className="surface mt-6 overflow-hidden">

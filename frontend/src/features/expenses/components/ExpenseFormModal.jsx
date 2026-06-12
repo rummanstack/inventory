@@ -15,7 +15,7 @@ const EXPENSE_CATEGORY_KEYS = [
 ];
 
 export default function ExpenseFormModal({ expense, defaultDate, onClose, onSave }) {
-  const { t } = useInventoryApp();
+  const { t, pushToast } = useInventoryApp();
   const isEdit = Boolean(expense);
   const initialDate = expense?.date || defaultDate;
   const [form, setForm] = useState({
@@ -59,6 +59,18 @@ export default function ExpenseFormModal({ expense, defaultDate, onClose, onSave
     if (isEdit && !reason.trim()) {
       setError(t('common.editReasonRequired'));
       return;
+    }
+
+    if (isEdit) {
+      const unchanged =
+        form.date === expense.date &&
+        form.category === expense.category &&
+        amount === Number(expense.amount) &&
+        form.note.trim() === (expense.note || '');
+      if (unchanged) {
+        pushToast('info', t('expenses.editTitle'), t('alerts.noChanges'));
+        return;
+      }
     }
 
     setSaving(true);

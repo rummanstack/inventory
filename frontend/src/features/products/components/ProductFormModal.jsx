@@ -5,7 +5,7 @@ import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { cleanNumber } from '../../../utils/calculations.js';
 
 export default function ProductFormModal({ product, onClose, onSave }) {
-  const { t } = useInventoryApp();
+  const { t, pushToast } = useInventoryApp();
   const isEdit = Boolean(product);
   const [form, setForm] = useState({
     name: product?.name || '',
@@ -37,9 +37,7 @@ export default function ProductFormModal({ product, onClose, onSave }) {
       return;
     }
 
-    setSaving(true);
-    setError('');
-    const result = await onSave({
+    const payload = {
       id: product?.id,
       name: form.name.trim(),
       category: form.category.trim(),
@@ -47,7 +45,25 @@ export default function ProductFormModal({ product, onClose, onSave }) {
       purchasePrice,
       sellingPrice,
       orderIndex: form.orderIndex === '' ? null : Number(form.orderIndex),
-    });
+    };
+
+    if (isEdit) {
+      const unchanged =
+        payload.name === product.name &&
+        payload.category === product.category &&
+        payload.piecesPerCase === product.piecesPerCase &&
+        payload.purchasePrice === product.purchasePrice &&
+        payload.sellingPrice === product.sellingPrice &&
+        payload.orderIndex === (product.orderIndex ?? null);
+      if (unchanged) {
+        pushToast('info', t('products.editTitle'), t('alerts.noChanges'));
+        return;
+      }
+    }
+
+    setSaving(true);
+    setError('');
+    const result = await onSave(payload);
     setSaving(false);
 
     if (!result?.ok) {

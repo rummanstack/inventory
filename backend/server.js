@@ -9,7 +9,10 @@ import { DsrFinanceService } from './services/dsrFinanceService.js';
 import { MonthEndSummaryService } from './services/monthEndSummaryService.js';
 import { ExpenseService } from './services/expenseService.js';
 import { ProfitService } from './services/profitService.js';
-import { InventoryService } from './services/inventoryService.js';
+import { ProductService } from './services/productService.js';
+import { DsrService } from './services/dsrService.js';
+import { IssueService } from './services/issueService.js';
+import { SettlementService } from './services/settlementService.js';
 import { UserService } from './services/userService.js';
 import { BackupService } from './services/backupService.js';
 import { StockMovementService } from './services/stockMovementService.js';
@@ -29,7 +32,10 @@ async function start() {
 
   const auditService = new AuditService(databaseManager);
   const authService = new AuthService(databaseManager, { sessionDays: env.SESSION_DAYS, auditService });
-  const inventoryService = new InventoryService(databaseManager, { auditService });
+  const productService = new ProductService(databaseManager, { auditService });
+  const dsrService = new DsrService(databaseManager, { auditService });
+  const issueService = new IssueService(databaseManager, { auditService });
+  const settlementService = new SettlementService(databaseManager, { auditService });
   const userService = new UserService(databaseManager, { auditService });
   const expenseService = new ExpenseService(databaseManager, { auditService });
   const dsrFinanceService = new DsrFinanceService(databaseManager, { auditService });
@@ -43,7 +49,7 @@ async function start() {
   const permissionService = new PermissionService(databaseManager, { auditService });
   const systemService = new SystemService(databaseManager);
   const errorLogService = new ErrorLogService(databaseManager);
-  const app = createApp({ authService, env, inventoryService, auditService, userService, expenseService, dsrFinanceService, monthEndSummaryService, profitService, backupService, stockMovementService, dsrDueLedgerService, customerService, databaseManager, tenantService, permissionService, systemService, errorLogService });
+  const app = createApp({ authService, env, productService, dsrService, issueService, settlementService, auditService, userService, expenseService, dsrFinanceService, monthEndSummaryService, profitService, backupService, stockMovementService, dsrDueLedgerService, customerService, databaseManager, tenantService, permissionService, systemService, errorLogService });
 
   app.listen(env.PORT, () => {
     console.log(`Server running on http://localhost:${env.PORT}`);

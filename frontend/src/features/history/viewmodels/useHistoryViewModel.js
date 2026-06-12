@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { inventoryApi } from '../../../services/inventoryApi';
-import { usePagination } from '../../../hooks/usePagination';
+import { usePagedList } from '../../../hooks/usePagedList';
 import { buildHistoryRows } from '../../../models/inventoryViewData.js';
 
 const SEARCH_DEBOUNCE_MS = 300;
@@ -14,69 +14,36 @@ export function useHistoryViewModel(type) {
   const loadPage = LOADERS[type];
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
-  const { page, setPage, pageSize, resetPage } = usePagination();
-  const [items, setItems] = useState([]);
-  const [total, setTotal] = useState(0);
-  const [totalPages, setTotalPages] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+
+  const list = usePagedList(
+    ({ page, pageSize }) => loadPage({ page, pageSize, search: debouncedSearch }),
+    [debouncedSearch],
+  );
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       setDebouncedSearch(search.trim());
-      resetPage();
+      list.resetPage();
     }, SEARCH_DEBOUNCE_MS);
 
     return () => clearTimeout(timeoutId);
-  }, [search, resetPage]);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function load() {
-      try {
-        setLoading(true);
-        setError('');
-        const result = await loadPage({ page, pageSize, search: debouncedSearch });
-        if (!cancelled) {
-          setItems(result.items || []);
-          setTotal(result.total || 0);
-          setTotalPages(result.totalPages || 0);
-        }
-      } catch (requestError) {
-        if (!cancelled) {
-          setError(requestError.message);
-          setItems([]);
-          setTotal(0);
-          setTotalPages(0);
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    }
-
-    load();
-    return () => {
-      cancelled = true;
-    };
-  }, [loadPage, page, pageSize, debouncedSearch]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search]);
 
   const rows = type === 'issues'
-    ? buildHistoryRows({ issues: items, settlements: [] })
-    : buildHistoryRows({ issues: [], settlements: items });
+    ? buildHistoryRows({ issues: list.items, settlements: [] })
+    : buildHistoryRows({ issues: [], settlements: list.items });
 
   return {
     search,
     setSearch,
     rows,
-    total,
-    page,
-    pageSize,
-    totalPages,
-    setPage,
-    loading,
-    error,
+    total: list.total,
+    page: list.page,
+    pageSize: list.pageSize,
+    totalPages: list.totalPages,
+    setPage: list.setPage,
+    loading: list.loading,
+    error: list.error,
   };
 }

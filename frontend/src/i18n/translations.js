@@ -99,9 +99,12 @@
     },
     navGroups: {
       overview: 'Overview',
+      inventory: 'Inventory',
       operations: 'Operations',
+      reports: 'Reports',
       finance: 'Finance',
       governance: 'Governance',
+      settings: 'Settings',
       developer: 'Developer',
     },
     permissions: {
@@ -1090,9 +1093,12 @@
     },
     navGroups: {
       overview: 'ওভারভিউ',
+      inventory: 'ইনভেন্টরি',
       operations: 'অপারেশনস',
+      reports: 'রিপোর্ট',
       finance: 'ফাইন্যান্স',
       governance: 'গভর্নেন্স',
+      settings: 'সেটিংস',
       developer: 'ডেভেলপার',
     },
     permissions: {

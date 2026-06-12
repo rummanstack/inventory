@@ -5,7 +5,7 @@ import { APP_ROUTES } from './routes';
 import LanguageSwitcher from './LanguageSwitcher';
 
 export default function AppSidebar({ mobileOpen, setMobileOpen, user, tenant, language, onLanguageChange, onLogout, t, can, hasFeature }) {
-  const sections = ['overview', 'operations', 'finance', 'governance', 'developer'];
+  const sections = ['overview', 'inventory', 'operations', 'reports', 'finance', 'governance', 'settings', 'developer'];
   const groupedRoutes = sections
     .map((section) => ({
       section,
@@ -14,7 +14,10 @@ export default function AppSidebar({ mobileOpen, setMobileOpen, user, tenant, la
         if (route.group !== section) return false;
         if (section === 'developer') {
           if (user?.role === 'system_developer') return true;
-          return route.role ? user?.role === route.role : false;
+          if (route.role) return user?.role === route.role;
+          if (route.roles) return route.roles.includes(user?.role);
+          if (route.permission) return can(route.permission);
+          return false;
         }
         if (user?.role === 'system_developer') return route.id !== 'org-settings';
         if (route.permission && !can(route.permission)) return false;

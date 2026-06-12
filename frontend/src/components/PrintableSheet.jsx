@@ -66,34 +66,34 @@ export default function PrintableSheet({ sheet, printTarget = false, targetId })
       </div>
 
       <div className="mt-4 overflow-x-auto">
-        <table className="w-full border-collapse text-left text-xs">
+        <table className="w-full border-collapse text-center align-middle text-[10px]">
           <thead>
             <tr className="bg-slate-950 text-white">
-              <th className="border border-slate-800 px-2 py-2">SL</th>
-              <th className="border border-slate-800 px-2 py-2">Product</th>
-              <th className="border border-slate-800 px-2 py-2">Issue</th>
-              <th className="border border-slate-800 px-2 py-2">Return</th>
-              <th className="border border-slate-800 px-2 py-2">Damage</th>
-              <th className="border border-slate-800 px-2 py-2">Sold</th>
-              <th className="border border-slate-800 px-2 py-2 text-right">Rate</th>
-              <th className="border border-slate-800 px-2 py-2 text-right">Sale</th>
-              <th className="border border-slate-800 px-2 py-2 text-right">Return Value</th>
+              <th className="border border-slate-800 px-1.5 py-1 align-middle">SL</th>
+              <th className="border border-slate-800 px-1.5 py-1 align-middle">Product</th>
+              <th className="border border-slate-800 px-1.5 py-1 align-middle">Issue</th>
+              <th className="border border-slate-800 px-1.5 py-1 align-middle">Return</th>
+              <th className="border border-slate-800 px-1.5 py-1 align-middle">Damage</th>
+              <th className="border border-slate-800 px-1.5 py-1 align-middle">Sold</th>
+              <th className="border border-slate-800 px-1.5 py-1 align-middle">Rate</th>
+              <th className="border border-slate-800 px-1.5 py-1 align-middle">Sale</th>
+              <th className="border border-slate-800 px-1.5 py-1 align-middle">Return Value</th>
             </tr>
           </thead>
           <tbody>
             {tableRows.map((item, index) => (
               <tr key={item.id || `${item.productId}-${item.rate}-${index}`} className="print-break-inside-avoid">
-                <td className="border border-slate-300 px-2 py-2 font-semibold">{index + 1}</td>
-                <td className="border border-slate-300 px-2 py-2 font-semibold text-slate-950">
+                <td className="border border-slate-300 px-1.5 py-1 align-middle font-semibold">{index + 1}</td>
+                <td className="border border-slate-300 px-1.5 py-1 align-middle font-semibold text-slate-950">
                   {item.productName}
                 </td>
-                <td className="border border-slate-300 px-2 py-2">{formatCasePiece(item.issuedPieces, item.piecesPerCase)}</td>
-                <td className="border border-slate-300 px-2 py-2">{formatCasePiece(item.returnedPieces, item.piecesPerCase)}</td>
-                <td className="border border-slate-300 px-2 py-2">{formatCasePiece(item.damagedPieces, item.piecesPerCase)}</td>
-                <td className="border border-slate-300 px-2 py-2">{formatCasePiece(item.soldPieces, item.piecesPerCase)}</td>
-                <td className="border border-slate-300 px-2 py-2 text-right">{formatCurrency(item.rate)}</td>
-                <td className="border border-slate-300 px-2 py-2 text-right font-bold">{formatCurrency(item.payable)}</td>
-                <td className="border border-slate-300 px-2 py-2 text-right font-bold text-rose-700">
+                <td className="border border-slate-300 px-1.5 py-1 align-middle">{formatCasePiece(item.issuedPieces, item.piecesPerCase)}</td>
+                <td className="border border-slate-300 px-1.5 py-1 align-middle">{formatCasePiece(item.returnedPieces, item.piecesPerCase)}</td>
+                <td className="border border-slate-300 px-1.5 py-1 align-middle">{formatCasePiece(item.damagedPieces, item.piecesPerCase)}</td>
+                <td className="border border-slate-300 px-1.5 py-1 align-middle">{formatCasePiece(item.soldPieces, item.piecesPerCase)}</td>
+                <td className="border border-slate-300 px-1.5 py-1 align-middle">{formatCurrency(item.rate)}</td>
+                <td className="border border-slate-300 px-1.5 py-1 align-middle font-bold">{formatCurrency(item.payable)}</td>
+                <td className="border border-slate-300 px-1.5 py-1 align-middle font-bold text-rose-700">
                   {item.returnValue > 0 ? `- ${formatCurrency(item.returnValue)}` : formatCurrency(0)}
                 </td>
               </tr>
@@ -101,59 +101,59 @@ export default function PrintableSheet({ sheet, printTarget = false, targetId })
           </tbody>
           <tfoot>
             <tr className="bg-slate-100 font-bold text-slate-950">
-              <td className="border border-slate-300 px-2 py-2" colSpan="2">
+              <td className="border border-slate-300 px-1.5 py-1 align-middle" colSpan="2">
                 Total
               </td>
-              <td className="border border-slate-300 px-2 py-2">{formatNumber(totalIssued)} pcs</td>
-              <td className="border border-slate-300 px-2 py-2">{formatNumber(totalReturned)} pcs</td>
-              <td className="border border-slate-300 px-2 py-2">{formatNumber(totalDamaged)} pcs</td>
-              <td className="border border-slate-300 px-2 py-2">{formatNumber(totalSold)} pcs</td>
-              <td className="border border-slate-300 px-2 py-2 text-right">Grand Total</td>
-              <td className="border border-slate-300 px-2 py-2 text-right">{formatCurrency(sheet.totalPayable)}</td>
-              <td className="border border-slate-300 px-2 py-2 text-right text-rose-700">- {formatCurrency(totalReturnValue)}</td>
+              <td className="border border-slate-300 px-1.5 py-1 align-middle">{formatNumber(totalIssued)} pcs</td>
+              <td className="border border-slate-300 px-1.5 py-1 align-middle">{formatNumber(totalReturned)} pcs</td>
+              <td className="border border-slate-300 px-1.5 py-1 align-middle">{formatNumber(totalDamaged)} pcs</td>
+              <td className="border border-slate-300 px-1.5 py-1 align-middle">{formatNumber(totalSold)} pcs</td>
+              <td className="border border-slate-300 px-1.5 py-1 align-middle">Grand Total</td>
+              <td className="border border-slate-300 px-1.5 py-1 align-middle">{formatCurrency(sheet.totalPayable)}</td>
+              <td className="border border-slate-300 px-1.5 py-1 align-middle text-rose-700">- {formatCurrency(totalReturnValue)}</td>
             </tr>
           </tfoot>
         </table>
       </div>
 
-      <div className="mt-6 flex flex-wrap items-end justify-end gap-x-4 gap-y-2 border-b border-slate-200 pb-3 text-sm">
+      <div className="mt-6 flex flex-nowrap items-end justify-between gap-x-2 border-b border-slate-200 pb-3 text-sm">
         <div className="text-center">
-          <p className="text-[10px] font-bold uppercase text-slate-500">Product</p>
-          <p className="font-bold text-slate-950">{formatCurrency(totalReturnValue > 0 ? sheet.grossIssueValue || 0 : sheet.totalPayable)}</p>
+          <p className="whitespace-nowrap text-[9px] font-bold uppercase text-slate-500">Product</p>
+          <p className="whitespace-nowrap font-bold text-slate-950">{formatCurrency(totalReturnValue > 0 ? sheet.grossIssueValue || 0 : sheet.totalPayable)}</p>
         </div>
         {totalReturnValue > 0 ? (
           <>
             <span className="text-slate-300">|</span>
             <div className="text-center">
-              <p className="text-[10px] font-bold uppercase text-slate-500">Return Value</p>
-              <p className="font-bold text-slate-950">- {formatCurrency(totalReturnValue)}</p>
+              <p className="whitespace-nowrap text-[9px] font-bold uppercase text-slate-500">Return Value</p>
+              <p className="whitespace-nowrap font-bold text-slate-950">- {formatCurrency(totalReturnValue)}</p>
             </div>
           </>
         ) : null}
         <span className="text-slate-300">|</span>
         <div className="text-center">
-          <p className="text-[10px] font-bold uppercase text-slate-500">Sale</p>
-          <p className="font-bold text-slate-950">{formatCurrency((sheet.totalPayable || 0) - (sheet.extraReturnValue || 0))}</p>
+          <p className="whitespace-nowrap text-[9px] font-bold uppercase text-slate-500">Sale</p>
+          <p className="whitespace-nowrap font-bold text-slate-950">{formatCurrency((sheet.totalPayable || 0) - (sheet.extraReturnValue || 0))}</p>
         </div>
         <span className="text-slate-300">|</span>
         <div className="text-center">
-          <p className="text-[10px] font-bold uppercase text-slate-500">Prev Due</p>
-          <p className="font-bold text-slate-950">+ {formatCurrency(sheet.previousDue || 0)}</p>
+          <p className="whitespace-nowrap text-[9px] font-bold uppercase text-slate-500">Prev Due</p>
+          <p className="whitespace-nowrap font-bold text-slate-950">+ {formatCurrency(sheet.previousDue || 0)}</p>
         </div>
         <span className="text-slate-300">|</span>
         <div className="text-center">
-          <p className="text-[10px] font-bold uppercase text-slate-500">Discount</p>
-          <p className="font-bold text-slate-950">- {formatCurrency(sheet.discount || 0)}</p>
+          <p className="whitespace-nowrap text-[9px] font-bold uppercase text-slate-500">Discount</p>
+          <p className="whitespace-nowrap font-bold text-slate-950">- {formatCurrency(sheet.discount || 0)}</p>
         </div>
         <span className="text-slate-300">|</span>
         <div className="text-center">
-          <p className="text-[10px] font-bold uppercase text-slate-500">Receivable</p>
-          <p className="font-bold text-slate-950">{formatCurrency(sheet.totalReceivable || 0)}</p>
+          <p className="whitespace-nowrap text-[9px] font-bold uppercase text-slate-500">Receivable</p>
+          <p className="whitespace-nowrap font-bold text-slate-950">{formatCurrency(sheet.totalReceivable || 0)}</p>
         </div>
         <span className="text-slate-300">|</span>
         <div className="text-center">
-          <p className="text-[10px] font-bold uppercase text-slate-500">Paid</p>
-          <p className="font-bold text-slate-950">- {formatCurrency(sheet.amountPaid || 0)}</p>
+          <p className="whitespace-nowrap text-[9px] font-bold uppercase text-slate-500">Paid</p>
+          <p className="whitespace-nowrap text-base font-black text-slate-950">- {formatCurrency(sheet.amountPaid || 0)}</p>
         </div>
       </div>
 

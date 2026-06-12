@@ -3,6 +3,7 @@ import { diffFields } from "../lib/auditDiff.js";
 import { parsePagination, buildPageResult } from "../lib/pagination.js";
 import { STOCK_MOVEMENT_TYPES } from "../lib/stockMovements.js";
 import { cleanInteger, normalizeProduct } from "../lib/normalizers.js";
+import { PRODUCT_ACTIONS } from "../lib/auditActions.js";
 import {
   addProductStock,
   countProducts,
@@ -18,7 +19,7 @@ import {
   mapProduct,
   updateProduct,
 } from "../repositories/productRepository.js";
-import { recordActivity, recordStockMovement } from "./shared/inventoryHelpers.js";
+import { logActivity, recordStockMovement } from "./shared/inventoryHelpers.js";
 
 export class ProductService {
   constructor(databaseManager, { auditService }) {
@@ -27,7 +28,7 @@ export class ProductService {
   }
 
   recordActivity(client, actor, payload) {
-    return recordActivity(this.auditService, client, actor, payload);
+    return logActivity(this.auditService, client, actor, payload);
   }
 
   async listProducts(query = {}, actor) {
@@ -35,26 +36,20 @@ export class ProductService {
     const search = String(query.search || "").trim();
     const tenantId = actor.tenantId;
 
-    const client = await this.databaseManager.getPool().connect();
-    try {
+    return this.databaseManager.withClient(async (client) => {
       const [items, total] = await Promise.all([
         listProductsPage(client, { search, tenantId, limit, offset }),
         countProducts(client, { search, tenantId }),
       ]);
 
       return buildPageResult({ items, total, page, pageSize });
-    } finally {
-      client.release();
-    }
+    });
   }
 
   async getProductsDirectory(actor) {
-    const client = await this.databaseManager.getPool().connect();
-    try {
-      return { products: await listAllActiveProductsLite(client, actor.tenantId) };
-    } finally {
-      client.release();
-    }
+    return this.databaseManager.withClient(async (client) => ({
+      products: await listAllActiveProductsLite(client, actor.tenantId),
+    }));
   }
 
   async saveProduct(input, actor) {
@@ -87,7 +82,7 @@ export class ProductService {
         result = await updateProduct(client, nextProduct);
         assert(result.rowCount > 0, "Product not found.", 404);
         await this.recordActivity(client, actor, {
-          actionType: "product.update",
+          actionType: PRODUCT_ACTIONS.UPDATE,
           entityType: "product",
           entityId: nextProduct.id,
           description: `${actor.name} updated product ${nextProduct.name}`,
@@ -102,7 +97,7 @@ export class ProductService {
         product.tenantId = actor.tenantId;
         result = await insertProduct(client, product);
         await this.recordActivity(client, actor, {
-          actionType: "product.create",
+          actionType: PRODUCT_ACTIONS.CREATE,
           entityType: "product",
           entityId: product.id,
           description: `${actor.name} created product ${product.name}`,
@@ -122,7 +117,7 @@ export class ProductService {
       });
       assert(result.rowCount > 0, "Product not found.", 404);
       await this.recordActivity(client, actor, {
-        actionType: "product.delete",
+        actionType: PRODUCT_ACTIONS.DELETE,
         entityType: "product",
         entityId: productId,
         description: `${actor.name} moved product ${productId} to trash${reason ? ` (${reason})` : ""}`,
@@ -136,7 +131,7 @@ export class ProductService {
       const result = await restoreProduct(client, productId, actor.tenantId);
       assert(result.rowCount > 0, "Product not found in trash.", 404);
       await this.recordActivity(client, actor, {
-        actionType: "product.restore",
+        actionType: PRODUCT_ACTIONS.RESTORE,
         entityType: "product",
         entityId: productId,
         description: `${actor.name} restored product ${result.rows[0].name} from trash`,
@@ -150,7 +145,7 @@ export class ProductService {
       const result = await permanentlyDeleteProduct(client, productId, actor.tenantId);
       assert(result.rowCount > 0, "Product not found in trash.", 404);
       await this.recordActivity(client, actor, {
-        actionType: "product.permanent_delete",
+        actionType: PRODUCT_ACTIONS.PERMANENT_DELETE,
         entityType: "product",
         entityId: productId,
         description: `${actor.name} permanently deleted product ${productId}`,
@@ -163,17 +158,14 @@ export class ProductService {
     const { page, pageSize, limit, offset } = parsePagination(query);
     const tenantId = actor.tenantId;
 
-    const client = await this.databaseManager.getPool().connect();
-    try {
+    return this.databaseManager.withClient(async (client) => {
       const [items, total] = await Promise.all([
         listTrashedProducts(client, { tenantId, limit, offset }),
         countTrashedProducts(client, tenantId),
       ]);
 
       return buildPageResult({ items, total, page, pageSize });
-    } finally {
-      client.release();
-    }
+    });
   }
 
   async addStock(productId, addPiecesInput, actor, reason) {
@@ -206,7 +198,7 @@ export class ProductService {
         ["stockPieces"],
       );
       await this.recordActivity(client, actor, {
-        actionType: "product.stock_add",
+        actionType: PRODUCT_ACTIONS.STOCK_ADD,
         entityType: "product",
         entityId: productId,
         description: `${actor.name} added stock to product ${productId}`,
@@ -255,7 +247,7 @@ export class ProductService {
         ["damagedPieces"],
       );
       await this.recordActivity(client, actor, {
-        actionType: "product.damage_clear",
+        actionType: PRODUCT_ACTIONS.DAMAGE_CLEAR,
         entityType: "product",
         entityId: productId,
         description: `${actor.name} cleared damaged stock for product ${productId}`,

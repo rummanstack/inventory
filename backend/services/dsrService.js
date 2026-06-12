@@ -3,6 +3,7 @@ import { diffFields } from "../lib/auditDiff.js";
 import { parsePagination, buildPageResult } from "../lib/pagination.js";
 import { normalizeDsr } from "../lib/normalizers.js";
 import { DSR_DUE_LEDGER_TYPES } from "../lib/dsrDueLedger.js";
+import { DSR_ACTIONS } from "../lib/auditActions.js";
 import { getLatestDueLedgerEntry } from "../repositories/dsrDueLedgerRepository.js";
 import {
   syncDsrHistory,
@@ -19,7 +20,7 @@ import {
   mapDsr,
   updateDsr,
 } from "../repositories/dsrRepository.js";
-import { recordActivity, recordDueLedgerEntry } from "./shared/inventoryHelpers.js";
+import { logActivity, recordDueLedgerEntry } from "./shared/inventoryHelpers.js";
 
 export class DsrService {
   constructor(databaseManager, { auditService }) {
@@ -28,7 +29,7 @@ export class DsrService {
   }
 
   recordActivity(client, actor, payload) {
-    return recordActivity(this.auditService, client, actor, payload);
+    return logActivity(this.auditService, client, actor, payload);
   }
 
   async listDsrs(query = {}, actor) {
@@ -36,26 +37,20 @@ export class DsrService {
     const search = String(query.search || "").trim();
     const tenantId = actor.tenantId;
 
-    const client = await this.databaseManager.getPool().connect();
-    try {
+    return this.databaseManager.withClient(async (client) => {
       const [items, total] = await Promise.all([
         listDsrsPage(client, { search, tenantId, limit, offset }),
         countDsrs(client, { search, tenantId }),
       ]);
 
       return buildPageResult({ items, total, page, pageSize });
-    } finally {
-      client.release();
-    }
+    });
   }
 
   async getDsrsDirectory(actor) {
-    const client = await this.databaseManager.getPool().connect();
-    try {
-      return { dsrs: await listAllActiveDsrsLite(client, actor.tenantId) };
-    } finally {
-      client.release();
-    }
+    return this.databaseManager.withClient(async (client) => ({
+      dsrs: await listAllActiveDsrsLite(client, actor.tenantId),
+    }));
   }
 
   async saveDsr(input, actor) {
@@ -102,7 +97,7 @@ export class DsrService {
             ["openingDue"],
           );
           await this.recordActivity(client, actor, {
-            actionType: "dsr.due_adjustment",
+            actionType: DSR_ACTIONS.DUE_ADJUSTMENT,
             entityType: "dsr",
             entityId: dsr.id,
             module: "due-ledger",
@@ -114,7 +109,7 @@ export class DsrService {
         }
 
         await this.recordActivity(client, actor, {
-          actionType: "dsr.update",
+          actionType: DSR_ACTIONS.UPDATE,
           entityType: "dsr",
           entityId: dsr.id,
           description: `${actor.name} updated DSR ${dsr.name}`,
@@ -140,7 +135,7 @@ export class DsrService {
         }
 
         await this.recordActivity(client, actor, {
-          actionType: "dsr.create",
+          actionType: DSR_ACTIONS.CREATE,
           entityType: "dsr",
           entityId: dsr.id,
           description: `${actor.name} created DSR ${dsr.name}`,
@@ -160,7 +155,7 @@ export class DsrService {
       });
       assert(result.rowCount > 0, "DSR not found.", 404);
       await this.recordActivity(client, actor, {
-        actionType: "dsr.delete",
+        actionType: DSR_ACTIONS.DELETE,
         entityType: "dsr",
         entityId: dsrId,
         description: `${actor.name} moved DSR ${dsrId} to trash${reason ? ` (${reason})` : ""}`,
@@ -174,7 +169,7 @@ export class DsrService {
       const result = await restoreDsr(client, dsrId, actor.tenantId);
       assert(result.rowCount > 0, "DSR not found in trash.", 404);
       await this.recordActivity(client, actor, {
-        actionType: "dsr.restore",
+        actionType: DSR_ACTIONS.RESTORE,
         entityType: "dsr",
         entityId: dsrId,
         description: `${actor.name} restored DSR ${result.rows[0].name} from trash`,
@@ -188,7 +183,7 @@ export class DsrService {
       const result = await permanentlyDeleteDsr(client, dsrId, actor.tenantId);
       assert(result.rowCount > 0, "DSR not found in trash.", 404);
       await this.recordActivity(client, actor, {
-        actionType: "dsr.permanent_delete",
+        actionType: DSR_ACTIONS.PERMANENT_DELETE,
         entityType: "dsr",
         entityId: dsrId,
         description: `${actor.name} permanently deleted DSR ${dsrId}`,
@@ -201,16 +196,13 @@ export class DsrService {
     const { page, pageSize, limit, offset } = parsePagination(query);
     const tenantId = actor.tenantId;
 
-    const client = await this.databaseManager.getPool().connect();
-    try {
+    return this.databaseManager.withClient(async (client) => {
       const [items, total] = await Promise.all([
         listTrashedDsrs(client, { tenantId, limit, offset }),
         countTrashedDsrs(client, tenantId),
       ]);
 
       return buildPageResult({ items, total, page, pageSize });
-    } finally {
-      client.release();
-    }
+    });
   }
 }

@@ -14,7 +14,8 @@ import {
   updateIssue,
 } from "../repositories/issueRepository.js";
 import { findSettlementByDateAndDsr } from "../repositories/settlementRepository.js";
-import { recordActivity, lockProducts, recordStockMovement, sumPiecesByProduct } from "./shared/inventoryHelpers.js";
+import { ISSUE_ACTIONS } from "../lib/auditActions.js";
+import { logActivity, lockProducts, recordStockMovement, sumPiecesByProduct } from "./shared/inventoryHelpers.js";
 
 async function buildTrustedIssueItems(client, inputItems, previousItems, tenantId) {
   const totals = sumPiecesByProduct(inputItems, "issuedPieces");
@@ -86,7 +87,7 @@ export class IssueService {
   }
 
   recordActivity(client, actor, payload) {
-    return recordActivity(this.auditService, client, actor, payload);
+    return logActivity(this.auditService, client, actor, payload);
   }
 
   async listIssues(query = {}, actor) {
@@ -99,17 +100,14 @@ export class IssueService {
       search: String(query.search || "").trim() || undefined,
     };
 
-    const client = await this.databaseManager.getPool().connect();
-    try {
+    return this.databaseManager.withClient(async (client) => {
       const [items, total] = await Promise.all([
         listIssuesPage(client, { ...filters, limit, offset }),
         countIssues(client, filters),
       ]);
 
       return buildPageResult({ items, total, page, pageSize });
-    } finally {
-      client.release();
-    }
+    });
   }
 
   async saveIssue(input, actor) {
@@ -158,7 +156,7 @@ export class IssueService {
         const issueResult = await updateIssue(client, issue);
 
         await this.recordActivity(client, actor, {
-          actionType: "issue.update",
+          actionType: ISSUE_ACTIONS.UPDATE,
           entityType: "issue",
           entityId: issue.id,
           description: `${actor.name} updated morning issue for ${issue.dsrName}`,
@@ -192,7 +190,7 @@ export class IssueService {
       });
       const issueResult = await insertIssue(client, issue);
       await this.recordActivity(client, actor, {
-        actionType: "issue.create",
+        actionType: ISSUE_ACTIONS.CREATE,
         entityType: "issue",
         entityId: issue.id,
         description: `${actor.name} created morning issue for ${issue.dsrName}`,
@@ -247,7 +245,7 @@ export class IssueService {
       });
       const issueResult = await updateIssue(client, issue);
       await this.recordActivity(client, actor, {
-        actionType: "issue.update",
+        actionType: ISSUE_ACTIONS.UPDATE,
         entityType: "issue",
         entityId: issue.id,
         description: `${actor.name} updated morning issue for ${issue.dsrName}`,

@@ -21,11 +21,29 @@ import { PermissionController } from "../controllers/permissionController.js";
 import { SystemController } from "../controllers/systemController.js";
 import { requireAuth } from "../middleware/requireAuth.js";
 import { requireActiveTenant } from "../middleware/requireActiveTenant.js";
-import { requirePlatformAdmin } from "../middleware/requirePlatformAdmin.js";
-import { requirePermission, requireRoles } from "../middleware/requireRole.js";
 import { createRateLimiter } from "../middleware/rateLimiter.js";
-import { PERMISSIONS } from "../lib/permissions.js";
-import { USER_ROLES } from "../lib/roles.js";
+import { createPublicAuthRoutes, createAuthenticatedAuthRoutes } from "./auth.routes.js";
+import { createProfileRoutes } from "./profile.routes.js";
+import { createPlatformTenantsRoutes } from "./platformTenants.routes.js";
+import { createSystemRoutes } from "./system.routes.js";
+import { createOrgRoutes } from "./org.routes.js";
+import { createPermissionsRoutes } from "./permissions.routes.js";
+import { createUsersRoutes } from "./users.routes.js";
+import { createActivityLogsRoutes } from "./activityLogs.routes.js";
+import { createAuditRoutes } from "./audit.routes.js";
+import { createExpensesRoutes } from "./expenses.routes.js";
+import { createDsrCashReceiptsRoutes } from "./dsrCashReceipts.routes.js";
+import { createDsrAdvancesRoutes } from "./dsrAdvances.routes.js";
+import { createMonthEndSummaryRoutes } from "./monthEndSummary.routes.js";
+import { createProfitReportRoutes } from "./profitReport.routes.js";
+import { createDatabaseBackupRoutes } from "./databaseBackup.routes.js";
+import { createProductsRoutes } from "./products.routes.js";
+import { createStockMovementsRoutes } from "./stockMovements.routes.js";
+import { createDsrDueLedgerRoutes } from "./dsrDueLedger.routes.js";
+import { createDsrsRoutes } from "./dsrs.routes.js";
+import { createCustomersRoutes } from "./customers.routes.js";
+import { createIssuesRoutes } from "./issues.routes.js";
+import { createSettlementsRoutes } from "./settlements.routes.js";
 
 export function createApiRouter({
   authService,
@@ -72,152 +90,40 @@ export function createApiRouter({
   const loginRateLimiter = createRateLimiter({ windowMs: 15 * 60 * 1000, max: 20 });
   const authRateLimiter = createRateLimiter({ windowMs: 15 * 60 * 1000, max: 20 });
 
-  router.post("/auth/login", loginRateLimiter, authController.login);
-  router.post("/auth/forgot-password", authRateLimiter, authController.forgotPassword);
-  router.post("/auth/reset-password", authRateLimiter, authController.resetPassword);
-  router.post("/auth/logout", authController.logout);
+  router.use("/auth", createPublicAuthRoutes(authController, { loginRateLimiter, authRateLimiter }));
 
   router.use(requireAuth(authService, env));
 
-  router.get("/auth/me", authController.me);
-  router.get("/auth/sessions", authController.listSessions);
-  router.delete("/auth/sessions/:id", authController.revokeSession);
-  router.post("/auth/sessions/revoke-others", authController.revokeOtherSessions);
-  router.get("/auth/login-history", authController.loginHistory);
-  router.patch("/profile", userController.updateProfile);
+  router.use("/auth", createAuthenticatedAuthRoutes(authController));
+  router.use("/profile", createProfileRoutes(userController));
 
   // Platform admin routes — no tenant required, platform_admin only
-  router.get("/platform/tenants", requirePlatformAdmin, tenantController.list);
-  router.post("/platform/tenants", requirePlatformAdmin, tenantController.create);
-  router.patch("/platform/tenants/:id", requirePlatformAdmin, tenantController.update);
-  router.patch("/platform/tenants/:id/status", requirePlatformAdmin, tenantController.setStatus);
-  router.get("/platform/tenants/:id/features", requirePlatformAdmin, tenantController.getFeatures);
-  router.patch("/platform/tenants/:id/features", requirePlatformAdmin, tenantController.updateFeatures);
+  router.use("/platform/tenants", createPlatformTenantsRoutes(tenantController));
 
   // System developer routes — no tenant required, system_developer only
-  router.get("/system/health", requireRoles(USER_ROLES.SYSTEM_DEVELOPER), systemController.health);
-  router.get("/system/error-logs", requireRoles(USER_ROLES.SYSTEM_DEVELOPER), systemController.errorLogs);
+  router.use("/system", createSystemRoutes(systemController));
 
   // All business routes require an active tenant subscription
   router.use(requireActiveTenant);
 
-  router.patch("/org", requirePermission(PERMISSIONS.MANAGE_ORG), orgController.update);
-
-  router.get(
-    "/permissions",
-    requireRoles(USER_ROLES.SYSTEM_DEVELOPER, USER_ROLES.SUPER_ADMIN),
-    permissionController.list,
-  );
-  router.put(
-    "/permissions/:role",
-    requireRoles(USER_ROLES.SYSTEM_DEVELOPER, USER_ROLES.SUPER_ADMIN),
-    permissionController.update,
-  );
-
-  router.get("/users", requirePermission(PERMISSIONS.MANAGE_USERS), userController.list);
-  router.post("/users", requirePermission(PERMISSIONS.MANAGE_USERS), userController.create);
-  router.get(
-    "/users/password-reset-requests",
-    requirePermission(PERMISSIONS.MANAGE_USERS),
-    userController.listPasswordResetRequests,
-  );
-  router.get("/users/trash", requirePermission(PERMISSIONS.MANAGE_USERS), userController.listTrash);
-  router.patch("/users/:id", requirePermission(PERMISSIONS.MANAGE_USERS), userController.update);
-  router.delete("/users/:id", requirePermission(PERMISSIONS.MANAGE_USERS), userController.remove);
-  router.post("/users/:id/reset-password", requirePermission(PERMISSIONS.MANAGE_USERS), userController.resetPassword);
-  router.post("/users/:id/unlock", requirePermission(PERMISSIONS.MANAGE_USERS), userController.unlock);
-  router.post("/users/:id/restore", requirePermission(PERMISSIONS.MANAGE_USERS), userController.restore);
-  router.delete("/users/:id/permanent", requirePermission(PERMISSIONS.PERMANENT_DELETE), userController.permanentlyDelete);
-
-  router.get("/activity-logs", requirePermission(PERMISSIONS.VIEW_ACTIVITY_LOGS), activityLogController.list);
-  router.post("/audit/print", auditController.recordPrint);
-  router.get("/audit/entity/:entityType/:entityId", auditController.entityHistory);
-
-  router.get("/expenses", requirePermission(PERMISSIONS.MANAGE_EXPENSES), expenseController.report);
-  router.get("/expenses/trash", requirePermission(PERMISSIONS.MANAGE_EXPENSES), expenseController.listTrash);
-  router.post("/expenses", requirePermission(PERMISSIONS.MANAGE_EXPENSES), expenseController.create);
-  router.patch("/expenses/:id", requirePermission(PERMISSIONS.MANAGE_EXPENSES), expenseController.update);
-  router.delete("/expenses/:id", requirePermission(PERMISSIONS.MANAGE_EXPENSES), expenseController.remove);
-  router.post("/expenses/:id/restore", requirePermission(PERMISSIONS.MANAGE_EXPENSES), expenseController.restore);
-  router.delete("/expenses/:id/permanent", requirePermission(PERMISSIONS.PERMANENT_DELETE), expenseController.permanentlyDelete);
-
-  router.get("/dsr-cash-receipts", requirePermission(PERMISSIONS.MANAGE_DSR_FINANCE), dsrFinanceController.cashReport);
-  router.post("/dsr-cash-receipts", requirePermission(PERMISSIONS.MANAGE_DSR_FINANCE), dsrFinanceController.cashCreate);
-  router.patch(
-    "/dsr-cash-receipts/:id",
-    requirePermission(PERMISSIONS.MANAGE_DSR_FINANCE),
-    dsrFinanceController.cashUpdate,
-  );
-  router.delete(
-    "/dsr-cash-receipts/:id",
-    requirePermission(PERMISSIONS.MANAGE_DSR_FINANCE),
-    dsrFinanceController.cashDelete,
-  );
-
-  router.get("/dsr-advances", requirePermission(PERMISSIONS.MANAGE_DSR_FINANCE), dsrFinanceController.advanceReport);
-  router.post("/dsr-advances", requirePermission(PERMISSIONS.MANAGE_DSR_FINANCE), dsrFinanceController.advanceCreate);
-  router.patch(
-    "/dsr-advances/:id",
-    requirePermission(PERMISSIONS.MANAGE_DSR_FINANCE),
-    dsrFinanceController.advanceUpdate,
-  );
-  router.delete(
-    "/dsr-advances/:id",
-    requirePermission(PERMISSIONS.MANAGE_DSR_FINANCE),
-    dsrFinanceController.advanceDelete,
-  );
-
-  router.get(
-    "/month-end-summary",
-    requirePermission(PERMISSIONS.MANAGE_DSR_FINANCE),
-    monthEndSummaryController.getSummary,
-  );
-  router.get("/profit-report", requirePermission(PERMISSIONS.MANAGE_DSR_FINANCE), profitController.report);
-  router.get("/database-backup", requirePermission(PERMISSIONS.MANAGE_BACKUPS), backupController.download);
-  router.get("/database-backup/history", requirePermission(PERMISSIONS.MANAGE_BACKUPS), backupController.history);
-
-  router.get("/products/directory", requirePermission(PERMISSIONS.VIEW_STATE), productController.directory);
-  router.get("/products/trash", requirePermission(PERMISSIONS.MANAGE_PRODUCTS), productController.listTrash);
-  router.get("/products", requirePermission(PERMISSIONS.VIEW_STATE), productController.list);
-  router.post("/products", requirePermission(PERMISSIONS.MANAGE_PRODUCTS), productController.create);
-  router.put("/products/:id", requirePermission(PERMISSIONS.MANAGE_PRODUCTS), productController.update);
-  router.delete("/products/:id", requirePermission(PERMISSIONS.MANAGE_PRODUCTS), productController.remove);
-  router.post("/products/:id/stock", requirePermission(PERMISSIONS.MANAGE_PRODUCTS), productController.addStock);
-  router.post("/products/:id/clear-damage", requirePermission(PERMISSIONS.MANAGE_PRODUCTS), productController.clearDamage);
-  router.post("/products/:id/restore", requirePermission(PERMISSIONS.MANAGE_PRODUCTS), productController.restore);
-  router.delete("/products/:id/permanent", requirePermission(PERMISSIONS.PERMANENT_DELETE), productController.permanentlyDelete);
-  router.get("/stock-movements", requirePermission(PERMISSIONS.VIEW_STATE), stockMovementController.list);
-
-  router.get("/dsr-due-ledger", requirePermission(PERMISSIONS.VIEW_STATE), dsrDueLedgerController.list);
-  router.get("/dsr-due-ledger/statement", requirePermission(PERMISSIONS.VIEW_STATE), dsrDueLedgerController.statement);
-  router.get("/dsr-due-ledger/balance", requirePermission(PERMISSIONS.VIEW_STATE), dsrDueLedgerController.balance);
-  router.post("/dsr-due-ledger/settle", requirePermission(PERMISSIONS.MANAGE_DSR_FINANCE), dsrDueLedgerController.settle);
-
-  router.get("/dsrs/directory", requirePermission(PERMISSIONS.VIEW_STATE), dsrController.directory);
-  router.get("/dsrs/trash", requirePermission(PERMISSIONS.MANAGE_DSRS), dsrController.listTrash);
-  router.get("/dsrs", requirePermission(PERMISSIONS.VIEW_STATE), dsrController.list);
-  router.post("/dsrs", requirePermission(PERMISSIONS.MANAGE_DSRS), dsrController.create);
-  router.put("/dsrs/:id", requirePermission(PERMISSIONS.MANAGE_DSRS), dsrController.update);
-  router.delete("/dsrs/:id", requirePermission(PERMISSIONS.MANAGE_DSRS), dsrController.remove);
-  router.post("/dsrs/:id/restore", requirePermission(PERMISSIONS.MANAGE_DSRS), dsrController.restore);
-  router.delete("/dsrs/:id/permanent", requirePermission(PERMISSIONS.PERMANENT_DELETE), dsrController.permanentlyDelete);
-
-  router.get("/customers/trash", requirePermission(PERMISSIONS.MANAGE_CUSTOMERS), customerController.listTrash);
-  router.get("/customers", requirePermission(PERMISSIONS.VIEW_STATE), customerController.list);
-  router.get("/customers/:id", requirePermission(PERMISSIONS.VIEW_STATE), customerController.get);
-  router.post("/customers", requirePermission(PERMISSIONS.MANAGE_CUSTOMERS), customerController.create);
-  router.put("/customers/:id", requirePermission(PERMISSIONS.MANAGE_CUSTOMERS), customerController.update);
-  router.delete("/customers/:id", requirePermission(PERMISSIONS.MANAGE_CUSTOMERS), customerController.remove);
-  router.post("/customers/:id/restore", requirePermission(PERMISSIONS.MANAGE_CUSTOMERS), customerController.restore);
-  router.delete("/customers/:id/permanent", requirePermission(PERMISSIONS.PERMANENT_DELETE), customerController.permanentlyDelete);
-
-  router.get("/issues", requirePermission(PERMISSIONS.VIEW_STATE), issueController.list);
-  router.post("/issues", requirePermission(PERMISSIONS.CREATE_ISSUES), issueController.create);
-  router.put("/issues/:id", requirePermission(PERMISSIONS.UPDATE_ISSUES), issueController.update);
-
-  router.get("/settlements", requirePermission(PERMISSIONS.VIEW_STATE), settlementController.list);
-  router.post("/settlements", requirePermission(PERMISSIONS.CREATE_SETTLEMENTS), settlementController.create);
-  router.put("/settlements/:id", requirePermission(PERMISSIONS.UPDATE_SETTLEMENTS), settlementController.update);
+  router.use("/org", createOrgRoutes(orgController));
+  router.use("/permissions", createPermissionsRoutes(permissionController));
+  router.use("/users", createUsersRoutes(userController));
+  router.use("/activity-logs", createActivityLogsRoutes(activityLogController));
+  router.use("/audit", createAuditRoutes(auditController));
+  router.use("/expenses", createExpensesRoutes(expenseController));
+  router.use("/dsr-cash-receipts", createDsrCashReceiptsRoutes(dsrFinanceController));
+  router.use("/dsr-advances", createDsrAdvancesRoutes(dsrFinanceController));
+  router.use("/month-end-summary", createMonthEndSummaryRoutes(monthEndSummaryController));
+  router.use("/profit-report", createProfitReportRoutes(profitController));
+  router.use("/database-backup", createDatabaseBackupRoutes(backupController));
+  router.use("/products", createProductsRoutes(productController));
+  router.use("/stock-movements", createStockMovementsRoutes(stockMovementController));
+  router.use("/dsr-due-ledger", createDsrDueLedgerRoutes(dsrDueLedgerController));
+  router.use("/dsrs", createDsrsRoutes(dsrController));
+  router.use("/customers", createCustomersRoutes(customerController));
+  router.use("/issues", createIssuesRoutes(issueController));
+  router.use("/settlements", createSettlementsRoutes(settlementController));
 
   return router;
 }

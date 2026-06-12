@@ -19,7 +19,6 @@ import {
   Database,
   Activity,
   Bug,
-  Wallet,
   PackageX,
 } from 'lucide-react';
 import DashboardPage from '../features/dashboard/pages/DashboardPage';
@@ -43,7 +42,6 @@ import ProfilePage from '../features/profile/pages/ProfilePage';
 import SecurityPage from '../features/security/pages/SecurityPage';
 import SystemHealthPage from '../features/system/pages/SystemHealthPage';
 import ErrorLogsPage from '../features/system/pages/ErrorLogsPage';
-import DsrDueStatementPage from '../features/dsr-due-ledger/pages/DsrDueStatementPage';
 import CustomersPage from '../features/customers/pages/CustomersPage';
 import TrashPage from '../features/trash/pages/TrashPage';
 import DamagedStockPage from '../features/damaged-stock/pages/DamagedStockPage';
@@ -62,7 +60,6 @@ export const APP_ROUTES = [
   { id: 'dsr-finance', path: '/dsr-finance', labelKey: 'nav.dsrFinance', icon: HandCoins, component: DsrFinancePage, group: 'finance', permission: 'manage_dsr_finance', feature: 'dsr-finance' },
   { id: 'month-end-summary', path: '/month-end-summary', labelKey: 'nav.monthEndSummary', icon: BarChart3, component: MonthEndSummaryPage, group: 'finance', permission: 'manage_dsr_finance', feature: 'month-end-summary' },
   { id: 'profit', path: '/profit', labelKey: 'nav.profit', icon: TrendingUp, component: ProfitPage, group: 'finance', permission: 'manage_dsr_finance', feature: 'profit' },
-  { id: 'dsr-due-statement', path: '/dsr-due-statement', labelKey: 'nav.dsrDueStatement', icon: Wallet, component: DsrDueStatementPage, group: 'finance', permission: 'manage_dsr_finance', feature: 'dsr-finance' },
   { id: 'activity-logs', path: '/activity-logs', labelKey: 'nav.activityLogs', icon: ClipboardList, component: ActivityLogsPage, group: 'governance', permission: 'view_activity_logs', feature: 'activity-logs' },
   { id: 'trash', path: '/trash', labelKey: 'nav.trash', icon: Trash2, component: TrashPage, group: 'governance', permission: 'view_state', feature: 'trash' },
   { id: 'database-backup', path: '/database-backup', labelKey: 'nav.databaseBackup', icon: Database, component: DatabaseBackupPage, group: 'developer', permission: 'manage_backups' },

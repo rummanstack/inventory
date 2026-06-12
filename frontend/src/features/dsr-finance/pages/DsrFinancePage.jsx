@@ -1,12 +1,14 @@
 import { useMemo, useState } from 'react';
-import { BadgeDollarSign, HandCoins, Pencil, Plus, Trash2 } from 'lucide-react';
+import { BadgeDollarSign, HandCoins, Pencil, Plus, RefreshCw, Trash2, Wallet } from 'lucide-react';
 import { Alert, Badge, ChartPanel, EmptyState, LoadingState, SectionHeader, HorizontalBarChart, StatCard, TableSkeleton } from '../../../components/ui.jsx';
 import { DatePickerField, MonthPickerField } from '../../../components/date-picker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
-import { formatCurrency, formatDate, formatNumber, todayISO } from '../../../utils/calculations.js';
+import { formatCurrency, formatDate, formatDateTime, formatNumber, todayISO } from '../../../utils/calculations.js';
 import { toBarChartData } from '../../../utils/charts.js';
 import { useDsrFinanceViewModel } from '../viewmodels/useDsrFinanceViewModel';
+import { useDsrDueStatementViewModel } from '../viewmodels/useDsrDueStatementViewModel';
 import DsrFinanceFormModal from '../components/DsrFinanceFormModal';
+import SettleDueModal from '../components/SettleDueModal';
 
 const MODULES = {
   cash: {
@@ -31,66 +33,52 @@ const MODULES = {
   },
 };
 
+const TABS = [
+  { key: 'cash', tabKey: 'dsrFinance.cashTab', icon: HandCoins },
+  { key: 'advance', tabKey: 'dsrFinance.advanceTab', icon: BadgeDollarSign },
+  { key: 'due', tabKey: 'nav.dsrDueStatement', icon: Wallet },
+];
+
 const DSR_CHART_FIELDS = { labelField: 'dsrName', valueField: 'totalAmount', metaFields: ['dsrArea', 'dsrPhone'] };
 
+function ledgerTone(type) {
+  if (type === 'COLLECTION' || type === 'ADVANCE_ADJUSTMENT') {
+    return 'emerald';
+  }
+  if (type === 'SALE_DUE') {
+    return 'rose';
+  }
+  if (type === 'OPENING') {
+    return 'blue';
+  }
+  return 'slate';
+}
+
+function formatReference(entry) {
+  if (!entry.referenceType && !entry.referenceId) {
+    return '-';
+  }
+
+  const shortId = entry.referenceId ? String(entry.referenceId).slice(0, 18) : '-';
+  return `${entry.referenceType || 'reference'} / ${shortId}`;
+}
+
 export default function DsrFinancePage() {
-  const { t, can, dsrDirectory, confirm } = useInventoryApp();
+  const { t, can, dsrDirectory, confirm, pushToast } = useInventoryApp();
   const [activeTab, setActiveTab] = useState('cash');
   const cashVm = useDsrFinanceViewModel('cash', { confirm });
   const advanceVm = useDsrFinanceViewModel('advance', { confirm });
+  const dueVm = useDsrDueStatementViewModel({ dsrs: dsrDirectory });
   const [modal, setModal] = useState(null);
+  const [showSettleModal, setShowSettleModal] = useState(false);
   const canManageDsrFinance = can('manage_dsr_finance');
 
-  const activeVm = activeTab === 'cash' ? cashVm : advanceVm;
+  const isDueTab = activeTab === 'due';
+  const activeVm = activeTab === 'cash' ? cashVm : activeTab === 'advance' ? advanceVm : dueVm;
   const moduleConfig = MODULES[activeTab];
-  const Icon = moduleConfig.icon;
+  const Icon = moduleConfig?.icon || Wallet;
   const dailyChartData = useMemo(() => toBarChartData(activeVm.report?.dailySummary?.byDsr || [], DSR_CHART_FIELDS), [activeVm.report?.dailySummary?.byDsr]);
   const monthlyChartData = useMemo(() => toBarChartData(activeVm.report?.monthlySummary?.byDsr || [], DSR_CHART_FIELDS), [activeVm.report?.monthlySummary?.byDsr]);
-
-  if (activeVm.loading) {
-    return (
-      <div>
-        <SectionHeader
-          eyebrow={t('nav.dsrFinance')}
-          title={t('dsrFinance.title')}
-          description={t('dsrFinance.description')}
-          action={canManageDsrFinance ? (
-            <button type="button" className="btn-primary" disabled>
-              <Plus size={18} />
-              {t(moduleConfig.addKey)}
-            </button>
-          ) : null}
-        />
-        <div className="mb-6 flex flex-wrap gap-2">
-          {Object.entries(MODULES).map(([key, config]) => {
-            const TabIcon = config.icon;
-            const isActive = key === activeTab;
-            return (
-              <button key={key} type="button" className={isActive ? 'btn-primary' : 'btn-secondary'} disabled>
-                <TabIcon size={16} />
-                {t(config.tabKey)}
-              </button>
-            );
-          })}
-        </div>
-        <LoadingState title={t('status.loadingData')} description={t('dsrFinance.dailyReportDescription')} />
-        <div className="mt-6 space-y-6">
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <TableSkeleton rows={1} columns={1} showHeader={false} />
-            <TableSkeleton rows={1} columns={1} showHeader={false} />
-            <TableSkeleton rows={1} columns={1} showHeader={false} />
-            <TableSkeleton rows={1} columns={1} showHeader={false} />
-          </div>
-          <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-            <LoadingState title={t('status.loadingData')} description={t('dsrFinance.dailyReportDescription')} />
-            <LoadingState title={t('status.loadingData')} description={t('dsrFinance.monthlyReportDescription')} />
-          </div>
-          <TableSkeleton rows={6} columns={6} />
-          <TableSkeleton rows={6} columns={4} />
-        </div>
-      </div>
-    );
-  }
 
   async function handleSave(record) {
     const result = await activeVm.saveRecord(record);
@@ -113,8 +101,18 @@ export default function DsrFinancePage() {
     });
   }
 
+  async function handleSettleDue(payload) {
+    const result = await dueVm.settleDue(payload);
+    if (result.ok) {
+      setShowSettleModal(false);
+      pushToast('success', t('dsrDueLedger.settleDue'), t('dsrDueLedger.settleSuccess'));
+    }
+    return result;
+  }
+
   const dailyRecords = activeVm.report?.dailyRecords || [];
   const monthlyRecords = activeVm.report?.monthlyRecords || [];
+  const dueEntries = isDueTab ? [...(dueVm.statement?.entries || [])].reverse() : [];
 
   return (
     <div>
@@ -122,8 +120,8 @@ export default function DsrFinancePage() {
         eyebrow={t('nav.dsrFinance')}
         title={t('dsrFinance.title')}
         description={t('dsrFinance.description')}
-        action={canManageDsrFinance ? (
-          <button type="button" className="btn-primary" onClick={() => setModal({})}>
+        action={canManageDsrFinance && !isDueTab ? (
+          <button type="button" className="btn-primary" onClick={() => setModal({})} disabled={activeVm.loading}>
             <Plus size={18} />
             {t(moduleConfig.addKey)}
           </button>
@@ -131,18 +129,18 @@ export default function DsrFinancePage() {
       />
 
       <div className="mb-6 flex flex-wrap gap-2">
-        {Object.entries(MODULES).map(([key, config]) => {
-          const TabIcon = config.icon;
-          const isActive = key === activeTab;
+        {TABS.map((tab) => {
+          const TabIcon = tab.icon;
+          const isActive = tab.key === activeTab;
           return (
             <button
-              key={key}
+              key={tab.key}
               type="button"
               className={isActive ? 'btn-primary' : 'btn-secondary'}
-              onClick={() => setActiveTab(key)}
+              onClick={() => setActiveTab(tab.key)}
             >
               <TabIcon size={16} />
-              {t(config.tabKey)}
+              {t(tab.tabKey)}
             </button>
           );
         })}
@@ -154,163 +152,290 @@ export default function DsrFinancePage() {
         </div>
       ) : null}
 
-      <div className="surface mb-6 p-5">
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <p className="text-[11px] font-black uppercase tracking-[0.22em] text-slate-400">{t('nav.dsrFinance')}</p>
-            <p className="mt-2 text-sm text-slate-500">{t('dsrFinance.description')}</p>
+      {isDueTab ? (
+        <>
+          <div className="surface mb-6 p-5">
+            <div className="grid gap-4 lg:grid-cols-[1.2fr_1fr_1fr_auto]">
+              <div>
+                <label className="label">{t('dsrDueLedger.dsr')}</label>
+                <select className="input" value={dueVm.dsrId} onChange={(event) => dueVm.setDsrId(event.target.value)}>
+                  {dsrDirectory.map((dsr) => (
+                    <option key={dsr.id} value={dsr.id}>
+                      {dsr.name} - {dsr.area}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="label">{t('dsrDueLedger.dateFrom')}</label>
+                <DatePickerField value={dueVm.dateFrom} onChange={dueVm.setDateFrom} />
+              </div>
+              <div>
+                <label className="label">{t('dsrDueLedger.dateTo')}</label>
+                <DatePickerField value={dueVm.dateTo} onChange={dueVm.setDateTo} />
+              </div>
+              <div className="flex items-end gap-2">
+                <button type="button" className="btn-secondary" onClick={dueVm.refresh}>
+                  <RefreshCw size={16} />
+                  {t('dsrDueLedger.refresh')}
+                </button>
+                <button type="button" className="btn-primary" disabled={!dueVm.dsrId} onClick={() => setShowSettleModal(true)}>
+                  <HandCoins size={16} />
+                  {t('dsrDueLedger.settleDue')}
+                </button>
+              </div>
+            </div>
           </div>
-          <span className="muted-chip">{formatNumber(activeVm.report?.dailyRecords?.length || 0)} {t('common.dsr')}</span>
-        </div>
-        <div className="grid gap-4 md:grid-cols-3">
-          <div>
-            <label className="label">{t('dsrFinance.reportDate')}</label>
-            <DatePickerField value={activeVm.date} onChange={activeVm.setDate} />
-          </div>
-          <div>
-            <label className="label">{t('dsrFinance.reportMonth')}</label>
-            <MonthPickerField value={activeVm.month} onChange={activeVm.setMonth} />
-          </div>
-          <div>
-            <label className="label">{t('dsrFinance.dsrFilter')}</label>
-            <select className="input" value={activeVm.dsrId} onChange={(event) => activeVm.setDsrId(event.target.value)}>
-              <option value="">{t('dsrFinance.allDsrs')}</option>
-              {dsrDirectory.map((dsr) => (
-                <option key={dsr.id} value={dsr.id}>
-                  {dsr.name} - {dsr.area}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-      </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard title={t('dsrFinance.dailyCount')} value={formatNumber(activeVm.report?.dailySummary?.count || 0)} icon={Icon} tone="blue" helper={t('dsrFinance.dailyCountHelper')} />
-        <StatCard title={t('dsrFinance.dailyTotal')} value={formatCurrency(activeVm.report?.dailySummary?.totalAmount || 0)} icon={Icon} tone="emerald" helper={t('dsrFinance.dailyTotalHelper')} />
-        <StatCard title={t('dsrFinance.monthlyCount')} value={formatNumber(activeVm.report?.monthlySummary?.count || 0)} icon={Icon} tone="amber" helper={t('dsrFinance.monthlyCountHelper')} />
-        <StatCard title={t('dsrFinance.monthlyTotal')} value={formatCurrency(activeVm.report?.monthlySummary?.totalAmount || 0)} icon={Icon} tone="slate" helper={t('dsrFinance.monthlyTotalHelper')} />
-      </div>
-
-      <div className="mt-6 grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-        <ChartPanel title={t('dsrFinance.dailyReport')} description={t('dsrFinance.dailyReportDescription')}>
-          {dailyChartData.length ? (
-            <HorizontalBarChart data={dailyChartData} valueFormatter={formatCurrency} />
+          {dueVm.loading ? (
+            <TableSkeleton rows={6} columns={6} />
           ) : (
-            <EmptyState title={t('dsrFinance.noDailyTitle')} description={t('dsrFinance.noDailyDescription')} icon={Icon} />
+            <>
+              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                <StatCard title={t('dsrDueLedger.openingBalance')} value={formatCurrency(dueVm.statement?.openingBalance || 0)} icon={Wallet} tone="slate" />
+                <StatCard title={t('dsrDueLedger.totalDebit')} value={formatCurrency(dueVm.statement?.totalDebit || 0)} icon={Wallet} tone="rose" />
+                <StatCard title={t('dsrDueLedger.totalCredit')} value={formatCurrency(dueVm.statement?.totalCredit || 0)} icon={Wallet} tone="emerald" />
+                <StatCard title={t('dsrDueLedger.closingBalance')} value={formatCurrency(dueVm.statement?.closingBalance || 0)} icon={Wallet} tone="blue" />
+              </div>
+
+              <div className="surface mt-6 overflow-hidden">
+                <div className="border-b border-slate-100 px-5 py-4">
+                  <h2 className="text-base font-bold text-slate-950">{t('dsrDueLedger.entriesTitle')}</h2>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="table-head">
+                      <tr>
+                        <th className="px-4 py-3">{t('dsrDueLedger.when')}</th>
+                        <th className="px-4 py-3">{t('dsrDueLedger.type')}</th>
+                        <th className="px-4 py-3 text-right">{t('dsrDueLedger.debit')}</th>
+                        <th className="px-4 py-3 text-right">{t('dsrDueLedger.credit')}</th>
+                        <th className="px-4 py-3 text-right">{t('dsrDueLedger.balanceAfter')}</th>
+                        <th className="hidden px-4 py-3 lg:table-cell">{t('dsrDueLedger.reference')}</th>
+                        <th className="hidden px-4 py-3 xl:table-cell">{t('dsrDueLedger.createdBy')}</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {dueEntries.map((entry) => (
+                        <tr key={entry.id} className="hover:bg-slate-50">
+                          <td className="table-cell whitespace-nowrap text-sm font-semibold text-slate-700">{formatDateTime(entry.createdAt)}</td>
+                          <td className="table-cell">
+                            <Badge tone={ledgerTone(entry.type)}>{t(`dsrDueLedger.types.${entry.type}`)}</Badge>
+                            {entry.note ? <p className="mt-1 max-w-56 truncate text-xs text-slate-500">{entry.note}</p> : null}
+                          </td>
+                          <td className="table-cell text-right font-black text-rose-700">{entry.debit ? formatCurrency(entry.debit) : '-'}</td>
+                          <td className="table-cell text-right font-black text-emerald-700">{entry.credit ? formatCurrency(entry.credit) : '-'}</td>
+                          <td className="table-cell text-right font-black text-slate-950">{formatCurrency(entry.balanceAfter)}</td>
+                          <td className="hidden table-cell lg:table-cell">
+                            <p className="max-w-52 truncate text-xs font-semibold text-slate-600">{formatReference(entry)}</p>
+                          </td>
+                          <td className="hidden table-cell xl:table-cell">
+                            <p className="font-semibold text-slate-950">{entry.createdByName || '-'}</p>
+                            <p className="text-xs text-slate-500">{entry.createdByRole || ''}</p>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                {!dueEntries.length ? (
+                  <div className="p-5">
+                    <EmptyState title={t('dsrDueLedger.emptyTitle')} description={t('dsrDueLedger.emptyDescription')} icon={Wallet} />
+                  </div>
+                ) : null}
+              </div>
+            </>
           )}
-        </ChartPanel>
 
-        <ChartPanel title={t('dsrFinance.monthlyReport')} description={t('dsrFinance.monthlyReportDescription')}>
-          {monthlyChartData.length ? (
-            <HorizontalBarChart data={monthlyChartData} valueFormatter={formatCurrency} />
-          ) : (
-            <EmptyState title={t('dsrFinance.noMonthlyTitle')} description={t('dsrFinance.noMonthlyDescription')} icon={Icon} />
-          )}
-        </ChartPanel>
-      </div>
-
-      <div className="mt-6 grid gap-6 xl:grid-cols-2">
-        <div className="surface overflow-hidden">
-          <div className="border-b border-slate-100 px-5 py-4">
-            <div className="flex items-center justify-between gap-3">
-              <h2 className="text-base font-bold text-slate-950">{t(moduleConfig.dailyListKey, { date: formatDate(activeVm.date) })}</h2>
-              <span className="muted-chip">{formatNumber(dailyRecords.length)} {t('common.records')}</span>
-            </div>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="table-head">
-                <tr>
-                  <th className="px-4 py-3">{t('dsrFinance.date')}</th>
-                  <th className="px-4 py-3">{t('dsrFinance.dsr')}</th>
-                  <th className="px-4 py-3">{t('dsrFinance.amount')}</th>
-                  <th className="px-4 py-3 hidden sm:table-cell">{t('dsrFinance.note')}</th>
-                  <th className="px-4 py-3 hidden md:table-cell">{t(moduleConfig.performedByKey)}</th>
-                  {canManageDsrFinance ? <th className="px-4 py-3 text-right">{t('common.actions')}</th> : null}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {dailyRecords.map((record) => (
-                  <tr key={record.id} className="hover:bg-slate-50">
-                    <td className="table-cell">{formatDate(record.date)}</td>
-                    <td className="table-cell">
-                      <div className="flex flex-col">
-                        <span className="font-semibold text-slate-950">{record.dsrName}</span>
-                        <span className="hidden text-xs text-slate-500 sm:block">{record.dsrArea}</span>
-                      </div>
-                    </td>
-                    <td className="table-cell font-semibold">{formatCurrency(record.amount)}</td>
-                    <td className="table-cell hidden sm:table-cell max-w-64"><p className="truncate">{record.note}</p></td>
-                    <td className="table-cell hidden md:table-cell">
-                      <p className="font-semibold text-slate-950">{record.performedByName || '-'}</p>
-                      <p className="text-xs text-slate-500">{record.performedByRole || ''}</p>
-                    </td>
-                    {canManageDsrFinance ? (
-                      <td className="table-cell">
-                        <div className="flex justify-end gap-2">
-                          <button type="button" className="icon-btn" title={t('common.edit')} onClick={() => setModal(record)}>
-                            <Pencil size={16} />
-                          </button>
-                          <button type="button" className="icon-btn text-rose-600 hover:text-rose-700" title={t('common.delete')} onClick={() => handleDelete(record.id)}>
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      </td>
-                    ) : null}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          {!dailyRecords.length ? (
-            <div className="p-5">
-              <EmptyState title={t('dsrFinance.noDailyTitle')} description={t('dsrFinance.noDailyDescription')} icon={Icon} />
-            </div>
+          {showSettleModal ? (
+            <SettleDueModal
+              dsr={dueVm.statement?.dsr}
+              balance={dueVm.statement?.closingBalance}
+              onClose={() => setShowSettleModal(false)}
+              onSave={handleSettleDue}
+            />
           ) : null}
+        </>
+      ) : activeVm.loading ? (
+        <div>
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <TableSkeleton rows={1} columns={1} showHeader={false} />
+            <TableSkeleton rows={1} columns={1} showHeader={false} />
+            <TableSkeleton rows={1} columns={1} showHeader={false} />
+            <TableSkeleton rows={1} columns={1} showHeader={false} />
+          </div>
+          <div className="mt-6 grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+            <LoadingState title={t('status.loadingData')} description={t('dsrFinance.dailyReportDescription')} />
+            <LoadingState title={t('status.loadingData')} description={t('dsrFinance.monthlyReportDescription')} />
+          </div>
+          <div className="mt-6">
+            <TableSkeleton rows={6} columns={6} />
+          </div>
+          <div className="mt-6">
+            <TableSkeleton rows={6} columns={4} />
+          </div>
         </div>
+      ) : (
+        <>
+          <div className="surface mb-6 p-5">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="text-[11px] font-black uppercase tracking-[0.22em] text-slate-400">{t('nav.dsrFinance')}</p>
+                <p className="mt-2 text-sm text-slate-500">{t('dsrFinance.description')}</p>
+              </div>
+              <span className="muted-chip">{formatNumber(activeVm.report?.dailyRecords?.length || 0)} {t('common.dsr')}</span>
+            </div>
+            <div className="grid gap-4 md:grid-cols-3">
+              <div>
+                <label className="label">{t('dsrFinance.reportDate')}</label>
+                <DatePickerField value={activeVm.date} onChange={activeVm.setDate} />
+              </div>
+              <div>
+                <label className="label">{t('dsrFinance.reportMonth')}</label>
+                <MonthPickerField value={activeVm.month} onChange={activeVm.setMonth} />
+              </div>
+              <div>
+                <label className="label">{t('dsrFinance.dsrFilter')}</label>
+                <select className="input" value={activeVm.dsrId} onChange={(event) => activeVm.setDsrId(event.target.value)}>
+                  <option value="">{t('dsrFinance.allDsrs')}</option>
+                  {dsrDirectory.map((dsr) => (
+                    <option key={dsr.id} value={dsr.id}>
+                      {dsr.name} - {dsr.area}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
 
-        <div className="surface overflow-hidden">
-          <div className="border-b border-slate-100 px-5 py-4">
-            <div className="flex items-center justify-between gap-3">
-              <h2 className="text-base font-bold text-slate-950">{t(moduleConfig.monthlyListKey, { month: activeVm.month })}</h2>
-              <span className="muted-chip">{formatNumber(monthlyRecords.length)} {t('common.records')}</span>
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <StatCard title={t('dsrFinance.dailyCount')} value={formatNumber(activeVm.report?.dailySummary?.count || 0)} icon={Icon} tone="blue" helper={t('dsrFinance.dailyCountHelper')} />
+            <StatCard title={t('dsrFinance.dailyTotal')} value={formatCurrency(activeVm.report?.dailySummary?.totalAmount || 0)} icon={Icon} tone="emerald" helper={t('dsrFinance.dailyTotalHelper')} />
+            <StatCard title={t('dsrFinance.monthlyCount')} value={formatNumber(activeVm.report?.monthlySummary?.count || 0)} icon={Icon} tone="amber" helper={t('dsrFinance.monthlyCountHelper')} />
+            <StatCard title={t('dsrFinance.monthlyTotal')} value={formatCurrency(activeVm.report?.monthlySummary?.totalAmount || 0)} icon={Icon} tone="slate" helper={t('dsrFinance.monthlyTotalHelper')} />
+          </div>
+
+          <div className="mt-6 grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+            <ChartPanel title={t('dsrFinance.dailyReport')} description={t('dsrFinance.dailyReportDescription')}>
+              {dailyChartData.length ? (
+                <HorizontalBarChart data={dailyChartData} valueFormatter={formatCurrency} />
+              ) : (
+                <EmptyState title={t('dsrFinance.noDailyTitle')} description={t('dsrFinance.noDailyDescription')} icon={Icon} />
+              )}
+            </ChartPanel>
+
+            <ChartPanel title={t('dsrFinance.monthlyReport')} description={t('dsrFinance.monthlyReportDescription')}>
+              {monthlyChartData.length ? (
+                <HorizontalBarChart data={monthlyChartData} valueFormatter={formatCurrency} />
+              ) : (
+                <EmptyState title={t('dsrFinance.noMonthlyTitle')} description={t('dsrFinance.noMonthlyDescription')} icon={Icon} />
+              )}
+            </ChartPanel>
+          </div>
+
+          <div className="mt-6 grid gap-6 xl:grid-cols-2">
+            <div className="surface overflow-hidden">
+              <div className="border-b border-slate-100 px-5 py-4">
+                <div className="flex items-center justify-between gap-3">
+                  <h2 className="text-base font-bold text-slate-950">{t(moduleConfig.dailyListKey, { date: formatDate(activeVm.date) })}</h2>
+                  <span className="muted-chip">{formatNumber(dailyRecords.length)} {t('common.records')}</span>
+                </div>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="table-head">
+                    <tr>
+                      <th className="px-4 py-3">{t('dsrFinance.date')}</th>
+                      <th className="px-4 py-3">{t('dsrFinance.dsr')}</th>
+                      <th className="px-4 py-3">{t('dsrFinance.amount')}</th>
+                      <th className="px-4 py-3 hidden sm:table-cell">{t('dsrFinance.note')}</th>
+                      <th className="px-4 py-3 hidden md:table-cell">{t(moduleConfig.performedByKey)}</th>
+                      {canManageDsrFinance ? <th className="px-4 py-3 text-right">{t('common.actions')}</th> : null}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {dailyRecords.map((record) => (
+                      <tr key={record.id} className="hover:bg-slate-50">
+                        <td className="table-cell">{formatDate(record.date)}</td>
+                        <td className="table-cell">
+                          <div className="flex flex-col">
+                            <span className="font-semibold text-slate-950">{record.dsrName}</span>
+                            <span className="hidden text-xs text-slate-500 sm:block">{record.dsrArea}</span>
+                          </div>
+                        </td>
+                        <td className="table-cell font-semibold">{formatCurrency(record.amount)}</td>
+                        <td className="table-cell hidden sm:table-cell max-w-64"><p className="truncate">{record.note}</p></td>
+                        <td className="table-cell hidden md:table-cell">
+                          <p className="font-semibold text-slate-950">{record.performedByName || '-'}</p>
+                          <p className="text-xs text-slate-500">{record.performedByRole || ''}</p>
+                        </td>
+                        {canManageDsrFinance ? (
+                          <td className="table-cell">
+                            <div className="flex justify-end gap-2">
+                              <button type="button" className="icon-btn" title={t('common.edit')} onClick={() => setModal(record)}>
+                                <Pencil size={16} />
+                              </button>
+                              <button type="button" className="icon-btn text-rose-600 hover:text-rose-700" title={t('common.delete')} onClick={() => handleDelete(record.id)}>
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
+                          </td>
+                        ) : null}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              {!dailyRecords.length ? (
+                <div className="p-5">
+                  <EmptyState title={t('dsrFinance.noDailyTitle')} description={t('dsrFinance.noDailyDescription')} icon={Icon} />
+                </div>
+              ) : null}
+            </div>
+
+            <div className="surface overflow-hidden">
+              <div className="border-b border-slate-100 px-5 py-4">
+                <div className="flex items-center justify-between gap-3">
+                  <h2 className="text-base font-bold text-slate-950">{t(moduleConfig.monthlyListKey, { month: activeVm.month })}</h2>
+                  <span className="muted-chip">{formatNumber(monthlyRecords.length)} {t('common.records')}</span>
+                </div>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="table-head">
+                    <tr>
+                      <th className="px-4 py-3">{t('dsrFinance.date')}</th>
+                      <th className="px-4 py-3">{t('dsrFinance.dsr')}</th>
+                      <th className="px-4 py-3">{t('dsrFinance.amount')}</th>
+                      <th className="px-4 py-3 hidden sm:table-cell">{t('dsrFinance.note')}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {monthlyRecords.map((record) => (
+                      <tr key={record.id} className="hover:bg-slate-50">
+                        <td className="table-cell">{formatDate(record.date)}</td>
+                        <td className="table-cell">
+                          <div className="flex flex-col">
+                            <span className="font-semibold text-slate-950">{record.dsrName}</span>
+                            <span className="hidden text-xs text-slate-500 sm:block">{record.dsrArea}</span>
+                          </div>
+                        </td>
+                        <td className="table-cell font-semibold">{formatCurrency(record.amount)}</td>
+                        <td className="table-cell hidden sm:table-cell max-w-64"><p className="truncate">{record.note}</p></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              {!monthlyRecords.length ? (
+                <div className="p-5">
+                  <EmptyState title={t('dsrFinance.noMonthlyTitle')} description={t('dsrFinance.noMonthlyDescription')} icon={Icon} />
+                </div>
+              ) : null}
             </div>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="table-head">
-                <tr>
-                  <th className="px-4 py-3">{t('dsrFinance.date')}</th>
-                  <th className="px-4 py-3">{t('dsrFinance.dsr')}</th>
-                  <th className="px-4 py-3">{t('dsrFinance.amount')}</th>
-                  <th className="px-4 py-3 hidden sm:table-cell">{t('dsrFinance.note')}</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {monthlyRecords.map((record) => (
-                  <tr key={record.id} className="hover:bg-slate-50">
-                    <td className="table-cell">{formatDate(record.date)}</td>
-                    <td className="table-cell">
-                      <div className="flex flex-col">
-                        <span className="font-semibold text-slate-950">{record.dsrName}</span>
-                        <span className="hidden text-xs text-slate-500 sm:block">{record.dsrArea}</span>
-                      </div>
-                    </td>
-                    <td className="table-cell font-semibold">{formatCurrency(record.amount)}</td>
-                    <td className="table-cell hidden sm:table-cell max-w-64"><p className="truncate">{record.note}</p></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          {!monthlyRecords.length ? (
-            <div className="p-5">
-              <EmptyState title={t('dsrFinance.noMonthlyTitle')} description={t('dsrFinance.noMonthlyDescription')} icon={Icon} />
-            </div>
-          ) : null}
-        </div>
-      </div>
+        </>
+      )}
 
       {modal ? (
         <DsrFinanceFormModal

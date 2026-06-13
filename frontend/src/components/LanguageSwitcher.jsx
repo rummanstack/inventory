@@ -1,5 +1,5 @@
 import { Languages } from 'lucide-react';
-import { cx } from '../components/ui.jsx';
+import { cx } from './ui.jsx';
 
 export default function LanguageSwitcher({ language, onChange, t, compact = false }) {
   return (

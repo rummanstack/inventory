@@ -1,6 +1,6 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import AppLayout from './AppLayout';
-import LoginPage from './LoginPage';
+import LoginPage from '../features/auth/pages/LoginPage';
 import { APP_ROUTES } from './routes';
 import { ErrorBoundary } from './ErrorBoundary.jsx';
 import { InventoryAppProvider, useInventoryApp } from './useInventoryApp.jsx';

@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { BarChart3, BadgeDollarSign, CircleDollarSign, Coins, ReceiptText, Tag, TrendingUp } from 'lucide-react';
 import { Alert, ChartPanel, EmptyState, LoadingState, SectionHeader, HorizontalBarChart, StatCard, TableSkeleton } from '../../../components/ui.jsx';
-import { MonthPickerField } from '../../../components/date-picker.jsx';
+import { MonthPickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { formatCurrency, formatNumber } from '../../../utils/calculations.js';
 import { toBarChartData } from '../../../utils/charts.js';

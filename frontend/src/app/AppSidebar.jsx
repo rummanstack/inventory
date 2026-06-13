@@ -2,7 +2,7 @@ import { NavLink } from 'react-router-dom';
 import { LogOut, UserCircle, Warehouse, X } from 'lucide-react';
 import { cx } from '../components/ui';
 import { APP_ROUTES } from './routes';
-import LanguageSwitcher from './LanguageSwitcher';
+import LanguageSwitcher from '../components/LanguageSwitcher';
 
 export default function AppSidebar({ mobileOpen, setMobileOpen, user, tenant, language, onLanguageChange, onLogout, t, can, hasFeature }) {
   const sections = ['overview', 'inventory', 'operations', 'reports', 'finance', 'governance', 'settings', 'developer'];

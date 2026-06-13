@@ -1,6 +1,6 @@
 import { ClipboardList } from 'lucide-react';
 import { Alert, Badge, EmptyState, Pagination, SectionHeader, StatCard, TableSkeleton } from '../../../components/ui.jsx';
-import { DatePickerField } from '../../../components/date-picker.jsx';
+import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { formatDateTime, formatNumber } from '../../../utils/calculations.js';
 import { useActivityLogsViewModel } from '../viewmodels/useActivityLogsViewModel';

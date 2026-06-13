@@ -1,6 +1,6 @@
 import { BadgeDollarSign, Download, PiggyBank, TrendingDown, TrendingUp, Wallet } from 'lucide-react';
 import { Alert, ChartPanel, EmptyState, LoadingState, SectionHeader, StatCard, TableSkeleton, TrendChart } from '../../../components/ui.jsx';
-import { DatePickerField } from '../../../components/date-picker.jsx';
+import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../services/printService.js';
 import { inventoryApi } from '../../../services/inventoryApi';

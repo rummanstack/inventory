@@ -1,9 +1,9 @@
 import { AlertTriangle, CheckCircle2, ClipboardList, Download, Plus, Printer, Trash2 } from 'lucide-react';
 import PrintableSheet from '../../../components/PrintableSheet.jsx';
 import { Alert, Badge, EmptyState, SectionHeader, TableSkeleton, cx } from '../../../components/ui.jsx';
-import { DatePickerField } from '../../../components/date-picker.jsx';
+import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
-import AuditHistory from '../../audit/components/AuditHistory.jsx';
+import AuditHistory from '../../../components/AuditHistory.jsx';
 import { buildPdfFileName, downloadSheetPdf } from '../../../services/printService.js';
 import { inventoryApi } from '../../../services/inventoryApi';
 import { formatCasePiece, formatCurrency, formatNumber } from '../../../utils/calculations.js';

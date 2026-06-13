@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Save } from 'lucide-react';
 import { Alert, Modal } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
-import AuditHistory from '../../audit/components/AuditHistory.jsx';
+import AuditHistory from '../../../components/AuditHistory.jsx';
 
 export default function CustomerFormModal({ customer, onClose, onSave }) {
   const { t, dsrDirectory, pushToast } = useInventoryApp();

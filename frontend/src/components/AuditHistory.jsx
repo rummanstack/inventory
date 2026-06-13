@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { History } from 'lucide-react';
-import { Alert, Badge, EmptyState } from '../../../components/ui.jsx';
-import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
-import { inventoryApi } from '../../../services/inventoryApi';
-import { formatDateTime } from '../../../utils/calculations.js';
+import { Alert, Badge, EmptyState } from './ui.jsx';
+import { useInventoryApp } from '../app/useInventoryApp.jsx';
+import { inventoryApi } from '../services/inventoryApi';
+import { formatDateTime } from '../utils/calculations.js';
 
 function actionTone(actionType = '') {
   if (actionType.includes('delete')) {

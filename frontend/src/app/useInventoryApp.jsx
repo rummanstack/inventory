@@ -1,27 +1,12 @@
-import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { inventoryApi } from '../services/inventoryApi';
 import { formatCurrency, formatDate, todayISO } from '../utils/calculations';
-import { createTranslator, supportedLanguages } from '../i18n/translations';
+import { useLanguage } from './hooks/useLanguage';
+import { useToasts } from './hooks/useToasts';
+import { useConfirmation } from './hooks/useConfirmation';
+import { useDirectories } from './hooks/useDirectories';
 
 const InventoryAppContext = createContext(null);
-const LANGUAGE_STORAGE_KEY = 'arinda.language';
-
-function createToastId() {
-  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
-    return crypto.randomUUID();
-  }
-
-  return `toast-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-}
-
-function getInitialLanguage() {
-  if (typeof window === 'undefined') {
-    return 'bn';
-  }
-
-  const stored = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
-  return supportedLanguages.includes(stored) ? stored : 'bn';
-}
 
 function interpolateConfirm(template, values) {
   return template.replace(/\{(\w+)\}/g, (_, name) => {
@@ -40,139 +25,34 @@ function getFriendlyError(error, t) {
 
 export function InventoryAppProvider({ children }) {
   const today = todayISO();
-  const [language, setLanguageState] = useState(getInitialLanguage);
+  const { language, setLanguage, t } = useLanguage();
+  const { toasts, pushToast, dismissToast } = useToasts();
+  const { confirmation, confirm, closeConfirmation } = useConfirmation(t);
+  const {
+    productDirectory,
+    dsrDirectory,
+    setProductDirectory,
+    setDsrDirectory,
+    upsertProductDirectory,
+    removeFromProductDirectory,
+    upsertDsrDirectory,
+    removeFromDsrDirectory,
+    refreshProductDirectory,
+    refreshDsrDirectory,
+    resetDirectories,
+  } = useDirectories();
   const [user, setUser] = useState(null);
   const [tenant, setTenant] = useState(null);
   const [permissions, setPermissions] = useState([]);
   const [authLoading, setAuthLoading] = useState(true);
-  const [productDirectory, setProductDirectory] = useState([]);
-  const [dsrDirectory, setDsrDirectory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
-  const [toasts, setToasts] = useState([]);
-  const confirmResolverRef = useRef(null);
-  const [confirmation, setConfirmation] = useState(null);
-
-  const t = useMemo(() => createTranslator(language), [language]);
-
-  function setLanguage(nextLanguage) {
-    if (!supportedLanguages.includes(nextLanguage)) {
-      return;
-    }
-
-    setLanguageState(nextLanguage);
-  }
-
-  useEffect(() => {
-    if (typeof window === 'undefined') {
-      return;
-    }
-
-    window.localStorage.setItem(LANGUAGE_STORAGE_KEY, language);
-    document.documentElement.lang = language;
-    document.documentElement.dir = 'ltr';
-  }, [language]);
-
-  function pushToast(type, title, message = '') {
-    const id = createToastId();
-    setToasts((current) => [...current, { id, type, title, message }]);
-    setTimeout(() => {
-      setToasts((current) => current.filter((toast) => toast.id !== id));
-    }, 4000);
-  }
-
-  function dismissToast(id) {
-    setToasts((current) => current.filter((toast) => toast.id !== id));
-  }
-
-  function closeConfirmation(result, reason = '') {
-    const resolver = confirmResolverRef.current;
-    confirmResolverRef.current = null;
-    setConfirmation(null);
-    if (resolver) {
-      resolver({ confirmed: Boolean(result), reason });
-    }
-  }
-
-  function confirm(options) {
-    return new Promise((resolve) => {
-      if (confirmResolverRef.current) {
-        confirmResolverRef.current({ confirmed: false, reason: '' });
-      }
-
-      confirmResolverRef.current = resolve;
-      setConfirmation({
-        title: options.title,
-        description: options.description || '',
-        confirmLabel: options.confirmLabel || t('common.delete'),
-        cancelLabel: options.cancelLabel || t('common.cancel'),
-        tone: options.tone || 'rose',
-        requireReason: options.requireReason || false,
-        reasonLabel: options.reasonLabel,
-        reasonPlaceholder: options.reasonPlaceholder,
-      });
-    });
-  }
-
-  function upsertProductDirectory(product) {
-    setProductDirectory((current) => {
-      const next = current.some((item) => item.id === product.id)
-        ? current.map((item) => (item.id === product.id ? product : item))
-        : [...current, product];
-      return next.sort((a, b) => {
-        const aOrder = a.orderIndex ?? 9999;
-        const bOrder = b.orderIndex ?? 9999;
-        if (aOrder !== bOrder) return aOrder - bOrder;
-        return a.name.localeCompare(b.name);
-      });
-    });
-  }
-
-  function removeFromProductDirectory(productId) {
-    setProductDirectory((current) => current.filter((item) => item.id !== productId));
-  }
-
-  function upsertDsrDirectory(dsr) {
-    setDsrDirectory((current) => {
-      const next = current.some((item) => item.id === dsr.id)
-        ? current.map((item) => (item.id === dsr.id ? dsr : item))
-        : [...current, dsr];
-      return next.sort((a, b) => a.name.localeCompare(b.name));
-    });
-  }
-
-  function removeFromDsrDirectory(dsrId) {
-    setDsrDirectory((current) => current.filter((item) => item.id !== dsrId));
-  }
-
-  async function refreshProductDirectory() {
-    try {
-      const result = await inventoryApi.getProductsDirectory();
-      setProductDirectory(result.products || []);
-    } catch {
-      // Best effort - the directory will catch up on the next full refresh.
-    }
-  }
-
-  async function refreshDsrDirectory() {
-    try {
-      const result = await inventoryApi.getDsrsDirectory();
-      setDsrDirectory(result.dsrs || []);
-    } catch {
-      // Best effort - the directory will catch up on the next full refresh.
-    }
-  }
-
-  function resetInventoryState() {
-    setProductDirectory([]);
-    setDsrDirectory([]);
-  }
 
   function handleUnauthorized() {
     setUser(null);
     setTenant(null);
     setPermissions([]);
-    resetInventoryState();
+    resetDirectories();
     setLoadError('');
     setLoading(false);
   }

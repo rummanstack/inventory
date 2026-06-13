@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { ArrowLeft, KeyRound, Loader2, Lock, Mail } from 'lucide-react';
-import { Alert, ToastViewport } from '../components/ui';
-import { useInventoryApp } from './useInventoryApp.jsx';
-import loginHero from '../assets/login-hero.png';
+import { Alert, ToastViewport } from '../../../components/ui';
+import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
+import loginHero from '../../../assets/login-hero.png';
 
 export default function LoginPage() {
   const { login, forgotPassword, resetPassword, toasts, dismissToast, t } = useInventoryApp();

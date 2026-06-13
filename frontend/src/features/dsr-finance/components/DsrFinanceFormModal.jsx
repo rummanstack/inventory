@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react';
 import { Save } from 'lucide-react';
 import { Alert, Modal } from '../../../components/ui.jsx';
-import { DatePickerField } from '../../../components/date-picker.jsx';
+import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
-import AuditHistory from '../../audit/components/AuditHistory.jsx';
+import AuditHistory from '../../../components/AuditHistory.jsx';
 import { todayISO } from '../../../utils/calculations.js';
 
 const MODULE_CONFIG = {

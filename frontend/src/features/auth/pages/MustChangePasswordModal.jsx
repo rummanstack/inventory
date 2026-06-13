@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { KeyRound, Loader2, Lock } from 'lucide-react';
-import { Alert } from '../components/ui.jsx';
-import { useInventoryApp } from './useInventoryApp.jsx';
+import { Alert } from '../../../components/ui.jsx';
+import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 
 export default function MustChangePasswordModal() {
   const { t, updateProfile } = useInventoryApp();

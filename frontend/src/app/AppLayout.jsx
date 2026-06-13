@@ -3,7 +3,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 import { Alert, ConfirmationDialog, PageLoadingState, ToastViewport } from '../components/ui';
 import { useInventoryApp } from './useInventoryApp.jsx';
 import AppSidebar from './AppSidebar';
-import MustChangePasswordModal from './MustChangePasswordModal.jsx';
+import MustChangePasswordModal from '../features/auth/pages/MustChangePasswordModal.jsx';
 import { getRouteLabel } from './routes';
 import TopHeader from './TopHeader';
 

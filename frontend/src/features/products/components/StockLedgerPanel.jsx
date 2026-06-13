@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ClipboardList, RefreshCw } from 'lucide-react';
 import { Alert, Badge, EmptyState, Pagination, TableSkeleton } from '../../../components/ui.jsx';
-import { DatePickerField } from '../../../components/date-picker.jsx';
+import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import { formatDateTime, formatNumber, todayISO } from '../../../utils/calculations.js';
 import { usePagination } from '../../../hooks/usePagination.js';

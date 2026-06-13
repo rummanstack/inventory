@@ -1,6 +1,6 @@
 import { AlertTriangle, Save, Truck } from 'lucide-react';
 import { Alert, EmptyState, SectionHeader, TableSkeleton, cx } from '../../../components/ui.jsx';
-import { DatePickerField } from '../../../components/date-picker.jsx';
+import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { formatCasePiece, formatCurrency, formatNumber } from '../../../utils/calculations.js';
 import { useMorningIssueViewModel } from '../viewmodels/useMorningIssueViewModel';

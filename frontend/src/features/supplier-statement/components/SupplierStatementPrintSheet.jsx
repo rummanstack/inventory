@@ -1,12 +1,12 @@
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { cx } from '../../../components/ui.jsx';
-import { formatCurrency, formatDate, formatDateTime } from '../../../utils/calculations.js';
+import { formatCurrency, formatDate, formatDateTime, reverseEntries } from '../../../utils/calculations.js';
 
 export default function SupplierStatementPrintSheet({ statement, printTarget = false, targetId }) {
   const { t, tenant } = useInventoryApp();
   if (!statement) return null;
 
-  const entries = [...(statement.entries || [])].reverse();
+  const entries = reverseEntries(statement.entries);
 
   return (
     <div id={targetId} className={cx('mx-auto w-full max-w-[210mm] rounded-xl border border-slate-200 bg-white p-6 shadow-soft', printTarget && 'print-target')}>

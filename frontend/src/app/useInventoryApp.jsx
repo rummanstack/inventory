@@ -292,7 +292,11 @@ export function InventoryAppProvider({ children }) {
   async function saveSupplier(supplier) {
     try {
       const result = supplier.id ? await inventoryApi.updateSupplier(supplier) : await inventoryApi.createSupplier(supplier);
-      await refreshSupplierDirectory();
+      if (result.supplier.status === 'ACTIVE') {
+        upsertSupplierDirectory(result.supplier);
+      } else {
+        removeFromSupplierDirectory(result.supplier.id);
+      }
       pushToast('success', supplier.id ? t('suppliers.editTitle') : t('suppliers.addTitle'), `${result.supplier.name} ${supplier.id ? t('alerts.updated') : t('alerts.created')}`);
       return { ok: true, supplier: result.supplier };
     } catch (error) {
@@ -332,7 +336,7 @@ export function InventoryAppProvider({ children }) {
   async function savePurchaseReceipt(purchaseReceipt) {
     try {
       const result = purchaseReceipt.id ? await inventoryApi.updatePurchaseReceipt(purchaseReceipt) : await inventoryApi.createPurchaseReceipt(purchaseReceipt);
-      await Promise.all([refreshProductDirectory(), refreshSupplierDirectory()]);
+      await refreshProductDirectory();
       pushToast('success', purchaseReceipt.id ? t('purchaseReceive.editTitle') : t('purchaseReceive.addTitle'), `${result.purchaseReceipt.purchaseNumber} ${purchaseReceipt.id ? t('alerts.updated') : t('alerts.created')}`);
       return { ok: true, purchaseReceipt: result.purchaseReceipt };
     } catch (error) {
@@ -359,7 +363,7 @@ export function InventoryAppProvider({ children }) {
 
     try {
       await inventoryApi.deletePurchaseReceipt(purchaseReceipt.id, reason);
-      await Promise.all([refreshProductDirectory(), refreshSupplierDirectory()]);
+      await refreshProductDirectory();
       pushToast('success', t('common.delete'), `${purchaseReceipt.purchaseNumber} ${t('alerts.deleted')}`);
       return { ok: true };
     } catch (error) {
@@ -372,7 +376,6 @@ export function InventoryAppProvider({ children }) {
   async function saveSupplierPayment(payment) {
     try {
       const result = payment.id ? await inventoryApi.updateSupplierPayment(payment) : await inventoryApi.createSupplierPayment(payment);
-      await refreshSupplierDirectory();
       pushToast('success', payment.id ? t('supplierPayments.editTitle') : t('supplierPayments.addTitle'), payment.id ? t('alerts.updated') : t('alerts.created'));
       return { ok: true, payment: result.payment };
     } catch (error) {
@@ -398,7 +401,6 @@ export function InventoryAppProvider({ children }) {
 
     try {
       await inventoryApi.deleteSupplierPayment(payment.id, reason);
-      await refreshSupplierDirectory();
       pushToast('success', t('common.delete'), t('alerts.deleted'));
       return { ok: true };
     } catch (error) {
@@ -544,7 +546,7 @@ export function InventoryAppProvider({ children }) {
     return restoreTrashedItem({
       name: purchaseReceipt.purchaseNumber,
       restoreFn: () => inventoryApi.restorePurchaseReceipt(purchaseReceipt.id),
-      onRestored: () => Promise.all([refreshProductDirectory(), refreshSupplierDirectory()]),
+      onRestored: refreshProductDirectory,
     });
   }
 
@@ -552,7 +554,6 @@ export function InventoryAppProvider({ children }) {
     return restoreTrashedItem({
       name: payment.supplierName || payment.id,
       restoreFn: () => inventoryApi.restoreSupplierPayment(payment.id),
-      onRestored: refreshSupplierDirectory,
     });
   }
 

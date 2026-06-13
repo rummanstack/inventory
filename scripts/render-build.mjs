@@ -9,6 +9,7 @@ const projectRoot = path.resolve(__dirname, '..');
 const frontendRoot = path.join(projectRoot, 'frontend');
 const backendRoot = path.join(projectRoot, 'backend');
 const frontendDist = path.join(frontendRoot, 'dist');
+const publicDist = path.join(projectRoot, 'public');
 const backendDist = path.join(backendRoot, 'public', 'dist');
 
 async function run(command, args, options = {}) {
@@ -40,11 +41,14 @@ async function main() {
   await run('npm', ['install', '--include=dev'], { cwd: frontendRoot });
   await run('npm', ['run', 'build'], { cwd: frontendRoot });
 
+  await rm(publicDist, { recursive: true, force: true });
   await rm(backendDist, { recursive: true, force: true });
+  await mkdir(publicDist, { recursive: true });
   await mkdir(path.dirname(backendDist), { recursive: true });
+  await cp(frontendDist, publicDist, { recursive: true });
   await cp(frontendDist, backendDist, { recursive: true });
 
-  console.log(`Frontend copied to ${backendDist}`);
+  console.log(`Frontend copied to ${publicDist} and ${backendDist}`);
 }
 
 main().catch((error) => {

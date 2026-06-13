@@ -50,7 +50,7 @@ async function start() {
   const dsrDueLedgerService = new DsrDueLedgerService(databaseManager, { auditService });
   const customerService = new CustomerService(databaseManager, { auditService });
   const tenantService = new TenantService(databaseManager);
-  const permissionService = new PermissionService(databaseManager, { auditService });
+  const permissionService = new PermissionService(databaseManager, { auditService, tenantService });
   const systemService = new SystemService(databaseManager);
   const errorLogService = new ErrorLogService(databaseManager);
   const supplierService = new SupplierService(databaseManager, { auditService });

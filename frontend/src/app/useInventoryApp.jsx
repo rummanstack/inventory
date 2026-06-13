@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { inventoryApi } from '../services/inventoryApi';
+import { getActiveTenantId, setActiveTenantId } from '../services/api/client.js';
 import { formatCurrency, formatDate, todayISO } from '../utils/calculations';
 import { useLanguage } from './hooks/useLanguage';
 import { useToasts } from './hooks/useToasts';
@@ -52,14 +53,33 @@ export function InventoryAppProvider({ children }) {
   const [authLoading, setAuthLoading] = useState(true);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
+  const [tenantOptions, setTenantOptions] = useState([]);
 
   function handleUnauthorized() {
     setUser(null);
     setTenant(null);
     setPermissions([]);
+    setTenantOptions([]);
     resetDirectories();
     setLoadError('');
     setLoading(false);
+  }
+
+  async function switchTenant(tenantId) {
+    setActiveTenantId(tenantId || '');
+    try {
+      const result = await inventoryApi.getCurrentUser();
+      setUser(result.user);
+      setTenant(result.tenant || null);
+      setPermissions(result.permissions || []);
+      await refreshState();
+      pushToast('success', t('organizations.switchedOrg'), result.tenant?.name || t('organizations.noOrgSelected'));
+      return { ok: true };
+    } catch (error) {
+      const message = getFriendlyError(error, t);
+      pushToast('error', t('alerts.requestFailed'), message);
+      return { ok: false, message };
+    }
   }
 
   async function refreshState() {
@@ -102,6 +122,15 @@ export function InventoryAppProvider({ children }) {
         setUser(result.user);
         setTenant(result.tenant || null);
         setPermissions(result.permissions || []);
+
+        if (result.user.isPlatformUser) {
+          inventoryApi.listTenants().then((tenantsResult) => {
+            if (!cancelled) {
+              setTenantOptions(tenantsResult.tenants || []);
+            }
+          }).catch(() => {});
+        }
+
         if (result.user.role !== 'platform_admin') {
           await refreshState();
         } else {
@@ -609,6 +638,7 @@ export function InventoryAppProvider({ children }) {
         pushToast('error', t('auth.logout'), getFriendlyError(error, t));
       }
     } finally {
+      setActiveTenantId('');
       handleUnauthorized();
     }
   }
@@ -658,6 +688,8 @@ export function InventoryAppProvider({ children }) {
       user,
       tenant,
       setTenant,
+      tenantOptions,
+      switchTenant,
       authLoading,
       productDirectory,
       dsrDirectory,
@@ -706,7 +738,7 @@ export function InventoryAppProvider({ children }) {
       saveSettlement,
       updateProfile,
     }),
-    [today, language, t, user, tenant, permissions, authLoading, productDirectory, dsrDirectory, supplierDirectory, loading, loadError, toasts, confirmation],
+    [today, language, t, user, tenant, tenantOptions, permissions, authLoading, productDirectory, dsrDirectory, supplierDirectory, loading, loadError, toasts, confirmation],
   );
 
   return <InventoryAppContext.Provider value={value}>{children}</InventoryAppContext.Provider>;

@@ -1,4 +1,5 @@
 import { readCookie } from "../lib/cookies.js";
+import { findTenantById } from "../repositories/tenantRepository.js";
 
 function readBearerToken(req) {
   const header = req.headers.authorization || "";
@@ -22,6 +23,21 @@ export function requireAuth(authService, env) {
 
       req.currentUser = result.user;
       req.currentTenant = result.tenant;
+
+      const isPlatformUser = !result.user.tenantId;
+      req.currentUser.isPlatformUser = isPlatformUser;
+
+      if (isPlatformUser) {
+        const activeTenantId = req.headers["x-active-tenant-id"];
+        if (activeTenantId) {
+          const tenant = await authService.databaseManager.withClient((client) => findTenantById(client, activeTenantId));
+          if (tenant) {
+            req.currentUser = { ...req.currentUser, tenantId: tenant.id };
+            req.currentTenant = tenant;
+          }
+        }
+      }
+
       next();
     } catch (error) {
       next(error);

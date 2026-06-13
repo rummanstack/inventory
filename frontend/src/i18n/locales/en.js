@@ -914,6 +914,9 @@ const en = {
       emptyDescription: 'Create your first organization above.',
       activate: 'Activate',
       deactivate: 'Deactivate',
+      switchOrganization: 'Switch organization',
+      noOrgSelected: 'All organizations',
+      switchedOrg: 'Switched organization',
       table: {
         organization: 'Organization',
         code: 'Code',

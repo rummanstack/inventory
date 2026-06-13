@@ -918,6 +918,9 @@ const bn = {
       emptyDescription: 'উপরে আপনার প্রথম প্রতিষ্ঠান তৈরি করুন।',
       activate: 'সক্রিয় করুন',
       deactivate: 'নিষ্ক্রিয় করুন',
+      switchOrganization: 'প্রতিষ্ঠান পরিবর্তন করুন',
+      noOrgSelected: 'সকল প্রতিষ্ঠান',
+      switchedOrg: 'প্রতিষ্ঠান পরিবর্তন হয়েছে',
       table: {
         organization: 'প্রতিষ্ঠান',
         code: 'কোড',

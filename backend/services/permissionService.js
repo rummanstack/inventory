@@ -11,14 +11,21 @@ const EDITABLE_ROLES_BY_ACTOR_ROLE = {
   [USER_ROLES.SUPER_ADMIN]: [USER_ROLES.ADMIN, USER_ROLES.MANAGER, USER_ROLES.OPERATOR],
 };
 
+const SUPPLIER_PERMISSION_FEATURES = {
+  manage_suppliers: "suppliers",
+  manage_purchases: "purchase-receive",
+  manage_supplier_payments: "supplier-payments",
+};
+
 function editableRolesFor(actor) {
   return EDITABLE_ROLES_BY_ACTOR_ROLE[actor.role] || [];
 }
 
 export class PermissionService {
-  constructor(databaseManager, { auditService }) {
+  constructor(databaseManager, { auditService, tenantService }) {
     this.databaseManager = databaseManager;
     this.auditService = auditService;
+    this.tenantService = tenantService;
   }
 
   async getPermissions(actor) {
@@ -49,6 +56,18 @@ export class PermissionService {
     const cleanPermissions = [...new Set(permissions.map((permission) => String(permission)))];
     for (const permission of cleanPermissions) {
       assert(ALL_PERMISSIONS.includes(permission), `Unknown permission: ${permission}`);
+    }
+
+    if (actor.role === USER_ROLES.SUPER_ADMIN) {
+      const tenantFeatures = await this.tenantService.getTenantFeatures(actor.tenantId);
+      for (const permission of cleanPermissions) {
+        const requiredFeature = SUPPLIER_PERMISSION_FEATURES[permission];
+        assert(
+          !requiredFeature || tenantFeatures.includes(requiredFeature),
+          `Your organization does not have access to enable: ${permission}`,
+          403,
+        );
+      }
     }
 
     await this.databaseManager.withTransaction(async (client) => {

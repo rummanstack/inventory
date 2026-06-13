@@ -4,8 +4,14 @@ import { Alert, LoadingState, SectionHeader } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 
+const SUPPLIER_PERMISSION_FEATURES = {
+  manage_suppliers: 'suppliers',
+  manage_purchases: 'purchase-receive',
+  manage_supplier_payments: 'supplier-payments',
+};
+
 export default function PermissionsPage() {
-  const { t, pushToast } = useInventoryApp();
+  const { t, pushToast, hasFeature } = useInventoryApp();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [allPermissions, setAllPermissions] = useState([]);
@@ -80,6 +86,11 @@ export default function PermissionsPage() {
     }
   }
 
+  const visiblePermissions = allPermissions.filter((permission) => {
+    const requiredFeature = SUPPLIER_PERMISSION_FEATURES[permission];
+    return !requiredFeature || hasFeature(requiredFeature);
+  });
+
   if (loading) {
     return (
       <div>
@@ -107,7 +118,7 @@ export default function PermissionsPage() {
             </div>
 
             <div className="grid gap-2 sm:grid-cols-2">
-              {allPermissions.map((permission) => (
+              {visiblePermissions.map((permission) => (
                 <label key={permission} className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700">
                   <input
                     type="checkbox"

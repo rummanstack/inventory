@@ -120,6 +120,9 @@ const bn = {
         manage_org: 'সংস্থার সেটিংস পরিচালনা',
         manage_tenants: 'প্রতিষ্ঠান পরিচালনা',
         permanent_delete: 'ট্র্যাশ থেকে স্থায়ীভাবে মুছুন',
+        manage_suppliers: 'সাপ্লায়ার পরিচালনা',
+        manage_purchases: 'পারচেজ পরিচালনা',
+        manage_supplier_payments: 'সাপ্লায়ার পেমেন্ট পরিচালনা',
       },
     },
     common: {

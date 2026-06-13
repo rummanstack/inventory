@@ -15,4 +15,8 @@ export const TENANT_FEATURE_ROUTES = [
   { feature: 'profit', labelKey: 'nav.profit' },
   { feature: 'activity-logs', labelKey: 'nav.activityLogs' },
   { feature: 'trash', labelKey: 'nav.trash' },
+  { feature: 'suppliers', labelKey: 'nav.suppliers' },
+  { feature: 'purchase-receive', labelKey: 'nav.purchaseReceive' },
+  { feature: 'supplier-payments', labelKey: 'nav.supplierPayments' },
+  { feature: 'supplier-statement', labelKey: 'nav.supplierStatement' },
 ];

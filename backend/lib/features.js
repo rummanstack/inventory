@@ -14,4 +14,8 @@ export const TENANT_FEATURES = [
   "profit",
   "activity-logs",
   "trash",
+  "suppliers",
+  "purchase-receive",
+  "supplier-payments",
+  "supplier-statement",
 ];

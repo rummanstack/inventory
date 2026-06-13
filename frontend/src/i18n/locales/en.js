@@ -137,6 +137,9 @@ const en = {
         manage_org: 'Manage Organization Settings',
         manage_tenants: 'Manage Organizations',
         permanent_delete: 'Permanently Delete from Trash',
+        manage_suppliers: 'Manage Suppliers',
+        manage_purchases: 'Manage Purchases',
+        manage_supplier_payments: 'Manage Supplier Payments',
       },
     },
     common: {

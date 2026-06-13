@@ -1,0 +1,89 @@
+import dotenv from 'dotenv';
+import { backendRoot } from './config/paths.js';
+import { DatabaseManager } from './db/pool.js';
+import { initializeDatabase } from './services/bootstrapService.js';
+import { AuditService } from './services/auditService.js';
+import { AuthService } from './services/authService.js';
+import { DsrFinanceService } from './services/dsrFinanceService.js';
+import { MonthEndSummaryService } from './services/monthEndSummaryService.js';
+import { ExpenseService } from './services/expenseService.js';
+import { ProfitService } from './services/profitService.js';
+import { ProductService } from './services/productService.js';
+import { DsrService } from './services/dsrService.js';
+import { IssueService } from './services/issueService.js';
+import { SettlementService } from './services/settlementService.js';
+import { UserService } from './services/userService.js';
+import { BackupService } from './services/backupService.js';
+import { StockMovementService } from './services/stockMovementService.js';
+import { DsrDueLedgerService } from './services/dsrDueLedgerService.js';
+import { CustomerService } from './services/customerService.js';
+import { TenantService } from './services/tenantService.js';
+import { PermissionService } from './services/permissionService.js';
+import { SystemService } from './services/systemService.js';
+import { ErrorLogService } from './services/errorLogService.js';
+import { SupplierService } from './services/supplierService.js';
+import { SupplierDueLedgerService } from './services/supplierDueLedgerService.js';
+import { PurchaseReceiveService } from './services/purchaseReceiveService.js';
+import { SupplierPaymentService } from './services/supplierPaymentService.js';
+import { createApp } from './app.js';
+
+dotenv.config({ path: `${backendRoot}/.env` });
+
+export async function createBackendRuntime() {
+  const { env } = await import('./config/env.js');
+  const databaseManager = new DatabaseManager(env.DATABASE_URL);
+  await initializeDatabase(databaseManager, env);
+
+  const auditService = new AuditService(databaseManager);
+  const authService = new AuthService(databaseManager, { sessionDays: env.SESSION_DAYS, auditService });
+  const productService = new ProductService(databaseManager, { auditService });
+  const dsrService = new DsrService(databaseManager, { auditService });
+  const issueService = new IssueService(databaseManager, { auditService });
+  const settlementService = new SettlementService(databaseManager, { auditService });
+  const userService = new UserService(databaseManager, { auditService });
+  const expenseService = new ExpenseService(databaseManager, { auditService });
+  const dsrFinanceService = new DsrFinanceService(databaseManager, { auditService });
+  const monthEndSummaryService = new MonthEndSummaryService(databaseManager);
+  const profitService = new ProfitService(databaseManager);
+  const backupService = new BackupService(databaseManager, { auditService });
+  const stockMovementService = new StockMovementService(databaseManager);
+  const dsrDueLedgerService = new DsrDueLedgerService(databaseManager, { auditService });
+  const customerService = new CustomerService(databaseManager, { auditService });
+  const tenantService = new TenantService(databaseManager);
+  const permissionService = new PermissionService(databaseManager, { auditService, tenantService });
+  const systemService = new SystemService(databaseManager);
+  const errorLogService = new ErrorLogService(databaseManager);
+  const supplierService = new SupplierService(databaseManager, { auditService });
+  const supplierDueLedgerService = new SupplierDueLedgerService(databaseManager);
+  const purchaseReceiveService = new PurchaseReceiveService(databaseManager, { auditService });
+  const supplierPaymentService = new SupplierPaymentService(databaseManager, { auditService });
+  const app = createApp({
+    authService,
+    env,
+    productService,
+    dsrService,
+    issueService,
+    settlementService,
+    auditService,
+    userService,
+    expenseService,
+    dsrFinanceService,
+    monthEndSummaryService,
+    profitService,
+    backupService,
+    stockMovementService,
+    dsrDueLedgerService,
+    customerService,
+    databaseManager,
+    tenantService,
+    permissionService,
+    systemService,
+    errorLogService,
+    supplierService,
+    supplierDueLedgerService,
+    purchaseReceiveService,
+    supplierPaymentService,
+  });
+
+  return { app, databaseManager, env };
+}

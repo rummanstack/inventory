@@ -1,0 +1,9 @@
+{
+  "buildCommand": "npm run render-build",
+  "outputDirectory": "public",
+  "functions": {
+    "api/**/*.js": {
+      "runtime": "nodejs22.x"
+    }
+  }
+}

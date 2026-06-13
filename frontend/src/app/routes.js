@@ -10,6 +10,7 @@ import {
   RotateCcw,
   Settings,
   ShieldCheck,
+  ShoppingCart,
   TrendingUp,
   Store,
   Trash2,
@@ -20,6 +21,7 @@ import {
   Activity,
   Bug,
   PackageX,
+  Wallet,
 } from 'lucide-react';
 import DashboardPage from '../features/dashboard/pages/DashboardPage';
 import ActivityLogsPage from '../features/activity-logs/pages/ActivityLogsPage';
@@ -45,6 +47,10 @@ import ErrorLogsPage from '../features/system/pages/ErrorLogsPage';
 import CustomersPage from '../features/customers/pages/CustomersPage';
 import TrashPage from '../features/trash/pages/TrashPage';
 import DamagedStockPage from '../features/damaged-stock/pages/DamagedStockPage';
+import SuppliersPage from '../features/suppliers/pages/SuppliersPage';
+import PurchaseReceivePage from '../features/purchase-receive/pages/PurchaseReceivePage';
+import SupplierPaymentsPage from '../features/supplier-payments/pages/SupplierPaymentsPage';
+import SupplierStatementPage from '../features/supplier-statement/pages/SupplierStatementPage';
 
 export const APP_ROUTES = [
   { id: 'dashboard', path: '/dashboard', labelKey: 'nav.dashboard', icon: BarChart3, component: DashboardPage, group: 'overview', permission: 'view_state' },
@@ -52,12 +58,16 @@ export const APP_ROUTES = [
   { id: 'damaged-stock', path: '/damaged-stock', labelKey: 'nav.damagedStock', icon: PackageX, component: DamagedStockPage, group: 'inventory', permission: 'view_state', feature: 'products' },
   { id: 'dsrs', path: '/dsrs', labelKey: 'nav.dsrs', icon: Users, component: DsrPage, group: 'operations', permission: 'view_state', feature: 'dsrs' },
   { id: 'customers', path: '/customers', labelKey: 'nav.customers', icon: Store, component: CustomersPage, group: 'operations', permission: 'view_state', feature: 'customers' },
+  { id: 'suppliers', path: '/suppliers', labelKey: 'nav.suppliers', icon: Building2, component: SuppliersPage, group: 'operations', permission: 'view_state' },
+  { id: 'purchase-receive', path: '/purchase-receive', labelKey: 'nav.purchaseReceive', icon: ShoppingCart, component: PurchaseReceivePage, group: 'operations', permission: 'view_state' },
+  { id: 'supplier-statement', path: '/supplier-statement', labelKey: 'nav.supplierStatement', icon: Building2, component: SupplierStatementPage, permission: 'view_state' },
   { id: 'morning-issue', path: '/morning-issue', labelKey: 'nav.morningIssue', icon: Truck, component: MorningIssuePage, group: 'operations', permission: 'create_issues', feature: 'morning-issue' },
   { id: 'settlements', path: '/settlements', labelKey: 'nav.eveningSettlement', icon: RotateCcw, component: EveningSettlementPage, group: 'operations', permission: 'create_settlements', feature: 'settlements' },
   { id: 'reports', path: '/reports', labelKey: 'nav.reports', icon: FileText, component: DailyReportsPage, group: 'reports', permission: 'view_state', feature: 'reports' },
   { id: 'history', path: '/history', labelKey: 'nav.history', icon: ClipboardList, component: HistoryPage, group: 'reports', permission: 'view_state', feature: 'history' },
   { id: 'dsr-finance', path: '/dsr-finance', labelKey: 'nav.dsrFinance', icon: HandCoins, component: DsrFinancePage, group: 'finance', permission: 'manage_dsr_finance', feature: 'dsr-finance' },
   { id: 'expenses', path: '/expenses', labelKey: 'nav.expenses', icon: CircleDollarSign, component: ExpensesPage, group: 'finance', permission: 'manage_expenses', feature: 'expenses' },
+  { id: 'supplier-payments', path: '/supplier-payments', labelKey: 'nav.supplierPayments', icon: Wallet, component: SupplierPaymentsPage, group: 'finance', permission: 'view_state' },
   { id: 'month-end-summary', path: '/month-end-summary', labelKey: 'nav.monthEndSummary', icon: BarChart3, component: MonthEndSummaryPage, group: 'finance', permission: 'manage_dsr_finance', feature: 'month-end-summary' },
   { id: 'profit', path: '/profit', labelKey: 'nav.profit', icon: TrendingUp, component: ProfitPage, group: 'finance', permission: 'manage_dsr_finance', feature: 'profit' },
   { id: 'activity-logs', path: '/activity-logs', labelKey: 'nav.activityLogs', icon: ClipboardList, component: ActivityLogsPage, group: 'governance', permission: 'view_activity_logs', feature: 'activity-logs' },

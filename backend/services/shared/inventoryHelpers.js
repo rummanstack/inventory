@@ -2,6 +2,7 @@ import { assert } from "../../lib/errors.js";
 import { createId } from "../../lib/ids.js";
 import { cleanInteger, cleanMoney } from "../../lib/normalizers.js";
 import { insertDueLedgerEntry } from "../../repositories/dsrDueLedgerRepository.js";
+import { insertSupplierDueLedgerEntry } from "../../repositories/supplierDueLedgerRepository.js";
 import { findProductsForUpdate } from "../../repositories/productRepository.js";
 import { insertStockMovement } from "../../repositories/stockMovementRepository.js";
 
@@ -75,6 +76,29 @@ export async function recordDueLedgerEntry(client, entry) {
   });
 }
 
+export async function recordSupplierDueLedgerEntry(client, entry) {
+  const debit = cleanMoney(entry.debit);
+  const credit = cleanMoney(entry.credit);
+
+  if (debit <= 0 && credit <= 0) {
+    return;
+  }
+
+  await insertSupplierDueLedgerEntry(client, {
+    id: createId("supplier-ledger"),
+    organizationId: entry.tenantId,
+    supplierId: entry.supplierId,
+    type: entry.type,
+    debit,
+    credit,
+    balanceAfter: entry.balanceAfter,
+    referenceType: entry.referenceType,
+    referenceId: entry.referenceId,
+    note: entry.note || "",
+    createdById: entry.createdById,
+  });
+}
+
 export async function applyStockDelta(client, productId, tenantId, stockDifference, damagedDifference) {
   const result = await client.query(
     `UPDATE products
@@ -89,6 +113,15 @@ export async function applyStockDelta(client, productId, tenantId, stockDifferen
     stockPieces: Number(result.rows[0].stock_pieces || 0),
     damagedPieces: Number(result.rows[0].damaged_pieces || 0),
   };
+}
+
+export async function updateProductPurchasePrice(client, productId, tenantId, purchasePrice) {
+  const result = await client.query(
+    `UPDATE products SET purchase_price = $3 WHERE id = $1 AND tenant_id = $2 RETURNING purchase_price`,
+    [productId, tenantId, purchasePrice],
+  );
+  assert(result.rowCount > 0, "Product not found.", 404);
+  return Number(result.rows[0].purchase_price || 0);
 }
 
 export async function logActivity(auditService, client, actor, payload) {

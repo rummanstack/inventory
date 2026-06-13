@@ -4,6 +4,7 @@ import { inventoryApi } from '../../services/inventoryApi';
 export function useDirectories() {
   const [productDirectory, setProductDirectory] = useState([]);
   const [dsrDirectory, setDsrDirectory] = useState([]);
+  const [supplierDirectory, setSupplierDirectory] = useState([]);
 
   function upsertProductDirectory(product) {
     setProductDirectory((current) => {
@@ -36,6 +37,28 @@ export function useDirectories() {
     setDsrDirectory((current) => current.filter((item) => item.id !== dsrId));
   }
 
+  function upsertSupplierDirectory(supplier) {
+    setSupplierDirectory((current) => {
+      const next = current.some((item) => item.id === supplier.id)
+        ? current.map((item) => (item.id === supplier.id ? supplier : item))
+        : [...current, supplier];
+      return next.sort((a, b) => a.name.localeCompare(b.name));
+    });
+  }
+
+  function removeFromSupplierDirectory(supplierId) {
+    setSupplierDirectory((current) => current.filter((item) => item.id !== supplierId));
+  }
+
+  async function refreshSupplierDirectory() {
+    try {
+      const result = await inventoryApi.getActiveSuppliers();
+      setSupplierDirectory(result.items || []);
+    } catch {
+      // Best effort - the directory will catch up on the next full refresh.
+    }
+  }
+
   async function refreshProductDirectory() {
     try {
       const result = await inventoryApi.getProductsDirectory();
@@ -57,19 +80,25 @@ export function useDirectories() {
   function resetDirectories() {
     setProductDirectory([]);
     setDsrDirectory([]);
+    setSupplierDirectory([]);
   }
 
   return {
     productDirectory,
     dsrDirectory,
+    supplierDirectory,
     setProductDirectory,
     setDsrDirectory,
+    setSupplierDirectory,
     upsertProductDirectory,
     removeFromProductDirectory,
     upsertDsrDirectory,
     removeFromDsrDirectory,
+    upsertSupplierDirectory,
+    removeFromSupplierDirectory,
     refreshProductDirectory,
     refreshDsrDirectory,
+    refreshSupplierDirectory,
     resetDirectories,
   };
 }

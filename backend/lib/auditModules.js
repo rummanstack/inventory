@@ -8,6 +8,8 @@ export const AUDIT_MODULES = [
   "dsr-finance",
   "due-ledger",
   "users",
+  "suppliers",
+  "purchases",
   "system",
 ];
 
@@ -22,6 +24,10 @@ const ENTITY_TYPE_MODULES = {
   dsr_advance: "dsr-finance",
   due_ledger: "due-ledger",
   user: "users",
+  supplier: "suppliers",
+  supplier_due_ledger: "suppliers",
+  purchase_receipt: "purchases",
+  supplier_payment: "purchases",
 };
 
 export function moduleForEntityType(entityType) {

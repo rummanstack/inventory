@@ -31,14 +31,19 @@ export function InventoryAppProvider({ children }) {
   const {
     productDirectory,
     dsrDirectory,
+    supplierDirectory,
     setProductDirectory,
     setDsrDirectory,
+    setSupplierDirectory,
     upsertProductDirectory,
     removeFromProductDirectory,
     upsertDsrDirectory,
     removeFromDsrDirectory,
+    upsertSupplierDirectory,
+    removeFromSupplierDirectory,
     refreshProductDirectory,
     refreshDsrDirectory,
+    refreshSupplierDirectory,
     resetDirectories,
   } = useDirectories();
   const [user, setUser] = useState(null);
@@ -61,12 +66,14 @@ export function InventoryAppProvider({ children }) {
     try {
       setLoading(true);
       setLoadError('');
-      const [productsResult, dsrsResult] = await Promise.all([
+      const [productsResult, dsrsResult, suppliersResult] = await Promise.all([
         inventoryApi.getProductsDirectory(),
         inventoryApi.getDsrsDirectory(),
+        inventoryApi.getActiveSuppliers(),
       ]);
       setProductDirectory(productsResult.products || []);
       setDsrDirectory(dsrsResult.dsrs || []);
+      setSupplierDirectory(suppliersResult.items || []);
     } catch (error) {
       if (error.status === 401) {
         handleUnauthorized();
@@ -282,6 +289,125 @@ export function InventoryAppProvider({ children }) {
     }
   }
 
+  async function saveSupplier(supplier) {
+    try {
+      const result = supplier.id ? await inventoryApi.updateSupplier(supplier) : await inventoryApi.createSupplier(supplier);
+      await refreshSupplierDirectory();
+      pushToast('success', supplier.id ? t('suppliers.editTitle') : t('suppliers.addTitle'), `${result.supplier.name} ${supplier.id ? t('alerts.updated') : t('alerts.created')}`);
+      return { ok: true, supplier: result.supplier };
+    } catch (error) {
+      const message = getFriendlyError(error, t);
+      pushToast('error', t('alerts.requestFailed'), message);
+      return { ok: false, message };
+    }
+  }
+
+  async function deleteSupplier(supplier) {
+    const confirmMessage = t('suppliers.deleteConfirm', { name: supplier.name });
+    const { confirmed, reason } = await confirm({
+      title: t('suppliers.deleteTitle'),
+      description: interpolateConfirm(confirmMessage, { name: supplier.name }),
+      confirmLabel: t('common.delete'),
+      tone: 'rose',
+      requireReason: true,
+      reasonLabel: t('common.deleteReasonLabel'),
+      reasonPlaceholder: t('common.deleteReasonPlaceholder'),
+    });
+    if (!confirmed) {
+      return { ok: false };
+    }
+
+    try {
+      await inventoryApi.deleteSupplier(supplier.id, reason);
+      removeFromSupplierDirectory(supplier.id);
+      pushToast('success', t('common.delete'), `${supplier.name} ${t('alerts.deleted')}`);
+      return { ok: true };
+    } catch (error) {
+      const message = getFriendlyError(error, t);
+      pushToast('error', t('alerts.deleteFailed'), message);
+      return { ok: false, message };
+    }
+  }
+
+  async function savePurchaseReceipt(purchaseReceipt) {
+    try {
+      const result = purchaseReceipt.id ? await inventoryApi.updatePurchaseReceipt(purchaseReceipt) : await inventoryApi.createPurchaseReceipt(purchaseReceipt);
+      await Promise.all([refreshProductDirectory(), refreshSupplierDirectory()]);
+      pushToast('success', purchaseReceipt.id ? t('purchaseReceive.editTitle') : t('purchaseReceive.addTitle'), `${result.purchaseReceipt.purchaseNumber} ${purchaseReceipt.id ? t('alerts.updated') : t('alerts.created')}`);
+      return { ok: true, purchaseReceipt: result.purchaseReceipt };
+    } catch (error) {
+      const message = getFriendlyError(error, t);
+      pushToast('error', t('alerts.requestFailed'), message);
+      return { ok: false, message };
+    }
+  }
+
+  async function deletePurchaseReceipt(purchaseReceipt) {
+    const confirmMessage = t('purchaseReceive.deleteConfirm', { number: purchaseReceipt.purchaseNumber });
+    const { confirmed, reason } = await confirm({
+      title: t('purchaseReceive.deleteTitle'),
+      description: interpolateConfirm(confirmMessage, { number: purchaseReceipt.purchaseNumber }),
+      confirmLabel: t('common.delete'),
+      tone: 'rose',
+      requireReason: true,
+      reasonLabel: t('common.deleteReasonLabel'),
+      reasonPlaceholder: t('common.deleteReasonPlaceholder'),
+    });
+    if (!confirmed) {
+      return { ok: false };
+    }
+
+    try {
+      await inventoryApi.deletePurchaseReceipt(purchaseReceipt.id, reason);
+      await Promise.all([refreshProductDirectory(), refreshSupplierDirectory()]);
+      pushToast('success', t('common.delete'), `${purchaseReceipt.purchaseNumber} ${t('alerts.deleted')}`);
+      return { ok: true };
+    } catch (error) {
+      const message = getFriendlyError(error, t);
+      pushToast('error', t('alerts.deleteFailed'), message);
+      return { ok: false, message };
+    }
+  }
+
+  async function saveSupplierPayment(payment) {
+    try {
+      const result = payment.id ? await inventoryApi.updateSupplierPayment(payment) : await inventoryApi.createSupplierPayment(payment);
+      await refreshSupplierDirectory();
+      pushToast('success', payment.id ? t('supplierPayments.editTitle') : t('supplierPayments.addTitle'), payment.id ? t('alerts.updated') : t('alerts.created'));
+      return { ok: true, payment: result.payment };
+    } catch (error) {
+      const message = getFriendlyError(error, t);
+      pushToast('error', t('alerts.requestFailed'), message);
+      return { ok: false, message };
+    }
+  }
+
+  async function deleteSupplierPayment(payment) {
+    const { confirmed, reason } = await confirm({
+      title: t('supplierPayments.deleteTitle'),
+      description: t('supplierPayments.deleteConfirm'),
+      confirmLabel: t('common.delete'),
+      tone: 'rose',
+      requireReason: true,
+      reasonLabel: t('common.deleteReasonLabel'),
+      reasonPlaceholder: t('common.deleteReasonPlaceholder'),
+    });
+    if (!confirmed) {
+      return { ok: false };
+    }
+
+    try {
+      await inventoryApi.deleteSupplierPayment(payment.id, reason);
+      await refreshSupplierDirectory();
+      pushToast('success', t('common.delete'), t('alerts.deleted'));
+      return { ok: true };
+    } catch (error) {
+      const message = getFriendlyError(error, t);
+      pushToast('error', t('alerts.deleteFailed'), message);
+      return { ok: false, message };
+    }
+  }
+
   async function restoreTrashedItem({ name, restoreFn, onRestored }) {
     const { confirmed } = await confirm({
       title: t('trash.restoreTitle'),
@@ -399,6 +525,37 @@ export function InventoryAppProvider({ children }) {
     });
   }
 
+  function restoreSupplier(supplier) {
+    return restoreTrashedItem({
+      name: supplier.name,
+      restoreFn: () => inventoryApi.restoreSupplier(supplier.id),
+      onRestored: refreshSupplierDirectory,
+    });
+  }
+
+  function permanentlyDeleteSupplier(supplier) {
+    return permanentlyDeleteTrashedItem({
+      name: supplier.name,
+      deleteFn: () => inventoryApi.permanentlyDeleteSupplier(supplier.id),
+    });
+  }
+
+  function restorePurchaseReceipt(purchaseReceipt) {
+    return restoreTrashedItem({
+      name: purchaseReceipt.purchaseNumber,
+      restoreFn: () => inventoryApi.restorePurchaseReceipt(purchaseReceipt.id),
+      onRestored: () => Promise.all([refreshProductDirectory(), refreshSupplierDirectory()]),
+    });
+  }
+
+  function restoreSupplierPayment(payment) {
+    return restoreTrashedItem({
+      name: payment.supplierName || payment.id,
+      restoreFn: () => inventoryApi.restoreSupplierPayment(payment.id),
+      onRestored: refreshSupplierDirectory,
+    });
+  }
+
   async function saveIssue(issue) {
     try {
       await inventoryApi.saveIssue(issue);
@@ -503,6 +660,7 @@ export function InventoryAppProvider({ children }) {
       authLoading,
       productDirectory,
       dsrDirectory,
+      supplierDirectory,
       loading,
       loadError,
       toasts,
@@ -533,11 +691,21 @@ export function InventoryAppProvider({ children }) {
       permanentlyDeleteCustomer,
       restoreExpense,
       permanentlyDeleteExpense,
+      saveSupplier,
+      deleteSupplier,
+      restoreSupplier,
+      permanentlyDeleteSupplier,
+      savePurchaseReceipt,
+      deletePurchaseReceipt,
+      restorePurchaseReceipt,
+      saveSupplierPayment,
+      deleteSupplierPayment,
+      restoreSupplierPayment,
       saveIssue,
       saveSettlement,
       updateProfile,
     }),
-    [today, language, t, user, tenant, permissions, authLoading, productDirectory, dsrDirectory, loading, loadError, toasts, confirmation],
+    [today, language, t, user, tenant, permissions, authLoading, productDirectory, dsrDirectory, supplierDirectory, loading, loadError, toasts, confirmation],
   );
 
   return <InventoryAppContext.Provider value={value}>{children}</InventoryAppContext.Provider>;

@@ -26,3 +26,25 @@ export const SETTLEMENT_ACTIONS = {
   CREATE: "settlement.create",
   UPDATE: "settlement.update",
 };
+
+export const SUPPLIER_ACTIONS = {
+  CREATE: "supplier.create",
+  UPDATE: "supplier.update",
+  DELETE: "supplier.delete",
+  RESTORE: "supplier.restore",
+  PERMANENT_DELETE: "supplier.permanent_delete",
+};
+
+export const PURCHASE_ACTIONS = {
+  CREATE: "purchase_receipt.create",
+  UPDATE: "purchase_receipt.update",
+  DELETE: "purchase_receipt.delete",
+  RESTORE: "purchase_receipt.restore",
+};
+
+export const SUPPLIER_PAYMENT_ACTIONS = {
+  CREATE: "supplier_payment.create",
+  UPDATE: "supplier_payment.update",
+  DELETE: "supplier_payment.delete",
+  RESTORE: "supplier_payment.restore",
+};

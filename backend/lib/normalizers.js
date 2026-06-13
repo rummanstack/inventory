@@ -157,6 +157,77 @@ export function normalizeSettlementBase(input) {
   };
 }
 
+export function normalizeSupplier(input) {
+  const openingDue = Math.max(0, cleanMoney(input.openingDue));
+  const hasCurrentDue = input.currentDue !== undefined && input.currentDue !== null && String(input.currentDue).trim() !== "";
+
+  return {
+    id: input.id || createId("supplier"),
+    name: String(input.name || "").trim(),
+    phone: String(input.phone || "").trim(),
+    address: String(input.address || "").trim(),
+    openingDue,
+    currentDue: hasCurrentDue ? Math.max(0, cleanMoney(input.currentDue)) : openingDue,
+    status: input.status === "INACTIVE" ? "INACTIVE" : "ACTIVE",
+    note: String(input.note || "").trim(),
+  };
+}
+
+export function normalizePurchaseReceipt(input) {
+  const items = Array.isArray(input.items)
+    ? input.items
+        .map((item) => {
+          const quantityPieces = cleanInteger(item.quantityPieces);
+          const purchasePrice = cleanMoney(item.purchasePrice);
+          const lineDiscount = Math.max(0, cleanMoney(item.lineDiscount));
+          const lineTotal = Math.max(0, quantityPieces * purchasePrice - lineDiscount);
+
+          return {
+            id: item.id || createId("purchase-item"),
+            productId: String(item.productId || "").trim(),
+            productName: String(item.productName || "").trim(),
+            quantityPieces,
+            purchasePrice,
+            lineDiscount,
+            lineTotal,
+          };
+        })
+        .filter((item) => item.productId)
+    : [];
+
+  const grossTotal = items.reduce((sum, item) => sum + item.quantityPieces * item.purchasePrice, 0);
+  const lineDiscountTotal = items.reduce((sum, item) => sum + item.lineDiscount, 0);
+  const discount = Math.max(0, cleanMoney(input.discount));
+  const totalAmount = Math.max(0, grossTotal - lineDiscountTotal - discount);
+  const paidAmount = Math.max(0, Math.min(cleanMoney(input.paidAmount), totalAmount));
+  const dueAmount = totalAmount - paidAmount;
+
+  return {
+    id: input.id || createId("purchase"),
+    supplierId: String(input.supplierId || "").trim(),
+    supplierInvoiceNo: String(input.supplierInvoiceNo || "").trim(),
+    purchaseDate: String(input.purchaseDate || "").trim(),
+    items,
+    discount,
+    totalAmount,
+    paidAmount,
+    dueAmount,
+    paymentMethod: String(input.paymentMethod || "CASH").trim().toUpperCase() || "CASH",
+    note: String(input.note || "").trim(),
+  };
+}
+
+export function normalizeSupplierPayment(input) {
+  return {
+    id: input.id || createId("supplier-payment"),
+    supplierId: String(input.supplierId || "").trim(),
+    paymentDate: String(input.paymentDate || "").trim(),
+    amount: Math.max(0, cleanMoney(input.amount)),
+    paymentMethod: String(input.paymentMethod || "CASH").trim().toUpperCase() || "CASH",
+    note: String(input.note || "").trim(),
+  };
+}
+
 export function finalizeSettlementAmounts(base, previousDue) {
   const normalizedPreviousDue = Math.max(0, cleanMoney(previousDue));
   const receivableTotal = Math.max(0, base.totalPayable + normalizedPreviousDue - base.discount - base.extraReturnValue);

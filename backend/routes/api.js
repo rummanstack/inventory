@@ -44,6 +44,14 @@ import { createDsrsRoutes } from "./dsrs.routes.js";
 import { createCustomersRoutes } from "./customers.routes.js";
 import { createIssuesRoutes } from "./issues.routes.js";
 import { createSettlementsRoutes } from "./settlements.routes.js";
+import { SupplierController } from "../controllers/supplierController.js";
+import { SupplierDueLedgerController } from "../controllers/supplierDueLedgerController.js";
+import { PurchaseReceiveController } from "../controllers/purchaseReceiveController.js";
+import { SupplierPaymentController } from "../controllers/supplierPaymentController.js";
+import { createSuppliersRoutes } from "./suppliers.routes.js";
+import { createSupplierDueLedgerRoutes } from "./supplierDueLedger.routes.js";
+import { createPurchaseReceiveRoutes } from "./purchaseReceive.routes.js";
+import { createSupplierPaymentsRoutes } from "./supplierPayments.routes.js";
 
 export function createApiRouter({
   authService,
@@ -67,6 +75,10 @@ export function createApiRouter({
   permissionService,
   systemService,
   errorLogService,
+  supplierService,
+  supplierDueLedgerService,
+  purchaseReceiveService,
+  supplierPaymentService,
 }) {
   const router = Router();
   const authController = new AuthController(authService, env, tenantService);
@@ -89,6 +101,10 @@ export function createApiRouter({
   const orgController = new OrgController(tenantService);
   const permissionController = new PermissionController(permissionService);
   const systemController = new SystemController(systemService, errorLogService, env);
+  const supplierController = new SupplierController(supplierService);
+  const supplierDueLedgerController = new SupplierDueLedgerController(supplierDueLedgerService);
+  const purchaseReceiveController = new PurchaseReceiveController(purchaseReceiveService);
+  const supplierPaymentController = new SupplierPaymentController(supplierPaymentService);
 
   const loginRateLimiter = createRateLimiter({ windowMs: 15 * 60 * 1000, max: 20 });
   const authRateLimiter = createRateLimiter({ windowMs: 15 * 60 * 1000, max: 20 });
@@ -127,6 +143,10 @@ export function createApiRouter({
   router.use("/customers", createCustomersRoutes(customerController));
   router.use("/issues", createIssuesRoutes(issueController));
   router.use("/settlements", createSettlementsRoutes(settlementController));
+  router.use("/suppliers", createSuppliersRoutes(supplierController));
+  router.use("/supplier-due-ledger", createSupplierDueLedgerRoutes(supplierDueLedgerController));
+  router.use("/purchase-receive", createPurchaseReceiveRoutes(purchaseReceiveController));
+  router.use("/supplier-payments", createSupplierPaymentsRoutes(supplierPaymentController));
 
   return router;
 }

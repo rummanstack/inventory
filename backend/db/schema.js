@@ -386,5 +386,119 @@ export async function createSchema(pool) {
     );
     CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_token ON password_reset_tokens(token);
     CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_user_id ON password_reset_tokens(user_id);
+
+    -- Supplier module
+    CREATE TABLE IF NOT EXISTS suppliers (
+      id              TEXT PRIMARY KEY,
+      tenant_id       TEXT REFERENCES tenants(id),
+      name            TEXT NOT NULL,
+      phone           TEXT NOT NULL DEFAULT '',
+      address         TEXT NOT NULL DEFAULT '',
+      opening_due     NUMERIC NOT NULL DEFAULT 0,
+      current_due     NUMERIC NOT NULL DEFAULT 0,
+      status          TEXT NOT NULL DEFAULT 'ACTIVE',
+      note            TEXT NOT NULL DEFAULT '',
+      created_by      TEXT REFERENCES users(id) ON DELETE SET NULL,
+      created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_suppliers_tenant_id ON suppliers(tenant_id);
+    CREATE INDEX IF NOT EXISTS idx_suppliers_name ON suppliers(name);
+    CREATE INDEX IF NOT EXISTS idx_suppliers_status ON suppliers(status);
+
+    ALTER TABLE suppliers ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ;
+    ALTER TABLE suppliers ADD COLUMN IF NOT EXISTS deleted_by_id TEXT REFERENCES users(id) ON DELETE SET NULL;
+    ALTER TABLE suppliers ADD COLUMN IF NOT EXISTS delete_reason TEXT NOT NULL DEFAULT '';
+    CREATE INDEX IF NOT EXISTS idx_suppliers_deleted_at ON suppliers(tenant_id, deleted_at);
+
+    CREATE TABLE IF NOT EXISTS purchase_number_counters (
+      tenant_id  TEXT NOT NULL REFERENCES tenants(id),
+      year       INTEGER NOT NULL,
+      last_value INTEGER NOT NULL DEFAULT 0,
+      PRIMARY KEY (tenant_id, year)
+    );
+
+    CREATE TABLE IF NOT EXISTS purchase_receipts (
+      id                  TEXT PRIMARY KEY,
+      tenant_id           TEXT REFERENCES tenants(id),
+      purchase_number     TEXT NOT NULL,
+      supplier_id         TEXT NOT NULL,
+      supplier_invoice_no TEXT NOT NULL DEFAULT '',
+      purchase_date       DATE NOT NULL,
+      discount            NUMERIC NOT NULL DEFAULT 0,
+      total_amount        NUMERIC NOT NULL DEFAULT 0,
+      paid_amount         NUMERIC NOT NULL DEFAULT 0,
+      due_amount          NUMERIC NOT NULL DEFAULT 0,
+      payment_method      TEXT NOT NULL DEFAULT 'CASH',
+      note                TEXT NOT NULL DEFAULT '',
+      created_by          TEXT REFERENCES users(id) ON DELETE SET NULL,
+      created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      deleted_at          TIMESTAMPTZ,
+      deleted_by_id       TEXT REFERENCES users(id) ON DELETE SET NULL,
+      delete_reason       TEXT NOT NULL DEFAULT ''
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_purchase_receipts_tenant_id ON purchase_receipts(tenant_id);
+    CREATE INDEX IF NOT EXISTS idx_purchase_receipts_supplier_id ON purchase_receipts(supplier_id);
+    CREATE INDEX IF NOT EXISTS idx_purchase_receipts_purchase_date ON purchase_receipts(tenant_id, purchase_date);
+    CREATE INDEX IF NOT EXISTS idx_purchase_receipts_deleted_at ON purchase_receipts(tenant_id, deleted_at);
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_purchase_receipts_number ON purchase_receipts(tenant_id, purchase_number);
+
+    CREATE TABLE IF NOT EXISTS purchase_receipt_items (
+      id                  TEXT PRIMARY KEY,
+      tenant_id           TEXT REFERENCES tenants(id),
+      purchase_receipt_id TEXT NOT NULL REFERENCES purchase_receipts(id) ON DELETE CASCADE,
+      product_id          TEXT NOT NULL,
+      quantity_pieces     INTEGER NOT NULL DEFAULT 0,
+      purchase_price      NUMERIC NOT NULL DEFAULT 0,
+      line_discount       NUMERIC NOT NULL DEFAULT 0,
+      line_total          NUMERIC NOT NULL DEFAULT 0,
+      created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_purchase_receipt_items_receipt_id ON purchase_receipt_items(purchase_receipt_id);
+    CREATE INDEX IF NOT EXISTS idx_purchase_receipt_items_product_id ON purchase_receipt_items(product_id);
+
+    CREATE TABLE IF NOT EXISTS supplier_due_ledger (
+      id             TEXT PRIMARY KEY,
+      tenant_id      TEXT REFERENCES tenants(id),
+      supplier_id    TEXT NOT NULL,
+      type           TEXT NOT NULL,
+      debit          NUMERIC NOT NULL DEFAULT 0,
+      credit         NUMERIC NOT NULL DEFAULT 0,
+      balance_after  NUMERIC NOT NULL DEFAULT 0,
+      reference_type TEXT NOT NULL,
+      reference_id   TEXT,
+      note           TEXT NOT NULL DEFAULT '',
+      created_by     TEXT REFERENCES users(id) ON DELETE SET NULL,
+      created_at     TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_supplier_due_ledger_tenant_supplier_created_at
+      ON supplier_due_ledger(tenant_id, supplier_id, created_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_supplier_due_ledger_reference
+      ON supplier_due_ledger(reference_type, reference_id);
+
+    CREATE TABLE IF NOT EXISTS supplier_payments (
+      id              TEXT PRIMARY KEY,
+      tenant_id       TEXT REFERENCES tenants(id),
+      supplier_id     TEXT NOT NULL,
+      payment_date    DATE NOT NULL,
+      amount          NUMERIC NOT NULL DEFAULT 0,
+      payment_method  TEXT NOT NULL DEFAULT 'CASH',
+      note            TEXT NOT NULL DEFAULT '',
+      created_by      TEXT REFERENCES users(id) ON DELETE SET NULL,
+      created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      deleted_at      TIMESTAMPTZ,
+      deleted_by_id   TEXT REFERENCES users(id) ON DELETE SET NULL,
+      delete_reason   TEXT NOT NULL DEFAULT ''
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_supplier_payments_tenant_id ON supplier_payments(tenant_id);
+    CREATE INDEX IF NOT EXISTS idx_supplier_payments_supplier_id ON supplier_payments(supplier_id);
+    CREATE INDEX IF NOT EXISTS idx_supplier_payments_deleted_at ON supplier_payments(tenant_id, deleted_at);
   `);
 }

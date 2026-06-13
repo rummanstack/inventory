@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Boxes, CircleDollarSign, RotateCcw, Store, Trash2, UserCog, Users } from 'lucide-react';
+import { Boxes, Building2, CircleDollarSign, RotateCcw, ShoppingCart, Store, Trash2, UserCog, Users, Wallet } from 'lucide-react';
 import { Alert, EmptyState, Pagination, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
@@ -19,6 +19,10 @@ export default function TrashPage() {
     permanentlyDeleteExpense,
     restoreUser,
     permanentlyDeleteUser,
+    restoreSupplier,
+    permanentlyDeleteSupplier,
+    restorePurchaseReceipt,
+    restoreSupplierPayment,
   } = useInventoryApp();
 
   const tabs = useMemo(
@@ -73,6 +77,34 @@ export default function TrashPage() {
         permanentlyDelete: permanentlyDeleteUser,
         getName: (item) => item.name,
       },
+      {
+        key: 'suppliers',
+        labelKey: 'nav.suppliers',
+        icon: Building2,
+        permission: 'manage_suppliers',
+        list: inventoryApi.listSuppliersTrash,
+        restore: restoreSupplier,
+        permanentlyDelete: permanentlyDeleteSupplier,
+        getName: (item) => item.name,
+      },
+      {
+        key: 'purchase-receive',
+        labelKey: 'nav.purchaseReceive',
+        icon: ShoppingCart,
+        permission: 'manage_purchases',
+        list: inventoryApi.listPurchaseReceiptsTrash,
+        restore: restorePurchaseReceipt,
+        getName: (item) => item.purchaseNumber,
+      },
+      {
+        key: 'supplier-payments',
+        labelKey: 'nav.supplierPayments',
+        icon: Wallet,
+        permission: 'manage_supplier_payments',
+        list: inventoryApi.listSupplierPaymentsTrash,
+        restore: restoreSupplierPayment,
+        getName: (item) => item.supplierName || item.id,
+      },
     ],
     [
       restoreProduct,
@@ -85,6 +117,10 @@ export default function TrashPage() {
       permanentlyDeleteExpense,
       restoreUser,
       permanentlyDeleteUser,
+      restoreSupplier,
+      permanentlyDeleteSupplier,
+      restorePurchaseReceipt,
+      restoreSupplierPayment,
     ],
   );
 
@@ -228,7 +264,7 @@ export default function TrashPage() {
                         <button type="button" className="icon-btn text-emerald-600 hover:text-emerald-700" title={t('trash.restore')} onClick={() => handleRestore(item)}>
                           <RotateCcw size={16} />
                         </button>
-                        {canPermanentDelete ? (
+                        {canPermanentDelete && activeTab.permanentlyDelete ? (
                           <button type="button" className="icon-btn text-rose-600 hover:text-rose-700" title={t('trash.permanentDelete')} onClick={() => handlePermanentDelete(item)}>
                             <Trash2 size={16} />
                           </button>

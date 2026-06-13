@@ -12,8 +12,12 @@ import { permissionsApi } from './api/permissionsApi.js';
 import { platformApi } from './api/platformApi.js';
 import { productsApi } from './api/productsApi.js';
 import { profitApi } from './api/profitApi.js';
+import { purchaseReceiveApi } from './api/purchaseReceiveApi.js';
 import { settingsApi } from './api/settingsApi.js';
 import { settlementsApi } from './api/settlementsApi.js';
+import { supplierDueLedgerApi } from './api/supplierDueLedgerApi.js';
+import { supplierPaymentsApi } from './api/supplierPaymentsApi.js';
+import { suppliersApi } from './api/suppliersApi.js';
 import { systemApi } from './api/systemApi.js';
 import { usersApi } from './api/usersApi.js';
 
@@ -36,4 +40,8 @@ export const inventoryApi = {
   ...platformApi,
   ...settingsApi,
   ...permissionsApi,
+  ...suppliersApi,
+  ...purchaseReceiveApi,
+  ...supplierDueLedgerApi,
+  ...supplierPaymentsApi,
 };

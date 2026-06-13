@@ -22,6 +22,10 @@ import { TenantService } from './services/tenantService.js';
 import { PermissionService } from './services/permissionService.js';
 import { SystemService } from './services/systemService.js';
 import { ErrorLogService } from './services/errorLogService.js';
+import { SupplierService } from './services/supplierService.js';
+import { SupplierDueLedgerService } from './services/supplierDueLedgerService.js';
+import { PurchaseReceiveService } from './services/purchaseReceiveService.js';
+import { SupplierPaymentService } from './services/supplierPaymentService.js';
 
 dotenv.config({ path: `${backendRoot}/.env` });
 
@@ -49,7 +53,11 @@ async function start() {
   const permissionService = new PermissionService(databaseManager, { auditService });
   const systemService = new SystemService(databaseManager);
   const errorLogService = new ErrorLogService(databaseManager);
-  const app = createApp({ authService, env, productService, dsrService, issueService, settlementService, auditService, userService, expenseService, dsrFinanceService, monthEndSummaryService, profitService, backupService, stockMovementService, dsrDueLedgerService, customerService, databaseManager, tenantService, permissionService, systemService, errorLogService });
+  const supplierService = new SupplierService(databaseManager, { auditService });
+  const supplierDueLedgerService = new SupplierDueLedgerService(databaseManager);
+  const purchaseReceiveService = new PurchaseReceiveService(databaseManager, { auditService });
+  const supplierPaymentService = new SupplierPaymentService(databaseManager, { auditService });
+  const app = createApp({ authService, env, productService, dsrService, issueService, settlementService, auditService, userService, expenseService, dsrFinanceService, monthEndSummaryService, profitService, backupService, stockMovementService, dsrDueLedgerService, customerService, databaseManager, tenantService, permissionService, systemService, errorLogService, supplierService, supplierDueLedgerService, purchaseReceiveService, supplierPaymentService });
 
   app.listen(env.PORT, () => {
     console.log(`Server running on http://localhost:${env.PORT}`);

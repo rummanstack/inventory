@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { inventoryApi } from '../../../services/inventoryApi';
 import { todayISO } from '../../../utils/calculations.js';
@@ -20,8 +20,11 @@ export function useSupplierStatementViewModel({ suppliers }) {
   const [error, setError] = useState('');
   const [version, setVersion] = useState(0);
 
+  const hasAutoSelected = useRef(Boolean(supplierId));
+
   useEffect(() => {
-    if (!supplierId && suppliers[0]) {
+    if (!hasAutoSelected.current && !supplierId && suppliers[0]) {
+      hasAutoSelected.current = true;
       setSupplierId(suppliers[0].id);
     }
   }, [suppliers, supplierId]);

@@ -60,7 +60,7 @@ export const APP_ROUTES = [
   { id: 'customers', path: '/customers', labelKey: 'nav.customers', icon: Store, component: CustomersPage, group: 'operations', permission: 'view_state', feature: 'customers' },
   { id: 'suppliers', path: '/suppliers', labelKey: 'nav.suppliers', icon: Building2, component: SuppliersPage, group: 'operations', permission: 'manage_suppliers', feature: 'suppliers' },
   { id: 'purchase-receive', path: '/purchase-receive', labelKey: 'nav.purchaseReceive', icon: ShoppingCart, component: PurchaseReceivePage, group: 'operations', permission: 'manage_purchases', feature: 'purchase-receive' },
-  { id: 'supplier-statement', path: '/supplier-statement', labelKey: 'nav.supplierStatement', icon: Building2, component: SupplierStatementPage, group: 'operations', permission: 'manage_suppliers', feature: 'supplier-statement' },
+  { id: 'supplier-statement', path: '/supplier-statement', labelKey: 'nav.supplierStatement', icon: FileText, component: SupplierStatementPage, group: 'operations', permission: 'manage_suppliers', feature: 'supplier-statement' },
   { id: 'morning-issue', path: '/morning-issue', labelKey: 'nav.morningIssue', icon: Truck, component: MorningIssuePage, group: 'operations', permission: 'create_issues', feature: 'morning-issue' },
   { id: 'settlements', path: '/settlements', labelKey: 'nav.eveningSettlement', icon: RotateCcw, component: EveningSettlementPage, group: 'operations', permission: 'create_settlements', feature: 'settlements' },
   { id: 'reports', path: '/reports', labelKey: 'nav.reports', icon: FileText, component: DailyReportsPage, group: 'reports', permission: 'view_state', feature: 'reports' },

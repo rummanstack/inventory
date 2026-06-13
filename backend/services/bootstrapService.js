@@ -79,22 +79,44 @@ async function seedSystemDeveloperIfEmpty(pool, env) {
 }
 
 export async function initializeDatabase(databaseManager, env) {
-  try {
-    await createSchema(databaseManager.getPool());
-  } catch (error) {
-    if (error.code !== "3D000") {
-      throw error;
-    }
+  while (true) {
+    const pool = databaseManager.getPool();
+    const client = await pool.connect();
+    let shouldRelease = true;
 
-    await databaseManager.switchToFallbackDatabase();
-    await createSchema(databaseManager.getPool());
+    try {
+      await client.query("BEGIN");
+      await client.query("SELECT pg_advisory_lock($1)", [824928173]);
+
+      await createSchema(client);
+
+      const firstTenant = await ensureFirstTenant(client, env);
+      await backfillTenantId(client, firstTenant.id);
+      await seedSuperAdminIfEmpty(client, env, firstTenant.id);
+      await seedSystemDeveloperIfEmpty(client, env);
+
+      await client.query("SELECT pg_advisory_unlock($1)", [824928173]);
+      await client.query("COMMIT");
+      break;
+    } catch (error) {
+      try {
+        await client.query("ROLLBACK");
+      } catch {}
+
+      if (error.code === "3D000" && pool === databaseManager.getPool()) {
+        shouldRelease = false;
+        client.release();
+        await databaseManager.switchToFallbackDatabase();
+        continue;
+      }
+
+      throw error;
+    } finally {
+      if (shouldRelease) {
+        client.release();
+      }
+    }
   }
 
-  const pool = databaseManager.getPool();
-
-  const firstTenant = await ensureFirstTenant(pool, env);
-  await backfillTenantId(pool, firstTenant.id);
-  await seedSuperAdminIfEmpty(pool, env, firstTenant.id);
-  await seedSystemDeveloperIfEmpty(pool, env);
-  await loadPermissionCache(pool);
+  await loadPermissionCache(databaseManager.getPool());
 }

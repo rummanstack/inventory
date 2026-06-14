@@ -3,6 +3,7 @@ import { createId } from "../../lib/ids.js";
 import { cleanInteger, cleanMoney } from "../../lib/normalizers.js";
 import { insertDueLedgerEntry } from "../../repositories/dsrDueLedgerRepository.js";
 import { insertSupplierDueLedgerEntry } from "../../repositories/supplierDueLedgerRepository.js";
+import { insertCustomerDueLedgerEntry } from "../../repositories/customerDueLedgerRepository.js";
 import { findProductsForUpdate } from "../../repositories/productRepository.js";
 import { insertStockMovement } from "../../repositories/stockMovementRepository.js";
 
@@ -88,6 +89,29 @@ export async function recordSupplierDueLedgerEntry(client, entry) {
     id: createId("supplier-ledger"),
     organizationId: entry.tenantId,
     supplierId: entry.supplierId,
+    type: entry.type,
+    debit,
+    credit,
+    balanceAfter: entry.balanceAfter,
+    referenceType: entry.referenceType,
+    referenceId: entry.referenceId,
+    note: entry.note || "",
+    createdById: entry.createdById,
+  });
+}
+
+export async function recordCustomerDueLedgerEntry(client, entry) {
+  const debit = cleanMoney(entry.debit);
+  const credit = cleanMoney(entry.credit);
+
+  if (debit <= 0 && credit <= 0) {
+    return;
+  }
+
+  await insertCustomerDueLedgerEntry(client, {
+    id: createId("customer-ledger"),
+    organizationId: entry.tenantId,
+    customerId: entry.customerId,
     type: entry.type,
     debit,
     credit,

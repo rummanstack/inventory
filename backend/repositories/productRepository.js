@@ -6,6 +6,8 @@ export function mapProduct(row) {
     piecesPerCase: Number(row.pieces_per_case),
     purchasePrice: Number(row.purchase_price),
     sellingPrice: Number(row.selling_price),
+    wholesalePrice: Number(row.wholesale_price || 0),
+    retailPrice: Number(row.retail_price || 0),
     stockPieces: Number(row.stock_pieces),
     damagedPieces: Number(row.damaged_pieces),
     orderIndex: Number(row.order_index) >= 9999 ? null : Number(row.order_index),
@@ -64,8 +66,8 @@ export async function listAllActiveProductsLite(client, tenantId) {
 
 export function insertProduct(client, product) {
   return client.query(
-    `INSERT INTO products (id, tenant_id, name, category, pieces_per_case, purchase_price, selling_price, stock_pieces, order_index)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+    `INSERT INTO products (id, tenant_id, name, category, pieces_per_case, purchase_price, selling_price, wholesale_price, retail_price, stock_pieces, order_index)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
      RETURNING *`,
     [
       product.id,
@@ -75,6 +77,8 @@ export function insertProduct(client, product) {
       product.piecesPerCase,
       product.purchasePrice,
       product.sellingPrice,
+      product.wholesalePrice,
+      product.retailPrice,
       product.stockPieces,
       product.orderIndex ?? 9999,
     ],
@@ -84,7 +88,7 @@ export function insertProduct(client, product) {
 export function updateProduct(client, product) {
   return client.query(
     `UPDATE products
-     SET name = $3, category = $4, pieces_per_case = $5, purchase_price = $6, selling_price = $7, order_index = $8
+     SET name = $3, category = $4, pieces_per_case = $5, purchase_price = $6, selling_price = $7, wholesale_price = $8, retail_price = $9, order_index = $10
      WHERE id = $1 AND tenant_id = $2
      RETURNING *`,
     [
@@ -95,6 +99,8 @@ export function updateProduct(client, product) {
       product.piecesPerCase,
       product.purchasePrice,
       product.sellingPrice,
+      product.wholesalePrice,
+      product.retailPrice,
       product.orderIndex ?? 9999,
     ],
   );

@@ -52,6 +52,14 @@ import { createSuppliersRoutes } from "./suppliers.routes.js";
 import { createSupplierDueLedgerRoutes } from "./supplierDueLedger.routes.js";
 import { createPurchaseReceiveRoutes } from "./purchaseReceive.routes.js";
 import { createSupplierPaymentsRoutes } from "./supplierPayments.routes.js";
+import { SalesInvoiceController } from "../controllers/salesInvoiceController.js";
+import { CustomerDueLedgerController } from "../controllers/customerDueLedgerController.js";
+import { CustomerPaymentController } from "../controllers/customerPaymentController.js";
+import { SalesReturnController } from "../controllers/salesReturnController.js";
+import { createSalesInvoicesRoutes } from "./salesInvoices.routes.js";
+import { createCustomerDueLedgerRoutes } from "./customerDueLedger.routes.js";
+import { createCustomerPaymentsRoutes } from "./customerPayments.routes.js";
+import { createSalesReturnsRoutes } from "./salesReturns.routes.js";
 
 export function createApiRouter({
   authService,
@@ -79,6 +87,10 @@ export function createApiRouter({
   supplierDueLedgerService,
   purchaseReceiveService,
   supplierPaymentService,
+  salesInvoiceService,
+  customerDueLedgerService,
+  customerPaymentService,
+  salesReturnService,
 }) {
   const router = Router();
   const authController = new AuthController(authService, env, tenantService);
@@ -105,6 +117,10 @@ export function createApiRouter({
   const supplierDueLedgerController = new SupplierDueLedgerController(supplierDueLedgerService);
   const purchaseReceiveController = new PurchaseReceiveController(purchaseReceiveService);
   const supplierPaymentController = new SupplierPaymentController(supplierPaymentService);
+  const salesInvoiceController = new SalesInvoiceController(salesInvoiceService);
+  const customerDueLedgerController = new CustomerDueLedgerController(customerDueLedgerService);
+  const customerPaymentController = new CustomerPaymentController(customerPaymentService);
+  const salesReturnController = new SalesReturnController(salesReturnService);
 
   const loginRateLimiter = createRateLimiter({ windowMs: 15 * 60 * 1000, max: 20 });
   const authRateLimiter = createRateLimiter({ windowMs: 15 * 60 * 1000, max: 20 });
@@ -147,6 +163,10 @@ export function createApiRouter({
   router.use("/supplier-due-ledger", createSupplierDueLedgerRoutes(supplierDueLedgerController));
   router.use("/purchase-receive", createPurchaseReceiveRoutes(purchaseReceiveController));
   router.use("/supplier-payments", createSupplierPaymentsRoutes(supplierPaymentController));
+  router.use("/sales-invoices", createSalesInvoicesRoutes(salesInvoiceController));
+  router.use("/customer-due-ledger", createCustomerDueLedgerRoutes(customerDueLedgerController));
+  router.use("/customer-payments", createCustomerPaymentsRoutes(customerPaymentController));
+  router.use("/sales-returns", createSalesReturnsRoutes(salesReturnController));
 
   return router;
 }

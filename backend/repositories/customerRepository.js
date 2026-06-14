@@ -72,6 +72,14 @@ export async function listCustomersPage(client, { limit, offset, ...filters }) {
   return result.rows.map(mapCustomer);
 }
 
+export async function listAllActiveCustomers(client, tenantId) {
+  const result = await client.query(
+    `SELECT * FROM customers WHERE tenant_id = $1 AND deleted_at IS NULL AND status = 'ACTIVE' ORDER BY shop_name ASC`,
+    [tenantId],
+  );
+  return result.rows.map(mapCustomer);
+}
+
 export function insertCustomer(client, customer) {
   return client.query(
     `INSERT INTO customers (id, tenant_id, shop_name, owner_name, phone, address, market, assigned_dsr_id, opening_due, current_due, status, note, created_by)
@@ -116,6 +124,13 @@ export function updateCustomer(client, customer) {
       customer.status,
       customer.note,
     ],
+  );
+}
+
+export function updateCustomerCurrentDue(client, customerId, tenantId, currentDue) {
+  return client.query(
+    `UPDATE customers SET current_due = $3, updated_at = NOW() WHERE id = $1 AND tenant_id = $2 RETURNING *`,
+    [customerId, tenantId, currentDue],
   );
 }
 

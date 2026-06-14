@@ -48,3 +48,21 @@ export const SUPPLIER_PAYMENT_ACTIONS = {
   DELETE: "supplier_payment.delete",
   RESTORE: "supplier_payment.restore",
 };
+
+export const SALES_INVOICE_ACTIONS = {
+  CREATE: "sales_invoice.create",
+  UPDATE: "sales_invoice.update",
+  DELETE: "sales_invoice.delete",
+  RESTORE: "sales_invoice.restore",
+};
+
+export const SALES_RETURN_ACTIONS = {
+  CREATE: "sales_return.create",
+};
+
+export const CUSTOMER_PAYMENT_ACTIONS = {
+  CREATE: "customer_payment.create",
+  UPDATE: "customer_payment.update",
+  DELETE: "customer_payment.delete",
+  RESTORE: "customer_payment.restore",
+};

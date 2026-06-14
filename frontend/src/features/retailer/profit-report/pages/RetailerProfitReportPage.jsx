@@ -1,0 +1,100 @@
+import { TrendingDown, TrendingUp, Wallet } from 'lucide-react';
+import { Alert, EmptyState, LoadingState, SectionHeader, StatCard } from '../../../../components/ui.jsx';
+import { DatePickerField } from '../../../../components/DatePicker.jsx';
+import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
+import { formatCurrency, formatDate, formatNumber } from '../../../../utils/calculations.js';
+import { useRetailerProfitReportViewModel } from '../viewmodels/useRetailerProfitReportViewModel';
+
+export default function RetailerProfitReportPage() {
+  const { t } = useInventoryApp();
+  const vm = useRetailerProfitReportViewModel();
+  const rows = vm.report?.rows || [];
+  const totals = vm.report?.totals || { totalSales: 0, totalProfit: 0, invoiceCount: 0 };
+  const isProfit = totals.totalProfit >= 0;
+
+  return (
+    <div>
+      <SectionHeader
+        eyebrow={t('retailer.profitReport.eyebrow')}
+        title={t('retailer.profitReport.title')}
+        description={t('retailer.profitReport.description')}
+      />
+
+      <div className="surface mb-6 grid gap-4 p-5 sm:grid-cols-3">
+        <div>
+          <label className="label">{t('profit.dateFrom')}</label>
+          <DatePickerField value={vm.dateFrom} onChange={vm.setDateFrom} />
+        </div>
+        <div>
+          <label className="label">{t('profit.dateTo')}</label>
+          <DatePickerField value={vm.dateTo} onChange={vm.setDateTo} />
+        </div>
+        <div>
+          <label className="label">{t('retailer.shared.saleTypeLabel')}</label>
+          <select className="input" value={vm.saleType} onChange={(event) => vm.setSaleType(event.target.value)}>
+            <option value="">{t('retailer.shared.allSaleTypes')}</option>
+            <option value="RETAIL">{t('retailer.shared.saleTypes.RETAIL')}</option>
+            <option value="WHOLESALE">{t('retailer.shared.saleTypes.WHOLESALE')}</option>
+            <option value="QUICK_SALE">{t('retailer.shared.saleTypes.QUICK_SALE')}</option>
+          </select>
+        </div>
+      </div>
+
+      {vm.error ? (
+        <div className="mb-6">
+          <Alert type="error">{vm.error}</Alert>
+        </div>
+      ) : null}
+
+      {vm.loading ? (
+        <LoadingState />
+      ) : (
+        <>
+          <div className="mb-6 grid gap-4 sm:grid-cols-3">
+            <StatCard title={t('retailer.dailySalesReport.invoiceCount')} value={formatNumber(totals.invoiceCount)} icon={Wallet} tone="slate" />
+            <StatCard title={t('retailer.profitReport.totalSales')} value={formatCurrency(totals.totalSales)} icon={Wallet} tone="blue" />
+            <StatCard
+              title={t('retailer.profitReport.totalProfit')}
+              value={formatCurrency(totals.totalProfit)}
+              icon={isProfit ? TrendingUp : TrendingDown}
+              tone={isProfit ? 'emerald' : 'rose'}
+            />
+          </div>
+
+          <div className="surface overflow-hidden">
+            <div className="border-b border-slate-100 px-5 py-4">
+              <h2 className="text-base font-bold text-slate-950">{t('retailer.profitReport.tableTitle')}</h2>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="table-head">
+                  <tr>
+                    <th className="px-4 py-3">{t('supplierStatement.when')}</th>
+                    <th className="px-4 py-3 text-right">{t('retailer.dailySalesReport.invoiceCount')}</th>
+                    <th className="px-4 py-3 text-right">{t('retailer.profitReport.totalSales')}</th>
+                    <th className="px-4 py-3 text-right">{t('retailer.profitReport.totalProfit')}</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {rows.map((row) => (
+                    <tr key={row.date} className="hover:bg-slate-50">
+                      <td className="table-cell font-semibold text-slate-950">{formatDate(row.date)}</td>
+                      <td className="table-cell text-right">{formatNumber(row.invoiceCount)}</td>
+                      <td className="table-cell text-right font-bold">{formatCurrency(row.totalSales)}</td>
+                      <td className={`table-cell text-right font-bold ${row.totalProfit >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>{formatCurrency(row.totalProfit)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {!rows.length ? (
+              <div className="p-5">
+                <EmptyState title={t('profit.noDataTitle')} description={t('profit.noDataDescription')} icon={Wallet} />
+              </div>
+            ) : null}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}

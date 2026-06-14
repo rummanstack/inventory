@@ -5,6 +5,10 @@ export const customersApi = {
     return apiRequest(`/customers${buildQueryString({ page, pageSize, search, status, assignedDsrId })}`);
   },
 
+  getActiveCustomers() {
+    return apiRequest("/customers/active");
+  },
+
   getCustomer(customerId) {
     return apiRequest(`/customers/${customerId}`);
   },

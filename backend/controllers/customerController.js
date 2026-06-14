@@ -11,6 +11,14 @@ export class CustomerController {
     }
   };
 
+  listActive = async (req, res, next) => {
+    try {
+      res.json({ items: await this.customerService.listActiveCustomers(req.currentUser) });
+    } catch (error) {
+      next(error);
+    }
+  };
+
   get = async (req, res, next) => {
     try {
       const customer = await this.customerService.getCustomer(req.params.id, req.currentUser);

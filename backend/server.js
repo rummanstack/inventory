@@ -26,6 +26,10 @@ import { SupplierService } from './services/supplierService.js';
 import { SupplierDueLedgerService } from './services/supplierDueLedgerService.js';
 import { PurchaseReceiveService } from './services/purchaseReceiveService.js';
 import { SupplierPaymentService } from './services/supplierPaymentService.js';
+import { SalesInvoiceService } from './services/salesInvoiceService.js';
+import { CustomerDueLedgerService } from './services/customerDueLedgerService.js';
+import { CustomerPaymentService } from './services/customerPaymentService.js';
+import { SalesReturnService } from './services/salesReturnService.js';
 
 dotenv.config({ path: `${backendRoot}/.env` });
 
@@ -57,7 +61,11 @@ async function start() {
   const supplierDueLedgerService = new SupplierDueLedgerService(databaseManager);
   const purchaseReceiveService = new PurchaseReceiveService(databaseManager, { auditService });
   const supplierPaymentService = new SupplierPaymentService(databaseManager, { auditService });
-  const app = createApp({ authService, env, productService, dsrService, issueService, settlementService, auditService, userService, expenseService, dsrFinanceService, monthEndSummaryService, profitService, backupService, stockMovementService, dsrDueLedgerService, customerService, databaseManager, tenantService, permissionService, systemService, errorLogService, supplierService, supplierDueLedgerService, purchaseReceiveService, supplierPaymentService });
+  const salesInvoiceService = new SalesInvoiceService(databaseManager, { auditService });
+  const customerDueLedgerService = new CustomerDueLedgerService(databaseManager);
+  const customerPaymentService = new CustomerPaymentService(databaseManager, { auditService });
+  const salesReturnService = new SalesReturnService(databaseManager, { auditService });
+  const app = createApp({ authService, env, productService, dsrService, issueService, settlementService, auditService, userService, expenseService, dsrFinanceService, monthEndSummaryService, profitService, backupService, stockMovementService, dsrDueLedgerService, customerService, databaseManager, tenantService, permissionService, systemService, errorLogService, supplierService, supplierDueLedgerService, purchaseReceiveService, supplierPaymentService, salesInvoiceService, customerDueLedgerService, customerPaymentService, salesReturnService });
 
   app.listen(env.PORT, () => {
     console.log(`Server running on http://localhost:${env.PORT}`);

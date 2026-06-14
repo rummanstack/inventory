@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -35,11 +35,12 @@
     --bg-grad-end: #eef3f8;
     --chart-tooltip-title: #f8fafc;
     --chart-tooltip-body: #e2e8f0;
-    --chart-grid: rgba(148,163,184,0.16);
+    --chart-grid: rgba(148, 163, 184, 0.16);
     --tick-color: #475569;
     --success: #0f766e;
     --warning: #f59e0b;
     --accent-orange: #f97316;
+    --accent-teal: #0891b2;
     --purple: #7c3aed;
     --danger: #dc2626;
     --teal: #0891b2;
@@ -54,7 +55,7 @@
 
   html {
     height: 100%;
-    font-family: 'Inter', 'Segoe UI Variable', 'Segoe UI', 'Avenir Next', 'Trebuchet MS', sans-serif;
+    font-family: "Inter", "Segoe UI Variable", "Segoe UI", "Avenir Next", "Trebuchet MS", sans-serif;
   }
 
   body {
@@ -81,13 +82,13 @@
     font: inherit;
   }
 
-  input[type='number']::-webkit-outer-spin-button,
-  input[type='number']::-webkit-inner-spin-button {
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button {
     -webkit-appearance: none;
     margin: 0;
   }
 
-  input[type='number'] {
+  input[type="number"] {
     -moz-appearance: textfield;
     appearance: textfield;
   }
@@ -99,6 +100,202 @@
 }
 
 @layer components {
+  .landing-container {
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+
+  .landing-page {
+    min-height: 100vh;
+    overflow-x: hidden;
+    background:
+      radial-gradient(circle at top left, rgba(37, 99, 235, 0.08), transparent 28%),
+      radial-gradient(circle at top right, rgba(8, 145, 178, 0.08), transparent 24%),
+      linear-gradient(180deg, #f8fbff 0%, #f4f7fb 42%, #ffffff 100%);
+    color: var(--text-strong);
+  }
+
+  .landing-header {
+    @apply sticky top-0 z-40 border-b border-slate-200/70 bg-white/90 backdrop-blur-xl;
+  }
+
+  .brand-mark {
+    @apply flex h-10 w-10 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,var(--brand-strong),var(--teal))] text-white shadow-[0_14px_30px_rgba(37,99,235,0.26)];
+  }
+
+  .landing-nav-link {
+    @apply rounded-full px-4 py-2 text-sm font-bold text-slate-600 transition hover:bg-slate-100 hover:text-slate-950;
+  }
+
+  .landing-small-cta {
+    @apply inline-flex h-10 items-center justify-center gap-2 rounded-2xl bg-[linear-gradient(135deg,var(--brand-strong),var(--brand))] px-4 text-sm font-black text-white shadow-[0_14px_28px_rgba(37,99,235,0.22)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_34px_rgba(37,99,235,0.28)];
+  }
+
+  .landing-hero {
+    @apply relative overflow-hidden border-b border-slate-200/70 pb-16 pt-12 sm:pb-20 sm:pt-16 lg:pb-24;
+    background:
+      linear-gradient(rgba(15, 23, 42, 0.022) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(15, 23, 42, 0.022) 1px, transparent 1px),
+      linear-gradient(115deg, rgba(248, 251, 255, 0.96), rgba(239, 246, 255, 0.92) 48%, rgba(236, 253, 245, 0.74));
+    background-size:
+      54px 54px,
+      54px 54px,
+      auto;
+  }
+
+  .landing-hero-layout {
+    @apply grid items-center gap-12 lg:grid-cols-[minmax(0,0.95fr)_minmax(390px,1fr)] xl:gap-16;
+  }
+
+  .landing-eyebrow {
+    @apply text-[11px] font-black uppercase tracking-[0.22em] text-[var(--brand-strong)];
+  }
+
+  .landing-hero-title {
+    @apply mt-5 max-w-4xl text-4xl font-black leading-[1.04] tracking-[-0.035em] text-slate-950 sm:text-5xl lg:text-6xl;
+  }
+
+  .landing-hero-subtitle {
+    @apply mt-6 max-w-2xl text-base font-medium leading-8 text-[var(--text-soft)] sm:text-lg;
+  }
+
+  .landing-primary-btn {
+    @apply inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-[linear-gradient(135deg,#08111f,var(--brand-strong)_50%,var(--teal))] px-6 text-base font-black text-white shadow-[0_18px_36px_rgba(29,78,216,0.28)] transition hover:-translate-y-0.5 hover:shadow-[0_22px_44px_rgba(29,78,216,0.34)] focus:outline-none focus:ring-4 focus:ring-blue-100;
+  }
+
+  .landing-secondary-btn {
+    @apply inline-flex h-12 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white/90 px-6 text-base font-black text-slate-800 shadow-[0_12px_28px_rgba(15,23,42,0.07)] transition hover:-translate-y-0.5 hover:border-blue-200 hover:text-[var(--brand-strong)] hover:shadow-[0_18px_34px_rgba(15,23,42,0.1)] focus:outline-none focus:ring-4 focus:ring-slate-100;
+  }
+
+  .landing-demo-strip {
+    @apply mt-8 grid max-w-3xl gap-3 rounded-[24px] border border-white/80 bg-white/90 p-4 shadow-[0_18px_45px_rgba(15,23,42,0.08)] ring-1 ring-slate-900/[0.03] backdrop-blur sm:grid-cols-3;
+  }
+
+  .landing-demo-strip div {
+    @apply rounded-2xl bg-slate-50/90 p-3;
+  }
+
+  .landing-demo-strip span {
+    @apply block text-xs font-black uppercase tracking-[0.14em];
+  }
+
+  .landing-demo-strip strong {
+    @apply mt-1 block break-all text-sm font-black text-slate-950;
+  }
+
+  .landing-hero-media {
+    @apply relative;
+  }
+
+  .landing-floating-note {
+    @apply absolute -bottom-5 left-8 max-w-xs rounded-[22px] border border-blue-100 bg-white/90 p-4 shadow-[0_20px_48px_rgba(15,23,42,0.12)] backdrop-blur;
+  }
+
+  .landing-section {
+    @apply py-16 sm:py-20 lg:py-24;
+  }
+
+  .landing-section-title {
+    @apply mt-3 text-3xl font-black leading-tight tracking-[-0.02em] text-slate-950 sm:text-4xl;
+  }
+
+  .landing-section-text {
+    @apply mt-4 text-base font-medium leading-7 text-[var(--text-soft)];
+  }
+
+  .problem-panel {
+    @apply grid gap-8 rounded-[28px] border border-slate-200/80 bg-white/90 p-6 shadow-[0_20px_55px_rgba(15,23,42,0.07)] ring-1 ring-slate-900/[0.03] md:grid-cols-[1fr_0.9fr] lg:p-10;
+  }
+
+  .problem-item {
+    @apply flex items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50/80 p-4 text-sm font-bold leading-6 text-slate-700;
+  }
+
+  .feature-story {
+    @apply grid gap-6 rounded-[30px] border border-slate-200/80 bg-white/95 p-4 shadow-[0_22px_58px_rgba(15,23,42,0.08)] ring-1 ring-slate-900/[0.03] lg:grid-cols-2 lg:items-center lg:p-6;
+  }
+
+  .feature-story-content {
+    @apply p-2 sm:p-4 lg:p-8;
+  }
+
+  .landing-feature-card {
+    @apply rounded-[22px] border border-slate-200/80 bg-white/95 p-5 shadow-[0_16px_40px_rgba(15,23,42,0.06)] ring-1 ring-slate-900/[0.03] transition duration-200 hover:-translate-y-1 hover:border-blue-100 hover:shadow-[0_22px_50px_rgba(37,99,235,0.1)];
+  }
+
+  .landing-icon {
+    @apply inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-[var(--brand-soft)] text-[var(--brand-strong)];
+  }
+
+  .solution-card {
+    @apply overflow-hidden rounded-[26px] border border-slate-200/80 bg-white/95 shadow-[0_18px_44px_rgba(15,23,42,0.07)] ring-1 ring-slate-900/[0.03] transition duration-200 hover:-translate-y-1 hover:shadow-[0_24px_54px_rgba(8,145,178,0.12)];
+  }
+
+  .workflow-card {
+    @apply rounded-[24px] border border-slate-200/80 bg-white/95 p-5 shadow-[0_16px_38px_rgba(15,23,42,0.06)] ring-1 ring-slate-900/[0.03];
+  }
+
+  .workflow-number {
+    @apply inline-flex h-9 w-9 items-center justify-center rounded-2xl bg-slate-950 text-sm font-black text-white;
+  }
+
+  .showcase-grid {
+    @apply grid gap-8 lg:grid-cols-[0.7fr_1fr] lg:items-start;
+  }
+
+  .image-placeholder {
+    @apply relative overflow-hidden rounded-[26px] border border-slate-200/80 bg-slate-100 shadow-[0_18px_44px_rgba(15,23,42,0.07)] ring-1 ring-slate-900/[0.03];
+  }
+
+  .image-placeholder::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background: linear-gradient(180deg, rgba(8, 17, 31, 0.02) 0%, rgba(8, 17, 31, 0.08) 54%, rgba(8, 17, 31, 0.38) 100%);
+  }
+
+  .image-placeholder-dashboard {
+    @apply rounded-[30px] shadow-[0_34px_90px_rgba(15,23,42,0.18)];
+  }
+
+  .landing-image {
+    @apply h-full w-full object-cover;
+  }
+
+  .landing-image-caption {
+    @apply absolute inset-x-4 bottom-4 z-10 rounded-2xl border border-white/20 p-4 shadow-[0_16px_32px_rgba(8,17,31,0.16)] backdrop-blur;
+    background: rgba(255, 255, 255, 0.88);
+  }
+
+  .landing-image-caption-compact {
+    @apply inset-x-3 bottom-3 p-3;
+  }
+
+  .landing-image-caption p {
+    @apply text-sm font-black leading-5 text-slate-950;
+  }
+
+  .demo-panel {
+    @apply grid gap-8 rounded-[30px] bg-[linear-gradient(135deg,#08111f,var(--brand-strong)_52%,var(--teal))] p-6 shadow-[0_28px_70px_rgba(37,99,235,0.26)] sm:p-8 lg:grid-cols-[1fr_auto] lg:items-center lg:p-10;
+  }
+
+  .demo-white-btn {
+    @apply inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-white px-6 text-base font-black text-[var(--brand-strong)] shadow-[0_18px_36px_rgba(8,17,31,0.18)] transition hover:-translate-y-0.5 hover:bg-blue-50;
+  }
+
+  .demo-outline-btn {
+    @apply inline-flex h-12 items-center justify-center gap-2 rounded-2xl border border-white/25 px-6 text-base font-black text-white transition hover:bg-white/10;
+  }
+
+  .pricing-card {
+    @apply rounded-[24px] border border-slate-200/80 bg-white/95 p-6 shadow-[0_18px_44px_rgba(15,23,42,0.07)] ring-1 ring-slate-900/[0.03];
+  }
+
+  .pricing-card-featured {
+    @apply border-blue-200 shadow-[0_26px_62px_rgba(37,99,235,0.16)] ring-blue-100;
+  }
+
   .input {
     @apply h-10 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 shadow-[0_1px_0_rgba(15,23,42,0.03)] outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-[var(--secondary)] focus:bg-white focus:ring-4 focus:ring-[var(--secondary-soft)] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400;
   }
@@ -147,7 +344,7 @@
   }
 
   .page-shell::before {
-    content: '';
+    content: "";
     position: fixed;
     inset: 0;
     pointer-events: none;
@@ -218,7 +415,9 @@
   }
 
   .surface tbody tr {
-    transition: background-color 160ms ease, box-shadow 160ms ease;
+    transition:
+      background-color 160ms ease,
+      box-shadow 160ms ease;
   }
 }
 
@@ -274,4 +473,28 @@
   .print-break-inside-avoid {
     break-inside: avoid;
   }
+}
+
+
+
+html.landing-page-active,
+body.landing-page-active {
+  height: auto !important;
+  min-height: 100vh !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  background: #f8fbff;
+  scroll-behavior: smooth;
+}
+
+body.landing-page-active #root {
+  height: auto !important;
+  min-height: 100vh !important;
+  overflow: visible !important;
+}
+
+body.landing-page-active .page-shell {
+  height: auto !important;
+  min-height: 100vh !important;
+  overflow: visible !important;
 }

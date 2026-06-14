@@ -6,6 +6,7 @@ export function createCustomersRoutes(customerController) {
   const router = Router();
 
   router.get("/trash", requirePermission(PERMISSIONS.MANAGE_CUSTOMERS), customerController.listTrash);
+  router.get("/active", requirePermission(PERMISSIONS.VIEW_STATE), customerController.listActive);
   router.get("/", requirePermission(PERMISSIONS.VIEW_STATE), customerController.list);
   router.get("/:id", requirePermission(PERMISSIONS.VIEW_STATE), customerController.get);
   router.post("/", requirePermission(PERMISSIONS.MANAGE_CUSTOMERS), customerController.create);

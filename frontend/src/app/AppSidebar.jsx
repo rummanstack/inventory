@@ -5,7 +5,7 @@ import { APP_ROUTES } from './routes';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 
 export default function AppSidebar({ mobileOpen, setMobileOpen, user, tenant, language, onLanguageChange, onLogout, t, can, hasFeature }) {
-  const sections = ['overview', 'inventory', 'operations', 'reports', 'finance', 'governance', 'settings', 'developer'];
+  const sections = ['overview', 'inventory', 'operations', 'retailer', 'reports', 'finance', 'governance', 'settings', 'developer'];
   const groupedRoutes = sections
     .map((section) => ({
       section,

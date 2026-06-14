@@ -7,9 +7,11 @@ import {
   FileText,
   HandCoins,
   KeyRound,
+  Receipt,
   RotateCcw,
   Settings,
   ShieldCheck,
+  ShoppingBag,
   ShoppingCart,
   TrendingUp,
   Store,
@@ -51,6 +53,13 @@ import SuppliersPage from '../features/suppliers/pages/SuppliersPage';
 import PurchaseReceivePage from '../features/purchase-receive/pages/PurchaseReceivePage';
 import SupplierPaymentsPage from '../features/supplier-payments/pages/SupplierPaymentsPage';
 import SupplierStatementPage from '../features/supplier-statement/pages/SupplierStatementPage';
+import QuickSalePage from '../features/retailer/quick-sale/pages/QuickSalePage';
+import SalesInvoicesPage from '../features/retailer/sales-invoices/pages/SalesInvoicesPage';
+import CustomerDuePage from '../features/retailer/customer-due/pages/CustomerDuePage';
+import DueCollectionPage from '../features/retailer/due-collection/pages/DueCollectionPage';
+import SalesReturnPage from '../features/retailer/sales-return/pages/SalesReturnPage';
+import DailySalesReportPage from '../features/retailer/daily-sales-report/pages/DailySalesReportPage';
+import RetailerProfitReportPage from '../features/retailer/profit-report/pages/RetailerProfitReportPage';
 
 export const APP_ROUTES = [
   { id: 'dashboard', path: '/dashboard', labelKey: 'nav.dashboard', icon: BarChart3, component: DashboardPage, group: 'overview', permission: 'view_state' },
@@ -63,6 +72,14 @@ export const APP_ROUTES = [
   { id: 'supplier-statement', path: '/supplier-statement', labelKey: 'nav.supplierStatement', icon: FileText, component: SupplierStatementPage, group: 'operations', permission: 'manage_suppliers', feature: 'supplier-statement' },
   { id: 'morning-issue', path: '/morning-issue', labelKey: 'nav.morningIssue', icon: Truck, component: MorningIssuePage, group: 'operations', permission: 'create_issues', feature: 'morning-issue' },
   { id: 'settlements', path: '/settlements', labelKey: 'nav.eveningSettlement', icon: RotateCcw, component: EveningSettlementPage, group: 'operations', permission: 'create_settlements', feature: 'settlements' },
+  { id: 'retailer-quick-sale', path: '/retailer/quick-sale', labelKey: 'nav.retailerQuickSale', icon: ShoppingBag, component: QuickSalePage, group: 'retailer', permission: 'manage_retailers', feature: 'retailer-quick-sale' },
+  { id: 'retailer-sales-invoices', path: '/retailer/sales-invoices', labelKey: 'nav.retailerSalesInvoices', icon: Receipt, component: SalesInvoicesPage, group: 'retailer', permission: 'manage_retailers', feature: 'retailer-sales-invoices' },
+  { id: 'retailer-customers', path: '/retailer/customers', labelKey: 'nav.retailerCustomers', icon: Store, component: CustomersPage, group: 'retailer', permission: 'manage_retailers' },
+  { id: 'retailer-customer-due', path: '/retailer/customer-due', labelKey: 'nav.retailerCustomerDue', icon: Wallet, component: CustomerDuePage, group: 'retailer', permission: 'manage_retailers', feature: 'retailer-customer-due' },
+  { id: 'retailer-due-collection', path: '/retailer/due-collection', labelKey: 'nav.retailerDueCollection', icon: HandCoins, component: DueCollectionPage, group: 'retailer', permission: 'manage_retailers', feature: 'retailer-due-collection' },
+  { id: 'retailer-sales-return', path: '/retailer/sales-return', labelKey: 'nav.retailerSalesReturn', icon: RotateCcw, component: SalesReturnPage, group: 'retailer', permission: 'manage_retailers', feature: 'retailer-sales-return' },
+  { id: 'retailer-daily-sales-report', path: '/retailer/daily-sales-report', labelKey: 'nav.retailerDailySalesReport', icon: FileText, component: DailySalesReportPage, group: 'retailer', permission: 'manage_retailers', feature: 'retailer-daily-sales-report' },
+  { id: 'retailer-profit-report', path: '/retailer/profit-report', labelKey: 'nav.retailerProfitReport', icon: TrendingUp, component: RetailerProfitReportPage, group: 'retailer', permission: 'manage_retailers', feature: 'retailer-profit-report' },
   { id: 'reports', path: '/reports', labelKey: 'nav.reports', icon: FileText, component: DailyReportsPage, group: 'reports', permission: 'view_state', feature: 'reports' },
   { id: 'history', path: '/history', labelKey: 'nav.history', icon: ClipboardList, component: HistoryPage, group: 'reports', permission: 'view_state', feature: 'history' },
   { id: 'dsr-finance', path: '/dsr-finance', labelKey: 'nav.dsrFinance', icon: HandCoins, component: DsrFinancePage, group: 'finance', permission: 'manage_dsr_finance', feature: 'dsr-finance' },

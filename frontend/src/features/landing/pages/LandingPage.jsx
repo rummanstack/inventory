@@ -91,7 +91,7 @@ export default function LandingPage() {
 function LandingHeader({ language, setLanguage, t }) {
   return (
     <header className="landing-header">
-      <div className="landing-container flex min-h-16 items-center justify-between gap-3">
+      <div className="landing-header-inner">
         <a href="#top" className="flex items-center gap-3" aria-label="StockLedger home">
           <span className="brand-mark">
             <Boxes size={20} />
@@ -114,9 +114,6 @@ function LandingHeader({ language, setLanguage, t }) {
 
         <div className="flex items-center gap-2">
           <LanguageSwitcher language={language} onChange={setLanguage} t={t} compact />
-          <a href={`tel:${demoPhone}`} className="hidden rounded-full px-3 py-2 text-sm font-black text-slate-700 transition hover:bg-slate-100 xl:inline-flex">
-            {demoPhone}
-          </a>
           <Link to="/login" className="landing-small-cta">
             {t('landing.tryDemo')}
             <ArrowRight size={16} />

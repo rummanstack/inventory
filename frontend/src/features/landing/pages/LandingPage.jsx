@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import heroDashboardImage from '../../../assets/landing/hero-dashboard.png';
 import ownerLaptopImage from '../../../assets/landing/business-owner-dashboard.png';
@@ -15,7 +15,11 @@ import {
   ArrowRight,
   BarChart3,
   Boxes,
+  Check,
   CheckCircle2,
+  Copy,
+  KeyRound,
+  Mail,
   MessageCircle,
   PackageCheck,
   Phone,
@@ -150,17 +154,28 @@ function HeroSection({ t }) {
           </div>
 
           <div className="landing-demo-strip">
+            <CopyableField
+              icon={Mail}
+              label={t('landing.hero.demoEmailLabel')}
+              value={demoEmail}
+              wrapperClassName="flex w-full items-center gap-3 rounded-2xl bg-slate-50/90 p-3 text-left transition hover:bg-slate-100"
+              iconClassName="landing-demo-icon"
+            />
+            <CopyableField
+              icon={KeyRound}
+              label={t('landing.hero.demoPasswordLabel')}
+              value={demoPassword}
+              wrapperClassName="flex w-full items-center gap-3 rounded-2xl bg-slate-50/90 p-3 text-left transition hover:bg-slate-100"
+              iconClassName="landing-demo-icon"
+            />
             <div>
-              <span className="text-slate-500">{t('landing.hero.demoEmailLabel')}</span>
-              <strong>{demoEmail}</strong>
-            </div>
-            <div>
-              <span className="text-slate-500">{t('landing.hero.demoPasswordLabel')}</span>
-              <strong>{demoPassword}</strong>
-            </div>
-            <div>
-              <span className="text-slate-500">{t('landing.hero.callLabel')}</span>
-              <strong>{demoPhone}</strong>
+              <span className="landing-demo-icon">
+                <Phone size={16} />
+              </span>
+              <span>
+                <span className="landing-demo-label">{t('landing.hero.callLabel')}</span>
+                <strong>{demoPhone}</strong>
+              </span>
             </div>
           </div>
         </div>
@@ -360,13 +375,13 @@ function DemoSection({ t }) {
       <div className="landing-container">
         <div className="demo-panel">
           <div>
-            <p className="text-[11px] font-black uppercase tracking-[0.22em] text-blue-100">{t('landing.demo.eyebrow')}</p>
-            <h2 className="mt-4 max-w-3xl text-3xl font-black leading-tight text-white sm:text-4xl">{t('landing.demo.title')}</h2>
-            <p className="mt-4 text-base font-semibold leading-7 text-blue-100">{t('landing.demo.text', { phone: demoPhone })}</p>
+            <p className="landing-eyebrow">{t('landing.demo.eyebrow')}</p>
+            <h2 className="mt-4 max-w-3xl text-3xl font-black leading-tight text-slate-950 sm:text-4xl">{t('landing.demo.title')}</h2>
+            <p className="mt-4 text-base font-semibold leading-7 text-[var(--text-soft)]">{t('landing.demo.text', { phone: demoPhone })}</p>
 
             <div className="mt-6 grid gap-3 sm:grid-cols-2">
-              <DemoInfo label={t('landing.demo.emailLabel')} value={demoEmail} />
-              <DemoInfo label={t('landing.demo.passwordLabel')} value={demoPassword} />
+              <DemoInfo icon={Mail} label={t('landing.demo.emailLabel')} value={demoEmail} />
+              <DemoInfo icon={KeyRound} label={t('landing.demo.passwordLabel')} value={demoPassword} />
             </div>
           </div>
 
@@ -482,11 +497,44 @@ function SectionHeader({ label, title, description }) {
   );
 }
 
-function DemoInfo({ label, value }) {
+function DemoInfo({ icon, label, value }) {
   return (
-    <div className="rounded-2xl border border-white/15 bg-white/10 p-4">
-      <p className="text-xs font-black uppercase tracking-[0.16em] text-blue-100">{label}</p>
-      <p className="mt-2 text-base font-black text-white">{value}</p>
-    </div>
+    <CopyableField
+      icon={icon}
+      label={label}
+      value={value}
+      wrapperClassName="flex w-full items-center gap-3 rounded-2xl border border-slate-200 bg-white/90 p-4 text-left shadow-[0_10px_28px_rgba(15,23,42,0.05)] transition hover:border-blue-200 hover:bg-blue-50/40"
+      iconClassName="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--brand-soft)] text-[var(--brand-strong)]"
+      valueClassName="mt-0.5 block whitespace-nowrap text-base font-black text-slate-950"
+    />
+  );
+}
+
+function CopyableField({ icon: Icon, label, value, wrapperClassName, iconClassName, valueClassName }) {
+  const [copied, setCopied] = useState(false);
+
+  async function handleCopy() {
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      // ignore clipboard errors (e.g. unsupported browser)
+    }
+  }
+
+  return (
+    <button type="button" onClick={handleCopy} className={`group ${wrapperClassName}`}>
+      <span className={iconClassName}>
+        <Icon size={18} />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="landing-demo-label">{label}</span>
+        <strong className={valueClassName}>{value}</strong>
+      </span>
+      <span className={copied ? 'shrink-0 text-[var(--success)]' : 'shrink-0 text-slate-400 transition group-hover:text-[var(--brand-strong)]'}>
+        {copied ? <Check size={16} /> : <Copy size={16} />}
+      </span>
+    </button>
   );
 }

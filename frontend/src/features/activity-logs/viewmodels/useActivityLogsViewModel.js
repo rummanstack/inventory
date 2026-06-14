@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { inventoryApi } from '../../../services/inventoryApi';
 import { usePagedList } from '../../../hooks/usePagedList';
+import { useDebouncedValue } from '../../../hooks/useDebouncedValue';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 
 const SEARCH_DEBOUNCE_MS = 300;
@@ -10,10 +11,10 @@ export function useActivityLogsViewModel() {
   const { user } = useInventoryApp();
   const canFilterByOrg = PLATFORM_ROLES.has(user?.role);
   const [search, setSearch] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const debouncedSearch = useDebouncedValue(search.trim(), SEARCH_DEBOUNCE_MS);
   const [module, setModule] = useState('');
   const [actionType, setActionType] = useState('');
-  const [debouncedActionType, setDebouncedActionType] = useState('');
+  const debouncedActionType = useDebouncedValue(actionType.trim(), SEARCH_DEBOUNCE_MS);
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [tenantId, setTenantId] = useState('');
@@ -34,20 +35,8 @@ export function useActivityLogsViewModel() {
   );
 
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      setDebouncedSearch(search.trim());
-      setDebouncedActionType(actionType.trim());
-      list.resetPage();
-    }, SEARCH_DEBOUNCE_MS);
-
-    return () => clearTimeout(timeoutId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [search, actionType]);
-
-  useEffect(() => {
     list.resetPage();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [module, dateFrom, dateTo, tenantId]);
+  }, [debouncedSearch, debouncedActionType, module, dateFrom, dateTo, tenantId, list.resetPage]);
 
   useEffect(() => {
     if (!canFilterByOrg) {

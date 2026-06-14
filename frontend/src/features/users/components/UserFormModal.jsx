@@ -3,6 +3,7 @@ import { Save } from 'lucide-react';
 import { Alert, Modal } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
+import { useFormState } from '../../../hooks/useFormState';
 
 const ROLE_OPTIONS_BY_ACTOR = {
   system_developer: ['super_admin', 'admin', 'manager', 'operator'],
@@ -16,7 +17,7 @@ export default function UserFormModal({ user, onClose, onSave }) {
   const isEdit = Boolean(user);
   const needsTenant = actor?.role === 'system_developer' && !isEdit;
   const roleOptions = ROLE_OPTIONS_BY_ACTOR[actor?.role] || DEFAULT_ROLE_OPTIONS;
-  const [form, setForm] = useState({
+  const { form, setForm, updateField, error, setError, saving, setSaving } = useFormState({
     name: user?.name || '',
     email: user?.email || '',
     password: '',
@@ -25,8 +26,6 @@ export default function UserFormModal({ user, onClose, onSave }) {
     tenantId: '',
   });
   const [tenants, setTenants] = useState([]);
-  const [error, setError] = useState('');
-  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!needsTenant) return;
@@ -41,10 +40,6 @@ export default function UserFormModal({ user, onClose, onSave }) {
       cancelled = true;
     };
   }, [needsTenant]);
-
-  function updateField(field, value) {
-    setForm((current) => ({ ...current, [field]: value }));
-  }
 
   async function submitForm(event) {
     event.preventDefault();

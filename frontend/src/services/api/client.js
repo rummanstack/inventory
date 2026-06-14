@@ -12,6 +12,15 @@ export function setActiveTenantId(tenantId) {
   }
 }
 
+export function buildQueryString(params = {}) {
+  const search = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value) search.set(key, value);
+  }
+  const query = search.toString();
+  return query ? `?${query}` : "";
+}
+
 export async function apiRequest(path, options = {}) {
   const activeTenantId = getActiveTenantId();
   const response = await fetch(`/api${path}`, {

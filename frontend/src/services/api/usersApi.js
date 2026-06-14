@@ -1,4 +1,4 @@
-import { apiRequest } from './client.js';
+import { apiRequest, buildQueryString } from './client.js';
 
 export const usersApi = {
   listUsers() {
@@ -18,11 +18,7 @@ export const usersApi = {
   },
 
   listUsersTrash({ page, pageSize } = {}) {
-    const params = new URLSearchParams();
-    if (page) params.set("page", page);
-    if (pageSize) params.set("pageSize", pageSize);
-    const query = params.toString();
-    return apiRequest(`/users/trash${query ? `?${query}` : ""}`);
+    return apiRequest(`/users/trash${buildQueryString({ page, pageSize })}`);
   },
 
   restoreUser(userId) {

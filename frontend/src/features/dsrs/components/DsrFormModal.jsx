@@ -3,11 +3,12 @@ import { Save } from 'lucide-react';
 import { Alert, Modal } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import AuditHistory from '../../../components/AuditHistory.jsx';
+import { useFormState } from '../../../hooks/useFormState';
 
 export default function DsrFormModal({ dsr, onClose, onSave }) {
   const { t, pushToast } = useInventoryApp();
   const isEdit = Boolean(dsr);
-  const [form, setForm] = useState({
+  const { form, updateField, error, setError, saving, setSaving } = useFormState({
     name: dsr?.name || '',
     phone: dsr?.phone || '',
     area: dsr?.area || '',
@@ -15,13 +16,7 @@ export default function DsrFormModal({ dsr, onClose, onSave }) {
     openingDue: dsr?.openingDue || 0,
   });
   const [reason, setReason] = useState('');
-  const [error, setError] = useState('');
-  const [saving, setSaving] = useState(false);
   const openingDueChanged = isEdit && Math.max(0, Number(form.openingDue || 0)) !== Number(dsr?.openingDue || 0);
-
-  function updateField(field, value) {
-    setForm((current) => ({ ...current, [field]: value }));
-  }
 
   async function submitForm(event) {
     event.preventDefault();

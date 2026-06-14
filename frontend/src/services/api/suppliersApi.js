@@ -1,14 +1,8 @@
-import { apiRequest } from './client.js';
+import { apiRequest, buildQueryString } from './client.js';
 
 export const suppliersApi = {
   listSuppliers({ page, pageSize, search, status } = {}) {
-    const params = new URLSearchParams();
-    if (page) params.set("page", page);
-    if (pageSize) params.set("pageSize", pageSize);
-    if (search) params.set("search", search);
-    if (status) params.set("status", status);
-    const query = params.toString();
-    return apiRequest(`/suppliers${query ? `?${query}` : ""}`);
+    return apiRequest(`/suppliers${buildQueryString({ page, pageSize, search, status })}`);
   },
 
   getActiveSuppliers() {
@@ -32,11 +26,7 @@ export const suppliersApi = {
   },
 
   listSuppliersTrash({ page, pageSize } = {}) {
-    const params = new URLSearchParams();
-    if (page) params.set("page", page);
-    if (pageSize) params.set("pageSize", pageSize);
-    const query = params.toString();
-    return apiRequest(`/suppliers/trash${query ? `?${query}` : ""}`);
+    return apiRequest(`/suppliers/trash${buildQueryString({ page, pageSize })}`);
   },
 
   restoreSupplier(supplierId) {

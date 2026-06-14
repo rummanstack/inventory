@@ -1,16 +1,8 @@
-import { apiRequest } from './client.js';
+import { apiRequest, buildQueryString } from './client.js';
 
 export const expensesApi = {
   getExpenseReport({ date, month } = {}) {
-    const params = new URLSearchParams();
-    if (date) {
-      params.set("date", date);
-    }
-    if (month) {
-      params.set("month", month);
-    }
-    const query = params.toString();
-    return apiRequest(`/expenses${query ? `?${query}` : ""}`);
+    return apiRequest(`/expenses${buildQueryString({ date, month })}`);
   },
 
   createExpense(expense) {
@@ -26,11 +18,7 @@ export const expensesApi = {
   },
 
   listExpensesTrash({ page, pageSize } = {}) {
-    const params = new URLSearchParams();
-    if (page) params.set("page", page);
-    if (pageSize) params.set("pageSize", pageSize);
-    const query = params.toString();
-    return apiRequest(`/expenses/trash${query ? `?${query}` : ""}`);
+    return apiRequest(`/expenses/trash${buildQueryString({ page, pageSize })}`);
   },
 
   restoreExpense(expenseId) {

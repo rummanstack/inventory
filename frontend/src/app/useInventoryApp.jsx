@@ -624,7 +624,7 @@ export function InventoryAppProvider({ children }) {
       pushToast('success', t('alerts.loggedIn'), result.user.name);
       return { ok: true };
     } catch (error) {
-      const message = getFriendlyError(error);
+      const message = getFriendlyError(error, t);
       pushToast('error', t('auth.loginFailed'), message);
       return { ok: false, message };
     }

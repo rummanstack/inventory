@@ -1,13 +1,8 @@
-import { apiRequest } from './client.js';
+import { apiRequest, buildQueryString } from './client.js';
 
 export const dsrFinanceApi = {
   getCashReceiptReport({ date, month, dsrId } = {}) {
-    const params = new URLSearchParams();
-    if (date) params.set("date", date);
-    if (month) params.set("month", month);
-    if (dsrId) params.set("dsrId", dsrId);
-    const query = params.toString();
-    return apiRequest(`/dsr-cash-receipts${query ? `?${query}` : ""}`);
+    return apiRequest(`/dsr-cash-receipts${buildQueryString({ date, month, dsrId })}`);
   },
 
   createCashReceipt(record) {
@@ -22,12 +17,7 @@ export const dsrFinanceApi = {
   },
 
   getAdvanceReport({ date, month, dsrId } = {}) {
-    const params = new URLSearchParams();
-    if (date) params.set("date", date);
-    if (month) params.set("month", month);
-    if (dsrId) params.set("dsrId", dsrId);
-    const query = params.toString();
-    return apiRequest(`/dsr-advances${query ? `?${query}` : ""}`);
+    return apiRequest(`/dsr-advances${buildQueryString({ date, month, dsrId })}`);
   },
 
   createAdvance(record) {
@@ -42,30 +32,15 @@ export const dsrFinanceApi = {
   },
 
   listDsrDueLedger({ page, pageSize, dsrId, dateFrom, dateTo } = {}) {
-    const params = new URLSearchParams();
-    if (page) params.set("page", page);
-    if (pageSize) params.set("pageSize", pageSize);
-    if (dsrId) params.set("dsrId", dsrId);
-    if (dateFrom) params.set("dateFrom", dateFrom);
-    if (dateTo) params.set("dateTo", dateTo);
-    const query = params.toString();
-    return apiRequest(`/dsr-due-ledger${query ? `?${query}` : ""}`);
+    return apiRequest(`/dsr-due-ledger${buildQueryString({ page, pageSize, dsrId, dateFrom, dateTo })}`);
   },
 
   getDsrDueStatement({ dsrId, dateFrom, dateTo } = {}) {
-    const params = new URLSearchParams();
-    if (dsrId) params.set("dsrId", dsrId);
-    if (dateFrom) params.set("dateFrom", dateFrom);
-    if (dateTo) params.set("dateTo", dateTo);
-    const query = params.toString();
-    return apiRequest(`/dsr-due-ledger/statement${query ? `?${query}` : ""}`);
+    return apiRequest(`/dsr-due-ledger/statement${buildQueryString({ dsrId, dateFrom, dateTo })}`);
   },
 
   getDsrDueBalance(dsrId) {
-    const params = new URLSearchParams();
-    if (dsrId) params.set("dsrId", dsrId);
-    const query = params.toString();
-    return apiRequest(`/dsr-due-ledger/balance${query ? `?${query}` : ""}`);
+    return apiRequest(`/dsr-due-ledger/balance${buildQueryString({ dsrId })}`);
   },
 
   settleDsrDue({ dsrId, amount, note }) {

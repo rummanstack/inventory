@@ -7,18 +7,7 @@ import { formatCurrency, formatDate, formatNumber } from '../../../utils/calcula
 import PurchaseReceiveFormModal from '../components/PurchaseReceiveFormModal';
 import PurchaseReceiptViewModal from '../components/PurchaseReceiptViewModal';
 import { usePurchaseReceiveViewModel } from '../viewmodels/usePurchaseReceiveViewModel';
-
-function paymentStatusTone(status) {
-  if (status === 'PAID') return 'emerald';
-  if (status === 'PARTIAL') return 'amber';
-  return 'rose';
-}
-
-function paymentStatusOf(receipt) {
-  if (Number(receipt.dueAmount || 0) <= 0) return 'PAID';
-  if (Number(receipt.paidAmount || 0) > 0) return 'PARTIAL';
-  return 'DUE';
-}
+import { paymentStatusOf, paymentStatusTone } from '../../../models/inventoryViewData.js';
 
 export default function PurchaseReceivePage() {
   const { savePurchaseReceipt, deletePurchaseReceipt, t, can, supplierDirectory } = useInventoryApp();

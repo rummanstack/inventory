@@ -182,6 +182,31 @@ export function statusTone(status) {
   return 'slate';
 }
 
+export function actionTone(actionType = '') {
+  if (actionType.includes('delete')) {
+    return 'rose';
+  }
+  if (actionType.includes('create') || actionType.includes('restore') || actionType.includes('login')) {
+    return 'emerald';
+  }
+  if (actionType.includes('update') || actionType.includes('adjustment') || actionType.includes('logout')) {
+    return 'amber';
+  }
+  return 'slate';
+}
+
+export function paymentStatusOf(receipt) {
+  if (Number(receipt.dueAmount || 0) <= 0) return 'PAID';
+  if (Number(receipt.paidAmount || 0) > 0) return 'PARTIAL';
+  return 'DUE';
+}
+
+export function paymentStatusTone(status) {
+  if (status === 'PAID') return 'emerald';
+  if (status === 'PARTIAL') return 'amber';
+  return 'rose';
+}
+
 export function shortDate(date) {
   if (!date) return '-';
   return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(new Date(`${date}T00:00:00`));

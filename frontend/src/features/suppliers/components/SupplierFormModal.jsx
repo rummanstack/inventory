@@ -1,13 +1,13 @@
-import { useState } from 'react';
 import { Save } from 'lucide-react';
 import { Alert, Modal } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import AuditHistory from '../../../components/AuditHistory.jsx';
+import { useFormState } from '../../../hooks/useFormState';
 
 export default function SupplierFormModal({ supplier, onClose, onSave }) {
   const { t, pushToast } = useInventoryApp();
   const isEdit = Boolean(supplier);
-  const [form, setForm] = useState({
+  const { form, updateField, error, setError, saving, setSaving } = useFormState({
     name: supplier?.name || '',
     phone: supplier?.phone || '',
     address: supplier?.address || '',
@@ -16,12 +16,6 @@ export default function SupplierFormModal({ supplier, onClose, onSave }) {
     status: supplier?.status || 'ACTIVE',
     note: supplier?.note || '',
   });
-  const [error, setError] = useState('');
-  const [saving, setSaving] = useState(false);
-
-  function updateField(field, value) {
-    setForm((current) => ({ ...current, [field]: value }));
-  }
 
   async function submitForm(event) {
     event.preventDefault();

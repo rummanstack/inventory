@@ -1,13 +1,13 @@
-import { useState } from 'react';
 import { Save } from 'lucide-react';
 import { Alert, Modal } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { cleanNumber } from '../../../utils/calculations.js';
+import { useFormState } from '../../../hooks/useFormState';
 
 export default function ProductFormModal({ product, onClose, onSave }) {
   const { t, pushToast } = useInventoryApp();
   const isEdit = Boolean(product);
-  const [form, setForm] = useState({
+  const { form, updateField, error, setError, saving, setSaving } = useFormState({
     name: product?.name || '',
     category: product?.category || '',
     piecesPerCase: product?.piecesPerCase || 24,
@@ -15,12 +15,6 @@ export default function ProductFormModal({ product, onClose, onSave }) {
     sellingPrice: product?.sellingPrice || '',
     orderIndex: product?.orderIndex != null ? product.orderIndex : '',
   });
-  const [error, setError] = useState('');
-  const [saving, setSaving] = useState(false);
-
-  function updateField(field, value) {
-    setForm((current) => ({ ...current, [field]: value }));
-  }
 
   async function submitForm(event) {
     event.preventDefault();

@@ -4,6 +4,7 @@ import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { formatDateTime, formatNumber } from '../../../utils/calculations.js';
 import { useActivityLogsViewModel } from '../viewmodels/useActivityLogsViewModel';
+import { actionTone } from '../../../models/inventoryViewData.js';
 
 const AUDIT_MODULES = [
   'products',
@@ -26,19 +27,6 @@ function formatValue(value) {
     return JSON.stringify(value);
   }
   return String(value);
-}
-
-function actionTone(actionType = '') {
-  if (actionType.includes('delete')) {
-    return 'rose';
-  }
-  if (actionType.includes('create') || actionType.includes('login')) {
-    return 'emerald';
-  }
-  if (actionType.includes('update') || actionType.includes('logout')) {
-    return 'amber';
-  }
-  return 'slate';
 }
 
 export default function ActivityLogsPage() {

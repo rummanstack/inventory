@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { inventoryApi } from '../../../services/inventoryApi';
 import { usePagedList } from '../../../hooks/usePagedList';
+import { useDebouncedValue } from '../../../hooks/useDebouncedValue';
 import { buildHistoryRows } from '../../../models/inventoryViewData.js';
 
 const SEARCH_DEBOUNCE_MS = 300;
@@ -13,7 +14,7 @@ const LOADERS = {
 export function useHistoryViewModel(type) {
   const loadPage = LOADERS[type];
   const [search, setSearch] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const debouncedSearch = useDebouncedValue(search.trim(), SEARCH_DEBOUNCE_MS);
 
   const list = usePagedList(
     ({ page, pageSize }) => loadPage({ page, pageSize, search: debouncedSearch }),
@@ -21,14 +22,8 @@ export function useHistoryViewModel(type) {
   );
 
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      setDebouncedSearch(search.trim());
-      list.resetPage();
-    }, SEARCH_DEBOUNCE_MS);
-
-    return () => clearTimeout(timeoutId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [search]);
+    list.resetPage();
+  }, [debouncedSearch, list.resetPage]);
 
   const rows = type === 'issues'
     ? buildHistoryRows({ issues: list.items, settlements: [] })

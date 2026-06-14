@@ -1,4 +1,4 @@
-import { apiRequest } from './client.js';
+import { apiRequest, buildQueryString } from './client.js';
 
 export const systemApi = {
   getSystemHealth() {
@@ -6,10 +6,6 @@ export const systemApi = {
   },
 
   listErrorLogs({ page, pageSize } = {}) {
-    const params = new URLSearchParams();
-    if (page) params.set("page", page);
-    if (pageSize) params.set("pageSize", pageSize);
-    const query = params.toString();
-    return apiRequest(`/system/error-logs${query ? `?${query}` : ""}`);
+    return apiRequest(`/system/error-logs${buildQueryString({ page, pageSize })}`);
   },
 };

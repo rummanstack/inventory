@@ -1,4 +1,4 @@
-import { apiRequest, downloadRequest } from './client.js';
+import { apiRequest, downloadRequest, buildQueryString } from './client.js';
 
 export const databaseBackupApi = {
   downloadDatabaseBackup(format = "sql") {
@@ -6,11 +6,6 @@ export const databaseBackupApi = {
   },
 
   listBackupHistory({ page, pageSize, search } = {}) {
-    const params = new URLSearchParams();
-    if (page) params.set("page", page);
-    if (pageSize) params.set("pageSize", pageSize);
-    if (search) params.set("search", search);
-    const query = params.toString();
-    return apiRequest(`/database-backup/history${query ? `?${query}` : ""}`);
+    return apiRequest(`/database-backup/history${buildQueryString({ page, pageSize, search })}`);
   },
 };

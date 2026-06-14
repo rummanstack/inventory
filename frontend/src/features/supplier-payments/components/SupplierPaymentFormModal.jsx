@@ -5,13 +5,14 @@ import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import AuditHistory from '../../../components/AuditHistory.jsx';
 import { todayISO } from '../../../utils/calculations.js';
+import { useFormState } from '../../../hooks/useFormState';
 
 const PAYMENT_METHODS = ['CASH', 'BANK', 'MOBILE_BANKING', 'CHEQUE'];
 
 export default function SupplierPaymentFormModal({ payment, onClose, onSave }) {
   const { t, pushToast, supplierDirectory } = useInventoryApp();
   const isEdit = Boolean(payment);
-  const [form, setForm] = useState({
+  const { form, updateField, error, setError, saving, setSaving } = useFormState({
     supplierId: payment?.supplierId || '',
     paymentDate: payment?.paymentDate || todayISO(),
     amount: payment?.amount ?? '',
@@ -19,12 +20,6 @@ export default function SupplierPaymentFormModal({ payment, onClose, onSave }) {
     note: payment?.note || '',
   });
   const [reason, setReason] = useState('');
-  const [error, setError] = useState('');
-  const [saving, setSaving] = useState(false);
-
-  function updateField(field, value) {
-    setForm((current) => ({ ...current, [field]: value }));
-  }
 
   async function submitForm(event) {
     event.preventDefault();

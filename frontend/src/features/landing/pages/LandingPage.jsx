@@ -168,15 +168,6 @@ function HeroSection({ t }) {
               wrapperClassName="flex w-full items-center gap-3 rounded-2xl bg-slate-50/90 p-3 text-left transition hover:bg-slate-100"
               iconClassName="landing-demo-icon"
             />
-            <div>
-              <span className="landing-demo-icon">
-                <Phone size={16} />
-              </span>
-              <span>
-                <span className="landing-demo-label">{t('landing.hero.callLabel')}</span>
-                <strong>{demoPhone}</strong>
-              </span>
-            </div>
           </div>
         </div>
 

@@ -7,7 +7,6 @@ import { countUsers, findUserByRole, insertUser } from "../repositories/userRepo
 import { countTenants, insertTenant, listTenants } from "../repositories/tenantRepository.js";
 
 const FIRST_TENANT_TABLES = [
-  "users",
   "products",
   "dsrs",
   "issues",
@@ -22,13 +21,13 @@ async function ensureFirstTenant(pool, env) {
   const tenantCount = await countTenants(pool);
   if (tenantCount > 0) {
     const tenants = await listTenants(pool);
-    return tenants[0];
+    return { tenant: tenants[0], isNew: false };
   }
 
   const tenantName = env.DEFAULT_TENANT_NAME || "Arinda Enterprise";
   const tenantSlug = env.DEFAULT_TENANT_SLUG || "arinda";
 
-  return await insertTenant(pool, {
+  const tenant = await insertTenant(pool, {
     id: createId("tenant"),
     name: tenantName,
     slug: tenantSlug,
@@ -36,12 +35,19 @@ async function ensureFirstTenant(pool, env) {
     plan: "starter",
     status: "active",
   });
+
+  return { tenant, isNew: true };
 }
 
 async function backfillTenantId(pool, tenantId) {
   for (const table of FIRST_TENANT_TABLES) {
     await pool.query(`UPDATE ${table} SET tenant_id = $1 WHERE tenant_id IS NULL`, [tenantId]);
   }
+
+  await pool.query(
+    `UPDATE users SET tenant_id = $1 WHERE tenant_id IS NULL AND role NOT IN ('system_developer', 'platform_admin')`,
+    [tenantId],
+  );
 }
 
 async function seedSuperAdminIfEmpty(pool, env, tenantId) {
@@ -90,8 +96,10 @@ export async function initializeDatabase(databaseManager, env) {
 
       await createSchema(client);
 
-      const firstTenant = await ensureFirstTenant(client, env);
-      await backfillTenantId(client, firstTenant.id);
+      const { tenant: firstTenant, isNew: isFirstRun } = await ensureFirstTenant(client, env);
+      if (isFirstRun) {
+        await backfillTenantId(client, firstTenant.id);
+      }
       await seedSuperAdminIfEmpty(client, env, firstTenant.id);
       await seedSystemDeveloperIfEmpty(client, env);
 

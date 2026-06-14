@@ -1,19 +1,8 @@
-import { apiRequest } from './client.js';
+import { apiRequest, buildQueryString } from './client.js';
 
 export const purchaseReceiveApi = {
   listPurchaseReceipts({ page, pageSize, search, supplierId, purchaseNumber, supplierInvoiceNo, dateFrom, dateTo, paymentStatus } = {}) {
-    const params = new URLSearchParams();
-    if (page) params.set("page", page);
-    if (pageSize) params.set("pageSize", pageSize);
-    if (search) params.set("search", search);
-    if (supplierId) params.set("supplierId", supplierId);
-    if (purchaseNumber) params.set("purchaseNumber", purchaseNumber);
-    if (supplierInvoiceNo) params.set("supplierInvoiceNo", supplierInvoiceNo);
-    if (dateFrom) params.set("dateFrom", dateFrom);
-    if (dateTo) params.set("dateTo", dateTo);
-    if (paymentStatus) params.set("paymentStatus", paymentStatus);
-    const query = params.toString();
-    return apiRequest(`/purchase-receive${query ? `?${query}` : ""}`);
+    return apiRequest(`/purchase-receive${buildQueryString({ page, pageSize, search, supplierId, purchaseNumber, supplierInvoiceNo, dateFrom, dateTo, paymentStatus })}`);
   },
 
   getPurchaseReceipt(purchaseReceiptId) {
@@ -33,11 +22,7 @@ export const purchaseReceiveApi = {
   },
 
   listPurchaseReceiptsTrash({ page, pageSize } = {}) {
-    const params = new URLSearchParams();
-    if (page) params.set("page", page);
-    if (pageSize) params.set("pageSize", pageSize);
-    const query = params.toString();
-    return apiRequest(`/purchase-receive/trash${query ? `?${query}` : ""}`);
+    return apiRequest(`/purchase-receive/trash${buildQueryString({ page, pageSize })}`);
   },
 
   restorePurchaseReceipt(purchaseReceiptId) {

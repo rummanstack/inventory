@@ -4,6 +4,7 @@ import { Alert, Badge, EmptyState, LoadingState, Modal, SectionHeader, cx } from
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { TENANT_FEATURE_ROUTES } from '../../../app/tenantFeatures.js';
+import { useFormState } from '../../../hooks/useFormState';
 
 function TenantFeaturesModal({ tenant, onClose, onSave }) {
   const { t } = useInventoryApp();
@@ -98,19 +99,13 @@ function TenantFeaturesModal({ tenant, onClose, onSave }) {
 
 function TenantEditModal({ tenant, onClose, onSave }) {
   const { t } = useInventoryApp();
-  const [form, setForm] = useState({
+  const { form, updateField, error, setError, saving, setSaving } = useFormState({
     name: tenant.name || '',
     email: tenant.email || '',
     plan: tenant.plan || 'starter',
     address: tenant.address || '',
     logoUrl: tenant.logoUrl || '',
   });
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
-
-  function updateField(field, value) {
-    setForm((current) => ({ ...current, [field]: value }));
-  }
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -172,13 +167,12 @@ function TenantEditModal({ tenant, onClose, onSave }) {
 
 function TenantCreateModal({ onClose, onSave }) {
   const { t } = useInventoryApp();
-  const [form, setForm] = useState({ name: '', slug: '', email: '', plan: 'starter' });
-  const [creating, setCreating] = useState(false);
-  const [error, setError] = useState('');
-
-  function updateField(field, value) {
-    setForm((current) => ({ ...current, [field]: value }));
-  }
+  const { form, updateField, error, setError, saving: creating, setSaving: setCreating } = useFormState({
+    name: '',
+    slug: '',
+    email: '',
+    plan: 'starter',
+  });
 
   async function handleSubmit(event) {
     event.preventDefault();

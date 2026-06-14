@@ -4,19 +4,7 @@ import { Alert, Badge, EmptyState } from './ui.jsx';
 import { useInventoryApp } from '../app/useInventoryApp.jsx';
 import { inventoryApi } from '../services/inventoryApi';
 import { formatDateTime } from '../utils/calculations.js';
-
-function actionTone(actionType = '') {
-  if (actionType.includes('delete')) {
-    return 'rose';
-  }
-  if (actionType.includes('create') || actionType.includes('restore')) {
-    return 'emerald';
-  }
-  if (actionType.includes('update') || actionType.includes('adjustment')) {
-    return 'amber';
-  }
-  return 'slate';
-}
+import { actionTone } from '../models/inventoryViewData.js';
 
 function formatValue(value) {
   if (value === null || value === undefined || value === '') {

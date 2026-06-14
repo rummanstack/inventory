@@ -4,6 +4,7 @@ import { Alert, Modal } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import AuditHistory from '../../../components/AuditHistory.jsx';
+import { useFormState } from '../../../hooks/useFormState';
 
 const EXPENSE_CATEGORY_KEYS = [
   ['Bank', 'expenses.categories.bank'],
@@ -18,24 +19,18 @@ export default function ExpenseFormModal({ expense, defaultDate, onClose, onSave
   const { t, pushToast } = useInventoryApp();
   const isEdit = Boolean(expense);
   const initialDate = expense?.date || defaultDate;
-  const [form, setForm] = useState({
+  const { form, updateField, error, setError, saving, setSaving } = useFormState({
     date: initialDate,
     category: expense?.category || 'Other',
     amount: expense?.amount ?? '',
     note: expense?.note || '',
   });
   const [reason, setReason] = useState('');
-  const [error, setError] = useState('');
-  const [saving, setSaving] = useState(false);
 
   const categoryOptions = useMemo(
     () => EXPENSE_CATEGORY_KEYS.map(([value, labelKey]) => ({ value, label: t(labelKey) })),
     [t],
   );
-
-  function updateField(field, value) {
-    setForm((current) => ({ ...current, [field]: value }));
-  }
 
   async function submitForm(event) {
     event.preventDefault();

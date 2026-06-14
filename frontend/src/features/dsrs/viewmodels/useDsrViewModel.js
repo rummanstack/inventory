@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
 import { inventoryApi } from '../../../services/inventoryApi';
 import { usePagedList } from '../../../hooks/usePagedList';
+import { useDebouncedValue } from '../../../hooks/useDebouncedValue';
 
 const SEARCH_DEBOUNCE_MS = 300;
 const TODAY_ACTIVITY_PAGE_SIZE = 100;
 
 export function useDsrViewModel({ today }) {
   const [search, setSearch] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const debouncedSearch = useDebouncedValue(search.trim(), SEARCH_DEBOUNCE_MS);
   const [inProgressDsrIds, setInProgressDsrIds] = useState(new Set());
 
   const list = usePagedList(
@@ -16,14 +17,8 @@ export function useDsrViewModel({ today }) {
   );
 
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      setDebouncedSearch(search.trim());
-      list.resetPage();
-    }, SEARCH_DEBOUNCE_MS);
-
-    return () => clearTimeout(timeoutId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [search]);
+    list.resetPage();
+  }, [debouncedSearch, list.resetPage]);
 
   useEffect(() => {
     let cancelled = false;

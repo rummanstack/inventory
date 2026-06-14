@@ -5,6 +5,7 @@ import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import AuditHistory from '../../../components/AuditHistory.jsx';
 import { todayISO } from '../../../utils/calculations.js';
+import { useFormState } from '../../../hooks/useFormState';
 
 const MODULE_CONFIG = {
   cash: {
@@ -26,24 +27,18 @@ export default function DsrFinanceFormModal({ kind, record, dsrs, defaultDate, d
   const isEdit = Boolean(record);
   const config = MODULE_CONFIG[kind];
   const initialDate = record?.date || defaultDate || todayISO();
-  const [form, setForm] = useState({
+  const { form, updateField, error, setError, saving, setSaving } = useFormState({
     date: initialDate,
     dsrId: record?.dsrId || defaultDsrId || dsrs[0]?.id || '',
     amount: record?.amount ?? '',
     note: record?.note || '',
   });
   const [reason, setReason] = useState('');
-  const [error, setError] = useState('');
-  const [saving, setSaving] = useState(false);
 
   const dsrOptions = useMemo(
     () => dsrs.map((dsr) => ({ value: dsr.id, label: `${dsr.name} - ${dsr.area}` })),
     [dsrs],
   );
-
-  function updateField(field, value) {
-    setForm((current) => ({ ...current, [field]: value }));
-  }
 
   async function submitForm(event) {
     event.preventDefault();

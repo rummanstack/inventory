@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { inventoryApi } from '../../../services/inventoryApi';
 import { usePagedList } from '../../../hooks/usePagedList';
+import { useDebouncedValue } from '../../../hooks/useDebouncedValue';
 
 const SEARCH_DEBOUNCE_MS = 300;
 
 export function useProductsViewModel() {
   const [search, setSearch] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const debouncedSearch = useDebouncedValue(search.trim(), SEARCH_DEBOUNCE_MS);
 
   const list = usePagedList(
     ({ page, pageSize }) => inventoryApi.listProducts({ page, pageSize, search: debouncedSearch }),
@@ -14,14 +15,8 @@ export function useProductsViewModel() {
   );
 
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      setDebouncedSearch(search.trim());
-      list.resetPage();
-    }, SEARCH_DEBOUNCE_MS);
-
-    return () => clearTimeout(timeoutId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [search]);
+    list.resetPage();
+  }, [debouncedSearch, list.resetPage]);
 
   return { search, setSearch, ...list };
 }

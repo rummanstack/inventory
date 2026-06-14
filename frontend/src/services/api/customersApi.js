@@ -1,15 +1,8 @@
-import { apiRequest } from './client.js';
+import { apiRequest, buildQueryString } from './client.js';
 
 export const customersApi = {
   listCustomers({ page, pageSize, search, status, assignedDsrId } = {}) {
-    const params = new URLSearchParams();
-    if (page) params.set("page", page);
-    if (pageSize) params.set("pageSize", pageSize);
-    if (search) params.set("search", search);
-    if (status) params.set("status", status);
-    if (assignedDsrId) params.set("assignedDsrId", assignedDsrId);
-    const query = params.toString();
-    return apiRequest(`/customers${query ? `?${query}` : ""}`);
+    return apiRequest(`/customers${buildQueryString({ page, pageSize, search, status, assignedDsrId })}`);
   },
 
   getCustomer(customerId) {
@@ -29,11 +22,7 @@ export const customersApi = {
   },
 
   listCustomersTrash({ page, pageSize } = {}) {
-    const params = new URLSearchParams();
-    if (page) params.set("page", page);
-    if (pageSize) params.set("pageSize", pageSize);
-    const query = params.toString();
-    return apiRequest(`/customers/trash${query ? `?${query}` : ""}`);
+    return apiRequest(`/customers/trash${buildQueryString({ page, pageSize })}`);
   },
 
   restoreCustomer(customerId) {

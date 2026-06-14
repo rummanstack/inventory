@@ -1,13 +1,8 @@
-import { apiRequest } from './client.js';
+import { apiRequest, buildQueryString } from './client.js';
 
 export const dsrsApi = {
   listDsrs({ page, pageSize, search } = {}) {
-    const params = new URLSearchParams();
-    if (page) params.set("page", page);
-    if (pageSize) params.set("pageSize", pageSize);
-    if (search) params.set("search", search);
-    const query = params.toString();
-    return apiRequest(`/dsrs${query ? `?${query}` : ""}`);
+    return apiRequest(`/dsrs${buildQueryString({ page, pageSize, search })}`);
   },
 
   getDsrsDirectory() {
@@ -27,11 +22,7 @@ export const dsrsApi = {
   },
 
   listDsrsTrash({ page, pageSize } = {}) {
-    const params = new URLSearchParams();
-    if (page) params.set("page", page);
-    if (pageSize) params.set("pageSize", pageSize);
-    const query = params.toString();
-    return apiRequest(`/dsrs/trash${query ? `?${query}` : ""}`);
+    return apiRequest(`/dsrs/trash${buildQueryString({ page, pageSize })}`);
   },
 
   restoreDsr(dsrId) {

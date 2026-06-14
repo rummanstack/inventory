@@ -1,15 +1,8 @@
-import { apiRequest } from './client.js';
+import { apiRequest, buildQueryString } from './client.js';
 
 export const supplierPaymentsApi = {
   listSupplierPayments({ page, pageSize, supplierId, dateFrom, dateTo } = {}) {
-    const params = new URLSearchParams();
-    if (page) params.set("page", page);
-    if (pageSize) params.set("pageSize", pageSize);
-    if (supplierId) params.set("supplierId", supplierId);
-    if (dateFrom) params.set("dateFrom", dateFrom);
-    if (dateTo) params.set("dateTo", dateTo);
-    const query = params.toString();
-    return apiRequest(`/supplier-payments${query ? `?${query}` : ""}`);
+    return apiRequest(`/supplier-payments${buildQueryString({ page, pageSize, supplierId, dateFrom, dateTo })}`);
   },
 
   getSupplierPayment(paymentId) {
@@ -29,11 +22,7 @@ export const supplierPaymentsApi = {
   },
 
   listSupplierPaymentsTrash({ page, pageSize } = {}) {
-    const params = new URLSearchParams();
-    if (page) params.set("page", page);
-    if (pageSize) params.set("pageSize", pageSize);
-    const query = params.toString();
-    return apiRequest(`/supplier-payments/trash${query ? `?${query}` : ""}`);
+    return apiRequest(`/supplier-payments/trash${buildQueryString({ page, pageSize })}`);
   },
 
   restoreSupplierPayment(paymentId) {

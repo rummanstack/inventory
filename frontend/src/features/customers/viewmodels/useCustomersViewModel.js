@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { inventoryApi } from '../../../services/inventoryApi';
 import { usePagedList } from '../../../hooks/usePagedList';
+import { useDebouncedValue } from '../../../hooks/useDebouncedValue';
 
 const SEARCH_DEBOUNCE_MS = 300;
 
 export function useCustomersViewModel() {
   const [search, setSearch] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const debouncedSearch = useDebouncedValue(search.trim(), SEARCH_DEBOUNCE_MS);
   const [status, setStatus] = useState('');
 
   const list = usePagedList(
@@ -15,19 +16,8 @@ export function useCustomersViewModel() {
   );
 
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      setDebouncedSearch(search.trim());
-      list.resetPage();
-    }, SEARCH_DEBOUNCE_MS);
-
-    return () => clearTimeout(timeoutId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [search]);
-
-  useEffect(() => {
     list.resetPage();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status]);
+  }, [debouncedSearch, status, list.resetPage]);
 
   return { search, setSearch, status, setStatus, ...list };
 }

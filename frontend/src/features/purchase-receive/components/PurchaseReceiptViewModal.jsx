@@ -5,6 +5,7 @@ import AuditHistory from '../../../components/AuditHistory.jsx';
 import { downloadSheetPdf } from '../../../services/printService.js';
 import { inventoryApi } from '../../../services/inventoryApi';
 import { formatCasePiece, formatCurrency, formatDate } from '../../../utils/calculations.js';
+import { paymentStatusOf, paymentStatusTone } from '../../../models/inventoryViewData.js';
 import PurchaseReceiptPrintSheet from './PurchaseReceiptPrintSheet';
 
 function Field({ label, value }) {
@@ -14,12 +15,6 @@ function Field({ label, value }) {
       <p className="mt-1 text-sm font-semibold text-slate-950">{value || '-'}</p>
     </div>
   );
-}
-
-function paymentStatusTone(receipt) {
-  if (Number(receipt.dueAmount || 0) <= 0) return 'emerald';
-  if (Number(receipt.paidAmount || 0) > 0) return 'amber';
-  return 'rose';
 }
 
 export default function PurchaseReceiptViewModal({ purchaseReceipt, onClose }) {
@@ -82,7 +77,7 @@ export default function PurchaseReceiptViewModal({ purchaseReceipt, onClose }) {
             </div>
             <div className="flex items-center justify-between border-t-2 border-slate-300 pt-2">
               <span className="text-base font-black uppercase tracking-[0.1em] text-slate-950">{t('purchaseReceive.dueAmount')}</span>
-              <span className="text-lg font-black"><Badge tone={paymentStatusTone(purchaseReceipt)}>{formatCurrency(purchaseReceipt.dueAmount)}</Badge></span>
+              <span className="text-lg font-black"><Badge tone={paymentStatusTone(paymentStatusOf(purchaseReceipt))}>{formatCurrency(purchaseReceipt.dueAmount)}</Badge></span>
             </div>
           </div>
         </div>

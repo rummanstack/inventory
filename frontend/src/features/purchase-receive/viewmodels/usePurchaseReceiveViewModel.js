@@ -1,15 +1,16 @@
 import { useEffect, useState } from 'react';
 import { inventoryApi } from '../../../services/inventoryApi';
 import { usePagedList } from '../../../hooks/usePagedList';
+import { useDebouncedValue } from '../../../hooks/useDebouncedValue';
 
 const SEARCH_DEBOUNCE_MS = 300;
 
 export function usePurchaseReceiveViewModel() {
   const [supplierId, setSupplierId] = useState('');
   const [purchaseNumber, setPurchaseNumber] = useState('');
-  const [debouncedPurchaseNumber, setDebouncedPurchaseNumber] = useState('');
+  const debouncedPurchaseNumber = useDebouncedValue(purchaseNumber.trim(), SEARCH_DEBOUNCE_MS);
   const [supplierInvoiceNo, setSupplierInvoiceNo] = useState('');
-  const [debouncedSupplierInvoiceNo, setDebouncedSupplierInvoiceNo] = useState('');
+  const debouncedSupplierInvoiceNo = useDebouncedValue(supplierInvoiceNo.trim(), SEARCH_DEBOUNCE_MS);
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [paymentStatus, setPaymentStatus] = useState('');
@@ -29,29 +30,8 @@ export function usePurchaseReceiveViewModel() {
   );
 
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      setDebouncedPurchaseNumber(purchaseNumber.trim());
-      list.resetPage();
-    }, SEARCH_DEBOUNCE_MS);
-
-    return () => clearTimeout(timeoutId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [purchaseNumber]);
-
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      setDebouncedSupplierInvoiceNo(supplierInvoiceNo.trim());
-      list.resetPage();
-    }, SEARCH_DEBOUNCE_MS);
-
-    return () => clearTimeout(timeoutId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [supplierInvoiceNo]);
-
-  useEffect(() => {
     list.resetPage();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [supplierId, dateFrom, dateTo, paymentStatus]);
+  }, [debouncedPurchaseNumber, debouncedSupplierInvoiceNo, supplierId, dateFrom, dateTo, paymentStatus, list.resetPage]);
 
   return {
     supplierId,

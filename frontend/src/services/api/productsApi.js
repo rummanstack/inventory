@@ -1,13 +1,8 @@
-import { apiRequest } from './client.js';
+import { apiRequest, buildQueryString } from './client.js';
 
 export const productsApi = {
   listProducts({ page, pageSize, search } = {}) {
-    const params = new URLSearchParams();
-    if (page) params.set("page", page);
-    if (pageSize) params.set("pageSize", pageSize);
-    if (search) params.set("search", search);
-    const query = params.toString();
-    return apiRequest(`/products${query ? `?${query}` : ""}`);
+    return apiRequest(`/products${buildQueryString({ page, pageSize, search })}`);
   },
 
   getProductsDirectory() {
@@ -27,11 +22,7 @@ export const productsApi = {
   },
 
   listProductsTrash({ page, pageSize } = {}) {
-    const params = new URLSearchParams();
-    if (page) params.set("page", page);
-    if (pageSize) params.set("pageSize", pageSize);
-    const query = params.toString();
-    return apiRequest(`/products/trash${query ? `?${query}` : ""}`);
+    return apiRequest(`/products/trash${buildQueryString({ page, pageSize })}`);
   },
 
   restoreProduct(productId) {
@@ -51,14 +42,6 @@ export const productsApi = {
   },
 
   listStockMovements({ page, pageSize, productId, type, dateFrom, dateTo } = {}) {
-    const params = new URLSearchParams();
-    if (page) params.set("page", page);
-    if (pageSize) params.set("pageSize", pageSize);
-    if (productId) params.set("productId", productId);
-    if (type) params.set("type", type);
-    if (dateFrom) params.set("dateFrom", dateFrom);
-    if (dateTo) params.set("dateTo", dateTo);
-    const query = params.toString();
-    return apiRequest(`/stock-movements${query ? `?${query}` : ""}`);
+    return apiRequest(`/stock-movements${buildQueryString({ page, pageSize, productId, type, dateFrom, dateTo })}`);
   },
 };

@@ -18,6 +18,8 @@ export function normalizeProduct(input) {
     piecesPerCase: cleanInteger(input.piecesPerCase),
     purchasePrice: cleanMoney(input.purchasePrice),
     sellingPrice: cleanMoney(input.sellingPrice),
+    wholesalePrice: cleanMoney(input.wholesalePrice),
+    retailPrice: cleanMoney(input.retailPrice),
     stockPieces: cleanInteger(input.stockPieces),
     orderIndex:
       input.orderIndex !== undefined && input.orderIndex !== null && String(input.orderIndex).trim() !== ""
@@ -221,6 +223,114 @@ export function normalizeSupplierPayment(input) {
   return {
     id: input.id || createId("supplier-payment"),
     supplierId: String(input.supplierId || "").trim(),
+    paymentDate: String(input.paymentDate || "").trim(),
+    amount: Math.max(0, cleanMoney(input.amount)),
+    paymentMethod: String(input.paymentMethod || "CASH").trim().toUpperCase() || "CASH",
+    note: String(input.note || "").trim(),
+  };
+}
+
+const SALE_TYPES = ["WHOLESALE", "RETAIL", "QUICK_SALE"];
+const CUSTOMER_TYPES = ["REGISTERED", "WALK_IN"];
+
+export function normalizeSalesInvoice(input) {
+  const items = Array.isArray(input.items)
+    ? input.items
+        .map((item) => {
+          const quantityPieces = cleanInteger(item.quantityPieces);
+          const actualSalePrice = cleanMoney(item.actualSalePrice);
+          const lineDiscount = Math.max(0, cleanMoney(item.lineDiscount));
+          const lineTotal = Math.max(0, quantityPieces * actualSalePrice - lineDiscount);
+
+          return {
+            id: item.id || createId("sales-item"),
+            productId: String(item.productId || "").trim(),
+            productName: String(item.productName || "").trim(),
+            quantityPieces,
+            actualSalePrice,
+            lineDiscount,
+            lineTotal,
+          };
+        })
+        .filter((item) => item.productId && item.quantityPieces > 0)
+    : [];
+
+  const subtotal = items.reduce((sum, item) => sum + item.quantityPieces * item.actualSalePrice, 0);
+  const lineDiscountTotal = items.reduce((sum, item) => sum + item.lineDiscount, 0);
+  const discount = Math.max(0, cleanMoney(input.discount));
+  const totalAmount = Math.max(0, subtotal - lineDiscountTotal - discount);
+  const paidAmount = Math.max(0, Math.min(cleanMoney(input.paidAmount), totalAmount));
+  const dueAmount = totalAmount - paidAmount;
+
+  const saleType = SALE_TYPES.includes(String(input.saleType || "").trim().toUpperCase())
+    ? String(input.saleType).trim().toUpperCase()
+    : "RETAIL";
+  const customerType = CUSTOMER_TYPES.includes(String(input.customerType || "").trim().toUpperCase())
+    ? String(input.customerType).trim().toUpperCase()
+    : "WALK_IN";
+
+  return {
+    id: input.id || createId("sales-invoice"),
+    customerId: String(input.customerId || "").trim() || null,
+    customerType,
+    saleType,
+    invoiceDate: String(input.invoiceDate || "").trim(),
+    items,
+    subtotal,
+    discount,
+    totalAmount,
+    paidAmount,
+    dueAmount,
+    paymentMethod: String(input.paymentMethod || "CASH").trim().toUpperCase() || "CASH",
+    note: String(input.note || "").trim(),
+  };
+}
+
+export function normalizeSalesReturn(input) {
+  const items = Array.isArray(input.items)
+    ? input.items
+        .map((item) => {
+          const quantityPieces = cleanInteger(item.quantityPieces);
+          const actualSalePrice = cleanMoney(item.actualSalePrice);
+          const costPriceSnapshot = cleanMoney(item.costPriceSnapshot);
+          const lineTotal = quantityPieces * actualSalePrice;
+
+          return {
+            id: item.id || createId("sales-return-item"),
+            salesInvoiceItemId: String(item.salesInvoiceItemId || "").trim() || null,
+            productId: String(item.productId || "").trim(),
+            productName: String(item.productName || "").trim(),
+            quantityPieces,
+            actualSalePrice,
+            costPriceSnapshot,
+            lineTotal,
+          };
+        })
+        .filter((item) => item.productId && item.quantityPieces > 0)
+    : [];
+
+  const totalAmount = items.reduce((sum, item) => sum + item.lineTotal, 0);
+  const totalProfitAdjustment = items.reduce(
+    (sum, item) => sum + (item.actualSalePrice - item.costPriceSnapshot) * item.quantityPieces,
+    0,
+  );
+
+  return {
+    id: input.id || createId("sales-return"),
+    salesInvoiceId: String(input.salesInvoiceId || "").trim() || null,
+    customerId: String(input.customerId || "").trim() || null,
+    returnDate: String(input.returnDate || "").trim(),
+    items,
+    totalAmount,
+    totalProfitAdjustment,
+    note: String(input.note || "").trim(),
+  };
+}
+
+export function normalizeCustomerPayment(input) {
+  return {
+    id: input.id || createId("customer-payment"),
+    customerId: String(input.customerId || "").trim(),
     paymentDate: String(input.paymentDate || "").trim(),
     amount: Math.max(0, cleanMoney(input.amount)),
     paymentMethod: String(input.paymentMethod || "CASH").trim().toUpperCase() || "CASH",

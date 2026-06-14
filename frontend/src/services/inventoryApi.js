@@ -18,6 +18,10 @@ import { settlementsApi } from './api/settlementsApi.js';
 import { supplierDueLedgerApi } from './api/supplierDueLedgerApi.js';
 import { supplierPaymentsApi } from './api/supplierPaymentsApi.js';
 import { suppliersApi } from './api/suppliersApi.js';
+import { salesInvoicesApi } from './api/salesInvoicesApi.js';
+import { customerDueLedgerApi } from './api/customerDueLedgerApi.js';
+import { customerPaymentsApi } from './api/customerPaymentsApi.js';
+import { salesReturnsApi } from './api/salesReturnsApi.js';
 import { systemApi } from './api/systemApi.js';
 import { usersApi } from './api/usersApi.js';
 
@@ -44,4 +48,8 @@ export const inventoryApi = {
   ...purchaseReceiveApi,
   ...supplierDueLedgerApi,
   ...supplierPaymentsApi,
+  ...salesInvoicesApi,
+  ...customerDueLedgerApi,
+  ...customerPaymentsApi,
+  ...salesReturnsApi,
 };

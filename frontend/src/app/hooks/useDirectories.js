@@ -5,6 +5,7 @@ export function useDirectories() {
   const [productDirectory, setProductDirectory] = useState([]);
   const [dsrDirectory, setDsrDirectory] = useState([]);
   const [supplierDirectory, setSupplierDirectory] = useState([]);
+  const [customerDirectory, setCustomerDirectory] = useState([]);
 
   function upsertProductDirectory(product) {
     setProductDirectory((current) => {
@@ -59,6 +60,28 @@ export function useDirectories() {
     }
   }
 
+  function upsertCustomerDirectory(customer) {
+    setCustomerDirectory((current) => {
+      const next = current.some((item) => item.id === customer.id)
+        ? current.map((item) => (item.id === customer.id ? customer : item))
+        : [...current, customer];
+      return next.sort((a, b) => a.shopName.localeCompare(b.shopName));
+    });
+  }
+
+  function removeFromCustomerDirectory(customerId) {
+    setCustomerDirectory((current) => current.filter((item) => item.id !== customerId));
+  }
+
+  async function refreshCustomerDirectory() {
+    try {
+      const result = await inventoryApi.getActiveCustomers();
+      setCustomerDirectory(result.items || []);
+    } catch {
+      // Best effort - the directory will catch up on the next full refresh.
+    }
+  }
+
   async function refreshProductDirectory() {
     try {
       const result = await inventoryApi.getProductsDirectory();
@@ -81,24 +104,30 @@ export function useDirectories() {
     setProductDirectory([]);
     setDsrDirectory([]);
     setSupplierDirectory([]);
+    setCustomerDirectory([]);
   }
 
   return {
     productDirectory,
     dsrDirectory,
     supplierDirectory,
+    customerDirectory,
     setProductDirectory,
     setDsrDirectory,
     setSupplierDirectory,
+    setCustomerDirectory,
     upsertProductDirectory,
     removeFromProductDirectory,
     upsertDsrDirectory,
     removeFromDsrDirectory,
     upsertSupplierDirectory,
     removeFromSupplierDirectory,
+    upsertCustomerDirectory,
+    removeFromCustomerDirectory,
     refreshProductDirectory,
     refreshDsrDirectory,
     refreshSupplierDirectory,
+    refreshCustomerDirectory,
     resetDirectories,
   };
 }

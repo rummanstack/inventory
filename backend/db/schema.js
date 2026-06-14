@@ -500,5 +500,145 @@ export async function createSchema(pool) {
     CREATE INDEX IF NOT EXISTS idx_supplier_payments_tenant_id ON supplier_payments(tenant_id);
     CREATE INDEX IF NOT EXISTS idx_supplier_payments_supplier_id ON supplier_payments(supplier_id);
     CREATE INDEX IF NOT EXISTS idx_supplier_payments_deleted_at ON supplier_payments(tenant_id, deleted_at);
+
+    -- Retailer module
+    ALTER TABLE products ADD COLUMN IF NOT EXISTS wholesale_price NUMERIC NOT NULL DEFAULT 0;
+    ALTER TABLE products ADD COLUMN IF NOT EXISTS retail_price NUMERIC NOT NULL DEFAULT 0;
+
+    CREATE TABLE IF NOT EXISTS sales_number_counters (
+      tenant_id  TEXT NOT NULL REFERENCES tenants(id),
+      year       INTEGER NOT NULL,
+      counter_type TEXT NOT NULL,
+      last_value INTEGER NOT NULL DEFAULT 0,
+      PRIMARY KEY (tenant_id, year, counter_type)
+    );
+
+    CREATE TABLE IF NOT EXISTS sales_invoices (
+      id                TEXT PRIMARY KEY,
+      tenant_id         TEXT REFERENCES tenants(id),
+      invoice_number    TEXT NOT NULL,
+      invoice_date      DATE NOT NULL,
+      customer_id       TEXT REFERENCES customers(id) ON DELETE SET NULL,
+      customer_type     TEXT NOT NULL DEFAULT 'WALK_IN',
+      sale_type         TEXT NOT NULL DEFAULT 'RETAIL',
+      subtotal          NUMERIC NOT NULL DEFAULT 0,
+      discount          NUMERIC NOT NULL DEFAULT 0,
+      total_amount      NUMERIC NOT NULL DEFAULT 0,
+      paid_amount       NUMERIC NOT NULL DEFAULT 0,
+      due_amount        NUMERIC NOT NULL DEFAULT 0,
+      payment_method    TEXT NOT NULL DEFAULT 'CASH',
+      total_profit      NUMERIC NOT NULL DEFAULT 0,
+      note              TEXT NOT NULL DEFAULT '',
+      created_by        TEXT REFERENCES users(id) ON DELETE SET NULL,
+      created_at        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      deleted_at        TIMESTAMPTZ,
+      deleted_by_id     TEXT REFERENCES users(id) ON DELETE SET NULL,
+      delete_reason     TEXT NOT NULL DEFAULT ''
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_sales_invoices_tenant_id ON sales_invoices(tenant_id);
+    CREATE INDEX IF NOT EXISTS idx_sales_invoices_customer_id ON sales_invoices(customer_id);
+    CREATE INDEX IF NOT EXISTS idx_sales_invoices_invoice_date ON sales_invoices(tenant_id, invoice_date);
+    CREATE INDEX IF NOT EXISTS idx_sales_invoices_sale_type ON sales_invoices(tenant_id, sale_type);
+    CREATE INDEX IF NOT EXISTS idx_sales_invoices_deleted_at ON sales_invoices(tenant_id, deleted_at);
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_sales_invoices_number ON sales_invoices(tenant_id, invoice_number);
+
+    CREATE TABLE IF NOT EXISTS sales_invoice_items (
+      id                  TEXT PRIMARY KEY,
+      tenant_id           TEXT REFERENCES tenants(id),
+      sales_invoice_id    TEXT NOT NULL REFERENCES sales_invoices(id) ON DELETE CASCADE,
+      product_id          TEXT NOT NULL,
+      product_name        TEXT NOT NULL DEFAULT '',
+      quantity_pieces     INTEGER NOT NULL DEFAULT 0,
+      actual_sale_price   NUMERIC NOT NULL DEFAULT 0,
+      cost_price_snapshot NUMERIC NOT NULL DEFAULT 0,
+      line_discount       NUMERIC NOT NULL DEFAULT 0,
+      line_total          NUMERIC NOT NULL DEFAULT 0,
+      created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_sales_invoice_items_invoice_id ON sales_invoice_items(sales_invoice_id);
+    CREATE INDEX IF NOT EXISTS idx_sales_invoice_items_product_id ON sales_invoice_items(product_id);
+
+    CREATE TABLE IF NOT EXISTS customer_due_ledger (
+      id             TEXT PRIMARY KEY,
+      tenant_id      TEXT REFERENCES tenants(id),
+      customer_id    TEXT NOT NULL,
+      type           TEXT NOT NULL,
+      debit          NUMERIC NOT NULL DEFAULT 0,
+      credit         NUMERIC NOT NULL DEFAULT 0,
+      balance_after  NUMERIC NOT NULL DEFAULT 0,
+      reference_type TEXT NOT NULL,
+      reference_id   TEXT,
+      note           TEXT NOT NULL DEFAULT '',
+      created_by     TEXT REFERENCES users(id) ON DELETE SET NULL,
+      created_at     TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_customer_due_ledger_tenant_customer_created_at
+      ON customer_due_ledger(tenant_id, customer_id, created_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_customer_due_ledger_reference
+      ON customer_due_ledger(reference_type, reference_id);
+
+    CREATE TABLE IF NOT EXISTS customer_payments (
+      id              TEXT PRIMARY KEY,
+      tenant_id       TEXT REFERENCES tenants(id),
+      customer_id     TEXT NOT NULL,
+      payment_date    DATE NOT NULL,
+      amount          NUMERIC NOT NULL DEFAULT 0,
+      payment_method  TEXT NOT NULL DEFAULT 'CASH',
+      note            TEXT NOT NULL DEFAULT '',
+      created_by      TEXT REFERENCES users(id) ON DELETE SET NULL,
+      created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      deleted_at      TIMESTAMPTZ,
+      deleted_by_id   TEXT REFERENCES users(id) ON DELETE SET NULL,
+      delete_reason   TEXT NOT NULL DEFAULT ''
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_customer_payments_tenant_id ON customer_payments(tenant_id);
+    CREATE INDEX IF NOT EXISTS idx_customer_payments_customer_id ON customer_payments(customer_id);
+    CREATE INDEX IF NOT EXISTS idx_customer_payments_deleted_at ON customer_payments(tenant_id, deleted_at);
+
+    CREATE TABLE IF NOT EXISTS sales_returns (
+      id                       TEXT PRIMARY KEY,
+      tenant_id                TEXT REFERENCES tenants(id),
+      return_number            TEXT NOT NULL,
+      return_date              DATE NOT NULL,
+      sales_invoice_id         TEXT REFERENCES sales_invoices(id) ON DELETE SET NULL,
+      customer_id              TEXT REFERENCES customers(id) ON DELETE SET NULL,
+      total_amount             NUMERIC NOT NULL DEFAULT 0,
+      total_profit_adjustment  NUMERIC NOT NULL DEFAULT 0,
+      note                     TEXT NOT NULL DEFAULT '',
+      created_by               TEXT REFERENCES users(id) ON DELETE SET NULL,
+      created_at               TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      deleted_at               TIMESTAMPTZ,
+      deleted_by_id            TEXT REFERENCES users(id) ON DELETE SET NULL,
+      delete_reason            TEXT NOT NULL DEFAULT ''
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_sales_returns_tenant_id ON sales_returns(tenant_id);
+    CREATE INDEX IF NOT EXISTS idx_sales_returns_invoice_id ON sales_returns(sales_invoice_id);
+    CREATE INDEX IF NOT EXISTS idx_sales_returns_customer_id ON sales_returns(customer_id);
+    CREATE INDEX IF NOT EXISTS idx_sales_returns_return_date ON sales_returns(tenant_id, return_date);
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_sales_returns_number ON sales_returns(tenant_id, return_number);
+
+    CREATE TABLE IF NOT EXISTS sales_return_items (
+      id                    TEXT PRIMARY KEY,
+      tenant_id             TEXT REFERENCES tenants(id),
+      sales_return_id       TEXT NOT NULL REFERENCES sales_returns(id) ON DELETE CASCADE,
+      sales_invoice_item_id TEXT,
+      product_id            TEXT NOT NULL,
+      product_name          TEXT NOT NULL DEFAULT '',
+      quantity_pieces       INTEGER NOT NULL DEFAULT 0,
+      actual_sale_price     NUMERIC NOT NULL DEFAULT 0,
+      cost_price_snapshot   NUMERIC NOT NULL DEFAULT 0,
+      line_total            NUMERIC NOT NULL DEFAULT 0,
+      created_at            TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_sales_return_items_return_id ON sales_return_items(sales_return_id);
+    CREATE INDEX IF NOT EXISTS idx_sales_return_items_product_id ON sales_return_items(product_id);
   `);
 }

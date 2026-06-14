@@ -10,6 +10,7 @@ export const AUDIT_MODULES = [
   "users",
   "suppliers",
   "purchases",
+  "retailer",
   "system",
 ];
 
@@ -28,6 +29,10 @@ const ENTITY_TYPE_MODULES = {
   supplier_due_ledger: "suppliers",
   purchase_receipt: "purchases",
   supplier_payment: "purchases",
+  sales_invoice: "retailer",
+  sales_return: "retailer",
+  customer_payment: "retailer",
+  customer_due_ledger: "retailer",
 };
 
 export function moduleForEntityType(entityType) {

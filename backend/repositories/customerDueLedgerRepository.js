@@ -1,0 +1,166 @@
+function mapCustomerDueLedgerEntry(row) {
+  return {
+    id: row.id,
+    organizationId: row.tenant_id,
+    customerId: row.customer_id,
+    customerName: row.customer_name || null,
+    type: row.type,
+    debit: Number(row.debit || 0),
+    credit: Number(row.credit || 0),
+    balanceAfter: Number(row.balance_after || 0),
+    referenceType: row.reference_type,
+    referenceId: row.reference_id,
+    note: row.note,
+    createdById: row.created_by,
+    createdByName: row.created_by_name || null,
+    createdByEmail: row.created_by_email || null,
+    createdByRole: row.created_by_role || null,
+    createdAt: row.created_at,
+  };
+}
+
+function buildFilterClause({ tenantId, customerId, dateFrom, dateTo }, params) {
+  params.push(tenantId);
+  const conditions = [`customer_due_ledger.tenant_id = $${params.length}`];
+
+  if (customerId) {
+    params.push(customerId);
+    conditions.push(`customer_due_ledger.customer_id = $${params.length}`);
+  }
+
+  if (dateFrom) {
+    params.push(dateFrom);
+    conditions.push(`customer_due_ledger.created_at >= $${params.length}::date`);
+  }
+
+  if (dateTo) {
+    params.push(dateTo);
+    conditions.push(`customer_due_ledger.created_at < ($${params.length}::date + INTERVAL '1 day')`);
+  }
+
+  return `WHERE ${conditions.join(" AND ")}`;
+}
+
+function buildSelect() {
+  return `SELECT
+      customer_due_ledger.*,
+      customers.shop_name AS customer_name,
+      users.name AS created_by_name,
+      users.email AS created_by_email,
+      users.role AS created_by_role
+    FROM customer_due_ledger
+    LEFT JOIN customers
+      ON customers.id = customer_due_ledger.customer_id
+      AND customers.tenant_id = customer_due_ledger.tenant_id
+    LEFT JOIN users
+      ON users.id = customer_due_ledger.created_by`;
+}
+
+function orderByLedger(direction) {
+  const sort = direction === "ASC" ? "ASC" : "DESC";
+  return `customer_due_ledger.created_at ${sort},
+          CASE customer_due_ledger.type
+            WHEN 'SALE_DUE' THEN 10
+            WHEN 'COLLECTION' THEN 20
+            ELSE 30
+          END ${sort},
+          customer_due_ledger.id ${sort}`;
+}
+
+export function insertCustomerDueLedgerEntry(client, entry) {
+  return client.query(
+    `INSERT INTO customer_due_ledger (
+       id,
+       tenant_id,
+       customer_id,
+       type,
+       debit,
+       credit,
+       balance_after,
+       reference_type,
+       reference_id,
+       note,
+       created_by,
+       created_at
+     )
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, clock_timestamp())
+     RETURNING *`,
+    [
+      entry.id,
+      entry.organizationId,
+      entry.customerId,
+      entry.type,
+      entry.debit,
+      entry.credit,
+      entry.balanceAfter,
+      entry.referenceType,
+      entry.referenceId,
+      entry.note || "",
+      entry.createdById,
+    ],
+  );
+}
+
+export async function getLatestCustomerDueLedgerEntry(client, customerId, tenantId) {
+  const result = await client.query(
+    `SELECT * FROM customer_due_ledger
+     WHERE customer_id = $1 AND tenant_id = $2
+     ORDER BY ${orderByLedger("DESC")}
+     LIMIT 1`,
+    [customerId, tenantId],
+  );
+  return result.rowCount > 0 ? mapCustomerDueLedgerEntry(result.rows[0]) : null;
+}
+
+export async function countCustomerDueLedgerEntries(client, filters = {}) {
+  const params = [];
+  const where = buildFilterClause(filters, params);
+  const result = await client.query(`SELECT COUNT(*)::INTEGER AS count FROM customer_due_ledger ${where}`, params);
+  return result.rows[0].count;
+}
+
+export async function listCustomerDueLedgerPage(client, { tenantId, customerId, dateFrom, dateTo, limit, offset }) {
+  const params = [];
+  const where = buildFilterClause({ tenantId, customerId, dateFrom, dateTo }, params);
+  params.push(limit, offset);
+  const result = await client.query(
+    `${buildSelect()}
+     ${where}
+     ORDER BY ${orderByLedger("DESC")}
+     LIMIT $${params.length - 1} OFFSET $${params.length}`,
+    params,
+  );
+
+  return result.rows.map(mapCustomerDueLedgerEntry);
+}
+
+export async function listCustomerDueLedgerInRange(client, { tenantId, customerId, dateFrom, dateTo }) {
+  const params = [];
+  const where = buildFilterClause({ tenantId, customerId, dateFrom, dateTo }, params);
+  const result = await client.query(
+    `${buildSelect()}
+     ${where}
+     ORDER BY ${orderByLedger("ASC")}`,
+    params,
+  );
+
+  return result.rows.map(mapCustomerDueLedgerEntry);
+}
+
+export async function getCustomerBalanceBefore(client, { tenantId, customerId, dateFrom }) {
+  if (!dateFrom) {
+    return 0;
+  }
+
+  const result = await client.query(
+    `SELECT balance_after FROM customer_due_ledger
+     WHERE customer_id = $1 AND tenant_id = $2 AND created_at < $3::date
+     ORDER BY ${orderByLedger("DESC")}
+     LIMIT 1`,
+    [customerId, tenantId, dateFrom],
+  );
+
+  return result.rowCount > 0 ? Number(result.rows[0].balance_after || 0) : 0;
+}
+
+export { mapCustomerDueLedgerEntry };

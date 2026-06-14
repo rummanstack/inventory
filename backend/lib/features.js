@@ -18,4 +18,11 @@ export const TENANT_FEATURES = [
   "purchase-receive",
   "supplier-payments",
   "supplier-statement",
+  "retailer-quick-sale",
+  "retailer-sales-invoices",
+  "retailer-customer-due",
+  "retailer-due-collection",
+  "retailer-sales-return",
+  "retailer-daily-sales-report",
+  "retailer-profit-report",
 ];

@@ -25,6 +25,10 @@ import { SupplierService } from './services/supplierService.js';
 import { SupplierDueLedgerService } from './services/supplierDueLedgerService.js';
 import { PurchaseReceiveService } from './services/purchaseReceiveService.js';
 import { SupplierPaymentService } from './services/supplierPaymentService.js';
+import { SalesInvoiceService } from './services/salesInvoiceService.js';
+import { CustomerDueLedgerService } from './services/customerDueLedgerService.js';
+import { CustomerPaymentService } from './services/customerPaymentService.js';
+import { SalesReturnService } from './services/salesReturnService.js';
 import { createApp } from './app.js';
 
 dotenv.config({ path: `${backendRoot}/.env` });
@@ -57,6 +61,10 @@ export async function createBackendRuntime() {
   const supplierDueLedgerService = new SupplierDueLedgerService(databaseManager);
   const purchaseReceiveService = new PurchaseReceiveService(databaseManager, { auditService });
   const supplierPaymentService = new SupplierPaymentService(databaseManager, { auditService });
+  const salesInvoiceService = new SalesInvoiceService(databaseManager, { auditService });
+  const customerDueLedgerService = new CustomerDueLedgerService(databaseManager);
+  const customerPaymentService = new CustomerPaymentService(databaseManager, { auditService });
+  const salesReturnService = new SalesReturnService(databaseManager, { auditService });
   const app = createApp({
     authService,
     env,
@@ -83,6 +91,10 @@ export async function createBackendRuntime() {
     supplierDueLedgerService,
     purchaseReceiveService,
     supplierPaymentService,
+    salesInvoiceService,
+    customerDueLedgerService,
+    customerPaymentService,
+    salesReturnService,
   });
 
   return { app, databaseManager, env };

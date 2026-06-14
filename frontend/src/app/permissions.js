@@ -10,7 +10,6 @@ export const PERMISSIONS = {
   MANAGE_DSR_FINANCE: 'manage_dsr_finance',
   VIEW_ACTIVITY_LOGS: 'view_activity_logs',
   MANAGE_USERS: 'manage_users',
-  MANAGE_BACKUPS: 'manage_backups',
 };
 
 const ROLE_PERMISSIONS = {

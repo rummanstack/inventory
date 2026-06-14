@@ -13,6 +13,8 @@ export default function ProductFormModal({ product, onClose, onSave }) {
     piecesPerCase: product?.piecesPerCase || 24,
     purchasePrice: product?.purchasePrice || '',
     sellingPrice: product?.sellingPrice || '',
+    wholesalePrice: product?.wholesalePrice || '',
+    retailPrice: product?.retailPrice || '',
     orderIndex: product?.orderIndex != null ? product.orderIndex : '',
   });
 
@@ -21,6 +23,8 @@ export default function ProductFormModal({ product, onClose, onSave }) {
     const piecesPerCase = cleanNumber(form.piecesPerCase);
     const purchasePrice = Number(form.purchasePrice);
     const sellingPrice = Number(form.sellingPrice);
+    const wholesalePrice = form.wholesalePrice === '' ? 0 : Number(form.wholesalePrice);
+    const retailPrice = form.retailPrice === '' ? 0 : Number(form.retailPrice);
 
     if (!form.name.trim() || !form.category.trim()) {
       setError(t('products.productNameCategoryRequired'));
@@ -38,6 +42,8 @@ export default function ProductFormModal({ product, onClose, onSave }) {
       piecesPerCase,
       purchasePrice,
       sellingPrice,
+      wholesalePrice,
+      retailPrice,
       orderIndex: form.orderIndex === '' ? null : Number(form.orderIndex),
     };
 
@@ -48,6 +54,8 @@ export default function ProductFormModal({ product, onClose, onSave }) {
         payload.piecesPerCase === product.piecesPerCase &&
         payload.purchasePrice === product.purchasePrice &&
         payload.sellingPrice === product.sellingPrice &&
+        payload.wholesalePrice === (product.wholesalePrice || 0) &&
+        payload.retailPrice === (product.retailPrice || 0) &&
         payload.orderIndex === (product.orderIndex ?? null);
       if (unchanged) {
         pushToast('info', t('products.editTitle'), t('alerts.noChanges'));
@@ -89,6 +97,14 @@ export default function ProductFormModal({ product, onClose, onSave }) {
           <div>
             <label className="label">{t('products.sellingPrice')}</label>
             <input className="input" type="number" min="0" step="0.01" value={form.sellingPrice} onChange={(event) => updateField('sellingPrice', event.target.value)} />
+          </div>
+          <div>
+            <label className="label">{t('products.wholesalePrice')}</label>
+            <input className="input" type="number" min="0" step="0.01" value={form.wholesalePrice} onChange={(event) => updateField('wholesalePrice', event.target.value)} />
+          </div>
+          <div>
+            <label className="label">{t('products.retailPrice')}</label>
+            <input className="input" type="number" min="0" step="0.01" value={form.retailPrice} onChange={(event) => updateField('retailPrice', event.target.value)} />
           </div>
           <div>
             <label className="label">{t('products.orderIndex')}</label>

@@ -4,6 +4,7 @@ import { buildPageResult, parsePagination } from "../lib/pagination.js";
 import {
   countCustomers,
   countTrashedCustomers,
+  listAllActiveCustomers,
   listTrashedCustomers,
   permanentlyDeleteCustomer,
   restoreCustomer,
@@ -60,6 +61,15 @@ export class CustomerService {
       ]);
 
       return buildPageResult({ items, total, page, pageSize });
+    } finally {
+      client.release();
+    }
+  }
+
+  async listActiveCustomers(actor) {
+    const client = await this.databaseManager.getPool().connect();
+    try {
+      return listAllActiveCustomers(client, actor.tenantId);
     } finally {
       client.release();
     }

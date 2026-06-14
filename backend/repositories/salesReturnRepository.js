@@ -1,0 +1,167 @@
+export function mapSalesReturn(row) {
+  return {
+    id: row.id,
+    organizationId: row.tenant_id,
+    returnNumber: row.return_number,
+    returnDate: row.return_date,
+    salesInvoiceId: row.sales_invoice_id,
+    invoiceNumber: row.invoice_number || null,
+    customerId: row.customer_id,
+    customerName: row.customer_name || null,
+    totalAmount: Number(row.total_amount || 0),
+    totalProfitAdjustment: Number(row.total_profit_adjustment || 0),
+    note: row.note,
+    items: Array.isArray(row.items) ? row.items : [],
+    createdById: row.created_by,
+    createdByName: row.created_by_name || null,
+    createdAt: row.created_at,
+  };
+}
+
+function itemsSubquery() {
+  return `(
+    SELECT COALESCE(json_agg(json_build_object(
+      'id', sri.id,
+      'salesInvoiceItemId', sri.sales_invoice_item_id,
+      'productId', sri.product_id,
+      'productName', sri.product_name,
+      'quantityPieces', sri.quantity_pieces,
+      'actualSalePrice', sri.actual_sale_price,
+      'costPriceSnapshot', sri.cost_price_snapshot,
+      'lineTotal', sri.line_total
+    ) ORDER BY sri.id), '[]'::json)
+    FROM sales_return_items sri
+    WHERE sri.sales_return_id = sr.id
+  )`;
+}
+
+function buildFilters({ customerId, salesInvoiceId, dateFrom, dateTo, tenantId }) {
+  const params = [tenantId];
+  const conditions = ["sr.tenant_id = $1", "sr.deleted_at IS NULL"];
+
+  if (customerId) {
+    params.push(customerId);
+    conditions.push(`sr.customer_id = $${params.length}`);
+  }
+
+  if (salesInvoiceId) {
+    params.push(salesInvoiceId);
+    conditions.push(`sr.sales_invoice_id = $${params.length}`);
+  }
+
+  if (dateFrom) {
+    params.push(dateFrom);
+    conditions.push(`sr.return_date >= $${params.length}::date`);
+  }
+
+  if (dateTo) {
+    params.push(dateTo);
+    conditions.push(`sr.return_date <= $${params.length}::date`);
+  }
+
+  return { params, where: `WHERE ${conditions.join(" AND ")}` };
+}
+
+export async function countSalesReturns(client, filters = {}) {
+  const { params, where } = buildFilters(filters);
+  const result = await client.query(`SELECT COUNT(*)::INTEGER AS count FROM sales_returns sr ${where}`, params);
+  return result.rows[0].count;
+}
+
+export async function listSalesReturnsPage(client, { limit, offset, ...filters }) {
+  const { params, where } = buildFilters(filters);
+  params.push(limit, offset);
+  const result = await client.query(
+    `SELECT sr.*, c.shop_name AS customer_name, si.invoice_number, u.name AS created_by_name, ${itemsSubquery()} AS items
+     FROM sales_returns sr
+     LEFT JOIN customers c ON c.id = sr.customer_id
+     LEFT JOIN sales_invoices si ON si.id = sr.sales_invoice_id
+     LEFT JOIN users u ON u.id = sr.created_by
+     ${where}
+     ORDER BY sr.return_date DESC, sr.created_at DESC
+     LIMIT $${params.length - 1} OFFSET $${params.length}`,
+    params,
+  );
+  return result.rows.map(mapSalesReturn);
+}
+
+export function findSalesReturnById(client, returnId, tenantId) {
+  return client.query(
+    `SELECT sr.*, c.shop_name AS customer_name, si.invoice_number, u.name AS created_by_name, ${itemsSubquery()} AS items
+     FROM sales_returns sr
+     LEFT JOIN customers c ON c.id = sr.customer_id
+     LEFT JOIN sales_invoices si ON si.id = sr.sales_invoice_id
+     LEFT JOIN users u ON u.id = sr.created_by
+     WHERE sr.id = $1 AND sr.tenant_id = $2 AND sr.deleted_at IS NULL
+     LIMIT 1`,
+    [returnId, tenantId],
+  );
+}
+
+export function insertSalesReturn(client, salesReturn) {
+  return client.query(
+    `INSERT INTO sales_returns (
+       id, tenant_id, return_number, return_date, sales_invoice_id, customer_id,
+       total_amount, total_profit_adjustment, note, created_by
+     )
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+     RETURNING *`,
+    [
+      salesReturn.id,
+      salesReturn.tenantId,
+      salesReturn.returnNumber,
+      salesReturn.returnDate,
+      salesReturn.salesInvoiceId,
+      salesReturn.customerId,
+      salesReturn.totalAmount,
+      salesReturn.totalProfitAdjustment,
+      salesReturn.note,
+      salesReturn.createdById,
+    ],
+  );
+}
+
+export function insertSalesReturnItem(client, item) {
+  return client.query(
+    `INSERT INTO sales_return_items (id, tenant_id, sales_return_id, sales_invoice_item_id, product_id, product_name, quantity_pieces, actual_sale_price, cost_price_snapshot, line_total)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+     RETURNING *`,
+    [
+      item.id,
+      item.tenantId,
+      item.salesReturnId,
+      item.salesInvoiceItemId,
+      item.productId,
+      item.productName,
+      item.quantityPieces,
+      item.actualSalePrice,
+      item.costPriceSnapshot,
+      item.lineTotal,
+    ],
+  );
+}
+
+export async function getProfitAdjustmentsByDate(client, { tenantId, dateFrom, dateTo }) {
+  const params = [tenantId];
+  const conditions = ["sr.tenant_id = $1", "sr.deleted_at IS NULL"];
+
+  if (dateFrom) {
+    params.push(dateFrom);
+    conditions.push(`sr.return_date >= $${params.length}::date`);
+  }
+
+  if (dateTo) {
+    params.push(dateTo);
+    conditions.push(`sr.return_date <= $${params.length}::date`);
+  }
+
+  const result = await client.query(
+    `SELECT sr.return_date AS date, COALESCE(SUM(sr.total_profit_adjustment), 0) AS adjustment
+     FROM sales_returns sr
+     WHERE ${conditions.join(" AND ")}
+     GROUP BY sr.return_date`,
+    params,
+  );
+
+  return result.rows.map((row) => ({ date: row.date, adjustment: Number(row.adjustment || 0) }));
+}

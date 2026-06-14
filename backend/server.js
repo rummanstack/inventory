@@ -30,6 +30,7 @@ import { SalesInvoiceService } from './services/salesInvoiceService.js';
 import { CustomerDueLedgerService } from './services/customerDueLedgerService.js';
 import { CustomerPaymentService } from './services/customerPaymentService.js';
 import { SalesReturnService } from './services/salesReturnService.js';
+import { ContactMessageService } from './services/contactMessageService.js';
 
 dotenv.config({ path: `${backendRoot}/.env` });
 
@@ -65,7 +66,8 @@ async function start() {
   const customerDueLedgerService = new CustomerDueLedgerService(databaseManager);
   const customerPaymentService = new CustomerPaymentService(databaseManager, { auditService });
   const salesReturnService = new SalesReturnService(databaseManager, { auditService });
-  const app = createApp({ authService, env, productService, dsrService, issueService, settlementService, auditService, userService, expenseService, dsrFinanceService, monthEndSummaryService, profitService, backupService, stockMovementService, dsrDueLedgerService, customerService, databaseManager, tenantService, permissionService, systemService, errorLogService, supplierService, supplierDueLedgerService, purchaseReceiveService, supplierPaymentService, salesInvoiceService, customerDueLedgerService, customerPaymentService, salesReturnService });
+  const contactMessageService = new ContactMessageService(databaseManager);
+  const app = createApp({ authService, env, productService, dsrService, issueService, settlementService, auditService, userService, expenseService, dsrFinanceService, monthEndSummaryService, profitService, backupService, stockMovementService, dsrDueLedgerService, customerService, databaseManager, tenantService, permissionService, systemService, errorLogService, supplierService, supplierDueLedgerService, purchaseReceiveService, supplierPaymentService, salesInvoiceService, customerDueLedgerService, customerPaymentService, salesReturnService, contactMessageService });
 
   app.listen(env.PORT, () => {
     console.log(`Server running on http://localhost:${env.PORT}`);

@@ -290,6 +290,30 @@
     @apply border-blue-200 shadow-[0_26px_62px_rgba(37,99,235,0.16)] ring-blue-100;
   }
 
+  .contact-form {
+    @apply rounded-[24px] border border-slate-200/80 bg-white/95 p-6 shadow-[0_18px_44px_rgba(15,23,42,0.07)] ring-1 ring-slate-900/[0.03] sm:p-8;
+  }
+
+  .contact-label {
+    @apply mb-1.5 block text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500;
+  }
+
+  .contact-input {
+    @apply w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-900 shadow-[0_1px_0_rgba(15,23,42,0.03)] outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-[var(--brand)] focus:ring-4 focus:ring-[var(--brand-soft)];
+  }
+
+  .contact-feedback {
+    @apply mt-4 flex items-center gap-2 text-sm font-bold;
+  }
+
+  .contact-feedback-success {
+    @apply text-[var(--success)];
+  }
+
+  .contact-feedback-error {
+    @apply text-red-600;
+  }
+
   .input {
     @apply h-10 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 shadow-[0_1px_0_rgba(15,23,42,0.03)] outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-[var(--secondary)] focus:bg-white focus:ring-4 focus:ring-[var(--secondary-soft)] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400;
   }

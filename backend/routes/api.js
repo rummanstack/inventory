@@ -60,6 +60,8 @@ import { createSalesInvoicesRoutes } from "./salesInvoices.routes.js";
 import { createCustomerDueLedgerRoutes } from "./customerDueLedger.routes.js";
 import { createCustomerPaymentsRoutes } from "./customerPayments.routes.js";
 import { createSalesReturnsRoutes } from "./salesReturns.routes.js";
+import { ContactMessageController } from "../controllers/contactMessageController.js";
+import { createContactRoutes } from "./contact.routes.js";
 
 export function createApiRouter({
   authService,
@@ -91,6 +93,7 @@ export function createApiRouter({
   customerDueLedgerService,
   customerPaymentService,
   salesReturnService,
+  contactMessageService,
 }) {
   const router = Router();
   const authController = new AuthController(authService, env, tenantService);
@@ -121,11 +124,16 @@ export function createApiRouter({
   const customerDueLedgerController = new CustomerDueLedgerController(customerDueLedgerService);
   const customerPaymentController = new CustomerPaymentController(customerPaymentService);
   const salesReturnController = new SalesReturnController(salesReturnService);
+  const contactMessageController = new ContactMessageController(contactMessageService);
 
   const loginRateLimiter = createRateLimiter({ windowMs: 15 * 60 * 1000, max: 20 });
   const authRateLimiter = createRateLimiter({ windowMs: 15 * 60 * 1000, max: 20 });
+  const contactRateLimiter = createRateLimiter({ windowMs: 15 * 60 * 1000, max: 10 });
 
   router.use("/auth", createPublicAuthRoutes(authController, { loginRateLimiter, authRateLimiter }));
+
+  // Public contact form — no auth required
+  router.use("/contact", createContactRoutes(contactMessageController, { contactRateLimiter }));
 
   router.use(requireAuth(authService, env));
 

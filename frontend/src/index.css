@@ -246,34 +246,16 @@
     @apply relative overflow-hidden rounded-[26px] border border-slate-200/80 bg-slate-100 shadow-[0_18px_44px_rgba(15,23,42,0.07)] ring-1 ring-slate-900/[0.03];
   }
 
-  .image-placeholder::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    pointer-events: none;
-    background: linear-gradient(180deg, rgba(8, 17, 31, 0.02) 0%, rgba(8, 17, 31, 0.08) 54%, rgba(8, 17, 31, 0.38) 100%);
-  }
-
   .image-placeholder-dashboard {
     @apply rounded-[30px] shadow-[0_34px_90px_rgba(15,23,42,0.18)];
   }
 
   .landing-image {
-    @apply h-full w-full object-cover;
+    @apply h-full w-full object-cover object-top;
   }
 
-  .landing-image-caption {
-    @apply absolute inset-x-4 bottom-4 z-10 rounded-2xl border border-white/20 p-4 shadow-[0_16px_32px_rgba(8,17,31,0.16)] backdrop-blur;
-    background: rgba(255, 255, 255, 0.88);
-  }
-
-  .landing-image-caption-compact {
-    @apply inset-x-3 bottom-3 p-3;
-  }
-
-  .landing-image-caption p {
-    @apply text-sm font-black leading-5 text-slate-950;
+  .landing-image-contain {
+    @apply h-full w-full object-contain bg-slate-50 p-4;
   }
 
   .demo-panel {

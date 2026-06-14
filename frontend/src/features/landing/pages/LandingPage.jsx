@@ -1,14 +1,14 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import heroDashboardImage from '../../../../ChatGPT Image Jun 14, 2026, 05_11_51 PM (1).png';
-import ownerLaptopImage from '../../../../ChatGPT Image Jun 14, 2026, 05_11_52 PM (2).png';
-import retailCounterImage from '../../../../ChatGPT Image Jun 14, 2026, 05_11_53 PM (3).png';
-import warehouseStockImage from '../../../../ChatGPT Image Jun 14, 2026, 05_11_53 PM (4).png';
-import dsrSettlementImage from '../../../../ChatGPT Image Jun 14, 2026, 05_11_54 PM (5).png';
-import purchaseReceiveImage from '../../../../ChatGPT Image Jun 14, 2026, 05_11_54 PM (6).png';
-import dueCollectionImage from '../../../../ChatGPT Image Jun 14, 2026, 05_11_55 PM (7).png';
-import profitReportImage from '../../../../ChatGPT Image Jun 14, 2026, 05_11_55 PM (8).png';
-import mobileViewImage from '../../../../ChatGPT Image Jun 14, 2026, 05_11_56 PM (9).png';
+import heroDashboardImage from '../../../assets/landing/hero-dashboard.png';
+import ownerLaptopImage from '../../../assets/landing/business-owner-dashboard.png';
+import retailCounterImage from '../../../assets/landing/retail-quick-sale.png';
+import warehouseStockImage from '../../../assets/landing/warehouse-stock-control.png';
+import dsrSettlementImage from '../../../assets/landing/dsr-evening-settlement.png';
+import purchaseReceiveImage from '../../../assets/landing/purchase-receive.png';
+import dueCollectionImage from '../../../assets/landing/customer-due-ledger.png';
+import profitReportImage from '../../../assets/landing/profit-report-dashboard.png';
+import mobileViewImage from '../../../assets/landing/mobile-dashboard.png';
 import {
   ArrowRight,
   BarChart3,

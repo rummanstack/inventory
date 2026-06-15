@@ -49,6 +49,6 @@ export const workflowIcons = [Warehouse, Boxes, ReceiptText, WalletCards, BarCha
 export const showcaseImages = [
   { src: dueCollectionImage, key: 'dueCollection', fit: 'cover' },
   { src: profitReportImage, key: 'profitReport', fit: 'cover' },
-  { src: mobileViewImage, key: 'mobileView', fit: 'contain' },
+  { src: mobileViewImage, key: 'mobileView', fit: 'cover' },
   { src: ownerLaptopImage, key: 'ownerLaptop', fit: 'cover' },
 ];

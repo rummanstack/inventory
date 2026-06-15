@@ -1,6 +1,13 @@
 import { CheckCircle2 } from 'lucide-react';
 import SectionHeader from './shared/SectionHeader.jsx';
-import { demoPhone } from '../constants.js';
+
+function focusContactForm(event) {
+  event.preventDefault();
+  document.getElementById('contact-form')?.scrollIntoView({ behavior: 'smooth' });
+  window.setTimeout(() => {
+    document.getElementById('contact-name')?.focus();
+  }, 400);
+}
 
 export default function PricingSection({ t }) {
   const plans = t('landing.pricing.plans');
@@ -14,9 +21,9 @@ export default function PricingSection({ t }) {
           description={t('landing.pricing.description')}
         />
 
-        <div className="mt-10 grid gap-5 lg:grid-cols-3">
-          {plans.map((plan, index) => (
-            <article key={plan.name} className={`pricing-card ${index === 1 ? 'pricing-card-featured' : ''}`}>
+        <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {plans.map((plan) => (
+            <article key={plan.name} className={`pricing-card ${plan.featured ? 'pricing-card-featured' : ''}`}>
               <p className="text-xs font-black uppercase tracking-[0.16em] text-[var(--brand-strong)]">{plan.label}</p>
               <h3 className="mt-4 text-2xl font-black text-slate-950">{plan.name}</h3>
               <p className="mt-5 flex items-baseline gap-1 text-slate-950">
@@ -32,8 +39,8 @@ export default function PricingSection({ t }) {
                   </p>
                 ))}
               </div>
-              <a href={`tel:${demoPhone}`} className={index === 1 ? 'btn-primary mt-8 w-full rounded-2xl' : 'btn-secondary mt-8 w-full rounded-2xl'}>
-                {t('landing.pricing.contactDemo')}
+              <a href="#contact-form" onClick={focusContactForm} className={plan.featured ? 'btn-primary mt-8 w-full rounded-2xl' : 'btn-secondary mt-8 w-full rounded-2xl'}>
+                {t('landing.pricing.contactUs')}
               </a>
             </article>
           ))}

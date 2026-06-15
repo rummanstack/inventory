@@ -23,16 +23,14 @@ import {
   WalletCards,
 } from 'lucide-react';
 
-export const demoEmail = 'demo@stockledger.live';
-export const demoPassword = 'Demo@12345';
-export const demoPhone = '01678560660';
+export const contactPhone = '01678560660';
 export const whatsappUrl = 'https://wa.me/8801678560660';
 
 export const navLinks = [
   { key: 'features', href: '#features' },
   { key: 'solutions', href: '#solutions' },
   { key: 'workflow', href: '#workflow' },
-  { key: 'demo', href: '#demo' },
+  { key: 'getStarted', href: '#get-started' },
   { key: 'pricing', href: '#pricing' },
   { key: 'contact', href: '#contact-form' },
 ];

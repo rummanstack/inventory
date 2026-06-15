@@ -37,10 +37,10 @@
     --chart-tooltip-body: #e2e8f0;
     --chart-grid: rgba(148, 163, 184, 0.16);
     --tick-color: #475569;
-    --success: #0f766e;
-    --success-strong: #0f5e56;
-    --success-soft: rgba(15, 118, 110, 0.1);
-    --success-line: rgba(15, 118, 110, 0.24);
+    --success: #16a34a;
+    --success-strong: #15803d;
+    --success-soft: rgba(22, 163, 74, 0.1);
+    --success-line: rgba(22, 163, 74, 0.24);
     --warning: #f59e0b;
     --warning-strong: #92400e;
     --warning-soft: rgba(245, 158, 11, 0.1);
@@ -50,9 +50,9 @@
     --danger-soft: rgba(220, 38, 38, 0.08);
     --danger-line: rgba(220, 38, 38, 0.2);
     --accent-orange: #f97316;
-    --accent-teal: #0891b2;
+    --accent-teal: #0d9488;
     --purple: #7c3aed;
-    --teal: #0891b2;
+    --teal: #0d9488;
     --rose: #e11d48;
     --surface-white: #ffffff;
     /* Muted/highlight small accents */

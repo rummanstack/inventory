@@ -213,11 +213,12 @@ export default function TrashPage() {
       <div className="mb-4 flex flex-wrap gap-2">
         {visibleTabs.map((tab) => {
           const Icon = tab.icon;
+          const isActive = activeKey === tab.key;
           return (
             <button
               key={tab.key}
               type="button"
-              className={`btn-secondary ${activeKey === tab.key ? 'bg-slate-900 text-white hover:bg-slate-900' : ''}`}
+              className={isActive ? 'btn-primary' : 'btn-secondary'}
               onClick={() => setActiveKey(tab.key)}
             >
               <Icon size={16} />

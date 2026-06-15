@@ -10,7 +10,7 @@ export default function FeatureGridSection({ t }) {
           {featureCards.map((feature, index) => {
             const Icon = featureCardIcons[index];
             return (
-              <article key={feature.title} className="landing-feature-card">
+              <article key={feature.title} className="landing-feature-card group">
                 <span className="landing-icon">
                   <Icon size={21} />
                 </span>

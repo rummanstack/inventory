@@ -1467,7 +1467,7 @@ const en = {
           {
             name: 'Starter',
             label: 'For small shops',
-            price: 'BDT 499',
+            price: 'BDT 399',
             cadence: '/month',
             description: 'Everything a small shop needs to sell and track stock.',
             included: [true, true, true, true, true, true, true, true, false, false, false, false, false, false, false, false, false],
@@ -1475,7 +1475,7 @@ const en = {
           {
             name: 'Business',
             label: 'Most popular',
-            price: 'BDT 999',
+            price: 'BDT 699',
             cadence: '/month',
             featured: true,
             description: 'Everything in Starter, plus tools for dealers, wholesalers and distributors.',

@@ -208,7 +208,7 @@ const en = {
     products: {
       eyebrow: 'Inventory',
       title: 'Product Management',
-      description: 'Manage the 28 weekly products, selling rates, case size, and available stock.',
+      description: 'Manage your {count} products, selling rates, case size, and available stock.',
       add: 'Add Product',
       searchPlaceholder: 'Search product or category',
       outOfStock: '{count} product currently has no available stock.',

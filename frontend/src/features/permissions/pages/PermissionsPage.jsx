@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Loader2, Save } from 'lucide-react';
-import { Alert, LoadingState, SectionHeader } from '../../../components/ui.jsx';
+import { Alert, SectionHeader } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 
@@ -95,7 +95,21 @@ export default function PermissionsPage() {
     return (
       <div>
         <SectionHeader eyebrow={t('nav.permissions')} title={t('permissions.title')} description={t('permissions.description')} />
-        <LoadingState title={t('status.loadingData')} description={t('permissions.description')} />
+        <div className="grid gap-6 lg:grid-cols-2">
+          {Array.from({ length: 4 }).map((_, cardIndex) => (
+            <div key={cardIndex} className="panel-strong space-y-4 p-6">
+              <div className="flex items-center justify-between gap-3">
+                <div className="h-5 w-32 animate-pulse rounded-full bg-slate-200" />
+                <div className="h-9 w-20 animate-pulse rounded-lg bg-slate-100" />
+              </div>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {Array.from({ length: 8 }).map((__, itemIndex) => (
+                  <div key={itemIndex} className="h-10 animate-pulse rounded-lg border border-slate-200 bg-slate-100" />
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }

@@ -4,6 +4,7 @@ import { ArrowLeft, KeyRound, Loader2, Lock, Mail } from 'lucide-react';
 import { Alert, ToastViewport } from '../../../components/ui';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import loginHero from '../../../assets/login-hero.png';
+import logoMark from '../../../assets/stockledger-logo-mark.svg';
 
 export default function LoginPage() {
   const { login, forgotPassword, resetPassword, toasts, dismissToast, t } = useInventoryApp();
@@ -25,8 +26,8 @@ export default function LoginPage() {
           {/* Form */}
           <div className="flex flex-col justify-center bg-white px-8 py-10">
             <div className="mb-8 flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[var(--secondary-soft)] text-[var(--secondary-strong)]">
-                <KeyRound size={20} />
+              <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-2xl">
+                <img src={logoMark} alt="" className="h-full w-full object-contain" />
               </div>
               <div>
                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">{t('app.brand')}</p>

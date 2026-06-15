@@ -1,8 +1,9 @@
 import { NavLink } from 'react-router-dom';
-import { LogOut, UserCircle, Warehouse, X } from 'lucide-react';
+import { LogOut, UserCircle, X } from 'lucide-react';
 import { cx } from '../components/ui';
 import { APP_ROUTES } from './routes';
 import LanguageSwitcher from '../components/LanguageSwitcher';
+import logoMark from '../assets/stockledger-logo-mark.svg';
 
 export default function AppSidebar({ mobileOpen, setMobileOpen, user, tenant, language, onLanguageChange, onLogout, t, can, hasFeature }) {
   const sections = ['overview', 'inventory', 'operations', 'retailer', 'reports', 'finance', 'governance', 'settings', 'developer'];
@@ -40,11 +41,7 @@ export default function AppSidebar({ mobileOpen, setMobileOpen, user, tenant, la
         <div className="relative flex items-center justify-between px-2">
           <div className="flex items-center gap-3">
             <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl bg-[linear-gradient(135deg,var(--secondary-strong),var(--bg-dark))] text-white shadow-[0_16px_32px_var(--secondary-shadow)]">
-              {tenant?.logoUrl ? (
-                <img src={tenant.logoUrl} alt="" className="h-full w-full object-contain p-1.5" />
-              ) : (
-                <Warehouse size={22} />
-              )}
+              <img src={tenant?.logoUrl || logoMark} alt="" className="h-full w-full object-contain p-1.5" />
             </div>
             <div>
               <h2 className="mt-1 text-xl font-black tracking-normal text-slate-950">{tenant?.name || t('app.brand')}</h2>

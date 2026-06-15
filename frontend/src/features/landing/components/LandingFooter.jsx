@@ -1,5 +1,5 @@
-import { Boxes } from 'lucide-react';
 import { contactPhone } from '../constants.js';
+import logoMark from '../../../assets/stockledger-logo-mark.svg';
 
 export default function LandingFooter({ t }) {
   return (
@@ -8,7 +8,7 @@ export default function LandingFooter({ t }) {
         <div>
           <div className="flex items-center gap-3">
             <span className="brand-mark">
-              <Boxes size={20} />
+              <img src={logoMark} alt="" className="h-full w-full object-contain" />
             </span>
             <div>
               <h2 className="text-xl font-black text-slate-950">StockLedger</h2>

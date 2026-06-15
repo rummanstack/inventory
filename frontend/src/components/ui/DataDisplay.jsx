@@ -22,22 +22,22 @@ export function SectionHeader({ eyebrow, description, action }) {
 export function StatCard({ title, value, helper, icon: Icon, tone = 'blue', trend }) {
   const tones = {
     blue: {
-      card: 'from-white to-[var(--secondary-soft)]',
-      icon: 'bg-[var(--secondary)] text-white shadow-[0_10px_20px_var(--secondary-shadow)]',
-      accent: 'bg-[var(--secondary-strong)]',
-      spark: getCssVar('--secondary', '#2563eb'),
+      card: 'from-white to-brand-soft',
+      icon: 'bg-brand text-white shadow-[0_10px_20px_var(--secondary-shadow)]',
+      accent: 'bg-brand-strong',
+      spark: getCssVar('--brand', '#2563eb'),
     },
     emerald: {
-      card: 'from-white to-emerald-50/75',
-      icon: 'bg-emerald-600 text-white shadow-[0_10px_20px_rgba(5,150,105,0.24)]',
-      accent: 'bg-emerald-500',
-      spark: '#059669',
+      card: 'from-white to-success-soft',
+      icon: 'bg-success text-white shadow-[0_10px_20px_var(--success-line)]',
+      accent: 'bg-success',
+      spark: getCssVar('--success', '#0f766e'),
     },
     amber: {
-      card: 'from-white to-amber-50/80',
-      icon: 'bg-amber-500 text-white shadow-[0_10px_20px_rgba(245,158,11,0.22)]',
-      accent: 'bg-amber-400',
-      spark: '#f59e0b',
+      card: 'from-white to-warning-soft',
+      icon: 'bg-warning text-white shadow-[0_10px_20px_var(--warning-line)]',
+      accent: 'bg-warning',
+      spark: getCssVar('--warning', '#f59e0b'),
     },
     indigo: {
       card: 'from-white to-indigo-50/75',
@@ -46,10 +46,10 @@ export function StatCard({ title, value, helper, icon: Icon, tone = 'blue', tren
       spark: '#4f46e5',
     },
     rose: {
-      card: 'from-white to-rose-50/75',
-      icon: 'bg-rose-600 text-white shadow-[0_10px_20px_rgba(225,29,72,0.22)]',
-      accent: 'bg-rose-500',
-      spark: '#e11d48',
+      card: 'from-white to-danger-soft',
+      icon: 'bg-danger text-white shadow-[0_10px_20px_var(--danger-line)]',
+      accent: 'bg-danger',
+      spark: getCssVar('--danger', '#dc2626'),
     },
     slate: {
       card: 'from-white to-slate-100/80',
@@ -86,10 +86,10 @@ export function StatCard({ title, value, helper, icon: Icon, tone = 'blue', tren
 
 export function Badge({ children, tone = 'slate' }) {
   const tones = {
-    blue: 'bg-[var(--secondary-soft)] text-[var(--secondary-strong)] ring-[var(--secondary-soft)]',
-    emerald: 'bg-emerald-50 text-emerald-700 ring-emerald-100',
-    amber: 'bg-amber-50 text-amber-800 ring-amber-100',
-    rose: 'bg-rose-50 text-rose-700 ring-rose-100',
+    blue: 'bg-brand-soft text-brand-strong ring-brand-soft',
+    emerald: 'bg-success-soft text-success-strong ring-success-line',
+    amber: 'bg-warning-soft text-warning-strong ring-warning-line',
+    rose: 'bg-danger-soft text-danger-strong ring-danger-line',
     teal: 'bg-teal-50 text-teal-700 ring-teal-100',
     purple: 'bg-purple-50 text-purple-700 ring-purple-100',
     slate: 'bg-slate-100 text-slate-700 ring-slate-200',

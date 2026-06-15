@@ -4,6 +4,7 @@ import { cleanInteger, cleanMoney } from "../../lib/normalizers.js";
 import { insertDueLedgerEntry } from "../../repositories/dsrDueLedgerRepository.js";
 import { insertSupplierDueLedgerEntry } from "../../repositories/supplierDueLedgerRepository.js";
 import { insertCustomerDueLedgerEntry } from "../../repositories/customerDueLedgerRepository.js";
+import { insertTransaction as insertFinanceAccountTransaction } from "../../repositories/financeAccountRepository.js";
 import { findProductsForUpdate } from "../../repositories/productRepository.js";
 import { insertStockMovement } from "../../repositories/stockMovementRepository.js";
 
@@ -121,6 +122,31 @@ export async function recordCustomerDueLedgerEntry(client, entry) {
     note: entry.note || "",
     createdById: entry.createdById,
   });
+}
+
+export async function recordFinanceAccountTransaction(client, entry) {
+  const debit = cleanMoney(entry.debit);
+  const credit = cleanMoney(entry.credit);
+
+  if (debit <= 0 && credit <= 0) {
+    return null;
+  }
+
+  const result = await insertFinanceAccountTransaction(client, {
+    id: createId("finance-txn"),
+    tenantId: entry.tenantId,
+    accountId: entry.accountId,
+    transactionDate: entry.transactionDate,
+    type: entry.type,
+    debit,
+    credit,
+    balanceAfter: entry.balanceAfter,
+    transferId: entry.transferId || null,
+    note: entry.note || "",
+    createdById: entry.createdById,
+  });
+
+  return result.rows[0];
 }
 
 export async function applyStockDelta(client, productId, tenantId, stockDifference, damagedDifference) {

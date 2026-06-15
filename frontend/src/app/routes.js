@@ -24,6 +24,8 @@ import {
   Bug,
   PackageX,
   Wallet,
+  LayoutDashboard,
+  Landmark,
 } from 'lucide-react';
 import DashboardPage from '../features/dashboard/pages/DashboardPage';
 import ActivityLogsPage from '../features/activity-logs/pages/ActivityLogsPage';
@@ -60,6 +62,8 @@ import DueCollectionPage from '../features/retailer/due-collection/pages/DueColl
 import SalesReturnPage from '../features/retailer/sales-return/pages/SalesReturnPage';
 import DailySalesReportPage from '../features/retailer/daily-sales-report/pages/DailySalesReportPage';
 import RetailerProfitReportPage from '../features/retailer/profit-report/pages/RetailerProfitReportPage';
+import FinanceDashboardPage from '../features/finance-dashboard/pages/FinanceDashboardPage';
+import FinanceAccountsPage from '../features/finance-accounts/pages/FinanceAccountsPage';
 
 export const APP_ROUTES = [
   { id: 'dashboard', path: '/dashboard', labelKey: 'nav.dashboard', icon: BarChart3, component: DashboardPage, group: 'overview', permission: 'view_state' },
@@ -83,6 +87,8 @@ export const APP_ROUTES = [
   { id: 'dsr-finance', path: '/dsr-finance', labelKey: 'nav.dsrFinance', icon: HandCoins, component: DsrFinancePage, group: 'reports', permission: 'manage_dsr_finance', feature: 'dsr-finance' },
   { id: 'reports', path: '/reports', labelKey: 'nav.reports', icon: FileText, component: DailyReportsPage, group: 'reports', permission: 'view_state', feature: 'reports' },
   { id: 'history', path: '/history', labelKey: 'nav.history', icon: ClipboardList, component: HistoryPage, group: 'reports', permission: 'view_state', feature: 'history' },
+  { id: 'finance-dashboard', path: '/finance-dashboard', labelKey: 'nav.financeDashboard', icon: LayoutDashboard, component: FinanceDashboardPage, group: 'finance', permission: 'view_finance_dashboard', feature: 'finance-dashboard' },
+  { id: 'finance-accounts', path: '/finance-accounts', labelKey: 'nav.financeAccounts', icon: Landmark, component: FinanceAccountsPage, group: 'finance', permission: 'manage_finance_accounts', feature: 'finance-accounts' },
   { id: 'expenses', path: '/expenses', labelKey: 'nav.expenses', icon: CircleDollarSign, component: ExpensesPage, group: 'finance', permission: 'manage_expenses', feature: 'expenses' },
   { id: 'supplier-payments', path: '/supplier-payments', labelKey: 'nav.supplierPayments', icon: Wallet, component: SupplierPaymentsPage, group: 'suppliers', permission: 'manage_supplier_payments', feature: 'supplier-payments' },
   { id: 'month-end-summary', path: '/month-end-summary', labelKey: 'nav.monthEndSummary', icon: BarChart3, component: MonthEndSummaryPage, group: 'reports', permission: 'manage_dsr_finance', feature: 'month-end-summary' },

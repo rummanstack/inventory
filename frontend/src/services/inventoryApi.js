@@ -24,6 +24,8 @@ import { customerPaymentsApi } from './api/customerPaymentsApi.js';
 import { salesReturnsApi } from './api/salesReturnsApi.js';
 import { systemApi } from './api/systemApi.js';
 import { usersApi } from './api/usersApi.js';
+import { financeAccountsApi } from './api/financeAccountsApi.js';
+import { financeDashboardApi } from './api/financeDashboardApi.js';
 
 export const inventoryApi = {
   ...authApi,
@@ -52,4 +54,6 @@ export const inventoryApi = {
   ...customerDueLedgerApi,
   ...customerPaymentsApi,
   ...salesReturnsApi,
+  ...financeAccountsApi,
+  ...financeDashboardApi,
 };

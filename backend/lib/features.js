@@ -25,4 +25,6 @@ export const TENANT_FEATURES = [
   "retailer-sales-return",
   "retailer-daily-sales-report",
   "retailer-profit-report",
+  "finance-accounts",
+  "finance-dashboard",
 ];

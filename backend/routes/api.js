@@ -62,6 +62,10 @@ import { createCustomerPaymentsRoutes } from "./customerPayments.routes.js";
 import { createSalesReturnsRoutes } from "./salesReturns.routes.js";
 import { ContactMessageController } from "../controllers/contactMessageController.js";
 import { createContactRoutes } from "./contact.routes.js";
+import { FinanceAccountController } from "../controllers/financeAccountController.js";
+import { FinanceDashboardController } from "../controllers/financeDashboardController.js";
+import { createFinanceAccountsRoutes } from "./financeAccounts.routes.js";
+import { createFinanceDashboardRoutes } from "./financeDashboard.routes.js";
 
 export function createApiRouter({
   authService,
@@ -94,6 +98,8 @@ export function createApiRouter({
   customerPaymentService,
   salesReturnService,
   contactMessageService,
+  financeAccountService,
+  financeDashboardService,
 }) {
   const router = Router();
   const authController = new AuthController(authService, env, tenantService);
@@ -125,6 +131,8 @@ export function createApiRouter({
   const customerPaymentController = new CustomerPaymentController(customerPaymentService);
   const salesReturnController = new SalesReturnController(salesReturnService);
   const contactMessageController = new ContactMessageController(contactMessageService);
+  const financeAccountController = new FinanceAccountController(financeAccountService);
+  const financeDashboardController = new FinanceDashboardController(financeDashboardService);
 
   const loginRateLimiter = createRateLimiter({ windowMs: 15 * 60 * 1000, max: 20 });
   const authRateLimiter = createRateLimiter({ windowMs: 15 * 60 * 1000, max: 20 });
@@ -175,6 +183,8 @@ export function createApiRouter({
   router.use("/customer-due-ledger", createCustomerDueLedgerRoutes(customerDueLedgerController));
   router.use("/customer-payments", createCustomerPaymentsRoutes(customerPaymentController));
   router.use("/sales-returns", createSalesReturnsRoutes(salesReturnController));
+  router.use("/finance-accounts", createFinanceAccountsRoutes(financeAccountController));
+  router.use("/finance-dashboard", createFinanceDashboardRoutes(financeDashboardController));
 
   return router;
 }

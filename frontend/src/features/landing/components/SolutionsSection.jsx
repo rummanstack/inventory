@@ -18,10 +18,10 @@ export default function SolutionsSection({ t }) {
           {items.map((solution, index) => {
             const Icon = solutionIcons[index];
             return (
-              <article key={solution.title} className="solution-card">
+              <article key={solution.title} className="solution-card group">
                 <ImagePlaceholder data={{ src: solutionImages[index], alt: solution.title }} heightClass="h-64 sm:h-72" />
                 <div className="p-6">
-                  <Icon size={28} className="text-[var(--brand)]" />
+                  <Icon size={28} className="text-[var(--brand)] transition-transform duration-300 group-hover:-rotate-6" />
                   <h3 className="mt-5 text-xl font-black text-slate-950">{solution.title}</h3>
                   <p className="mt-3 text-sm font-medium leading-6 text-slate-600">{solution.description}</p>
                 </div>

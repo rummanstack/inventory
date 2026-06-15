@@ -1460,7 +1460,7 @@ const bn = {
           {
             name: 'স্টার্টার',
             label: 'ছোট দোকানের জন্য',
-            price: 'BDT 499',
+            price: 'BDT 399',
             cadence: '/মাস',
             description: 'দোকান চালাতে যা যা লাগে, সবকিছু এতে আছে।',
             included: [true, true, true, true, true, true, true, true, false, false, false, false, false, false, false, false, false],
@@ -1468,7 +1468,7 @@ const bn = {
           {
             name: 'বিজনেস',
             label: 'সবচেয়ে জনপ্রিয়',
-            price: 'BDT 999',
+            price: 'BDT 699',
             cadence: '/মাস',
             featured: true,
             description: 'স্টার্টারের সবকিছু, সাথে ডিলার, হোলসেলার ও ডিস্ট্রিবিউটরদের জন্য টুলস।',

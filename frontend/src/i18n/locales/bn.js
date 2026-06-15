@@ -55,7 +55,7 @@ const bn = {
     nav: {
       dashboard: 'ড্যাশবোর্ড',
       products: 'পণ্য',
-      dsrs: 'সেলস রেপ',
+      dsrs: 'ডিএসআর',
       customers: 'গ্রাহক',
       morningIssue: 'সকালের ইস্যু',
       eveningSettlement: 'সন্ধ্যার সেটেলমেন্ট',

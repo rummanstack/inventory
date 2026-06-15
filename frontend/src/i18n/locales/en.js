@@ -50,7 +50,7 @@ const en = {
     nav: {
       dashboard: 'Dashboard',
       products: 'Products',
-      dsrs: 'Sales Reps',
+      dsrs: 'DSRs',
       customers: 'Customers',
       morningIssue: 'Morning Issue',
       eveningSettlement: 'Evening Settlement',

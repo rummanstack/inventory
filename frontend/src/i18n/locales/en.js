@@ -1436,6 +1436,8 @@ const en = {
         title: 'Simple pricing that grows with you',
         description: 'Start small. Upgrade anytime as your business grows.',
         contactUs: 'Contact Us',
+        showAllFeatures: 'Show all features',
+        showLessFeatures: 'Show less',
         features: [
           'Stock Management',
           'Morning Issue',

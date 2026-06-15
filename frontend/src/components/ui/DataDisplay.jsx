@@ -61,15 +61,15 @@ export function StatCard({ title, value, helper, icon: Icon, tone = 'blue', tren
   const toneSet = tones[tone] || tones.blue;
 
   return (
-    <div className={cx('group relative overflow-hidden rounded-[28px] border border-slate-200/80 bg-gradient-to-br p-4 shadow-[0_18px_45px_rgba(15,23,42,0.07)] ring-1 ring-slate-900/[0.03] transition hover:-translate-y-1 hover:shadow-[0_24px_60px_rgba(15,23,42,0.11)]', toneSet.card)}>
-      <div className={cx('absolute inset-x-0 top-0 h-1', toneSet.accent)} />
+    <div className={cx('group relative overflow-hidden rounded-[28px] border border-slate-200/80 bg-gradient-to-br p-4 shadow-[0_18px_45px_rgba(15,23,42,0.07)] ring-1 ring-slate-900/[0.03] transition-shadow duration-300 hover:shadow-[0_22px_55px_rgba(15,23,42,0.12)]', toneSet.card)}>
+      <div className={cx('absolute inset-x-0 top-0 h-1 origin-left scale-x-0 transition-transform duration-300 group-hover:scale-x-100', toneSet.accent)} />
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-sm font-bold text-slate-500">{title}</p>
           <p className="mt-2 text-2xl font-black tracking-normal text-slate-950">{value}</p>
         </div>
         {Icon ? (
-          <div className={cx('rounded-lg p-2.5 transition group-hover:scale-105', toneSet.icon)}>
+          <div className={cx('rounded-lg p-2.5 transition-transform duration-300 group-hover:-rotate-6', toneSet.icon)}>
             <Icon size={20} />
           </div>
         ) : null}

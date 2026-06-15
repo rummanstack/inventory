@@ -20,10 +20,10 @@ export function EmptyState({ title = 'No data found', description = 'Add records
 
 export function Alert({ type = 'info', children }) {
   const tones = {
-    info: 'border-[var(--muted)] bg-[var(--secondary-soft)] text-[var(--secondary-strong)]',
-    success: 'border-emerald-200 bg-emerald-50 text-emerald-800',
-    warning: 'border-amber-200 bg-amber-50 text-amber-800',
-    error: 'border-rose-200 bg-rose-50 text-rose-800',
+    info: 'border-brand-soft bg-brand-soft text-brand-strong',
+    success: 'border-success-line bg-success-soft text-success-strong',
+    warning: 'border-warning-line bg-warning-soft text-warning-strong',
+    error: 'border-danger-line bg-danger-soft text-danger-strong',
   };
 
   return <div className={cx('rounded-2xl border px-4 py-3 text-sm font-medium shadow-[0_10px_22px_rgba(15,23,42,0.04)]', tones[type] || tones.info)}>{children}</div>;
@@ -114,24 +114,24 @@ export function ToastViewport({ toasts, onDismiss }) {
 
   const tones = {
     success: {
-      shell: 'border-emerald-200/80 bg-[linear-gradient(135deg,rgba(255,255,255,0.98),rgba(236,253,245,0.98))] text-emerald-950',
-      icon: 'bg-emerald-600 text-white shadow-[0_10px_24px_rgba(5,150,105,0.28)]',
-      bar: 'bg-emerald-500',
+      shell: 'border-success-line bg-[linear-gradient(135deg,rgba(255,255,255,0.98),var(--success-soft))] text-success-strong',
+      icon: 'bg-success text-white shadow-[0_10px_24px_var(--success-line)]',
+      bar: 'bg-success',
     },
     error: {
-      shell: 'border-rose-200/80 bg-[linear-gradient(135deg,rgba(255,255,255,0.98),rgba(255,241,242,0.98))] text-rose-950',
-      icon: 'bg-rose-600 text-white shadow-[0_10px_24px_rgba(225,29,72,0.26)]',
-      bar: 'bg-rose-500',
+      shell: 'border-danger-line bg-[linear-gradient(135deg,rgba(255,255,255,0.98),var(--danger-soft))] text-danger-strong',
+      icon: 'bg-danger text-white shadow-[0_10px_24px_var(--danger-line)]',
+      bar: 'bg-danger',
     },
     warning: {
-      shell: 'border-amber-200/80 bg-[linear-gradient(135deg,rgba(255,255,255,0.98),rgba(255,251,235,0.98))] text-amber-950',
-      icon: 'bg-amber-500 text-white shadow-[0_10px_24px_rgba(245,158,11,0.24)]',
-      bar: 'bg-amber-400',
+      shell: 'border-warning-line bg-[linear-gradient(135deg,rgba(255,255,255,0.98),var(--warning-soft))] text-warning-strong',
+      icon: 'bg-warning text-white shadow-[0_10px_24px_var(--warning-line)]',
+      bar: 'bg-warning',
     },
     info: {
-      shell: 'border-sky-200/80 bg-[linear-gradient(135deg,rgba(255,255,255,0.98),rgba(240,249,255,0.98))] text-slate-950',
-      icon: 'bg-sky-600 text-white shadow-[0_10px_24px_rgba(2,132,199,0.24)]',
-      bar: 'bg-sky-500',
+      shell: 'border-brand-soft bg-[linear-gradient(135deg,rgba(255,255,255,0.98),var(--brand-soft))] text-slate-950',
+      icon: 'bg-brand text-white shadow-[0_10px_24px_var(--brand-soft)]',
+      bar: 'bg-brand',
     },
   };
 

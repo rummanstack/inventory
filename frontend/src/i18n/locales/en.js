@@ -1,6 +1,6 @@
 const en = {
     app: {
-      brand: 'Arinda Enterprise',
+      brand: 'Stock Ledger',
       subtitle: '',
     },
     status: {
@@ -1289,7 +1289,7 @@ const en = {
       noMatchDescription: 'Try another search term or create issue and settlement records first.',
     },
     shell: {
-      brand: 'Arinda Enterprise',
+      brand: 'Stock Ledger',
       account: 'Account',
       language: 'Language',
     },

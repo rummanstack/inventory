@@ -1,6 +1,6 @@
 const bn = {
     app: {
-      brand: 'আরিন্দা এন্টারপ্রাইজ',
+      brand: 'Stock Ledger',
       subtitle: '',
     },
     status: {
@@ -1276,7 +1276,7 @@ const bn = {
       noMatchDescription: 'অন্য কিছু খুঁজুন বা আগে ইস্যু ও সেটেলমেন্ট রেকর্ড তৈরি করুন।',
     },
     shell: {
-      brand: 'আরিন্দা এন্টারপ্রাইজ',
+      brand: 'Stock Ledger',
       account: 'অ্যাকাউন্ট',
       language: 'ভাষা',
     },

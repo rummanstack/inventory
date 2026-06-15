@@ -1,12 +1,27 @@
-import { NavLink } from 'react-router-dom';
-import { LogOut, UserCircle, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
+import { ChevronDown, LogOut, UserCircle, X } from 'lucide-react';
 import { cx } from '../components/ui';
 import { APP_ROUTES } from './routes';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 import logoMark from '../assets/stockledger-logo-mark.svg';
 
+const COLLAPSED_GROUPS_STORAGE_KEY = 'stockledger.sidebarCollapsedGroups';
+
+function loadCollapsedGroups() {
+  try {
+    const stored = JSON.parse(localStorage.getItem(COLLAPSED_GROUPS_STORAGE_KEY) || '{}');
+    return typeof stored === 'object' && stored ? stored : {};
+  } catch {
+    return {};
+  }
+}
+
 export default function AppSidebar({ mobileOpen, setMobileOpen, user, tenant, language, onLanguageChange, onLogout, t, can, hasFeature }) {
-  const sections = ['overview', 'inventory', 'operations', 'retailer', 'reports', 'finance', 'governance', 'settings', 'developer'];
+  const location = useLocation();
+  const sections = ['overview', 'inventory', 'operations', 'suppliers', 'retailer', 'reports', 'finance', 'governance', 'settings', 'developer'];
+  const [collapsedGroups, setCollapsedGroups] = useState(loadCollapsedGroups);
+
   const groupedRoutes = sections
     .map((section) => ({
       section,
@@ -29,6 +44,29 @@ export default function AppSidebar({ mobileOpen, setMobileOpen, user, tenant, la
       }),
     }))
     .filter((item) => item.routes.length > 0);
+
+  useEffect(() => {
+    const activeSection = groupedRoutes.find((group) =>
+      group.routes.some((route) => location.pathname === route.path || location.pathname.startsWith(`${route.path}/`)),
+    )?.section;
+
+    if (activeSection && collapsedGroups[activeSection]) {
+      setCollapsedGroups((current) => {
+        const next = { ...current };
+        delete next[activeSection];
+        return next;
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
+
+  useEffect(() => {
+    localStorage.setItem(COLLAPSED_GROUPS_STORAGE_KEY, JSON.stringify(collapsedGroups));
+  }, [collapsedGroups]);
+
+  function toggleGroup(section) {
+    setCollapsedGroups((current) => ({ ...current, [section]: !current[section] }));
+  }
 
   return (
     <>
@@ -55,48 +93,60 @@ export default function AppSidebar({ mobileOpen, setMobileOpen, user, tenant, la
 
         <nav className="premium-scrollbar relative mt-8 min-h-0 flex-1 overflow-y-auto pb-6 pr-1">
           <div className="space-y-5">
-            {groupedRoutes.map(({ section, label, routes }) => (
-              <div key={section} className="space-y-2">
-                <div className="px-2">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-slate-400">{label}</p>
-                </div>
-                <div className="space-y-1.5">
-                  {routes.map((route) => {
-                    const Icon = route.icon;
+            {groupedRoutes.map(({ section, label, routes }) => {
+              const isCollapsed = Boolean(collapsedGroups[section]);
 
-                    return (
-                      <NavLink
-                        key={route.id}
-                        to={route.path}
-                        onClick={() => setMobileOpen(false)}
-                        className={({ isActive }) =>
-                          cx(
-                            'group relative flex w-full items-center gap-3 rounded-lg py-2.5 pr-3 text-left text-sm font-semibold transition',
-                            isActive
-                              ? 'bg-[var(--secondary-soft)] pl-4 text-[var(--secondary-strong)] before:absolute before:left-0 before:top-1/2 before:h-6 before:w-1 before:-translate-y-1/2 before:rounded-full before:bg-[var(--secondary)]'
-                              : 'pl-3 text-slate-600 hover:bg-slate-100 hover:text-slate-950',
-                          )
-                        }
-                      >
-                        {({ isActive }) => (
-                          <>
-                            <span
-                              className={cx(
-                                'flex h-8 w-8 items-center justify-center rounded-md transition',
-                                isActive ? 'bg-[var(--secondary)] text-white' : 'text-slate-500 group-hover:text-[var(--secondary-strong)]',
-                              )}
-                            >
-                              <Icon size={17} />
-                            </span>
-                            <span className="flex-1">{t(route.labelKey)}</span>
-                          </>
-                        )}
-                      </NavLink>
-                    );
-                  })}
+              return (
+                <div key={section} className="space-y-2">
+                  <button
+                    type="button"
+                    className="flex w-full items-center justify-between gap-2 rounded-lg px-2.5 py-2 text-left transition hover:bg-slate-100"
+                    onClick={() => toggleGroup(section)}
+                    aria-expanded={!isCollapsed}
+                  >
+                    <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-500">{label}</p>
+                    <ChevronDown size={16} className={cx('shrink-0 text-slate-400 transition-transform', isCollapsed && '-rotate-90')} />
+                  </button>
+                  {isCollapsed ? null : (
+                    <div className="space-y-1.5">
+                      {routes.map((route) => {
+                        const Icon = route.icon;
+
+                        return (
+                          <NavLink
+                            key={route.id}
+                            to={route.path}
+                            onClick={() => setMobileOpen(false)}
+                            className={({ isActive }) =>
+                              cx(
+                                'group relative flex w-full items-center gap-3 rounded-lg py-2.5 pr-3 text-left text-sm font-semibold transition',
+                                isActive
+                                  ? 'bg-[var(--secondary-soft)] pl-4 text-[var(--secondary-strong)] before:absolute before:left-0 before:top-1/2 before:h-6 before:w-1 before:-translate-y-1/2 before:rounded-full before:bg-[var(--secondary)]'
+                                  : 'pl-3 text-slate-600 hover:bg-slate-100 hover:text-slate-950',
+                              )
+                            }
+                          >
+                            {({ isActive }) => (
+                              <>
+                                <span
+                                  className={cx(
+                                    'flex h-8 w-8 items-center justify-center rounded-md transition',
+                                    isActive ? 'bg-[var(--secondary)] text-white' : 'text-slate-500 group-hover:text-[var(--secondary-strong)]',
+                                  )}
+                                >
+                                  <Icon size={17} />
+                                </span>
+                                <span className="flex-1">{t(route.labelKey)}</span>
+                              </>
+                            )}
+                          </NavLink>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </nav>
 

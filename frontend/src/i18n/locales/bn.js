@@ -95,6 +95,7 @@ const bn = {
       overview: 'ওভারভিউ',
       inventory: 'ইনভেন্টরি',
       operations: 'অপারেশনস',
+      suppliers: 'সাপ্লায়ার',
       retailer: 'রিটেইলার',
       reports: 'রিপোর্ট',
       finance: 'ফাইন্যান্স',

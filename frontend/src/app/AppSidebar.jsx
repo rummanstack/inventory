@@ -83,7 +83,11 @@ export default function AppSidebar({ mobileOpen, setMobileOpen, user, tenant, la
             </div>
             <div>
               <h2 className="mt-1 text-xl font-black tracking-normal text-slate-950">{tenant?.name || t('app.brand')}</h2>
-              {t('app.subtitle') ? <p className="text-xs font-semibold text-slate-500">{t('app.subtitle')}</p> : null}
+              {tenant?.plan ? (
+                <p className="text-xs font-semibold capitalize text-slate-500">{tenant.plan}</p>
+              ) : t('app.subtitle') ? (
+                <p className="text-xs font-semibold text-slate-500">{t('app.subtitle')}</p>
+              ) : null}
             </div>
           </div>
           <button type="button" className="icon-btn lg:hidden" title={t('common.closeMenu')} onClick={() => setMobileOpen(false)}>

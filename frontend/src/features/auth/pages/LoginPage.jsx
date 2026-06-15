@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, KeyRound, Loader2, Lock, Mail } from 'lucide-react';
 import { Alert, ToastViewport } from '../../../components/ui';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
@@ -26,9 +26,9 @@ export default function LoginPage() {
           {/* Form */}
           <div className="flex flex-col justify-center bg-white px-8 py-10">
             <div className="mb-8 flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-2xl">
+              <Link to="/" className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-2xl transition hover:opacity-80">
                 <img src={logoMark} alt="" className="h-full w-full object-contain" />
-              </div>
+              </Link>
               <div>
                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">{t('app.brand')}</p>
                 <h1 className="text-lg font-black text-slate-950">

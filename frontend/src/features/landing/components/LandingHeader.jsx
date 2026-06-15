@@ -28,10 +28,10 @@ export default function LandingHeader({ language, setLanguage, t }) {
           ))}
         </nav>
 
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
           <LanguageSwitcher language={language} onChange={setLanguage} t={t} compact />
           <Link to="/login" className="landing-small-cta">
-            {t('landing.login')}
+            <span className="hidden sm:inline">{t('landing.login')}</span>
             <ArrowRight size={16} />
           </Link>
         </div>

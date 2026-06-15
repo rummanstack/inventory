@@ -112,6 +112,7 @@ const en = {
       overview: 'Overview',
       inventory: 'Inventory',
       operations: 'Operations',
+      suppliers: 'Suppliers',
       retailer: 'Retailer',
       reports: 'Reports',
       finance: 'Finance',

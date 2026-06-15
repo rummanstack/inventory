@@ -55,7 +55,7 @@ const bn = {
     nav: {
       dashboard: 'ড্যাশবোর্ড',
       products: 'পণ্য',
-      dsrs: 'ডিএসআর',
+      dsrs: 'সেলস রেপ',
       customers: 'গ্রাহক',
       morningIssue: 'সকালের ইস্যু',
       eveningSettlement: 'সন্ধ্যার সেটেলমেন্ট',
@@ -1304,7 +1304,7 @@ const bn = {
     routes: {
       dashboard: 'ড্যাশবোর্ড',
       products: 'পণ্য',
-      dsrs: 'ডিএসআর',
+      dsrs: 'সেলস রেপ',
       morningIssue: 'সকালের ইস্যু',
       eveningSettlement: 'সন্ধ্যার সেটেলমেন্ট',
       expenses: 'খরচ',

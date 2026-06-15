@@ -50,7 +50,7 @@ const en = {
     nav: {
       dashboard: 'Dashboard',
       products: 'Products',
-      dsrs: 'DSR',
+      dsrs: 'Sales Reps',
       customers: 'Customers',
       morningIssue: 'Morning Issue',
       eveningSettlement: 'Evening Settlement',
@@ -1312,7 +1312,7 @@ const en = {
     routes: {
       dashboard: 'Dashboard',
       products: 'Products',
-      dsrs: 'DSR',
+      dsrs: 'Sales Reps',
       morningIssue: 'Morning Issue',
       eveningSettlement: 'Evening Settlement',
       expenses: 'Expenses',

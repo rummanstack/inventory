@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { createTranslator, supportedLanguages } from '../../i18n/translations';
 
-const LANGUAGE_STORAGE_KEY = 'arinda.language';
+const LANGUAGE_STORAGE_KEY = 'stockledger.language';
 
 function getInitialLanguage() {
   if (typeof window === 'undefined') {

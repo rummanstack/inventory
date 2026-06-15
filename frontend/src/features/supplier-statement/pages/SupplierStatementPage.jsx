@@ -1,5 +1,5 @@
 import { Download, Printer, RefreshCw, Wallet } from 'lucide-react';
-import { Badge, EmptyState, LoadingState, SectionHeader, StatCard } from '../../../components/ui.jsx';
+import { Badge, EmptyState, SectionHeader, StatCard, TableSkeleton } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../services/printService.js';
@@ -75,7 +75,7 @@ export default function SupplierStatementPage() {
 
       {vm.loading ? (
         <div className="surface mt-6 p-5">
-          <LoadingState />
+          <TableSkeleton columns={7} showHeader={false} />
         </div>
       ) : vm.error ? (
         <div className="surface mt-6 p-5">

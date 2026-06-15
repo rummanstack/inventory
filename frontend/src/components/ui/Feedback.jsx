@@ -103,6 +103,39 @@ export function TableSkeleton({ rows = 6, columns = 5, showHeader = true }) {
   );
 }
 
+export function StatCardSkeleton() {
+  return (
+    <div className="relative overflow-hidden rounded-[28px] border border-slate-200/80 bg-white p-4 shadow-[0_18px_45px_rgba(15,23,42,0.05)]">
+      <div className="flex items-start justify-between gap-3">
+        <div className="w-full">
+          <div className="h-3 w-2/3 animate-pulse rounded-full bg-slate-200" />
+          <div className="mt-3 h-6 w-1/2 animate-pulse rounded-full bg-slate-200" />
+          <div className="mt-3 h-2.5 w-3/4 animate-pulse rounded-full bg-slate-100" />
+        </div>
+        <div className="h-10 w-10 shrink-0 animate-pulse rounded-lg bg-slate-100" />
+      </div>
+    </div>
+  );
+}
+
+export function ChartPanelSkeleton({ height = 'h-56' }) {
+  return (
+    <div className="surface overflow-hidden">
+      <div className="border-b border-slate-100/80 px-5 py-4">
+        <div className="h-4 w-40 animate-pulse rounded-full bg-slate-200" />
+        <div className="mt-2 h-2.5 w-56 animate-pulse rounded-full bg-slate-100" />
+      </div>
+      <div className="p-5">
+        <div className={cx('w-full animate-pulse rounded-2xl bg-slate-100', height)} />
+      </div>
+    </div>
+  );
+}
+
+export function CardSkeleton({ className = '', height = 'h-24' }) {
+  return <div className={cx('animate-pulse rounded-[28px] bg-slate-100', height, className)} />;
+}
+
 export function ToastViewport({ toasts, onDismiss }) {
   const { t } = useInventoryApp();
   const icons = {

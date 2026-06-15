@@ -23,7 +23,7 @@ export default function ProductsPage() {
       <SectionHeader
         eyebrow={t('products.eyebrow')}
         title={t('products.title')}
-        description={t('products.description')}
+        description={t('products.description', { count: productDirectory.length })}
         action={canManageProducts ? (
           <button type="button" className="btn-primary" onClick={() => setProductModal({ mode: 'add' })}>
             <Plus size={18} />
@@ -37,7 +37,7 @@ export default function ProductsPage() {
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="space-y-2">
               <p className="text-[11px] font-black uppercase tracking-[0.22em] text-slate-400">{t('products.eyebrow')}</p>
-              <p className="text-sm font-medium text-slate-500">{t('products.description')}</p>
+              <p className="text-sm font-medium text-slate-500">{t('products.description', { count: productDirectory.length })}</p>
             </div>
             <div className="flex flex-wrap gap-2 text-sm font-bold">
               <span className="muted-chip">{formatNumber(productDirectory.length)} {t('products.product')}</span>

@@ -1,8 +1,9 @@
 import { AlertTriangle, Boxes, CalendarDays, CheckCircle2, CircleDollarSign, PackageCheck, RotateCcw, Truck, UserCheck } from 'lucide-react';
-import { ActivityHeatmap, Alert, ChartPanel, DonutChart, EmptyState, HorizontalBarChart, LoadingState, RadialProgressChart, SectionHeader, StackedBarChart, StatCard, TrendChart, cx } from '../../../components/ui.jsx';
+import { ActivityHeatmap, Alert, ChartPanel, DonutChart, EmptyState, HorizontalBarChart, RadialProgressChart, SectionHeader, StackedBarChart, StatCard, TrendChart, cx } from '../../../components/ui.jsx';
 import { formatCurrency, formatDate, formatNumber } from '../../../utils/calculations.js';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import InsightLine from '../components/InsightLine';
+import DashboardSkeleton from '../components/DashboardSkeleton';
 import { useDashboardViewModel } from '../viewmodels/useDashboardViewModel';
 import { getCssVar } from '../../../utils/theme.js';
 
@@ -14,7 +15,7 @@ export default function DashboardPage() {
     return (
       <div>
         <SectionHeader eyebrow={t('dashboard.eyebrow')} title={t('dashboard.title')} description={t('dashboard.description')} />
-        <LoadingState title={t('dashboard.title')} description={t('status.loadingData')} />
+        <DashboardSkeleton />
       </div>
     );
   }

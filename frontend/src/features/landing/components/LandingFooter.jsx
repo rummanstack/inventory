@@ -1,29 +1,55 @@
-import { contactPhone } from '../constants.js';
+import { Link } from 'react-router-dom';
+import { ArrowUp, MessageCircle, Phone } from 'lucide-react';
+import { contactPhone, navLinks, whatsappUrl } from '../constants.js';
 import logoMark from '../../../assets/stockledger-logo-mark.svg';
 
 export default function LandingFooter({ t }) {
   return (
-    <footer id="contact" className="border-t border-slate-200 bg-white">
-      <div className="landing-container grid gap-8 py-10 md:grid-cols-[1fr_auto] md:items-center">
-        <div>
-          <div className="flex items-center gap-3">
-            <span className="brand-mark">
-              <img src={logoMark} alt="" className="h-full w-full object-contain" />
-            </span>
-            <div>
-              <h2 className="text-xl font-black text-slate-950">StockLedger</h2>
-              <p className="text-sm font-semibold text-slate-500">{t('landing.footer.tagline')}</p>
+    <footer id="contact" className="border-t border-slate-200 bg-slate-50">
+      <div className="landing-container py-10">
+        <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
+          <div className="max-w-sm">
+            <div className="flex items-center gap-3">
+              <span className="brand-mark">
+                <img src={logoMark} alt="" className="h-full w-full object-contain" />
+              </span>
+              <div>
+                <h2 className="text-lg font-black text-slate-950">StockLedger</h2>
+                <p className="text-xs font-semibold text-slate-500">{t('landing.footer.tagline')}</p>
+              </div>
             </div>
+            <p className="mt-4 text-sm font-medium leading-6 text-slate-600">{t('landing.footer.description')}</p>
           </div>
-          <p className="mt-5 max-w-2xl text-sm font-medium leading-6 text-slate-600">{t('landing.footer.description')}</p>
+
+          <nav className="flex flex-wrap gap-x-6 gap-y-2 lg:pt-2" aria-label="Footer navigation">
+            {navLinks.map((link) => (
+              <a key={link.href} href={link.href} className="text-sm font-bold text-slate-600 transition hover:text-[var(--brand-strong)]">
+                {t(`landing.nav.${link.key}`)}
+              </a>
+            ))}
+            <Link to="/login" className="text-sm font-bold text-slate-600 transition hover:text-[var(--brand-strong)]">
+              {t('landing.login')}
+            </Link>
+          </nav>
+
+          <div className="flex flex-col gap-2 sm:items-end">
+            <a href={`tel:${contactPhone}`} className="inline-flex items-center gap-2 text-base font-black text-slate-950 transition hover:text-[var(--brand-strong)]">
+              <Phone size={16} className="text-[var(--brand)]" />
+              {contactPhone}
+            </a>
+            <a href={whatsappUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-sm font-semibold text-slate-500 transition hover:text-[var(--brand-strong)]">
+              <MessageCircle size={16} className="text-[var(--brand)]" />
+              {t('landing.footer.whatsapp')}
+            </a>
+          </div>
         </div>
 
-        <div className="text-left md:text-right">
-          <p className="text-sm font-bold text-slate-500">{t('landing.footer.contactLabel')}</p>
-          <a href={`tel:${contactPhone}`} className="mt-1 block text-2xl font-black text-slate-950 hover:text-[var(--brand-strong)]">
-            {contactPhone}
+        <div className="mt-8 flex flex-col gap-3 border-t border-slate-200 pt-5 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-xs font-semibold text-slate-500">{t('landing.footer.copyright')}</p>
+          <a href="#top" className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 transition hover:text-[var(--brand-strong)]">
+            {t('landing.footer.backToTop')}
+            <ArrowUp size={14} />
           </a>
-          <p className="mt-4 text-sm font-semibold text-slate-500">{t('landing.footer.copyright')}</p>
         </div>
       </div>
     </footer>

@@ -1510,7 +1510,10 @@ const en = {
       footer: {
         tagline: 'Simple Business Software for Shops, Dealers & Wholesalers',
         description: 'Manage stock, sales, due, purchases, settlement and profit — all in one place.',
+        quickLinks: 'Quick Links',
         contactLabel: 'Contact',
+        whatsapp: 'WhatsApp',
+        backToTop: 'Back to top',
         copyright: 'Copyright © 2026 StockLedger. All rights reserved.',
       },
       images: {

@@ -163,4 +163,18 @@ export async function getCustomerBalanceBefore(client, { tenantId, customerId, d
   return result.rowCount > 0 ? Number(result.rows[0].balance_after || 0) : 0;
 }
 
+export async function sumLatestCustomerDueBalances(client, tenantId) {
+  const result = await client.query(
+    `SELECT COALESCE(SUM(balance_after), 0)::NUMERIC AS total
+     FROM (
+       SELECT DISTINCT ON (customer_id) balance_after
+       FROM customer_due_ledger
+       WHERE tenant_id = $1
+       ORDER BY customer_id, ${orderByLedger("DESC")}
+     ) latest`,
+    [tenantId],
+  );
+  return Number(result.rows[0].total || 0);
+}
+
 export { mapCustomerDueLedgerEntry };

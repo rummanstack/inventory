@@ -66,3 +66,10 @@ export const CUSTOMER_PAYMENT_ACTIONS = {
   DELETE: "customer_payment.delete",
   RESTORE: "customer_payment.restore",
 };
+
+export const FINANCE_ACCOUNT_ACTIONS = {
+  DEPOSIT: "finance_account.deposit",
+  WITHDRAWAL: "finance_account.withdrawal",
+  TRANSFER: "finance_account.transfer",
+  DELETE: "finance_account.delete_transaction",
+};

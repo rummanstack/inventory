@@ -651,5 +651,38 @@ export async function createSchema(pool) {
     );
 
     CREATE INDEX IF NOT EXISTS idx_contact_messages_created_at ON contact_messages(created_at);
+
+    CREATE TABLE IF NOT EXISTS finance_accounts (
+      id            TEXT PRIMARY KEY,
+      tenant_id     TEXT REFERENCES tenants(id),
+      type          TEXT NOT NULL,
+      name          TEXT NOT NULL,
+      balance       NUMERIC NOT NULL DEFAULT 0,
+      created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE (tenant_id, type)
+    );
+
+    CREATE TABLE IF NOT EXISTS finance_account_transactions (
+      id             TEXT PRIMARY KEY,
+      tenant_id      TEXT REFERENCES tenants(id),
+      account_id     TEXT NOT NULL REFERENCES finance_accounts(id),
+      transaction_date DATE NOT NULL,
+      type           TEXT NOT NULL,
+      debit          NUMERIC NOT NULL DEFAULT 0,
+      credit         NUMERIC NOT NULL DEFAULT 0,
+      balance_after  NUMERIC NOT NULL DEFAULT 0,
+      transfer_id    TEXT,
+      note           TEXT NOT NULL DEFAULT '',
+      created_by     TEXT REFERENCES users(id) ON DELETE SET NULL,
+      created_at     TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      deleted_at     TIMESTAMPTZ,
+      deleted_by_id  TEXT REFERENCES users(id) ON DELETE SET NULL,
+      delete_reason  TEXT NOT NULL DEFAULT ''
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_finance_account_txns_tenant_account_created_at
+      ON finance_account_transactions(tenant_id, account_id, created_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_finance_account_txns_transfer ON finance_account_transactions(transfer_id);
   `);
 }

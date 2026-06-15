@@ -1,8 +1,7 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, KeyRound, Mail, MessageCircle } from 'lucide-react';
+import { ArrowRight, MessageCircle } from 'lucide-react';
 import ImagePlaceholder from './shared/ImagePlaceholder.jsx';
-import CopyableField from './shared/CopyableField.jsx';
-import { demoEmail, demoPassword, heroDashboardImage, whatsappUrl } from '../constants.js';
+import { heroDashboardImage, whatsappUrl } from '../constants.js';
 
 export default function HeroSection({ t }) {
   const heroImage = {
@@ -20,30 +19,13 @@ export default function HeroSection({ t }) {
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Link to="/login" className="landing-primary-btn">
-              {t('landing.tryDemo')}
+              {t('landing.login')}
               <ArrowRight size={18} />
             </Link>
             <a href={whatsappUrl} target="_blank" rel="noreferrer" className="landing-secondary-btn">
               <MessageCircle size={18} />
-              {t('landing.whatsappDemo')}
+              {t('landing.whatsappUs')}
             </a>
-          </div>
-
-          <div className="landing-demo-strip">
-            <CopyableField
-              icon={Mail}
-              label={t('landing.hero.demoEmailLabel')}
-              value={demoEmail}
-              wrapperClassName="flex w-full items-center gap-3 rounded-2xl bg-slate-50/90 p-3 text-left transition hover:bg-slate-100"
-              iconClassName="landing-demo-icon"
-            />
-            <CopyableField
-              icon={KeyRound}
-              label={t('landing.hero.demoPasswordLabel')}
-              value={demoPassword}
-              wrapperClassName="flex w-full items-center gap-3 rounded-2xl bg-slate-50/90 p-3 text-left transition hover:bg-slate-100"
-              iconClassName="landing-demo-icon"
-            />
           </div>
         </div>
 

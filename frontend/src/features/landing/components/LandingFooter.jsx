@@ -1,5 +1,5 @@
 import { Boxes } from 'lucide-react';
-import { demoPhone } from '../constants.js';
+import { contactPhone } from '../constants.js';
 
 export default function LandingFooter({ t }) {
   return (
@@ -20,8 +20,8 @@ export default function LandingFooter({ t }) {
 
         <div className="text-left md:text-right">
           <p className="text-sm font-bold text-slate-500">{t('landing.footer.contactLabel')}</p>
-          <a href={`tel:${demoPhone}`} className="mt-1 block text-2xl font-black text-slate-950 hover:text-[var(--brand-strong)]">
-            {demoPhone}
+          <a href={`tel:${contactPhone}`} className="mt-1 block text-2xl font-black text-slate-950 hover:text-[var(--brand-strong)]">
+            {contactPhone}
           </a>
           <p className="mt-4 text-sm font-semibold text-slate-500">{t('landing.footer.copyright')}</p>
         </div>

@@ -18,6 +18,7 @@ import {
   deletePurchaseReceiptItems,
   findPurchaseReceiptById,
   findPurchaseReceiptForUpdate,
+  getPurchaseReceiptItems,
   insertPurchaseReceipt,
   insertPurchaseReceiptItem,
   listPurchaseReceiptsPage,
@@ -466,10 +467,79 @@ export class PurchaseReceiveService {
       assert(existingResult.rowCount > 0, "Purchase receipt not found.", 404);
       const purchase = existingResult.rows[0];
 
+      const itemsResult = await getPurchaseReceiptItems(client, purchaseId);
+      const purchaseItems = itemsResult.rows.map((row) => ({
+        productId: row.product_id,
+        quantityPieces: Number(row.quantity_pieces || 0),
+        purchasePrice: Number(row.purchase_price || 0),
+        lineDiscount: Number(row.line_discount || 0),
+        lineTotal: Number(row.line_total || 0),
+      }));
+
+      await applyPurchaseInventoryDelta(client, purchaseItems, [], actor.tenantId, {
+        referenceId: purchaseId,
+        createdById: actor.id,
+        note: `Purchase ${purchase.purchase_number} deleted — stock reversed`,
+      });
+
       await softDeletePurchaseReceipt(client, purchaseId, actor.tenantId, {
         deletedById: actor.id,
         deleteReason: reason,
       });
+
+      const dueAmount = Number(purchase.due_amount || 0);
+      const paidAmount = Number(purchase.paid_amount || 0);
+
+      const latestEntry = await getLatestSupplierDueLedgerEntry(client, purchase.supplier_id, actor.tenantId);
+      let currentBalance = latestEntry ? latestEntry.balanceAfter : 0;
+
+      if (dueAmount !== 0) {
+        currentBalance -= dueAmount;
+        await recordSupplierDueLedgerEntry(client, {
+          tenantId: actor.tenantId,
+          supplierId: purchase.supplier_id,
+          type: SUPPLIER_DUE_LEDGER_TYPES.PURCHASE_DUE,
+          debit: Math.max(0, -dueAmount),
+          credit: Math.max(0, dueAmount),
+          balanceAfter: currentBalance,
+          referenceType: "purchase_receipt",
+          referenceId: purchaseId,
+          note: `Purchase due reversed — ${purchase.purchase_number} deleted (${reason})`,
+          createdById: actor.id,
+        });
+      }
+
+      if (paidAmount > 0) {
+        currentBalance += paidAmount;
+        await recordSupplierDueLedgerEntry(client, {
+          tenantId: actor.tenantId,
+          supplierId: purchase.supplier_id,
+          type: SUPPLIER_DUE_LEDGER_TYPES.PAYMENT,
+          debit: paidAmount,
+          credit: 0,
+          balanceAfter: currentBalance,
+          referenceType: "purchase_receipt",
+          referenceId: purchaseId,
+          note: `Payment reversed — ${purchase.purchase_number} deleted (${reason})`,
+          createdById: actor.id,
+        });
+      }
+
+      await updateSupplierCurrentDue(client, purchase.supplier_id, actor.tenantId, Math.max(0, currentBalance));
+
+      if (this.financeAccountService && paidAmount > 0) {
+        await this.financeAccountService.recordTransactionInClient(
+          client,
+          {
+            accountType: "CASH",
+            type: "DEPOSIT",
+            amount: paidAmount,
+            date: String(purchase.purchase_date).slice(0, 10),
+            note: `Purchase ${purchase.purchase_number} deleted — cash restored`,
+          },
+          actor,
+        );
+      }
 
       await this.recordActivity(client, actor, {
         actionType: PURCHASE_ACTIONS.DELETE,
@@ -487,12 +557,82 @@ export class PurchaseReceiveService {
     return this.databaseManager.withTransaction(async (client) => {
       const result = await restorePurchaseReceipt(client, purchaseId, actor.tenantId);
       assert(result.rowCount > 0, "Purchase receipt not found in trash.", 404);
+      const purchase = result.rows[0];
+
+      const itemsResult = await getPurchaseReceiptItems(client, purchaseId);
+      const purchaseItems = itemsResult.rows.map((row) => ({
+        productId: row.product_id,
+        quantityPieces: Number(row.quantity_pieces || 0),
+        purchasePrice: Number(row.purchase_price || 0),
+        lineDiscount: Number(row.line_discount || 0),
+        lineTotal: Number(row.line_total || 0),
+      }));
+
+      await applyPurchaseInventoryDelta(client, [], purchaseItems, actor.tenantId, {
+        referenceId: purchaseId,
+        createdById: actor.id,
+        note: `Purchase ${purchase.purchase_number} restored — stock re-applied`,
+      });
+
+      const dueAmount = Number(purchase.due_amount || 0);
+      const paidAmount = Number(purchase.paid_amount || 0);
+
+      const latestEntry = await getLatestSupplierDueLedgerEntry(client, purchase.supplier_id, actor.tenantId);
+      let currentBalance = latestEntry ? latestEntry.balanceAfter : 0;
+
+      if (dueAmount !== 0) {
+        currentBalance += dueAmount;
+        await recordSupplierDueLedgerEntry(client, {
+          tenantId: actor.tenantId,
+          supplierId: purchase.supplier_id,
+          type: SUPPLIER_DUE_LEDGER_TYPES.PURCHASE_DUE,
+          debit: Math.max(0, dueAmount),
+          credit: Math.max(0, -dueAmount),
+          balanceAfter: currentBalance,
+          referenceType: "purchase_receipt",
+          referenceId: purchaseId,
+          note: `Purchase due restored — ${purchase.purchase_number} restored from trash`,
+          createdById: actor.id,
+        });
+      }
+
+      if (paidAmount > 0) {
+        currentBalance -= paidAmount;
+        await recordSupplierDueLedgerEntry(client, {
+          tenantId: actor.tenantId,
+          supplierId: purchase.supplier_id,
+          type: SUPPLIER_DUE_LEDGER_TYPES.PAYMENT,
+          debit: 0,
+          credit: paidAmount,
+          balanceAfter: currentBalance,
+          referenceType: "purchase_receipt",
+          referenceId: purchaseId,
+          note: `Payment restored — ${purchase.purchase_number} restored from trash`,
+          createdById: actor.id,
+        });
+      }
+
+      await updateSupplierCurrentDue(client, purchase.supplier_id, actor.tenantId, Math.max(0, currentBalance));
+
+      if (this.financeAccountService && paidAmount > 0) {
+        await this.financeAccountService.recordTransactionInClient(
+          client,
+          {
+            accountType: "CASH",
+            type: "WITHDRAWAL",
+            amount: paidAmount,
+            date: String(purchase.purchase_date).slice(0, 10),
+            note: `Purchase ${purchase.purchase_number} restored — cash re-applied`,
+          },
+          actor,
+        );
+      }
 
       await this.recordActivity(client, actor, {
         actionType: PURCHASE_ACTIONS.RESTORE,
         entityType: "purchase_receipt",
         entityId: purchaseId,
-        description: `${actor.name} restored purchase ${result.rows[0].purchase_number} from trash`,
+        description: `${actor.name} restored purchase ${purchase.purchase_number} from trash`,
       });
 
       return { ok: true };

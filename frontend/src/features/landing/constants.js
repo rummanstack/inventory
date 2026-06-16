@@ -14,7 +14,7 @@ import {
   PackageCheck,
   Printer,
   ReceiptText,
-  RefreshCcw,
+  RefreshCw,
   Route,
   ShoppingBag,
   Store,
@@ -39,7 +39,7 @@ export { heroDashboardImage, contactUsImage };
 
 export const featureStoryImages = [retailCounterImage, dsrSettlementImage, purchaseReceiveImage];
 
-export const featureCardIcons = [ShoppingBag, ReceiptText, WalletCards, Warehouse, Boxes, BarChart3, RefreshCcw, Printer];
+export const featureCardIcons = [ShoppingBag, ReceiptText, WalletCards, Warehouse, Boxes, BarChart3, RefreshCw, Printer];
 
 export const solutionIcons = [Store, PackageCheck, Truck, Route];
 export const solutionImages = [retailCounterImage, warehouseStockImage, ownerLaptopImage, dsrSettlementImage];

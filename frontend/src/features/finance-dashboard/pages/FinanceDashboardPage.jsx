@@ -1,5 +1,5 @@
 import { Building2, CircleDollarSign, HandCoins, RotateCcw, Scale, ShoppingBag, Store, TrendingDown, TrendingUp, Wallet } from 'lucide-react';
-import { Alert, EmptyState, LoadingState, SectionHeader, StatCard } from '../../../components/ui.jsx';
+import { Alert, EmptyState, LoadingState, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { formatCurrency, formatDate } from '../../../utils/calculations.js';
@@ -37,6 +37,28 @@ function BreakdownList({ items }) {
           <span className={`text-sm font-semibold ${valueClass || 'text-slate-800'} ${bold ? 'font-bold' : ''}`}>{formatCurrency(value)}</span>
         </div>
       ))}
+    </div>
+  );
+}
+
+function SectionTitleSkeleton() {
+  return <div className="mb-4 h-5 w-44 animate-pulse rounded-full bg-slate-200" />;
+}
+
+function BreakdownPanelSkeleton({ rows = 4 }) {
+  return (
+    <div className="surface overflow-hidden">
+      <div className="border-b border-slate-100 px-5 py-4">
+        <div className="h-4 w-36 animate-pulse rounded-full bg-slate-200" />
+      </div>
+      <div className="divide-y divide-slate-100">
+        {Array.from({ length: rows }).map((_, i) => (
+          <div key={i} className="flex items-center justify-between px-5 py-3">
+            <div className="h-3.5 w-28 animate-pulse rounded-full bg-slate-200" />
+            <div className="h-3.5 w-20 animate-pulse rounded-full bg-slate-200" />
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -82,7 +104,14 @@ export default function FinanceDashboardPage() {
         {rr.error ? (
           <Alert type="error">{rr.error}</Alert>
         ) : rr.loading ? (
-          <LoadingState title="Loading report…" description="Calculating profit, costs and balances." compact />
+          <div className="space-y-6">
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+              {Array.from({ length: 5 }).map((_, i) => <StatCardSkeleton key={i} />)}
+            </div>
+            <div className="grid gap-6 lg:grid-cols-3">
+              {Array.from({ length: 6 }).map((_, i) => <BreakdownPanelSkeleton key={i} />)}
+            </div>
+          </div>
         ) : rr.data ? (
           <div className="space-y-6">
             {/* Key metrics */}
@@ -205,7 +234,30 @@ export default function FinanceDashboardPage() {
       </div>
 
       {loading ? (
-        <LoadingState />
+        <div className="space-y-8">
+          <div>
+            <SectionTitleSkeleton />
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {Array.from({ length: 7 }).map((_, i) => <StatCardSkeleton key={i} />)}
+            </div>
+          </div>
+          <div>
+            <SectionTitleSkeleton />
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {Array.from({ length: 3 }).map((_, i) => <StatCardSkeleton key={i} />)}
+            </div>
+          </div>
+          <div>
+            <SectionTitleSkeleton />
+            <div className="grid gap-4 sm:grid-cols-2">
+              {Array.from({ length: 2 }).map((_, i) => <StatCardSkeleton key={i} />)}
+            </div>
+          </div>
+          <div>
+            <SectionTitleSkeleton />
+            <TableSkeleton rows={5} columns={5} showHeader={false} />
+          </div>
+        </div>
       ) : error ? (
         <Alert type="error">{error}</Alert>
       ) : (

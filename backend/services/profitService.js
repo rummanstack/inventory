@@ -21,8 +21,8 @@ export class ProfitService {
     assert(normalizedDateFrom <= normalizedDateTo, "Start date must be before or equal to end date.");
 
     const tenantId = actor.tenantId;
-    const client = await this.databaseManager.getPool().connect();
-    try {
+
+    return this.databaseManager.withClient(async (client) => {
       const [settlements, productCostMap, expenses] = await Promise.all([
         listSettlementsInRange(client, normalizedDateFrom, normalizedDateTo, tenantId),
         listProductCostMap(client, tenantId),
@@ -89,9 +89,7 @@ export class ProfitService {
       );
 
       return { dateFrom: normalizedDateFrom, dateTo: normalizedDateTo, daily, weekly, monthly, totals };
-    } finally {
-      client.release();
-    }
+    });
   }
 }
 

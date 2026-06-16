@@ -230,11 +230,45 @@ export class CustomerPaymentService {
       const existingResult = await findCustomerPaymentForUpdate(client, paymentId, actor.tenantId);
       assert(existingResult.rowCount > 0, "Customer payment not found.", 404);
       const payment = existingResult.rows[0];
+      const amount = Number(payment.amount || 0);
 
       await softDeleteCustomerPayment(client, paymentId, actor.tenantId, {
         deletedById: actor.id,
         deleteReason: reason,
       });
+
+      const latestEntry = await getLatestCustomerDueLedgerEntry(client, payment.customer_id, actor.tenantId);
+      const currentBalance = latestEntry ? latestEntry.balanceAfter : 0;
+      const balanceAfter = currentBalance + amount;
+
+      await recordCustomerDueLedgerEntry(client, {
+        tenantId: actor.tenantId,
+        customerId: payment.customer_id,
+        type: CUSTOMER_DUE_LEDGER_TYPES.COLLECTION,
+        debit: amount,
+        credit: 0,
+        balanceAfter,
+        referenceType: "customer_payment",
+        referenceId: paymentId,
+        note: `Collection reversed — payment deleted (${reason})`,
+        createdById: actor.id,
+      });
+
+      await updateCustomerCurrentDue(client, payment.customer_id, actor.tenantId, Math.max(0, balanceAfter));
+
+      if (this.financeAccountService && amount > 0) {
+        await this.financeAccountService.recordTransactionInClient(
+          client,
+          {
+            accountType: "CASH",
+            type: "WITHDRAWAL",
+            amount,
+            date: String(payment.payment_date).slice(0, 10),
+            note: `Customer payment reversal (deleted) — ${reason}`,
+          },
+          actor,
+        );
+      }
 
       await this.recordActivity(client, actor, {
         actionType: CUSTOMER_PAYMENT_ACTIONS.DELETE,
@@ -242,7 +276,7 @@ export class CustomerPaymentService {
         entityId: paymentId,
         reason,
         description: `${actor.name} moved due collection to trash (${reason})`,
-        metadata: { customerId: payment.customer_id, amount: Number(payment.amount || 0) },
+        metadata: { customerId: payment.customer_id, amount },
       });
 
       return { ok: true };
@@ -253,6 +287,42 @@ export class CustomerPaymentService {
     return this.databaseManager.withTransaction(async (client) => {
       const result = await restoreCustomerPayment(client, paymentId, actor.tenantId);
       assert(result.rowCount > 0, "Customer payment not found in trash.", 404);
+
+      const row = result.rows[0];
+      const amount = Number(row.amount || 0);
+
+      const latestEntry = await getLatestCustomerDueLedgerEntry(client, row.customer_id, actor.tenantId);
+      const currentBalance = latestEntry ? latestEntry.balanceAfter : 0;
+      const balanceAfter = currentBalance - amount;
+
+      await recordCustomerDueLedgerEntry(client, {
+        tenantId: actor.tenantId,
+        customerId: row.customer_id,
+        type: CUSTOMER_DUE_LEDGER_TYPES.COLLECTION,
+        debit: 0,
+        credit: amount,
+        balanceAfter,
+        referenceType: "customer_payment",
+        referenceId: paymentId,
+        note: `Collection restored — payment restored from trash`,
+        createdById: actor.id,
+      });
+
+      await updateCustomerCurrentDue(client, row.customer_id, actor.tenantId, Math.max(0, balanceAfter));
+
+      if (this.financeAccountService && amount > 0) {
+        await this.financeAccountService.recordTransactionInClient(
+          client,
+          {
+            accountType: "CASH",
+            type: "DEPOSIT",
+            amount,
+            date: String(row.payment_date).slice(0, 10),
+            note: `Customer payment restored from trash`,
+          },
+          actor,
+        );
+      }
 
       await this.recordActivity(client, actor, {
         actionType: CUSTOMER_PAYMENT_ACTIONS.RESTORE,

@@ -12,7 +12,6 @@ export default function ProductFormModal({ product, onClose, onSave }) {
     category: product?.category || '',
     piecesPerCase: product?.piecesPerCase || 24,
     purchasePrice: product?.purchasePrice || '',
-    sellingPrice: product?.sellingPrice || '',
     wholesalePrice: product?.wholesalePrice || '',
     retailPrice: product?.retailPrice || '',
     orderIndex: product?.orderIndex != null ? product.orderIndex : '',
@@ -22,7 +21,6 @@ export default function ProductFormModal({ product, onClose, onSave }) {
     event.preventDefault();
     const piecesPerCase = cleanNumber(form.piecesPerCase);
     const purchasePrice = Number(form.purchasePrice);
-    const sellingPrice = Number(form.sellingPrice);
     const wholesalePrice = form.wholesalePrice === '' ? 0 : Number(form.wholesalePrice);
     const retailPrice = form.retailPrice === '' ? 0 : Number(form.retailPrice);
 
@@ -30,7 +28,7 @@ export default function ProductFormModal({ product, onClose, onSave }) {
       setError(t('products.productNameCategoryRequired'));
       return;
     }
-    if (piecesPerCase <= 0 || purchasePrice <= 0 || sellingPrice <= 0) {
+    if (piecesPerCase <= 0 || purchasePrice <= 0) {
       setError(t('products.caseSizePriceRequired'));
       return;
     }
@@ -41,7 +39,6 @@ export default function ProductFormModal({ product, onClose, onSave }) {
       category: form.category.trim(),
       piecesPerCase,
       purchasePrice,
-      sellingPrice,
       wholesalePrice,
       retailPrice,
       orderIndex: form.orderIndex === '' ? null : Number(form.orderIndex),
@@ -53,7 +50,6 @@ export default function ProductFormModal({ product, onClose, onSave }) {
         payload.category === product.category &&
         payload.piecesPerCase === product.piecesPerCase &&
         payload.purchasePrice === product.purchasePrice &&
-        payload.sellingPrice === product.sellingPrice &&
         payload.wholesalePrice === (product.wholesalePrice || 0) &&
         payload.retailPrice === (product.retailPrice || 0) &&
         payload.orderIndex === (product.orderIndex ?? null);
@@ -93,10 +89,6 @@ export default function ProductFormModal({ product, onClose, onSave }) {
           <div>
             <label className="label">{t('products.purchasePrice')}</label>
             <input className="input" type="number" min="0" step="0.01" value={form.purchasePrice} onChange={(event) => updateField('purchasePrice', event.target.value)} />
-          </div>
-          <div>
-            <label className="label">{t('products.sellingPrice')}</label>
-            <input className="input" type="number" min="0" step="0.01" value={form.sellingPrice} onChange={(event) => updateField('sellingPrice', event.target.value)} />
           </div>
           <div>
             <label className="label">{t('products.wholesalePrice')}</label>

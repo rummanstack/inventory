@@ -194,7 +194,7 @@ async function buildTrustedExtraReturns(client, extraReturns, tenantId) {
     const product = productMap.get(item.productId);
     const returnedPieces = cleanInteger(item.returnedPieces);
     const damagedPieces = cleanInteger(item.damagedPieces);
-    const rate = Number(product.selling_price || 0);
+    const rate = Number(product.wholesale_price || 0);
     const returnValue = (returnedPieces + damagedPieces) * rate;
 
     return {

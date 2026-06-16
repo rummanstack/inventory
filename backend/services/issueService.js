@@ -34,7 +34,7 @@ async function buildTrustedIssueItems(client, inputItems, previousItems, tenantI
         productName: product.name,
         piecesPerCase: cleanInteger(product.pieces_per_case),
         issuedPieces,
-        rate: previousRate > 0 ? previousRate : Number(product.selling_price || 0),
+        rate: previousRate > 0 ? previousRate : Number(product.wholesale_price || 0),
       };
     });
 }

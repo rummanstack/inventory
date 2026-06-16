@@ -1,4 +1,4 @@
-const bn = {
+﻿const bn = {
     app: {
       brand: 'Stock Ledger',
       subtitle: '',
@@ -203,7 +203,6 @@ const bn = {
       product: 'পণ্য',
       caseSize: 'কেস সাইজ',
       purchase: 'ক্রয়',
-      selling: 'বিক্রয়',
       stock: 'স্টক',
       stockActions: 'স্টক',
       editTitle: 'পণ্য এডিট',
@@ -213,7 +212,6 @@ const bn = {
       category: 'ক্যাটাগরি',
       piecesPerCase: 'প্রতি কেসে পিস',
       purchasePrice: 'ক্রয়মূল্য',
-      sellingPrice: 'বিক্রয়মূল্য',
       wholesalePrice: 'পাইকারি মূল্য',
       retailPrice: 'খুচরা মূল্য',
       orderIndex: 'ক্রম',

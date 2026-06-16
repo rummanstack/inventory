@@ -17,7 +17,6 @@ export function normalizeProduct(input) {
     category: String(input.category || "").trim(),
     piecesPerCase: cleanInteger(input.piecesPerCase),
     purchasePrice: cleanMoney(input.purchasePrice),
-    sellingPrice: cleanMoney(input.sellingPrice),
     wholesalePrice: cleanMoney(input.wholesalePrice),
     retailPrice: cleanMoney(input.retailPrice),
     stockPieces: cleanInteger(input.stockPieces),

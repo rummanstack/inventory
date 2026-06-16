@@ -22,7 +22,7 @@ export function aggregateIssuesFor(issues, products, date, dsrId) {
       issueIds.push(issue.id);
       issue.items.forEach((item) => {
         const currentProduct = productMap.get(item.productId);
-        const rate = Number(item.rate || currentProduct?.sellingPrice || 0);
+        const rate = Number(item.rate || currentProduct?.wholesalePrice || 0);
         const key = `${item.productId}-${rate}`;
         const existing = rows.get(key) || {
           key,
@@ -101,7 +101,7 @@ export function buildSheetData({ date, dsrId, dsrs, issues, settlements, product
         const product = productMap.get(item.productId);
         const returnedPieces = Number(item.returnedPieces || 0);
         const damagedPieces = Number(item.damagedPieces || 0);
-        const rate = Number(item.rate || product?.sellingPrice || 0);
+        const rate = Number(item.rate || product?.wholesalePrice || 0);
         return {
           ...item,
           productName: item.productName || product?.name || 'Archived product',

@@ -12,7 +12,7 @@ const TRANSACTION_TYPE_STYLES = {
 };
 
 function transactionAmount(tx) {
-  return (tx.type === 'DEPOSIT' || tx.type === 'TRANSFER_IN') ? tx.credit : tx.debit;
+  return (tx.type === 'DEPOSIT' || tx.type === 'TRANSFER_IN') ? tx.debit : tx.credit;
 }
 
 function transactionAmountClass(tx) {

@@ -60,7 +60,7 @@
       morningIssue: 'সকালের ইস্যু',
       eveningSettlement: 'সন্ধ্যার সেটেলমেন্ট',
       financeDashboard: 'ফাইন্যান্স ড্যাশবোর্ড',
-      financeAccounts: 'ক্যাশ ও ব্যাংক হিসাব',
+      financeAccounts: 'হিসাব',
       expenses: 'খরচ',
       dsrFinance: 'ডিএসআর ফাইন্যান্স',
       monthEndSummary: 'মাসান্ত সারাংশ',

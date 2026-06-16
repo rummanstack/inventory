@@ -23,9 +23,10 @@ function normalizeOptionalDate(value) {
 }
 
 export class DsrDueLedgerService {
-  constructor(databaseManager, { auditService } = {}) {
+  constructor(databaseManager, { auditService, financeAccountService } = {}) {
     this.databaseManager = databaseManager;
     this.auditService = auditService;
+    this.financeAccountService = financeAccountService;
   }
 
   async listLedger(query = {}, actor) {
@@ -180,6 +181,20 @@ export class DsrDueLedgerService {
         note: note || `Due settled for ${dsr.name}`,
         createdById: actor.id,
       });
+
+      if (this.financeAccountService) {
+        await this.financeAccountService.recordTransactionInClient(
+          client,
+          {
+            accountType: "CASH",
+            type: "DEPOSIT",
+            amount,
+            date: new Date().toISOString().slice(0, 10),
+            note: note || `Due settled — ${dsr.name}`,
+          },
+          actor,
+        );
+      }
 
       await this.recordActivity(client, actor, {
         actionType: "dsr_due_ledger.settle",

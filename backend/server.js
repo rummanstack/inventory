@@ -55,7 +55,7 @@ async function start() {
   const profitService = new ProfitService(databaseManager);
   const backupService = new BackupService(databaseManager, { auditService });
   const stockMovementService = new StockMovementService(databaseManager);
-  const dsrDueLedgerService = new DsrDueLedgerService(databaseManager, { auditService });
+  const dsrDueLedgerService = new DsrDueLedgerService(databaseManager, { auditService, financeAccountService });
   const customerService = new CustomerService(databaseManager, { auditService });
   const tenantService = new TenantService(databaseManager);
   const permissionService = new PermissionService(databaseManager, { auditService, tenantService });

@@ -161,7 +161,6 @@ export default function PurchaseReceiveFormModal({ purchaseReceipt, onClose, onS
               <label className="label">{t('purchaseReceive.paymentMethodLabel')}</label>
               <select className="input" value={vm.paymentMethod} onChange={(event) => vm.setPaymentMethod(event.target.value)}>
                 <option value="CASH">{t('purchaseReceive.paymentMethods.CASH')}</option>
-                <option value="BANK">{t('purchaseReceive.paymentMethods.BANK')}</option>
                 <option value="MOBILE_BANKING">{t('purchaseReceive.paymentMethods.MOBILE_BANKING')}</option>
                 <option value="CHEQUE">{t('purchaseReceive.paymentMethods.CHEQUE')}</option>
               </select>

@@ -140,9 +140,10 @@ async function seedOpeningSupplierLedgerIfNeeded(client, supplier, tenantId, act
 }
 
 export class PurchaseReceiveService {
-  constructor(databaseManager, { auditService }) {
+  constructor(databaseManager, { auditService, financeAccountService }) {
     this.databaseManager = databaseManager;
     this.auditService = auditService;
+    this.financeAccountService = financeAccountService;
   }
 
   recordActivity(client, actor, payload) {
@@ -274,6 +275,20 @@ export class PurchaseReceiveService {
 
     await updateSupplierCurrentDue(client, supplier.id, actor.tenantId, Math.max(0, currentBalance));
 
+    if (this.financeAccountService && base.paidAmount > 0) {
+      await this.financeAccountService.recordTransactionInClient(
+        client,
+        {
+          accountType: "CASH",
+          type: "WITHDRAWAL",
+          amount: base.paidAmount,
+          date: base.purchaseDate,
+          note: `Purchase ${purchaseNumber} — ${supplier.name}`,
+        },
+        actor,
+      );
+    }
+
     await this.recordActivity(client, actor, {
       actionType: PURCHASE_ACTIONS.CREATE,
       entityType: "purchase_receipt",
@@ -386,6 +401,20 @@ export class PurchaseReceiveService {
         note: `Payment adjusted for ${previousPurchase.purchase_number}`,
         createdById: actor.id,
       });
+
+      if (this.financeAccountService) {
+        await this.financeAccountService.recordTransactionInClient(
+          client,
+          {
+            accountType: "CASH",
+            type: paidDelta > 0 ? "WITHDRAWAL" : "DEPOSIT",
+            amount: Math.abs(paidDelta),
+            date: base.purchaseDate,
+            note: `Purchase ${previousPurchase.purchase_number} payment adjusted — ${supplier.name}`,
+          },
+          actor,
+        );
+      }
     }
 
     await updateSupplierCurrentDue(client, supplier.id, actor.tenantId, Math.max(0, currentBalance));

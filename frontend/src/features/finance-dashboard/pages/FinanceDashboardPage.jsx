@@ -1,4 +1,4 @@
-import { Banknote, Building2, CircleDollarSign, HandCoins, Landmark, RotateCcw, Scale, ShoppingBag, Store, TrendingDown, TrendingUp, Wallet } from 'lucide-react';
+import { Banknote, Building2, CircleDollarSign, HandCoins, RotateCcw, Scale, ShoppingBag, Store, TrendingDown, TrendingUp, Wallet } from 'lucide-react';
 import { Alert, LoadingState, SectionHeader, StatCard } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { formatCurrency, formatDate } from '../../../utils/calculations.js';
@@ -26,7 +26,6 @@ export default function FinanceDashboardPage() {
   const { data, loading, error } = useFinanceDashboardViewModel();
 
   const cashInHand = data?.accounts?.find((a) => a.type === 'CASH')?.balance || 0;
-  const bankBalance = data?.accounts?.find((a) => a.type === 'BANK')?.balance || 0;
 
   return (
     <div className="space-y-10">
@@ -45,8 +44,6 @@ export default function FinanceDashboardPage() {
           {/* Balance & Receivables */}
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <StatCard title={t('financeDashboard.cashInHand')} value={formatCurrency(cashInHand)} icon={Wallet} tone="emerald" />
-            <StatCard title={t('financeDashboard.bankBalance')} value={formatCurrency(bankBalance)} icon={Landmark} tone="blue" />
-            <StatCard title={t('financeDashboard.totalCash')} value={formatCurrency(data.totalCashBalance)} helper={t('financeDashboard.totalCashHelper')} icon={Banknote} tone="indigo" />
             <StatCard title={t('financeDashboard.dsrReceivables')} value={formatCurrency(data.totalDsrDue)} helper={t('financeDashboard.dsrReceivablesHelper')} icon={HandCoins} tone="amber" />
             <StatCard title={t('financeDashboard.customerReceivables')} value={formatCurrency(data.totalCustomerDue)} helper={t('financeDashboard.customerReceivablesHelper')} icon={Store} tone="amber" />
             <StatCard title={t('financeDashboard.supplierPayables')} value={formatCurrency(data.totalSupplierDue)} helper={t('financeDashboard.supplierPayablesHelper')} icon={Building2} tone="rose" />

@@ -7,7 +7,7 @@ import AuditHistory from '../../../components/AuditHistory.jsx';
 import { todayISO } from '../../../utils/calculations.js';
 import { useFormState } from '../../../hooks/useFormState';
 
-const PAYMENT_METHODS = ['CASH', 'BANK', 'MOBILE_BANKING', 'CHEQUE'];
+const PAYMENT_METHODS = ['CASH', 'MOBILE_BANKING', 'CHEQUE'];
 
 export default function SupplierPaymentFormModal({ payment, onClose, onSave }) {
   const { t, pushToast, supplierDirectory } = useInventoryApp();

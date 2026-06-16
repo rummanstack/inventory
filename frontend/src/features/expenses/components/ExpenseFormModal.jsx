@@ -7,7 +7,6 @@ import AuditHistory from '../../../components/AuditHistory.jsx';
 import { useFormState } from '../../../hooks/useFormState';
 
 const EXPENSE_CATEGORY_KEYS = [
-  ['Bank', 'expenses.categories.bank'],
   ['Salary', 'expenses.categories.salary'],
   ['Office', 'expenses.categories.office'],
   ['Rent', 'expenses.categories.rent'],
@@ -21,7 +20,7 @@ export default function ExpenseFormModal({ expense, defaultDate, onClose, onSave
   const initialDate = expense?.date || defaultDate;
   const { form, updateField, error, setError, saving, setSaving } = useFormState({
     date: initialDate,
-    category: expense?.category || 'Other',
+    category: (expense?.category && expense.category !== 'Bank') ? expense.category : 'Salary',
     amount: expense?.amount ?? '',
     note: expense?.note || '',
   });

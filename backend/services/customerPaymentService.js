@@ -25,9 +25,10 @@ import { logActivity, recordCustomerDueLedgerEntry } from "./shared/inventoryHel
 const DATE_ERROR = "Payment date must be in YYYY-MM-DD format.";
 
 export class CustomerPaymentService {
-  constructor(databaseManager, { auditService }) {
+  constructor(databaseManager, { auditService, financeAccountService }) {
     this.databaseManager = databaseManager;
     this.auditService = auditService;
+    this.financeAccountService = financeAccountService;
   }
 
   recordActivity(client, actor, payload) {
@@ -111,6 +112,20 @@ export class CustomerPaymentService {
 
     await updateCustomerCurrentDue(client, customer.id, actor.tenantId, Math.max(0, balanceAfter));
 
+    if (this.financeAccountService) {
+      await this.financeAccountService.recordTransactionInClient(
+        client,
+        {
+          accountType: "CASH",
+          type: "DEPOSIT",
+          amount: base.amount,
+          date: base.paymentDate,
+          note: base.note || `Customer payment from ${customer.shop_name}`,
+        },
+        actor,
+      );
+    }
+
     await this.recordActivity(client, actor, {
       actionType: CUSTOMER_PAYMENT_ACTIONS.CREATE,
       entityType: "customer_payment",
@@ -162,6 +177,20 @@ export class CustomerPaymentService {
       });
 
       await updateCustomerCurrentDue(client, customer.id, actor.tenantId, Math.max(0, balanceAfter));
+
+      if (this.financeAccountService) {
+        await this.financeAccountService.recordTransactionInClient(
+          client,
+          {
+            accountType: "CASH",
+            type: amountDelta > 0 ? "DEPOSIT" : "WITHDRAWAL",
+            amount: Math.abs(amountDelta),
+            date: base.paymentDate,
+            note: `Payment adjusted for ${customer.shop_name}`,
+          },
+          actor,
+        );
+      }
     }
 
     const { before, after } = diffFields(

@@ -23,6 +23,11 @@ function transactionAmountClass(tx) {
     : 'text-rose-600 font-bold';
 }
 
+function formatPercent(value) {
+  if (!isFinite(value)) return '—';
+  return `${value.toFixed(1)}%`;
+}
+
 function BreakdownList({ items }) {
   return (
     <div className="divide-y divide-slate-100">
@@ -139,6 +144,59 @@ export default function FinanceDashboardPage() {
                   { label: 'Due from Customers', value: rr.data.totalCustomerDue, valueClass: 'text-amber-600' },
                   { label: 'Owe to Suppliers', value: rr.data.totalSupplierDue, valueClass: 'text-rose-600' },
                   { label: 'Net Receivable', value: netReceivable, valueClass: netReceivable >= 0 ? 'text-emerald-600' : 'text-rose-600', bold: true },
+                ]} />
+              </div>
+
+              {/* Margin analysis */}
+              <div className="surface overflow-hidden">
+                <div className="border-b border-slate-100 px-5 py-4">
+                  <h3 className="text-sm font-bold text-slate-950">Margin Analysis</h3>
+                  <p className="mt-0.5 text-xs text-slate-400">As a percentage of revenue</p>
+                </div>
+                <div className="divide-y divide-slate-100">
+                  {[
+                    { label: 'Gross Margin', pct: rr.data.revenue > 0 ? (rr.data.grossProfit / rr.data.revenue) * 100 : 0, positive: rr.data.grossProfit >= 0 },
+                    { label: 'Net Margin', pct: rr.data.revenue > 0 ? (rr.data.netProfit / rr.data.revenue) * 100 : 0, positive: rr.data.netProfit >= 0 },
+                    { label: 'Expense Ratio', pct: rr.data.revenue > 0 ? (rr.data.totalExpenses / rr.data.revenue) * 100 : 0, positive: false },
+                    { label: 'COGS Ratio', pct: rr.data.revenue > 0 ? (rr.data.cogs / rr.data.revenue) * 100 : 0, positive: false },
+                  ].map(({ label, pct, positive }) => (
+                    <div key={label} className="flex items-center justify-between px-5 py-3">
+                      <span className="text-sm text-slate-600">{label}</span>
+                      <span className={`text-sm font-semibold ${positive ? 'text-emerald-600' : 'text-rose-600'}`}>{formatPercent(pct)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Cash flow */}
+              <div className="surface overflow-hidden">
+                <div className="border-b border-slate-100 px-5 py-4">
+                  <h3 className="text-sm font-bold text-slate-950">Cash Flow</h3>
+                  <p className="mt-0.5 text-xs text-slate-400">Money in and out for this period</p>
+                </div>
+                <BreakdownList items={[
+                  { label: 'Total Inflow', value: rr.data.cashFlow.inflow, valueClass: 'text-emerald-600' },
+                  { label: 'Total Outflow', value: rr.data.cashFlow.outflow, valueClass: 'text-rose-600' },
+                  {
+                    label: 'Net Movement',
+                    value: rr.data.cashFlow.inflow - rr.data.cashFlow.outflow,
+                    valueClass: rr.data.cashFlow.inflow >= rr.data.cashFlow.outflow ? 'text-emerald-600' : 'text-rose-600',
+                    bold: true,
+                  },
+                ]} />
+              </div>
+
+              {/* Sales summary */}
+              <div className="surface overflow-hidden">
+                <div className="border-b border-slate-100 px-5 py-4">
+                  <h3 className="text-sm font-bold text-slate-950">Sales Summary</h3>
+                  <p className="mt-0.5 text-xs text-slate-400">{rr.data.sales.count} invoice{rr.data.sales.count !== 1 ? 's' : ''} in this period</p>
+                </div>
+                <BreakdownList items={[
+                  { label: 'Total Sales', value: rr.data.sales.totalAmount, valueClass: 'text-blue-600', bold: true },
+                  { label: 'Amount Collected', value: rr.data.sales.paidAmount, valueClass: 'text-emerald-600' },
+                  { label: 'Outstanding', value: rr.data.sales.totalAmount - rr.data.sales.paidAmount, valueClass: 'text-amber-600' },
+                  { label: 'Avg per Invoice', value: rr.data.sales.averageInvoice, valueClass: 'text-slate-600' },
                 ]} />
               </div>
             </div>

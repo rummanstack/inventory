@@ -67,6 +67,10 @@ export class FinanceAccountService {
     const accountSummary = await findAccountByType(client, actor.tenantId, accountType);
     const account = await findAccountForUpdate(client, accountSummary.id, actor.tenantId);
 
+    if (type === "WITHDRAWAL") {
+      assert(amount <= account.balance, `Insufficient cash balance. Available: ${account.balance}, required: ${amount}.`, 400);
+    }
+
     const { debit, credit, balanceAfter } = computeAmounts(type, amount, account.balance);
 
     await recordFinanceAccountTransaction(client, {
@@ -100,6 +104,10 @@ export class FinanceAccountService {
 
       const accountSummary = await findAccountByType(client, actor.tenantId, accountType);
       const account = await findAccountForUpdate(client, accountSummary.id, actor.tenantId);
+
+      if (type === "WITHDRAWAL") {
+        assert(amount <= account.balance, `Insufficient cash balance. Available: ${account.balance}, required: ${amount}.`, 400);
+      }
 
       const { debit, credit, balanceAfter } = computeAmounts(type, amount, account.balance);
 

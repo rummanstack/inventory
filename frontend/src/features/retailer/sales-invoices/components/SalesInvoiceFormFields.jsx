@@ -145,7 +145,7 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, custom
           </div>
           <div>
             <label className="label">{t('purchaseReceive.noteLabel')}</label>
-            <textarea className="input" rows={3} value={vm.note} onChange={(event) => vm.setNote(event.target.value)} placeholder={t('purchaseReceive.noteLabel')} disabled={saving} />
+            <textarea className="input min-h-28" value={vm.note} onChange={(event) => vm.setNote(event.target.value)} placeholder={t('purchaseReceive.noteLabel')} disabled={saving} />
           </div>
         </div>
       </div>

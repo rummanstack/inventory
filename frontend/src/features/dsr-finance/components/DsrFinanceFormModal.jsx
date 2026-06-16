@@ -53,10 +53,6 @@ export default function DsrFinanceFormModal({ kind, record, dsrs, defaultDate, d
       return;
     }
 
-    if (!form.note.trim()) {
-      setError(t('dsrFinance.requiredNote'));
-      return;
-    }
 
     const amount = Number(form.amount);
     if (!(amount > 0)) {

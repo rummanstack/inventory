@@ -22,11 +22,6 @@ export default function AccountTransactionFormModal({ onClose, onSave }) {
       return;
     }
 
-    if (!form.note.trim()) {
-      setError(t('financeAccounts.requiredNote'));
-      return;
-    }
-
     const amount = Number(form.amount);
     if (!(amount > 0)) {
       setError(t('financeAccounts.requiredAmount'));

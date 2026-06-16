@@ -274,6 +274,26 @@ export async function getDailySalesReport(client, { tenantId, dateFrom, dateTo, 
   }));
 }
 
+export async function sumSalesInvoicesInRange(client, tenantId, dateFrom, dateTo) {
+  const result = await client.query(
+    `SELECT
+       COUNT(*)::INTEGER AS count,
+       COALESCE(SUM(total_amount), 0) AS total_amount,
+       COALESCE(SUM(paid_amount), 0) AS paid_amount
+     FROM sales_invoices
+     WHERE tenant_id = $1
+       AND invoice_date >= $2
+       AND invoice_date < $3
+       AND deleted_at IS NULL`,
+    [tenantId, dateFrom, dateTo],
+  );
+  return {
+    count: result.rows[0].count,
+    totalAmount: Number(result.rows[0].total_amount || 0),
+    paidAmount: Number(result.rows[0].paid_amount || 0),
+  };
+}
+
 export async function getProfitReport(client, { tenantId, dateFrom, dateTo, saleType }) {
   const params = [tenantId];
   const conditions = ["si.tenant_id = $1", "si.deleted_at IS NULL"];

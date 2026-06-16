@@ -57,6 +57,30 @@ export class FinanceAccountService {
     });
   }
 
+  async recordTransactionInClient(client, { accountType, type, amount, date, note }, actor) {
+    await this.ensureDefaultAccounts(client, actor.tenantId);
+    const accountSummary = await findAccountByType(client, actor.tenantId, accountType);
+    const account = await findAccountForUpdate(client, accountSummary.id, actor.tenantId);
+
+    const debit = type === "DEPOSIT" ? amount : 0;
+    const credit = type === "WITHDRAWAL" ? amount : 0;
+    const balanceAfter = account.balance + debit - credit;
+
+    await recordFinanceAccountTransaction(client, {
+      tenantId: actor.tenantId,
+      accountId: account.id,
+      transactionDate: date,
+      type,
+      debit,
+      credit,
+      balanceAfter,
+      note,
+      createdById: actor.id,
+    });
+
+    await updateAccountBalance(client, account.id, actor.tenantId, balanceAfter);
+  }
+
   async recordTransaction(input, actor) {
     const accountType = String(input.accountType || "").trim().toUpperCase();
     const type = String(input.type || "").trim().toUpperCase();

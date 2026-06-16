@@ -293,9 +293,10 @@ async function recordSettlementDueLedgerChanges(client, settlement, tenantId, ac
 }
 
 export class SettlementService {
-  constructor(databaseManager, { auditService }) {
+  constructor(databaseManager, { auditService, financeAccountService }) {
     this.databaseManager = databaseManager;
     this.auditService = auditService;
+    this.financeAccountService = financeAccountService;
   }
 
   recordActivity(client, actor, payload) {
@@ -382,6 +383,20 @@ export class SettlementService {
       verb: "recorded",
     });
 
+    if (this.financeAccountService && settlement.amountPaid > 0) {
+      await this.financeAccountService.recordTransactionInClient(
+        client,
+        {
+          accountType: "CASH",
+          type: "DEPOSIT",
+          amount: settlement.amountPaid,
+          date: settlement.date,
+          note: `Evening settlement received from ${settlement.dsrName}`,
+        },
+        actor,
+      );
+    }
+
     await this.recordActivity(client, actor, {
       actionType: SETTLEMENT_ACTIONS.CREATE,
       entityType: "settlement",
@@ -458,6 +473,23 @@ export class SettlementService {
       collectionAmount: newCollection - oldCollection,
       verb: "adjusted",
     });
+
+    if (this.financeAccountService && newCollection !== oldCollection) {
+      const diff = newCollection - oldCollection;
+      await this.financeAccountService.recordTransactionInClient(
+        client,
+        {
+          accountType: "CASH",
+          type: diff > 0 ? "DEPOSIT" : "WITHDRAWAL",
+          amount: Math.abs(diff),
+          date: settlement.date,
+          note: diff > 0
+            ? `Settlement adjustment received from ${settlement.dsrName}`
+            : `Settlement adjustment reversed for ${settlement.dsrName}`,
+        },
+        actor,
+      );
+    }
 
     const { before: settlementBefore, after: settlementAfter } = diffFields(
       {

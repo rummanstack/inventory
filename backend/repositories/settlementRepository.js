@@ -140,3 +140,45 @@ export function findDuplicateSettlement(client, date, dsrId, settlementId, tenan
     [date, dsrId, settlementId, tenantId],
   );
 }
+
+export async function sumSettlementsInRange(client, tenantId, dateFrom, dateTo) {
+  const result = await client.query(
+    `SELECT
+       COUNT(*)::INTEGER AS count,
+       COALESCE(SUM(total_payable), 0) AS total_payable,
+       COALESCE(SUM(amount_paid), 0) AS amount_paid,
+       COALESCE(SUM(due_amount), 0) AS due_amount
+     FROM settlements
+     WHERE tenant_id = $1
+       AND settlement_date >= $2
+       AND settlement_date < $3`,
+    [tenantId, dateFrom, dateTo],
+  );
+  return {
+    count: result.rows[0].count,
+    totalPayable: Number(result.rows[0].total_payable || 0),
+    amountPaid: Number(result.rows[0].amount_paid || 0),
+    dueAmount: Number(result.rows[0].due_amount || 0),
+  };
+}
+
+export async function listRecentSettlements(client, tenantId, limit) {
+  const result = await client.query(
+    `SELECT id, settlement_date, dsr_name, area, total_payable, amount_paid, due_amount, status
+     FROM settlements
+     WHERE tenant_id = $1
+     ORDER BY settlement_date DESC, created_at DESC
+     LIMIT $2`,
+    [tenantId, limit],
+  );
+  return result.rows.map((row) => ({
+    id: row.id,
+    date: row.settlement_date,
+    dsrName: row.dsr_name,
+    area: row.area,
+    totalPayable: Number(row.total_payable || 0),
+    amountPaid: Number(row.amount_paid || 0),
+    dueAmount: Number(row.due_amount || 0),
+    status: row.status,
+  }));
+}

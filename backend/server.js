@@ -46,7 +46,8 @@ async function start() {
   const productService = new ProductService(databaseManager, { auditService });
   const dsrService = new DsrService(databaseManager, { auditService });
   const issueService = new IssueService(databaseManager, { auditService });
-  const settlementService = new SettlementService(databaseManager, { auditService });
+  const financeAccountService = new FinanceAccountService(databaseManager, { auditService });
+  const settlementService = new SettlementService(databaseManager, { auditService, financeAccountService });
   const userService = new UserService(databaseManager, { auditService });
   const expenseService = new ExpenseService(databaseManager, { auditService });
   const dsrFinanceService = new DsrFinanceService(databaseManager, { auditService });
@@ -69,7 +70,6 @@ async function start() {
   const customerPaymentService = new CustomerPaymentService(databaseManager, { auditService });
   const salesReturnService = new SalesReturnService(databaseManager, { auditService });
   const contactMessageService = new ContactMessageService(databaseManager);
-  const financeAccountService = new FinanceAccountService(databaseManager, { auditService });
   const financeDashboardService = new FinanceDashboardService(databaseManager, { financeAccountService, profitService });
   const app = createApp({ authService, env, productService, dsrService, issueService, settlementService, auditService, userService, expenseService, dsrFinanceService, monthEndSummaryService, profitService, backupService, stockMovementService, dsrDueLedgerService, customerService, databaseManager, tenantService, permissionService, systemService, errorLogService, supplierService, supplierDueLedgerService, purchaseReceiveService, supplierPaymentService, salesInvoiceService, customerDueLedgerService, customerPaymentService, salesReturnService, contactMessageService, financeAccountService, financeDashboardService });
 

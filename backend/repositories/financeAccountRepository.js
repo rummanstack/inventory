@@ -200,6 +200,39 @@ export async function countTransactions(client, filters = {}) {
   return result.rows[0].count;
 }
 
+export async function getMonthlyCashFlow(client, tenantId, dateFrom, dateTo) {
+  const result = await client.query(
+    `SELECT
+       COALESCE(SUM(CASE WHEN type = 'DEPOSIT' THEN credit ELSE 0 END), 0) AS inflow,
+       COALESCE(SUM(CASE WHEN type = 'WITHDRAWAL' THEN debit ELSE 0 END), 0) AS outflow
+     FROM finance_account_transactions
+     WHERE tenant_id = $1
+       AND deleted_at IS NULL
+       AND type IN ('DEPOSIT', 'WITHDRAWAL')
+       AND transaction_date >= $2::date
+       AND transaction_date < $3::date`,
+    [tenantId, dateFrom, dateTo],
+  );
+  return {
+    inflow: Number(result.rows[0].inflow || 0),
+    outflow: Number(result.rows[0].outflow || 0),
+  };
+}
+
+export async function listRecentTransactions(client, tenantId, limit) {
+  const result = await client.query(
+    `${buildSelect()}
+     WHERE finance_account_transactions.tenant_id = $1
+       AND finance_account_transactions.deleted_at IS NULL
+     ORDER BY finance_account_transactions.transaction_date DESC,
+              finance_account_transactions.created_at DESC,
+              finance_account_transactions.id DESC
+     LIMIT $2`,
+    [tenantId, limit],
+  );
+  return result.rows.map(mapTransaction);
+}
+
 export async function listTransactionsPage(client, { tenantId, accountType, dateFrom, dateTo, limit, offset }) {
   const params = [];
   const where = buildFilterClause({ tenantId, accountType, dateFrom, dateTo }, params);

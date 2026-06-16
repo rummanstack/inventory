@@ -3,6 +3,9 @@ import { listExpensesInRange } from "../repositories/expenseRepository.js";
 import { sumLatestDueBalances } from "../repositories/dsrDueLedgerRepository.js";
 import { sumLatestCustomerDueBalances } from "../repositories/customerDueLedgerRepository.js";
 import { sumLatestSupplierDueBalances } from "../repositories/supplierDueLedgerRepository.js";
+import { getMonthlyCashFlow, listRecentTransactions } from "../repositories/financeAccountRepository.js";
+import { sumSettlementsInRange, listRecentSettlements } from "../repositories/settlementRepository.js";
+import { sumSalesInvoicesInRange } from "../repositories/salesInvoiceRepository.js";
 
 export class FinanceDashboardService {
   constructor(databaseManager, { financeAccountService, profitService }) {
@@ -20,11 +23,25 @@ export class FinanceDashboardService {
     const [accounts, dueAndExpenseTotals, profitReport] = await Promise.all([
       this.financeAccountService.listAccounts(actor),
       this.databaseManager.withClient(async (client) => {
-        const [totalDsrDue, totalCustomerDue, totalSupplierDue, monthlyExpenseEntries] = await Promise.all([
+        const [
+          totalDsrDue, totalCustomerDue, totalSupplierDue,
+          monthlyExpenseEntries, cashFlow, recentTransactions,
+          monthlySettlements, recentSettlements, monthlySales,
+          monthlyCashReceiptsResult,
+        ] = await Promise.all([
           sumLatestDueBalances(client, actor.tenantId),
           sumLatestCustomerDueBalances(client, actor.tenantId),
           sumLatestSupplierDueBalances(client, actor.tenantId),
           listExpensesInRange(client, monthStart, nextMonthStart, actor.tenantId),
+          getMonthlyCashFlow(client, actor.tenantId, monthStart, nextMonthStart),
+          listRecentTransactions(client, actor.tenantId, 5),
+          sumSettlementsInRange(client, actor.tenantId, monthStart, nextMonthStart),
+          listRecentSettlements(client, actor.tenantId, 7),
+          sumSalesInvoicesInRange(client, actor.tenantId, monthStart, nextMonthStart),
+          client.query(
+            `SELECT COALESCE(SUM(amount), 0) AS total FROM dsr_cash_receipts WHERE tenant_id = $1 AND receipt_date >= $2 AND receipt_date < $3`,
+            [actor.tenantId, monthStart, nextMonthStart],
+          ),
         ]);
 
         return {
@@ -32,6 +49,12 @@ export class FinanceDashboardService {
           totalCustomerDue,
           totalSupplierDue,
           monthlyExpenses: monthlyExpenseEntries.reduce((sum, expense) => sum + expense.amount, 0),
+          cashFlow,
+          recentTransactions,
+          monthlySettlements,
+          recentSettlements,
+          monthlySales,
+          monthlyCashReceipts: Number(monthlyCashReceiptsResult.rows[0].total || 0),
         };
       }),
       this.profitService.getProfitReport({ dateFrom: monthStart, dateTo: today }, actor),
@@ -39,7 +62,11 @@ export class FinanceDashboardService {
 
     const totalCashBalance = accounts.reduce((sum, account) => sum + account.balance, 0);
     const monthlyProfit = profitReport.totals.profit;
-    const { totalDsrDue, totalCustomerDue, totalSupplierDue, monthlyExpenses } = dueAndExpenseTotals;
+    const {
+      totalDsrDue, totalCustomerDue, totalSupplierDue, monthlyExpenses,
+      cashFlow, recentTransactions,
+      monthlySettlements, recentSettlements, monthlySales, monthlyCashReceipts,
+    } = dueAndExpenseTotals;
 
     return {
       accounts,
@@ -49,6 +76,16 @@ export class FinanceDashboardService {
       totalSupplierDue,
       monthlyExpenses,
       monthlyProfit,
+      monthlyInflow: cashFlow.inflow,
+      monthlyOutflow: cashFlow.outflow,
+      recentTransactions,
+      monthlySettlementCollected: monthlySettlements.amountPaid,
+      monthlySettlementDue: monthlySettlements.dueAmount,
+      monthlySettlementCount: monthlySettlements.count,
+      monthlySalesAmount: monthlySales.totalAmount,
+      monthlySalesCount: monthlySales.count,
+      monthlyCashReceipts,
+      recentSettlements,
       netPosition: totalCashBalance + totalDsrDue + totalCustomerDue - totalSupplierDue,
     };
   }

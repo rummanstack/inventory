@@ -13,15 +13,6 @@ import {
 } from "../repositories/dsrFinanceRepository.js";
 
 const MODULES = {
-  cash: {
-    table: "dsr_cash_receipts",
-    dateColumn: "receipt_date",
-    ownerColumn: "received_by",
-    entityType: "dsr_cash_receipt",
-    actionBase: "cash_receipt",
-    label: "cash receipt",
-    dateError: "Cash receipt date must be in YYYY-MM-DD format.",
-  },
   advance: {
     table: "dsr_advances",
     dateColumn: "advance_date",

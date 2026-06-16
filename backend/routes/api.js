@@ -32,7 +32,6 @@ import { createUsersRoutes } from "./users.routes.js";
 import { createActivityLogsRoutes } from "./activityLogs.routes.js";
 import { createAuditRoutes } from "./audit.routes.js";
 import { createExpensesRoutes } from "./expenses.routes.js";
-import { createDsrCashReceiptsRoutes } from "./dsrCashReceipts.routes.js";
 import { createDsrAdvancesRoutes } from "./dsrAdvances.routes.js";
 import { createMonthEndSummaryRoutes } from "./monthEndSummary.routes.js";
 import { createProfitReportRoutes } from "./profitReport.routes.js";
@@ -163,7 +162,6 @@ export function createApiRouter({
   router.use("/activity-logs", createActivityLogsRoutes(activityLogController));
   router.use("/audit", createAuditRoutes(auditController));
   router.use("/expenses", createExpensesRoutes(expenseController));
-  router.use("/dsr-cash-receipts", createDsrCashReceiptsRoutes(dsrFinanceController));
   router.use("/dsr-advances", createDsrAdvancesRoutes(dsrFinanceController));
   router.use("/month-end-summary", createMonthEndSummaryRoutes(monthEndSummaryController));
   router.use("/profit-report", createProfitReportRoutes(profitController));

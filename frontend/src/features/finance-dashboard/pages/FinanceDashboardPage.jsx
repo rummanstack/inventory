@@ -1,4 +1,4 @@
-import { Banknote, Building2, CircleDollarSign, HandCoins, RotateCcw, Scale, ShoppingBag, Store, TrendingDown, TrendingUp, Wallet } from 'lucide-react';
+import { Building2, CircleDollarSign, HandCoins, RotateCcw, Scale, ShoppingBag, Store, TrendingDown, TrendingUp, Wallet } from 'lucide-react';
 import { Alert, LoadingState, SectionHeader, StatCard } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { formatCurrency, formatDate } from '../../../utils/calculations.js';
@@ -76,13 +76,6 @@ export default function FinanceDashboardPage() {
                 helper={`${data.monthlySalesCount} invoices · ${t('financeDashboard.monthlySalesHelper')}`}
                 icon={ShoppingBag}
                 tone="blue"
-              />
-              <StatCard
-                title={t('financeDashboard.monthlyCashReceipts')}
-                value={formatCurrency(data.monthlyCashReceipts)}
-                helper={t('financeDashboard.monthlyCashReceiptsHelper')}
-                icon={HandCoins}
-                tone="indigo"
               />
             </div>
           </div>

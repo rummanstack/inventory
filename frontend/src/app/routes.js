@@ -84,7 +84,7 @@ export const APP_ROUTES = [
   { id: 'retailer-sales-return', path: '/retailer/sales-return', labelKey: 'nav.retailerSalesReturn', icon: RotateCcw, component: SalesReturnPage, group: 'retailer', permission: 'manage_retailers', feature: 'retailer-sales-return' },
   { id: 'retailer-daily-sales-report', path: '/retailer/daily-sales-report', labelKey: 'nav.retailerDailySalesReport', icon: FileText, component: DailySalesReportPage, group: 'retailer', permission: 'manage_retailers', feature: 'retailer-daily-sales-report' },
   { id: 'retailer-profit-report', path: '/retailer/profit-report', labelKey: 'nav.retailerProfitReport', icon: TrendingUp, component: RetailerProfitReportPage, group: 'retailer', permission: 'manage_retailers', feature: 'retailer-profit-report' },
-  { id: 'dsr-finance', path: '/dsr-finance', labelKey: 'nav.dsrFinance', icon: HandCoins, component: DsrFinancePage, group: 'reports', permission: 'manage_dsr_finance', feature: 'dsr-finance' },
+  { id: 'dsr-finance', path: '/dsr-finance', labelKey: 'nav.dsrFinance', icon: HandCoins, component: DsrFinancePage, group: 'finance', permission: 'manage_dsr_finance', feature: 'dsr-finance' },
   { id: 'reports', path: '/reports', labelKey: 'nav.reports', icon: FileText, component: DailyReportsPage, group: 'reports', permission: 'view_state', feature: 'reports' },
   { id: 'history', path: '/history', labelKey: 'nav.history', icon: ClipboardList, component: HistoryPage, group: 'reports', permission: 'view_state', feature: 'history' },
   { id: 'finance-dashboard', path: '/finance-dashboard', labelKey: 'nav.financeDashboard', icon: LayoutDashboard, component: FinanceDashboardPage, group: 'finance', permission: 'view_finance_dashboard', feature: 'finance-dashboard' },

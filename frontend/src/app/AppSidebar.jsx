@@ -154,29 +154,14 @@ export default function AppSidebar({ mobileOpen, setMobileOpen, user, tenant, la
           </div>
         </nav>
 
-        <div className="relative mt-4 rounded-xl border border-slate-200 bg-slate-50/80 p-4 sm:p-4">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex min-w-0 items-center gap-2">
-              <UserCircle size={18} className="shrink-0 text-[var(--secondary)]" />
-              <div className="min-w-0">
-                <p className="truncate text-sm font-bold text-slate-950">{user?.name}</p>
-                <p className="truncate text-xs font-semibold text-slate-500">{user?.role}</p>
-              </div>
-            </div>
-            <span className="muted-chip" title={t('orgSettings.currency') || 'Currency'}>BDT</span>
-          </div>
-          <div className="mt-4">
-            <LanguageSwitcher language={language} onChange={onLanguageChange} t={t} compact />
-          </div>
-          <button
-            type="button"
-            className="mt-4 inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-sm font-bold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950"
-            onClick={onLogout}
-          >
-            <LogOut size={16} />
-            {t('auth.logout')}
-          </button>
-        </div>
+        <button
+          type="button"
+          className="mt-4 inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-sm font-bold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950"
+          onClick={onLogout}
+        >
+          <LogOut size={16} />
+          {t('auth.logout')}
+        </button>
       </div>
 
       {mobileOpen ? <button type="button" aria-label="Close sidebar overlay" className="fixed inset-0 z-30 bg-slate-950/50 lg:hidden" onClick={() => setMobileOpen(false)} /> : null}

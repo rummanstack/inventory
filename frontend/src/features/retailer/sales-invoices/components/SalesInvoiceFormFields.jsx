@@ -1,9 +1,14 @@
+import { useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { DatePickerField } from '../../../../components/DatePicker.jsx';
 import { formatCurrency } from '../../../../utils/calculations.js';
+import CustomerFormModal from '../../../customers/components/CustomerFormModal.jsx';
 
-export default function SalesInvoiceFormFields({ vm, t, productDirectory, customerDirectory, saving }) {
+export default function SalesInvoiceFormFields({ vm, t, productDirectory, customerDirectory, saving, saveCustomer }) {
+  const [showAddCustomer, setShowAddCustomer] = useState(false);
+
   return (
+    <>
     <div className="space-y-4">
       <div className="grid gap-4 sm:grid-cols-4">
         <div>
@@ -26,7 +31,15 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, custom
           </select>
         </div>
         <div>
-          <label className="label">{t('retailer.shared.customerLabel')}</label>
+          <div className="mb-1 flex items-center justify-between">
+            <label className="label mb-0">{t('retailer.shared.customerLabel')}</label>
+            {vm.customerType === 'REGISTERED' && !saving && (
+              <button type="button" className="inline-flex items-center gap-1 text-xs font-medium text-indigo-600 hover:text-indigo-800" onClick={() => setShowAddCustomer(true)}>
+                <Plus size={13} />
+                {t('customers.addTitle')}
+              </button>
+            )}
+          </div>
           <select className="input" value={vm.customerId} onChange={(event) => vm.setCustomerId(event.target.value)} disabled={saving || vm.customerType !== 'REGISTERED'}>
             <option value="">{t('retailer.shared.selectCustomer')}</option>
             {customerDirectory.map((customer) => (
@@ -150,5 +163,21 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, custom
         </div>
       </div>
     </div>
+
+    {showAddCustomer && (
+      <CustomerFormModal
+        onClose={() => setShowAddCustomer(false)}
+        onSave={async (payload) => {
+          const result = await saveCustomer(payload);
+          if (result?.ok) {
+            vm.setCustomerType('REGISTERED');
+            vm.setCustomerId(result.customer.id);
+            setShowAddCustomer(false);
+          }
+          return result;
+        }}
+      />
+    )}
+    </>
   );
 }

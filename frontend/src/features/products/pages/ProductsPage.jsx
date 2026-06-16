@@ -73,7 +73,8 @@ export default function ProductsPage() {
                 <th className="px-4 py-3">{t('products.product')}</th>
                 <th className="hidden px-4 py-3 sm:table-cell">{t('products.caseSize')}</th>
                 <th className="hidden px-4 py-3 md:table-cell">{t('products.purchase')}</th>
-                <th className="hidden px-4 py-3 md:table-cell">{t('products.selling')}</th>
+                <th className="hidden px-4 py-3 md:table-cell">{t('products.wholesalePrice')}</th>
+                <th className="hidden px-4 py-3 md:table-cell">{t('products.retailPrice')}</th>
                 <th className="px-4 py-3">{t('products.stock')}</th>
                 <th className="px-4 py-3 text-right">{t('common.actions')}</th>
               </tr>
@@ -94,7 +95,8 @@ export default function ProductsPage() {
                   </td>
                   <td className="hidden table-cell sm:table-cell">{product.piecesPerCase} pcs/case</td>
                   <td className="hidden table-cell md:table-cell">{formatCurrency(product.purchasePrice)}</td>
-                  <td className="hidden table-cell font-semibold md:table-cell">{formatCurrency(product.sellingPrice)}</td>
+                  <td className="hidden table-cell md:table-cell">{formatCurrency(product.wholesalePrice)}</td>
+                  <td className="hidden table-cell md:table-cell">{formatCurrency(product.retailPrice)}</td>
                   <td className="table-cell">
                     <p className="font-semibold text-slate-950">{formatCasePiece(product.stockPieces, product.piecesPerCase)}</p>
                     <p className="text-xs text-slate-500">{formatNumber(product.stockPieces)} pcs total</p>

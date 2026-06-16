@@ -56,10 +56,7 @@ export class ProductService {
     const product = normalizeProduct(input);
     assert(product.name && product.category, "Product name and category are required.");
     assert(product.piecesPerCase > 0, "Pieces per case must be greater than zero.");
-    assert(
-      product.purchasePrice > 0 && product.sellingPrice > 0,
-      "Purchase price and selling price must be greater than zero.",
-    );
+    assert(product.purchasePrice > 0, "Purchase price must be greater than zero.");
 
     return this.databaseManager.withTransaction(async (client) => {
       let result;

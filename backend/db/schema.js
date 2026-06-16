@@ -83,7 +83,6 @@ export async function createSchema(pool) {
       category TEXT NOT NULL,
       pieces_per_case INTEGER NOT NULL,
       purchase_price NUMERIC NOT NULL,
-      selling_price NUMERIC NOT NULL,
       stock_pieces INTEGER NOT NULL,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
@@ -504,6 +503,7 @@ export async function createSchema(pool) {
     -- Retailer module
     ALTER TABLE products ADD COLUMN IF NOT EXISTS wholesale_price NUMERIC NOT NULL DEFAULT 0;
     ALTER TABLE products ADD COLUMN IF NOT EXISTS retail_price NUMERIC NOT NULL DEFAULT 0;
+    ALTER TABLE products DROP COLUMN IF EXISTS selling_price;
 
     CREATE TABLE IF NOT EXISTS sales_number_counters (
       tenant_id  TEXT NOT NULL REFERENCES tenants(id),

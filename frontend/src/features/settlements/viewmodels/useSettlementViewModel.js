@@ -182,7 +182,7 @@ export function useSettlementViewModel({ products, dsrs, today, saveSettlementAc
   );
   const extraReturnValue = extraReturns.reduce((sum, row) => {
     const product = products.find((p) => p.id === row.productId);
-    const rate = Number(product?.sellingPrice || 0);
+    const rate = Number(product?.wholesalePrice || 0);
     const returnedPieces = toPieces(row.caseQty, row.pieceQty, row.piecesPerCase);
     const damagedPieces = toPieces(row.damagedCaseQty, row.damagedPieceQty, row.piecesPerCase);
     return sum + (returnedPieces + damagedPieces) * rate;

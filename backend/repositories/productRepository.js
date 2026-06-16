@@ -5,7 +5,6 @@ export function mapProduct(row) {
     category: row.category,
     piecesPerCase: Number(row.pieces_per_case),
     purchasePrice: Number(row.purchase_price),
-    sellingPrice: Number(row.selling_price),
     wholesalePrice: Number(row.wholesale_price || 0),
     retailPrice: Number(row.retail_price || 0),
     stockPieces: Number(row.stock_pieces),
@@ -58,7 +57,7 @@ export async function listProductsPage(client, { search, tenantId, limit, offset
 
 export async function listAllActiveProductsLite(client, tenantId) {
   const result = await client.query(
-    "SELECT id, name, category, pieces_per_case, purchase_price, selling_price, stock_pieces, damaged_pieces, order_index FROM products WHERE tenant_id = $1 AND deleted_at IS NULL ORDER BY order_index ASC, name ASC",
+    "SELECT id, name, category, pieces_per_case, purchase_price, wholesale_price, retail_price, stock_pieces, damaged_pieces, order_index FROM products WHERE tenant_id = $1 AND deleted_at IS NULL ORDER BY order_index ASC, name ASC",
     [tenantId],
   );
   return result.rows.map(mapProduct);
@@ -66,8 +65,8 @@ export async function listAllActiveProductsLite(client, tenantId) {
 
 export function insertProduct(client, product) {
   return client.query(
-    `INSERT INTO products (id, tenant_id, name, category, pieces_per_case, purchase_price, selling_price, wholesale_price, retail_price, stock_pieces, order_index)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+    `INSERT INTO products (id, tenant_id, name, category, pieces_per_case, purchase_price, wholesale_price, retail_price, stock_pieces, order_index)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
      RETURNING *`,
     [
       product.id,
@@ -76,7 +75,6 @@ export function insertProduct(client, product) {
       product.category,
       product.piecesPerCase,
       product.purchasePrice,
-      product.sellingPrice,
       product.wholesalePrice,
       product.retailPrice,
       product.stockPieces,
@@ -88,7 +86,7 @@ export function insertProduct(client, product) {
 export function updateProduct(client, product) {
   return client.query(
     `UPDATE products
-     SET name = $3, category = $4, pieces_per_case = $5, purchase_price = $6, selling_price = $7, wholesale_price = $8, retail_price = $9, order_index = $10
+     SET name = $3, category = $4, pieces_per_case = $5, purchase_price = $6, wholesale_price = $7, retail_price = $8, order_index = $9
      WHERE id = $1 AND tenant_id = $2
      RETURNING *`,
     [
@@ -98,7 +96,6 @@ export function updateProduct(client, product) {
       product.category,
       product.piecesPerCase,
       product.purchasePrice,
-      product.sellingPrice,
       product.wholesalePrice,
       product.retailPrice,
       product.orderIndex ?? 9999,

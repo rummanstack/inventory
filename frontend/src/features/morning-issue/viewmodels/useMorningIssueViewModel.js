@@ -86,7 +86,7 @@ export function useMorningIssueViewModel({ products, dsrs, today, saveIssueActio
   const issueRows = products.map((product) => {
     const quantity = quantities[product.id] || {};
     const existingItem = existingIssue?.items.find((item) => item.productId === product.id);
-    const rate = Number(existingItem?.rate || product.sellingPrice || 0);
+    const rate = Number(existingItem?.rate || product.wholesalePrice || 0);
     const issuedPieces = toPieces(quantity.caseQty, quantity.pieceQty, product.piecesPerCase);
     const availableStock = product.stockPieces + Number(existingItem?.issuedPieces || 0);
 

@@ -88,16 +88,20 @@ export class FinanceDashboardService {
     const dateFrom = normalizeIsoDate(query.dateFrom, today.slice(0, 7) + "-01");
     const dateTo = normalizeIsoDate(query.dateTo, today);
 
+    const dateToExclusive = addDays(dateTo, 1);
+
     const [profitReport, rangeData] = await Promise.all([
       this.profitService.getProfitReport({ dateFrom, dateTo }, actor),
       this.databaseManager.withClient(async (client) => {
-        const [expenseBreakdown, totalDsrDue, totalCustomerDue, totalSupplierDue] = await Promise.all([
+        const [expenseBreakdown, totalDsrDue, totalCustomerDue, totalSupplierDue, cashFlow, sales] = await Promise.all([
           sumExpensesByCategory(client, dateFrom, dateTo, actor.tenantId),
           sumLatestDueBalances(client, actor.tenantId),
           sumLatestCustomerDueBalances(client, actor.tenantId),
           sumLatestSupplierDueBalances(client, actor.tenantId),
+          getMonthlyCashFlow(client, actor.tenantId, dateFrom, dateToExclusive),
+          sumSalesInvoicesInRange(client, actor.tenantId, dateFrom, dateToExclusive),
         ]);
-        return { expenseBreakdown, totalDsrDue, totalCustomerDue, totalSupplierDue };
+        return { expenseBreakdown, totalDsrDue, totalCustomerDue, totalSupplierDue, cashFlow, sales };
       }),
     ]);
 
@@ -114,6 +118,13 @@ export class FinanceDashboardService {
       totalDsrDue: rangeData.totalDsrDue,
       totalCustomerDue: rangeData.totalCustomerDue,
       totalSupplierDue: rangeData.totalSupplierDue,
+      cashFlow: rangeData.cashFlow,
+      sales: {
+        count: rangeData.sales.count,
+        totalAmount: rangeData.sales.totalAmount,
+        paidAmount: rangeData.sales.paidAmount,
+        averageInvoice: rangeData.sales.count > 0 ? rangeData.sales.totalAmount / rangeData.sales.count : 0,
+      },
     };
   }
 }

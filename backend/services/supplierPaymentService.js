@@ -230,11 +230,45 @@ export class SupplierPaymentService {
       const existingResult = await findSupplierPaymentForUpdate(client, paymentId, actor.tenantId);
       assert(existingResult.rowCount > 0, "Supplier payment not found.", 404);
       const payment = existingResult.rows[0];
+      const amount = Number(payment.amount || 0);
 
       await softDeleteSupplierPayment(client, paymentId, actor.tenantId, {
         deletedById: actor.id,
         deleteReason: reason,
       });
+
+      const latestEntry = await getLatestSupplierDueLedgerEntry(client, payment.supplier_id, actor.tenantId);
+      const currentBalance = latestEntry ? latestEntry.balanceAfter : 0;
+      const balanceAfter = currentBalance + amount;
+
+      await recordSupplierDueLedgerEntry(client, {
+        tenantId: actor.tenantId,
+        supplierId: payment.supplier_id,
+        type: SUPPLIER_DUE_LEDGER_TYPES.PAYMENT,
+        debit: amount,
+        credit: 0,
+        balanceAfter,
+        referenceType: "supplier_payment",
+        referenceId: paymentId,
+        note: `Payment reversed — supplier payment deleted (${reason})`,
+        createdById: actor.id,
+      });
+
+      await updateSupplierCurrentDue(client, payment.supplier_id, actor.tenantId, Math.max(0, balanceAfter));
+
+      if (this.financeAccountService && amount > 0) {
+        await this.financeAccountService.recordTransactionInClient(
+          client,
+          {
+            accountType: "CASH",
+            type: "DEPOSIT",
+            amount,
+            date: String(payment.payment_date).slice(0, 10),
+            note: `Supplier payment reversal (deleted) — ${reason}`,
+          },
+          actor,
+        );
+      }
 
       await this.recordActivity(client, actor, {
         actionType: SUPPLIER_PAYMENT_ACTIONS.DELETE,
@@ -242,7 +276,7 @@ export class SupplierPaymentService {
         entityId: paymentId,
         reason,
         description: `${actor.name} moved supplier payment to trash (${reason})`,
-        metadata: { supplierId: payment.supplier_id, amount: Number(payment.amount || 0) },
+        metadata: { supplierId: payment.supplier_id, amount },
       });
 
       return { ok: true };
@@ -253,6 +287,42 @@ export class SupplierPaymentService {
     return this.databaseManager.withTransaction(async (client) => {
       const result = await restoreSupplierPayment(client, paymentId, actor.tenantId);
       assert(result.rowCount > 0, "Supplier payment not found in trash.", 404);
+
+      const row = result.rows[0];
+      const amount = Number(row.amount || 0);
+
+      const latestEntry = await getLatestSupplierDueLedgerEntry(client, row.supplier_id, actor.tenantId);
+      const currentBalance = latestEntry ? latestEntry.balanceAfter : 0;
+      const balanceAfter = currentBalance - amount;
+
+      await recordSupplierDueLedgerEntry(client, {
+        tenantId: actor.tenantId,
+        supplierId: row.supplier_id,
+        type: SUPPLIER_DUE_LEDGER_TYPES.PAYMENT,
+        debit: 0,
+        credit: amount,
+        balanceAfter,
+        referenceType: "supplier_payment",
+        referenceId: paymentId,
+        note: `Payment restored — supplier payment restored from trash`,
+        createdById: actor.id,
+      });
+
+      await updateSupplierCurrentDue(client, row.supplier_id, actor.tenantId, Math.max(0, balanceAfter));
+
+      if (this.financeAccountService && amount > 0) {
+        await this.financeAccountService.recordTransactionInClient(
+          client,
+          {
+            accountType: "CASH",
+            type: "WITHDRAWAL",
+            amount,
+            date: String(row.payment_date).slice(0, 10),
+            note: `Supplier payment restored from trash`,
+          },
+          actor,
+        );
+      }
 
       await this.recordActivity(client, actor, {
         actionType: SUPPLIER_PAYMENT_ACTIONS.RESTORE,

@@ -489,6 +489,7 @@
       monthlyTotalHelper: 'নির্বাচিত মাসে সংরক্ষিত সব রেকর্ড',
       date: 'তারিখ',
       dsr: 'ডিএসআর',
+      selectDsr: 'ডিএসআর নির্বাচন করুন',
       amount: 'পরিমাণ',
       note: 'নোট',
       notePlaceholder: 'রেকর্ডের সংক্ষিপ্ত নোট',

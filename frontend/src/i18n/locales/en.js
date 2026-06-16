@@ -507,6 +507,7 @@ const en = {
       monthlyTotalHelper: 'All records saved in the selected month',
       date: 'Date',
       dsr: 'DSR',
+      selectDsr: 'Select DSR',
       amount: 'Amount',
       note: 'Note',
       notePlaceholder: 'Short note for the record',

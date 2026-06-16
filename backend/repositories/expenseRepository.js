@@ -119,6 +119,21 @@ export async function findExpenseById(client, expenseId, tenantId) {
   return mapExpense(result.rows[0]);
 }
 
+export async function sumExpensesByCategory(client, dateFrom, dateTo, tenantId) {
+  const result = await client.query(
+    `SELECT category, COALESCE(SUM(amount), 0)::NUMERIC AS total
+     FROM expenses
+     WHERE tenant_id = $1
+       AND expense_date >= $2
+       AND expense_date <= $3
+       AND deleted_at IS NULL
+     GROUP BY category
+     ORDER BY total DESC`,
+    [tenantId, dateFrom, dateTo],
+  );
+  return result.rows.map((row) => ({ category: row.category, amount: Number(row.total) }));
+}
+
 export async function listExpensesInRange(client, startDate, endDate, tenantId) {
   const result = await client.query(
     `SELECT

@@ -1,5 +1,5 @@
-import { startOfMonth, startOfNextMonth } from "../lib/dateRanges.js";
-import { listExpensesInRange } from "../repositories/expenseRepository.js";
+import { startOfMonth, startOfNextMonth, normalizeIsoDate, addDays } from "../lib/dateRanges.js";
+import { listExpensesInRange, sumExpensesByCategory } from "../repositories/expenseRepository.js";
 import { sumLatestDueBalances } from "../repositories/dsrDueLedgerRepository.js";
 import { sumLatestCustomerDueBalances } from "../repositories/customerDueLedgerRepository.js";
 import { sumLatestSupplierDueBalances } from "../repositories/supplierDueLedgerRepository.js";
@@ -80,6 +80,40 @@ export class FinanceDashboardService {
       monthlySalesCount: monthlySales.count,
       recentSettlements,
       netPosition: totalCashBalance + totalDsrDue + totalCustomerDue - totalSupplierDue,
+    };
+  }
+
+  async getRangeReport(query = {}, actor) {
+    const today = new Date().toISOString().slice(0, 10);
+    const dateFrom = normalizeIsoDate(query.dateFrom, today.slice(0, 7) + "-01");
+    const dateTo = normalizeIsoDate(query.dateTo, today);
+
+    const [profitReport, rangeData] = await Promise.all([
+      this.profitService.getProfitReport({ dateFrom, dateTo }, actor),
+      this.databaseManager.withClient(async (client) => {
+        const [expenseBreakdown, totalDsrDue, totalCustomerDue, totalSupplierDue] = await Promise.all([
+          sumExpensesByCategory(client, dateFrom, dateTo, actor.tenantId),
+          sumLatestDueBalances(client, actor.tenantId),
+          sumLatestCustomerDueBalances(client, actor.tenantId),
+          sumLatestSupplierDueBalances(client, actor.tenantId),
+        ]);
+        return { expenseBreakdown, totalDsrDue, totalCustomerDue, totalSupplierDue };
+      }),
+    ]);
+
+    const { revenue, cost, expenses, profit } = profitReport.totals;
+    return {
+      dateFrom: profitReport.dateFrom,
+      dateTo: profitReport.dateTo,
+      revenue,
+      cogs: cost,
+      totalExpenses: expenses,
+      grossProfit: revenue - cost,
+      netProfit: profit,
+      expenseBreakdown: rangeData.expenseBreakdown,
+      totalDsrDue: rangeData.totalDsrDue,
+      totalCustomerDue: rangeData.totalCustomerDue,
+      totalSupplierDue: rangeData.totalSupplierDue,
     };
   }
 }

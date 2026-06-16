@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { BarChart3, BadgeDollarSign, CircleDollarSign, Coins, ReceiptText, Tag, TrendingUp } from 'lucide-react';
+import { BarChart3, BadgeDollarSign, CircleDollarSign, Coins, Tag, TrendingUp } from 'lucide-react';
 import { Alert, ChartPanel, EmptyState, LoadingState, SectionHeader, HorizontalBarChart, StatCard, TableSkeleton } from '../../../components/ui.jsx';
 import { MonthPickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
@@ -71,7 +71,6 @@ export default function MonthEndSummaryPage() {
           <StatCard title={t('monthEndSummary.totalPayable')} value={formatCurrency(vm.report?.totals?.totalPayable || 0)} icon={Coins} tone="blue" />
           <StatCard title={t('monthEndSummary.totalDiscount')} value={formatCurrency(vm.report?.totals?.totalDiscount || 0)} icon={Tag} tone="slate" />
           <StatCard title={t('monthEndSummary.settlementPaid')} value={formatCurrency(vm.report?.totals?.totalPaidAtSettlement || 0)} icon={BadgeDollarSign} tone="emerald" />
-          <StatCard title={t('monthEndSummary.cashReceived')} value={formatCurrency(vm.report?.totals?.totalCashReceived || 0)} icon={ReceiptText} tone="amber" />
           <StatCard title={t('monthEndSummary.advanceGiven')} value={formatCurrency(vm.report?.totals?.totalAdvance || 0)} icon={TrendingUp} tone="rose" />
           <StatCard title={t('monthEndSummary.totalExpenses')} value={formatCurrency(vm.report?.totalExpenses || 0)} icon={CircleDollarSign} tone="slate" />
           <StatCard title={t('monthEndSummary.remainingDue')} value={formatCurrency(vm.report?.totals?.remainingDue || 0)} icon={BarChart3} tone="amber" />
@@ -113,7 +112,6 @@ export default function MonthEndSummaryPage() {
                 <th className="px-4 py-3">{t('monthEndSummary.totalPayable')}</th>
                 <th className="px-4 py-3 hidden md:table-cell">{t('monthEndSummary.totalDiscount')}</th>
                 <th className="px-4 py-3 hidden lg:table-cell">{t('monthEndSummary.settlementPaid')}</th>
-                <th className="px-4 py-3 hidden sm:table-cell">{t('monthEndSummary.cashReceived')}</th>
                 <th className="px-4 py-3 hidden md:table-cell">{t('monthEndSummary.advanceGiven')}</th>
                 <th className="px-4 py-3 hidden sm:table-cell">{t('monthEndSummary.remainingDue')}</th>
                 <th className="px-4 py-3">{t('monthEndSummary.netBalance')}</th>
@@ -129,7 +127,6 @@ export default function MonthEndSummaryPage() {
                   <td className="table-cell font-semibold">{formatCurrency(row.totalPayable)}</td>
                   <td className="table-cell hidden md:table-cell text-slate-500">{formatCurrency(row.totalDiscount)}</td>
                   <td className="table-cell hidden lg:table-cell">{formatCurrency(row.totalPaidAtSettlement)}</td>
-                  <td className="table-cell hidden sm:table-cell">{formatCurrency(row.totalCashReceived)}</td>
                   <td className="table-cell hidden md:table-cell">{formatCurrency(row.totalAdvance)}</td>
                   <td className="table-cell hidden sm:table-cell">{formatCurrency(row.remainingDue)}</td>
                   <td className="table-cell font-bold">{formatCurrency(row.netBalance)}</td>

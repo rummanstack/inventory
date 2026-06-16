@@ -4,7 +4,6 @@ import { inventoryApi } from '../../../services/inventoryApi';
 import { todayISO } from '../../../utils/calculations.js';
 
 const RECORD_APIS = {
-  cash: { create: 'createCashReceipt', update: 'updateCashReceipt', remove: 'deleteCashReceipt' },
   advance: { create: 'createAdvance', update: 'updateAdvance', remove: 'deleteAdvance' },
 };
 
@@ -23,8 +22,7 @@ export function useDsrFinanceViewModel(kind, { confirm }) {
     try {
       setLoading(true);
       setError('');
-      const loader = kind === 'cash' ? inventoryApi.getCashReceiptReport : inventoryApi.getAdvanceReport;
-      const nextReport = await loader({ date: nextDate, month: nextMonth, dsrId: nextDsrId });
+      const nextReport = await inventoryApi.getAdvanceReport({ date: nextDate, month: nextMonth, dsrId: nextDsrId });
       setReport(nextReport);
     } catch (requestError) {
       setError(requestError.message);

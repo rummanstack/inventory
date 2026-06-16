@@ -11,16 +11,6 @@ import DsrFinanceFormModal from '../components/DsrFinanceFormModal';
 import SettleDueModal from '../components/SettleDueModal';
 
 const MODULES = {
-  cash: {
-    tabKey: 'dsrFinance.cashTab',
-    addKey: 'dsrFinance.addCash',
-    recordKey: 'dsrFinance.cashReceipt',
-    dailyListKey: 'dsrFinance.dailyCashList',
-    monthlyListKey: 'dsrFinance.monthlyCashList',
-    performedByKey: 'dsrFinance.receivedBy',
-    deleteConfirmKey: 'dsrFinance.deleteCashConfirm',
-    icon: HandCoins,
-  },
   advance: {
     tabKey: 'dsrFinance.advanceTab',
     addKey: 'dsrFinance.addAdvance',
@@ -34,7 +24,6 @@ const MODULES = {
 };
 
 const TABS = [
-  { key: 'cash', tabKey: 'dsrFinance.cashTab', icon: HandCoins },
   { key: 'advance', tabKey: 'dsrFinance.advanceTab', icon: BadgeDollarSign },
   { key: 'due', tabKey: 'nav.dsrDueStatement', icon: Wallet },
 ];
@@ -65,8 +54,7 @@ function formatReference(entry) {
 
 export default function DsrFinancePage() {
   const { t, can, dsrDirectory, confirm, pushToast } = useInventoryApp();
-  const [activeTab, setActiveTab] = useState('cash');
-  const cashVm = useDsrFinanceViewModel('cash', { confirm });
+  const [activeTab, setActiveTab] = useState('advance');
   const advanceVm = useDsrFinanceViewModel('advance', { confirm });
   const dueVm = useDsrDueStatementViewModel({ dsrs: dsrDirectory });
   const [modal, setModal] = useState(null);
@@ -74,7 +62,7 @@ export default function DsrFinancePage() {
   const canManageDsrFinance = can('manage_dsr_finance');
 
   const isDueTab = activeTab === 'due';
-  const activeVm = activeTab === 'cash' ? cashVm : activeTab === 'advance' ? advanceVm : dueVm;
+  const activeVm = activeTab === 'advance' ? advanceVm : dueVm;
   const moduleConfig = MODULES[activeTab];
   const Icon = moduleConfig?.icon || Wallet;
   const dailyChartData = useMemo(() => toBarChartData(activeVm.report?.dailySummary?.byDsr || [], DSR_CHART_FIELDS), [activeVm.report?.dailySummary?.byDsr]);

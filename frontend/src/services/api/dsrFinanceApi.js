@@ -1,21 +1,6 @@
 import { apiRequest, buildQueryString } from './client.js';
 
 export const dsrFinanceApi = {
-  getCashReceiptReport({ date, month, dsrId } = {}) {
-    return apiRequest(`/dsr-cash-receipts${buildQueryString({ date, month, dsrId })}`);
-  },
-
-  createCashReceipt(record) {
-    return apiRequest("/dsr-cash-receipts", { method: "POST", body: JSON.stringify(record) });
-  },
-  updateCashReceipt(record) {
-    return apiRequest(`/dsr-cash-receipts/${record.id}`, { method: "PATCH", body: JSON.stringify(record) });
-  },
-
-  deleteCashReceipt(recordId) {
-    return apiRequest(`/dsr-cash-receipts/${recordId}`, { method: "DELETE" });
-  },
-
   getAdvanceReport({ date, month, dsrId } = {}) {
     return apiRequest(`/dsr-advances${buildQueryString({ date, month, dsrId })}`);
   },

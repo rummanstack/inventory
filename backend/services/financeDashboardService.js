@@ -27,7 +27,6 @@ export class FinanceDashboardService {
           totalDsrDue, totalCustomerDue, totalSupplierDue,
           monthlyExpenseEntries, cashFlow, recentTransactions,
           monthlySettlements, recentSettlements, monthlySales,
-          monthlyCashReceiptsResult,
         ] = await Promise.all([
           sumLatestDueBalances(client, actor.tenantId),
           sumLatestCustomerDueBalances(client, actor.tenantId),
@@ -38,10 +37,6 @@ export class FinanceDashboardService {
           sumSettlementsInRange(client, actor.tenantId, monthStart, nextMonthStart),
           listRecentSettlements(client, actor.tenantId, 7),
           sumSalesInvoicesInRange(client, actor.tenantId, monthStart, nextMonthStart),
-          client.query(
-            `SELECT COALESCE(SUM(amount), 0) AS total FROM dsr_cash_receipts WHERE tenant_id = $1 AND receipt_date >= $2 AND receipt_date < $3`,
-            [actor.tenantId, monthStart, nextMonthStart],
-          ),
         ]);
 
         return {
@@ -54,7 +49,6 @@ export class FinanceDashboardService {
           monthlySettlements,
           recentSettlements,
           monthlySales,
-          monthlyCashReceipts: Number(monthlyCashReceiptsResult.rows[0].total || 0),
         };
       }),
       this.profitService.getProfitReport({ dateFrom: monthStart, dateTo: today }, actor),
@@ -65,7 +59,7 @@ export class FinanceDashboardService {
     const {
       totalDsrDue, totalCustomerDue, totalSupplierDue, monthlyExpenses,
       cashFlow, recentTransactions,
-      monthlySettlements, recentSettlements, monthlySales, monthlyCashReceipts,
+      monthlySettlements, recentSettlements, monthlySales,
     } = dueAndExpenseTotals;
 
     return {
@@ -84,7 +78,6 @@ export class FinanceDashboardService {
       monthlySettlementCount: monthlySettlements.count,
       monthlySalesAmount: monthlySales.totalAmount,
       monthlySalesCount: monthlySales.count,
-      monthlyCashReceipts,
       recentSettlements,
       netPosition: totalCashBalance + totalDsrDue + totalCustomerDue - totalSupplierDue,
     };

@@ -143,7 +143,7 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, custom
               <option value="CHEQUE">{t('purchaseReceive.paymentMethods.CHEQUE')}</option>
             </select>
           </div>
-          <div>
+          <div className="sm:col-span-4">
             <label className="label">{t('purchaseReceive.noteLabel')}</label>
             <textarea className="input min-h-28" value={vm.note} onChange={(event) => vm.setNote(event.target.value)} placeholder={t('purchaseReceive.noteLabel')} disabled={saving} />
           </div>

@@ -203,12 +203,11 @@ export async function countTransactions(client, filters = {}) {
 export async function getMonthlyCashFlow(client, tenantId, dateFrom, dateTo) {
   const result = await client.query(
     `SELECT
-       COALESCE(SUM(CASE WHEN type = 'DEPOSIT' THEN credit ELSE 0 END), 0) AS inflow,
-       COALESCE(SUM(CASE WHEN type = 'WITHDRAWAL' THEN debit ELSE 0 END), 0) AS outflow
+       COALESCE(SUM(CASE WHEN type IN ('DEPOSIT', 'TRANSFER_IN') THEN debit ELSE 0 END), 0) AS inflow,
+       COALESCE(SUM(CASE WHEN type IN ('WITHDRAWAL', 'TRANSFER_OUT') THEN credit ELSE 0 END), 0) AS outflow
      FROM finance_account_transactions
      WHERE tenant_id = $1
        AND deleted_at IS NULL
-       AND type IN ('DEPOSIT', 'WITHDRAWAL')
        AND transaction_date >= $2::date
        AND transaction_date < $3::date`,
     [tenantId, dateFrom, dateTo],

@@ -2,6 +2,8 @@ import { assert } from "../lib/errors.js";
 import { addDays, normalizeIsoDate, startOfIsoWeek } from "../lib/dateRanges.js";
 import { listExpensesInRange } from "../repositories/expenseRepository.js";
 import { listProductCostMap, listSettlementsInRange } from "../repositories/profitRepository.js";
+import { getProfitReport as listRetailerSalesByDate } from "../repositories/salesInvoiceRepository.js";
+import { getProfitAdjustmentsByDate } from "../repositories/salesReturnRepository.js";
 
 const DATE_ERROR = "Date must be in YYYY-MM-DD format.";
 
@@ -23,10 +25,12 @@ export class ProfitService {
     const tenantId = actor.tenantId;
 
     return this.databaseManager.withClient(async (client) => {
-      const [settlements, productCostMap, expenses] = await Promise.all([
+      const [settlements, productCostMap, expenses, retailerSales, returnAdjustments] = await Promise.all([
         listSettlementsInRange(client, normalizedDateFrom, normalizedDateTo, tenantId),
         listProductCostMap(client, tenantId),
         listExpensesInRange(client, normalizedDateFrom, addDays(normalizedDateTo, 1), tenantId),
+        listRetailerSalesByDate(client, { tenantId, dateFrom: normalizedDateFrom, dateTo: normalizedDateTo }),
+        getProfitAdjustmentsByDate(client, { tenantId, dateFrom: normalizedDateFrom, dateTo: normalizedDateTo }),
       ]);
 
       const dailyMap = new Map();
@@ -55,6 +59,26 @@ export class ProfitService {
         const day = dailyMap.get(expense.date);
         if (day) {
           day.expenses += expense.amount;
+        }
+      }
+
+      const retailerSaleByDate = new Map(
+        retailerSales.map((s) => [String(s.date).slice(0, 10), s]),
+      );
+      const returnAdjByDate = new Map(
+        returnAdjustments.map((e) => [String(e.date).slice(0, 10), Number(e.adjustment || 0)]),
+      );
+
+      for (const [date, day] of dailyMap) {
+        const sale = retailerSaleByDate.get(date);
+        const returnAdj = returnAdjByDate.get(date) || 0;
+
+        if (sale) {
+          const adjustedProfit = sale.totalProfit + returnAdj;
+          day.revenue += sale.totalSales;
+          day.cost += sale.totalSales - adjustedProfit;
+        } else if (returnAdj !== 0) {
+          day.cost += -returnAdj;
         }
       }
 

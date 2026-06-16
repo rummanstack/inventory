@@ -242,14 +242,14 @@ export class PurchaseReceiveService {
     // Seed OPENING ledger entry on first-ever entry for this supplier.
     let currentBalance = await seedOpeningSupplierLedgerIfNeeded(client, supplier, actor.tenantId, actor);
 
-    if (base.dueAmount !== 0) {
-      currentBalance += base.dueAmount;
+    if (base.totalAmount > 0) {
+      currentBalance += base.totalAmount;
       await recordSupplierDueLedgerEntry(client, {
         tenantId: actor.tenantId,
         supplierId: supplier.id,
         type: SUPPLIER_DUE_LEDGER_TYPES.PURCHASE_DUE,
-        debit: Math.max(0, base.dueAmount),
-        credit: Math.max(0, -base.dueAmount),
+        debit: base.totalAmount,
+        credit: 0,
         balanceAfter: currentBalance,
         referenceType: "purchase_receipt",
         referenceId: base.id,
@@ -353,9 +353,9 @@ export class PurchaseReceiveService {
     const updateResult = await updatePurchaseReceipt(client, { ...base, purchaseNumber: previousPurchase.purchase_number });
 
     // Compute delta-based ledger changes.
-    const oldDue = Number(previousPurchase.due_amount || 0);
+    const oldTotal = Number(previousPurchase.total_amount || 0);
     const oldPaid = Number(previousPurchase.paid_amount || 0);
-    const newDue = base.dueAmount;
+    const newTotal = base.totalAmount;
     const newPaid = base.paidAmount;
 
     const previousBaseline = await getSupplierBaselineBeforePurchase(client, previousPurchase, actor.tenantId);
@@ -364,22 +364,22 @@ export class PurchaseReceiveService {
     if (latestEntry) {
       currentBalance = latestEntry.balanceAfter;
     } else if (previousBaseline !== null) {
-      currentBalance = previousBaseline + (oldDue - oldPaid);
+      currentBalance = previousBaseline + oldTotal - oldPaid;
     } else {
       currentBalance = Math.max(0, cleanMoney(supplier.opening_due));
     }
 
-    const dueDelta = newDue - oldDue;
+    const totalDelta = newTotal - oldTotal;
     const paidDelta = newPaid - oldPaid;
 
-    if (dueDelta !== 0) {
-      currentBalance += dueDelta;
+    if (totalDelta !== 0) {
+      currentBalance += totalDelta;
       await recordSupplierDueLedgerEntry(client, {
         tenantId: actor.tenantId,
         supplierId: supplier.id,
         type: SUPPLIER_DUE_LEDGER_TYPES.PURCHASE_DUE,
-        debit: Math.max(0, dueDelta),
-        credit: Math.max(0, -dueDelta),
+        debit: Math.max(0, totalDelta),
+        credit: Math.max(0, -totalDelta),
         balanceAfter: currentBalance,
         referenceType: "purchase_receipt",
         referenceId: base.id,
@@ -487,27 +487,11 @@ export class PurchaseReceiveService {
         deleteReason: reason,
       });
 
-      const dueAmount = Number(purchase.due_amount || 0);
+      const totalAmount = Number(purchase.total_amount || 0);
       const paidAmount = Number(purchase.paid_amount || 0);
 
       const latestEntry = await getLatestSupplierDueLedgerEntry(client, purchase.supplier_id, actor.tenantId);
       let currentBalance = latestEntry ? latestEntry.balanceAfter : 0;
-
-      if (dueAmount !== 0) {
-        currentBalance -= dueAmount;
-        await recordSupplierDueLedgerEntry(client, {
-          tenantId: actor.tenantId,
-          supplierId: purchase.supplier_id,
-          type: SUPPLIER_DUE_LEDGER_TYPES.PURCHASE_DUE,
-          debit: Math.max(0, -dueAmount),
-          credit: Math.max(0, dueAmount),
-          balanceAfter: currentBalance,
-          referenceType: "purchase_receipt",
-          referenceId: purchaseId,
-          note: `Purchase due reversed — ${purchase.purchase_number} deleted (${reason})`,
-          createdById: actor.id,
-        });
-      }
 
       if (paidAmount > 0) {
         currentBalance += paidAmount;
@@ -521,6 +505,22 @@ export class PurchaseReceiveService {
           referenceType: "purchase_receipt",
           referenceId: purchaseId,
           note: `Payment reversed — ${purchase.purchase_number} deleted (${reason})`,
+          createdById: actor.id,
+        });
+      }
+
+      if (totalAmount > 0) {
+        currentBalance -= totalAmount;
+        await recordSupplierDueLedgerEntry(client, {
+          tenantId: actor.tenantId,
+          supplierId: purchase.supplier_id,
+          type: SUPPLIER_DUE_LEDGER_TYPES.PURCHASE_DUE,
+          debit: 0,
+          credit: totalAmount,
+          balanceAfter: currentBalance,
+          referenceType: "purchase_receipt",
+          referenceId: purchaseId,
+          note: `Purchase due reversed — ${purchase.purchase_number} deleted (${reason})`,
           createdById: actor.id,
         });
       }
@@ -574,20 +574,20 @@ export class PurchaseReceiveService {
         note: `Purchase ${purchase.purchase_number} restored — stock re-applied`,
       });
 
-      const dueAmount = Number(purchase.due_amount || 0);
+      const totalAmount = Number(purchase.total_amount || 0);
       const paidAmount = Number(purchase.paid_amount || 0);
 
       const latestEntry = await getLatestSupplierDueLedgerEntry(client, purchase.supplier_id, actor.tenantId);
       let currentBalance = latestEntry ? latestEntry.balanceAfter : 0;
 
-      if (dueAmount !== 0) {
-        currentBalance += dueAmount;
+      if (totalAmount > 0) {
+        currentBalance += totalAmount;
         await recordSupplierDueLedgerEntry(client, {
           tenantId: actor.tenantId,
           supplierId: purchase.supplier_id,
           type: SUPPLIER_DUE_LEDGER_TYPES.PURCHASE_DUE,
-          debit: Math.max(0, dueAmount),
-          credit: Math.max(0, -dueAmount),
+          debit: totalAmount,
+          credit: 0,
           balanceAfter: currentBalance,
           referenceType: "purchase_receipt",
           referenceId: purchaseId,

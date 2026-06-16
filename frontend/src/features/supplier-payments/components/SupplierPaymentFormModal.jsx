@@ -103,7 +103,7 @@ export default function SupplierPaymentFormModal({ payment, onClose, onSave }) {
           </div>
           <div className="sm:col-span-2">
             <label className="label">{t('supplierPayments.noteLabel')}</label>
-            <textarea className="input" rows={3} value={form.note} onChange={(event) => updateField('note', event.target.value)} placeholder={t('supplierPayments.noteLabel')} />
+            <textarea className="input min-h-28" value={form.note} onChange={(event) => updateField('note', event.target.value)} placeholder={t('supplierPayments.noteLabel')} />
           </div>
           {isEdit ? (
             <div className="sm:col-span-2">

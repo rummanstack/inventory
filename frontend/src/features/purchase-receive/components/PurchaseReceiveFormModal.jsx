@@ -167,7 +167,7 @@ export default function PurchaseReceiveFormModal({ purchaseReceipt, onClose, onS
             </div>
             <div>
               <label className="label">{t('purchaseReceive.noteLabel')}</label>
-              <textarea className="input" rows={3} value={vm.note} onChange={(event) => vm.setNote(event.target.value)} placeholder={t('purchaseReceive.noteLabel')} />
+              <textarea className="input min-h-28" value={vm.note} onChange={(event) => vm.setNote(event.target.value)} placeholder={t('purchaseReceive.noteLabel')} />
             </div>
             {vm.isEdit ? (
               <div>

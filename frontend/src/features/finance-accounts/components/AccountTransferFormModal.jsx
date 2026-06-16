@@ -28,11 +28,6 @@ export default function AccountTransferFormModal({ onClose, onSave }) {
       return;
     }
 
-    if (!form.note.trim()) {
-      setError(t('financeAccounts.requiredNote'));
-      return;
-    }
-
     if (form.fromAccountType === form.toAccountType) {
       setError(t('financeAccounts.sameAccount'));
       return;

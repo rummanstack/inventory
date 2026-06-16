@@ -39,11 +39,6 @@ export default function ExpenseFormModal({ expense, defaultDate, onClose, onSave
       return;
     }
 
-    if (!form.note.trim()) {
-      setError(t('expenses.requiredNote'));
-      return;
-    }
-
     const amount = Number(form.amount);
     if (!(amount > 0)) {
       setError(t('expenses.requiredAmount'));

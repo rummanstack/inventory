@@ -19,7 +19,7 @@ function loadCollapsedGroups() {
 
 export default function AppSidebar({ mobileOpen, setMobileOpen, user, tenant, language, onLanguageChange, onLogout, t, can, hasFeature }) {
   const location = useLocation();
-  const sections = ['overview', 'inventory', 'operations', 'suppliers', 'retailer', 'reports', 'finance', 'governance', 'settings', 'developer'];
+  const sections = ['overview', 'inventory', 'operations', 'finance', 'suppliers', 'retailer', 'reports', 'governance', 'settings', 'developer'];
   const [collapsedGroups, setCollapsedGroups] = useState(loadCollapsedGroups);
 
   const groupedRoutes = sections

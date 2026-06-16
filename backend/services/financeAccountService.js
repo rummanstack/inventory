@@ -19,13 +19,12 @@ import {
 } from "../repositories/financeAccountRepository.js";
 import { logActivity, recordFinanceAccountTransaction } from "./shared/inventoryHelpers.js";
 
-const ACCOUNT_TYPES = ["CASH", "BANK"];
+const ACCOUNT_TYPES = ["CASH"];
 const TRANSACTION_TYPES = ["DEPOSIT", "WITHDRAWAL"];
 const DATE_ERROR = "Date must be in YYYY-MM-DD format.";
 
 const DEFAULT_ACCOUNTS = [
   { type: "CASH", name: "Cash in Hand" },
-  { type: "BANK", name: "Bank Account" },
 ];
 
 function computeAmounts(type, amount, currentBalance) {

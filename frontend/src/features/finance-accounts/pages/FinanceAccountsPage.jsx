@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Plus, Trash2, Wallet } from 'lucide-react';
-import { Alert, Badge, EmptyState, LoadingState, Pagination, SectionHeader, StatCard, TableSkeleton } from '../../../components/ui.jsx';
+import { Alert, Badge, EmptyState, Pagination, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { formatCurrency, formatDate } from '../../../utils/calculations.js';
@@ -14,13 +14,14 @@ const TYPE_TONES = {
   TRANSFER_OUT: 'amber',
 };
 
+
 export default function FinanceAccountsPage() {
   const { t, can, confirm } = useInventoryApp();
   const vm = useFinanceAccountsViewModel({ confirm });
   const [modal, setModal] = useState(null);
   const canManage = can('manage_finance_accounts');
 
-  const cashInHand = vm.accounts.find((account) => account.type === 'CASH')?.balance || 0;
+  const cashBalance = vm.accounts.find((a) => a.type === 'CASH')?.balance || 0;
 
   return (
     <div>
@@ -44,9 +45,14 @@ export default function FinanceAccountsPage() {
 
       <div className="grid gap-4 sm:grid-cols-2">
         {vm.accountsLoading ? (
-          <LoadingState compact />
+          <StatCardSkeleton />
         ) : (
-          <StatCard title={t('financeAccounts.cashInHand')} value={formatCurrency(cashInHand)} icon={Wallet} tone="emerald" />
+          <StatCard
+            title={t('financeAccounts.cashInHand')}
+            value={formatCurrency(cashBalance)}
+            icon={Wallet}
+            tone={cashBalance < 0 ? 'rose' : 'emerald'}
+          />
         )}
       </div>
 
@@ -55,7 +61,9 @@ export default function FinanceAccountsPage() {
           <div className="grid gap-3 sm:grid-cols-3">
             <select className="input" value={vm.accountType} onChange={(event) => vm.setAccountType(event.target.value)}>
               <option value="">{t('financeAccounts.allAccounts')}</option>
-              <option value="CASH">{t('financeAccounts.cashInHand')}</option>
+              {vm.accounts.map((account) => (
+                <option key={account.type} value={account.type}>{account.name}</option>
+              ))}
             </select>
             <DatePickerField value={vm.dateFrom} onChange={vm.setDateFrom} placeholder={t('financeAccounts.dateFrom')} />
             <DatePickerField value={vm.dateTo} onChange={vm.setDateTo} placeholder={t('financeAccounts.dateTo')} />
@@ -90,7 +98,7 @@ export default function FinanceAccountsPage() {
                   <tr key={transaction.id} className="hover:bg-slate-50">
                     <td className="table-cell">{formatDate(transaction.transactionDate)}</td>
                     <td className="table-cell font-semibold text-slate-950">
-                      {t('financeAccounts.cashInHand')}
+                      {transaction.accountName}
                     </td>
                     <td className="table-cell">
                       <Badge tone={TYPE_TONES[transaction.type] || 'slate'}>{t(`financeAccounts.${transaction.type === 'DEPOSIT' ? 'deposit' : transaction.type === 'WITHDRAWAL' ? 'withdrawal' : transaction.type === 'TRANSFER_IN' ? 'transferIn' : 'transferOut'}`)}</Badge>
@@ -137,9 +145,7 @@ export default function FinanceAccountsPage() {
           onClose={() => setModal(null)}
           onSave={async (value) => {
             const result = await vm.saveTransaction(value);
-            if (result.ok) {
-              setModal(null);
-            }
+            if (result.ok) setModal(null);
             return result;
           }}
         />

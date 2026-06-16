@@ -49,8 +49,8 @@ async function start() {
   const financeAccountService = new FinanceAccountService(databaseManager, { auditService });
   const settlementService = new SettlementService(databaseManager, { auditService, financeAccountService });
   const userService = new UserService(databaseManager, { auditService });
-  const expenseService = new ExpenseService(databaseManager, { auditService });
-  const dsrFinanceService = new DsrFinanceService(databaseManager, { auditService });
+  const expenseService = new ExpenseService(databaseManager, { auditService, financeAccountService });
+  const dsrFinanceService = new DsrFinanceService(databaseManager, { auditService, financeAccountService });
   const monthEndSummaryService = new MonthEndSummaryService(databaseManager);
   const profitService = new ProfitService(databaseManager);
   const backupService = new BackupService(databaseManager, { auditService });
@@ -63,11 +63,11 @@ async function start() {
   const errorLogService = new ErrorLogService(databaseManager);
   const supplierService = new SupplierService(databaseManager, { auditService });
   const supplierDueLedgerService = new SupplierDueLedgerService(databaseManager);
-  const purchaseReceiveService = new PurchaseReceiveService(databaseManager, { auditService });
-  const supplierPaymentService = new SupplierPaymentService(databaseManager, { auditService });
-  const salesInvoiceService = new SalesInvoiceService(databaseManager, { auditService });
+  const purchaseReceiveService = new PurchaseReceiveService(databaseManager, { auditService, financeAccountService });
+  const supplierPaymentService = new SupplierPaymentService(databaseManager, { auditService, financeAccountService });
+  const salesInvoiceService = new SalesInvoiceService(databaseManager, { auditService, financeAccountService });
   const customerDueLedgerService = new CustomerDueLedgerService(databaseManager);
-  const customerPaymentService = new CustomerPaymentService(databaseManager, { auditService });
+  const customerPaymentService = new CustomerPaymentService(databaseManager, { auditService, financeAccountService });
   const salesReturnService = new SalesReturnService(databaseManager, { auditService });
   const contactMessageService = new ContactMessageService(databaseManager);
   const financeDashboardService = new FinanceDashboardService(databaseManager, { financeAccountService, profitService });

@@ -16,7 +16,7 @@ import {
   updateExpense,
 } from "../repositories/expenseRepository.js";
 
-const EXPENSE_CATEGORIES = ["Bank", "Salary", "Office", "Rent", "Vehicle", "Other"];
+const EXPENSE_CATEGORIES = ["Salary", "Office", "Rent", "Vehicle", "Other"];
 const EXPENSE_DATE_ERROR = "Expense date must be in YYYY-MM-DD format.";
 
 function normalizeCategory(value) {
@@ -57,9 +57,10 @@ function aggregateExpenses(expenses) {
 }
 
 export class ExpenseService {
-  constructor(databaseManager, { auditService }) {
+  constructor(databaseManager, { auditService, financeAccountService }) {
     this.databaseManager = databaseManager;
     this.auditService = auditService;
+    this.financeAccountService = financeAccountService;
   }
 
   async getExpenseReport({ date, month }, actor) {
@@ -100,6 +101,21 @@ export class ExpenseService {
 
         await updateExpense(client, expense, actor.tenantId);
 
+        const amountDelta = expense.amount - existingExpense.amount;
+        if (this.financeAccountService && amountDelta !== 0) {
+          await this.financeAccountService.recordTransactionInClient(
+            client,
+            {
+              accountType: "CASH",
+              type: amountDelta > 0 ? "WITHDRAWAL" : "DEPOSIT",
+              amount: Math.abs(amountDelta),
+              date: expense.date,
+              note: `Expense adjustment — ${expense.category}: ${expense.note}`,
+            },
+            actor,
+          );
+        }
+
         const { before, after } = diffFields(existingExpense, expense, ["date", "category", "amount", "note"]);
 
         await this.auditService.record(client, {
@@ -118,6 +134,21 @@ export class ExpenseService {
         expense.createdBy = actor.id;
         expense.tenantId = actor.tenantId;
         await insertExpense(client, expense);
+
+        if (this.financeAccountService) {
+          await this.financeAccountService.recordTransactionInClient(
+            client,
+            {
+              accountType: "CASH",
+              type: "WITHDRAWAL",
+              amount: expense.amount,
+              date: expense.date,
+              note: `Expense — ${expense.category}: ${expense.note}`,
+            },
+            actor,
+          );
+        }
+
         await this.auditService.record(client, {
           tenantId: actor.tenantId,
           userId: actor.id,

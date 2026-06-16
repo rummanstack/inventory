@@ -61,9 +61,10 @@ async function seedOpeningCustomerLedgerIfNeeded(client, customer, tenantId, act
 }
 
 export class SalesInvoiceService {
-  constructor(databaseManager, { auditService }) {
+  constructor(databaseManager, { auditService, financeAccountService }) {
     this.databaseManager = databaseManager;
     this.auditService = auditService;
+    this.financeAccountService = financeAccountService;
   }
 
   recordActivity(client, actor, payload) {
@@ -173,6 +174,20 @@ export class SalesInvoiceService {
       totalProfit,
       createdById: actor.id,
     });
+
+    if (this.financeAccountService && base.paidAmount > 0) {
+      await this.financeAccountService.recordTransactionInClient(
+        client,
+        {
+          accountType: "CASH",
+          type: "DEPOSIT",
+          amount: base.paidAmount,
+          date: base.invoiceDate,
+          note: `Sales invoice ${invoiceNumber}`,
+        },
+        actor,
+      );
+    }
 
     for (const item of base.items) {
       await insertSalesInvoiceItem(client, {

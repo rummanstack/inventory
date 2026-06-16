@@ -69,9 +69,10 @@ function aggregateRecords(records) {
 }
 
 export class DsrFinanceService {
-  constructor(databaseManager, { auditService }) {
+  constructor(databaseManager, { auditService, financeAccountService }) {
     this.databaseManager = databaseManager;
     this.auditService = auditService;
+    this.financeAccountService = financeAccountService;
   }
 
   async getReport(kind, query = {}, actor) {
@@ -130,6 +131,21 @@ export class DsrFinanceService {
 
         await updateRecord(client, config, record, actor.tenantId);
 
+        const amountDelta = record.amount - existingRecord.amount;
+        if (this.financeAccountService && kind === "advance" && amountDelta !== 0) {
+          await this.financeAccountService.recordTransactionInClient(
+            client,
+            {
+              accountType: "CASH",
+              type: amountDelta > 0 ? "WITHDRAWAL" : "DEPOSIT",
+              amount: Math.abs(amountDelta),
+              date: record.date,
+              note: `Advance adjusted — ${dsrResult.rows[0].name}`,
+            },
+            actor,
+          );
+        }
+
         const { before, after } = diffFields(existingRecord, record, ["date", "dsrId", "amount", "note"]);
 
         await this.recordActivity(client, actor, {
@@ -146,6 +162,21 @@ export class DsrFinanceService {
         record.performedBy = actor.id;
         record.tenantId = actor.tenantId;
         await insertRecord(client, config, record);
+
+        if (this.financeAccountService && kind === "advance") {
+          await this.financeAccountService.recordTransactionInClient(
+            client,
+            {
+              accountType: "CASH",
+              type: "WITHDRAWAL",
+              amount: record.amount,
+              date: record.date,
+              note: `Advance — ${dsrResult.rows[0].name}: ${record.note}`,
+            },
+            actor,
+          );
+        }
+
         await this.recordActivity(client, actor, {
           actionType: `${config.actionBase}.create`,
           entityType: config.entityType,

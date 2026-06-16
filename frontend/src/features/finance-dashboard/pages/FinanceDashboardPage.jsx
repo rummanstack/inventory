@@ -261,50 +261,6 @@ export default function FinanceDashboardPage() {
             </div>
           </div>
 
-          {/* Recent Evening Settlements */}
-          <div>
-            <h2 className="mb-4 text-base font-bold text-slate-950">{t('financeDashboard.recentSettlementsTitle')}</h2>
-            {!data.recentSettlements?.length ? (
-              <p className="text-sm text-slate-500">{t('financeDashboard.noRecentSettlements')}</p>
-            ) : (
-              <div className="surface overflow-hidden">
-                <table className="w-full text-sm">
-                  <thead className="table-head">
-                    <tr>
-                      <th className="px-4 py-3">{t('financeAccounts.date')}</th>
-                      <th className="px-4 py-3">{t('common.dsr')}</th>
-                      <th className="px-4 py-3 text-right">{t('financeDashboard.totalPayable')}</th>
-                      <th className="px-4 py-3 text-right">{t('financeDashboard.amountPaid')}</th>
-                      <th className="px-4 py-3 text-right">{t('financeDashboard.due')}</th>
-                      <th className="px-4 py-3">{t('common.actions')}</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {data.recentSettlements.map((s) => (
-                      <tr key={s.id} className="hover:bg-slate-50">
-                        <td className="whitespace-nowrap px-4 py-3 font-medium text-slate-700">{formatDate(s.date)}</td>
-                        <td className="px-4 py-3">
-                          <p className="font-semibold text-slate-800">{s.dsrName}</p>
-                          {s.area ? <p className="text-xs text-slate-400">{s.area}</p> : null}
-                        </td>
-                        <td className="whitespace-nowrap px-4 py-3 text-right text-slate-600">{formatCurrency(s.totalPayable)}</td>
-                        <td className="whitespace-nowrap px-4 py-3 text-right font-bold text-emerald-600">{formatCurrency(s.amountPaid)}</td>
-                        <td className={`whitespace-nowrap px-4 py-3 text-right font-bold ${s.dueAmount > 0 ? 'text-rose-600' : 'text-slate-400'}`}>
-                          {s.dueAmount > 0 ? formatCurrency(s.dueAmount) : '—'}
-                        </td>
-                        <td className="px-4 py-3">
-                          <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${s.dueAmount > 0 ? 'bg-amber-50 text-amber-700 border border-amber-100' : 'bg-emerald-50 text-emerald-700 border border-emerald-100'}`}>
-                            {s.dueAmount > 0 ? t('financeDashboard.partial') : t('financeDashboard.settled')}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-
           {/* Recent Finance Transactions */}
           <div>
             <h2 className="mb-4 text-base font-bold text-slate-950">{t('financeDashboard.recentTransactionsTitle')}</h2>

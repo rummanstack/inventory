@@ -55,7 +55,7 @@ const en = {
       morningIssue: 'Morning Issue',
       eveningSettlement: 'Evening Settlement',
       financeDashboard: 'Finance Dashboard',
-      financeAccounts: 'Cash & Bank Accounts',
+      financeAccounts: 'Accounts',
       expenses: 'Expenses',
       dsrFinance: 'DSR Finance',
       monthEndSummary: 'Month-End Summary',

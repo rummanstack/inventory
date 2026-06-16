@@ -6,12 +6,14 @@ import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { formatCurrency } from '../../../utils/calculations.js';
 import AuditHistory from '../../../components/AuditHistory.jsx';
 import { usePurchaseReceiptFormViewModel } from '../viewmodels/usePurchaseReceiptFormViewModel';
+import SupplierFormModal from '../../suppliers/components/SupplierFormModal.jsx';
 
 export default function PurchaseReceiveFormModal({ purchaseReceipt, onClose, onSave }) {
-  const { t, supplierDirectory, productDirectory } = useInventoryApp();
+  const { t, supplierDirectory, productDirectory, saveSupplier } = useInventoryApp();
   const vm = usePurchaseReceiptFormViewModel({ purchaseReceipt, products: productDirectory });
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+  const [showAddSupplier, setShowAddSupplier] = useState(false);
 
   async function submitForm(event) {
     event.preventDefault();
@@ -43,12 +45,21 @@ export default function PurchaseReceiveFormModal({ purchaseReceipt, onClose, onS
   }
 
   return (
+    <>
     <Modal title={vm.isEdit ? t('purchaseReceive.editTitle') : t('purchaseReceive.addTitle')} description={t('purchaseReceive.modalDescription')} onClose={onClose} width="max-w-4xl">
       <form className="space-y-4" onSubmit={submitForm}>
         {error ? <Alert type="error">{error}</Alert> : null}
         <div className="grid gap-4 sm:grid-cols-3">
           <div>
-            <label className="label">{t('purchaseReceive.supplierLabel')}</label>
+            <div className="mb-1 flex items-center justify-between">
+              <label className="label mb-0">{t('purchaseReceive.supplierLabel')}</label>
+              {!vm.isEdit && (
+                <button type="button" className="inline-flex items-center gap-1 text-xs font-medium text-indigo-600 hover:text-indigo-800" onClick={() => setShowAddSupplier(true)}>
+                  <Plus size={13} />
+                  {t('suppliers.addTitle')}
+                </button>
+              )}
+            </div>
             <select className="input" value={vm.supplierId} onChange={(event) => vm.setSupplierId(event.target.value)} disabled={vm.isEdit}>
               <option value="">{t('purchaseReceive.selectSupplier')}</option>
               {supplierDirectory.map((supplier) => (
@@ -191,5 +202,20 @@ export default function PurchaseReceiveFormModal({ purchaseReceipt, onClose, onS
         </div>
       </form>
     </Modal>
+
+    {showAddSupplier && (
+      <SupplierFormModal
+        onClose={() => setShowAddSupplier(false)}
+        onSave={async (payload) => {
+          const result = await saveSupplier(payload);
+          if (result?.ok) {
+            vm.setSupplierId(result.supplier.id);
+            setShowAddSupplier(false);
+          }
+          return result;
+        }}
+      />
+    )}
+    </>
   );
 }

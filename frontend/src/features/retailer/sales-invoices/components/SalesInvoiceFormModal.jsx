@@ -6,7 +6,7 @@ import { useSalesInvoiceFormViewModel } from '../viewmodels/useSalesInvoiceFormV
 import SalesInvoiceFormFields from './SalesInvoiceFormFields';
 
 export default function SalesInvoiceFormModal({ onClose, onSave }) {
-  const { t, productDirectory, customerDirectory } = useInventoryApp();
+  const { t, productDirectory, customerDirectory, saveCustomer } = useInventoryApp();
   const vm = useSalesInvoiceFormViewModel({ products: productDirectory, defaultSaleType: 'RETAIL', defaultCustomerType: 'WALK_IN' });
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
@@ -41,7 +41,7 @@ export default function SalesInvoiceFormModal({ onClose, onSave }) {
     <Modal title={t('retailer.salesInvoices.addTitle')} description={t('retailer.salesInvoices.modalDescription')} onClose={onClose} width="max-w-4xl">
       <form className="space-y-4" onSubmit={submitForm}>
         {error ? <Alert type="error">{error}</Alert> : null}
-        <SalesInvoiceFormFields vm={vm} t={t} productDirectory={productDirectory} customerDirectory={customerDirectory} saving={saving} />
+        <SalesInvoiceFormFields vm={vm} t={t} productDirectory={productDirectory} customerDirectory={customerDirectory} saving={saving} saveCustomer={saveCustomer} />
         <div className="flex justify-end gap-2 pt-2">
           <button type="button" className="btn-secondary" onClick={onClose} disabled={saving}>
             {t('common.cancel')}

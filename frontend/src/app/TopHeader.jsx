@@ -1,8 +1,9 @@
 import { CalendarDays, CheckCircle2, LogOut, Menu, ShieldCheck, UserCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { formatDate } from '../utils/calculations';
+import LanguageSwitcher from '../components/LanguageSwitcher';
 
-export default function TopHeader({ title, today, user, tenant, tenantOptions, onSwitchTenant, onLogout, onOpenMenu, t }) {
+export default function TopHeader({ title, today, user, tenant, tenantOptions, onSwitchTenant, onLogout, onOpenMenu, language, onLanguageChange, t }) {
   return (
     <header className="sticky top-0 z-20 border-b border-slate-200/70 bg-white/80 shadow-[0_1px_0_rgba(15,23,42,0.03)] backdrop-blur-2xl no-print">
       <div className="mx-auto flex min-h-20 max-w-[1600px] items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
@@ -49,6 +50,7 @@ export default function TopHeader({ title, today, user, tenant, tenantOptions, o
           <Link to="/security" title={t('nav.security')} className="icon-btn">
             <ShieldCheck size={17} />
           </Link>
+          <LanguageSwitcher language={language} onChange={onLanguageChange} t={t} />
           <button type="button" className="icon-btn" title={t('auth.logout')} onClick={onLogout}>
             <LogOut size={17} />
           </button>

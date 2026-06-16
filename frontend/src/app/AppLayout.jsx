@@ -21,7 +21,7 @@ export default function AppLayout() {
       <ToastViewport toasts={toasts} onDismiss={dismissToast} />
       <AppSidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} user={user} tenant={tenant} language={language} onLanguageChange={setLanguage} onLogout={logout} t={t} can={can} hasFeature={hasFeature} />
       <div className="flex h-screen min-h-0 flex-col lg:pl-72">
-        <TopHeader title={getRouteLabel(location.pathname, t)} today={today} user={user} tenant={tenant} tenantOptions={tenantOptions} onSwitchTenant={switchTenant} onLogout={logout} onOpenMenu={() => setMobileOpen(true)} t={t} />
+        <TopHeader title={getRouteLabel(location.pathname, t)} today={today} user={user} tenant={tenant} tenantOptions={tenantOptions} onSwitchTenant={switchTenant} onLogout={logout} onOpenMenu={() => setMobileOpen(true)} language={language} onLanguageChange={setLanguage} t={t} />
         <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
           <main className="mx-auto max-w-[1680px] px-3 py-6 pb-10 sm:px-6 lg:px-8">
             {loadError ? (

@@ -69,8 +69,7 @@ export class ExpenseService {
     const monthStart = startOfMonth(selectedMonth);
     const nextMonthStart = startOfNextMonth(selectedMonth);
 
-    const client = await this.databaseManager.getPool().connect();
-    try {
+    return this.databaseManager.withClient(async (client) => {
       const monthlyExpenses = await listExpensesInRange(client, monthStart, nextMonthStart, actor.tenantId);
       const dailyExpenses = monthlyExpenses.filter((expense) => expense.date === selectedDate);
 
@@ -83,9 +82,7 @@ export class ExpenseService {
         monthlySummary: aggregateExpenses(monthlyExpenses),
         categories: EXPENSE_CATEGORIES,
       };
-    } finally {
-      client.release();
-    }
+    });
   }
 
   async saveExpense(input, actor) {
@@ -174,6 +171,20 @@ export class ExpenseService {
       });
       assert(result.rowCount > 0, "Expense not found.", 404);
 
+      if (this.financeAccountService) {
+        await this.financeAccountService.recordTransactionInClient(
+          client,
+          {
+            accountType: "CASH",
+            type: "DEPOSIT",
+            amount: existingExpense.amount,
+            date: existingExpense.date,
+            note: `Expense reversal — ${existingExpense.category}: ${existingExpense.note}`,
+          },
+          actor,
+        );
+      }
+
       await this.auditService.record(client, {
         tenantId: actor.tenantId,
         userId: actor.id,
@@ -193,14 +204,30 @@ export class ExpenseService {
       const result = await restoreExpense(client, expenseId, actor.tenantId);
       assert(result.rowCount > 0, "Expense not found in trash.", 404);
 
+      const row = result.rows[0];
+
+      if (this.financeAccountService) {
+        await this.financeAccountService.recordTransactionInClient(
+          client,
+          {
+            accountType: "CASH",
+            type: "WITHDRAWAL",
+            amount: Number(row.amount),
+            date: row.expense_date,
+            note: `Expense restored — ${row.category}: ${row.note}`,
+          },
+          actor,
+        );
+      }
+
       await this.auditService.record(client, {
         tenantId: actor.tenantId,
         userId: actor.id,
         actionType: "expense.restore",
         entityType: "expense",
         entityId: expenseId,
-        description: `${actor.name} restored expense ${result.rows[0].category} from trash`,
-        metadata: { date: result.rows[0].expense_date, category: result.rows[0].category, amount: result.rows[0].amount },
+        description: `${actor.name} restored expense ${row.category} from trash`,
+        metadata: { date: row.expense_date, category: row.category, amount: row.amount },
       });
 
       return { ok: true };
@@ -229,16 +256,13 @@ export class ExpenseService {
     const { page, pageSize, limit, offset } = parsePagination(query);
     const tenantId = actor.tenantId;
 
-    const client = await this.databaseManager.getPool().connect();
-    try {
+    return this.databaseManager.withClient(async (client) => {
       const [items, total] = await Promise.all([
         listTrashedExpenses(client, { tenantId, limit, offset }),
         countTrashedExpenses(client, tenantId),
       ]);
 
       return buildPageResult({ items, total, page, pageSize });
-    } finally {
-      client.release();
-    }
+    });
   }
 }

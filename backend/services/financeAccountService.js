@@ -19,13 +19,20 @@ import {
 } from "../repositories/financeAccountRepository.js";
 import { logActivity, recordFinanceAccountTransaction } from "./shared/inventoryHelpers.js";
 
-const ACCOUNT_TYPES = ["CASH"];
+const ACCOUNT_TYPES = ["CASH", "BANK"];
 const TRANSACTION_TYPES = ["DEPOSIT", "WITHDRAWAL"];
 const DATE_ERROR = "Date must be in YYYY-MM-DD format.";
 
 const DEFAULT_ACCOUNTS = [
   { type: "CASH", name: "Cash in Hand" },
+  { type: "BANK", name: "Bank Account" },
 ];
+
+function computeAmounts(type, amount, currentBalance) {
+  const debit = type === "DEPOSIT" ? amount : 0;
+  const credit = type === "WITHDRAWAL" ? amount : 0;
+  return { debit, credit, balanceAfter: currentBalance + debit - credit };
+}
 
 export class FinanceAccountService {
   constructor(databaseManager, { auditService }) {
@@ -50,7 +57,7 @@ export class FinanceAccountService {
   }
 
   async listAccounts(actor) {
-    return this.databaseManager.withTransaction(async (client) => {
+    return this.databaseManager.withClient(async (client) => {
       await this.ensureDefaultAccounts(client, actor.tenantId);
       return listAccountsRepo(client, actor.tenantId);
     });
@@ -61,9 +68,7 @@ export class FinanceAccountService {
     const accountSummary = await findAccountByType(client, actor.tenantId, accountType);
     const account = await findAccountForUpdate(client, accountSummary.id, actor.tenantId);
 
-    const debit = type === "DEPOSIT" ? amount : 0;
-    const credit = type === "WITHDRAWAL" ? amount : 0;
-    const balanceAfter = account.balance + debit - credit;
+    const { debit, credit, balanceAfter } = computeAmounts(type, amount, account.balance);
 
     await recordFinanceAccountTransaction(client, {
       tenantId: actor.tenantId,
@@ -97,9 +102,7 @@ export class FinanceAccountService {
       const accountSummary = await findAccountByType(client, actor.tenantId, accountType);
       const account = await findAccountForUpdate(client, accountSummary.id, actor.tenantId);
 
-      const debit = type === "DEPOSIT" ? amount : 0;
-      const credit = type === "WITHDRAWAL" ? amount : 0;
-      const balanceAfter = account.balance + debit - credit;
+      const { debit, credit, balanceAfter } = computeAmounts(type, amount, account.balance);
 
       const row = await recordFinanceAccountTransaction(client, {
         tenantId: actor.tenantId,

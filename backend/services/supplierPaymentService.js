@@ -91,10 +91,12 @@ export class SupplierPaymentService {
     assert(supplierResult.rowCount > 0, "Supplier not found.", 404);
     const supplier = supplierResult.rows[0];
 
-    const insertResult = await insertSupplierPayment(client, { ...base, createdById: actor.id });
-
     const latestEntry = await getLatestSupplierDueLedgerEntry(client, supplier.id, actor.tenantId);
     const currentBalance = latestEntry ? latestEntry.balanceAfter : Math.max(0, Number(supplier.opening_due || 0));
+
+    assert(base.amount <= currentBalance, `Payment amount exceeds current due balance of ${currentBalance}.`, 400);
+
+    const insertResult = await insertSupplierPayment(client, { ...base, createdById: actor.id });
     const balanceAfter = currentBalance - base.amount;
 
     await recordSupplierDueLedgerEntry(client, {

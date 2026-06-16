@@ -342,6 +342,7 @@
       monthlyInflowHelper: 'এই মাসে রেকর্ড হওয়া মোট জমা',
       monthlyOutflow: 'ব্যয় (এই মাস)',
       monthlyOutflowHelper: 'এই মাসে রেকর্ড হওয়া মোট উত্তোলন',
+      balanceTitle: 'ব্যালেন্স ও প্রাপ্য',
       cashFlowTitle: 'মাসিক ক্যাশ ফ্লো',
       recentTransactionsTitle: 'সাম্প্রতিক লেনদেন',
       noRecentTransactions: 'এখনও কোনো লেনদেন রেকর্ড হয়নি।',

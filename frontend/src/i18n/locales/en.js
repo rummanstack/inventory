@@ -360,6 +360,7 @@ const en = {
       monthlyInflowHelper: 'Total deposits recorded this month',
       monthlyOutflow: 'Money Out (This Month)',
       monthlyOutflowHelper: 'Total withdrawals recorded this month',
+      balanceTitle: 'Balances & Receivables',
       cashFlowTitle: 'Monthly Cash Flow',
       recentTransactionsTitle: 'Recent Transactions',
       noRecentTransactions: 'No transactions recorded yet.',

@@ -104,7 +104,7 @@ export default function FinanceDashboardPage() {
                 </div>
                 <BreakdownList items={[
                   { label: 'Revenue', value: rr.data.revenue, valueClass: 'text-blue-600' },
-                  { label: 'Cost of Goods (COGS)', value: rr.data.cogs, valueClass: 'text-amber-600' },
+                  { label: 'Cost of Goods', value: rr.data.cogs, valueClass: 'text-amber-600' },
                   { label: 'Gross Profit', value: rr.data.grossProfit, valueClass: rr.data.grossProfit >= 0 ? 'text-emerald-600' : 'text-rose-600', bold: true },
                   { label: 'Operating Expenses', value: rr.data.totalExpenses, valueClass: 'text-slate-600' },
                   { label: 'Net Profit', value: rr.data.netProfit, valueClass: rr.data.netProfit >= 0 ? 'text-emerald-600' : 'text-rose-600', bold: true },

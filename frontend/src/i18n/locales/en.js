@@ -1146,6 +1146,15 @@ const en = {
       currentPasswordHint: 'Required only when setting a new password',
       updateSuccess: 'Profile updated successfully.',
       updateFailed: 'Unable to update profile.',
+      online: 'Online',
+    },
+    notifications: {
+      title: 'Notifications',
+      lowStockAlert: 'Low stock: {name} has only {count} items left',
+      noAlerts: 'No low stock alerts',
+      viewProduct: 'View product',
+      currentStock: 'Current stock',
+      alertLevel: 'Alert level',
     },
     orgSettings: {
       eyebrow: 'Settings',

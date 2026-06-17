@@ -1150,6 +1150,15 @@
       currentPasswordHint: 'নতুন পাসওয়ার্ড সেট করার সময় প্রয়োজন',
       updateSuccess: 'প্রোফাইল সফলভাবে আপডেট হয়েছে।',
       updateFailed: 'প্রোফাইল আপডেট করা যায়নি।',
+      online: 'অনলাইন',
+    },
+    notifications: {
+      title: 'নোটিফিকেশন',
+      lowStockAlert: 'স্টক কম: {name} এর মাত্র {count}টি বাকি আছে',
+      noAlerts: 'কোনো লো-স্টক অ্যালার্ট নেই',
+      viewProduct: 'পণ্য দেখুন',
+      currentStock: 'বর্তমান স্টক',
+      alertLevel: 'অ্যালার্ট লেভেল',
     },
     orgSettings: {
       eyebrow: 'সেটিংস',

@@ -102,6 +102,28 @@ export function Badge({ children, tone = 'slate' }) {
   );
 }
 
+function getInitials(name = '') {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return '?';
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+export function Avatar({ name, imageUrl, size = 40, status, className = '' }) {
+  const dimension = `${size}px`;
+
+  return (
+    <span className={cx('relative inline-flex shrink-0', className)} style={{ width: dimension, height: dimension }}>
+      <span className="flex h-full w-full items-center justify-center overflow-hidden rounded-full bg-[linear-gradient(135deg,var(--secondary-strong),var(--bg-dark))] text-sm font-black text-white">
+        {imageUrl ? <img src={imageUrl} alt={name || ''} className="h-full w-full object-cover" /> : getInitials(name)}
+      </span>
+      {status === 'online' ? (
+        <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white bg-[var(--success)]" />
+      ) : null}
+    </span>
+  );
+}
+
 export function ChartPanel({ title, description, action, children, className = '' }) {
   return (
     <section className={cx('surface overflow-hidden', className)}>

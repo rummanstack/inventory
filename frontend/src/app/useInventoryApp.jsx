@@ -760,10 +760,16 @@ export function InventoryAppProvider({ children }) {
   async function login(credentials) {
     try {
       const result = await inventoryApi.login(credentials);
-      setUser(result.user);
+      const isPlatformUser = !result.user.tenantId;
+      setUser({ ...result.user, isPlatformUser });
       setTenant(result.tenant || null);
       setPermissions(result.permissions || []);
-      if (result.user.role !== 'system_developer') {
+      if (isPlatformUser) {
+        inventoryApi.listTenants().then((tenantsResult) => {
+          setTenantOptions(tenantsResult.tenants || []);
+        }).catch(() => {});
+      }
+      if (!isPlatformUser) {
         await refreshState();
       }
       pushToast('success', t('alerts.loggedIn'), result.user.name);

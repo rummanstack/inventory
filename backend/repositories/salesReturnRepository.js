@@ -72,9 +72,9 @@ export async function listSalesReturnsPage(client, { limit, offset, ...filters }
   const { params, where } = buildFilters(filters);
   params.push(limit, offset);
   const result = await client.query(
-    `SELECT sr.*, c.shop_name AS customer_name, si.invoice_number, u.name AS created_by_name, ${itemsSubquery()} AS items
+    `SELECT sr.*, c.name AS customer_name, si.invoice_number, u.name AS created_by_name, ${itemsSubquery()} AS items
      FROM sales_returns sr
-     LEFT JOIN customers c ON c.id = sr.customer_id
+     LEFT JOIN retail_customers c ON c.id = sr.customer_id
      LEFT JOIN sales_invoices si ON si.id = sr.sales_invoice_id
      LEFT JOIN users u ON u.id = sr.created_by
      ${where}
@@ -87,9 +87,9 @@ export async function listSalesReturnsPage(client, { limit, offset, ...filters }
 
 export function findSalesReturnById(client, returnId, tenantId) {
   return client.query(
-    `SELECT sr.*, c.shop_name AS customer_name, si.invoice_number, u.name AS created_by_name, ${itemsSubquery()} AS items
+    `SELECT sr.*, c.name AS customer_name, si.invoice_number, u.name AS created_by_name, ${itemsSubquery()} AS items
      FROM sales_returns sr
-     LEFT JOIN customers c ON c.id = sr.customer_id
+     LEFT JOIN retail_customers c ON c.id = sr.customer_id
      LEFT JOIN sales_invoices si ON si.id = sr.sales_invoice_id
      LEFT JOIN users u ON u.id = sr.created_by
      WHERE sr.id = $1 AND sr.tenant_id = $2 AND sr.deleted_at IS NULL

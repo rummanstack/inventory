@@ -6,6 +6,7 @@ export function useDirectories() {
   const [dsrDirectory, setDsrDirectory] = useState([]);
   const [supplierDirectory, setSupplierDirectory] = useState([]);
   const [customerDirectory, setCustomerDirectory] = useState([]);
+  const [retailCustomerDirectory, setRetailCustomerDirectory] = useState([]);
 
   function upsertProductDirectory(product) {
     setProductDirectory((current) => {
@@ -82,6 +83,28 @@ export function useDirectories() {
     }
   }
 
+  function upsertRetailCustomerDirectory(customer) {
+    setRetailCustomerDirectory((current) => {
+      const next = current.some((item) => item.id === customer.id)
+        ? current.map((item) => (item.id === customer.id ? customer : item))
+        : [...current, customer];
+      return next.sort((a, b) => a.name.localeCompare(b.name));
+    });
+  }
+
+  function removeFromRetailCustomerDirectory(customerId) {
+    setRetailCustomerDirectory((current) => current.filter((item) => item.id !== customerId));
+  }
+
+  async function refreshRetailCustomerDirectory() {
+    try {
+      const result = await inventoryApi.getActiveRetailCustomers();
+      setRetailCustomerDirectory(result.items || []);
+    } catch {
+      // Best effort - the directory will catch up on the next full refresh.
+    }
+  }
+
   async function refreshProductDirectory() {
     try {
       const result = await inventoryApi.getProductsDirectory();
@@ -105,6 +128,7 @@ export function useDirectories() {
     setDsrDirectory([]);
     setSupplierDirectory([]);
     setCustomerDirectory([]);
+    setRetailCustomerDirectory([]);
   }
 
   return {
@@ -112,10 +136,12 @@ export function useDirectories() {
     dsrDirectory,
     supplierDirectory,
     customerDirectory,
+    retailCustomerDirectory,
     setProductDirectory,
     setDsrDirectory,
     setSupplierDirectory,
     setCustomerDirectory,
+    setRetailCustomerDirectory,
     upsertProductDirectory,
     removeFromProductDirectory,
     upsertDsrDirectory,
@@ -124,10 +150,13 @@ export function useDirectories() {
     removeFromSupplierDirectory,
     upsertCustomerDirectory,
     removeFromCustomerDirectory,
+    upsertRetailCustomerDirectory,
+    removeFromRetailCustomerDirectory,
     refreshProductDirectory,
     refreshDsrDirectory,
     refreshSupplierDirectory,
     refreshCustomerDirectory,
+    refreshRetailCustomerDirectory,
     resetDirectories,
   };
 }

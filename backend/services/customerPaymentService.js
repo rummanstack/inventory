@@ -5,7 +5,7 @@ import { parsePagination, buildPageResult } from "../lib/pagination.js";
 import { normalizeCustomerPayment } from "../lib/normalizers.js";
 import { CUSTOMER_DUE_LEDGER_TYPES } from "../lib/customerDueLedger.js";
 import { CUSTOMER_PAYMENT_ACTIONS } from "../lib/auditActions.js";
-import { findCustomerById, updateCustomerCurrentDue } from "../repositories/customerRepository.js";
+import { findRetailCustomerById, updateRetailCustomerCurrentDue } from "../repositories/retailCustomerRepository.js";
 import { getLatestCustomerDueLedgerEntry } from "../repositories/customerDueLedgerRepository.js";
 import {
   countCustomerPayments,
@@ -87,7 +87,7 @@ export class CustomerPaymentService {
   }
 
   async createCustomerPaymentRecord(client, base, actor) {
-    const customerResult = await findCustomerById(client, base.customerId, actor.tenantId);
+    const customerResult = await findRetailCustomerById(client, base.customerId, actor.tenantId);
     assert(customerResult.rowCount > 0, "Customer not found.", 404);
     const customer = customerResult.rows[0];
 
@@ -106,11 +106,11 @@ export class CustomerPaymentService {
       balanceAfter,
       referenceType: "customer_payment",
       referenceId: base.id,
-      note: base.note || `Collection from ${customer.shop_name}`,
+      note: base.note || `Collection from ${customer.name}`,
       createdById: actor.id,
     });
 
-    await updateCustomerCurrentDue(client, customer.id, actor.tenantId, Math.max(0, balanceAfter));
+    await updateRetailCustomerCurrentDue(client, customer.id, actor.tenantId, Math.max(0, balanceAfter));
 
     if (this.financeAccountService) {
       await this.financeAccountService.recordTransactionInClient(
@@ -120,7 +120,7 @@ export class CustomerPaymentService {
           type: "DEPOSIT",
           amount: base.amount,
           date: base.paymentDate,
-          note: base.note || `Customer payment from ${customer.shop_name}`,
+          note: base.note || `Customer payment from ${customer.name}`,
         },
         actor,
       );
@@ -130,7 +130,7 @@ export class CustomerPaymentService {
       actionType: CUSTOMER_PAYMENT_ACTIONS.CREATE,
       entityType: "customer_payment",
       entityId: base.id,
-      description: `${actor.name} recorded due collection of ${base.amount} from ${customer.shop_name}`,
+      description: `${actor.name} recorded due collection of ${base.amount} from ${customer.name}`,
       metadata: { customerId: customer.id, amount: base.amount },
     });
 
@@ -149,7 +149,7 @@ export class CustomerPaymentService {
       "Customer cannot be changed after the payment is recorded.",
     );
 
-    const customerResult = await findCustomerById(client, base.customerId, actor.tenantId);
+    const customerResult = await findRetailCustomerById(client, base.customerId, actor.tenantId);
     assert(customerResult.rowCount > 0, "Customer not found.", 404);
     const customer = customerResult.rows[0];
 
@@ -172,11 +172,11 @@ export class CustomerPaymentService {
         balanceAfter,
         referenceType: "customer_payment",
         referenceId: base.id,
-        note: `Collection adjusted for ${customer.shop_name}`,
+        note: `Collection adjusted for ${customer.name}`,
         createdById: actor.id,
       });
 
-      await updateCustomerCurrentDue(client, customer.id, actor.tenantId, Math.max(0, balanceAfter));
+      await updateRetailCustomerCurrentDue(client, customer.id, actor.tenantId, Math.max(0, balanceAfter));
 
       if (this.financeAccountService) {
         await this.financeAccountService.recordTransactionInClient(
@@ -186,7 +186,7 @@ export class CustomerPaymentService {
             type: amountDelta > 0 ? "DEPOSIT" : "WITHDRAWAL",
             amount: Math.abs(amountDelta),
             date: base.paymentDate,
-            note: `Payment adjusted for ${customer.shop_name}`,
+            note: `Payment adjusted for ${customer.name}`,
           },
           actor,
         );
@@ -213,7 +213,7 @@ export class CustomerPaymentService {
       actionType: CUSTOMER_PAYMENT_ACTIONS.UPDATE,
       entityType: "customer_payment",
       entityId: base.id,
-      description: `${actor.name} updated due collection from ${customer.shop_name}`,
+      description: `${actor.name} updated due collection from ${customer.name}`,
       metadata: { customerId: customer.id, amount: base.amount },
       before,
       after,
@@ -254,7 +254,7 @@ export class CustomerPaymentService {
         createdById: actor.id,
       });
 
-      await updateCustomerCurrentDue(client, payment.customer_id, actor.tenantId, Math.max(0, balanceAfter));
+      await updateRetailCustomerCurrentDue(client, payment.customer_id, actor.tenantId, Math.max(0, balanceAfter));
 
       if (this.financeAccountService && amount > 0) {
         await this.financeAccountService.recordTransactionInClient(
@@ -308,7 +308,7 @@ export class CustomerPaymentService {
         createdById: actor.id,
       });
 
-      await updateCustomerCurrentDue(client, row.customer_id, actor.tenantId, Math.max(0, balanceAfter));
+      await updateRetailCustomerCurrentDue(client, row.customer_id, actor.tenantId, Math.max(0, balanceAfter));
 
       if (this.financeAccountService && amount > 0) {
         await this.financeAccountService.recordTransactionInClient(

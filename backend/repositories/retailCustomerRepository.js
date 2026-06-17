@@ -136,3 +136,10 @@ export function findRetailCustomerById(client, id, tenantId) {
     [id, tenantId],
   );
 }
+
+export function updateRetailCustomerCurrentDue(client, id, tenantId, currentDue) {
+  return client.query(
+    "UPDATE retail_customers SET current_due = $3, updated_at = NOW() WHERE id = $1 AND tenant_id = $2",
+    [id, tenantId, currentDue],
+  );
+}

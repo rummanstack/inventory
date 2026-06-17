@@ -34,10 +34,12 @@ export function InventoryAppProvider({ children }) {
     dsrDirectory,
     supplierDirectory,
     customerDirectory,
+    retailCustomerDirectory,
     setProductDirectory,
     setDsrDirectory,
     setSupplierDirectory,
     setCustomerDirectory,
+    setRetailCustomerDirectory,
     upsertProductDirectory,
     removeFromProductDirectory,
     upsertDsrDirectory,
@@ -46,10 +48,13 @@ export function InventoryAppProvider({ children }) {
     removeFromSupplierDirectory,
     upsertCustomerDirectory,
     removeFromCustomerDirectory,
+    upsertRetailCustomerDirectory,
+    removeFromRetailCustomerDirectory,
     refreshProductDirectory,
     refreshDsrDirectory,
     refreshSupplierDirectory,
     refreshCustomerDirectory,
+    refreshRetailCustomerDirectory,
     resetDirectories,
   } = useDirectories();
   const [user, setUser] = useState(null);
@@ -91,16 +96,18 @@ export function InventoryAppProvider({ children }) {
     try {
       setLoading(true);
       setLoadError('');
-      const [productsResult, dsrsResult, suppliersResult, customersResult] = await Promise.all([
+      const [productsResult, dsrsResult, suppliersResult, customersResult, retailCustomersResult] = await Promise.all([
         inventoryApi.getProductsDirectory(),
         inventoryApi.getDsrsDirectory(),
         inventoryApi.getActiveSuppliers(),
         inventoryApi.getActiveCustomers(),
+        inventoryApi.getActiveRetailCustomers(),
       ]);
       setProductDirectory(productsResult.products || []);
       setDsrDirectory(dsrsResult.dsrs || []);
       setSupplierDirectory(suppliersResult.items || []);
       setCustomerDirectory(customersResult.items || []);
+      setRetailCustomerDirectory(retailCustomersResult.items || []);
     } catch (error) {
       if (error.status === 401) {
         handleUnauthorized();
@@ -304,6 +311,23 @@ export function InventoryAppProvider({ children }) {
     }
   }
 
+  async function saveRetailCustomer(customer) {
+    try {
+      const result = customer.id ? await inventoryApi.updateRetailCustomer(customer) : await inventoryApi.createRetailCustomer(customer);
+      if (result.retailCustomer.status === 'ACTIVE') {
+        upsertRetailCustomerDirectory(result.retailCustomer);
+      } else {
+        removeFromRetailCustomerDirectory(result.retailCustomer.id);
+      }
+      pushToast('success', customer.id ? t('retailCustomers.editTitle') : t('retailCustomers.addTitle'), `${customer.name} ${customer.id ? t('alerts.updated') : t('alerts.created')}`);
+      return { ok: true, retailCustomer: result.retailCustomer };
+    } catch (error) {
+      const message = getFriendlyError(error, t);
+      pushToast('error', t('alerts.requestFailed'), message);
+      return { ok: false, message };
+    }
+  }
+
   async function deleteCustomer(customer) {
     const confirmMessage = t('customers.deleteConfirm', { name: customer.shopName });
     const { confirmed, reason } = await confirm({
@@ -455,7 +479,7 @@ export function InventoryAppProvider({ children }) {
   async function saveSalesInvoice(invoice) {
     try {
       const result = await inventoryApi.createSalesInvoice(invoice);
-      await Promise.all([refreshProductDirectory(), refreshCustomerDirectory()]);
+      await Promise.all([refreshProductDirectory(), refreshRetailCustomerDirectory()]);
       pushToast('success', t('retailer.salesInvoices.addTitle'), `${result.invoice.invoiceNumber} ${t('alerts.created')}`);
       return { ok: true, salesInvoice: result.invoice };
     } catch (error) {
@@ -494,7 +518,7 @@ export function InventoryAppProvider({ children }) {
   async function saveCustomerPayment(payment) {
     try {
       const result = payment.id ? await inventoryApi.updateCustomerPayment(payment) : await inventoryApi.createCustomerPayment(payment);
-      await refreshCustomerDirectory();
+      await refreshRetailCustomerDirectory();
       pushToast('success', payment.id ? t('retailer.dueCollection.editTitle') : t('retailer.dueCollection.addTitle'), payment.id ? t('alerts.updated') : t('alerts.created'));
       return { ok: true, payment: result.payment };
     } catch (error) {
@@ -520,7 +544,7 @@ export function InventoryAppProvider({ children }) {
 
     try {
       await inventoryApi.deleteCustomerPayment(payment.id, reason);
-      await refreshCustomerDirectory();
+      await refreshRetailCustomerDirectory();
       pushToast('success', t('common.delete'), t('alerts.deleted'));
       return { ok: true };
     } catch (error) {
@@ -533,7 +557,7 @@ export function InventoryAppProvider({ children }) {
   async function saveSalesReturn(salesReturn) {
     try {
       const result = await inventoryApi.createSalesReturn(salesReturn);
-      await Promise.all([refreshProductDirectory(), refreshCustomerDirectory()]);
+      await Promise.all([refreshProductDirectory(), refreshRetailCustomerDirectory()]);
       pushToast('success', t('retailer.salesReturn.addTitle'), `${result.salesReturn.returnNumber} ${t('alerts.created')}`);
       return { ok: true, salesReturn: result.salesReturn };
     } catch (error) {
@@ -695,7 +719,7 @@ export function InventoryAppProvider({ children }) {
     return restoreTrashedItem({
       name: invoice.invoiceNumber,
       restoreFn: () => inventoryApi.restoreSalesInvoice(invoice.id),
-      onRestored: () => Promise.all([refreshProductDirectory(), refreshCustomerDirectory()]),
+      onRestored: () => Promise.all([refreshProductDirectory(), refreshRetailCustomerDirectory()]),
     });
   }
 
@@ -703,7 +727,7 @@ export function InventoryAppProvider({ children }) {
     return restoreTrashedItem({
       name: payment.customerName || payment.id,
       restoreFn: () => inventoryApi.restoreCustomerPayment(payment.id),
-      onRestored: refreshCustomerDirectory,
+      onRestored: refreshRetailCustomerDirectory,
     });
   }
 
@@ -816,6 +840,7 @@ export function InventoryAppProvider({ children }) {
       dsrDirectory,
       supplierDirectory,
       customerDirectory,
+      retailCustomerDirectory,
       loading,
       loadError,
       toasts,
@@ -842,6 +867,7 @@ export function InventoryAppProvider({ children }) {
       permanentlyDeleteDsr,
       saveCustomer,
       deleteCustomer,
+      saveRetailCustomer,
       restoreCustomer,
       permanentlyDeleteCustomer,
       restoreExpense,
@@ -867,7 +893,7 @@ export function InventoryAppProvider({ children }) {
       saveSettlement,
       updateProfile,
     }),
-    [today, language, t, user, tenant, tenantOptions, permissions, authLoading, productDirectory, dsrDirectory, supplierDirectory, customerDirectory, loading, loadError, toasts, confirmation],
+    [today, language, t, user, tenant, tenantOptions, permissions, authLoading, productDirectory, dsrDirectory, supplierDirectory, customerDirectory, retailCustomerDirectory, loading, loadError, toasts, confirmation],
   );
 
   return <InventoryAppContext.Provider value={value}>{children}</InventoryAppContext.Provider>;

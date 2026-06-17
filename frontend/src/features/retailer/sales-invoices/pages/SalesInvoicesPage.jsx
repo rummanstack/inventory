@@ -10,7 +10,7 @@ import { useSalesInvoicesViewModel } from '../viewmodels/useSalesInvoicesViewMod
 import { paymentStatusOf, paymentStatusTone } from '../../../../models/inventoryViewData.js';
 
 export default function SalesInvoicesPage() {
-  const { saveSalesInvoice, deleteSalesInvoice, t, can, customerDirectory } = useInventoryApp();
+  const { saveSalesInvoice, deleteSalesInvoice, t, can, retailCustomerDirectory } = useInventoryApp();
   const vm = useSalesInvoicesViewModel();
   const [showFormModal, setShowFormModal] = useState(false);
   const [viewInvoice, setViewInvoice] = useState(null);
@@ -48,8 +48,8 @@ export default function SalesInvoicesPage() {
             </div>
             <select className="input" value={vm.customerId} onChange={(event) => vm.setCustomerId(event.target.value)}>
               <option value="">{t('retailer.shared.allCustomers')}</option>
-              {customerDirectory.map((customer) => (
-                <option key={customer.id} value={customer.id}>{customer.shopName}</option>
+              {retailCustomerDirectory.map((customer) => (
+                <option key={customer.id} value={customer.id}>{customer.name}</option>
               ))}
             </select>
             <select className="input" value={vm.saleType} onChange={(event) => vm.setSaleType(event.target.value)}>

@@ -10,7 +10,7 @@ import { useFormState } from '../../../../hooks/useFormState';
 const PAYMENT_METHODS = ['CASH', 'MOBILE_BANKING', 'CHEQUE'];
 
 export default function CustomerPaymentFormModal({ payment, onClose, onSave }) {
-  const { t, pushToast, customerDirectory } = useInventoryApp();
+  const { t, pushToast, retailCustomerDirectory } = useInventoryApp();
   const isEdit = Boolean(payment);
   const { form, updateField, error, setError, saving, setSaving } = useFormState({
     customerId: payment?.customerId || '',
@@ -80,8 +80,8 @@ export default function CustomerPaymentFormModal({ payment, onClose, onSave }) {
             <label className="label">{t('retailer.shared.customerLabel')}</label>
             <select className="input" value={form.customerId} onChange={(event) => updateField('customerId', event.target.value)} disabled={isEdit}>
               <option value="">{t('retailer.shared.selectCustomer')}</option>
-              {customerDirectory.map((customer) => (
-                <option key={customer.id} value={customer.id}>{customer.shopName}</option>
+              {retailCustomerDirectory.map((customer) => (
+                <option key={customer.id} value={customer.id}>{customer.name}</option>
               ))}
             </select>
           </div>

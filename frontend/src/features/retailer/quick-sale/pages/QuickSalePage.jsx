@@ -6,7 +6,7 @@ import { useSalesInvoiceFormViewModel } from '../../sales-invoices/viewmodels/us
 import SalesInvoiceFormFields from '../../sales-invoices/components/SalesInvoiceFormFields';
 
 function QuickSaleForm({ onSaved }) {
-  const { t, productDirectory, customerDirectory, saveSalesInvoice } = useInventoryApp();
+  const { t, productDirectory, retailCustomerDirectory, saveSalesInvoice, saveRetailCustomer } = useInventoryApp();
   const vm = useSalesInvoiceFormViewModel({ products: productDirectory, defaultSaleType: 'QUICK_SALE', defaultCustomerType: 'WALK_IN' });
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
@@ -43,7 +43,7 @@ function QuickSaleForm({ onSaved }) {
   return (
     <form className="space-y-4" onSubmit={submitForm}>
       {error ? <Alert type="error">{error}</Alert> : null}
-      <SalesInvoiceFormFields vm={vm} t={t} productDirectory={productDirectory} customerDirectory={customerDirectory} saving={saving} />
+      <SalesInvoiceFormFields vm={vm} t={t} productDirectory={productDirectory} retailCustomerDirectory={retailCustomerDirectory} saving={saving} saveRetailCustomer={saveRetailCustomer} />
       <div className="flex justify-end gap-2 pt-2">
         <button type="submit" className="btn-primary" disabled={saving}>
           <Save size={18} />

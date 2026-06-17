@@ -6,7 +6,7 @@ import { STOCK_MOVEMENT_TYPES } from "../lib/stockMovements.js";
 import { CUSTOMER_DUE_LEDGER_TYPES } from "../lib/customerDueLedger.js";
 import { SALES_RETURN_ACTIONS } from "../lib/auditActions.js";
 import { nextReturnNumber } from "../lib/salesNumber.js";
-import { findCustomerById, updateCustomerCurrentDue } from "../repositories/customerRepository.js";
+import { findRetailCustomerById, updateRetailCustomerCurrentDue } from "../repositories/retailCustomerRepository.js";
 import { getLatestCustomerDueLedgerEntry } from "../repositories/customerDueLedgerRepository.js";
 import {
   countSalesReturns,
@@ -129,7 +129,7 @@ export class SalesReturnService {
 
       let customer = null;
       if (base.customerId) {
-        const customerResult = await findCustomerById(client, base.customerId, actor.tenantId);
+        const customerResult = await findRetailCustomerById(client, base.customerId, actor.tenantId);
         assert(customerResult.rowCount > 0, "Customer not found.", 404);
         customer = customerResult.rows[0];
 
@@ -150,14 +150,14 @@ export class SalesReturnService {
           createdById: actor.id,
         });
 
-        await updateCustomerCurrentDue(client, customer.id, actor.tenantId, Math.max(0, balanceAfter));
+        await updateRetailCustomerCurrentDue(client, customer.id, actor.tenantId, Math.max(0, balanceAfter));
       }
 
       await this.recordActivity(client, actor, {
         actionType: SALES_RETURN_ACTIONS.CREATE,
         entityType: "sales_return",
         entityId: base.id,
-        description: `${actor.name} recorded sales return ${returnNumber}${customer ? ` from ${customer.shop_name}` : ""}`,
+        description: `${actor.name} recorded sales return ${returnNumber}${customer ? ` from ${customer.name}` : ""}`,
         metadata: {
           returnNumber,
           salesInvoiceId: base.salesInvoiceId,

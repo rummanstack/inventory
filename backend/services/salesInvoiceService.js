@@ -6,7 +6,7 @@ import { STOCK_MOVEMENT_TYPES } from "../lib/stockMovements.js";
 import { CUSTOMER_DUE_LEDGER_TYPES } from "../lib/customerDueLedger.js";
 import { SALES_INVOICE_ACTIONS } from "../lib/auditActions.js";
 import { nextInvoiceNumber } from "../lib/salesNumber.js";
-import { findCustomerById, updateCustomerCurrentDue } from "../repositories/customerRepository.js";
+import { findRetailCustomerById, updateRetailCustomerCurrentDue } from "../repositories/retailCustomerRepository.js";
 import { getLatestCustomerDueLedgerEntry } from "../repositories/customerDueLedgerRepository.js";
 import {
   countSalesInvoices,
@@ -51,7 +51,7 @@ async function seedOpeningCustomerLedgerIfNeeded(client, customer, tenantId, act
       balanceAfter: openingDue,
       referenceType: "customer_opening",
       referenceId: customer.id,
-      note: `Opening due for ${customer.shop_name}`,
+      note: `Opening due for ${customer.name}`,
       createdById: actor.id,
     });
     return openingDue;
@@ -206,7 +206,7 @@ export class SalesInvoiceService {
 
     let customer = null;
     if (base.customerId) {
-      const customerResult = await findCustomerById(client, base.customerId, actor.tenantId);
+      const customerResult = await findRetailCustomerById(client, base.customerId, actor.tenantId);
       assert(customerResult.rowCount > 0, "Customer not found.", 404);
       customer = customerResult.rows[0];
 
@@ -227,7 +227,7 @@ export class SalesInvoiceService {
           createdById: actor.id,
         });
 
-        await updateCustomerCurrentDue(client, customer.id, actor.tenantId, Math.max(0, currentBalance));
+        await updateRetailCustomerCurrentDue(client, customer.id, actor.tenantId, Math.max(0, currentBalance));
       }
     }
 
@@ -235,7 +235,7 @@ export class SalesInvoiceService {
       actionType: SALES_INVOICE_ACTIONS.CREATE,
       entityType: "sales_invoice",
       entityId: base.id,
-      description: `${actor.name} recorded sale ${invoiceNumber}${customer ? ` to ${customer.shop_name}` : ""}`,
+      description: `${actor.name} recorded sale ${invoiceNumber}${customer ? ` to ${customer.name}` : ""}`,
       metadata: {
         invoiceNumber,
         saleType: base.saleType,

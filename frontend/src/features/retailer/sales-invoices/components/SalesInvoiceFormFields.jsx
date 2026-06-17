@@ -2,9 +2,9 @@ import { useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { DatePickerField } from '../../../../components/DatePicker.jsx';
 import { formatCurrency } from '../../../../utils/calculations.js';
-import CustomerFormModal from '../../../customers/components/CustomerFormModal.jsx';
+import RetailCustomerFormModal from '../../../retail-customers/components/RetailCustomerFormModal.jsx';
 
-export default function SalesInvoiceFormFields({ vm, t, productDirectory, customerDirectory, saving, saveCustomer }) {
+export default function SalesInvoiceFormFields({ vm, t, productDirectory, retailCustomerDirectory, saving, saveRetailCustomer }) {
   const [showAddCustomer, setShowAddCustomer] = useState(false);
 
   return (
@@ -36,14 +36,14 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, custom
             {vm.customerType === 'REGISTERED' && !saving && (
               <button type="button" className="inline-flex items-center gap-1 text-xs font-medium text-indigo-600 hover:text-indigo-800" onClick={() => setShowAddCustomer(true)}>
                 <Plus size={13} />
-                {t('customers.addTitle')}
+                {t('retailCustomers.addTitle')}
               </button>
             )}
           </div>
           <select className="input" value={vm.customerId} onChange={(event) => vm.setCustomerId(event.target.value)} disabled={saving || vm.customerType !== 'REGISTERED'}>
             <option value="">{t('retailer.shared.selectCustomer')}</option>
-            {customerDirectory.map((customer) => (
-              <option key={customer.id} value={customer.id}>{customer.shopName}</option>
+            {retailCustomerDirectory.map((customer) => (
+              <option key={customer.id} value={customer.id}>{customer.name}</option>
             ))}
           </select>
         </div>
@@ -165,13 +165,13 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, custom
     </div>
 
     {showAddCustomer && (
-      <CustomerFormModal
+      <RetailCustomerFormModal
         onClose={() => setShowAddCustomer(false)}
         onSave={async (payload) => {
-          const result = await saveCustomer(payload);
+          const result = await saveRetailCustomer(payload);
           if (result?.ok) {
             vm.setCustomerType('REGISTERED');
-            vm.setCustomerId(result.customer.id);
+            vm.setCustomerId(result.retailCustomer.id);
             setShowAddCustomer(false);
           }
           return result;

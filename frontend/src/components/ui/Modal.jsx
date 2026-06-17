@@ -1,12 +1,13 @@
 import { AlertTriangle, CheckCircle2, Info, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useInventoryApp } from '../../app/useInventoryApp.jsx';
 import { cx } from './utils.js';
 
 export function Modal({ title, description, children, onClose, width = 'max-w-2xl' }) {
   const { t } = useInventoryApp();
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 p-4 backdrop-blur-[10px] no-print">
       <div className={cx('panel-strong w-full overflow-hidden', width)}>
         <div className="flex items-start justify-between border-b border-slate-100 bg-slate-50/80 px-5 py-4">
@@ -20,7 +21,8 @@ export function Modal({ title, description, children, onClose, width = 'max-w-2x
         </div>
         <div className="max-h-[calc(100vh-10rem)] overflow-y-auto p-5">{children}</div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 

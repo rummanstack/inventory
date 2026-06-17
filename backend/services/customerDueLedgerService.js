@@ -1,7 +1,7 @@
 import { assert } from "../lib/errors.js";
 import { normalizeIsoDate } from "../lib/dateRanges.js";
 import { parsePagination, buildPageResult } from "../lib/pagination.js";
-import { findCustomerById } from "../repositories/customerRepository.js";
+import { findRetailCustomerById } from "../repositories/retailCustomerRepository.js";
 import {
   countCustomerDueLedgerEntries,
   listCustomerDueLedgerPage,
@@ -42,7 +42,7 @@ export class CustomerDueLedgerService {
     const client = await this.databaseManager.getPool().connect();
     try {
       if (customerId) {
-        const result = await findCustomerById(client, customerId, actor.tenantId);
+        const result = await findRetailCustomerById(client, customerId, actor.tenantId);
         assert(result.rowCount > 0, "Customer not found.", 404);
       }
 
@@ -70,7 +70,7 @@ export class CustomerDueLedgerService {
 
     const client = await this.databaseManager.getPool().connect();
     try {
-      const customerResult = await findCustomerById(client, customerId, actor.tenantId);
+      const customerResult = await findRetailCustomerById(client, customerId, actor.tenantId);
       assert(customerResult.rowCount > 0, "Customer not found.", 404);
       const customer = customerResult.rows[0];
 
@@ -100,8 +100,7 @@ export class CustomerDueLedgerService {
       return {
         customer: {
           id: customer.id,
-          shopName: customer.shop_name,
-          ownerName: customer.owner_name,
+          name: customer.name,
           phone: customer.phone,
           address: customer.address,
           openingDue: Number(customer.opening_due || 0),
@@ -126,7 +125,7 @@ export class CustomerDueLedgerService {
 
     const client = await this.databaseManager.getPool().connect();
     try {
-      const customerResult = await findCustomerById(client, customerId, actor.tenantId);
+      const customerResult = await findRetailCustomerById(client, customerId, actor.tenantId);
       assert(customerResult.rowCount > 0, "Customer not found.", 404);
 
       const latest = await getLatestCustomerDueLedgerEntry(client, customerId, actor.tenantId);

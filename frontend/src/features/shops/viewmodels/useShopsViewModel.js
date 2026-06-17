@@ -5,7 +5,7 @@ import { useDebouncedValue } from '../../../hooks/useDebouncedValue';
 
 const SEARCH_DEBOUNCE_MS = 300;
 
-export function useCustomersViewModel() {
+export function useShopsViewModel() {
   const [search, setSearch] = useState('');
   const debouncedSearch = useDebouncedValue(search.trim(), SEARCH_DEBOUNCE_MS);
   const [status, setStatus] = useState('');

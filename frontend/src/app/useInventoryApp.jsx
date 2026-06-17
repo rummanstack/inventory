@@ -145,7 +145,7 @@ export function InventoryAppProvider({ children }) {
           }).catch(() => {});
         }
 
-        if (result.user.role !== 'platform_admin') {
+        if (!result.user.isPlatformUser) {
           await refreshState();
         } else {
           setLoading(false);
@@ -763,7 +763,7 @@ export function InventoryAppProvider({ children }) {
       setUser(result.user);
       setTenant(result.tenant || null);
       setPermissions(result.permissions || []);
-      if (result.user.role !== 'platform_admin') {
+      if (result.user.role !== 'system_developer') {
         await refreshState();
       }
       pushToast('success', t('alerts.loggedIn'), result.user.name);
@@ -829,7 +829,7 @@ export function InventoryAppProvider({ children }) {
       t,
       can: (permission) => user?.role === 'system_developer' || permissions.includes(permission),
       hasFeature: (feature) =>
-        !feature || user?.role === 'system_developer' || user?.role === 'platform_admin' || !tenant?.features || tenant.features.includes(feature),
+        !feature || user?.role === 'system_developer' || !tenant?.features || tenant.features.includes(feature),
       user,
       tenant,
       setTenant,

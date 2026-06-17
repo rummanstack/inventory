@@ -351,6 +351,9 @@ export async function createSchema(pool) {
 
     UPDATE users SET tenant_id = NULL WHERE role = 'system_developer';
 
+    -- platform_admin role removed: its powers folded into system_developer.
+    UPDATE users SET role = 'system_developer', tenant_id = NULL WHERE role = 'platform_admin';
+
     -- Advanced security basics: lockout, sessions metadata, login history, password reset
     ALTER TABLE users ADD COLUMN IF NOT EXISTS failed_login_count INTEGER NOT NULL DEFAULT 0;
     ALTER TABLE users ADD COLUMN IF NOT EXISTS locked_until TIMESTAMPTZ;

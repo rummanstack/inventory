@@ -151,7 +151,7 @@ export function createApiRouter({
   router.use("/auth", createAuthenticatedAuthRoutes(authController));
   router.use("/profile", createProfileRoutes(userController));
 
-  // Platform admin routes — no tenant required, platform_admin only
+  // Platform admin routes — no tenant required, system_developer only
   router.use("/platform/tenants", createPlatformTenantsRoutes(tenantController));
 
   // System developer routes — no tenant required, system_developer only

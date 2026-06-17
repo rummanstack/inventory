@@ -5,11 +5,10 @@ import { useDebouncedValue } from '../../../hooks/useDebouncedValue';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 
 const SEARCH_DEBOUNCE_MS = 300;
-const PLATFORM_ROLES = new Set(['platform_admin', 'system_developer']);
 
 export function useActivityLogsViewModel() {
   const { user } = useInventoryApp();
-  const canFilterByOrg = PLATFORM_ROLES.has(user?.role);
+  const canFilterByOrg = user?.role === 'system_developer';
   const [search, setSearch] = useState('');
   const debouncedSearch = useDebouncedValue(search.trim(), SEARCH_DEBOUNCE_MS);
   const [module, setModule] = useState('');

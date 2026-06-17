@@ -8,8 +8,6 @@ import {
   listActivityLogsPage,
 } from "../repositories/activityLogRepository.js";
 
-const PLATFORM_ROLES = new Set(["platform_admin", "system_developer"]);
-
 export class AuditService {
   constructor(databaseManager) {
     this.databaseManager = databaseManager;
@@ -66,7 +64,7 @@ export class AuditService {
     const dateTo = String(query.dateTo || "").trim();
 
     let resolvedTenantId = tenantId;
-    if (actor && PLATFORM_ROLES.has(actor.role)) {
+    if (actor && actor.role === "system_developer") {
       const requestedTenantId = String(query.tenantId || "").trim();
       resolvedTenantId = requestedTenantId || null;
     }

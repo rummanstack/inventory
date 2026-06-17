@@ -50,7 +50,6 @@ export const TENANT_BUSINESS_PERMISSIONS = [
 ];
 
 export const ROLE_PERMISSIONS = {
-  [USER_ROLES.PLATFORM_ADMIN]: [...Object.values(PERMISSIONS)],
   [USER_ROLES.SYSTEM_DEVELOPER]: [...Object.values(PERMISSIONS)],
   [USER_ROLES.SUPER_ADMIN]: TENANT_BUSINESS_PERMISSIONS,
   [USER_ROLES.ADMIN]: [
@@ -97,7 +96,7 @@ export const ROLE_PERMISSIONS = {
 };
 
 export function getRolePermissions(role, tenantId) {
-  if (role === USER_ROLES.SYSTEM_DEVELOPER || role === USER_ROLES.PLATFORM_ADMIN) {
+  if (role === USER_ROLES.SYSTEM_DEVELOPER) {
     return ROLE_PERMISSIONS[role] || [];
   }
 

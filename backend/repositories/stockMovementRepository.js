@@ -103,9 +103,9 @@ export async function countStockMovements(client, filters = {}) {
   return result.rows[0].count;
 }
 
-export async function listStockMovementsPage(client, { tenantId, productId, dateFrom, dateTo, limit, offset }) {
+export async function listStockMovementsPage(client, { tenantId, productId, type, dateFrom, dateTo, limit, offset }) {
   const params = [];
-  const where = buildFilterClause({ tenantId, productId, dateFrom, dateTo }, params);
+  const where = buildFilterClause({ tenantId, productId, type, dateFrom, dateTo }, params);
   params.push(limit, offset);
   const result = await client.query(
     `${buildSelect()}

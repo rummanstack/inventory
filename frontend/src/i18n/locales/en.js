@@ -300,6 +300,13 @@ const en = {
       clearFailed: 'Unable to clear damaged stock.',
       emptyTitle: 'No damaged stock',
       emptyDescription: 'Products with damaged stock from settlements will appear here.',
+      clearHistoryTitle: 'Damage Clear History',
+      clearHistoryDescription: 'All damage write-offs by product and date range.',
+      clearDate: 'Date',
+      qtyCleared: 'Qty Cleared',
+      clearedBy: 'Cleared By',
+      clearHistoryEmptyTitle: 'No clears in this range',
+      clearHistoryEmptyDescription: 'No damage stock was cleared for the selected filters.',
     },
     dsrDueLedger: {
       eyebrow: 'DSR Finance',

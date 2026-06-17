@@ -163,14 +163,15 @@ export class SupplierPaymentService {
     if (amountDelta !== 0) {
       const latestEntry = await getLatestSupplierDueLedgerEntry(client, supplier.id, actor.tenantId);
       const currentBalance = latestEntry ? latestEntry.balanceAfter : Math.max(0, Number(supplier.opening_due || 0));
+      assert(amountDelta <= currentBalance, `Payment amount exceeds current due balance of ${currentBalance}.`, 400);
       const balanceAfter = currentBalance - amountDelta;
 
       await recordSupplierDueLedgerEntry(client, {
         tenantId: actor.tenantId,
         supplierId: supplier.id,
         type: SUPPLIER_DUE_LEDGER_TYPES.PAYMENT,
-        debit: Math.max(0, amountDelta),
-        credit: Math.max(0, -amountDelta),
+        debit: Math.max(0, -amountDelta),
+        credit: Math.max(0, amountDelta),
         balanceAfter,
         referenceType: "supplier_payment",
         referenceId: base.id,

@@ -91,10 +91,11 @@ export class CustomerPaymentService {
     assert(customerResult.rowCount > 0, "Customer not found.", 404);
     const customer = customerResult.rows[0];
 
-    const insertResult = await insertCustomerPayment(client, { ...base, createdById: actor.id });
-
     const latestEntry = await getLatestCustomerDueLedgerEntry(client, customer.id, actor.tenantId);
     const currentBalance = latestEntry ? latestEntry.balanceAfter : Math.max(0, Number(customer.opening_due || 0));
+    assert(base.amount <= currentBalance, `Payment amount exceeds current due balance of ${currentBalance}.`, 400);
+
+    const insertResult = await insertCustomerPayment(client, { ...base, createdById: actor.id });
     const balanceAfter = currentBalance - base.amount;
 
     await recordCustomerDueLedgerEntry(client, {
@@ -161,14 +162,15 @@ export class CustomerPaymentService {
     if (amountDelta !== 0) {
       const latestEntry = await getLatestCustomerDueLedgerEntry(client, customer.id, actor.tenantId);
       const currentBalance = latestEntry ? latestEntry.balanceAfter : Math.max(0, Number(customer.opening_due || 0));
+      assert(amountDelta <= currentBalance, `Payment amount exceeds current due balance of ${currentBalance}.`, 400);
       const balanceAfter = currentBalance - amountDelta;
 
       await recordCustomerDueLedgerEntry(client, {
         tenantId: actor.tenantId,
         customerId: customer.id,
         type: CUSTOMER_DUE_LEDGER_TYPES.COLLECTION,
-        debit: Math.max(0, amountDelta),
-        credit: Math.max(0, -amountDelta),
+        debit: Math.max(0, -amountDelta),
+        credit: Math.max(0, amountDelta),
         balanceAfter,
         referenceType: "customer_payment",
         referenceId: base.id,

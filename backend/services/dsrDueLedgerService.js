@@ -166,6 +166,7 @@ export class DsrDueLedgerService {
 
       const latestEntry = await getLatestDueLedgerEntry(client, dsrId, actor.tenantId);
       const currentBalance = latestEntry ? latestEntry.balanceAfter : Number(dsr.opening_due || 0);
+      assert(amount <= currentBalance, `Settlement amount exceeds current due balance of ${currentBalance}.`, 400);
       const balanceAfter = currentBalance - amount;
 
       const result = await insertDueLedgerEntry(client, {

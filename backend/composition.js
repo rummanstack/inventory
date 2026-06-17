@@ -21,6 +21,7 @@ import { RetailCustomerService } from './services/retailCustomerService.js';
 import { TenantService } from './services/tenantService.js';
 import { PermissionService } from './services/permissionService.js';
 import { SystemService } from './services/systemService.js';
+import { InvariantService } from './services/invariantService.js';
 import { ErrorLogService } from './services/errorLogService.js';
 import { SupplierService } from './services/supplierService.js';
 import { SupplierDueLedgerService } from './services/supplierDueLedgerService.js';
@@ -66,6 +67,7 @@ export async function createBackendApp() {
   const tenantService = new TenantService(databaseManager);
   const permissionService = new PermissionService(databaseManager, { auditService, tenantService });
   const systemService = new SystemService(databaseManager);
+  const invariantService = new InvariantService(databaseManager);
   const errorLogService = new ErrorLogService(databaseManager);
   const supplierService = new SupplierService(databaseManager, { auditService });
   const supplierDueLedgerService = new SupplierDueLedgerService(databaseManager);
@@ -99,6 +101,7 @@ export async function createBackendApp() {
     tenantService,
     permissionService,
     systemService,
+    invariantService,
     errorLogService,
     supplierService,
     supplierDueLedgerService,

@@ -7,6 +7,7 @@ export function createSystemRoutes(systemController) {
 
   router.get("/health", requireRoles(USER_ROLES.SYSTEM_DEVELOPER), systemController.health);
   router.get("/error-logs", requireRoles(USER_ROLES.SYSTEM_DEVELOPER), systemController.errorLogs);
+  router.get("/invariants", requireRoles(USER_ROLES.SYSTEM_DEVELOPER), systemController.invariants);
 
   return router;
 }

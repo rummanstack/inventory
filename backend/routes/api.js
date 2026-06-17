@@ -26,6 +26,7 @@ import { createRateLimiter } from "../middleware/rateLimiter.js";
 import { createPublicAuthRoutes, createAuthenticatedAuthRoutes } from "./auth.routes.js";
 import { createProfileRoutes } from "./profile.routes.js";
 import { createPlatformTenantsRoutes } from "./platformTenants.routes.js";
+import { createPlatformBackupRoutes } from "./platformBackup.routes.js";
 import { createSystemRoutes } from "./system.routes.js";
 import { createOrgRoutes } from "./org.routes.js";
 import { createPermissionsRoutes } from "./permissions.routes.js";
@@ -153,6 +154,7 @@ export function createApiRouter({
 
   // Platform admin routes — no tenant required, system_developer only
   router.use("/platform/tenants", createPlatformTenantsRoutes(tenantController));
+  router.use("/platform/backup", createPlatformBackupRoutes(backupController));
 
   // System developer routes — no tenant required, system_developer only
   router.use("/system", createSystemRoutes(systemController));

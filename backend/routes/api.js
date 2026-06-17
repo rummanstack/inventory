@@ -90,6 +90,7 @@ export function createApiRouter({
   tenantService,
   permissionService,
   systemService,
+  invariantService,
   errorLogService,
   supplierService,
   supplierDueLedgerService,
@@ -125,7 +126,7 @@ export function createApiRouter({
   const tenantController = new TenantController(tenantService);
   const orgController = new OrgController(tenantService);
   const permissionController = new PermissionController(permissionService);
-  const systemController = new SystemController(systemService, errorLogService, env);
+  const systemController = new SystemController(systemService, errorLogService, env, invariantService);
   const supplierController = new SupplierController(supplierService);
   const supplierDueLedgerController = new SupplierDueLedgerController(supplierDueLedgerService);
   const purchaseReceiveController = new PurchaseReceiveController(purchaseReceiveService);

@@ -139,11 +139,11 @@
   }
 
   .landing-nav-link {
-    @apply rounded-full px-4 py-2 text-sm font-bold text-slate-600 transition hover:bg-slate-100 hover:text-slate-950;
+    @apply rounded-full px-4 py-2 text-sm font-bold text-slate-600 transition duration-200 ease-out hover:bg-slate-100 hover:text-slate-950;
   }
 
   .landing-small-cta {
-    @apply inline-flex h-10 items-center justify-center gap-2 whitespace-nowrap rounded-full bg-[linear-gradient(135deg,var(--brand-strong),var(--brand))] px-4 text-sm font-black text-white shadow-[0_14px_28px_rgba(37,99,235,0.22)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_34px_rgba(37,99,235,0.28)];
+    @apply inline-flex h-10 items-center justify-center gap-2 whitespace-nowrap rounded-full bg-[linear-gradient(135deg,var(--brand-strong),var(--brand))] px-4 text-sm font-black text-white shadow-[0_14px_28px_rgba(37,99,235,0.22)] transition duration-200 ease-out hover:-translate-y-0.5 hover:brightness-95 hover:shadow-[0_18px_34px_rgba(37,99,235,0.28)] active:brightness-90;
   }
 
   .landing-hero {
@@ -175,11 +175,11 @@
   }
 
   .landing-primary-btn {
-    @apply inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-[linear-gradient(135deg,#08111f,var(--brand-strong)_50%,var(--teal))] px-6 text-base font-black text-white shadow-[0_18px_36px_rgba(29,78,216,0.28)] transition hover:-translate-y-0.5 hover:shadow-[0_22px_44px_rgba(29,78,216,0.34)] focus:outline-none focus:ring-4 focus:ring-blue-100;
+    @apply inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-[linear-gradient(135deg,#08111f,var(--brand-strong)_50%,var(--teal))] px-6 text-base font-black text-white shadow-[0_18px_36px_rgba(29,78,216,0.28)] transition duration-200 ease-out hover:-translate-y-0.5 hover:brightness-95 hover:shadow-[0_22px_44px_rgba(29,78,216,0.34)] active:brightness-90 focus:outline-none focus:ring-4 focus:ring-blue-100;
   }
 
   .landing-secondary-btn {
-    @apply inline-flex h-12 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white/90 px-6 text-base font-black text-slate-800 shadow-[0_12px_28px_rgba(15,23,42,0.07)] transition hover:-translate-y-0.5 hover:border-blue-200 hover:text-[var(--brand-strong)] hover:shadow-[0_18px_34px_rgba(15,23,42,0.1)] focus:outline-none focus:ring-4 focus:ring-slate-100;
+    @apply inline-flex h-12 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white/90 px-6 text-base font-black text-slate-800 shadow-[0_12px_28px_rgba(15,23,42,0.07)] transition duration-200 ease-out hover:-translate-y-0.5 hover:border-blue-200 hover:bg-white hover:text-[var(--brand-strong)] hover:shadow-[0_18px_34px_rgba(15,23,42,0.1)] focus:outline-none focus:ring-4 focus:ring-slate-100;
   }
 
   .landing-demo-strip {
@@ -287,11 +287,11 @@
   }
 
   .demo-white-btn {
-    @apply inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-[linear-gradient(135deg,#08111f,var(--brand-strong)_50%,var(--teal))] px-6 text-base font-black text-white shadow-[0_18px_36px_rgba(29,78,216,0.28)] transition hover:-translate-y-0.5 hover:shadow-[0_22px_44px_rgba(29,78,216,0.34)];
+    @apply inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-[linear-gradient(135deg,#08111f,var(--brand-strong)_50%,var(--teal))] px-6 text-base font-black text-white shadow-[0_18px_36px_rgba(29,78,216,0.28)] transition duration-200 ease-out hover:-translate-y-0.5 hover:brightness-95 hover:shadow-[0_22px_44px_rgba(29,78,216,0.34)] active:brightness-90;
   }
 
   .demo-outline-btn {
-    @apply inline-flex h-12 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white/90 px-6 text-base font-black text-slate-800 transition hover:-translate-y-0.5 hover:border-blue-200 hover:text-[var(--brand-strong)];
+    @apply inline-flex h-12 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white/90 px-6 text-base font-black text-slate-800 transition duration-200 ease-out hover:-translate-y-0.5 hover:border-blue-200 hover:bg-white hover:text-[var(--brand-strong)];
   }
 
   .pricing-card {
@@ -342,19 +342,19 @@
   }
 
   .btn-primary {
-    @apply inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-[linear-gradient(135deg,var(--secondary-strong),var(--secondary))] px-4 text-sm font-bold text-white shadow-[0_14px_28px_var(--secondary-shadow)] transition hover:shadow-[0_18px_34px_var(--secondary-shadow-strong)] focus:outline-none focus:ring-4 focus:ring-[var(--secondary-soft)] disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none;
+    @apply inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-[linear-gradient(135deg,var(--secondary-strong),var(--secondary))] px-4 text-sm font-bold text-white shadow-[0_14px_28px_var(--secondary-shadow)] transition duration-200 ease-out hover:brightness-95 hover:shadow-[0_18px_34px_var(--secondary-shadow-strong)] active:brightness-90 focus:outline-none focus:ring-4 focus:ring-[var(--secondary-soft)] disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none;
   }
 
   .btn-secondary {
-    @apply inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-700 shadow-[0_1px_0_rgba(15,23,42,0.03)] transition hover:border-slate-300 hover:bg-white hover:text-slate-950 hover:shadow-[0_12px_24px_rgba(15,23,42,0.08)] focus:outline-none focus:ring-4 focus:ring-slate-100 disabled:cursor-not-allowed disabled:text-slate-400 disabled:shadow-none;
+    @apply inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-700 shadow-[0_1px_0_rgba(15,23,42,0.03)] transition duration-200 ease-out hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950 hover:shadow-[0_12px_24px_rgba(15,23,42,0.08)] active:bg-slate-100 focus:outline-none focus:ring-4 focus:ring-slate-100 disabled:cursor-not-allowed disabled:text-slate-400 disabled:shadow-none;
   }
 
   .btn-danger {
-    @apply inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-rose-200 bg-rose-50 px-3 text-sm font-bold text-rose-700 shadow-sm transition hover:bg-rose-100 hover:shadow-md focus:outline-none focus:ring-4 focus:ring-rose-100;
+    @apply inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-rose-200 bg-rose-50 px-3 text-sm font-bold text-rose-700 shadow-sm transition duration-200 ease-out hover:border-rose-300 hover:bg-rose-100 hover:shadow-md active:bg-rose-200 focus:outline-none focus:ring-4 focus:ring-rose-100;
   }
 
   .icon-btn {
-    @apply inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-[0_1px_0_rgba(15,23,42,0.03)] transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950 hover:shadow-[0_12px_24px_rgba(15,23,42,0.08)] focus:outline-none focus:ring-4 focus:ring-slate-100;
+    @apply inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-[0_1px_0_rgba(15,23,42,0.03)] transition duration-200 ease-out hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950 hover:shadow-[0_12px_24px_rgba(15,23,42,0.08)] active:bg-slate-100 focus:outline-none focus:ring-4 focus:ring-slate-100;
   }
 
   .surface {

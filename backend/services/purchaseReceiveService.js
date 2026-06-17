@@ -355,8 +355,10 @@ export class PurchaseReceiveService {
     // Compute delta-based ledger changes.
     const oldTotal = Number(previousPurchase.total_amount || 0);
     const oldPaid = Number(previousPurchase.paid_amount || 0);
+    const oldDue = Number(previousPurchase.due_amount || 0);
     const newTotal = base.totalAmount;
     const newPaid = base.paidAmount;
+    const newDue = base.dueAmount;
 
     const previousBaseline = await getSupplierBaselineBeforePurchase(client, previousPurchase, actor.tenantId);
     const latestEntry = await getLatestSupplierDueLedgerEntry(client, supplier.id, actor.tenantId);

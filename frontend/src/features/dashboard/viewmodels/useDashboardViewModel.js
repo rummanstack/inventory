@@ -8,7 +8,7 @@ import {
   buildTradingTrend,
 } from '../../../models/inventoryViewData.js';
 import { inventoryApi } from '../../../services/inventoryApi';
-import { formatCasePiece, formatCurrency, formatNumber } from '../../../utils/calculations.js';
+import { formatCasePiece, formatCurrency, formatNumber, getLowStockProducts } from '../../../utils/calculations.js';
 import { getCssVar } from '../../../utils/theme.js';
 
 const DAY_SCOPE_PAGE_SIZE = 100;
@@ -103,7 +103,7 @@ export function useDashboardViewModel({ products, dsrs, today, t }) {
   const totalReturnedToday = todaySettlements.reduce((sum, settlement) => sum + settlement.items.reduce((itemSum, item) => itemSum + item.returnedPieces, 0), 0);
   const totalSoldToday = todaySettlements.reduce((sum, settlement) => sum + settlement.items.reduce((itemSum, item) => itemSum + item.soldPieces, 0), 0);
   const payableToday = todaySettlements.reduce((sum, settlement) => sum + Number(settlement.amountPaid || 0), 0);
-  const lowStockAll = products.filter((product) => product.stockPieces <= product.piecesPerCase * 4);
+  const lowStockAll = getLowStockProducts(products);
   const outOfStockCount = products.filter((product) => product.stockPieces === 0).length;
   const lowStockProducts = [...lowStockAll].sort((a, b) => a.stockPieces - b.stockPieces).slice(0, 8);
   const dailyRows = buildDailyRows({ date: today, dsrs, issues: todayIssues, settlements: todaySettlements, products });

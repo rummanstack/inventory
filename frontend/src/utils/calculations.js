@@ -103,3 +103,15 @@ export function createId(prefix) {
 export function reverseEntries(entries) {
   return [...(entries || [])].reverse();
 }
+
+export function getLowStockThreshold(piecesPerCase) {
+  return Math.max(1, cleanNumber(piecesPerCase || 1)) * 4;
+}
+
+export function isLowStock(product) {
+  return cleanNumber(product?.stockPieces) <= getLowStockThreshold(product?.piecesPerCase);
+}
+
+export function getLowStockProducts(products = []) {
+  return products.filter(isLowStock);
+}

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
-import { ChevronDown, LogOut, UserCircle, X } from 'lucide-react';
-import { cx } from '../components/ui';
+import { Link, NavLink, useLocation } from 'react-router-dom';
+import { ChevronDown, LogOut, X } from 'lucide-react';
+import { Avatar, cx } from '../components/ui';
 import { APP_ROUTES } from './routes';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 import logoMark from '../assets/stockledger-logo-mark.svg';
@@ -154,9 +154,22 @@ export default function AppSidebar({ mobileOpen, setMobileOpen, user, tenant, la
           </div>
         </nav>
 
+        <Link
+          to="/profile"
+          onClick={() => setMobileOpen(false)}
+          title={t('profile.online')}
+          className="mt-4 flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2.5 transition hover:border-slate-300 hover:bg-slate-50"
+        >
+          <Avatar name={user?.name} imageUrl={user?.avatarUrl} size={40} status="online" />
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-bold text-slate-900">{user?.name}</p>
+            <p className="truncate text-xs font-medium text-slate-500">{user?.email}</p>
+          </div>
+        </Link>
+
         <button
           type="button"
-          className="mt-4 inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-sm font-bold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950"
+          className="mt-2 inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-sm font-bold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950"
           onClick={onLogout}
         >
           <LogOut size={16} />

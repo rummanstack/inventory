@@ -14,16 +14,29 @@ export class BackupController {
   };
 
   download = async (req, res, next) => {
+    await this.sendBackup(req, res, next, { tenantId: req.currentUser.tenantId, scope: "tenant" });
+  };
+
+  downloadFull = async (req, res, next) => {
+    await this.sendBackup(req, res, next, { tenantId: null, scope: "platform" });
+  };
+
+  async sendBackup(req, res, next, { tenantId, scope }) {
     let backupFile = null;
     let client = null;
 
     try {
       const format = req.query.format === "json" ? "json" : "sql";
-      backupFile = await this.backupService.createBackupFile(format);
+      backupFile = await this.backupService.createBackupFile(format, { tenantId });
       client = await this.databaseManager.getPool().connect();
 
       try {
-        await this.backupService.recordDownload(client, req.currentUser, backupFile.filename, format);
+        await this.backupService.recordDownload(client, req.currentUser, {
+          filename: backupFile.filename,
+          format,
+          tenantId,
+          scope,
+        });
       } catch (auditError) {
         console.error("Failed to record backup download audit entry");
         console.error(auditError);
@@ -53,5 +66,5 @@ export class BackupController {
         await this.backupService.removeBackupFile(backupFile.tempPath);
       }
     }
-  };
+  }
 }

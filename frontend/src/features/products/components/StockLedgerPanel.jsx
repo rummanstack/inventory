@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ClipboardList, RefreshCw } from 'lucide-react';
+import { ClipboardList, FileSpreadsheet, RefreshCw } from 'lucide-react';
 import { Alert, Badge, EmptyState, Pagination, TableSkeleton } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
@@ -94,6 +94,26 @@ export default function StockLedgerPanel({ products, t, refreshKey = 0, fixedTyp
     };
   }, [page, productId, dateFrom, dateTo, version, refreshKey, fixedType]);
 
+  async function handleExportExcel() {
+    const result = await inventoryApi.listStockMovements({
+      page: 1,
+      pageSize: 10000,
+      productId,
+      type: fixedType,
+      dateFrom,
+      dateTo,
+    });
+    const all = result.items || [];
+    const { utils, writeFile } = await import('xlsx');
+    const header = ['Date', 'Product', 'Category', 'Type', 'Qty In', 'Qty Out', 'Balance After', 'Note', 'Created By', 'Role'];
+    const data = all.map((m) => [m.createdAt, m.productName || '', m.productCategory || '', m.type, m.quantityIn || 0, m.quantityOut || 0, m.balanceAfter, m.note || '', m.createdByName || '', m.createdByRole || '']);
+    const ws = utils.aoa_to_sheet([header, ...data]);
+    ws['!cols'] = [{ wch: 20 }, { wch: 24 }, { wch: 16 }, { wch: 20 }, { wch: 10 }, { wch: 10 }, { wch: 14 }, { wch: 24 }, { wch: 18 }, { wch: 14 }];
+    const wb = utils.book_new();
+    utils.book_append_sheet(wb, ws, 'Stock Movements');
+    writeFile(wb, `stock-ledger-${dateFrom}-${dateTo}.xlsx`);
+  }
+
   return (
     <section className="surface mt-6 overflow-hidden">
       <div className="border-b border-slate-100 px-5 py-4">
@@ -103,10 +123,16 @@ export default function StockLedgerPanel({ products, t, refreshKey = 0, fixedTyp
             <h2 className="mt-3 text-lg font-black text-slate-950">{sectionTitle || t('stockLedger.title')}</h2>
             <p className="mt-1 max-w-3xl text-sm font-medium leading-6 text-slate-500">{sectionDescription || t('stockLedger.description')}</p>
           </div>
-          <button type="button" className="btn-secondary" onClick={() => setVersion((value) => value + 1)}>
-            <RefreshCw size={16} />
-            {t('stockLedger.refresh')}
-          </button>
+          <div className="flex gap-2">
+            <button type="button" className="btn-secondary" onClick={handleExportExcel}>
+              <FileSpreadsheet size={16} />
+              Export as Excel
+            </button>
+            <button type="button" className="btn-secondary" onClick={() => setVersion((value) => value + 1)}>
+              <RefreshCw size={16} />
+              {t('stockLedger.refresh')}
+            </button>
+          </div>
         </div>
 
         <div className="mt-5 grid gap-4 lg:grid-cols-[1.2fr_1fr_1fr]">

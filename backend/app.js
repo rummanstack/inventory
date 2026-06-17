@@ -38,6 +38,7 @@ export function createApp({
   contactMessageService,
   financeAccountService,
   financeDashboardService,
+  retailCustomerService,
 }) {
   const app = express();
 
@@ -78,6 +79,7 @@ export function createApp({
       contactMessageService,
       financeAccountService,
       financeDashboardService,
+      retailCustomerService,
     }),
   );
 

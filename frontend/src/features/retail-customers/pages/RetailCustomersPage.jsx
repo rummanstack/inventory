@@ -1,0 +1,167 @@
+import { useState } from 'react';
+import { Pencil, Phone, Plus, Search, Trash2, Users } from 'lucide-react';
+import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
+import { statusTone } from '../../../models/inventoryViewData.js';
+import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
+import { inventoryApi } from '../../../services/inventoryApi.js';
+import RetailCustomerFormModal from '../components/RetailCustomerFormModal.jsx';
+import { useRetailCustomersViewModel } from '../viewmodels/useRetailCustomersViewModel';
+
+export default function RetailCustomersPage() {
+  const { t, can, pushToast, confirm } = useInventoryApp();
+  const vm = useRetailCustomersViewModel();
+  const [formModal, setFormModal] = useState(null);
+  const canManage = can('manage_retailers');
+
+  async function saveRetailCustomer(payload) {
+    try {
+      const result = payload.id
+        ? await inventoryApi.updateRetailCustomer(payload)
+        : await inventoryApi.createRetailCustomer(payload);
+      pushToast('success', payload.id ? t('retailCustomers.editTitle') : t('retailCustomers.addTitle'), `${payload.name} ${payload.id ? t('alerts.updated') : t('alerts.created')}`);
+      setFormModal(null);
+      vm.reload();
+      return { ok: true, retailCustomer: result.retailCustomer };
+    } catch (error) {
+      const message = error?.message || t('retailCustomers.saveFailed');
+      pushToast('error', t('alerts.requestFailed'), message);
+      return { ok: false, message };
+    }
+  }
+
+  async function deleteRetailCustomer(customer) {
+    const { confirmed, reason } = await confirm({
+      title: t('retailCustomers.deleteTitle'),
+      description: t('retailCustomers.deleteConfirm', { name: customer.name }),
+      requireReason: false,
+    });
+    if (!confirmed) return { ok: false };
+
+    try {
+      await inventoryApi.deleteRetailCustomer(customer.id, reason);
+      pushToast('success', t('common.delete'), `${customer.name} ${t('alerts.deleted')}`);
+      vm.reload();
+      return { ok: true };
+    } catch (error) {
+      pushToast('error', t('alerts.deleteFailed'), error?.message || t('alerts.requestFailed'));
+      return { ok: false };
+    }
+  }
+
+  return (
+    <div>
+      <SectionHeader
+        eyebrow={t('retailCustomers.eyebrow')}
+        title={t('retailCustomers.title')}
+        description={t('retailCustomers.description')}
+        action={canManage ? (
+          <button type="button" className="btn-primary" onClick={() => setFormModal({ mode: 'add' })}>
+            <Plus size={18} />
+            {t('retailCustomers.add')}
+          </button>
+        ) : null}
+      />
+
+      <div className="surface overflow-hidden">
+        <div className="border-b border-slate-100 p-5">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="space-y-2">
+              <p className="text-[11px] font-black uppercase tracking-[0.22em] text-slate-400">{t('retailCustomers.eyebrow')}</p>
+              <p className="text-sm font-medium text-slate-500">{t('retailCustomers.description')}</p>
+            </div>
+            <div className="flex flex-wrap gap-2 text-sm font-bold">
+              <span className="muted-chip">{vm.total} {t('retailCustomers.count')}</span>
+            </div>
+          </div>
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="relative max-w-md flex-1">
+              <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+              <input className="input pl-10" value={vm.search} onChange={(event) => vm.setSearch(event.target.value)} placeholder={t('retailCustomers.searchPlaceholder')} />
+            </div>
+            <select className="input sm:w-48" value={vm.status} onChange={(event) => vm.setStatus(event.target.value)}>
+              <option value="">{t('retailCustomers.allStatuses')}</option>
+              <option value="ACTIVE">{t('retailCustomers.statusActive')}</option>
+              <option value="INACTIVE">{t('retailCustomers.statusInactive')}</option>
+            </select>
+          </div>
+        </div>
+
+        {vm.loading ? (
+          <div className="p-5">
+            <TableSkeleton columns={5} showHeader={false} />
+          </div>
+        ) : vm.error ? (
+          <div className="p-5">
+            <Alert type="error">{vm.error}</Alert>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="table-head">
+                <tr>
+                  <th className="px-4 py-3">#</th>
+                  <th className="px-4 py-3">{t('retailCustomers.name')}</th>
+                  <th className="hidden px-4 py-3 sm:table-cell">{t('retailCustomers.phone')}</th>
+                  <th className="hidden px-4 py-3 md:table-cell">{t('retailCustomers.address')}</th>
+                  <th className="px-4 py-3">{t('retailCustomers.status')}</th>
+                  {canManage ? <th className="px-4 py-3 text-right">{t('common.actions')}</th> : null}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {vm.items.map((customer, index) => (
+                  <tr key={customer.id} className="hover:bg-slate-50">
+                    <td className="table-cell font-black text-slate-400">{(vm.page - 1) * vm.pageSize + index + 1}</td>
+                    <td className="table-cell font-semibold text-slate-950">{customer.name}</td>
+                    <td className="hidden table-cell sm:table-cell">
+                      <span className="inline-flex items-center gap-2">
+                        <Phone size={15} className="text-slate-400" />
+                        {customer.phone || '-'}
+                      </span>
+                    </td>
+                    <td className="hidden table-cell md:table-cell">{customer.address || '-'}</td>
+                    <td className="table-cell">
+                      <Badge tone={statusTone(customer.status === 'ACTIVE' ? 'Active' : 'Inactive')}>
+                        {customer.status === 'ACTIVE' ? t('retailCustomers.statusActive') : t('retailCustomers.statusInactive')}
+                      </Badge>
+                    </td>
+                    {canManage ? (
+                      <td className="table-cell">
+                        <div className="flex justify-end gap-2">
+                          <button type="button" className="icon-btn" title={t('common.edit')} onClick={() => setFormModal({ mode: 'edit', retailCustomer: customer })}>
+                            <Pencil size={16} />
+                          </button>
+                          <button type="button" className="icon-btn text-rose-600 hover:text-rose-700" title={t('common.delete')} onClick={() => deleteRetailCustomer(customer)}>
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </td>
+                    ) : null}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {!vm.loading && !vm.error && !vm.items.length ? (
+          <div className="p-5">
+            <EmptyState title={t('retailCustomers.noMatchTitle')} description={t('retailCustomers.noMatchDescription')} icon={Users} />
+          </div>
+        ) : null}
+        {!vm.loading && !vm.error && vm.items.length ? (
+          <div className="border-t border-slate-100 px-5 py-4">
+            <Pagination page={vm.page} totalPages={vm.totalPages} onPageChange={vm.setPage} />
+          </div>
+        ) : null}
+      </div>
+
+      {formModal ? (
+        <RetailCustomerFormModal
+          retailCustomer={formModal.retailCustomer}
+          onClose={() => setFormModal(null)}
+          onSave={saveRetailCustomer}
+        />
+      ) : null}
+    </div>
+  );
+}

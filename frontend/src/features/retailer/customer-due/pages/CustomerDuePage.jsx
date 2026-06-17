@@ -14,8 +14,8 @@ function ledgerTone(type) {
 }
 
 export default function CustomerDuePage() {
-  const { t, customerDirectory } = useInventoryApp();
-  const vm = useCustomerStatementViewModel({ customers: customerDirectory });
+  const { t, retailCustomerDirectory } = useInventoryApp();
+  const vm = useCustomerStatementViewModel({ customers: retailCustomerDirectory });
   const entries = reverseEntries(vm.statement?.entries);
 
   return (
@@ -30,8 +30,8 @@ export default function CustomerDuePage() {
         <div className="grid gap-3 sm:grid-cols-4">
           <select className="input sm:col-span-2" value={vm.customerId} onChange={(event) => vm.setCustomerId(event.target.value)}>
             <option value="">{t('retailer.shared.selectCustomer')}</option>
-            {customerDirectory.map((customer) => (
-              <option key={customer.id} value={customer.id}>{customer.shopName}</option>
+            {retailCustomerDirectory.map((customer) => (
+              <option key={customer.id} value={customer.id}>{customer.name}</option>
             ))}
           </select>
           <DatePickerField value={vm.dateFrom} onChange={vm.setDateFrom} placeholder={t('supplierStatement.dateFrom')} />

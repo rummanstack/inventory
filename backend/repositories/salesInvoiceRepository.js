@@ -57,7 +57,7 @@ function buildFilters({ search, customerId, invoiceNumber, saleType, dateFrom, d
 
   if (search) {
     params.push(`%${search}%`);
-    conditions.push(`(si.invoice_number ILIKE $${params.length} OR c.shop_name ILIKE $${params.length})`);
+    conditions.push(`(si.invoice_number ILIKE $${params.length} OR c.name ILIKE $${params.length})`);
   }
 
   if (customerId) {
@@ -99,7 +99,7 @@ function buildFilters({ search, customerId, invoiceNumber, saleType, dateFrom, d
 export async function countSalesInvoices(client, filters = {}) {
   const { params, where } = buildFilters(filters);
   const result = await client.query(
-    `SELECT COUNT(*)::INTEGER AS count FROM sales_invoices si LEFT JOIN customers c ON c.id = si.customer_id ${where}`,
+    `SELECT COUNT(*)::INTEGER AS count FROM sales_invoices si LEFT JOIN retail_customers c ON c.id = si.customer_id ${where}`,
     params,
   );
   return result.rows[0].count;
@@ -109,9 +109,9 @@ export async function listSalesInvoicesPage(client, { limit, offset, ...filters 
   const { params, where } = buildFilters(filters);
   params.push(limit, offset);
   const result = await client.query(
-    `SELECT si.*, c.shop_name AS customer_name, u.name AS created_by_name, ${itemsSubquery()} AS items
+    `SELECT si.*, c.name AS customer_name, u.name AS created_by_name, ${itemsSubquery()} AS items
      FROM sales_invoices si
-     LEFT JOIN customers c ON c.id = si.customer_id
+     LEFT JOIN retail_customers c ON c.id = si.customer_id
      LEFT JOIN users u ON u.id = si.created_by
      ${where}
      ORDER BY si.invoice_date DESC, si.created_at DESC
@@ -123,9 +123,9 @@ export async function listSalesInvoicesPage(client, { limit, offset, ...filters 
 
 export function findSalesInvoiceById(client, invoiceId, tenantId) {
   return client.query(
-    `SELECT si.*, c.shop_name AS customer_name, u.name AS created_by_name, ${itemsSubquery()} AS items
+    `SELECT si.*, c.name AS customer_name, u.name AS created_by_name, ${itemsSubquery()} AS items
      FROM sales_invoices si
-     LEFT JOIN customers c ON c.id = si.customer_id
+     LEFT JOIN retail_customers c ON c.id = si.customer_id
      LEFT JOIN users u ON u.id = si.created_by
      WHERE si.id = $1 AND si.tenant_id = $2 AND si.deleted_at IS NULL
      LIMIT 1`,
@@ -218,9 +218,9 @@ export async function countTrashedSalesInvoices(client, tenantId) {
 
 export async function listTrashedSalesInvoices(client, { tenantId, limit, offset }) {
   const result = await client.query(
-    `SELECT si.*, c.shop_name AS customer_name, u.name AS deleted_by_name, ${itemsSubquery()} AS items
+    `SELECT si.*, c.name AS customer_name, u.name AS deleted_by_name, ${itemsSubquery()} AS items
      FROM sales_invoices si
-     LEFT JOIN customers c ON c.id = si.customer_id
+     LEFT JOIN retail_customers c ON c.id = si.customer_id
      LEFT JOIN users u ON u.id = si.deleted_by_id
      WHERE si.tenant_id = $1 AND si.deleted_at IS NOT NULL
      ORDER BY si.deleted_at DESC

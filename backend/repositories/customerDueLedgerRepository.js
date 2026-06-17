@@ -44,14 +44,14 @@ function buildFilterClause({ tenantId, customerId, dateFrom, dateTo }, params) {
 function buildSelect() {
   return `SELECT
       customer_due_ledger.*,
-      customers.shop_name AS customer_name,
+      retail_customers.name AS customer_name,
       users.name AS created_by_name,
       users.email AS created_by_email,
       users.role AS created_by_role
     FROM customer_due_ledger
-    LEFT JOIN customers
-      ON customers.id = customer_due_ledger.customer_id
-      AND customers.tenant_id = customer_due_ledger.tenant_id
+    LEFT JOIN retail_customers
+      ON retail_customers.id = customer_due_ledger.customer_id
+      AND retail_customers.tenant_id = customer_due_ledger.tenant_id
     LEFT JOIN users
       ON users.id = customer_due_ledger.created_by`;
 }

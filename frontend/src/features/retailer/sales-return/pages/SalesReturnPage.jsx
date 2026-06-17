@@ -8,7 +8,7 @@ import SalesReturnFormModal from '../components/SalesReturnFormModal';
 import { useSalesReturnsViewModel } from '../viewmodels/useSalesReturnsViewModel';
 
 export default function SalesReturnPage() {
-  const { saveSalesReturn, t, can, customerDirectory } = useInventoryApp();
+  const { saveSalesReturn, t, can, retailCustomerDirectory } = useInventoryApp();
   const vm = useSalesReturnsViewModel();
   const [showFormModal, setShowFormModal] = useState(false);
   const canManageRetailers = can('manage_retailers');
@@ -41,8 +41,8 @@ export default function SalesReturnPage() {
           <div className="mt-4 grid gap-3 sm:grid-cols-3">
             <select className="input" value={vm.customerId} onChange={(event) => vm.setCustomerId(event.target.value)}>
               <option value="">{t('retailer.shared.allCustomers')}</option>
-              {customerDirectory.map((customer) => (
-                <option key={customer.id} value={customer.id}>{customer.shopName}</option>
+              {retailCustomerDirectory.map((customer) => (
+                <option key={customer.id} value={customer.id}>{customer.name}</option>
               ))}
             </select>
             <DatePickerField value={vm.dateFrom} onChange={vm.setDateFrom} placeholder={t('purchaseReceive.dateFrom')} />

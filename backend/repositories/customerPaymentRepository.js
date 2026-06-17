@@ -57,9 +57,9 @@ export async function listCustomerPaymentsPage(client, { limit, offset, ...filte
   const { params, where } = buildFilters(filters);
   params.push(limit, offset);
   const result = await client.query(
-    `SELECT cp.*, c.shop_name AS customer_name, u.name AS created_by_name
+    `SELECT cp.*, c.name AS customer_name, u.name AS created_by_name
      FROM customer_payments cp
-     LEFT JOIN customers c ON c.id = cp.customer_id
+     LEFT JOIN retail_customers c ON c.id = cp.customer_id
      LEFT JOIN users u ON u.id = cp.created_by
      ${where}
      ORDER BY cp.payment_date DESC, cp.created_at DESC
@@ -71,9 +71,9 @@ export async function listCustomerPaymentsPage(client, { limit, offset, ...filte
 
 export function findCustomerPaymentById(client, paymentId, tenantId) {
   return client.query(
-    `SELECT cp.*, c.shop_name AS customer_name, u.name AS created_by_name
+    `SELECT cp.*, c.name AS customer_name, u.name AS created_by_name
      FROM customer_payments cp
-     LEFT JOIN customers c ON c.id = cp.customer_id
+     LEFT JOIN retail_customers c ON c.id = cp.customer_id
      LEFT JOIN users u ON u.id = cp.created_by
      WHERE cp.id = $1 AND cp.tenant_id = $2 AND cp.deleted_at IS NULL
      LIMIT 1`,
@@ -136,9 +136,9 @@ export async function countTrashedCustomerPayments(client, tenantId) {
 
 export async function listTrashedCustomerPayments(client, { tenantId, limit, offset }) {
   const result = await client.query(
-    `SELECT cp.*, c.shop_name AS customer_name, u.name AS deleted_by_name
+    `SELECT cp.*, c.name AS customer_name, u.name AS deleted_by_name
      FROM customer_payments cp
-     LEFT JOIN customers c ON c.id = cp.customer_id
+     LEFT JOIN retail_customers c ON c.id = cp.customer_id
      LEFT JOIN users u ON u.id = cp.deleted_by_id
      WHERE cp.tenant_id = $1 AND cp.deleted_at IS NOT NULL
      ORDER BY cp.deleted_at DESC

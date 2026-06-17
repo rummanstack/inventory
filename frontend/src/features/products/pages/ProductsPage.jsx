@@ -1,15 +1,20 @@
 import { useState } from 'react';
-import { Boxes, PackagePlus, Pencil, Plus, Search, Trash2 } from 'lucide-react';
+import { Boxes, Download, FileSpreadsheet, PackagePlus, Pencil, Plus, Printer, Search, Trash2 } from 'lucide-react';
 import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { formatCasePiece, formatCurrency, formatNumber } from '../../../utils/calculations.js';
 import ProductFormModal from '../components/ProductFormModal';
 import StockUpdateModal from '../components/StockUpdateModal';
 import StockLedgerPanel from '../components/StockLedgerPanel';
+import ProductsPrintSheet from '../components/ProductsPrintSheet';
 import { useProductsViewModel } from '../viewmodels/useProductsViewModel';
+import { downloadSheetPdf } from '../../../services/printService.js';
+import { inventoryApi } from '../../../services/inventoryApi.js';
+
+const PRODUCTS_PRINT_ID = 'products-report-print';
 
 export default function ProductsPage() {
-  const { productDirectory, saveProduct, deleteProduct, addStock, t, can } = useInventoryApp();
+  const { productDirectory, saveProduct, deleteProduct, addStock, t, can, tenant } = useInventoryApp();
   const vm = useProductsViewModel();
   const [productModal, setProductModal] = useState(null);
   const [stockModalProduct, setStockModalProduct] = useState(null);
@@ -17,6 +22,39 @@ export default function ProductsPage() {
   const canManageProducts = can('manage_products');
   const outOfStockCount = productDirectory.filter((product) => product.stockPieces === 0).length;
   const veryLowCount = productDirectory.filter((product) => product.stockPieces > 0 && product.stockPieces <= product.piecesPerCase).length;
+  const businessName = tenant?.name || '';
+
+  async function handleDownloadPdf() {
+    await inventoryApi.recordPrint({ entityType: 'products_report', entityId: 'all', label: 'Products Report PDF' });
+    downloadSheetPdf(PRODUCTS_PRINT_ID, 'products-report.pdf');
+  }
+
+  async function handleExportExcel() {
+    const columns = [
+      { label: '#', value: (_, i) => i + 1, width: 6 },
+      { label: 'Product', value: (p) => p.name, width: 28 },
+      { label: 'Category', value: (p) => p.category || '', width: 20 },
+      { label: 'Case Size', value: (p) => p.piecesPerCase, width: 12 },
+      { label: 'Purchase Price', value: (p) => Number(p.purchasePrice), width: 16 },
+      { label: 'Wholesale Price', value: (p) => Number(p.wholesalePrice), width: 16 },
+      { label: 'Retail Price', value: (p) => Number(p.retailPrice), width: 16 },
+      { label: 'Stock (pcs)', value: (p) => p.stockPieces, width: 14 },
+      { label: 'Damaged (pcs)', value: (p) => p.damagedPieces, width: 14 },
+    ];
+    const rows = productDirectory.map((p, i) => columns.map((col) => col.value(p, i)));
+    const header = columns.map((col) => col.label);
+    const { utils, writeFile } = await import('xlsx');
+    const worksheet = utils.aoa_to_sheet([header, ...rows]);
+    worksheet['!cols'] = columns.map((col) => ({ wch: col.width }));
+    const workbook = utils.book_new();
+    utils.book_append_sheet(workbook, worksheet, 'Products');
+    writeFile(workbook, 'products-report.xlsx');
+  }
+
+  async function handlePrint() {
+    await inventoryApi.recordPrint({ entityType: 'products_report', entityId: 'all', label: 'Products Report Print' });
+    window.print();
+  }
 
   return (
     <div>
@@ -39,10 +77,24 @@ export default function ProductsPage() {
               <p className="text-[11px] font-black uppercase tracking-[0.22em] text-slate-400">{t('products.eyebrow')}</p>
               <p className="text-sm font-medium text-slate-500">{t('products.description', { count: productDirectory.length })}</p>
             </div>
-            <div className="flex flex-wrap gap-2 text-sm font-bold">
-              <span className="muted-chip">{formatNumber(productDirectory.length)} {t('products.product')}</span>
-              <span className="muted-chip">{formatNumber(outOfStockCount)} out</span>
-              <span className="muted-chip">{formatNumber(veryLowCount)} low</span>
+            <div className="no-print flex flex-wrap items-center gap-2">
+              <div className="flex flex-wrap gap-2 text-sm font-bold">
+                <span className="muted-chip">{formatNumber(productDirectory.length)} {t('products.product')}</span>
+                <span className="muted-chip">{formatNumber(outOfStockCount)} out</span>
+                <span className="muted-chip">{formatNumber(veryLowCount)} low</span>
+              </div>
+              <button type="button" className="btn-secondary h-8 gap-1.5 px-3 py-1.5 text-xs" onClick={handleDownloadPdf}>
+                <Download size={14} />
+                Download as PDF
+              </button>
+              <button type="button" className="btn-secondary h-8 gap-1.5 px-3 py-1.5 text-xs" onClick={handleExportExcel}>
+                <FileSpreadsheet size={14} />
+                Export as Excel
+              </button>
+              <button type="button" className="btn-secondary h-8 gap-1.5 px-3 py-1.5 text-xs" onClick={handlePrint}>
+                <Printer size={14} />
+                Print
+              </button>
             </div>
           </div>
           {outOfStockCount || veryLowCount ? (
@@ -161,6 +213,15 @@ export default function ProductsPage() {
         }
         return result;
       }} /> : null}
+
+      <div className="hidden print:block">
+        <ProductsPrintSheet
+          products={productDirectory}
+          businessName={businessName}
+          printTarget
+          targetId={PRODUCTS_PRINT_ID}
+        />
+      </div>
     </div>
   );
 }

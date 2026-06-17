@@ -94,9 +94,7 @@ export class TenantService {
       if (!configured) {
         return [...TENANT_FEATURES];
       }
-      const stored = await listTenantFeatures(client, tenantId);
-      const newFeatures = TENANT_FEATURES.filter((f) => !stored.includes(f));
-      return [...stored, ...newFeatures];
+      return await listTenantFeatures(client, tenantId);
     } finally {
       client.release();
     }

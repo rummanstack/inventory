@@ -1,6 +1,8 @@
-import { PackageX } from 'lucide-react';
+import { Download, PackageX, Printer } from 'lucide-react';
 import { EmptyState, SectionHeader } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
+import { downloadSheetPdf } from '../../../services/printService.js';
+import { inventoryApi } from '../../../services/inventoryApi.js';
 import { formatCasePiece, formatNumber } from '../../../utils/calculations.js';
 import StockLedgerPanel from '../../products/components/StockLedgerPanel';
 import ClearDamageModal from '../components/ClearDamageModal';
@@ -15,7 +17,28 @@ export default function DamagedStockPage() {
     <div>
       <SectionHeader eyebrow={t('damagedStock.eyebrow')} title={t('damagedStock.title')} description={t('damagedStock.description')} />
 
-      <div className="surface overflow-hidden">
+      <div id="damaged-stock-print" className="surface overflow-hidden">
+        <div className="flex items-center justify-between border-b border-slate-100 px-5 py-3">
+          <span className="text-sm font-bold text-slate-700">{t('damagedStock.title')}</span>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              className="btn-secondary no-print py-1.5 text-xs"
+              onClick={() => { inventoryApi.recordPrint({ entityType: 'damaged_stock', entityId: null, label: 'pdf' }).catch(() => {}); downloadSheetPdf('damaged-stock-print', 'damaged-stock-report.pdf'); }}
+            >
+              <Download size={14} />
+              Download as PDF
+            </button>
+            <button
+              type="button"
+              className="btn-secondary no-print py-1.5 text-xs"
+              onClick={() => { inventoryApi.recordPrint({ entityType: 'damaged_stock', entityId: null, label: 'print' }).catch(() => {}); window.print(); }}
+            >
+              <Printer size={14} />
+              Print
+            </button>
+          </div>
+        </div>
         {vm.damagedProducts.length ? (
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -24,7 +47,7 @@ export default function DamagedStockPage() {
                   <th className="px-4 py-3">{t('damagedStock.product')}</th>
                   <th className="px-4 py-3">{t('damagedStock.category')}</th>
                   <th className="px-4 py-3">{t('damagedStock.damagedQty')}</th>
-                  <th className="px-4 py-3 text-right">{t('common.actions')}</th>
+                  <th className="px-4 py-3 text-right no-print">{t('common.actions')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -36,7 +59,7 @@ export default function DamagedStockPage() {
                       <p className="font-semibold text-rose-600">{formatCasePiece(product.damagedPieces, product.piecesPerCase)}</p>
                       <p className="text-xs text-slate-500">{formatNumber(product.damagedPieces)} {t('common.pcs')}</p>
                     </td>
-                    <td className="table-cell text-right">
+                    <td className="table-cell text-right no-print">
                       {canManageProducts ? (
                         <button type="button" className="btn-secondary h-9 px-3" onClick={() => vm.openClearModal(product)}>
                           <PackageX size={16} />

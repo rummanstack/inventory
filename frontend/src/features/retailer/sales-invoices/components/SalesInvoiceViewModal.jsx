@@ -1,8 +1,12 @@
+import { Download, Printer } from 'lucide-react';
 import { Badge, Modal } from '../../../../components/ui.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
 import AuditHistory from '../../../../components/AuditHistory.jsx';
+import { downloadSheetPdf } from '../../../../services/printService.js';
+import { inventoryApi } from '../../../../services/inventoryApi.js';
 import { formatCurrency, formatDate } from '../../../../utils/calculations.js';
 import { paymentStatusOf, paymentStatusTone } from '../../../../models/inventoryViewData.js';
+import SalesInvoicePrintSheet from './SalesInvoicePrintSheet.jsx';
 
 function Field({ label, value }) {
   return (
@@ -14,10 +18,17 @@ function Field({ label, value }) {
 }
 
 export default function SalesInvoiceViewModal({ salesInvoice, onClose }) {
-  const { t } = useInventoryApp();
+  const { t, tenant } = useInventoryApp();
   const items = salesInvoice.items || [];
+  const printTargetId = `sales-invoice-print-${salesInvoice.id}`;
+  const businessName = tenant?.name || '';
+
+  function recordInvoicePrint(label) {
+    inventoryApi.recordPrint({ entityType: 'sales_invoice', entityId: salesInvoice.id, label }).catch(() => {});
+  }
 
   return (
+    <>
     <Modal title={salesInvoice.invoiceNumber} description={t('retailer.salesInvoices.viewDescription')} onClose={onClose} width="max-w-3xl">
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Field label={t('retailer.shared.invoiceDateLabel')} value={formatDate(salesInvoice.invoiceDate)} />
@@ -83,9 +94,33 @@ export default function SalesInvoiceViewModal({ salesInvoice, onClose }) {
         </div>
       ) : null}
 
+      <div className="mt-4 flex flex-wrap gap-2">
+        <button
+          type="button"
+          className="btn-secondary"
+          onClick={() => { recordInvoicePrint('pdf'); downloadSheetPdf(printTargetId, `invoice-${salesInvoice.invoiceNumber}.pdf`); }}
+        >
+          <Download size={18} />
+          {t('purchaseReceive.downloadPdf')}
+        </button>
+        <button
+          type="button"
+          className="btn-secondary"
+          onClick={() => { recordInvoicePrint('print'); window.print(); }}
+        >
+          <Printer size={18} />
+          {t('purchaseReceive.printSheet')}
+        </button>
+      </div>
+
       <div className="mt-6 border-t border-slate-100 pt-4">
         <AuditHistory entityType="sales_invoice" entityId={salesInvoice.id} />
       </div>
     </Modal>
+
+    <div className="hidden print:block">
+      <SalesInvoicePrintSheet invoice={salesInvoice} businessName={businessName} printTarget targetId={printTargetId} />
+    </div>
+    </>
   );
 }

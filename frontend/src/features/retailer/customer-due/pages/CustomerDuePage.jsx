@@ -1,9 +1,12 @@
-import { RefreshCw, Wallet } from 'lucide-react';
+import { Download, Printer, RefreshCw, Wallet } from 'lucide-react';
 import { Badge, EmptyState, LoadingState, SectionHeader, StatCard } from '../../../../components/ui.jsx';
 import { DatePickerField } from '../../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
+import { downloadSheetPdf } from '../../../../services/printService.js';
+import { inventoryApi } from '../../../../services/inventoryApi.js';
 import { formatCurrency, formatDateTime, reverseEntries } from '../../../../utils/calculations.js';
 import { useCustomerStatementViewModel } from '../viewmodels/useCustomerStatementViewModel';
+import CustomerDuePrintSheet from '../components/CustomerDuePrintSheet.jsx';
 
 function ledgerTone(type) {
   if (type === 'COLLECTION') return 'emerald';
@@ -14,9 +17,16 @@ function ledgerTone(type) {
 }
 
 export default function CustomerDuePage() {
-  const { t, retailCustomerDirectory } = useInventoryApp();
+  const { t, tenant, retailCustomerDirectory } = useInventoryApp();
   const vm = useCustomerStatementViewModel({ customers: retailCustomerDirectory });
   const entries = reverseEntries(vm.statement?.entries);
+  const printTargetId = 'customer-due-statement-print';
+  const businessName = tenant?.name || '';
+  const selectedCustomer = retailCustomerDirectory.find((c) => c.id === vm.customerId);
+
+  function recordDuePrint(label) {
+    inventoryApi.recordPrint({ entityType: 'customer_due_statement', entityId: vm.customerId, label }).catch(() => {});
+  }
 
   return (
     <div>
@@ -42,6 +52,26 @@ export default function CustomerDuePage() {
             <RefreshCw size={18} />
             {t('supplierStatement.refresh')}
           </button>
+          {vm.statement ? (
+            <>
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={() => { recordDuePrint('pdf'); downloadSheetPdf(printTargetId, `customer-due-${selectedCustomer?.name || vm.customerId}.pdf`); }}
+              >
+                <Download size={18} />
+                {t('purchaseReceive.downloadPdf')}
+              </button>
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={() => { recordDuePrint('print'); window.print(); }}
+              >
+                <Printer size={18} />
+                {t('purchaseReceive.printSheet')}
+              </button>
+            </>
+          ) : null}
         </div>
       </div>
 
@@ -113,6 +143,20 @@ export default function CustomerDuePage() {
           </div>
         </>
       )}
+
+      {vm.statement ? (
+        <div className="hidden print:block">
+          <CustomerDuePrintSheet
+            statement={vm.statement}
+            customerName={selectedCustomer?.name || ''}
+            businessName={businessName}
+            dateFrom={vm.dateFrom}
+            dateTo={vm.dateTo}
+            printTarget
+            targetId={printTargetId}
+          />
+        </div>
+      ) : null}
     </div>
   );
 }

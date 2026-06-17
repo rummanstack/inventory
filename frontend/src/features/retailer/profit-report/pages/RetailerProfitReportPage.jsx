@@ -1,13 +1,16 @@
-import { TrendingDown, TrendingUp, Wallet } from 'lucide-react';
+import { Download, Printer, TrendingDown, TrendingUp, Wallet } from 'lucide-react';
 import { Alert, EmptyState, LoadingState, SectionHeader, StatCard } from '../../../../components/ui.jsx';
 import { DatePickerField } from '../../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
+import { downloadSheetPdf } from '../../../../services/printService.js';
+import { inventoryApi } from '../../../../services/inventoryApi.js';
 import { formatCurrency, formatDate, formatNumber } from '../../../../utils/calculations.js';
 import { useRetailerProfitReportViewModel } from '../viewmodels/useRetailerProfitReportViewModel';
 
 export default function RetailerProfitReportPage() {
   const { t } = useInventoryApp();
   const vm = useRetailerProfitReportViewModel();
+  const printTargetId = 'retailer-profit-report-print';
   const rows = vm.report?.rows || [];
   const totals = vm.report?.totals || { totalSales: 0, totalProfit: 0, invoiceCount: 0 };
   const isProfit = totals.totalProfit >= 0;
@@ -50,6 +53,26 @@ export default function RetailerProfitReportPage() {
         <LoadingState />
       ) : (
         <>
+          <div className="mb-4 flex flex-wrap gap-2 no-print">
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={() => { inventoryApi.recordPrint({ entityType: 'retailer_profit_report', entityId: null, label: 'pdf' }).catch(() => {}); downloadSheetPdf(printTargetId, `profit-report-${vm.dateFrom}-${vm.dateTo}.pdf`); }}
+            >
+              <Download size={18} />
+              {t('purchaseReceive.downloadPdf')}
+            </button>
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={() => { inventoryApi.recordPrint({ entityType: 'retailer_profit_report', entityId: null, label: 'print' }).catch(() => {}); window.print(); }}
+            >
+              <Printer size={18} />
+              {t('purchaseReceive.printSheet')}
+            </button>
+          </div>
+
+          <div id={printTargetId}>
           <div className="mb-6 grid gap-4 sm:grid-cols-3">
             <StatCard title={t('retailer.dailySalesReport.invoiceCount')} value={formatNumber(totals.invoiceCount)} icon={Wallet} tone="slate" />
             <StatCard title={t('retailer.profitReport.totalSales')} value={formatCurrency(totals.totalSales)} icon={Wallet} tone="blue" />
@@ -92,6 +115,7 @@ export default function RetailerProfitReportPage() {
                 <EmptyState title={t('profit.noDataTitle')} description={t('profit.noDataDescription')} icon={Wallet} />
               </div>
             ) : null}
+          </div>
           </div>
         </>
       )}

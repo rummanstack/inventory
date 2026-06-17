@@ -1,13 +1,16 @@
-import { Wallet } from 'lucide-react';
+import { Download, Printer, Wallet } from 'lucide-react';
 import { Alert, EmptyState, LoadingState, SectionHeader, StatCard } from '../../../../components/ui.jsx';
 import { DatePickerField } from '../../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
+import { downloadSheetPdf } from '../../../../services/printService.js';
+import { inventoryApi } from '../../../../services/inventoryApi.js';
 import { formatCurrency, formatDate, formatNumber } from '../../../../utils/calculations.js';
 import { useDailySalesReportViewModel } from '../viewmodels/useDailySalesReportViewModel';
 
 export default function DailySalesReportPage() {
   const { t } = useInventoryApp();
   const vm = useDailySalesReportViewModel();
+  const printTargetId = 'daily-sales-report-print';
   const rows = vm.report?.rows || [];
   const totals = rows.reduce(
     (acc, row) => {
@@ -58,6 +61,26 @@ export default function DailySalesReportPage() {
         <LoadingState />
       ) : (
         <>
+          <div className="mb-4 flex flex-wrap gap-2 no-print">
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={() => { inventoryApi.recordPrint({ entityType: 'daily_sales_report', entityId: null, label: 'pdf' }).catch(() => {}); downloadSheetPdf(printTargetId, `daily-sales-report-${vm.dateFrom}-${vm.dateTo}.pdf`); }}
+            >
+              <Download size={18} />
+              {t('purchaseReceive.downloadPdf')}
+            </button>
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={() => { inventoryApi.recordPrint({ entityType: 'daily_sales_report', entityId: null, label: 'print' }).catch(() => {}); window.print(); }}
+            >
+              <Printer size={18} />
+              {t('purchaseReceive.printSheet')}
+            </button>
+          </div>
+
+          <div id={printTargetId}>
           <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <StatCard title={t('retailer.dailySalesReport.invoiceCount')} value={formatNumber(totals.invoiceCount)} icon={Wallet} tone="slate" />
             <StatCard title={t('retailer.shared.totalAmount')} value={formatCurrency(totals.totalAmount)} icon={Wallet} tone="blue" />
@@ -100,6 +123,7 @@ export default function DailySalesReportPage() {
                 <EmptyState title={t('retailer.dailySalesReport.noDataTitle')} description={t('retailer.dailySalesReport.noDataDescription')} icon={Wallet} />
               </div>
             ) : null}
+          </div>
           </div>
         </>
       )}

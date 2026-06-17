@@ -684,5 +684,24 @@ export async function createSchema(pool) {
     CREATE INDEX IF NOT EXISTS idx_finance_account_txns_tenant_account_created_at
       ON finance_account_transactions(tenant_id, account_id, created_at DESC);
     CREATE INDEX IF NOT EXISTS idx_finance_account_txns_transfer ON finance_account_transactions(transfer_id);
+
+    -- Retail customers (individual walk-in customers, separate from registered shops)
+    CREATE TABLE IF NOT EXISTS retail_customers (
+      id          TEXT PRIMARY KEY,
+      tenant_id   TEXT REFERENCES tenants(id),
+      name        TEXT NOT NULL,
+      phone       TEXT NOT NULL DEFAULT '',
+      address     TEXT NOT NULL DEFAULT '',
+      note        TEXT NOT NULL DEFAULT '',
+      status      TEXT NOT NULL DEFAULT 'ACTIVE',
+      created_by  TEXT REFERENCES users(id) ON DELETE SET NULL,
+      created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      deleted_at  TIMESTAMPTZ,
+      deleted_by_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+      delete_reason TEXT NOT NULL DEFAULT ''
+    );
+    CREATE INDEX IF NOT EXISTS idx_retail_customers_tenant_id ON retail_customers(tenant_id);
+    CREATE INDEX IF NOT EXISTS idx_retail_customers_deleted_at ON retail_customers(tenant_id, deleted_at);
   `);
 }

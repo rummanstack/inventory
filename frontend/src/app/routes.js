@@ -49,6 +49,7 @@ import SecurityPage from '../features/security/pages/SecurityPage';
 import SystemHealthPage from '../features/system/pages/SystemHealthPage';
 import ErrorLogsPage from '../features/system/pages/ErrorLogsPage';
 import CustomersPage from '../features/customers/pages/CustomersPage';
+import RetailCustomersPage from '../features/retail-customers/pages/RetailCustomersPage';
 import TrashPage from '../features/trash/pages/TrashPage';
 import DamagedStockPage from '../features/damaged-stock/pages/DamagedStockPage';
 import SuppliersPage from '../features/suppliers/pages/SuppliersPage';
@@ -70,7 +71,8 @@ export const APP_ROUTES = [
   { id: 'products', path: '/products', labelKey: 'nav.products', icon: Boxes, component: ProductsPage, group: 'inventory', permission: 'view_state', feature: 'products' },
   { id: 'damaged-stock', path: '/damaged-stock', labelKey: 'nav.damagedStock', icon: PackageX, component: DamagedStockPage, group: 'inventory', permission: 'view_state', feature: 'products' },
   { id: 'dsrs', path: '/dsrs', labelKey: 'nav.dsrs', icon: Users, component: DsrPage, group: 'operations', permission: 'view_state', feature: 'dsrs' },
-  { id: 'customers', path: '/customers', labelKey: 'nav.customers', icon: Store, component: CustomersPage, group: 'retailer', permission: 'view_state', feature: 'customers' },
+  { id: 'customers', path: '/customers', labelKey: 'nav.shops', icon: Store, component: CustomersPage, group: 'operations', permission: 'view_state', feature: 'customers' },
+  { id: 'retail-customers', path: '/retail-customers', labelKey: 'nav.retailCustomers', icon: Users, component: RetailCustomersPage, group: 'retailer', permission: 'view_state' },
   { id: 'suppliers', path: '/suppliers', labelKey: 'nav.suppliers', icon: Building2, component: SuppliersPage, group: 'suppliers', permission: 'manage_suppliers', feature: 'suppliers' },
   { id: 'purchase-receive', path: '/purchase-receive', labelKey: 'nav.purchaseReceive', icon: ShoppingCart, component: PurchaseReceivePage, group: 'suppliers', permission: 'manage_purchases', feature: 'purchase-receive' },
   { id: 'supplier-statement', path: '/supplier-statement', labelKey: 'nav.supplierStatement', icon: FileText, component: SupplierStatementPage, group: 'suppliers', permission: 'manage_suppliers', feature: 'supplier-statement' },

@@ -326,6 +326,17 @@ export function normalizeSalesReturn(input) {
   };
 }
 
+export function normalizeRetailCustomer(input) {
+  return {
+    id: input.id || createId("rc"),
+    name: String(input.name || "").trim(),
+    phone: String(input.phone || "").trim(),
+    address: String(input.address || "").trim(),
+    note: String(input.note || "").trim(),
+    status: input.status === "INACTIVE" ? "INACTIVE" : "ACTIVE",
+  };
+}
+
 export function normalizeCustomerPayment(input) {
   return {
     id: input.id || createId("customer-payment"),

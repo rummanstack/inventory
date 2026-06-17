@@ -141,6 +141,23 @@ export function insertSalesReturnItem(client, item) {
   );
 }
 
+export async function sumReturnedQuantitiesByInvoiceItem(client, salesInvoiceItemIds, tenantId) {
+  if (!salesInvoiceItemIds.length) {
+    return new Map();
+  }
+
+  const result = await client.query(
+    `SELECT sri.sales_invoice_item_id, COALESCE(SUM(sri.quantity_pieces), 0)::INTEGER AS returned_quantity
+     FROM sales_return_items sri
+     INNER JOIN sales_returns sr ON sr.id = sri.sales_return_id
+     WHERE sri.sales_invoice_item_id = ANY($1::text[]) AND sr.tenant_id = $2 AND sr.deleted_at IS NULL
+     GROUP BY sri.sales_invoice_item_id`,
+    [salesInvoiceItemIds, tenantId],
+  );
+
+  return new Map(result.rows.map((row) => [row.sales_invoice_item_id, Number(row.returned_quantity || 0)]));
+}
+
 export async function getProfitAdjustmentsByDate(client, { tenantId, dateFrom, dateTo }) {
   const params = [tenantId];
   const conditions = ["sr.tenant_id = $1", "sr.deleted_at IS NULL"];

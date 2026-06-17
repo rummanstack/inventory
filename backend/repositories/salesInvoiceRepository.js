@@ -140,6 +140,10 @@ export function findSalesInvoiceForUpdate(client, invoiceId, tenantId) {
   );
 }
 
+export function getSalesInvoiceItems(client, invoiceId) {
+  return client.query(`SELECT * FROM sales_invoice_items WHERE sales_invoice_id = $1 ORDER BY id`, [invoiceId]);
+}
+
 export function insertSalesInvoice(client, invoice) {
   return client.query(
     `INSERT INTO sales_invoices (

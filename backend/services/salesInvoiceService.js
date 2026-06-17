@@ -13,6 +13,7 @@ import {
   countTrashedSalesInvoices,
   findSalesInvoiceById,
   findSalesInvoiceForUpdate,
+  getSalesInvoiceItems,
   insertSalesInvoice,
   insertSalesInvoiceItem,
   listSalesInvoicesPage,
@@ -258,10 +259,68 @@ export class SalesInvoiceService {
       assert(existingResult.rowCount > 0, "Sales invoice not found.", 404);
       const invoice = existingResult.rows[0];
 
+      const itemsResult = await getSalesInvoiceItems(client, invoiceId);
+
+      // Void: a deleted sale must give back the stock it took, reverse any due it created,
+      // and reverse any cash it recorded — exactly the effects createSalesInvoiceRecord applied.
+      for (const item of itemsResult.rows) {
+        const quantity = Number(item.quantity_pieces || 0);
+        const nextBalance = await applyStockDelta(client, item.product_id, actor.tenantId, quantity, 0);
+        await recordStockMovement(client, {
+          tenantId: actor.tenantId,
+          productId: item.product_id,
+          type: STOCK_MOVEMENT_TYPES.SALE,
+          quantityIn: quantity,
+          quantityOut: 0,
+          balanceAfter: nextBalance.stockPieces,
+          referenceType: "sales_invoice",
+          referenceId: invoiceId,
+          note: `Sale ${invoice.invoice_number} deleted — stock reversed`,
+          createdById: actor.id,
+        });
+      }
+
       await softDeleteSalesInvoice(client, invoiceId, actor.tenantId, {
         deletedById: actor.id,
         deleteReason: reason,
       });
+
+      const dueAmount = Number(invoice.due_amount || 0);
+      if (invoice.customer_id && dueAmount > 0) {
+        const latestEntry = await getLatestCustomerDueLedgerEntry(client, invoice.customer_id, actor.tenantId);
+        const currentBalance = latestEntry ? latestEntry.balanceAfter : 0;
+        const balanceAfter = currentBalance - dueAmount;
+
+        await recordCustomerDueLedgerEntry(client, {
+          tenantId: actor.tenantId,
+          customerId: invoice.customer_id,
+          type: CUSTOMER_DUE_LEDGER_TYPES.SALE_DUE,
+          debit: 0,
+          credit: dueAmount,
+          balanceAfter,
+          referenceType: "sales_invoice",
+          referenceId: invoiceId,
+          note: `Sale due reversed — ${invoice.invoice_number} deleted (${reason})`,
+          createdById: actor.id,
+        });
+
+        await updateRetailCustomerCurrentDue(client, invoice.customer_id, actor.tenantId, Math.max(0, balanceAfter));
+      }
+
+      const paidAmount = Number(invoice.paid_amount || 0);
+      if (this.financeAccountService && paidAmount > 0) {
+        await this.financeAccountService.recordTransactionInClient(
+          client,
+          {
+            accountType: "CASH",
+            type: "WITHDRAWAL",
+            amount: paidAmount,
+            date: String(invoice.invoice_date).slice(0, 10),
+            note: `Sale ${invoice.invoice_number} deleted — cash reversed`,
+          },
+          actor,
+        );
+      }
 
       await this.recordActivity(client, actor, {
         actionType: SALES_INVOICE_ACTIONS.DELETE,
@@ -279,12 +338,82 @@ export class SalesInvoiceService {
     return this.databaseManager.withTransaction(async (client) => {
       const result = await restoreSalesInvoice(client, invoiceId, actor.tenantId);
       assert(result.rowCount > 0, "Sales invoice not found in trash.", 404);
+      const invoice = result.rows[0];
+
+      const itemsResult = await getSalesInvoiceItems(client, invoiceId);
+      const productIds = itemsResult.rows.map((item) => item.product_id);
+      const productMap = await lockProducts(client, productIds, actor.tenantId);
+
+      for (const item of itemsResult.rows) {
+        const product = productMap.get(item.product_id);
+        const quantity = Number(item.quantity_pieces || 0);
+        assert(
+          Number(product.stock_pieces || 0) >= quantity,
+          `${product.name} does not have enough available stock to restore sale ${invoice.invoice_number}.`,
+        );
+      }
+
+      // Restore: re-apply the same effects a fresh sale would — stock out, due back on the
+      // ledger, cash back in — now that we know the stock is actually available to support it.
+      for (const item of itemsResult.rows) {
+        const quantity = Number(item.quantity_pieces || 0);
+        const nextBalance = await applyStockDelta(client, item.product_id, actor.tenantId, -quantity, 0);
+        await recordStockMovement(client, {
+          tenantId: actor.tenantId,
+          productId: item.product_id,
+          type: STOCK_MOVEMENT_TYPES.SALE,
+          quantityIn: 0,
+          quantityOut: quantity,
+          balanceAfter: nextBalance.stockPieces,
+          referenceType: "sales_invoice",
+          referenceId: invoiceId,
+          note: `Sale ${invoice.invoice_number} restored from trash — stock re-applied`,
+          createdById: actor.id,
+        });
+      }
+
+      const dueAmount = Number(invoice.due_amount || 0);
+      if (invoice.customer_id && dueAmount > 0) {
+        const latestEntry = await getLatestCustomerDueLedgerEntry(client, invoice.customer_id, actor.tenantId);
+        const currentBalance = latestEntry ? latestEntry.balanceAfter : 0;
+        const balanceAfter = currentBalance + dueAmount;
+
+        await recordCustomerDueLedgerEntry(client, {
+          tenantId: actor.tenantId,
+          customerId: invoice.customer_id,
+          type: CUSTOMER_DUE_LEDGER_TYPES.SALE_DUE,
+          debit: dueAmount,
+          credit: 0,
+          balanceAfter,
+          referenceType: "sales_invoice",
+          referenceId: invoiceId,
+          note: `Sale due restored — ${invoice.invoice_number} restored from trash`,
+          createdById: actor.id,
+        });
+
+        await updateRetailCustomerCurrentDue(client, invoice.customer_id, actor.tenantId, Math.max(0, balanceAfter));
+      }
+
+      const paidAmount = Number(invoice.paid_amount || 0);
+      if (this.financeAccountService && paidAmount > 0) {
+        await this.financeAccountService.recordTransactionInClient(
+          client,
+          {
+            accountType: "CASH",
+            type: "DEPOSIT",
+            amount: paidAmount,
+            date: String(invoice.invoice_date).slice(0, 10),
+            note: `Sale ${invoice.invoice_number} restored from trash — cash re-applied`,
+          },
+          actor,
+        );
+      }
 
       await this.recordActivity(client, actor, {
         actionType: SALES_INVOICE_ACTIONS.RESTORE,
         entityType: "sales_invoice",
         entityId: invoiceId,
-        description: `${actor.name} restored sale ${result.rows[0].invoice_number} from trash`,
+        description: `${actor.name} restored sale ${invoice.invoice_number} from trash`,
       });
 
       return { ok: true };

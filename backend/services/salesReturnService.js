@@ -8,6 +8,7 @@ import { SALES_RETURN_ACTIONS } from "../lib/auditActions.js";
 import { nextReturnNumber } from "../lib/salesNumber.js";
 import { findRetailCustomerById, updateRetailCustomerCurrentDue } from "../repositories/retailCustomerRepository.js";
 import { getLatestCustomerDueLedgerEntry } from "../repositories/customerDueLedgerRepository.js";
+import { findSalesInvoiceById, mapSalesInvoice } from "../repositories/salesInvoiceRepository.js";
 import {
   countSalesReturns,
   findSalesReturnById,
@@ -15,6 +16,7 @@ import {
   insertSalesReturnItem,
   listSalesReturnsPage,
   mapSalesReturn,
+  sumReturnedQuantitiesByInvoiceItem,
 } from "../repositories/salesReturnRepository.js";
 import {
   logActivity,
@@ -76,18 +78,67 @@ export class SalesReturnService {
     base.tenantId = actor.tenantId;
     assert(base.items.length > 0, "At least one product line item is required.");
     assert(base.returnDate, "Return date is required.");
+    assert(base.salesInvoiceId, "The original invoice is required for a return.");
     base.returnDate = normalizeIsoDate(base.returnDate, base.returnDate, DATE_ERROR);
 
     return this.databaseManager.withTransaction(async (client) => {
+      const invoiceResult = await findSalesInvoiceById(client, base.salesInvoiceId, actor.tenantId);
+      assert(invoiceResult.rowCount > 0, "Original sales invoice not found.", 404);
+      const invoice = mapSalesInvoice(invoiceResult.rows[0]);
+      const invoiceItemsById = new Map(invoice.items.map((item) => [item.id, item]));
+
+      // Never trust client-supplied product/price/cost or invoice linkage — only the
+      // amount actually requested per original invoice line is taken from the client.
+      const requestedByInvoiceItem = new Map();
+      for (const item of base.items) {
+        assert(item.salesInvoiceItemId, "Each return line must reference the original invoice item.");
+        const invoiceItem = invoiceItemsById.get(item.salesInvoiceItemId);
+        assert(invoiceItem, "Returned item does not match the original invoice.", 400);
+
+        requestedByInvoiceItem.set(
+          item.salesInvoiceItemId,
+          (requestedByInvoiceItem.get(item.salesInvoiceItemId) || 0) + item.quantityPieces,
+        );
+
+        item.productId = invoiceItem.productId;
+        item.productName = invoiceItem.productName;
+        item.actualSalePrice = invoiceItem.actualSalePrice;
+        item.costPriceSnapshot = invoiceItem.costPriceSnapshot;
+        item.lineTotal = item.quantityPieces * invoiceItem.actualSalePrice;
+      }
+
+      const alreadyReturned = await sumReturnedQuantitiesByInvoiceItem(
+        client,
+        [...requestedByInvoiceItem.keys()],
+        actor.tenantId,
+      );
+
+      for (const [salesInvoiceItemId, requestedQuantity] of requestedByInvoiceItem) {
+        const invoiceItem = invoiceItemsById.get(salesInvoiceItemId);
+        const returnedSoFar = alreadyReturned.get(salesInvoiceItemId) || 0;
+        const remaining = invoiceItem.quantityPieces - returnedSoFar;
+        assert(
+          requestedQuantity <= remaining,
+          `Cannot return ${requestedQuantity} of ${invoiceItem.productName}; only ${Math.max(0, remaining)} remaining to return (sold ${invoiceItem.quantityPieces}, already returned ${returnedSoFar}).`,
+          400,
+        );
+      }
+
+      // Recompute totals from the now server-verified item data, not the client's first pass.
+      base.totalAmount = base.items.reduce((sum, item) => sum + item.lineTotal, 0);
+      base.totalProfitAdjustment = base.items.reduce(
+        (sum, item) => sum + (item.actualSalePrice - item.costPriceSnapshot) * item.quantityPieces,
+        0,
+      );
+      base.customerId = invoice.customerId;
+
       const productIds = base.items.map((item) => item.productId);
-      const productMap = await lockProducts(client, productIds, actor.tenantId);
+      await lockProducts(client, productIds, actor.tenantId);
 
       const year = new Date(base.returnDate).getUTCFullYear();
       const returnNumber = await nextReturnNumber(client, actor.tenantId, year);
 
       for (const item of base.items) {
-        const product = productMap.get(item.productId);
-        item.productName = item.productName || product.name;
         const nextBalance = await applyStockDelta(client, item.productId, actor.tenantId, item.quantityPieces, 0);
         await recordStockMovement(client, {
           tenantId: actor.tenantId,

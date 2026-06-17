@@ -5,6 +5,7 @@ import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../services/printService.js';
 import { inventoryApi } from '../../../services/inventoryApi';
 import { formatCurrency, formatDate } from '../../../utils/calculations.js';
+import { getCssVar } from '../../../utils/theme.js';
 import { useProfitViewModel } from '../viewmodels/useProfitViewModel';
 
 const VIEWS = [
@@ -120,9 +121,9 @@ export default function ProfitPage() {
           <TrendChart
             data={chartData}
             series={[
-              { key: 'revenue', label: t('profit.revenue'), color: '#2563eb', fill: true },
-              { key: 'cost', label: t('profit.cost'), color: '#f59e0b' },
-              { key: 'profit', label: t('profit.netProfitLoss'), color: '#059669' },
+              { key: 'revenue', label: t('profit.revenue'), color: getCssVar('--secondary', '#2563eb'), fill: true },
+              { key: 'cost', label: t('profit.cost'), color: getCssVar('--warning', '#f59e0b') },
+              { key: 'profit', label: t('profit.netProfitLoss'), color: getCssVar('--success', '#0f766e') },
             ]}
             valueFormatter={formatCurrency}
           />

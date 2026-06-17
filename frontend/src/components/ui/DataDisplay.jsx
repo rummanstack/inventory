@@ -43,7 +43,7 @@ export function StatCard({ title, value, helper, icon: Icon, tone = 'blue', tren
       card: 'from-white to-indigo-50/75',
       icon: 'bg-indigo-600 text-white shadow-[0_10px_20px_rgba(79,70,229,0.24)]',
       accent: 'bg-indigo-500',
-      spark: '#4f46e5',
+      spark: getCssVar('--purple', '#7c3aed'),
     },
     rose: {
       card: 'from-white to-danger-soft',
@@ -55,7 +55,7 @@ export function StatCard({ title, value, helper, icon: Icon, tone = 'blue', tren
       card: 'from-white to-slate-100/80',
       icon: 'bg-slate-800 text-white shadow-[0_10px_20px_rgba(15,23,42,0.18)]',
       accent: 'bg-slate-400',
-      spark: '#475569',
+      spark: getCssVar('--tick-color', '#475569'),
     },
   };
   const toneSet = tones[tone] || tones.blue;

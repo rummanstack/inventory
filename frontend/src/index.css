@@ -49,6 +49,9 @@
     --danger-strong: #b91c1c;
     --danger-soft: rgba(220, 38, 38, 0.08);
     --danger-line: rgba(220, 38, 38, 0.2);
+    /* Status chart tones derived from brand/warning so they re-theme automatically */
+    --issued-soft: color-mix(in srgb, var(--secondary) 40%, white);
+    --returned: var(--warning);
     --accent-orange: #f97316;
     --accent-teal: #0d9488;
     --purple: #7c3aed;

@@ -713,5 +713,22 @@ export async function createSchema(pool) {
     ALTER TABLE retail_customers ADD COLUMN IF NOT EXISTS current_due NUMERIC NOT NULL DEFAULT 0;
     ALTER TABLE sales_invoices DROP CONSTRAINT IF EXISTS sales_invoices_customer_id_fkey;
     ALTER TABLE sales_returns DROP CONSTRAINT IF EXISTS sales_returns_customer_id_fkey;
+
+    -- Business date: the date the underlying transaction actually happened, as opposed to
+    -- created_at (when the row was entered). Nullable so existing rows fall back to created_at
+    -- in queries rather than disappearing from date-filtered reports.
+    ALTER TABLE stock_movements ADD COLUMN IF NOT EXISTS business_date DATE;
+    ALTER TABLE customer_due_ledger ADD COLUMN IF NOT EXISTS business_date DATE;
+    ALTER TABLE supplier_due_ledger ADD COLUMN IF NOT EXISTS business_date DATE;
+    ALTER TABLE dsr_due_ledger ADD COLUMN IF NOT EXISTS business_date DATE;
+
+    CREATE INDEX IF NOT EXISTS idx_stock_movements_tenant_business_date
+      ON stock_movements(tenant_id, business_date);
+    CREATE INDEX IF NOT EXISTS idx_customer_due_ledger_tenant_business_date
+      ON customer_due_ledger(tenant_id, business_date);
+    CREATE INDEX IF NOT EXISTS idx_supplier_due_ledger_tenant_business_date
+      ON supplier_due_ledger(tenant_id, business_date);
+    CREATE INDEX IF NOT EXISTS idx_dsr_due_ledger_tenant_business_date
+      ON dsr_due_ledger(tenant_id, business_date);
   `);
 }

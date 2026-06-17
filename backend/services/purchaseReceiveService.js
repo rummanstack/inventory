@@ -84,6 +84,7 @@ async function applyPurchaseInventoryDelta(client, previousItems, nextItems, ten
         referenceId: movementContext.referenceId,
         note: movementContext.note || "Purchase receive stock movement",
         createdById: movementContext.createdById,
+        businessDate: movementContext.businessDate,
       });
     }
 
@@ -114,7 +115,7 @@ async function getSupplierBaselineBeforePurchase(client, previousPurchase, tenan
   return Math.max(0, cleanMoney(firstEntry.balanceAfter) - getDueLedgerChange(firstEntry));
 }
 
-async function seedOpeningSupplierLedgerIfNeeded(client, supplier, tenantId, actor) {
+async function seedOpeningSupplierLedgerIfNeeded(client, supplier, tenantId, actor, businessDate) {
   const existingEntry = await getLatestSupplierDueLedgerEntry(client, supplier.id, tenantId);
   if (existingEntry) {
     return existingEntry.balanceAfter;
@@ -133,6 +134,7 @@ async function seedOpeningSupplierLedgerIfNeeded(client, supplier, tenantId, act
       referenceId: supplier.id,
       note: `Opening due for ${supplier.name}`,
       createdById: actor.id,
+      businessDate,
     });
     return openingDue;
   }
@@ -218,6 +220,7 @@ export class PurchaseReceiveService {
       referenceId: base.id,
       createdById: actor.id,
       note: `Purchase receive ${purchaseNumber} created`,
+      businessDate: base.purchaseDate,
     });
 
     const insertResult = await insertPurchaseReceipt(client, {
@@ -240,7 +243,7 @@ export class PurchaseReceiveService {
     }
 
     // Seed OPENING ledger entry on first-ever entry for this supplier.
-    let currentBalance = await seedOpeningSupplierLedgerIfNeeded(client, supplier, actor.tenantId, actor);
+    let currentBalance = await seedOpeningSupplierLedgerIfNeeded(client, supplier, actor.tenantId, actor, base.purchaseDate);
 
     if (base.totalAmount > 0) {
       currentBalance += base.totalAmount;
@@ -255,6 +258,7 @@ export class PurchaseReceiveService {
         referenceId: base.id,
         note: `Purchase due for ${purchaseNumber}`,
         createdById: actor.id,
+        businessDate: base.purchaseDate,
       });
     }
 
@@ -271,6 +275,7 @@ export class PurchaseReceiveService {
         referenceId: base.id,
         note: `Payment made with purchase ${purchaseNumber}`,
         createdById: actor.id,
+        businessDate: base.purchaseDate,
       });
     }
 
@@ -334,6 +339,7 @@ export class PurchaseReceiveService {
       referenceId: base.id,
       createdById: actor.id,
       note: `Purchase receive ${previousPurchase.purchase_number} updated`,
+      businessDate: base.purchaseDate,
     });
 
     await deletePurchaseReceiptItems(client, base.id);
@@ -387,6 +393,7 @@ export class PurchaseReceiveService {
         referenceId: base.id,
         note: `Purchase due adjusted for ${previousPurchase.purchase_number}`,
         createdById: actor.id,
+        businessDate: base.purchaseDate,
       });
     }
 
@@ -403,6 +410,7 @@ export class PurchaseReceiveService {
         referenceId: base.id,
         note: `Payment adjusted for ${previousPurchase.purchase_number}`,
         createdById: actor.id,
+        businessDate: base.purchaseDate,
       });
 
       if (this.financeAccountService) {
@@ -477,11 +485,13 @@ export class PurchaseReceiveService {
         lineDiscount: Number(row.line_discount || 0),
         lineTotal: Number(row.line_total || 0),
       }));
+      const purchaseDate = String(purchase.purchase_date).slice(0, 10);
 
       await applyPurchaseInventoryDelta(client, purchaseItems, [], actor.tenantId, {
         referenceId: purchaseId,
         createdById: actor.id,
         note: `Purchase ${purchase.purchase_number} deleted — stock reversed`,
+        businessDate: purchaseDate,
       });
 
       await softDeletePurchaseReceipt(client, purchaseId, actor.tenantId, {
@@ -508,6 +518,7 @@ export class PurchaseReceiveService {
           referenceId: purchaseId,
           note: `Payment reversed — ${purchase.purchase_number} deleted (${reason})`,
           createdById: actor.id,
+          businessDate: purchaseDate,
         });
       }
 
@@ -524,6 +535,7 @@ export class PurchaseReceiveService {
           referenceId: purchaseId,
           note: `Purchase due reversed — ${purchase.purchase_number} deleted (${reason})`,
           createdById: actor.id,
+          businessDate: purchaseDate,
         });
       }
 
@@ -536,7 +548,7 @@ export class PurchaseReceiveService {
             accountType: "CASH",
             type: "DEPOSIT",
             amount: paidAmount,
-            date: String(purchase.purchase_date).slice(0, 10),
+            date: purchaseDate,
             note: `Purchase ${purchase.purchase_number} deleted — cash restored`,
           },
           actor,
@@ -569,11 +581,13 @@ export class PurchaseReceiveService {
         lineDiscount: Number(row.line_discount || 0),
         lineTotal: Number(row.line_total || 0),
       }));
+      const purchaseDate = String(purchase.purchase_date).slice(0, 10);
 
       await applyPurchaseInventoryDelta(client, [], purchaseItems, actor.tenantId, {
         referenceId: purchaseId,
         createdById: actor.id,
         note: `Purchase ${purchase.purchase_number} restored — stock re-applied`,
+        businessDate: purchaseDate,
       });
 
       const totalAmount = Number(purchase.total_amount || 0);
@@ -595,6 +609,7 @@ export class PurchaseReceiveService {
           referenceId: purchaseId,
           note: `Purchase due restored — ${purchase.purchase_number} restored from trash`,
           createdById: actor.id,
+          businessDate: purchaseDate,
         });
       }
 
@@ -611,6 +626,7 @@ export class PurchaseReceiveService {
           referenceId: purchaseId,
           note: `Payment restored — ${purchase.purchase_number} restored from trash`,
           createdById: actor.id,
+          businessDate: purchaseDate,
         });
       }
 
@@ -623,7 +639,7 @@ export class PurchaseReceiveService {
             accountType: "CASH",
             type: "WITHDRAWAL",
             amount: paidAmount,
-            date: String(purchase.purchase_date).slice(0, 10),
+            date: purchaseDate,
             note: `Purchase ${purchase.purchase_number} restored — cash re-applied`,
           },
           actor,

@@ -109,6 +109,7 @@ export class CustomerPaymentService {
       referenceId: base.id,
       note: base.note || `Collection from ${customer.name}`,
       createdById: actor.id,
+      businessDate: base.paymentDate,
     });
 
     await updateRetailCustomerCurrentDue(client, customer.id, actor.tenantId, Math.max(0, balanceAfter));
@@ -176,6 +177,7 @@ export class CustomerPaymentService {
         referenceId: base.id,
         note: `Collection adjusted for ${customer.name}`,
         createdById: actor.id,
+        businessDate: base.paymentDate,
       });
 
       await updateRetailCustomerCurrentDue(client, customer.id, actor.tenantId, Math.max(0, balanceAfter));
@@ -254,6 +256,7 @@ export class CustomerPaymentService {
         referenceId: paymentId,
         note: `Collection reversed — payment deleted (${reason})`,
         createdById: actor.id,
+        businessDate: String(payment.payment_date).slice(0, 10),
       });
 
       await updateRetailCustomerCurrentDue(client, payment.customer_id, actor.tenantId, Math.max(0, balanceAfter));
@@ -308,6 +311,7 @@ export class CustomerPaymentService {
         referenceId: paymentId,
         note: `Collection restored — payment restored from trash`,
         createdById: actor.id,
+        businessDate: String(row.payment_date).slice(0, 10),
       });
 
       await updateRetailCustomerCurrentDue(client, row.customer_id, actor.tenantId, Math.max(0, balanceAfter));

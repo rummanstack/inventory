@@ -110,6 +110,7 @@ export class SupplierPaymentService {
       referenceId: base.id,
       note: base.note || `Payment to ${supplier.name}`,
       createdById: actor.id,
+      businessDate: base.paymentDate,
     });
 
     await updateSupplierCurrentDue(client, supplier.id, actor.tenantId, Math.max(0, balanceAfter));
@@ -177,6 +178,7 @@ export class SupplierPaymentService {
         referenceId: base.id,
         note: `Payment adjusted for ${supplier.name}`,
         createdById: actor.id,
+        businessDate: base.paymentDate,
       });
 
       await updateSupplierCurrentDue(client, supplier.id, actor.tenantId, Math.max(0, balanceAfter));
@@ -255,6 +257,7 @@ export class SupplierPaymentService {
         referenceId: paymentId,
         note: `Payment reversed — supplier payment deleted (${reason})`,
         createdById: actor.id,
+        businessDate: String(payment.payment_date).slice(0, 10),
       });
 
       await updateSupplierCurrentDue(client, payment.supplier_id, actor.tenantId, Math.max(0, balanceAfter));
@@ -309,6 +312,7 @@ export class SupplierPaymentService {
         referenceId: paymentId,
         note: `Payment restored — supplier payment restored from trash`,
         createdById: actor.id,
+        businessDate: String(row.payment_date).slice(0, 10),
       });
 
       await updateSupplierCurrentDue(client, row.supplier_id, actor.tenantId, Math.max(0, balanceAfter));

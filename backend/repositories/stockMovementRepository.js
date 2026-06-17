@@ -16,6 +16,7 @@ function mapStockMovement(row) {
     createdByName: row.created_by_name || null,
     createdByEmail: row.created_by_email || null,
     createdByRole: row.created_by_role || null,
+    businessDate: row.business_date,
     createdAt: row.created_at,
   };
 }
@@ -36,12 +37,12 @@ function buildFilterClause({ tenantId, productId, type, dateFrom, dateTo }, para
 
   if (dateFrom) {
     params.push(dateFrom);
-    conditions.push(`stock_movements.created_at >= $${params.length}::date`);
+    conditions.push(`COALESCE(stock_movements.business_date, stock_movements.created_at::date) >= $${params.length}::date`);
   }
 
   if (dateTo) {
     params.push(dateTo);
-    conditions.push(`stock_movements.created_at < ($${params.length}::date + INTERVAL '1 day')`);
+    conditions.push(`COALESCE(stock_movements.business_date, stock_movements.created_at::date) <= $${params.length}::date`);
   }
 
   return `WHERE ${conditions.join(" AND ")}`;
@@ -76,9 +77,10 @@ export function insertStockMovement(client, movement) {
        reference_type,
        reference_id,
        note,
-       created_by
+       created_by,
+       business_date
      )
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, COALESCE($12::date, CURRENT_DATE))
      RETURNING *`,
     [
       movement.id,
@@ -92,6 +94,7 @@ export function insertStockMovement(client, movement) {
       movement.referenceId,
       movement.note,
       movement.createdById,
+      movement.businessDate || null,
     ],
   );
 }
@@ -110,7 +113,9 @@ export async function listStockMovementsPage(client, { tenantId, productId, type
   const result = await client.query(
     `${buildSelect()}
      ${where}
-     ORDER BY stock_movements.created_at DESC, stock_movements.id DESC
+     ORDER BY COALESCE(stock_movements.business_date, stock_movements.created_at::date) DESC,
+              stock_movements.created_at DESC,
+              stock_movements.id DESC
      LIMIT $${params.length - 1} OFFSET $${params.length}`,
     params,
   );

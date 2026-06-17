@@ -35,7 +35,7 @@ import {
 
 const DATE_ERROR = "Invoice date must be in YYYY-MM-DD format.";
 
-async function seedOpeningCustomerLedgerIfNeeded(client, customer, tenantId, actor) {
+async function seedOpeningCustomerLedgerIfNeeded(client, customer, tenantId, actor, businessDate) {
   const existingEntry = await getLatestCustomerDueLedgerEntry(client, customer.id, tenantId);
   if (existingEntry) {
     return existingEntry.balanceAfter;
@@ -54,6 +54,7 @@ async function seedOpeningCustomerLedgerIfNeeded(client, customer, tenantId, act
       referenceId: customer.id,
       note: `Opening due for ${customer.name}`,
       createdById: actor.id,
+      businessDate,
     });
     return openingDue;
   }
@@ -166,6 +167,7 @@ export class SalesInvoiceService {
         referenceId: base.id,
         note: `Sales invoice ${invoiceNumber}`,
         createdById: actor.id,
+        businessDate: base.invoiceDate,
       });
     }
 
@@ -211,7 +213,7 @@ export class SalesInvoiceService {
       assert(customerResult.rowCount > 0, "Customer not found.", 404);
       customer = customerResult.rows[0];
 
-      let currentBalance = await seedOpeningCustomerLedgerIfNeeded(client, customer, actor.tenantId, actor);
+      let currentBalance = await seedOpeningCustomerLedgerIfNeeded(client, customer, actor.tenantId, actor, base.invoiceDate);
 
       if (base.dueAmount > 0) {
         currentBalance += base.dueAmount;
@@ -226,6 +228,7 @@ export class SalesInvoiceService {
           referenceId: base.id,
           note: `Sale due for ${invoiceNumber}`,
           createdById: actor.id,
+          businessDate: base.invoiceDate,
         });
 
         await updateRetailCustomerCurrentDue(client, customer.id, actor.tenantId, Math.max(0, currentBalance));
@@ -260,6 +263,7 @@ export class SalesInvoiceService {
       const invoice = existingResult.rows[0];
 
       const itemsResult = await getSalesInvoiceItems(client, invoiceId);
+      const invoiceDate = String(invoice.invoice_date).slice(0, 10);
 
       // Void: a deleted sale must give back the stock it took, reverse any due it created,
       // and reverse any cash it recorded — exactly the effects createSalesInvoiceRecord applied.
@@ -277,6 +281,7 @@ export class SalesInvoiceService {
           referenceId: invoiceId,
           note: `Sale ${invoice.invoice_number} deleted — stock reversed`,
           createdById: actor.id,
+          businessDate: invoiceDate,
         });
       }
 
@@ -302,6 +307,7 @@ export class SalesInvoiceService {
           referenceId: invoiceId,
           note: `Sale due reversed — ${invoice.invoice_number} deleted (${reason})`,
           createdById: actor.id,
+          businessDate: invoiceDate,
         });
 
         await updateRetailCustomerCurrentDue(client, invoice.customer_id, actor.tenantId, Math.max(0, balanceAfter));
@@ -315,7 +321,7 @@ export class SalesInvoiceService {
             accountType: "CASH",
             type: "WITHDRAWAL",
             amount: paidAmount,
-            date: String(invoice.invoice_date).slice(0, 10),
+            date: invoiceDate,
             note: `Sale ${invoice.invoice_number} deleted — cash reversed`,
           },
           actor,
@@ -341,6 +347,7 @@ export class SalesInvoiceService {
       const invoice = result.rows[0];
 
       const itemsResult = await getSalesInvoiceItems(client, invoiceId);
+      const invoiceDate = String(invoice.invoice_date).slice(0, 10);
       const productIds = itemsResult.rows.map((item) => item.product_id);
       const productMap = await lockProducts(client, productIds, actor.tenantId);
 
@@ -369,6 +376,7 @@ export class SalesInvoiceService {
           referenceId: invoiceId,
           note: `Sale ${invoice.invoice_number} restored from trash — stock re-applied`,
           createdById: actor.id,
+          businessDate: invoiceDate,
         });
       }
 
@@ -389,6 +397,7 @@ export class SalesInvoiceService {
           referenceId: invoiceId,
           note: `Sale due restored — ${invoice.invoice_number} restored from trash`,
           createdById: actor.id,
+          businessDate: invoiceDate,
         });
 
         await updateRetailCustomerCurrentDue(client, invoice.customer_id, actor.tenantId, Math.max(0, balanceAfter));
@@ -402,7 +411,7 @@ export class SalesInvoiceService {
             accountType: "CASH",
             type: "DEPOSIT",
             amount: paidAmount,
-            date: String(invoice.invoice_date).slice(0, 10),
+            date: invoiceDate,
             note: `Sale ${invoice.invoice_number} restored from trash — cash re-applied`,
           },
           actor,

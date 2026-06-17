@@ -1,4 +1,4 @@
-import { Download, Printer, Wallet } from 'lucide-react';
+import { Download, FileSpreadsheet, Printer, Wallet } from 'lucide-react';
 import { Alert, EmptyState, LoadingState, SectionHeader, StatCard } from '../../../../components/ui.jsx';
 import { DatePickerField } from '../../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
@@ -12,6 +12,18 @@ export default function DailySalesReportPage() {
   const vm = useDailySalesReportViewModel();
   const printTargetId = 'daily-sales-report-print';
   const rows = vm.report?.rows || [];
+
+  async function handleExportExcel() {
+    const { utils, writeFile } = await import('xlsx');
+    const header = ['Date', 'Invoices', 'Total Amount', 'Paid Amount', 'Due Amount', 'Profit'];
+    const data = rows.map((row) => [row.date, row.invoiceCount, Number(row.totalAmount), Number(row.paidAmount), Number(row.dueAmount), Number(row.totalProfit)]);
+    const ws = utils.aoa_to_sheet([header, ...data]);
+    ws['!cols'] = [{ wch: 14 }, { wch: 10 }, { wch: 16 }, { wch: 16 }, { wch: 16 }, { wch: 14 }];
+    const wb = utils.book_new();
+    utils.book_append_sheet(wb, ws, 'Daily Sales');
+    writeFile(wb, `daily-sales-report-${vm.dateFrom}-${vm.dateTo}.xlsx`);
+  }
+
   const totals = rows.reduce(
     (acc, row) => {
       acc.invoiceCount += row.invoiceCount;
@@ -69,6 +81,10 @@ export default function DailySalesReportPage() {
             >
               <Download size={18} />
               {t('purchaseReceive.downloadPdf')}
+            </button>
+            <button type="button" className="btn-secondary" onClick={handleExportExcel}>
+              <FileSpreadsheet size={18} />
+              Export as Excel
             </button>
             <button
               type="button"

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { CircleDollarSign, Download, Pencil, Plus, Printer, Trash2 } from 'lucide-react';
+import { CircleDollarSign, Download, FileSpreadsheet, Pencil, Plus, Printer, Trash2 } from 'lucide-react';
 import { Alert, Badge, ChartPanel, EmptyState, LoadingState, SectionHeader, HorizontalBarChart, StatCard, TableSkeleton } from '../../../components/ui.jsx';
 import { DatePickerField, MonthPickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
@@ -27,6 +27,28 @@ export default function ExpensesPage() {
       setModal(null);
     }
     return result;
+  }
+
+  async function handleExportDailyExcel() {
+    const { utils, writeFile } = await import('xlsx');
+    const header = ['Date', 'Category', 'Amount', 'Note', 'Created By', 'Role'];
+    const data = (vm.report?.dailyExpenses || []).map((e) => [e.date, e.category, Number(e.amount), e.note || '', e.createdByName || '', e.createdByRole || '']);
+    const ws = utils.aoa_to_sheet([header, ...data]);
+    ws['!cols'] = [{ wch: 14 }, { wch: 16 }, { wch: 14 }, { wch: 28 }, { wch: 18 }, { wch: 14 }];
+    const wb = utils.book_new();
+    utils.book_append_sheet(wb, ws, 'Daily Expenses');
+    writeFile(wb, `expenses-daily-${vm.date}.xlsx`);
+  }
+
+  async function handleExportMonthlyExcel() {
+    const { utils, writeFile } = await import('xlsx');
+    const header = ['Date', 'Category', 'Amount', 'Note'];
+    const data = (vm.report?.monthlyExpenses || []).map((e) => [e.date, e.category, Number(e.amount), e.note || '']);
+    const ws = utils.aoa_to_sheet([header, ...data]);
+    ws['!cols'] = [{ wch: 14 }, { wch: 16 }, { wch: 14 }, { wch: 28 }];
+    const wb = utils.book_new();
+    utils.book_append_sheet(wb, ws, 'Monthly Expenses');
+    writeFile(wb, `expenses-monthly-${vm.month}.xlsx`);
   }
 
   async function handleDelete(expenseId) {
@@ -126,6 +148,10 @@ export default function ExpensesPage() {
                       <Download size={14} />
                       Download as PDF
                     </button>
+                    <button type="button" className="btn-secondary no-print py-1.5 text-xs" onClick={handleExportDailyExcel}>
+                      <FileSpreadsheet size={14} />
+                      Export as Excel
+                    </button>
                   </div>
                 </div>
               </div>
@@ -191,6 +217,10 @@ export default function ExpensesPage() {
                     >
                       <Download size={14} />
                       Download as PDF
+                    </button>
+                    <button type="button" className="btn-secondary no-print py-1.5 text-xs" onClick={handleExportMonthlyExcel}>
+                      <FileSpreadsheet size={14} />
+                      Export as Excel
                     </button>
                   </div>
                 </div>

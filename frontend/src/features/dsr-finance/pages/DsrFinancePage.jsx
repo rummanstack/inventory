@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { BadgeDollarSign, Download, HandCoins, Pencil, Plus, Printer, RefreshCw, Trash2, Wallet } from 'lucide-react';
+import { BadgeDollarSign, Download, FileSpreadsheet, HandCoins, Pencil, Plus, Printer, RefreshCw, Trash2, Wallet } from 'lucide-react';
 import { Alert, Badge, ChartPanel, EmptyState, LoadingState, SectionHeader, HorizontalBarChart, StatCard, TableSkeleton } from '../../../components/ui.jsx';
 import { DatePickerField, MonthPickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
@@ -104,6 +104,39 @@ export default function DsrFinancePage() {
   const monthlyRecords = activeVm.report?.monthlyRecords || [];
   const dueEntries = isDueTab ? [...(dueVm.statement?.entries || [])].reverse() : [];
 
+  async function handleExportAdvanceDailyExcel() {
+    const { utils, writeFile } = await import('xlsx');
+    const header = ['Date', 'DSR Name', 'Area', 'Amount', 'Note', 'Created By', 'Role'];
+    const data = dailyRecords.map((r) => [r.date, r.dsrName, r.dsrArea || '', Number(r.amount), r.note || '', r.performedByName || '', r.performedByRole || '']);
+    const ws = utils.aoa_to_sheet([header, ...data]);
+    ws['!cols'] = [{ wch: 14 }, { wch: 20 }, { wch: 14 }, { wch: 14 }, { wch: 24 }, { wch: 18 }, { wch: 14 }];
+    const wb = utils.book_new();
+    utils.book_append_sheet(wb, ws, 'Advance Daily');
+    writeFile(wb, `dsr-advance-daily-${activeVm.date}.xlsx`);
+  }
+
+  async function handleExportAdvanceMonthlyExcel() {
+    const { utils, writeFile } = await import('xlsx');
+    const header = ['Date', 'DSR Name', 'Area', 'Amount', 'Note'];
+    const data = monthlyRecords.map((r) => [r.date, r.dsrName, r.dsrArea || '', Number(r.amount), r.note || '']);
+    const ws = utils.aoa_to_sheet([header, ...data]);
+    ws['!cols'] = [{ wch: 14 }, { wch: 20 }, { wch: 14 }, { wch: 14 }, { wch: 24 }];
+    const wb = utils.book_new();
+    utils.book_append_sheet(wb, ws, 'Advance Monthly');
+    writeFile(wb, `dsr-advance-monthly-${activeVm.month}.xlsx`);
+  }
+
+  async function handleExportDueExcel() {
+    const { utils, writeFile } = await import('xlsx');
+    const header = ['Date', 'Type', 'Debit', 'Credit', 'Balance After', 'Note', 'Created By'];
+    const data = dueEntries.map((e) => [e.createdAt, e.type, Number(e.debit || 0), Number(e.credit || 0), Number(e.balanceAfter), e.note || '', e.createdByName || '']);
+    const ws = utils.aoa_to_sheet([header, ...data]);
+    ws['!cols'] = [{ wch: 20 }, { wch: 22 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 24 }, { wch: 18 }];
+    const wb = utils.book_new();
+    utils.book_append_sheet(wb, ws, 'DSR Due Statement');
+    writeFile(wb, `dsr-due-statement.xlsx`);
+  }
+
   return (
     <div>
       <SectionHeader
@@ -182,6 +215,10 @@ export default function DsrFinancePage() {
                     >
                       <Download size={16} />
                       {t('purchaseReceive.downloadPdf')}
+                    </button>
+                    <button type="button" className="btn-secondary" onClick={handleExportDueExcel}>
+                      <FileSpreadsheet size={16} />
+                      Export as Excel
                     </button>
                     <button
                       type="button"
@@ -358,6 +395,10 @@ export default function DsrFinancePage() {
                       <Download size={14} />
                       Download as PDF
                     </button>
+                    <button type="button" className="btn-secondary no-print py-1.5 text-xs" onClick={handleExportAdvanceDailyExcel}>
+                      <FileSpreadsheet size={14} />
+                      Export as Excel
+                    </button>
                   </div>
                 </div>
               </div>
@@ -417,7 +458,13 @@ export default function DsrFinancePage() {
               <div className="border-b border-slate-100 px-5 py-4">
                 <div className="flex items-center justify-between gap-3">
                   <h2 className="text-base font-bold text-slate-950">{t(moduleConfig.monthlyListKey, { month: activeVm.month })}</h2>
-                  <span className="muted-chip">{formatNumber(monthlyRecords.length)} {t('common.records')}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="muted-chip">{formatNumber(monthlyRecords.length)} {t('common.records')}</span>
+                    <button type="button" className="btn-secondary py-1.5 text-xs" onClick={handleExportAdvanceMonthlyExcel}>
+                      <FileSpreadsheet size={14} />
+                      Export as Excel
+                    </button>
+                  </div>
                 </div>
               </div>
               <div className="overflow-x-auto">

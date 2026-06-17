@@ -1,4 +1,4 @@
-import { Download, Printer, RefreshCw, Wallet } from 'lucide-react';
+import { Download, FileSpreadsheet, Printer, RefreshCw, Wallet } from 'lucide-react';
 import { Badge, EmptyState, LoadingState, SectionHeader, StatCard } from '../../../../components/ui.jsx';
 import { DatePickerField } from '../../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
@@ -26,6 +26,17 @@ export default function CustomerDuePage() {
 
   function recordDuePrint(label) {
     inventoryApi.recordPrint({ entityType: 'customer_due_statement', entityId: vm.customerId, label }).catch(() => {});
+  }
+
+  async function handleExportExcel() {
+    const { utils, writeFile } = await import('xlsx');
+    const header = ['Date', 'Type', 'Debit', 'Credit', 'Balance After', 'Note', 'Created By'];
+    const data = entries.map((e) => [e.createdAt, e.type, Number(e.debit || 0), Number(e.credit || 0), Number(e.balanceAfter), e.note || '', e.createdByName || '']);
+    const ws = utils.aoa_to_sheet([header, ...data]);
+    ws['!cols'] = [{ wch: 20 }, { wch: 22 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 24 }, { wch: 18 }];
+    const wb = utils.book_new();
+    utils.book_append_sheet(wb, ws, 'Customer Due');
+    writeFile(wb, `customer-due-${selectedCustomer?.name || vm.customerId}.xlsx`);
   }
 
   return (
@@ -61,6 +72,10 @@ export default function CustomerDuePage() {
               >
                 <Download size={18} />
                 {t('purchaseReceive.downloadPdf')}
+              </button>
+              <button type="button" className="btn-secondary" onClick={handleExportExcel}>
+                <FileSpreadsheet size={18} />
+                Export as Excel
               </button>
               <button
                 type="button"

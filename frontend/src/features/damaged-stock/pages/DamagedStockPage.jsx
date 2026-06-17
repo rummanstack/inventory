@@ -1,4 +1,4 @@
-import { Download, PackageX, Printer } from 'lucide-react';
+import { Download, FileSpreadsheet, PackageX, Printer } from 'lucide-react';
 import { EmptyState, SectionHeader } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../services/printService.js';
@@ -12,6 +12,17 @@ export default function DamagedStockPage() {
   const { productDirectory, clearDamagedStock, t, can } = useInventoryApp();
   const vm = useDamagedStockViewModel({ products: productDirectory });
   const canManageProducts = can('manage_products');
+
+  async function handleExportExcel() {
+    const { utils, writeFile } = await import('xlsx');
+    const header = ['#', 'Product', 'Category', 'Damaged Pieces', 'Case Size'];
+    const data = vm.damagedProducts.map((p, i) => [i + 1, p.name, p.category || '', p.damagedPieces, p.piecesPerCase]);
+    const ws = utils.aoa_to_sheet([header, ...data]);
+    ws['!cols'] = [{ wch: 6 }, { wch: 28 }, { wch: 18 }, { wch: 16 }, { wch: 12 }];
+    const wb = utils.book_new();
+    utils.book_append_sheet(wb, ws, 'Damaged Stock');
+    writeFile(wb, 'damaged-stock-report.xlsx');
+  }
 
   return (
     <div>
@@ -28,6 +39,10 @@ export default function DamagedStockPage() {
             >
               <Download size={14} />
               Download as PDF
+            </button>
+            <button type="button" className="btn-secondary no-print py-1.5 text-xs" onClick={handleExportExcel}>
+              <FileSpreadsheet size={14} />
+              Export as Excel
             </button>
             <button
               type="button"

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Download, Pencil, Plus, Printer, Trash2, Wallet } from 'lucide-react';
+import { Download, FileSpreadsheet, Pencil, Plus, Printer, Trash2, Wallet } from 'lucide-react';
 import { Alert, EmptyState, Pagination, SectionHeader, TableSkeleton } from '../../../../components/ui.jsx';
 import { DatePickerField } from '../../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
@@ -14,6 +14,25 @@ export default function DueCollectionPage() {
   const vm = useDueCollectionViewModel();
   const [formModal, setFormModal] = useState(null);
   const canManageRetailers = can('manage_retailers');
+
+  async function handleExportExcel() {
+    const result = await inventoryApi.listCustomerPayments({
+      customerId: vm.customerId || undefined,
+      dateFrom: vm.dateFrom || undefined,
+      dateTo: vm.dateTo || undefined,
+      page: 1,
+      pageSize: 10000,
+    });
+    const all = result.items || [];
+    const { utils, writeFile } = await import('xlsx');
+    const header = ['#', 'Date', 'Customer', 'Amount', 'Method', 'Note'];
+    const data = all.map((p, i) => [i + 1, p.paymentDate, p.customerName || '', Number(p.amount), p.paymentMethod, p.note || '']);
+    const ws = utils.aoa_to_sheet([header, ...data]);
+    ws['!cols'] = [{ wch: 6 }, { wch: 14 }, { wch: 22 }, { wch: 14 }, { wch: 16 }, { wch: 28 }];
+    const wb = utils.book_new();
+    utils.book_append_sheet(wb, ws, 'Due Collection');
+    writeFile(wb, `due-collection-report.xlsx`);
+  }
 
   return (
     <div>
@@ -45,6 +64,10 @@ export default function DueCollectionPage() {
               >
                 <Download size={14} />
                 Download as PDF
+              </button>
+              <button type="button" className="btn-secondary no-print py-1.5 text-xs" onClick={handleExportExcel}>
+                <FileSpreadsheet size={14} />
+                Export as Excel
               </button>
               <button
                 type="button"

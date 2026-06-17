@@ -15,6 +15,7 @@ function mapSupplierDueLedgerEntry(row) {
     createdByName: row.created_by_name || null,
     createdByEmail: row.created_by_email || null,
     createdByRole: row.created_by_role || null,
+    businessDate: row.business_date,
     createdAt: row.created_at,
   };
 }
@@ -30,12 +31,12 @@ function buildFilterClause({ tenantId, supplierId, dateFrom, dateTo }, params) {
 
   if (dateFrom) {
     params.push(dateFrom);
-    conditions.push(`supplier_due_ledger.created_at >= $${params.length}::date`);
+    conditions.push(`COALESCE(supplier_due_ledger.business_date, supplier_due_ledger.created_at::date) >= $${params.length}::date`);
   }
 
   if (dateTo) {
     params.push(dateTo);
-    conditions.push(`supplier_due_ledger.created_at < ($${params.length}::date + INTERVAL '1 day')`);
+    conditions.push(`COALESCE(supplier_due_ledger.business_date, supplier_due_ledger.created_at::date) <= $${params.length}::date`);
   }
 
   return `WHERE ${conditions.join(" AND ")}`;
@@ -56,9 +57,26 @@ function buildSelect() {
       ON users.id = supplier_due_ledger.created_by`;
 }
 
-function orderByLedger(direction) {
+// True insertion order — used wherever the "latest balance" must reflect the most recently
+// processed entry (the base for the next posting, and what current payable is kept in sync
+// with). Must NOT switch to business date — see customerDueLedgerRepository.js for why.
+function orderByInsertion(direction) {
   const sort = direction === "ASC" ? "ASC" : "DESC";
   return `supplier_due_ledger.created_at ${sort},
+          CASE supplier_due_ledger.type
+            WHEN 'PURCHASE_DUE' THEN 10
+            WHEN 'PAYMENT' THEN 20
+            ELSE 30
+          END ${sort},
+          supplier_due_ledger.id ${sort}`;
+}
+
+// Human-facing ordering for statements/reports — by business date, with insertion time only
+// as a tiebreaker for same-day entries.
+function orderByBusinessDate(direction) {
+  const sort = direction === "ASC" ? "ASC" : "DESC";
+  return `COALESCE(supplier_due_ledger.business_date, supplier_due_ledger.created_at::date) ${sort},
+          supplier_due_ledger.created_at ${sort},
           CASE supplier_due_ledger.type
             WHEN 'PURCHASE_DUE' THEN 10
             WHEN 'PAYMENT' THEN 20
@@ -81,9 +99,10 @@ export function insertSupplierDueLedgerEntry(client, entry) {
        reference_id,
        note,
        created_by,
+       business_date,
        created_at
      )
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, clock_timestamp())
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, COALESCE($12::date, CURRENT_DATE), clock_timestamp())
      RETURNING *`,
     [
       entry.id,
@@ -97,6 +116,7 @@ export function insertSupplierDueLedgerEntry(client, entry) {
       entry.referenceId,
       entry.note || "",
       entry.createdById,
+      entry.businessDate || null,
     ],
   );
 }
@@ -105,7 +125,7 @@ export async function getLatestSupplierDueLedgerEntry(client, supplierId, tenant
   const result = await client.query(
     `SELECT * FROM supplier_due_ledger
      WHERE supplier_id = $1 AND tenant_id = $2
-     ORDER BY ${orderByLedger("DESC")}
+     ORDER BY ${orderByInsertion("DESC")}
      LIMIT 1`,
     [supplierId, tenantId],
   );
@@ -119,7 +139,7 @@ export async function getFirstSupplierDueLedgerEntryForReference(client, { tenan
        AND supplier_id = $2
        AND reference_type = $3
        AND reference_id = $4
-     ORDER BY ${orderByLedger("ASC")}
+     ORDER BY ${orderByInsertion("ASC")}
      LIMIT 1`,
     [tenantId, supplierId, referenceType, referenceId],
   );
@@ -140,7 +160,7 @@ export async function listSupplierDueLedgerPage(client, { tenantId, supplierId, 
   const result = await client.query(
     `${buildSelect()}
      ${where}
-     ORDER BY ${orderByLedger("DESC")}
+     ORDER BY ${orderByBusinessDate("DESC")}
      LIMIT $${params.length - 1} OFFSET $${params.length}`,
     params,
   );
@@ -154,7 +174,7 @@ export async function listSupplierDueLedgerInRange(client, { tenantId, supplierI
   const result = await client.query(
     `${buildSelect()}
      ${where}
-     ORDER BY ${orderByLedger("ASC")}`,
+     ORDER BY ${orderByBusinessDate("ASC")}`,
     params,
   );
 
@@ -168,8 +188,9 @@ export async function getSupplierBalanceBefore(client, { tenantId, supplierId, d
 
   const result = await client.query(
     `SELECT balance_after FROM supplier_due_ledger
-     WHERE supplier_id = $1 AND tenant_id = $2 AND created_at < $3::date
-     ORDER BY ${orderByLedger("DESC")}
+     WHERE supplier_id = $1 AND tenant_id = $2
+       AND COALESCE(business_date, created_at::date) < $3::date
+     ORDER BY ${orderByBusinessDate("DESC")}
      LIMIT 1`,
     [supplierId, tenantId, dateFrom],
   );
@@ -184,7 +205,7 @@ export async function sumLatestSupplierDueBalances(client, tenantId) {
        SELECT DISTINCT ON (supplier_id) balance_after
        FROM supplier_due_ledger
        WHERE tenant_id = $1
-       ORDER BY supplier_id, ${orderByLedger("DESC")}
+       ORDER BY supplier_id, ${orderByInsertion("DESC")}
      ) latest`,
     [tenantId],
   );

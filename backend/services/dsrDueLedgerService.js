@@ -168,6 +168,7 @@ export class DsrDueLedgerService {
       const currentBalance = latestEntry ? latestEntry.balanceAfter : Number(dsr.opening_due || 0);
       assert(amount <= currentBalance, `Settlement amount exceeds current due balance of ${currentBalance}.`, 400);
       const balanceAfter = currentBalance - amount;
+      const businessDate = new Date().toISOString().slice(0, 10);
 
       const result = await insertDueLedgerEntry(client, {
         id: createId("due-ledger"),
@@ -181,6 +182,7 @@ export class DsrDueLedgerService {
         referenceId: null,
         note: note || `Due settled for ${dsr.name}`,
         createdById: actor.id,
+        businessDate,
       });
 
       if (this.financeAccountService) {
@@ -190,7 +192,7 @@ export class DsrDueLedgerService {
             accountType: "CASH",
             type: "DEPOSIT",
             amount,
-            date: new Date().toISOString().slice(0, 10),
+            date: businessDate,
             note: note || `Due settled — ${dsr.name}`,
           },
           actor,

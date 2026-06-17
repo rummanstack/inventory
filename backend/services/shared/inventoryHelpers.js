@@ -52,6 +52,7 @@ export async function recordStockMovement(client, movement) {
     referenceId: movement.referenceId,
     note: movement.note || "",
     createdById: movement.createdById,
+    businessDate: movement.businessDate,
   });
 }
 
@@ -75,6 +76,7 @@ export async function recordDueLedgerEntry(client, entry) {
     referenceId: entry.referenceId,
     note: entry.note || "",
     createdById: entry.createdById,
+    businessDate: entry.businessDate,
   });
 }
 
@@ -98,6 +100,7 @@ export async function recordSupplierDueLedgerEntry(client, entry) {
     referenceId: entry.referenceId,
     note: entry.note || "",
     createdById: entry.createdById,
+    businessDate: entry.businessDate,
   });
 }
 
@@ -121,6 +124,7 @@ export async function recordCustomerDueLedgerEntry(client, entry) {
     referenceId: entry.referenceId,
     note: entry.note || "",
     createdById: entry.createdById,
+    businessDate: entry.businessDate,
   });
 }
 

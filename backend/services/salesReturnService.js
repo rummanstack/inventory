@@ -151,6 +151,7 @@ export class SalesReturnService {
           referenceId: base.id,
           note: `Sales return ${returnNumber}`,
           createdById: actor.id,
+          businessDate: base.returnDate,
         });
       }
 
@@ -199,6 +200,7 @@ export class SalesReturnService {
           referenceId: base.id,
           note: `Sales return ${returnNumber}`,
           createdById: actor.id,
+          businessDate: base.returnDate,
         });
 
         await updateRetailCustomerCurrentDue(client, customer.id, actor.tenantId, Math.max(0, balanceAfter));

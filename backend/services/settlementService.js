@@ -130,6 +130,7 @@ async function applySettlementInventoryDelta(
         referenceId: movementContext.referenceId,
         note: movementContext.note || movement.defaultNote,
         createdById: movementContext.createdById,
+        businessDate: movementContext.businessDate,
       });
     }
 
@@ -148,6 +149,7 @@ async function applySettlementInventoryDelta(
         referenceId: movementContext.referenceId,
         note: movementContext.note || `Damaged stock movement. Damaged balance: ${currentDamaged} pcs`,
         createdById: movementContext.createdById,
+        businessDate: movementContext.businessDate,
       });
     }
   }
@@ -270,6 +272,7 @@ async function recordSettlementDueLedgerChanges(client, settlement, tenantId, ac
       referenceId: settlement.id,
       note: `Sale due ${verb} for ${settlement.dsrName} on ${settlement.date}`,
       createdById: actor.id,
+      businessDate: settlement.date,
     });
   }
 
@@ -286,6 +289,7 @@ async function recordSettlementDueLedgerChanges(client, settlement, tenantId, ac
       referenceId: settlement.id,
       note: `Collection ${verb} for ${settlement.dsrName} on ${settlement.date}`,
       createdById: actor.id,
+      businessDate: settlement.date,
     });
   }
 
@@ -357,6 +361,7 @@ export class SettlementService {
       referenceId: trustedBase.id,
       createdById: actor.id,
       note: `Evening settlement created for ${trustedBase.dsrName} on ${trustedBase.date}`,
+      businessDate: trustedBase.date,
     });
 
     const latestEntry = await getLatestDueLedgerEntry(client, trustedBase.dsrId, tenantId);
@@ -448,6 +453,7 @@ export class SettlementService {
         referenceId: trustedBase.id,
         createdById: actor.id,
         note: `Evening settlement updated for ${trustedBase.dsrName} on ${trustedBase.date}`,
+        businessDate: trustedBase.date,
       },
     );
 

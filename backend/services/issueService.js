@@ -76,6 +76,7 @@ async function applyIssueInventoryDelta(client, previousItems, nextItems, tenant
       referenceId: movementContext.referenceId,
       note: movementContext.note || "Morning issue stock movement",
       createdById: movementContext.createdById,
+      businessDate: movementContext.businessDate,
     });
   }
 }
@@ -152,6 +153,7 @@ export class IssueService {
           referenceId: issue.id,
           createdById: actor.id,
           note: `Morning issue updated for ${issue.dsrName} on ${issue.date}`,
+          businessDate: issue.date,
         });
         const issueResult = await updateIssue(client, issue);
 
@@ -187,6 +189,7 @@ export class IssueService {
         referenceId: issue.id,
         createdById: actor.id,
         note: `Morning issue created for ${issue.dsrName} on ${issue.date}`,
+        businessDate: issue.date,
       });
       const issueResult = await insertIssue(client, issue);
       await this.recordActivity(client, actor, {
@@ -242,6 +245,7 @@ export class IssueService {
         referenceId: issue.id,
         createdById: actor.id,
         note: `Morning issue updated for ${issue.dsrName} on ${issue.date}`,
+        businessDate: issue.date,
       });
       const issueResult = await updateIssue(client, issue);
       await this.recordActivity(client, actor, {

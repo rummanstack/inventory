@@ -15,6 +15,7 @@ function mapCustomerDueLedgerEntry(row) {
     createdByName: row.created_by_name || null,
     createdByEmail: row.created_by_email || null,
     createdByRole: row.created_by_role || null,
+    businessDate: row.business_date,
     createdAt: row.created_at,
   };
 }
@@ -30,12 +31,12 @@ function buildFilterClause({ tenantId, customerId, dateFrom, dateTo }, params) {
 
   if (dateFrom) {
     params.push(dateFrom);
-    conditions.push(`customer_due_ledger.created_at >= $${params.length}::date`);
+    conditions.push(`COALESCE(customer_due_ledger.business_date, customer_due_ledger.created_at::date) >= $${params.length}::date`);
   }
 
   if (dateTo) {
     params.push(dateTo);
-    conditions.push(`customer_due_ledger.created_at < ($${params.length}::date + INTERVAL '1 day')`);
+    conditions.push(`COALESCE(customer_due_ledger.business_date, customer_due_ledger.created_at::date) <= $${params.length}::date`);
   }
 
   return `WHERE ${conditions.join(" AND ")}`;
@@ -56,9 +57,27 @@ function buildSelect() {
       ON users.id = customer_due_ledger.created_by`;
 }
 
-function orderByLedger(direction) {
+// True insertion order — used wherever the "latest balance" must reflect the most recently
+// processed entry (the base for the next posting, and what current_due is kept in sync with).
+// Must NOT switch to business date: a backdated entry's balanceAfter was computed from the
+// balance at insertion time, not from the historical balance on its business date.
+function orderByInsertion(direction) {
   const sort = direction === "ASC" ? "ASC" : "DESC";
   return `customer_due_ledger.created_at ${sort},
+          CASE customer_due_ledger.type
+            WHEN 'SALE_DUE' THEN 10
+            WHEN 'COLLECTION' THEN 20
+            ELSE 30
+          END ${sort},
+          customer_due_ledger.id ${sort}`;
+}
+
+// Human-facing ordering for statements/reports — by business date, with insertion time only
+// as a tiebreaker for same-day entries.
+function orderByBusinessDate(direction) {
+  const sort = direction === "ASC" ? "ASC" : "DESC";
+  return `COALESCE(customer_due_ledger.business_date, customer_due_ledger.created_at::date) ${sort},
+          customer_due_ledger.created_at ${sort},
           CASE customer_due_ledger.type
             WHEN 'SALE_DUE' THEN 10
             WHEN 'COLLECTION' THEN 20
@@ -81,9 +100,10 @@ export function insertCustomerDueLedgerEntry(client, entry) {
        reference_id,
        note,
        created_by,
+       business_date,
        created_at
      )
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, clock_timestamp())
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, COALESCE($12::date, CURRENT_DATE), clock_timestamp())
      RETURNING *`,
     [
       entry.id,
@@ -97,6 +117,7 @@ export function insertCustomerDueLedgerEntry(client, entry) {
       entry.referenceId,
       entry.note || "",
       entry.createdById,
+      entry.businessDate || null,
     ],
   );
 }
@@ -105,7 +126,7 @@ export async function getLatestCustomerDueLedgerEntry(client, customerId, tenant
   const result = await client.query(
     `SELECT * FROM customer_due_ledger
      WHERE customer_id = $1 AND tenant_id = $2
-     ORDER BY ${orderByLedger("DESC")}
+     ORDER BY ${orderByInsertion("DESC")}
      LIMIT 1`,
     [customerId, tenantId],
   );
@@ -126,7 +147,7 @@ export async function listCustomerDueLedgerPage(client, { tenantId, customerId, 
   const result = await client.query(
     `${buildSelect()}
      ${where}
-     ORDER BY ${orderByLedger("DESC")}
+     ORDER BY ${orderByBusinessDate("DESC")}
      LIMIT $${params.length - 1} OFFSET $${params.length}`,
     params,
   );
@@ -140,7 +161,7 @@ export async function listCustomerDueLedgerInRange(client, { tenantId, customerI
   const result = await client.query(
     `${buildSelect()}
      ${where}
-     ORDER BY ${orderByLedger("ASC")}`,
+     ORDER BY ${orderByBusinessDate("ASC")}`,
     params,
   );
 
@@ -154,8 +175,9 @@ export async function getCustomerBalanceBefore(client, { tenantId, customerId, d
 
   const result = await client.query(
     `SELECT balance_after FROM customer_due_ledger
-     WHERE customer_id = $1 AND tenant_id = $2 AND created_at < $3::date
-     ORDER BY ${orderByLedger("DESC")}
+     WHERE customer_id = $1 AND tenant_id = $2
+       AND COALESCE(business_date, created_at::date) < $3::date
+     ORDER BY ${orderByBusinessDate("DESC")}
      LIMIT 1`,
     [customerId, tenantId, dateFrom],
   );
@@ -170,7 +192,7 @@ export async function sumLatestCustomerDueBalances(client, tenantId) {
        SELECT DISTINCT ON (customer_id) balance_after
        FROM customer_due_ledger
        WHERE tenant_id = $1
-       ORDER BY customer_id, ${orderByLedger("DESC")}
+       ORDER BY customer_id, ${orderByInsertion("DESC")}
      ) latest`,
     [tenantId],
   );

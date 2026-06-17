@@ -282,6 +282,13 @@
       clearFailed: 'ড্যামেজড স্টক ক্লিয়ার করা যায়নি।',
       emptyTitle: 'কোনো ড্যামেজড স্টক নেই',
       emptyDescription: 'সেটেলমেন্ট থেকে ড্যামেজড স্টক থাকলে এখানে দেখা যাবে।',
+      clearHistoryTitle: 'ড্যামেজ ক্লিয়ার ইতিহাস',
+      clearHistoryDescription: 'পণ্য ও তারিখ অনুযায়ী সকল ড্যামেজ রাইট-অফের বিবরণ।',
+      clearDate: 'তারিখ',
+      qtyCleared: 'ক্লিয়ার পরিমাণ',
+      clearedBy: 'ক্লিয়ার করেছেন',
+      clearHistoryEmptyTitle: 'এই সময়ে কোনো ক্লিয়ার নেই',
+      clearHistoryEmptyDescription: 'নির্বাচিত ফিল্টারে কোনো ড্যামেজ স্টক ক্লিয়ার হয়নি।',
     },
     dsrDueLedger: {
       eyebrow: 'ডিএসআর আর্থিক',

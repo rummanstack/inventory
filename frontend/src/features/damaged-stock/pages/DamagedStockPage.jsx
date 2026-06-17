@@ -4,8 +4,8 @@ import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../services/printService.js';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import { formatCasePiece, formatNumber } from '../../../utils/calculations.js';
-import StockLedgerPanel from '../../products/components/StockLedgerPanel';
 import ClearDamageModal from '../components/ClearDamageModal';
+import DamageClearHistoryPanel from '../components/DamageClearHistoryPanel';
 import { useDamagedStockViewModel } from '../viewmodels/useDamagedStockViewModel';
 
 export default function DamagedStockPage() {
@@ -81,7 +81,7 @@ export default function DamagedStockPage() {
         )}
       </div>
 
-      <StockLedgerPanel products={productDirectory} t={t} refreshKey={vm.refreshKey} fixedType="DAMAGE_CLEAR" />
+      <DamageClearHistoryPanel products={productDirectory} refreshKey={vm.refreshKey} />
 
       {vm.selectedProduct ? (
         <ClearDamageModal

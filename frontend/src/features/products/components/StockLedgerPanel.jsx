@@ -36,7 +36,7 @@ function formatReference(movement) {
   return `${movement.referenceType || 'reference'} / ${shortId}`;
 }
 
-export default function StockLedgerPanel({ products, t, refreshKey = 0, fixedType }) {
+export default function StockLedgerPanel({ products, t, refreshKey = 0, fixedType, sectionTitle, sectionDescription }) {
   const today = todayISO();
   const [productId, setProductId] = useState('');
   const [dateFrom, setDateFrom] = useState(subtractDays(today, 29));
@@ -100,8 +100,8 @@ export default function StockLedgerPanel({ products, t, refreshKey = 0, fixedTyp
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
             <p className="brand-chip">{t('stockLedger.eyebrow')}</p>
-            <h2 className="mt-3 text-lg font-black text-slate-950">{t('stockLedger.title')}</h2>
-            <p className="mt-1 max-w-3xl text-sm font-medium leading-6 text-slate-500">{t('stockLedger.description')}</p>
+            <h2 className="mt-3 text-lg font-black text-slate-950">{sectionTitle || t('stockLedger.title')}</h2>
+            <p className="mt-1 max-w-3xl text-sm font-medium leading-6 text-slate-500">{sectionDescription || t('stockLedger.description')}</p>
           </div>
           <button type="button" className="btn-secondary" onClick={() => setVersion((value) => value + 1)}>
             <RefreshCw size={16} />

@@ -1,8 +1,10 @@
 import { useState } from 'react';
-import { Pencil, Plus, Trash2, Wallet } from 'lucide-react';
+import { Download, Pencil, Plus, Printer, Trash2, Wallet } from 'lucide-react';
 import { Alert, EmptyState, Pagination, SectionHeader, TableSkeleton } from '../../../../components/ui.jsx';
 import { DatePickerField } from '../../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
+import { downloadSheetPdf } from '../../../../services/printService.js';
+import { inventoryApi } from '../../../../services/inventoryApi.js';
 import { formatCurrency, formatDate, formatNumber } from '../../../../utils/calculations.js';
 import CustomerPaymentFormModal from '../components/CustomerPaymentFormModal';
 import { useDueCollectionViewModel } from '../viewmodels/useDueCollectionViewModel';
@@ -27,15 +29,31 @@ export default function DueCollectionPage() {
         ) : null}
       />
 
-      <div className="surface overflow-hidden">
+      <div id="due-collection-print" className="surface overflow-hidden">
         <div className="border-b border-slate-100 p-5">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="space-y-2">
               <p className="text-[11px] font-black uppercase tracking-[0.22em] text-slate-400">{t('retailer.dueCollection.eyebrow')}</p>
               <p className="text-sm font-medium text-slate-500">{t('retailer.dueCollection.description')}</p>
             </div>
-            <div className="flex flex-wrap gap-2 text-sm font-bold">
+            <div className="flex flex-wrap items-center gap-2 text-sm font-bold">
               <span className="muted-chip">{formatNumber(vm.total)} {t('retailer.dueCollection.paymentCount')}</span>
+              <button
+                type="button"
+                className="btn-secondary no-print py-1.5 text-xs"
+                onClick={() => { inventoryApi.recordPrint({ entityType: 'due_collection', entityId: null, label: 'pdf' }).catch(() => {}); downloadSheetPdf('due-collection-print', `due-collection-report.pdf`); }}
+              >
+                <Download size={14} />
+                Download as PDF
+              </button>
+              <button
+                type="button"
+                className="btn-secondary no-print py-1.5 text-xs"
+                onClick={() => { inventoryApi.recordPrint({ entityType: 'due_collection', entityId: null, label: 'print' }).catch(() => {}); window.print(); }}
+              >
+                <Printer size={14} />
+                Print
+              </button>
             </div>
           </div>
           <div className="mt-4 grid gap-3 sm:grid-cols-3">

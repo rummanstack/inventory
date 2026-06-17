@@ -1,8 +1,10 @@
 import { useMemo, useState } from 'react';
-import { CircleDollarSign, Pencil, Plus, Trash2 } from 'lucide-react';
+import { CircleDollarSign, Download, Pencil, Plus, Printer, Trash2 } from 'lucide-react';
 import { Alert, Badge, ChartPanel, EmptyState, LoadingState, SectionHeader, HorizontalBarChart, StatCard, TableSkeleton } from '../../../components/ui.jsx';
 import { DatePickerField, MonthPickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
+import { downloadSheetPdf } from '../../../services/printService.js';
+import { inventoryApi } from '../../../services/inventoryApi.js';
 import { formatCurrency, formatDate, formatNumber, todayISO } from '../../../utils/calculations.js';
 import { toBarChartData } from '../../../utils/charts.js';
 import { useExpenseViewModel } from '../viewmodels/useExpenseViewModel';
@@ -110,11 +112,21 @@ export default function ExpensesPage() {
           </div>
 
           <div className="mt-6 grid gap-6 xl:grid-cols-2">
-            <div className="surface overflow-hidden">
+            <div id="expenses-daily-print" className="surface overflow-hidden">
               <div className="border-b border-slate-100 px-5 py-4">
                 <div className="flex items-center justify-between gap-3">
                   <h2 className="text-base font-bold text-slate-950">{t('expenses.dailyExpenseList', { date: formatDate(vm.date) })}</h2>
-                  <span className="muted-chip">{formatNumber(vm.report?.dailyExpenses?.length || 0)} {t('common.records')}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="muted-chip">{formatNumber(vm.report?.dailyExpenses?.length || 0)} {t('common.records')}</span>
+                    <button
+                      type="button"
+                      className="btn-secondary no-print py-1.5 text-xs"
+                      onClick={() => { inventoryApi.recordPrint({ entityType: 'expenses_daily', entityId: null, label: 'pdf' }).catch(() => {}); downloadSheetPdf('expenses-daily-print', `expenses-daily-${vm.date}.pdf`); }}
+                    >
+                      <Download size={14} />
+                      Download as PDF
+                    </button>
+                  </div>
                 </div>
               </div>
               <div className="overflow-x-auto">
@@ -166,11 +178,21 @@ export default function ExpensesPage() {
               ) : null}
             </div>
 
-            <div className="surface overflow-hidden">
+            <div id="expenses-monthly-print" className="surface overflow-hidden">
               <div className="border-b border-slate-100 px-5 py-4">
                 <div className="flex items-center justify-between gap-3">
                   <h2 className="text-base font-bold text-slate-950">{t('expenses.monthlyExpenseList', { month: vm.month })}</h2>
-                  <span className="muted-chip">{formatNumber(vm.report?.monthlyExpenses?.length || 0)} {t('common.records')}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="muted-chip">{formatNumber(vm.report?.monthlyExpenses?.length || 0)} {t('common.records')}</span>
+                    <button
+                      type="button"
+                      className="btn-secondary no-print py-1.5 text-xs"
+                      onClick={() => { inventoryApi.recordPrint({ entityType: 'expenses_monthly', entityId: null, label: 'pdf' }).catch(() => {}); downloadSheetPdf('expenses-monthly-print', `expenses-monthly-${vm.month}.pdf`); }}
+                    >
+                      <Download size={14} />
+                      Download as PDF
+                    </button>
+                  </div>
                 </div>
               </div>
               <div className="overflow-x-auto">

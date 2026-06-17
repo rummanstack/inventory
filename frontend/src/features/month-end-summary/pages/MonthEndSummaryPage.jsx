@@ -1,8 +1,10 @@
 import { useMemo } from 'react';
-import { BarChart3, BadgeDollarSign, CircleDollarSign, Coins, Tag, TrendingUp } from 'lucide-react';
+import { BarChart3, BadgeDollarSign, CircleDollarSign, Coins, Download, Printer, Tag, TrendingUp } from 'lucide-react';
 import { Alert, ChartPanel, EmptyState, LoadingState, SectionHeader, HorizontalBarChart, StatCard, TableSkeleton } from '../../../components/ui.jsx';
 import { MonthPickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
+import { downloadSheetPdf } from '../../../services/printService.js';
+import { inventoryApi } from '../../../services/inventoryApi.js';
 import { formatCurrency, formatNumber } from '../../../utils/calculations.js';
 import { toBarChartData } from '../../../utils/charts.js';
 import { useMonthEndSummaryViewModel } from '../viewmodels/useMonthEndSummaryViewModel';
@@ -14,6 +16,7 @@ export default function MonthEndSummaryPage() {
   const vm = useMonthEndSummaryViewModel();
   const rows = vm.report?.rows || [];
   const chartData = useMemo(() => toBarChartData(rows.slice(0, 8), CHART_FIELDS), [rows]);
+  const printTargetId = 'month-end-summary-print';
 
   if (vm.loading) {
     return (
@@ -97,11 +100,29 @@ export default function MonthEndSummaryPage() {
         </ChartPanel>
       </div>
 
-      <div className="surface mt-6 overflow-hidden">
+      <div id={printTargetId} className="surface mt-6 overflow-hidden">
         <div className="border-b border-slate-100 px-5 py-4">
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-base font-bold text-slate-950">{t('monthEndSummary.tableTitle', { month: vm.month })}</h2>
-            <span className="muted-chip">{formatNumber(rows.length)} {t('common.dsr')}</span>
+            <div className="flex items-center gap-2">
+              <span className="muted-chip">{formatNumber(rows.length)} {t('common.dsr')}</span>
+              <button
+                type="button"
+                className="btn-secondary no-print py-1.5 text-xs"
+                onClick={() => { inventoryApi.recordPrint({ entityType: 'month_end_summary', entityId: null, label: 'pdf' }).catch(() => {}); downloadSheetPdf(printTargetId, `month-end-summary-${vm.month}.pdf`); }}
+              >
+                <Download size={15} />
+                {t('purchaseReceive.downloadPdf')}
+              </button>
+              <button
+                type="button"
+                className="btn-secondary no-print py-1.5 text-xs"
+                onClick={() => { inventoryApi.recordPrint({ entityType: 'month_end_summary', entityId: null, label: 'print' }).catch(() => {}); window.print(); }}
+              >
+                <Printer size={15} />
+                {t('purchaseReceive.printSheet')}
+              </button>
+            </div>
           </div>
         </div>
         <div className="overflow-x-auto">

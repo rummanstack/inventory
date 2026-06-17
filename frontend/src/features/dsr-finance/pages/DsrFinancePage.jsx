@@ -1,8 +1,10 @@
 import { useMemo, useState } from 'react';
-import { BadgeDollarSign, HandCoins, Pencil, Plus, RefreshCw, Trash2, Wallet } from 'lucide-react';
+import { BadgeDollarSign, Download, HandCoins, Pencil, Plus, Printer, RefreshCw, Trash2, Wallet } from 'lucide-react';
 import { Alert, Badge, ChartPanel, EmptyState, LoadingState, SectionHeader, HorizontalBarChart, StatCard, TableSkeleton } from '../../../components/ui.jsx';
 import { DatePickerField, MonthPickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
+import { downloadSheetPdf } from '../../../services/printService.js';
+import { inventoryApi } from '../../../services/inventoryApi.js';
 import { formatCurrency, formatDate, formatDateTime, formatNumber, todayISO } from '../../../utils/calculations.js';
 import { toBarChartData } from '../../../utils/charts.js';
 import { useDsrFinanceViewModel } from '../viewmodels/useDsrFinanceViewModel';
@@ -171,6 +173,26 @@ export default function DsrFinancePage() {
                   <HandCoins size={16} />
                   {t('dsrDueLedger.settleDue')}
                 </button>
+                {dueVm.statement ? (
+                  <>
+                    <button
+                      type="button"
+                      className="btn-secondary"
+                      onClick={() => { inventoryApi.recordPrint({ entityType: 'dsr_due_statement', entityId: dueVm.dsrId, label: 'pdf' }).catch(() => {}); downloadSheetPdf('dsr-due-statement-print', `dsr-due-statement.pdf`); }}
+                    >
+                      <Download size={16} />
+                      {t('purchaseReceive.downloadPdf')}
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-secondary"
+                      onClick={() => { inventoryApi.recordPrint({ entityType: 'dsr_due_statement', entityId: dueVm.dsrId, label: 'print' }).catch(() => {}); window.print(); }}
+                    >
+                      <Printer size={16} />
+                      {t('purchaseReceive.printSheet')}
+                    </button>
+                  </>
+                ) : null}
               </div>
             </div>
           </div>
@@ -186,7 +208,7 @@ export default function DsrFinancePage() {
                 <StatCard title={t('dsrDueLedger.closingBalance')} value={formatCurrency(dueVm.statement?.closingBalance || 0)} icon={Wallet} tone="blue" />
               </div>
 
-              <div className="surface mt-6 overflow-hidden">
+              <div id="dsr-due-statement-print" className="surface mt-6 overflow-hidden">
                 <div className="border-b border-slate-100 px-5 py-4">
                   <h2 className="text-base font-bold text-slate-950">{t('dsrDueLedger.entriesTitle')}</h2>
                 </div>
@@ -322,11 +344,21 @@ export default function DsrFinancePage() {
           </div>
 
           <div className="mt-6 grid gap-6 xl:grid-cols-2">
-            <div className="surface overflow-hidden">
+            <div id="dsr-advance-daily-print" className="surface overflow-hidden">
               <div className="border-b border-slate-100 px-5 py-4">
                 <div className="flex items-center justify-between gap-3">
                   <h2 className="text-base font-bold text-slate-950">{t(moduleConfig.dailyListKey, { date: formatDate(activeVm.date) })}</h2>
-                  <span className="muted-chip">{formatNumber(dailyRecords.length)} {t('common.records')}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="muted-chip">{formatNumber(dailyRecords.length)} {t('common.records')}</span>
+                    <button
+                      type="button"
+                      className="btn-secondary no-print py-1.5 text-xs"
+                      onClick={() => { inventoryApi.recordPrint({ entityType: 'dsr_advance', entityId: null, label: 'pdf' }).catch(() => {}); downloadSheetPdf('dsr-advance-daily-print', `dsr-advance-${activeVm.date}.pdf`); }}
+                    >
+                      <Download size={14} />
+                      Download as PDF
+                    </button>
+                  </div>
                 </div>
               </div>
               <div className="overflow-x-auto">

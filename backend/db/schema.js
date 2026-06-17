@@ -362,6 +362,7 @@ export async function createSchema(pool) {
     ALTER TABLE user_sessions ADD COLUMN IF NOT EXISTS ip_address TEXT NOT NULL DEFAULT '';
     ALTER TABLE user_sessions ADD COLUMN IF NOT EXISTS user_agent TEXT NOT NULL DEFAULT '';
     ALTER TABLE user_sessions ADD COLUMN IF NOT EXISTS last_seen_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
+    ALTER TABLE user_sessions ADD COLUMN IF NOT EXISTS active_tenant_id TEXT REFERENCES tenants(id);
     CREATE INDEX IF NOT EXISTS idx_user_sessions_user_id ON user_sessions(user_id);
 
     CREATE TABLE IF NOT EXISTS login_history (

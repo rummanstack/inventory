@@ -147,7 +147,7 @@ export function createApiRouter({
   // Public contact form — no auth required
   router.use("/contact", createContactRoutes(contactMessageController, { contactRateLimiter }));
 
-  router.use(requireAuth(authService, env));
+  router.use(requireAuth(authService, env, auditService));
 
   router.use("/auth", createAuthenticatedAuthRoutes(authController));
   router.use("/profile", createProfileRoutes(userController));

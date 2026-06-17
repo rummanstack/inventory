@@ -212,6 +212,20 @@ export function touchSession(client, tokenHash, { ipAddress, userAgent }) {
   );
 }
 
+export async function getSessionActiveTenantId(client, tokenHash) {
+  const result = await client.query("SELECT active_tenant_id FROM user_sessions WHERE token_hash = $1 LIMIT 1", [
+    tokenHash,
+  ]);
+  return result.rows[0]?.active_tenant_id || null;
+}
+
+export function setSessionActiveTenantId(client, tokenHash, tenantId) {
+  return client.query("UPDATE user_sessions SET active_tenant_id = $2 WHERE token_hash = $1", [
+    tokenHash,
+    tenantId || null,
+  ]);
+}
+
 export function softDeleteUser(client, userId, tenantId, { deletedById, deleteReason } = {}) {
   return client.query(
     `UPDATE users

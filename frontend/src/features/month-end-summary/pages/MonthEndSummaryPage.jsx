@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { BarChart3, BadgeDollarSign, CircleDollarSign, Coins, Download, Printer, Tag, TrendingUp } from 'lucide-react';
+import { BarChart3, BadgeDollarSign, CircleDollarSign, Coins, Download, FileSpreadsheet, Printer, Tag, TrendingUp } from 'lucide-react';
 import { Alert, ChartPanel, EmptyState, LoadingState, SectionHeader, HorizontalBarChart, StatCard, TableSkeleton } from '../../../components/ui.jsx';
 import { MonthPickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
@@ -17,6 +17,17 @@ export default function MonthEndSummaryPage() {
   const rows = vm.report?.rows || [];
   const chartData = useMemo(() => toBarChartData(rows.slice(0, 8), CHART_FIELDS), [rows]);
   const printTargetId = 'month-end-summary-print';
+
+  async function handleExportExcel() {
+    const { utils, writeFile } = await import('xlsx');
+    const header = ['DSR Name', 'Area', 'Total Payable', 'Discount', 'Settlement Paid', 'Advance Given', 'Remaining Due', 'Net Balance'];
+    const data = rows.map((row) => [row.dsrName, row.dsrArea || '', Number(row.totalPayable), Number(row.totalDiscount), Number(row.totalPaidAtSettlement), Number(row.totalAdvance), Number(row.remainingDue), Number(row.netBalance)]);
+    const ws = utils.aoa_to_sheet([header, ...data]);
+    ws['!cols'] = [{ wch: 20 }, { wch: 16 }, { wch: 14 }, { wch: 12 }, { wch: 16 }, { wch: 14 }, { wch: 14 }, { wch: 14 }];
+    const wb = utils.book_new();
+    utils.book_append_sheet(wb, ws, 'Month End');
+    writeFile(wb, `month-end-summary-${vm.month}.xlsx`);
+  }
 
   if (vm.loading) {
     return (
@@ -113,6 +124,10 @@ export default function MonthEndSummaryPage() {
               >
                 <Download size={15} />
                 {t('purchaseReceive.downloadPdf')}
+              </button>
+              <button type="button" className="btn-secondary no-print py-1.5 text-xs" onClick={handleExportExcel}>
+                <FileSpreadsheet size={15} />
+                Export as Excel
               </button>
               <button
                 type="button"

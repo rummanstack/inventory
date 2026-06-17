@@ -1,4 +1,4 @@
-import { Download, Printer, TrendingDown, TrendingUp, Wallet } from 'lucide-react';
+import { Download, FileSpreadsheet, Printer, TrendingDown, TrendingUp, Wallet } from 'lucide-react';
 import { Alert, EmptyState, LoadingState, SectionHeader, StatCard } from '../../../../components/ui.jsx';
 import { DatePickerField } from '../../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
@@ -13,6 +13,17 @@ export default function RetailerProfitReportPage() {
   const printTargetId = 'retailer-profit-report-print';
   const rows = vm.report?.rows || [];
   const totals = vm.report?.totals || { totalSales: 0, totalProfit: 0, invoiceCount: 0 };
+
+  async function handleExportExcel() {
+    const { utils, writeFile } = await import('xlsx');
+    const header = ['Date', 'Invoices', 'Total Sales', 'Profit'];
+    const data = rows.map((row) => [row.date, row.invoiceCount, Number(row.totalSales), Number(row.totalProfit)]);
+    const ws = utils.aoa_to_sheet([header, ...data]);
+    ws['!cols'] = [{ wch: 14 }, { wch: 10 }, { wch: 16 }, { wch: 14 }];
+    const wb = utils.book_new();
+    utils.book_append_sheet(wb, ws, 'Profit Report');
+    writeFile(wb, `profit-report-${vm.dateFrom}-${vm.dateTo}.xlsx`);
+  }
   const isProfit = totals.totalProfit >= 0;
 
   return (
@@ -61,6 +72,10 @@ export default function RetailerProfitReportPage() {
             >
               <Download size={18} />
               {t('purchaseReceive.downloadPdf')}
+            </button>
+            <button type="button" className="btn-secondary" onClick={handleExportExcel}>
+              <FileSpreadsheet size={18} />
+              Export as Excel
             </button>
             <button
               type="button"

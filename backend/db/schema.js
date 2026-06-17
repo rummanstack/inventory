@@ -730,5 +730,110 @@ export async function createSchema(pool) {
       ON supplier_due_ledger(tenant_id, business_date);
     CREATE INDEX IF NOT EXISTS idx_dsr_due_ledger_tenant_business_date
       ON dsr_due_ledger(tenant_id, business_date);
+
+    -- Lock down tenant_id on every table that must always belong to exactly one tenant.
+    -- Deliberately NOT included: users (system_developer has no home tenant), activity_logs
+    -- and error_logs (platform-level actions and errors can occur with no tenant context —
+    -- e.g. the tenant-switch and full-platform-backup audit entries record tenant_id = NULL
+    -- on purpose), login_history and password_reset_tokens (same reasoning for platform users).
+
+    -- Step 1: root tables with no better signal than "the tenant this row has always
+    -- implicitly belonged to" — backfill any leftover null to the oldest tenant.
+    UPDATE products SET tenant_id = (SELECT id FROM tenants ORDER BY created_at ASC LIMIT 1) WHERE tenant_id IS NULL;
+    UPDATE dsrs SET tenant_id = (SELECT id FROM tenants ORDER BY created_at ASC LIMIT 1) WHERE tenant_id IS NULL;
+    UPDATE issues SET tenant_id = (SELECT id FROM tenants ORDER BY created_at ASC LIMIT 1) WHERE tenant_id IS NULL;
+    UPDATE settlements SET tenant_id = (SELECT id FROM tenants ORDER BY created_at ASC LIMIT 1) WHERE tenant_id IS NULL;
+    UPDATE expenses SET tenant_id = (SELECT id FROM tenants ORDER BY created_at ASC LIMIT 1) WHERE tenant_id IS NULL;
+    UPDATE dsr_cash_receipts SET tenant_id = (SELECT id FROM tenants ORDER BY created_at ASC LIMIT 1) WHERE tenant_id IS NULL;
+    UPDATE dsr_advances SET tenant_id = (SELECT id FROM tenants ORDER BY created_at ASC LIMIT 1) WHERE tenant_id IS NULL;
+    UPDATE customers SET tenant_id = (SELECT id FROM tenants ORDER BY created_at ASC LIMIT 1) WHERE tenant_id IS NULL;
+    UPDATE suppliers SET tenant_id = (SELECT id FROM tenants ORDER BY created_at ASC LIMIT 1) WHERE tenant_id IS NULL;
+    UPDATE retail_customers SET tenant_id = (SELECT id FROM tenants ORDER BY created_at ASC LIMIT 1) WHERE tenant_id IS NULL;
+    UPDATE finance_accounts SET tenant_id = (SELECT id FROM tenants ORDER BY created_at ASC LIMIT 1) WHERE tenant_id IS NULL;
+
+    -- Step 2: tables one level down — infer tenant_id from the parent business record they
+    -- reference (more accurate than guessing), then fall back to the oldest tenant for any
+    -- row whose parent can't be resolved.
+    UPDATE sales_invoices si SET tenant_id = rc.tenant_id
+      FROM retail_customers rc WHERE rc.id = si.customer_id AND si.tenant_id IS NULL AND rc.tenant_id IS NOT NULL;
+    UPDATE sales_invoices SET tenant_id = (SELECT id FROM tenants ORDER BY created_at ASC LIMIT 1) WHERE tenant_id IS NULL;
+
+    UPDATE purchase_receipts pr SET tenant_id = s.tenant_id
+      FROM suppliers s WHERE s.id = pr.supplier_id AND pr.tenant_id IS NULL AND s.tenant_id IS NOT NULL;
+    UPDATE purchase_receipts SET tenant_id = (SELECT id FROM tenants ORDER BY created_at ASC LIMIT 1) WHERE tenant_id IS NULL;
+
+    -- Step 3: tables two levels down, depending on step 2 having already run.
+    UPDATE stock_movements sm SET tenant_id = p.tenant_id
+      FROM products p WHERE p.id = sm.product_id AND sm.tenant_id IS NULL AND p.tenant_id IS NOT NULL;
+    UPDATE stock_movements SET tenant_id = (SELECT id FROM tenants ORDER BY created_at ASC LIMIT 1) WHERE tenant_id IS NULL;
+
+    UPDATE purchase_receipt_items pri SET tenant_id = pr.tenant_id
+      FROM purchase_receipts pr WHERE pr.id = pri.purchase_receipt_id AND pri.tenant_id IS NULL AND pr.tenant_id IS NOT NULL;
+    UPDATE purchase_receipt_items SET tenant_id = (SELECT id FROM tenants ORDER BY created_at ASC LIMIT 1) WHERE tenant_id IS NULL;
+
+    UPDATE supplier_due_ledger sdl SET tenant_id = s.tenant_id
+      FROM suppliers s WHERE s.id = sdl.supplier_id AND sdl.tenant_id IS NULL AND s.tenant_id IS NOT NULL;
+    UPDATE supplier_due_ledger SET tenant_id = (SELECT id FROM tenants ORDER BY created_at ASC LIMIT 1) WHERE tenant_id IS NULL;
+
+    UPDATE supplier_payments sp SET tenant_id = s.tenant_id
+      FROM suppliers s WHERE s.id = sp.supplier_id AND sp.tenant_id IS NULL AND s.tenant_id IS NOT NULL;
+    UPDATE supplier_payments SET tenant_id = (SELECT id FROM tenants ORDER BY created_at ASC LIMIT 1) WHERE tenant_id IS NULL;
+
+    UPDATE sales_invoice_items sii SET tenant_id = si.tenant_id
+      FROM sales_invoices si WHERE si.id = sii.sales_invoice_id AND sii.tenant_id IS NULL AND si.tenant_id IS NOT NULL;
+    UPDATE sales_invoice_items SET tenant_id = (SELECT id FROM tenants ORDER BY created_at ASC LIMIT 1) WHERE tenant_id IS NULL;
+
+    UPDATE customer_due_ledger cdl SET tenant_id = rc.tenant_id
+      FROM retail_customers rc WHERE rc.id = cdl.customer_id AND cdl.tenant_id IS NULL AND rc.tenant_id IS NOT NULL;
+    UPDATE customer_due_ledger SET tenant_id = (SELECT id FROM tenants ORDER BY created_at ASC LIMIT 1) WHERE tenant_id IS NULL;
+
+    UPDATE customer_payments cp SET tenant_id = rc.tenant_id
+      FROM retail_customers rc WHERE rc.id = cp.customer_id AND cp.tenant_id IS NULL AND rc.tenant_id IS NOT NULL;
+    UPDATE customer_payments SET tenant_id = (SELECT id FROM tenants ORDER BY created_at ASC LIMIT 1) WHERE tenant_id IS NULL;
+
+    UPDATE sales_returns sr SET tenant_id = si.tenant_id
+      FROM sales_invoices si WHERE si.id = sr.sales_invoice_id AND sr.tenant_id IS NULL AND si.tenant_id IS NOT NULL;
+    UPDATE sales_returns sr SET tenant_id = rc.tenant_id
+      FROM retail_customers rc WHERE rc.id = sr.customer_id AND sr.tenant_id IS NULL AND rc.tenant_id IS NOT NULL;
+    UPDATE sales_returns SET tenant_id = (SELECT id FROM tenants ORDER BY created_at ASC LIMIT 1) WHERE tenant_id IS NULL;
+
+    UPDATE finance_account_transactions fat SET tenant_id = fa.tenant_id
+      FROM finance_accounts fa WHERE fa.id = fat.account_id AND fat.tenant_id IS NULL AND fa.tenant_id IS NOT NULL;
+    UPDATE finance_account_transactions SET tenant_id = (SELECT id FROM tenants ORDER BY created_at ASC LIMIT 1) WHERE tenant_id IS NULL;
+
+    UPDATE dsr_due_ledger ddl SET tenant_id = d.tenant_id
+      FROM dsrs d WHERE d.id = ddl.dsr_id AND ddl.tenant_id IS NULL AND d.tenant_id IS NOT NULL;
+    UPDATE dsr_due_ledger SET tenant_id = (SELECT id FROM tenants ORDER BY created_at ASC LIMIT 1) WHERE tenant_id IS NULL;
+
+    -- Step 4: tables three levels down, depending on step 3 having already run.
+    UPDATE sales_return_items sri SET tenant_id = sr.tenant_id
+      FROM sales_returns sr WHERE sr.id = sri.sales_return_id AND sri.tenant_id IS NULL AND sr.tenant_id IS NOT NULL;
+    UPDATE sales_return_items SET tenant_id = (SELECT id FROM tenants ORDER BY created_at ASC LIMIT 1) WHERE tenant_id IS NULL;
+
+    -- Every row above now has a tenant_id (or the table is empty) — safe to enforce.
+    ALTER TABLE products ALTER COLUMN tenant_id SET NOT NULL;
+    ALTER TABLE dsrs ALTER COLUMN tenant_id SET NOT NULL;
+    ALTER TABLE issues ALTER COLUMN tenant_id SET NOT NULL;
+    ALTER TABLE settlements ALTER COLUMN tenant_id SET NOT NULL;
+    ALTER TABLE expenses ALTER COLUMN tenant_id SET NOT NULL;
+    ALTER TABLE dsr_cash_receipts ALTER COLUMN tenant_id SET NOT NULL;
+    ALTER TABLE dsr_advances ALTER COLUMN tenant_id SET NOT NULL;
+    ALTER TABLE customers ALTER COLUMN tenant_id SET NOT NULL;
+    ALTER TABLE suppliers ALTER COLUMN tenant_id SET NOT NULL;
+    ALTER TABLE retail_customers ALTER COLUMN tenant_id SET NOT NULL;
+    ALTER TABLE finance_accounts ALTER COLUMN tenant_id SET NOT NULL;
+    ALTER TABLE sales_invoices ALTER COLUMN tenant_id SET NOT NULL;
+    ALTER TABLE purchase_receipts ALTER COLUMN tenant_id SET NOT NULL;
+    ALTER TABLE stock_movements ALTER COLUMN tenant_id SET NOT NULL;
+    ALTER TABLE purchase_receipt_items ALTER COLUMN tenant_id SET NOT NULL;
+    ALTER TABLE supplier_due_ledger ALTER COLUMN tenant_id SET NOT NULL;
+    ALTER TABLE supplier_payments ALTER COLUMN tenant_id SET NOT NULL;
+    ALTER TABLE sales_invoice_items ALTER COLUMN tenant_id SET NOT NULL;
+    ALTER TABLE customer_due_ledger ALTER COLUMN tenant_id SET NOT NULL;
+    ALTER TABLE customer_payments ALTER COLUMN tenant_id SET NOT NULL;
+    ALTER TABLE sales_returns ALTER COLUMN tenant_id SET NOT NULL;
+    ALTER TABLE finance_account_transactions ALTER COLUMN tenant_id SET NOT NULL;
+    ALTER TABLE dsr_due_ledger ALTER COLUMN tenant_id SET NOT NULL;
+    ALTER TABLE sales_return_items ALTER COLUMN tenant_id SET NOT NULL;
   `);
 }

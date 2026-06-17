@@ -1,5 +1,4 @@
 export const USER_ROLES = {
-  PLATFORM_ADMIN: "platform_admin",
   SYSTEM_DEVELOPER: "system_developer",
   SUPER_ADMIN: "super_admin",
   ADMIN: "admin",

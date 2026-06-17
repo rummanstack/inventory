@@ -22,7 +22,7 @@ function SessionLoadingScreen() {
 }
 
 function getDefaultRoute(user) {
-  return user?.role === 'platform_admin' ? '/platform' : '/dashboard';
+  return user?.role === 'system_developer' ? '/platform' : '/dashboard';
 }
 
 function PublicOnlyRoute({ children }) {

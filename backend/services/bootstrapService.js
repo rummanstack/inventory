@@ -45,7 +45,7 @@ async function backfillTenantId(pool, tenantId) {
   }
 
   await pool.query(
-    `UPDATE users SET tenant_id = $1 WHERE tenant_id IS NULL AND role NOT IN ('system_developer', 'platform_admin')`,
+    `UPDATE users SET tenant_id = $1 WHERE tenant_id IS NULL AND role != 'system_developer'`,
     [tenantId],
   );
 }

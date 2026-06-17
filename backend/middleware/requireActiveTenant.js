@@ -5,7 +5,7 @@ export function requireActiveTenant(req, res, next) {
   }
 
   if (!req.currentUser.tenantId) {
-    next();
+    res.status(403).json({ message: "Select an active organization to continue." });
     return;
   }
 

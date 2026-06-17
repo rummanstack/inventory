@@ -6,7 +6,7 @@ export function requirePlatformAdmin(req, res, next) {
     return;
   }
 
-  if (req.currentUser.role !== USER_ROLES.PLATFORM_ADMIN && req.currentUser.role !== USER_ROLES.SYSTEM_DEVELOPER) {
+  if (req.currentUser.role !== USER_ROLES.SYSTEM_DEVELOPER) {
     res.status(403).json({ message: "Platform admin access required." });
     return;
   }

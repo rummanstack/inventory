@@ -33,12 +33,12 @@ export function InventoryAppProvider({ children }) {
     productDirectory,
     dsrDirectory,
     supplierDirectory,
-    customerDirectory,
+    shopDirectory,
     retailCustomerDirectory,
     setProductDirectory,
     setDsrDirectory,
     setSupplierDirectory,
-    setCustomerDirectory,
+    setShopDirectory,
     setRetailCustomerDirectory,
     upsertProductDirectory,
     removeFromProductDirectory,
@@ -46,14 +46,14 @@ export function InventoryAppProvider({ children }) {
     removeFromDsrDirectory,
     upsertSupplierDirectory,
     removeFromSupplierDirectory,
-    upsertCustomerDirectory,
-    removeFromCustomerDirectory,
+    upsertShopDirectory,
+    removeFromShopDirectory,
     upsertRetailCustomerDirectory,
     removeFromRetailCustomerDirectory,
     refreshProductDirectory,
     refreshDsrDirectory,
     refreshSupplierDirectory,
-    refreshCustomerDirectory,
+    refreshShopDirectory,
     refreshRetailCustomerDirectory,
     resetDirectories,
   } = useDirectories();
@@ -106,7 +106,7 @@ export function InventoryAppProvider({ children }) {
       setProductDirectory(productsResult.products || []);
       setDsrDirectory(dsrsResult.dsrs || []);
       setSupplierDirectory(suppliersResult.items || []);
-      setCustomerDirectory(customersResult.items || []);
+      setShopDirectory(customersResult.items || []);
       setRetailCustomerDirectory(retailCustomersResult.items || []);
     } catch (error) {
       if (error.status === 401) {
@@ -294,15 +294,15 @@ export function InventoryAppProvider({ children }) {
     }
   }
 
-  async function saveCustomer(customer) {
+  async function saveShop(shop) {
     try {
-      const result = customer.id ? await inventoryApi.updateCustomer(customer) : await inventoryApi.createCustomer(customer);
+      const result = shop.id ? await inventoryApi.updateCustomer(shop) : await inventoryApi.createCustomer(shop);
       if (result.customer.status === 'ACTIVE') {
-        upsertCustomerDirectory(result.customer);
+        upsertShopDirectory(result.customer);
       } else {
-        removeFromCustomerDirectory(result.customer.id);
+        removeFromShopDirectory(result.customer.id);
       }
-      pushToast('success', customer.id ? t('customers.editTitle') : t('customers.addTitle'), `${customer.shopName} ${customer.id ? t('alerts.updated') : t('alerts.created')}`);
+      pushToast('success', shop.id ? t('shops.editTitle') : t('shops.addTitle'), `${shop.shopName} ${shop.id ? t('alerts.updated') : t('alerts.created')}`);
       return { ok: true, customer: result.customer };
     } catch (error) {
       const message = getFriendlyError(error, t);
@@ -328,11 +328,11 @@ export function InventoryAppProvider({ children }) {
     }
   }
 
-  async function deleteCustomer(customer) {
-    const confirmMessage = t('customers.deleteConfirm', { name: customer.shopName });
+  async function deleteShop(shop) {
+    const confirmMessage = t('shops.deleteConfirm', { name: shop.shopName });
     const { confirmed, reason } = await confirm({
-      title: t('customers.deleteTitle'),
-      description: interpolateConfirm(confirmMessage, { name: customer.shopName }),
+      title: t('shops.deleteTitle'),
+      description: interpolateConfirm(confirmMessage, { name: shop.shopName }),
       confirmLabel: t('common.delete'),
       tone: 'rose',
       requireReason: true,
@@ -344,9 +344,9 @@ export function InventoryAppProvider({ children }) {
     }
 
     try {
-      await inventoryApi.deleteCustomer(customer.id, reason);
-      removeFromCustomerDirectory(customer.id);
-      pushToast('success', t('common.delete'), `${customer.shopName} ${t('alerts.deleted')}`);
+      await inventoryApi.deleteCustomer(shop.id, reason);
+      removeFromShopDirectory(shop.id);
+      pushToast('success', t('common.delete'), `${shop.shopName} ${t('alerts.deleted')}`);
       return { ok: true };
     } catch (error) {
       const message = getFriendlyError(error, t);
@@ -656,18 +656,18 @@ export function InventoryAppProvider({ children }) {
     });
   }
 
-  function restoreCustomer(customer) {
+  function restoreShop(shop) {
     return restoreTrashedItem({
-      name: customer.shopName,
-      restoreFn: () => inventoryApi.restoreCustomer(customer.id),
-      onRestored: refreshCustomerDirectory,
+      name: shop.shopName,
+      restoreFn: () => inventoryApi.restoreCustomer(shop.id),
+      onRestored: refreshShopDirectory,
     });
   }
 
-  function permanentlyDeleteCustomer(customer) {
+  function permanentlyDeleteShop(shop) {
     return permanentlyDeleteTrashedItem({
-      name: customer.shopName,
-      deleteFn: () => inventoryApi.permanentlyDeleteCustomer(customer.id),
+      name: shop.shopName,
+      deleteFn: () => inventoryApi.permanentlyDeleteCustomer(shop.id),
     });
   }
 
@@ -839,7 +839,7 @@ export function InventoryAppProvider({ children }) {
       productDirectory,
       dsrDirectory,
       supplierDirectory,
-      customerDirectory,
+      shopDirectory,
       retailCustomerDirectory,
       loading,
       loadError,
@@ -865,11 +865,11 @@ export function InventoryAppProvider({ children }) {
       deleteDsr,
       restoreDsr,
       permanentlyDeleteDsr,
-      saveCustomer,
-      deleteCustomer,
+      saveShop,
+      deleteShop,
       saveRetailCustomer,
-      restoreCustomer,
-      permanentlyDeleteCustomer,
+      restoreShop,
+      permanentlyDeleteShop,
       restoreExpense,
       permanentlyDeleteExpense,
       saveSupplier,
@@ -893,7 +893,7 @@ export function InventoryAppProvider({ children }) {
       saveSettlement,
       updateProfile,
     }),
-    [today, language, t, user, tenant, tenantOptions, permissions, authLoading, productDirectory, dsrDirectory, supplierDirectory, customerDirectory, retailCustomerDirectory, loading, loadError, toasts, confirmation],
+    [today, language, t, user, tenant, tenantOptions, permissions, authLoading, productDirectory, dsrDirectory, supplierDirectory, shopDirectory, retailCustomerDirectory, loading, loadError, toasts, confirmation],
   );
 
   return <InventoryAppContext.Provider value={value}>{children}</InventoryAppContext.Provider>;

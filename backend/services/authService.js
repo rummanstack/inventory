@@ -58,9 +58,9 @@ export class AuthService {
 
     assert(email && password, "Email and password are required.");
 
-    return this.databaseManager.withTransaction(async (client) => {
-      await deleteExpiredUserSessions(client);
+    await this.databaseManager.withClient((client) => deleteExpiredUserSessions(client)).catch(() => {});
 
+    return this.databaseManager.withTransaction(async (client) => {
       let tenant = null;
 
       if (orgSlug) {
@@ -194,8 +194,9 @@ export class AuthService {
       return;
     }
 
+    await this.databaseManager.withClient((client) => deleteExpiredUserSessions(client)).catch(() => {});
+
     await this.databaseManager.withTransaction(async (client) => {
-      await deleteExpiredUserSessions(client);
       const tokenHash = hashSessionToken(token);
       const result = await findActiveUserBySessionTokenHash(client, tokenHash);
       const user = result?.user || result;

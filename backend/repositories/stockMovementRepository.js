@@ -52,7 +52,7 @@ function buildSelect() {
   return `SELECT
       stock_movements.*,
       products.name AS product_name,
-      products.category AS product_category,
+      categories.name AS product_category,
       users.name AS created_by_name,
       users.email AS created_by_email,
       users.role AS created_by_role
@@ -60,6 +60,8 @@ function buildSelect() {
     LEFT JOIN products
       ON products.id = stock_movements.product_id
       AND products.tenant_id = stock_movements.tenant_id
+    LEFT JOIN categories
+      ON categories.id = products.category_id
     LEFT JOIN users
       ON users.id = stock_movements.created_by`;
 }

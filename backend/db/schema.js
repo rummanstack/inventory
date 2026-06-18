@@ -200,7 +200,6 @@ export async function createSchema(pool) {
     ALTER TABLE settlements ADD COLUMN IF NOT EXISTS extra_return_value NUMERIC NOT NULL DEFAULT 0;
 
     CREATE INDEX IF NOT EXISTS idx_products_name ON products(name);
-    CREATE INDEX IF NOT EXISTS idx_products_category ON products(category);
     CREATE INDEX IF NOT EXISTS idx_dsrs_name ON dsrs(name);
     CREATE INDEX IF NOT EXISTS idx_dsrs_status ON dsrs(status);
     CREATE INDEX IF NOT EXISTS idx_issues_issue_date ON issues(issue_date DESC);
@@ -838,5 +837,50 @@ export async function createSchema(pool) {
     ALTER TABLE finance_account_transactions ALTER COLUMN tenant_id SET NOT NULL;
     ALTER TABLE dsr_due_ledger ALTER COLUMN tenant_id SET NOT NULL;
     ALTER TABLE sales_return_items ALTER COLUMN tenant_id SET NOT NULL;
+
+    -- Product categories
+    CREATE TABLE IF NOT EXISTS categories (
+      id          TEXT PRIMARY KEY,
+      tenant_id   TEXT NOT NULL REFERENCES tenants(id),
+      name        TEXT NOT NULL,
+      created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_categories_tenant_name ON categories(tenant_id, LOWER(name));
+    CREATE INDEX IF NOT EXISTS idx_categories_tenant_id ON categories(tenant_id);
+
+    ALTER TABLE products ADD COLUMN IF NOT EXISTS category_id TEXT REFERENCES categories(id);
+
+    DO $$
+    BEGIN
+      IF EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'products' AND column_name = 'category'
+      ) THEN
+        INSERT INTO categories (id, tenant_id, name)
+        SELECT DISTINCT ON (p.tenant_id, LOWER(p.category))
+          'category-' || md5(p.tenant_id || '-' || LOWER(p.category)),
+          p.tenant_id,
+          p.category
+        FROM products p
+        WHERE p.category IS NOT NULL AND p.category <> ''
+          AND NOT EXISTS (
+            SELECT 1 FROM categories c
+            WHERE c.tenant_id = p.tenant_id AND LOWER(c.name) = LOWER(p.category)
+          );
+
+        UPDATE products p
+        SET category_id = c.id
+        FROM categories c
+        WHERE c.tenant_id = p.tenant_id
+          AND LOWER(c.name) = LOWER(p.category)
+          AND p.category_id IS NULL;
+
+        ALTER TABLE products DROP COLUMN category;
+      END IF;
+    END $$;
+
+    CREATE INDEX IF NOT EXISTS idx_products_category_id ON products(category_id);
   `);
 }

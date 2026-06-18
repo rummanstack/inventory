@@ -14,7 +14,7 @@ export function normalizeProduct(input) {
   return {
     id: input.id || createId("p"),
     name: String(input.name || "").trim(),
-    category: String(input.category || "").trim(),
+    categoryId: String(input.categoryId || "").trim(),
     piecesPerCase: cleanInteger(input.piecesPerCase),
     purchasePrice: cleanMoney(input.purchasePrice),
     wholesalePrice: cleanMoney(input.wholesalePrice),

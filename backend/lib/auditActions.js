@@ -8,6 +8,12 @@ export const PRODUCT_ACTIONS = {
   DAMAGE_CLEAR: "product.damage_clear",
 };
 
+export const CATEGORY_ACTIONS = {
+  CREATE: "category.create",
+  UPDATE: "category.update",
+  DELETE: "category.delete",
+};
+
 export const DSR_ACTIONS = {
   CREATE: "dsr.create",
   UPDATE: "dsr.update",

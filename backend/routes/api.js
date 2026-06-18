@@ -9,6 +9,7 @@ import { AuditController } from "../controllers/auditController.js";
 import { ExpenseController } from "../controllers/expenseController.js";
 import { IssueController } from "../controllers/issueController.js";
 import { ProductController } from "../controllers/productController.js";
+import { CategoryController } from "../controllers/categoryController.js";
 import { StockMovementController } from "../controllers/stockMovementController.js";
 import { DsrDueLedgerController } from "../controllers/dsrDueLedgerController.js";
 import { CustomerController } from "../controllers/customerController.js";
@@ -39,6 +40,7 @@ import { createDsrAdvancesRoutes } from "./dsrAdvances.routes.js";
 import { createProfitReportRoutes } from "./profitReport.routes.js";
 import { createDatabaseBackupRoutes } from "./databaseBackup.routes.js";
 import { createProductsRoutes } from "./products.routes.js";
+import { createCategoriesRoutes } from "./categories.routes.js";
 import { createStockMovementsRoutes } from "./stockMovements.routes.js";
 import { createDsrDueLedgerRoutes } from "./dsrDueLedger.routes.js";
 import { createDsrsRoutes } from "./dsrs.routes.js";
@@ -73,6 +75,7 @@ export function createApiRouter({
   authService,
   env,
   productService,
+  categoryService,
   dsrService,
   issueService,
   settlementService,
@@ -107,6 +110,7 @@ export function createApiRouter({
   const router = Router();
   const authController = new AuthController(authService, env, tenantService);
   const productController = new ProductController(productService);
+  const categoryController = new CategoryController(categoryService);
   const stockMovementController = new StockMovementController(stockMovementService);
   const dsrDueLedgerController = new DsrDueLedgerController(dsrDueLedgerService);
   const dsrController = new DsrController(dsrService);
@@ -173,6 +177,7 @@ export function createApiRouter({
   router.use("/profit-report", createProfitReportRoutes(profitController));
   router.use("/database-backup", createDatabaseBackupRoutes(backupController));
   router.use("/products", createProductsRoutes(productController));
+  router.use("/categories", createCategoriesRoutes(categoryController));
   router.use("/stock-movements", createStockMovementsRoutes(stockMovementController));
   router.use("/dsr-due-ledger", createDsrDueLedgerRoutes(dsrDueLedgerController));
   router.use("/dsrs", createDsrsRoutes(dsrController));

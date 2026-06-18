@@ -11,6 +11,8 @@ export function useFinanceAccountsViewModel({ confirm }) {
   const [accountType, setAccountType] = useState('');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
+  const [totalDsrDue, setTotalDsrDue] = useState(0);
+  const [totalCustomerDue, setTotalCustomerDue] = useState(0);
 
   const loadAccounts = useCallback(async () => {
     try {
@@ -29,6 +31,19 @@ export function useFinanceAccountsViewModel({ confirm }) {
   useEffect(() => {
     loadAccounts();
   }, [loadAccounts]);
+
+  useEffect(() => {
+    inventoryApi
+      .getFinanceDashboard()
+      .then((result) => {
+        setTotalDsrDue(result?.totalDsrDue || 0);
+        setTotalCustomerDue(result?.totalCustomerDue || 0);
+      })
+      .catch(() => {
+        setTotalDsrDue(0);
+        setTotalCustomerDue(0);
+      });
+  }, []);
 
   const list = usePagedList(
     ({ page, pageSize }) => inventoryApi.listFinanceAccountTransactions({
@@ -103,6 +118,8 @@ export function useFinanceAccountsViewModel({ confirm }) {
     accounts,
     accountsLoading,
     accountsError,
+    totalDsrDue,
+    totalCustomerDue,
     accountType,
     setAccountType,
     dateFrom,

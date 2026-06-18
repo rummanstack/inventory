@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Trash2, Wallet } from 'lucide-react';
+import { Boxes, HandCoins, Plus, Scale, Trash2, Wallet } from 'lucide-react';
 import { Alert, Badge, EmptyState, Pagination, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
@@ -16,12 +16,15 @@ const TYPE_TONES = {
 
 
 export default function FinanceAccountsPage() {
-  const { t, can, confirm } = useInventoryApp();
+  const { t, can, confirm, productDirectory } = useInventoryApp();
   const vm = useFinanceAccountsViewModel({ confirm });
   const [modal, setModal] = useState(null);
   const canManage = can('manage_finance_accounts');
 
   const cashBalance = vm.accounts.find((a) => a.type === 'CASH')?.balance || 0;
+  const stockValue = productDirectory.reduce((sum, product) => sum + product.stockPieces * Number(product.purchasePrice || 0), 0);
+  const dueTotal = vm.totalDsrDue + vm.totalCustomerDue;
+  const totalCashPosition = cashBalance + stockValue + dueTotal;
 
   return (
     <div>
@@ -43,16 +46,44 @@ export default function FinanceAccountsPage() {
         </div>
       ) : null}
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {vm.accountsLoading ? (
-          <StatCardSkeleton />
+          <>
+            <StatCardSkeleton />
+            <StatCardSkeleton />
+            <StatCardSkeleton />
+            <StatCardSkeleton />
+          </>
         ) : (
-          <StatCard
-            title={t('financeAccounts.cashInHand')}
-            value={formatCurrency(cashBalance)}
-            icon={Wallet}
-            tone={cashBalance < 0 ? 'rose' : 'emerald'}
-          />
+          <>
+            <StatCard
+              title={t('financeAccounts.cashInHand')}
+              value={formatCurrency(cashBalance)}
+              icon={Wallet}
+              tone={cashBalance < 0 ? 'rose' : 'emerald'}
+            />
+            <StatCard
+              title={t('financeAccounts.cashInStock')}
+              value={formatCurrency(stockValue)}
+              helper={t('financeAccounts.cashInStockHelper')}
+              icon={Boxes}
+              tone="blue"
+            />
+            <StatCard
+              title={t('financeAccounts.cashInDue')}
+              value={formatCurrency(dueTotal)}
+              helper={t('financeAccounts.cashInDueHelper')}
+              icon={HandCoins}
+              tone="amber"
+            />
+            <StatCard
+              title={t('financeAccounts.totalCashPosition')}
+              value={formatCurrency(totalCashPosition)}
+              helper={t('financeAccounts.totalCashPositionHelper')}
+              icon={Scale}
+              tone="slate"
+            />
+          </>
         )}
       </div>
 

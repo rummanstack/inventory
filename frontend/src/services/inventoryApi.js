@@ -6,7 +6,6 @@ import { databaseBackupApi } from './api/databaseBackupApi.js';
 import { dsrFinanceApi } from './api/dsrFinanceApi.js';
 import { dsrsApi } from './api/dsrsApi.js';
 import { expensesApi } from './api/expensesApi.js';
-import { monthEndSummaryApi } from './api/monthEndSummaryApi.js';
 import { morningIssueApi } from './api/morningIssueApi.js';
 import { permissionsApi } from './api/permissionsApi.js';
 import { platformApi } from './api/platformApi.js';
@@ -39,7 +38,6 @@ export const inventoryApi = {
   ...expensesApi,
   ...profitApi,
   ...dsrFinanceApi,
-  ...monthEndSummaryApi,
   ...databaseBackupApi,
   ...productsApi,
   ...dsrsApi,

@@ -18,6 +18,7 @@ export default function ProductFormModal({ product, onClose, onSave }) {
     wholesalePrice: product?.wholesalePrice || '',
     retailPrice: product?.retailPrice || '',
     orderIndex: product?.orderIndex != null ? product.orderIndex : '',
+    reorderLevel: product?.reorderLevel != null ? product.reorderLevel : '',
   });
 
   useEffect(() => {
@@ -49,6 +50,7 @@ export default function ProductFormModal({ product, onClose, onSave }) {
       wholesalePrice,
       retailPrice,
       orderIndex: form.orderIndex === '' ? null : Number(form.orderIndex),
+      reorderLevel: form.reorderLevel === '' ? null : cleanNumber(form.reorderLevel),
     };
 
     if (isEdit) {
@@ -59,7 +61,8 @@ export default function ProductFormModal({ product, onClose, onSave }) {
         payload.purchasePrice === product.purchasePrice &&
         payload.wholesalePrice === (product.wholesalePrice || 0) &&
         payload.retailPrice === (product.retailPrice || 0) &&
-        payload.orderIndex === (product.orderIndex ?? null);
+        payload.orderIndex === (product.orderIndex ?? null) &&
+        payload.reorderLevel === (product.reorderLevel ?? null);
       if (unchanged) {
         pushToast('info', t('products.editTitle'), t('alerts.noChanges'));
         return;
@@ -113,6 +116,11 @@ export default function ProductFormModal({ product, onClose, onSave }) {
           <div>
             <label className="label">{t('products.orderIndex')}</label>
             <input className="input" type="number" min="0" step="1" value={form.orderIndex} onChange={(event) => updateField('orderIndex', event.target.value)} placeholder="0" />
+          </div>
+          <div>
+            <label className="label">{t('products.reorderLevel')}</label>
+            <input className="input" type="number" min="0" step="1" value={form.reorderLevel} onChange={(event) => updateField('reorderLevel', event.target.value)} placeholder="auto" />
+            <p className="mt-1 text-xs text-slate-500">{t('products.reorderLevelHint')}</p>
           </div>
         </div>
         <div className="flex justify-end gap-2 pt-2">

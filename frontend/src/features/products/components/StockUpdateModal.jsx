@@ -4,8 +4,9 @@ import { Alert, Modal } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { formatCasePiece, toPieces } from '../../../utils/calculations.js';
 
-export default function StockUpdateModal({ product, onClose, onSave }) {
+export default function StockUpdateModal({ product, mode = 'add', onClose, onSave }) {
   const { t } = useInventoryApp();
+  const isOpening = mode === 'opening';
   const [caseQty, setCaseQty] = useState(0);
   const [pieceQty, setPieceQty] = useState(0);
   const [reason, setReason] = useState('');
@@ -32,7 +33,7 @@ export default function StockUpdateModal({ product, onClose, onSave }) {
   }
 
   return (
-    <Modal title={t('products.addStock')} description={product.name} onClose={onClose} width="max-w-xl">
+    <Modal title={isOpening ? t('products.openingStock') : t('products.addStock')} description={isOpening ? t('products.openingStockDescription') : product.name} onClose={onClose} width="max-w-xl">
       <form className="space-y-4" onSubmit={submitForm}>
         {error ? <Alert type="error">{error}</Alert> : null}
         <div className="grid gap-4 rounded-xl border border-slate-200 bg-slate-50 p-4 sm:grid-cols-2">
@@ -61,7 +62,7 @@ export default function StockUpdateModal({ product, onClose, onSave }) {
         </div>
         <div className="flex justify-end gap-2 pt-2">
           <button type="button" className="btn-secondary" onClick={onClose} disabled={saving}>
-            {t('common.cancel')}
+            {isOpening ? t('products.skipOpeningStock') : t('common.cancel')}
           </button>
           <button type="submit" className="btn-primary" disabled={saving}>
             <PackagePlus size={18} />

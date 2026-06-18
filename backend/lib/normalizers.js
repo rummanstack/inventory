@@ -24,6 +24,10 @@ export function normalizeProduct(input) {
       input.orderIndex !== undefined && input.orderIndex !== null && String(input.orderIndex).trim() !== ""
         ? cleanInteger(input.orderIndex)
         : null,
+    reorderLevel:
+      input.reorderLevel !== undefined && input.reorderLevel !== null && String(input.reorderLevel).trim() !== ""
+        ? cleanInteger(input.reorderLevel)
+        : null,
   };
 }
 

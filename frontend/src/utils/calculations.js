@@ -104,12 +104,16 @@ export function reverseEntries(entries) {
   return [...(entries || [])].reverse();
 }
 
-export function getLowStockThreshold(piecesPerCase) {
-  return Math.max(1, cleanNumber(piecesPerCase || 1)) * 4;
+export function getLowStockThreshold(product) {
+  const reorderLevel = product?.reorderLevel;
+  if (reorderLevel !== null && reorderLevel !== undefined && String(reorderLevel).trim() !== '') {
+    return Math.max(0, cleanNumber(reorderLevel));
+  }
+  return Math.max(1, cleanNumber(product?.piecesPerCase || 1)) * 4;
 }
 
 export function isLowStock(product) {
-  return cleanNumber(product?.stockPieces) <= getLowStockThreshold(product?.piecesPerCase);
+  return cleanNumber(product?.stockPieces) <= getLowStockThreshold(product);
 }
 
 export function getLowStockProducts(products = []) {

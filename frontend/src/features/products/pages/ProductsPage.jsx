@@ -15,10 +15,11 @@ import { inventoryApi } from '../../../services/inventoryApi.js';
 const PRODUCTS_PRINT_ID = 'products-report-print';
 
 export default function ProductsPage() {
-  const { productDirectory, saveProduct, deleteProduct, addStock, t, can, tenant } = useInventoryApp();
+  const { productDirectory, saveProduct, deleteProduct, addStock, setOpeningStock, t, can, tenant } = useInventoryApp();
   const vm = useProductsViewModel();
   const [productModal, setProductModal] = useState(null);
   const [stockModalProduct, setStockModalProduct] = useState(null);
+  const [stockModalMode, setStockModalMode] = useState('add');
   const [showCategoriesModal, setShowCategoriesModal] = useState(false);
   const [ledgerRefreshKey, setLedgerRefreshKey] = useState(0);
   const canManageProducts = can('manage_products');
@@ -185,7 +186,7 @@ export default function ProductsPage() {
                     <div className="flex justify-end gap-2">
                       {canManageProducts ? (
                         <>
-                          <button type="button" className="btn-secondary h-9 px-3" onClick={() => setStockModalProduct(product)}>
+                          <button type="button" className="btn-secondary h-9 px-3" onClick={() => { setStockModalMode('add'); setStockModalProduct(product); }}>
                             <PackagePlus size={16} />
                             {t('products.stockActions')}
                           </button>
@@ -222,15 +223,22 @@ export default function ProductsPage() {
       <StockLedgerPanel products={productDirectory} t={t} refreshKey={ledgerRefreshKey} />
 
       {productModal ? <ProductFormModal product={productModal.product} onClose={() => setProductModal(null)} onSave={async (value) => {
+        const wasNewProduct = !productModal.product;
         const result = await saveProduct(value);
         if (result.ok) {
           setProductModal(null);
           vm.reload();
+          if (wasNewProduct && result.product) {
+            setStockModalMode('opening');
+            setStockModalProduct(result.product);
+          }
         }
         return result;
       }} /> : null}
-      {stockModalProduct ? <StockUpdateModal product={stockModalProduct} onClose={() => setStockModalProduct(null)} onSave={async (productId, addPieces) => {
-        const result = await addStock(productId, addPieces);
+      {stockModalProduct ? <StockUpdateModal product={stockModalProduct} mode={stockModalMode} onClose={() => setStockModalProduct(null)} onSave={async (productId, addPieces, reason) => {
+        const result = stockModalMode === 'opening'
+          ? await setOpeningStock(productId, addPieces, reason)
+          : await addStock(productId, addPieces, reason);
         if (result.ok) {
           setStockModalProduct(null);
           vm.reload();

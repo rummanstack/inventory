@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import express from "express";
-import { backendDistPath, frontendDistPath } from "./config/paths.js";
+import { backendDistPath, backendRoot, frontendDistPath } from "./config/paths.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import { createApiRouter } from "./routes/api.js";
 
@@ -45,6 +45,7 @@ export function createApp({
 
   app.set("trust proxy", 1);
   app.use(express.json());
+  app.use("/uploads", express.static(path.join(backendRoot, "uploads")));
   app.use(
     "/api",
     createApiRouter({

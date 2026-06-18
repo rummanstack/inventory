@@ -112,6 +112,7 @@ export class UserService {
         role,
         status,
         tenantId,
+        avatarUrl: input.avatarUrl || null,
       };
 
       await insertUser(client, user);
@@ -146,6 +147,7 @@ export class UserService {
       nextEmail = input.email === undefined ? existingUser.email : normalizeEmail(input.email);
       const nextRole = input.role === undefined ? existingUser.role : normalizeRole(input.role, actor);
       const nextStatus = input.status === undefined ? existingUser.status : normalizeStatus(input.status);
+      const nextAvatarUrl = input.avatarUrl === undefined ? existingUser.avatar_url : input.avatarUrl || null;
 
       if (input.password) {
         const passwordStrengthError = validatePasswordStrength(input.password);
@@ -166,6 +168,7 @@ export class UserService {
         passwordHash: nextPasswordHash,
         role: nextRole,
         status: nextStatus,
+        avatarUrl: nextAvatarUrl,
       });
 
       await this.auditService.record(client, {
@@ -195,6 +198,7 @@ export class UserService {
 
       const nextName = input.name === undefined ? existingUser.name : normalizeName(input.name);
       const nextEmail = input.email === undefined ? existingUser.email : normalizeEmail(input.email);
+      const nextAvatarUrl = input.avatarUrl === undefined ? existingUser.avatar_url : input.avatarUrl || null;
       assert(nextName, "Name is required.");
       assert(nextEmail, "Email is required.");
 
@@ -223,6 +227,7 @@ export class UserService {
         passwordHash: nextPasswordHash,
         role: existingUser.role,
         status: existingUser.status,
+        avatarUrl: nextAvatarUrl,
       });
 
       if (nextPasswordHash) {
@@ -247,6 +252,7 @@ export class UserService {
         status: existingUser.status,
         tenantId: existingUser.tenant_id || null,
         mustChangePassword: nextPasswordHash ? false : Boolean(existingUser.must_change_password),
+        avatarUrl: nextAvatarUrl,
       };
     });
 

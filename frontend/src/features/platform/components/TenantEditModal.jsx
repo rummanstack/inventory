@@ -1,5 +1,6 @@
 import { Save } from 'lucide-react';
 import { Alert, Modal } from '../../../components/ui.jsx';
+import PhotoUploadField from '../../../components/PhotoUploadField.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { useFormState } from '../../../hooks/useFormState';
 
@@ -46,13 +47,7 @@ export default function TenantEditModal({ tenant, onClose, onSave }) {
             <option value="enterprise">Enterprise</option>
           </select>
         </label>
-        <label className="block">
-          <span className="label">{t('orgSettings.logoUrl')}</span>
-          <input className="input" type="text" value={form.logoUrl} onChange={(e) => updateField('logoUrl', e.target.value)} placeholder="https://example.com/logo.png" />
-          {form.logoUrl ? (
-            <img src={form.logoUrl} alt="" className="mt-3 h-12 w-12 rounded-lg border border-slate-200 object-contain p-1" />
-          ) : null}
-        </label>
+        <PhotoUploadField label={t('orgSettings.logoUrl')} value={form.logoUrl} onChange={(url) => updateField('logoUrl', url)} shape="square" />
         <label className="block">
           <span className="label">{t('organizations.address')}</span>
           <textarea className="input min-h-[80px] resize-y" value={form.address} onChange={(e) => updateField('address', e.target.value)} />

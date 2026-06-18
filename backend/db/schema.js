@@ -366,6 +366,8 @@ export async function createSchema(pool) {
     CREATE INDEX IF NOT EXISTS idx_user_sessions_user_id ON user_sessions(user_id);
     CREATE INDEX IF NOT EXISTS idx_user_sessions_expires_at ON user_sessions(expires_at);
 
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url TEXT;
+
     CREATE TABLE IF NOT EXISTS login_history (
       id              TEXT PRIMARY KEY,
       user_id         TEXT REFERENCES users(id) ON DELETE SET NULL,

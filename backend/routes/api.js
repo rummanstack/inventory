@@ -20,11 +20,13 @@ import { TenantController } from "../controllers/tenantController.js";
 import { OrgController } from "../controllers/orgController.js";
 import { PermissionController } from "../controllers/permissionController.js";
 import { SystemController } from "../controllers/systemController.js";
+import { UploadController } from "../controllers/uploadController.js";
 import { requireAuth } from "../middleware/requireAuth.js";
 import { requireActiveTenant } from "../middleware/requireActiveTenant.js";
 import { createRateLimiter } from "../middleware/rateLimiter.js";
 import { createPublicAuthRoutes, createAuthenticatedAuthRoutes } from "./auth.routes.js";
 import { createProfileRoutes } from "./profile.routes.js";
+import { createUploadsRoutes } from "./uploads.routes.js";
 import { createPlatformTenantsRoutes } from "./platformTenants.routes.js";
 import { createPlatformBackupRoutes } from "./platformBackup.routes.js";
 import { createSystemRoutes } from "./system.routes.js";
@@ -127,6 +129,7 @@ export function createApiRouter({
   const orgController = new OrgController(tenantService);
   const permissionController = new PermissionController(permissionService);
   const systemController = new SystemController(systemService, errorLogService, env, invariantService);
+  const uploadController = new UploadController();
   const supplierController = new SupplierController(supplierService);
   const supplierDueLedgerController = new SupplierDueLedgerController(supplierDueLedgerService);
   const purchaseReceiveController = new PurchaseReceiveController(purchaseReceiveService);
@@ -152,6 +155,7 @@ export function createApiRouter({
 
   router.use("/auth", createAuthenticatedAuthRoutes(authController));
   router.use("/profile", createProfileRoutes(userController));
+  router.use("/uploads", createUploadsRoutes(uploadController));
 
   // Platform admin routes — no tenant required, system_developer only
   router.use("/platform/tenants", createPlatformTenantsRoutes(tenantController));

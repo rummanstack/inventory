@@ -189,6 +189,15 @@ const en = {
       editReasonRequired: 'Edit reason is required.',
       dueAdjustmentReasonLabel: 'Reason for due adjustment',
     },
+    photoUpload: {
+      title: 'Photo upload',
+      changePhoto: 'Change photo',
+      uploading: 'Uploading...',
+      remove: 'Remove photo',
+      invalidType: 'Please choose an image file.',
+      tooLarge: 'Image must be smaller than 5MB.',
+      uploadFailed: 'Failed to upload photo.',
+    },
     trash: {
       eyebrow: 'Trash',
       title: 'Trash',

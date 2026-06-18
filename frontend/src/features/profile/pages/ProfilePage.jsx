@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Loader2, Save } from 'lucide-react';
 import { Badge, SectionHeader } from '../../../components/ui.jsx';
+import PhotoUploadField from '../../../components/PhotoUploadField.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 
 export default function ProfilePage() {
@@ -8,6 +9,7 @@ export default function ProfilePage() {
   const [form, setForm] = useState({
     name: user?.name || '',
     email: user?.email || '',
+    avatarUrl: user?.avatarUrl || '',
     currentPassword: '',
     password: '',
   });
@@ -21,7 +23,7 @@ export default function ProfilePage() {
     event.preventDefault();
     setSaving(true);
 
-    const payload = { name: form.name.trim(), email: form.email.trim() };
+    const payload = { name: form.name.trim(), email: form.email.trim(), avatarUrl: form.avatarUrl };
     if (form.password.trim()) {
       payload.password = form.password.trim();
       payload.currentPassword = form.currentPassword;
@@ -39,6 +41,12 @@ export default function ProfilePage() {
     <div className="space-y-6">
       <SectionHeader eyebrow={t('nav.profile')} title={t('profile.title')} description={t('profile.description')} />
       <form onSubmit={handleSubmit} className="panel-strong max-w-xl space-y-5 p-6">
+        <PhotoUploadField
+          label={t('photoUpload.title')}
+          value={form.avatarUrl}
+          onChange={(url) => handleChange('avatarUrl', url)}
+        />
+
         <label className="block">
           <span className="label">{t('profile.name')}</span>
           <input

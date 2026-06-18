@@ -611,7 +611,7 @@ const en = {
       user: 'User',
       action: 'Action',
       entity: 'Entity',
-      description: 'Description',
+      descriptionColumn: 'Description',
       metadata: 'Metadata',
       changes: 'Changes',
       reason: 'Reason',

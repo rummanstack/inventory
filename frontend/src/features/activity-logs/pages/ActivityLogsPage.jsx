@@ -1,5 +1,5 @@
-import { ClipboardList } from 'lucide-react';
-import { Alert, Badge, EmptyState, Pagination, SectionHeader, StatCard, TableSkeleton } from '../../../components/ui.jsx';
+import { ClipboardList, Search } from 'lucide-react';
+import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { formatDateTime, formatNumber } from '../../../utils/calculations.js';
@@ -47,15 +47,22 @@ export default function ActivityLogsPage() {
         </div>
       ) : null}
 
-      <div className="mb-6 grid gap-4 lg:grid-cols-[1fr_220px]">
+      <div className="mb-6">
         <div className="surface rounded-[28px] p-5">
-          <label className="label mt-3">{t('activityLogs.searchLabel')}</label>
-          <input
-            className="input"
-            value={vm.search}
-            onChange={(event) => vm.setSearch(event.target.value)}
-            placeholder={t('activityLogs.searchPlaceholder')}
-          />
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label className="label">{t('activityLogs.searchLabel')}</label>
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                <input
+                  className="input pl-9"
+                  value={vm.search}
+                  onChange={(event) => vm.setSearch(event.target.value)}
+                  placeholder={t('activityLogs.searchPlaceholder')}
+                />
+              </div>
+            </div>
+          </div>
           <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <div>
               <label className="label">{t('activityLogs.filterModule')}</label>
@@ -95,7 +102,6 @@ export default function ActivityLogsPage() {
             ) : null}
           </div>
         </div>
-        <StatCard title={t('activityLogs.totalLogs')} value={formatNumber(vm.total)} helper={t('activityLogs.totalLogsHelper')} />
       </div>
 
       <div className="surface mt-6 overflow-hidden">
@@ -113,7 +119,7 @@ export default function ActivityLogsPage() {
                 <th className="px-4 py-3">{t('activityLogs.user')}</th>
                 <th className="px-4 py-3">{t('activityLogs.action')}</th>
                 <th className="px-4 py-3">{t('activityLogs.entity')}</th>
-                <th className="px-4 py-3 hidden sm:table-cell">{t('activityLogs.description')}</th>
+                <th className="px-4 py-3 hidden sm:table-cell">{t('activityLogs.descriptionColumn')}</th>
                 <th className="px-4 py-3 hidden lg:table-cell">{t('activityLogs.changes')}</th>
                 <th className="px-4 py-3 hidden lg:table-cell">{t('activityLogs.reason')}</th>
               </tr>

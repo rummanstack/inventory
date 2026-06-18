@@ -35,12 +35,13 @@ export class ProductService {
   async listProducts(query = {}, actor) {
     const { page, pageSize, limit, offset } = parsePagination(query);
     const search = String(query.search || "").trim();
+    const categoryId = String(query.categoryId || "").trim();
     const tenantId = actor.tenantId;
 
     return this.databaseManager.withClient(async (client) => {
       const [items, total] = await Promise.all([
-        listProductsPage(client, { search, tenantId, limit, offset }),
-        countProducts(client, { search, tenantId }),
+        listProductsPage(client, { search, categoryId, tenantId, limit, offset }),
+        countProducts(client, { search, categoryId, tenantId }),
       ]);
 
       return buildPageResult({ items, total, page, pageSize });

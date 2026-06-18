@@ -251,6 +251,7 @@
       add: 'যোগ করুন',
       namePlaceholder: 'নতুন ক্যাটাগরির নাম',
       selectCategory: 'ক্যাটাগরি নির্বাচন করুন',
+      allCategories: 'সব ক্যাটাগরি',
       noneTitle: 'এখনও কোনো ক্যাটাগরি নেই',
       noneDescription: 'পণ্য সাজানো শুরু করতে উপরে আপনার প্রথম ক্যাটাগরি যোগ করুন।',
       deleteTitle: 'ক্যাটাগরি মুছুন',

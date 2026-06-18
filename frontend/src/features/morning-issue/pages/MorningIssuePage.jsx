@@ -73,7 +73,13 @@ export default function MorningIssuePage() {
             <h2 className="text-base font-bold text-slate-950">{t('morningIssue.sheetTitle')}</h2>
             <p className="mt-1 text-sm text-slate-500">{t('morningIssue.sheetDescription')}</p>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <select className="input h-9 w-44" value={vm.categoryId} onChange={(event) => vm.setCategoryId(event.target.value)}>
+              <option value="">{t('categories.allCategories')}</option>
+              {vm.categoryOptions.map((category) => (
+                <option key={category.id} value={category.id}>{category.name}</option>
+              ))}
+            </select>
             {canEditIssue ? (
               <button type="button" className="btn-primary" onClick={vm.saveIssue} disabled={vm.saving || !productDirectory.length || Boolean(vm.invalidRows.length) || Boolean(vm.existingSettlement)}>
                 <Save size={18} />
@@ -101,7 +107,7 @@ export default function MorningIssuePage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {vm.issueRows.map((row) => {
+                  {vm.visibleRows.map((row) => {
                     const quantity = vm.quantities[row.id] || {};
                     return (
                       <tr key={row.id} className={cx('hover:bg-slate-50', row.invalid && 'bg-rose-50')}>

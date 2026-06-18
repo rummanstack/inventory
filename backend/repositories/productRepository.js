@@ -24,13 +24,18 @@ function mapTrashedProduct(row) {
   };
 }
 
-export async function countProducts(client, { search, tenantId } = {}) {
+export async function countProducts(client, { search, categoryId, tenantId } = {}) {
   const params = [tenantId];
   const conditions = ["p.tenant_id = $1", "p.deleted_at IS NULL"];
 
   if (search) {
     params.push(`%${search}%`);
     conditions.push(`(p.name ILIKE $${params.length} OR c.name ILIKE $${params.length})`);
+  }
+
+  if (categoryId) {
+    params.push(categoryId);
+    conditions.push(`p.category_id = $${params.length}`);
   }
 
   const where = `WHERE ${conditions.join(" AND ")}`;
@@ -41,13 +46,18 @@ export async function countProducts(client, { search, tenantId } = {}) {
   return result.rows[0].count;
 }
 
-export async function listProductsPage(client, { search, tenantId, limit, offset }) {
+export async function listProductsPage(client, { search, categoryId, tenantId, limit, offset }) {
   const params = [tenantId];
   const conditions = ["p.tenant_id = $1", "p.deleted_at IS NULL"];
 
   if (search) {
     params.push(`%${search}%`);
     conditions.push(`(p.name ILIKE $${params.length} OR c.name ILIKE $${params.length})`);
+  }
+
+  if (categoryId) {
+    params.push(categoryId);
+    conditions.push(`p.category_id = $${params.length}`);
   }
 
   const where = `WHERE ${conditions.join(" AND ")}`;

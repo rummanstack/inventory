@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Boxes, Download, FileSpreadsheet, ListTree, PackagePlus, Pencil, Plus, Printer, Search, Trash2 } from 'lucide-react';
 import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
@@ -25,6 +25,15 @@ export default function ProductsPage() {
   const outOfStockCount = productDirectory.filter((product) => product.stockPieces === 0).length;
   const veryLowCount = productDirectory.filter((product) => product.stockPieces > 0 && product.stockPieces <= product.piecesPerCase).length;
   const businessName = tenant?.name || '';
+  const categoryOptions = useMemo(() => {
+    const map = new Map();
+    productDirectory.forEach((product) => {
+      if (product.categoryId && !map.has(product.categoryId)) {
+        map.set(product.categoryId, product.category);
+      }
+    });
+    return Array.from(map, ([id, name]) => ({ id, name })).sort((a, b) => a.name.localeCompare(b.name));
+  }, [productDirectory]);
 
   async function handleDownloadPdf() {
     await inventoryApi.recordPrint({ entityType: 'products_report', entityId: 'all', label: 'Products Report PDF' });
@@ -111,9 +120,17 @@ export default function ProductsPage() {
               {veryLowCount ? <Alert type="warning">{`${veryLowCount} product is at a critically low stock level.`}</Alert> : null}
             </div>
           ) : null}
-          <div className="relative mt-4 max-w-md">
-            <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-            <input className="input pl-10" value={vm.search} onChange={(event) => vm.setSearch(event.target.value)} placeholder={t('products.searchPlaceholder')} />
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+            <div className="relative max-w-md flex-1">
+              <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+              <input className="input pl-10" value={vm.search} onChange={(event) => vm.setSearch(event.target.value)} placeholder={t('products.searchPlaceholder')} />
+            </div>
+            <select className="input sm:w-48" value={vm.categoryId} onChange={(event) => vm.setCategoryId(event.target.value)}>
+              <option value="">{t('categories.allCategories')}</option>
+              {categoryOptions.map((category) => (
+                <option key={category.id} value={category.id}>{category.name}</option>
+              ))}
+            </select>
           </div>
         </div>
         {vm.loading ? (

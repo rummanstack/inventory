@@ -8,6 +8,7 @@ export function useMorningIssueViewModel({ products, dsrs, today, saveIssueActio
   const activeDsrs = useMemo(() => dsrs.filter((dsr) => dsr.status === 'Active'), [dsrs]);
   const [date, setDate] = useState(today);
   const [dsrId, setDsrId] = useState(activeDsrs[0]?.id || '');
+  const [categoryId, setCategoryId] = useState('');
   const [quantities, setQuantities] = useState({});
   const [message, setMessage] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -105,6 +106,18 @@ export function useMorningIssueViewModel({ products, dsrs, today, saveIssueActio
   const totalIssuedPieces = selectedRows.reduce((sum, row) => sum + row.issuedPieces, 0);
   const totalIssueValue = selectedRows.reduce((sum, row) => sum + row.issueValue, 0);
 
+  const categoryOptions = useMemo(() => {
+    const map = new Map();
+    products.forEach((product) => {
+      if (product.categoryId && !map.has(product.categoryId)) {
+        map.set(product.categoryId, product.category);
+      }
+    });
+    return Array.from(map, ([id, name]) => ({ id, name })).sort((a, b) => a.name.localeCompare(b.name));
+  }, [products]);
+
+  const visibleRows = categoryId ? issueRows.filter((row) => row.categoryId === categoryId) : issueRows;
+
   function updateQuantity(productIdToUpdate, field, value) {
     setQuantities((current) => ({
       ...current,
@@ -165,6 +178,9 @@ export function useMorningIssueViewModel({ products, dsrs, today, saveIssueActio
     setDate,
     dsrId,
     setDsrId,
+    categoryId,
+    setCategoryId,
+    categoryOptions,
     quantities,
     message,
     saving,
@@ -172,6 +188,7 @@ export function useMorningIssueViewModel({ products, dsrs, today, saveIssueActio
     existingSettlement,
     loading,
     issueRows,
+    visibleRows,
     invalidRows,
     selectedRows,
     totalIssuedPieces,

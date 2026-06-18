@@ -593,7 +593,7 @@
       user: 'ব্যবহারকারী',
       action: 'অ্যাকশন',
       entity: 'এনটিটি',
-      description: 'বিবরণ',
+      descriptionColumn: 'বিবরণ',
       metadata: 'মেটাডাটা',
       changes: 'পরিবর্তন',
       reason: 'কারণ',

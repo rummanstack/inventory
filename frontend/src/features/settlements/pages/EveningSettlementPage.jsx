@@ -142,7 +142,6 @@ export default function EveningSettlementPage() {
               <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <h3 className="text-sm font-black uppercase tracking-[0.14em] text-slate-700">{t('settlement.extraReturnsTitle')}</h3>
-                  <p className="mt-1 text-sm text-slate-500">{t('settlement.extraReturnsDescription')}</p>
                 </div>
                 <div className="flex items-center gap-3">
                   <Badge tone="amber">{t('settlement.extraReturnTotal', { pieces: vm.totalExtraReturnedPieces })}</Badge>

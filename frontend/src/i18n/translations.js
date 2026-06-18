@@ -9,7 +9,6 @@ const translations = {
 const settlementExtraStrings = {
   en: {
     extraReturnsTitle: 'Extra Returns',
-    extraReturnsDescription: 'Add products the DSR is returning even though they were not issued today. These rows update stock and reduce receivable by selling price.',
     addExtraReturn: 'Add Extra Return',
     extraReturnProduct: 'Returned Product',
     extraReturnTotal: 'Total extra return: {pieces} pcs',
@@ -18,7 +17,6 @@ const settlementExtraStrings = {
   },
   bn: {
     extraReturnsTitle: 'অতিরিক্ত রিটার্ন',
-    extraReturnsDescription: 'যে পণ্যগুলো আজকের ইস্যুতে ছিল না, কিন্তু ডিএসআর ফেরত দিচ্ছে, সেগুলো এখানে যোগ করুন। এগুলো স্টক আপডেট করে এবং সেলিং প্রাইস অনুযায়ী প্রাপ্য কমায়।',
     addExtraReturn: 'অতিরিক্ত রিটার্ন যোগ',
     extraReturnProduct: 'ফেরত পণ্য',
     extraReturnTotal: 'মোট অতিরিক্ত রিটার্ন: {pieces} pcs',

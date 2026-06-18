@@ -111,7 +111,7 @@ export default function TopHeader({ title, today, user, tenant, tenantOptions, o
                                 {t('notifications.lowStockAlert', { name: product.name, count: product.stockPieces })}
                               </p>
                               <p className="mt-1 text-xs font-semibold text-slate-500">
-                                {t('notifications.currentStock')}: {product.stockPieces} · {t('notifications.alertLevel')}: {getLowStockThreshold(product.piecesPerCase)}
+                                {t('notifications.currentStock')}: {product.stockPieces} · {t('notifications.alertLevel')}: {getLowStockThreshold(product)}
                               </p>
                               <Link
                                 to="/products"

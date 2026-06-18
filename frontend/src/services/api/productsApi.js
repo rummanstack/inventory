@@ -9,6 +9,10 @@ export const productsApi = {
     return apiRequest("/products/directory");
   },
 
+  getLowStockProducts() {
+    return apiRequest("/products/low-stock");
+  },
+
   createProduct(product) {
     return apiRequest("/products", { method: "POST", body: JSON.stringify(product) });
   },
@@ -35,6 +39,10 @@ export const productsApi = {
 
   addProductStock(productId, addPieces, reason) {
     return apiRequest(`/products/${productId}/stock`, { method: "POST", body: JSON.stringify({ addPieces, reason }) });
+  },
+
+  setOpeningStock(productId, quantity, note) {
+    return apiRequest(`/products/${productId}/opening-stock`, { method: "POST", body: JSON.stringify({ quantity, note }) });
   },
 
   clearDamagedStock(productId, quantity, note) {

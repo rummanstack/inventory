@@ -15,11 +15,13 @@ import {
   findProductForUpdate,
   insertProduct,
   listAllActiveProductsLite,
+  listLowStockProducts,
   listProductsPage,
   mapProduct,
   updateProduct,
 } from "../repositories/productRepository.js";
 import { findCategoryById } from "../repositories/categoryRepository.js";
+import { countStockMovements } from "../repositories/stockMovementRepository.js";
 import { logActivity, recordStockMovement } from "./shared/inventoryHelpers.js";
 
 export class ProductService {
@@ -51,6 +53,12 @@ export class ProductService {
   async getProductsDirectory(actor) {
     return this.databaseManager.withClient(async (client) => ({
       products: await listAllActiveProductsLite(client, actor.tenantId),
+    }));
+  }
+
+  async getLowStockProducts(actor) {
+    return this.databaseManager.withClient(async (client) => ({
+      products: await listLowStockProducts(client, actor.tenantId),
     }));
   }
 
@@ -175,42 +183,74 @@ export class ProductService {
     assert(addPieces > 0, "Stock update must be greater than zero.");
 
     return this.databaseManager.withTransaction(async (client) => {
-      const existingResult = await findProductForUpdate(client, productId, actor.tenantId);
-      assert(existingResult.rowCount > 0, "Product not found.", 404);
-      const previousStock = Number(existingResult.rows[0].stock_pieces || 0);
-
-      const result = await addProductStock(client, productId, addPieces, actor.tenantId);
-      assert(result.rowCount > 0, "Product not found.", 404);
-      const product = result.rows[0];
-      await recordStockMovement(client, {
-        tenantId: actor.tenantId,
-        productId,
+      return this.applyStockAddition(client, productId, addPieces, actor, {
         type: STOCK_MOVEMENT_TYPES.MANUAL_ADJUSTMENT,
-        quantityIn: addPieces,
-        quantityOut: 0,
-        balanceAfter: Number(product.stock_pieces || 0),
-        referenceType: "product_stock",
-        referenceId: productId,
         note: `Manual stock added by ${actor.name}`,
-        createdById: actor.id,
-      });
-      const { before, after } = diffFields(
-        { stockPieces: previousStock },
-        { stockPieces: Number(product.stock_pieces || 0) },
-        ["stockPieces"],
-      );
-      await this.recordActivity(client, actor, {
-        actionType: PRODUCT_ACTIONS.STOCK_ADD,
-        entityType: "product",
-        entityId: productId,
         description: `${actor.name} added stock to product ${productId}`,
         metadata: { addPieces },
-        before,
-        after,
         reason,
       });
-      return mapProduct(product);
     });
+  }
+
+  async setOpeningStock(productId, quantityInput, actor, note) {
+    const quantity = cleanInteger(quantityInput);
+    assert(quantity > 0, "Opening stock must be greater than zero.");
+
+    return this.databaseManager.withTransaction(async (client) => {
+      const movementCount = await countStockMovements(client, { tenantId: actor.tenantId, productId });
+      assert(
+        movementCount === 0,
+        "Opening stock can only be set before any other stock activity for this product. Use Add Stock instead.",
+      );
+
+      return this.applyStockAddition(client, productId, quantity, actor, {
+        type: STOCK_MOVEMENT_TYPES.OPENING,
+        note: note || `Opening stock set by ${actor.name}`,
+        description: `${actor.name} set opening stock for product ${productId}`,
+        metadata: { openingStock: quantity },
+      });
+    });
+  }
+
+  // Shared by addStock and setOpeningStock — every path that touches stock_pieces goes
+  // through here so a stock_movements row and audit entry are always created together.
+  async applyStockAddition(client, productId, pieces, actor, { type, note, description, metadata, reason }) {
+    const existingResult = await findProductForUpdate(client, productId, actor.tenantId);
+    assert(existingResult.rowCount > 0, "Product not found.", 404);
+    const previousStock = Number(existingResult.rows[0].stock_pieces || 0);
+
+    const result = await addProductStock(client, productId, pieces, actor.tenantId);
+    assert(result.rowCount > 0, "Product not found.", 404);
+    const product = result.rows[0];
+    await recordStockMovement(client, {
+      tenantId: actor.tenantId,
+      productId,
+      type,
+      quantityIn: pieces,
+      quantityOut: 0,
+      balanceAfter: Number(product.stock_pieces || 0),
+      referenceType: "product_stock",
+      referenceId: productId,
+      note,
+      createdById: actor.id,
+    });
+    const { before, after } = diffFields(
+      { stockPieces: previousStock },
+      { stockPieces: Number(product.stock_pieces || 0) },
+      ["stockPieces"],
+    );
+    await this.recordActivity(client, actor, {
+      actionType: PRODUCT_ACTIONS.STOCK_ADD,
+      entityType: "product",
+      entityId: productId,
+      description,
+      metadata,
+      before,
+      after,
+      reason,
+    });
+    return mapProduct(product);
   }
 
   async clearDamagedStock(productId, quantityInput, actor, note) {

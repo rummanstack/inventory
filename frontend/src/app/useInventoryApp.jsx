@@ -193,7 +193,7 @@ export function InventoryAppProvider({ children }) {
       const result = product.id ? await inventoryApi.updateProduct(product) : await inventoryApi.createProduct(product);
       upsertProductDirectory(result.product);
       pushToast('success', product.id ? t('products.editTitle') : t('products.addTitle'), `${product.name} ${product.id ? t('alerts.updated') : t('alerts.created')}`);
-      return { ok: true };
+      return { ok: true, product: result.product };
     } catch (error) {
       const message = getFriendlyError(error, t);
       pushToast('error', t('alerts.requestFailed'), message);
@@ -233,6 +233,19 @@ export function InventoryAppProvider({ children }) {
       const result = await inventoryApi.addProductStock(productId, addPieces, reason);
       upsertProductDirectory(result.product);
       pushToast('success', t('products.updateStock'), t('products.stockUpdateSuccess'));
+      return { ok: true };
+    } catch (error) {
+      const message = getFriendlyError(error, t);
+      pushToast('error', t('alerts.updateFailed'), message);
+      return { ok: false, message };
+    }
+  }
+
+  async function setOpeningStock(productId, quantity, note) {
+    try {
+      const result = await inventoryApi.setOpeningStock(productId, quantity, note);
+      upsertProductDirectory(result.product);
+      pushToast('success', t('products.openingStock'), t('products.openingStockSuccess'));
       return { ok: true };
     } catch (error) {
       const message = getFriendlyError(error, t);
@@ -866,6 +879,7 @@ export function InventoryAppProvider({ children }) {
       restoreUser,
       permanentlyDeleteUser,
       addStock,
+      setOpeningStock,
       clearDamagedStock,
       saveDsr,
       deleteDsr,

@@ -11,6 +11,7 @@ export function mapProduct(row) {
     stockPieces: Number(row.stock_pieces),
     damagedPieces: Number(row.damaged_pieces),
     orderIndex: Number(row.order_index) >= 9999 ? null : Number(row.order_index),
+    reorderLevel: row.reorder_level === null || row.reorder_level === undefined ? null : Number(row.reorder_level),
   };
 }
 
@@ -88,8 +89,8 @@ export async function listAllActiveProductsLite(client, tenantId) {
 export function insertProduct(client, product) {
   return client.query(
     `WITH inserted AS (
-       INSERT INTO products (id, tenant_id, name, category_id, pieces_per_case, purchase_price, wholesale_price, retail_price, stock_pieces, order_index)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+       INSERT INTO products (id, tenant_id, name, category_id, pieces_per_case, purchase_price, wholesale_price, retail_price, stock_pieces, order_index, reorder_level)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
        RETURNING *
      )
      SELECT inserted.*, c.name AS category_name FROM inserted LEFT JOIN categories c ON c.id = inserted.category_id`,
@@ -104,6 +105,7 @@ export function insertProduct(client, product) {
       product.retailPrice,
       product.stockPieces,
       product.orderIndex ?? 9999,
+      product.reorderLevel,
     ],
   );
 }
@@ -112,7 +114,7 @@ export function updateProduct(client, product) {
   return client.query(
     `WITH updated AS (
        UPDATE products
-       SET name = $3, category_id = $4, pieces_per_case = $5, purchase_price = $6, wholesale_price = $7, retail_price = $8, order_index = $9
+       SET name = $3, category_id = $4, pieces_per_case = $5, purchase_price = $6, wholesale_price = $7, retail_price = $8, order_index = $9, reorder_level = $10
        WHERE id = $1 AND tenant_id = $2
        RETURNING *
      )
@@ -127,6 +129,7 @@ export function updateProduct(client, product) {
       product.wholesalePrice,
       product.retailPrice,
       product.orderIndex ?? 9999,
+      product.reorderLevel,
     ],
   );
 }
@@ -190,6 +193,18 @@ export function addProductStock(client, productId, addPieces, tenantId) {
      SELECT updated.*, c.name AS category_name FROM updated LEFT JOIN categories c ON c.id = updated.category_id`,
     [productId, tenantId, addPieces],
   );
+}
+
+export async function listLowStockProducts(client, tenantId) {
+  const result = await client.query(
+    `SELECT p.*, c.name AS category_name FROM products p
+     LEFT JOIN categories c ON c.id = p.category_id
+     WHERE p.tenant_id = $1 AND p.deleted_at IS NULL
+       AND p.stock_pieces <= COALESCE(p.reorder_level, p.pieces_per_case * 4)
+     ORDER BY p.stock_pieces ASC, p.name ASC`,
+    [tenantId],
+  );
+  return result.rows.map(mapProduct);
 }
 
 export function findProductForUpdate(client, productId, tenantId) {

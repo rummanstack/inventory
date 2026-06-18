@@ -19,6 +19,14 @@ export class ProductController {
     }
   };
 
+  lowStock = async (req, res, next) => {
+    try {
+      res.json(await this.productService.getLowStockProducts(req.currentUser));
+    } catch (error) {
+      next(error);
+    }
+  };
+
   create = async (req, res, next) => {
     try {
       const product = await this.productService.saveProduct(req.body, req.currentUser);
@@ -48,6 +56,15 @@ export class ProductController {
   addStock = async (req, res, next) => {
     try {
       const product = await this.productService.addStock(req.params.id, req.body.addPieces, req.currentUser, req.body.reason);
+      res.json({ product });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  setOpeningStock = async (req, res, next) => {
+    try {
+      const product = await this.productService.setOpeningStock(req.params.id, req.body.quantity, req.currentUser, req.body.note);
       res.json({ product });
     } catch (error) {
       next(error);

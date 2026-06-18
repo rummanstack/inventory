@@ -8,6 +8,7 @@ import { DsrFinanceService } from './services/dsrFinanceService.js';
 import { ExpenseService } from './services/expenseService.js';
 import { ProfitService } from './services/profitService.js';
 import { ProductService } from './services/productService.js';
+import { CategoryService } from './services/categoryService.js';
 import { DsrService } from './services/dsrService.js';
 import { IssueService } from './services/issueService.js';
 import { SettlementService } from './services/settlementService.js';
@@ -49,6 +50,7 @@ export async function createBackendApp() {
   const auditService = new AuditService(databaseManager);
   const authService = new AuthService(databaseManager, { sessionDays: env.SESSION_DAYS, auditService });
   const productService = new ProductService(databaseManager, { auditService });
+  const categoryService = new CategoryService(databaseManager, { auditService });
   const dsrService = new DsrService(databaseManager, { auditService });
   const issueService = new IssueService(databaseManager, { auditService });
   const financeAccountService = new FinanceAccountService(databaseManager, { auditService });
@@ -82,6 +84,7 @@ export async function createBackendApp() {
     authService,
     env,
     productService,
+    categoryService,
     dsrService,
     issueService,
     settlementService,

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Boxes, Download, FileSpreadsheet, PackagePlus, Pencil, Plus, Printer, Search, Trash2 } from 'lucide-react';
+import { Boxes, Download, FileSpreadsheet, ListTree, PackagePlus, Pencil, Plus, Printer, Search, Trash2 } from 'lucide-react';
 import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { formatCasePiece, formatCurrency, formatNumber } from '../../../utils/calculations.js';
@@ -7,6 +7,7 @@ import ProductFormModal from '../components/ProductFormModal';
 import StockUpdateModal from '../components/StockUpdateModal';
 import StockLedgerPanel from '../components/StockLedgerPanel';
 import ProductsPrintSheet from '../components/ProductsPrintSheet';
+import CategoriesManagerModal from '../components/CategoriesManagerModal';
 import { useProductsViewModel } from '../viewmodels/useProductsViewModel';
 import { downloadSheetPdf } from '../../../services/printService.js';
 import { inventoryApi } from '../../../services/inventoryApi.js';
@@ -18,6 +19,7 @@ export default function ProductsPage() {
   const vm = useProductsViewModel();
   const [productModal, setProductModal] = useState(null);
   const [stockModalProduct, setStockModalProduct] = useState(null);
+  const [showCategoriesModal, setShowCategoriesModal] = useState(false);
   const [ledgerRefreshKey, setLedgerRefreshKey] = useState(0);
   const canManageProducts = can('manage_products');
   const outOfStockCount = productDirectory.filter((product) => product.stockPieces === 0).length;
@@ -63,10 +65,16 @@ export default function ProductsPage() {
         title={t('products.title')}
         description={t('products.description', { count: productDirectory.length })}
         action={canManageProducts ? (
-          <button type="button" className="btn-primary" onClick={() => setProductModal({ mode: 'add' })}>
-            <Plus size={18} />
-            {t('products.add')}
-          </button>
+          <div className="flex gap-2">
+            <button type="button" className="btn-secondary" onClick={() => setShowCategoriesModal(true)}>
+              <ListTree size={18} />
+              {t('categories.manage')}
+            </button>
+            <button type="button" className="btn-primary" onClick={() => setProductModal({ mode: 'add' })}>
+              <Plus size={18} />
+              {t('products.add')}
+            </button>
+          </div>
         ) : null}
       />
 
@@ -213,6 +221,9 @@ export default function ProductsPage() {
         }
         return result;
       }} /> : null}
+      {showCategoriesModal ? (
+        <CategoriesManagerModal onClose={() => setShowCategoriesModal(false)} onChanged={() => vm.reload()} />
+      ) : null}
 
       <div className="hidden print:block">
         <ProductsPrintSheet

@@ -1,21 +1,28 @@
+import { useEffect, useState } from 'react';
 import { Save } from 'lucide-react';
 import { Alert, Modal } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
+import { inventoryApi } from '../../../services/inventoryApi.js';
 import { cleanNumber } from '../../../utils/calculations.js';
 import { useFormState } from '../../../hooks/useFormState';
 
 export default function ProductFormModal({ product, onClose, onSave }) {
   const { t, pushToast } = useInventoryApp();
   const isEdit = Boolean(product);
+  const [categories, setCategories] = useState([]);
   const { form, updateField, error, setError, saving, setSaving } = useFormState({
     name: product?.name || '',
-    category: product?.category || '',
+    categoryId: product?.categoryId || '',
     piecesPerCase: product?.piecesPerCase || 24,
     purchasePrice: product?.purchasePrice || '',
     wholesalePrice: product?.wholesalePrice || '',
     retailPrice: product?.retailPrice || '',
     orderIndex: product?.orderIndex != null ? product.orderIndex : '',
   });
+
+  useEffect(() => {
+    inventoryApi.listCategories().then((result) => setCategories(result.categories || [])).catch(() => setCategories([]));
+  }, []);
 
   async function submitForm(event) {
     event.preventDefault();
@@ -24,7 +31,7 @@ export default function ProductFormModal({ product, onClose, onSave }) {
     const wholesalePrice = form.wholesalePrice === '' ? 0 : Number(form.wholesalePrice);
     const retailPrice = form.retailPrice === '' ? 0 : Number(form.retailPrice);
 
-    if (!form.name.trim() || !form.category.trim()) {
+    if (!form.name.trim() || !form.categoryId) {
       setError(t('products.productNameCategoryRequired'));
       return;
     }
@@ -36,7 +43,7 @@ export default function ProductFormModal({ product, onClose, onSave }) {
     const payload = {
       id: product?.id,
       name: form.name.trim(),
-      category: form.category.trim(),
+      categoryId: form.categoryId,
       piecesPerCase,
       purchasePrice,
       wholesalePrice,
@@ -47,7 +54,7 @@ export default function ProductFormModal({ product, onClose, onSave }) {
     if (isEdit) {
       const unchanged =
         payload.name === product.name &&
-        payload.category === product.category &&
+        payload.categoryId === product.categoryId &&
         payload.piecesPerCase === product.piecesPerCase &&
         payload.purchasePrice === product.purchasePrice &&
         payload.wholesalePrice === (product.wholesalePrice || 0) &&
@@ -80,7 +87,12 @@ export default function ProductFormModal({ product, onClose, onSave }) {
           </div>
           <div>
             <label className="label">{t('products.category')}</label>
-            <input className="input" value={form.category} onChange={(event) => updateField('category', event.target.value)} placeholder="Enter category" />
+            <select className="input" value={form.categoryId} onChange={(event) => updateField('categoryId', event.target.value)}>
+              <option value="">{t('categories.selectCategory')}</option>
+              {categories.map((category) => (
+                <option key={category.id} value={category.id}>{category.name}</option>
+              ))}
+            </select>
           </div>
           <div>
             <label className="label">{t('products.piecesPerCase')}</label>

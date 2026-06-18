@@ -16,6 +16,7 @@ export const AUDIT_MODULES = [
 
 const ENTITY_TYPE_MODULES = {
   product: "products",
+  category: "products",
   dsr: "dsrs",
   customer: "customers",
   expense: "expenses",

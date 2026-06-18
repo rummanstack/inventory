@@ -2,7 +2,8 @@ export function mapProduct(row) {
   return {
     id: row.id,
     name: row.name,
-    category: row.category,
+    category: row.category_name || null,
+    categoryId: row.category_id || null,
     piecesPerCase: Number(row.pieces_per_case),
     purchasePrice: Number(row.purchase_price),
     wholesalePrice: Number(row.wholesale_price || 0),
@@ -25,31 +26,37 @@ function mapTrashedProduct(row) {
 
 export async function countProducts(client, { search, tenantId } = {}) {
   const params = [tenantId];
-  const conditions = ["tenant_id = $1", "deleted_at IS NULL"];
+  const conditions = ["p.tenant_id = $1", "p.deleted_at IS NULL"];
 
   if (search) {
     params.push(`%${search}%`);
-    conditions.push(`(name ILIKE $${params.length} OR category ILIKE $${params.length})`);
+    conditions.push(`(p.name ILIKE $${params.length} OR c.name ILIKE $${params.length})`);
   }
 
   const where = `WHERE ${conditions.join(" AND ")}`;
-  const result = await client.query(`SELECT COUNT(*)::INTEGER AS count FROM products ${where}`, params);
+  const result = await client.query(
+    `SELECT COUNT(*)::INTEGER AS count FROM products p LEFT JOIN categories c ON c.id = p.category_id ${where}`,
+    params,
+  );
   return result.rows[0].count;
 }
 
 export async function listProductsPage(client, { search, tenantId, limit, offset }) {
   const params = [tenantId];
-  const conditions = ["tenant_id = $1", "deleted_at IS NULL"];
+  const conditions = ["p.tenant_id = $1", "p.deleted_at IS NULL"];
 
   if (search) {
     params.push(`%${search}%`);
-    conditions.push(`(name ILIKE $${params.length} OR category ILIKE $${params.length})`);
+    conditions.push(`(p.name ILIKE $${params.length} OR c.name ILIKE $${params.length})`);
   }
 
   const where = `WHERE ${conditions.join(" AND ")}`;
   params.push(limit, offset);
   const result = await client.query(
-    `SELECT * FROM products ${where} ORDER BY order_index ASC, created_at ASC LIMIT $${params.length - 1} OFFSET $${params.length}`,
+    `SELECT p.*, c.name AS category_name FROM products p
+     LEFT JOIN categories c ON c.id = p.category_id
+     ${where}
+     ORDER BY p.order_index ASC, p.created_at ASC LIMIT $${params.length - 1} OFFSET $${params.length}`,
     params,
   );
   return result.rows.map(mapProduct);
@@ -57,7 +64,12 @@ export async function listProductsPage(client, { search, tenantId, limit, offset
 
 export async function listAllActiveProductsLite(client, tenantId) {
   const result = await client.query(
-    "SELECT id, name, category, pieces_per_case, purchase_price, wholesale_price, retail_price, stock_pieces, damaged_pieces, order_index FROM products WHERE tenant_id = $1 AND deleted_at IS NULL ORDER BY order_index ASC, name ASC",
+    `SELECT p.id, p.name, c.name AS category_name, p.category_id, p.pieces_per_case, p.purchase_price,
+            p.wholesale_price, p.retail_price, p.stock_pieces, p.damaged_pieces, p.order_index
+     FROM products p
+     LEFT JOIN categories c ON c.id = p.category_id
+     WHERE p.tenant_id = $1 AND p.deleted_at IS NULL
+     ORDER BY p.order_index ASC, p.name ASC`,
     [tenantId],
   );
   return result.rows.map(mapProduct);
@@ -65,14 +77,17 @@ export async function listAllActiveProductsLite(client, tenantId) {
 
 export function insertProduct(client, product) {
   return client.query(
-    `INSERT INTO products (id, tenant_id, name, category, pieces_per_case, purchase_price, wholesale_price, retail_price, stock_pieces, order_index)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-     RETURNING *`,
+    `WITH inserted AS (
+       INSERT INTO products (id, tenant_id, name, category_id, pieces_per_case, purchase_price, wholesale_price, retail_price, stock_pieces, order_index)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+       RETURNING *
+     )
+     SELECT inserted.*, c.name AS category_name FROM inserted LEFT JOIN categories c ON c.id = inserted.category_id`,
     [
       product.id,
       product.tenantId,
       product.name,
-      product.category,
+      product.categoryId,
       product.piecesPerCase,
       product.purchasePrice,
       product.wholesalePrice,
@@ -85,15 +100,18 @@ export function insertProduct(client, product) {
 
 export function updateProduct(client, product) {
   return client.query(
-    `UPDATE products
-     SET name = $3, category = $4, pieces_per_case = $5, purchase_price = $6, wholesale_price = $7, retail_price = $8, order_index = $9
-     WHERE id = $1 AND tenant_id = $2
-     RETURNING *`,
+    `WITH updated AS (
+       UPDATE products
+       SET name = $3, category_id = $4, pieces_per_case = $5, purchase_price = $6, wholesale_price = $7, retail_price = $8, order_index = $9
+       WHERE id = $1 AND tenant_id = $2
+       RETURNING *
+     )
+     SELECT updated.*, c.name AS category_name FROM updated LEFT JOIN categories c ON c.id = updated.category_id`,
     [
       product.id,
       product.tenantId,
       product.name,
-      product.category,
+      product.categoryId,
       product.piecesPerCase,
       product.purchasePrice,
       product.wholesalePrice,
@@ -139,8 +157,9 @@ export async function countTrashedProducts(client, tenantId) {
 
 export async function listTrashedProducts(client, { tenantId, limit, offset }) {
   const result = await client.query(
-    `SELECT p.*, u.name AS deleted_by_name
+    `SELECT p.*, c.name AS category_name, u.name AS deleted_by_name
      FROM products p
+     LEFT JOIN categories c ON c.id = p.category_id
      LEFT JOIN users u ON u.id = p.deleted_by_id
      WHERE p.tenant_id = $1 AND p.deleted_at IS NOT NULL
      ORDER BY p.deleted_at DESC
@@ -152,10 +171,13 @@ export async function listTrashedProducts(client, { tenantId, limit, offset }) {
 
 export function addProductStock(client, productId, addPieces, tenantId) {
   return client.query(
-    `UPDATE products
-     SET stock_pieces = stock_pieces + $3
-     WHERE id = $1 AND tenant_id = $2 AND deleted_at IS NULL
-     RETURNING *`,
+    `WITH updated AS (
+       UPDATE products
+       SET stock_pieces = stock_pieces + $3
+       WHERE id = $1 AND tenant_id = $2 AND deleted_at IS NULL
+       RETURNING *
+     )
+     SELECT updated.*, c.name AS category_name FROM updated LEFT JOIN categories c ON c.id = updated.category_id`,
     [productId, tenantId, addPieces],
   );
 }

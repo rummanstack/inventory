@@ -19,6 +19,7 @@ import {
   mapProduct,
   updateProduct,
 } from "../repositories/productRepository.js";
+import { findCategoryById } from "../repositories/categoryRepository.js";
 import { logActivity, recordStockMovement } from "./shared/inventoryHelpers.js";
 
 export class ProductService {
@@ -54,11 +55,14 @@ export class ProductService {
 
   async saveProduct(input, actor) {
     const product = normalizeProduct(input);
-    assert(product.name && product.category, "Product name and category are required.");
+    assert(product.name && product.categoryId, "Product name and category are required.");
     assert(product.piecesPerCase > 0, "Pieces per case must be greater than zero.");
     assert(product.purchasePrice > 0, "Purchase price must be greater than zero.");
 
     return this.databaseManager.withTransaction(async (client) => {
+      const category = await findCategoryById(client, product.categoryId, actor.tenantId);
+      assert(category, "Category not found.", 404);
+
       let result;
 
       if (input.id) {
@@ -83,7 +87,7 @@ export class ProductService {
           entityType: "product",
           entityId: nextProduct.id,
           description: `${actor.name} updated product ${nextProduct.name}`,
-          metadata: { name: nextProduct.name, category: nextProduct.category },
+          metadata: { name: nextProduct.name, category: category.name },
         });
       } else {
         assert(
@@ -98,7 +102,7 @@ export class ProductService {
           entityType: "product",
           entityId: product.id,
           description: `${actor.name} created product ${product.name}`,
-          metadata: { name: product.name, category: product.category },
+          metadata: { name: product.name, category: category.name },
         });
       }
 
@@ -219,10 +223,13 @@ export class ProductService {
       assert(quantity <= previousDamaged, "Quantity exceeds damaged stock.");
 
       const result = await client.query(
-        `UPDATE products
-         SET damaged_pieces = damaged_pieces - $3
-         WHERE id = $1 AND tenant_id = $2
-         RETURNING *`,
+        `WITH updated AS (
+           UPDATE products
+           SET damaged_pieces = damaged_pieces - $3
+           WHERE id = $1 AND tenant_id = $2
+           RETURNING *
+         )
+         SELECT updated.*, c.name AS category_name FROM updated LEFT JOIN categories c ON c.id = updated.category_id`,
         [productId, actor.tenantId, quantity],
       );
       const product = result.rows[0];

@@ -1,6 +1,7 @@
 import { activityLogsApi } from './api/activityLogsApi.js';
 import { auditApi } from './api/auditApi.js';
 import { authApi } from './api/authApi.js';
+import { categoriesApi } from './api/categoriesApi.js';
 import { customersApi } from './api/customersApi.js';
 import { databaseBackupApi } from './api/databaseBackupApi.js';
 import { dsrFinanceApi } from './api/dsrFinanceApi.js';
@@ -40,6 +41,7 @@ export const inventoryApi = {
   ...dsrFinanceApi,
   ...databaseBackupApi,
   ...productsApi,
+  ...categoriesApi,
   ...dsrsApi,
   ...customersApi,
   ...morningIssueApi,

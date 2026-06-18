@@ -269,6 +269,7 @@ const en = {
       add: 'Add',
       namePlaceholder: 'New category name',
       selectCategory: 'Select category',
+      allCategories: 'All Categories',
       noneTitle: 'No categories yet',
       noneDescription: 'Add your first category above to start organizing products.',
       deleteTitle: 'Delete Category',

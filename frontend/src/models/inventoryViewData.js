@@ -307,8 +307,9 @@ export function buildActivityHeatmap({ issues, settlements, today, days = 70 }) 
 export function buildCategoryInventory(products) {
   return Array.from(
     products.reduce((map, product) => {
-      const key = product.category || 'Uncategorized';
-      const current = map.get(key) || { label: key, value: 0, units: 0, color: `linear-gradient(90deg, ${getCssVar('--success', '#0f766e')}, ${getCssVar('--secondary', '#2563eb')})` };
+      const key = product.categoryId || 'uncategorized';
+      const label = product.category || 'Uncategorized';
+      const current = map.get(key) || { label, value: 0, units: 0, color: `linear-gradient(90deg, ${getCssVar('--success', '#0f766e')}, ${getCssVar('--secondary', '#2563eb')})` };
       current.value += Number(product.stockPieces || 0) * Number(product.purchasePrice || 0);
       current.units += Number(product.stockPieces || 0);
       map.set(key, current);

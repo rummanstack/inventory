@@ -1,8 +1,8 @@
 import { apiRequest, buildQueryString } from './client.js';
 
 export const productsApi = {
-  listProducts({ page, pageSize, search } = {}) {
-    return apiRequest(`/products${buildQueryString({ page, pageSize, search })}`);
+  listProducts({ page, pageSize, search, categoryId } = {}) {
+    return apiRequest(`/products${buildQueryString({ page, pageSize, search, categoryId })}`);
   },
 
   getProductsDirectory() {

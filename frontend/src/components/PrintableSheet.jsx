@@ -118,22 +118,23 @@ export default function PrintableSheet({ sheet, printTarget = false, targetId })
 
       <div className="mt-6 flex flex-nowrap items-end justify-between gap-x-2 border-b border-slate-200 pb-3 text-sm">
         <div className="text-center">
-          <p className="whitespace-nowrap text-[9px] font-bold uppercase text-slate-500">Product</p>
-          <p className="whitespace-nowrap font-bold text-slate-950">{formatCurrency(totalReturnValue > 0 ? sheet.grossIssueValue || 0 : sheet.totalPayable)}</p>
+          <p className="whitespace-nowrap text-[9px] font-bold uppercase text-slate-500">Discount</p>
+          <p className="whitespace-nowrap font-bold text-slate-950">- {formatCurrency(sheet.discount || 0)}</p>
         </div>
-        {totalReturnValue > 0 ? (
-          <>
-            <span className="text-slate-300">|</span>
-            <div className="text-center">
-              <p className="whitespace-nowrap text-[9px] font-bold uppercase text-slate-500">Return Value</p>
-              <p className="whitespace-nowrap font-bold text-slate-950">- {formatCurrency(totalReturnValue)}</p>
-            </div>
-          </>
-        ) : null}
         <span className="text-slate-300">|</span>
         <div className="text-center">
           <p className="whitespace-nowrap text-[9px] font-bold uppercase text-slate-500">Sale</p>
           <p className="whitespace-nowrap font-bold text-slate-950">{formatCurrency((sheet.totalPayable || 0) - (sheet.extraReturnValue || 0))}</p>
+        </div>
+        <span className="text-slate-300">|</span>
+        <div className="text-center">
+          <p className="whitespace-nowrap text-[9px] font-bold uppercase text-slate-500">Paid</p>
+          <p className="whitespace-nowrap text-base font-black text-slate-950">- {formatCurrency(sheet.amountPaid || 0)}</p>
+        </div>
+        <span className="text-slate-300">|</span>
+        <div className="text-center">
+          <p className="whitespace-nowrap text-[9px] font-bold uppercase text-slate-500">Today Due</p>
+          <p className="whitespace-nowrap font-bold text-slate-950">{formatCurrency(sheet.todayDue || 0)}</p>
         </div>
         <span className="text-slate-300">|</span>
         <div className="text-center">
@@ -142,18 +143,8 @@ export default function PrintableSheet({ sheet, printTarget = false, targetId })
         </div>
         <span className="text-slate-300">|</span>
         <div className="text-center">
-          <p className="whitespace-nowrap text-[9px] font-bold uppercase text-slate-500">Discount</p>
-          <p className="whitespace-nowrap font-bold text-slate-950">- {formatCurrency(sheet.discount || 0)}</p>
-        </div>
-        <span className="text-slate-300">|</span>
-        <div className="text-center">
           <p className="whitespace-nowrap text-[9px] font-bold uppercase text-slate-500">Receivable</p>
           <p className="whitespace-nowrap font-bold text-slate-950">{formatCurrency(sheet.totalReceivable || 0)}</p>
-        </div>
-        <span className="text-slate-300">|</span>
-        <div className="text-center">
-          <p className="whitespace-nowrap text-[9px] font-bold uppercase text-slate-500">Paid</p>
-          <p className="whitespace-nowrap text-base font-black text-slate-950">- {formatCurrency(sheet.amountPaid || 0)}</p>
         </div>
       </div>
 

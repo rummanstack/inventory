@@ -13,6 +13,7 @@ export function mapUser(row) {
     failedLoginCount: row.failed_login_count ?? 0,
     lockedUntil: row.locked_until || null,
     mustChangePassword: Boolean(row.must_change_password),
+    avatarUrl: row.avatar_url || null,
   };
 }
 
@@ -28,9 +29,9 @@ export async function findUserByRole(client, role) {
 
 export function insertUser(client, user) {
   return client.query(
-    `INSERT INTO users (id, name, email, password_hash, role, status, tenant_id)
-     VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-    [user.id, user.name, user.email.toLowerCase(), user.passwordHash, user.role, user.status, user.tenantId || null],
+    `INSERT INTO users (id, name, email, password_hash, role, status, tenant_id, avatar_url)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+    [user.id, user.name, user.email.toLowerCase(), user.passwordHash, user.role, user.status, user.tenantId || null, user.avatarUrl || null],
   );
 }
 
@@ -67,7 +68,7 @@ export async function findTrashedUserById(client, id) {
 export async function listUsers(client, tenantId) {
   if (tenantId) {
     const result = await client.query(
-      `SELECT id, name, email, role, status, tenant_id, created_at, updated_at, locked_until, must_change_password
+      `SELECT id, name, email, role, status, tenant_id, created_at, updated_at, locked_until, must_change_password, avatar_url
        FROM users
        WHERE tenant_id = $1 AND role != 'system_developer' AND deleted_at IS NULL
        ORDER BY created_at DESC, name ASC`,
@@ -84,11 +85,12 @@ export async function listUsers(client, tenantId) {
       updatedAt: row.updated_at,
       lockedUntil: row.locked_until || null,
       mustChangePassword: Boolean(row.must_change_password),
+      avatarUrl: row.avatar_url || null,
     }));
   }
 
   const result = await client.query(
-    `SELECT id, name, email, role, status, tenant_id, created_at, updated_at, locked_until, must_change_password
+    `SELECT id, name, email, role, status, tenant_id, created_at, updated_at, locked_until, must_change_password, avatar_url
      FROM users
      WHERE deleted_at IS NULL
      ORDER BY created_at DESC, name ASC`,
@@ -105,6 +107,7 @@ export async function listUsers(client, tenantId) {
     updatedAt: row.updated_at,
     lockedUntil: row.locked_until || null,
     mustChangePassword: Boolean(row.must_change_password),
+    avatarUrl: row.avatar_url || null,
   }));
 }
 
@@ -127,7 +130,7 @@ export function deleteExpiredUserSessions(client) {
 export async function findActiveUserBySessionTokenHash(client, tokenHash) {
   const result = await client.query(
     `SELECT users.id, users.name, users.email, users.role, users.status, users.tenant_id,
-            users.failed_login_count, users.locked_until, users.must_change_password
+            users.failed_login_count, users.locked_until, users.must_change_password, users.avatar_url
      FROM user_sessions
      INNER JOIN users ON users.id = user_sessions.user_id
      WHERE user_sessions.token_hash = $1
@@ -313,9 +316,10 @@ export function updateUser(client, user) {
            password_hash = $5,
            role = $6,
            status = $7,
+           avatar_url = $8,
            updated_at = NOW()
        WHERE id = $1 AND tenant_id IS NOT DISTINCT FROM $2`,
-      [user.id, user.tenantId, user.name, user.email, user.passwordHash, user.role, user.status],
+      [user.id, user.tenantId, user.name, user.email, user.passwordHash, user.role, user.status, user.avatarUrl || null],
     );
   }
 
@@ -325,8 +329,9 @@ export function updateUser(client, user) {
          email = LOWER($4),
          role = $5,
          status = $6,
+         avatar_url = $7,
          updated_at = NOW()
      WHERE id = $1 AND tenant_id IS NOT DISTINCT FROM $2`,
-    [user.id, user.tenantId, user.name, user.email, user.role, user.status],
+    [user.id, user.tenantId, user.name, user.email, user.role, user.status, user.avatarUrl || null],
   );
 }

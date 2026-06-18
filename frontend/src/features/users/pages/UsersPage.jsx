@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Copy, KeyRound, Loader2, Pencil, Plus, Trash2, UserCog, Unlock } from 'lucide-react';
-import { Alert, Badge, EmptyState, Modal, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
+import { Alert, Avatar, Badge, EmptyState, Modal, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import UserFormModal from '../components/UserFormModal';
@@ -169,7 +169,12 @@ export default function UsersPage() {
               <tbody className="divide-y divide-slate-100">
                 {users.map((user) => (
                   <tr key={user.id} className="hover:bg-slate-50">
-                    <td className="table-cell font-semibold text-slate-950">{user.name}</td>
+                    <td className="table-cell font-semibold text-slate-950">
+                      <div className="flex items-center gap-2.5">
+                        <Avatar name={user.name} imageUrl={user.avatarUrl} size={28} />
+                        {user.name}
+                      </div>
+                    </td>
                     <td className="table-cell">{user.email}</td>
                     {isSystemDeveloper ? <td className="table-cell">{user.tenantName || user.tenantId}</td> : null}
                     <td className="table-cell">

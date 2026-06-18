@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Loader2, Save } from 'lucide-react';
 import { Alert, SectionHeader } from '../../../components/ui.jsx';
+import PhotoUploadField from '../../../components/PhotoUploadField.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 
@@ -73,20 +74,13 @@ export default function OrgSettingsPage() {
           />
         </label>
 
-        <label className="block">
-          <span className="label">{t('orgSettings.logoUrl')}</span>
-          <input
-            className="input"
-            type="text"
-            value={form.logoUrl}
-            onChange={(e) => handleChange('logoUrl', e.target.value)}
-            disabled={!canEdit}
-            placeholder="https://example.com/logo.png"
-          />
-          {form.logoUrl ? (
-            <img src={form.logoUrl} alt="" className="mt-3 h-12 w-12 rounded-lg border border-slate-200 object-contain p-1" />
-          ) : null}
-        </label>
+        <PhotoUploadField
+          label={t('orgSettings.logoUrl')}
+          value={form.logoUrl}
+          onChange={(url) => handleChange('logoUrl', url)}
+          shape="square"
+          disabled={!canEdit}
+        />
 
         <label className="block">
           <span className="label">{t('orgSettings.address')}</span>

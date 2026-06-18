@@ -171,6 +171,15 @@
       editReasonRequired: 'সম্পাদনার কারণ আবশ্যক।',
       dueAdjustmentReasonLabel: 'বকেয়া সমন্বয়ের কারণ',
     },
+    photoUpload: {
+      title: 'ছবি আপলোড',
+      changePhoto: 'ছবি পরিবর্তন করুন',
+      uploading: 'আপলোড হচ্ছে...',
+      remove: 'ছবি অপসারণ করুন',
+      invalidType: 'একটি ছবি ফাইল নির্বাচন করুন।',
+      tooLarge: 'ছবিটি ৫ এমবি এর কম হতে হবে।',
+      uploadFailed: 'ছবি আপলোড করতে ব্যর্থ হয়েছে।',
+    },
     trash: {
       eyebrow: 'ট্র্যাশ',
       title: 'ট্র্যাশ',

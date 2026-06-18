@@ -41,6 +41,25 @@ export async function apiRequest(path, options = {}) {
   return data;
 }
 
+export async function uploadRequest(path, formData) {
+  const activeTenantId = getActiveTenantId();
+  const response = await fetch(`/api${path}`, {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      ...(activeTenantId ? { "X-Active-Tenant-Id": activeTenantId } : {}),
+    },
+    body: formData,
+  });
+  const data = await response.json().catch(() => null);
+  if (!response.ok) {
+    const error = new Error(data?.message || "Request failed.");
+    error.status = response.status;
+    throw error;
+  }
+  return data;
+}
+
 export async function downloadRequest(path, options = {}) {
   const activeTenantId = getActiveTenantId();
   const response = await fetch(`/api${path}`, {

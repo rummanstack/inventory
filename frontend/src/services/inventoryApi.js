@@ -23,6 +23,7 @@ import { customerDueLedgerApi } from './api/customerDueLedgerApi.js';
 import { customerPaymentsApi } from './api/customerPaymentsApi.js';
 import { salesReturnsApi } from './api/salesReturnsApi.js';
 import { systemApi } from './api/systemApi.js';
+import { uploadsApi } from './api/uploadsApi.js';
 import { usersApi } from './api/usersApi.js';
 import { financeAccountsApi } from './api/financeAccountsApi.js';
 import { financeDashboardApi } from './api/financeDashboardApi.js';
@@ -34,6 +35,7 @@ export const inventoryApi = {
   ...activityLogsApi,
   ...auditApi,
   ...systemApi,
+  ...uploadsApi,
   ...expensesApi,
   ...profitApi,
   ...dsrFinanceApi,

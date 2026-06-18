@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Save } from 'lucide-react';
 import { Alert, Modal } from '../../../components/ui.jsx';
+import PhotoUploadField from '../../../components/PhotoUploadField.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import { useFormState } from '../../../hooks/useFormState';
@@ -24,6 +25,7 @@ export default function UserFormModal({ user, onClose, onSave }) {
     role: user?.role || roleOptions[0],
     status: user?.status || 'active',
     tenantId: '',
+    avatarUrl: user?.avatarUrl || '',
   });
   const [tenants, setTenants] = useState([]);
 
@@ -57,6 +59,7 @@ export default function UserFormModal({ user, onClose, onSave }) {
       email: form.email.trim(),
       role: form.role,
       status: form.status,
+      avatarUrl: form.avatarUrl,
     };
     if (form.password.trim()) {
       payload.password = form.password.trim();
@@ -71,7 +74,8 @@ export default function UserFormModal({ user, onClose, onSave }) {
         payload.name === user.name &&
         payload.email === user.email &&
         payload.role === user.role &&
-        payload.status === user.status;
+        payload.status === user.status &&
+        payload.avatarUrl === (user.avatarUrl || '');
       if (unchanged) {
         pushToast('info', t('users.editTitle'), t('alerts.noChanges'));
         return;
@@ -92,6 +96,7 @@ export default function UserFormModal({ user, onClose, onSave }) {
     <Modal title={isEdit ? t('users.editTitle') : t('users.addTitle')} description={t('users.modalDescription')} onClose={onClose} width="max-w-xl">
       <form className="space-y-4" onSubmit={submitForm}>
         {error ? <Alert type="error">{error}</Alert> : null}
+        <PhotoUploadField label={t('photoUpload.title')} value={form.avatarUrl} onChange={(url) => updateField('avatarUrl', url)} />
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <label className="label">{t('users.name')}</label>

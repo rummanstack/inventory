@@ -126,17 +126,6 @@ export default function DsrFinancePage() {
     writeFile(wb, `dsr-advance-monthly-${activeVm.month}.xlsx`);
   }
 
-  async function handleExportDueExcel() {
-    const { utils, writeFile } = await import('xlsx');
-    const header = ['Date', 'Type', 'Debit', 'Credit', 'Balance After', 'Note', 'Created By'];
-    const data = dueEntries.map((e) => [e.createdAt, e.type, Number(e.debit || 0), Number(e.credit || 0), Number(e.balanceAfter), e.note || '', e.createdByName || '']);
-    const ws = utils.aoa_to_sheet([header, ...data]);
-    ws['!cols'] = [{ wch: 20 }, { wch: 22 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 24 }, { wch: 18 }];
-    const wb = utils.book_new();
-    utils.book_append_sheet(wb, ws, 'DSR Due Statement');
-    writeFile(wb, `dsr-due-statement.xlsx`);
-  }
-
   return (
     <div>
       <SectionHeader
@@ -215,10 +204,6 @@ export default function DsrFinancePage() {
                     >
                       <Download size={16} />
                       {t('purchaseReceive.downloadPdf')}
-                    </button>
-                    <button type="button" className="btn-secondary" onClick={handleExportDueExcel}>
-                      <FileSpreadsheet size={16} />
-                      Export as Excel
                     </button>
                     <button
                       type="button"

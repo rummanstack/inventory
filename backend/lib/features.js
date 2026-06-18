@@ -10,7 +10,6 @@ export const TENANT_FEATURES = [
   "history",
   "expenses",
   "dsr-finance",
-  "month-end-summary",
   "profit",
   "activity-logs",
   "trash",

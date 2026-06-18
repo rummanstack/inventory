@@ -1,7 +1,6 @@
 import { Router } from "express";
 import { AuthController } from "../controllers/authController.js";
 import { DsrFinanceController } from "../controllers/dsrFinanceController.js";
-import { MonthEndSummaryController } from "../controllers/monthEndSummaryController.js";
 import { ProfitController } from "../controllers/profitController.js";
 import { BackupController } from "../controllers/backupController.js";
 import { DsrController } from "../controllers/dsrController.js";
@@ -37,7 +36,6 @@ import { createActivityLogsRoutes } from "./activityLogs.routes.js";
 import { createAuditRoutes } from "./audit.routes.js";
 import { createExpensesRoutes } from "./expenses.routes.js";
 import { createDsrAdvancesRoutes } from "./dsrAdvances.routes.js";
-import { createMonthEndSummaryRoutes } from "./monthEndSummary.routes.js";
 import { createProfitReportRoutes } from "./profitReport.routes.js";
 import { createDatabaseBackupRoutes } from "./databaseBackup.routes.js";
 import { createProductsRoutes } from "./products.routes.js";
@@ -82,7 +80,6 @@ export function createApiRouter({
   userService,
   expenseService,
   dsrFinanceService,
-  monthEndSummaryService,
   profitService,
   backupService,
   stockMovementService,
@@ -122,7 +119,6 @@ export function createApiRouter({
   const userController = new UserController(userService);
   const expenseController = new ExpenseController(expenseService);
   const dsrFinanceController = new DsrFinanceController(dsrFinanceService);
-  const monthEndSummaryController = new MonthEndSummaryController(monthEndSummaryService);
   const profitController = new ProfitController(profitService);
   const backupController = new BackupController(backupService, databaseManager, auditService);
   const tenantController = new TenantController(tenantService);
@@ -174,7 +170,6 @@ export function createApiRouter({
   router.use("/audit", createAuditRoutes(auditController));
   router.use("/expenses", createExpensesRoutes(expenseController));
   router.use("/dsr-advances", createDsrAdvancesRoutes(dsrFinanceController));
-  router.use("/month-end-summary", createMonthEndSummaryRoutes(monthEndSummaryController));
   router.use("/profit-report", createProfitReportRoutes(profitController));
   router.use("/database-backup", createDatabaseBackupRoutes(backupController));
   router.use("/products", createProductsRoutes(productController));

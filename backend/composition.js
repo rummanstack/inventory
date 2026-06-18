@@ -5,7 +5,6 @@ import { initializeDatabase } from './services/bootstrapService.js';
 import { AuditService } from './services/auditService.js';
 import { AuthService } from './services/authService.js';
 import { DsrFinanceService } from './services/dsrFinanceService.js';
-import { MonthEndSummaryService } from './services/monthEndSummaryService.js';
 import { ExpenseService } from './services/expenseService.js';
 import { ProfitService } from './services/profitService.js';
 import { ProductService } from './services/productService.js';
@@ -57,7 +56,6 @@ export async function createBackendApp() {
   const userService = new UserService(databaseManager, { auditService });
   const expenseService = new ExpenseService(databaseManager, { auditService, financeAccountService });
   const dsrFinanceService = new DsrFinanceService(databaseManager, { auditService, financeAccountService });
-  const monthEndSummaryService = new MonthEndSummaryService(databaseManager);
   const profitService = new ProfitService(databaseManager);
   const backupService = new BackupService(databaseManager, { auditService });
   const stockMovementService = new StockMovementService(databaseManager);
@@ -91,7 +89,6 @@ export async function createBackendApp() {
     userService,
     expenseService,
     dsrFinanceService,
-    monthEndSummaryService,
     profitService,
     backupService,
     stockMovementService,

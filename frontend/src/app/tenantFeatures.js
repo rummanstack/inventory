@@ -11,7 +11,6 @@ export const TENANT_FEATURE_ROUTES = [
   { feature: 'history', labelKey: 'nav.history' },
   { feature: 'expenses', labelKey: 'nav.expenses' },
   { feature: 'dsr-finance', labelKey: 'nav.dsrFinance' },
-  { feature: 'month-end-summary', labelKey: 'nav.monthEndSummary' },
   { feature: 'profit', labelKey: 'nav.profit' },
   { feature: 'activity-logs', labelKey: 'nav.activityLogs' },
   { feature: 'trash', labelKey: 'nav.trash' },

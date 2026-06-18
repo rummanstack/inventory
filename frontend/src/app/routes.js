@@ -33,7 +33,6 @@ import DsrPage from '../features/dsrs/pages/DsrPage';
 import HistoryPage from '../features/history/pages/HistoryPage';
 import ExpensesPage from '../features/expenses/pages/ExpensesPage';
 import DsrFinancePage from '../features/dsr-finance/pages/DsrFinancePage';
-import MonthEndSummaryPage from '../features/month-end-summary/pages/MonthEndSummaryPage';
 import ProfitPage from '../features/profit/pages/ProfitPage';
 import MorningIssuePage from '../features/morning-issue/pages/MorningIssuePage';
 import ProductsPage from '../features/products/pages/ProductsPage';
@@ -92,7 +91,6 @@ export const APP_ROUTES = [
   { id: 'finance-accounts', path: '/finance-accounts', labelKey: 'nav.financeAccounts', icon: Landmark, component: FinanceAccountsPage, group: 'finance', permission: 'manage_finance_accounts', feature: 'finance-accounts' },
   { id: 'expenses', path: '/expenses', labelKey: 'nav.expenses', icon: CircleDollarSign, component: ExpensesPage, group: 'finance', permission: 'manage_expenses', feature: 'expenses' },
   { id: 'supplier-payments', path: '/supplier-payments', labelKey: 'nav.supplierPayments', icon: Wallet, component: SupplierPaymentsPage, group: 'suppliers', permission: 'manage_supplier_payments', feature: 'supplier-payments' },
-  { id: 'month-end-summary', path: '/month-end-summary', labelKey: 'nav.monthEndSummary', icon: BarChart3, component: MonthEndSummaryPage, group: 'reports', permission: 'manage_dsr_finance', feature: 'month-end-summary' },
   { id: 'profit', path: '/profit', labelKey: 'nav.profit', icon: TrendingUp, component: ProfitPage, group: 'reports', permission: 'manage_dsr_finance', feature: 'profit' },
   { id: 'activity-logs', path: '/activity-logs', labelKey: 'nav.activityLogs', icon: ClipboardList, component: ActivityLogsPage, group: 'reports', permission: 'view_activity_logs', feature: 'activity-logs' },
   { id: 'trash', path: '/trash', labelKey: 'nav.trash', icon: Trash2, component: TrashPage, group: 'governance', permission: 'view_state', feature: 'trash' },

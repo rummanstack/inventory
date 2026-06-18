@@ -33,6 +33,7 @@ export default function PrintableSheet({ sheet, printTarget = false, targetId })
   const totalDamaged = tableRows.reduce((sum, item) => sum + Number(item.damagedPieces || 0), 0);
   const totalSold = rows.reduce((sum, item) => sum + Number(item.soldPieces || 0), 0);
   const totalReturnValue = Number(sheet.totalReturnValue || 0) || tableRows.reduce((sum, item) => sum + Number(item.returnValue || 0), 0);
+  const saleTotal = Number(sheet.totalPayable || 0) - Number(sheet.extraReturnValue || 0);
 
   return (
     <div id={targetId} className={cx('mx-auto w-full max-w-[210mm] rounded-xl border border-slate-200 bg-white p-6 shadow-soft', printTarget && 'print-target')}>
@@ -109,7 +110,9 @@ export default function PrintableSheet({ sheet, printTarget = false, targetId })
               <td className="border border-slate-300 px-1.5 py-1 align-middle">{formatNumber(totalDamaged)} pcs</td>
               <td className="border border-slate-300 px-1.5 py-1 align-middle">{formatNumber(totalSold)} pcs</td>
               <td className="border border-slate-300 px-1.5 py-1 align-middle">Grand Total</td>
-              <td className="border border-slate-300 px-1.5 py-1 align-middle">{formatCurrency(sheet.totalPayable)}</td>
+              <td className="border border-slate-300 px-1.5 py-1 align-middle">
+                {saleTotal < 0 ? `- ${formatCurrency(Math.abs(saleTotal))}` : formatCurrency(saleTotal)}
+              </td>
               <td className="border border-slate-300 px-1.5 py-1 align-middle text-rose-700">- {formatCurrency(totalReturnValue)}</td>
             </tr>
           </tfoot>
@@ -124,7 +127,7 @@ export default function PrintableSheet({ sheet, printTarget = false, targetId })
         <span className="text-slate-300">|</span>
         <div className="text-center">
           <p className="whitespace-nowrap text-[9px] font-bold uppercase text-slate-500">Sale</p>
-          <p className="whitespace-nowrap font-bold text-slate-950">{formatCurrency((sheet.totalPayable || 0) - (sheet.extraReturnValue || 0))}</p>
+          <p className="whitespace-nowrap font-bold text-slate-950">{saleTotal < 0 ? `- ${formatCurrency(Math.abs(saleTotal))}` : formatCurrency(saleTotal)}</p>
         </div>
         <span className="text-slate-300">|</span>
         <div className="text-center">

@@ -1344,7 +1344,6 @@ const en = {
       invalidReturns: 'Returned quantity is greater than issued quantity.',
       returnHint: 'Returned stock is added back to inventory after completion.',
       extraReturnsTitle: 'Extra Returns',
-      extraReturnsDescription: 'Add products the DSR is returning even though they were not issued today. These rows update stock and reduce receivable by wholesale price.',
       addExtraReturn: 'Add Extra Return',
       extraReturnProduct: 'Returned Product',
       extraReturnTotal: 'Total extra return: {pieces} pcs',

@@ -132,6 +132,13 @@ export function findDsrById(client, dsrId, tenantId) {
   return client.query("SELECT * FROM dsrs WHERE id = $1 AND deleted_at IS NULL LIMIT 1", [dsrId]);
 }
 
+export function findDsrForUpdate(client, dsrId, tenantId) {
+  return client.query(
+    "SELECT * FROM dsrs WHERE id = $1 AND tenant_id = $2 AND deleted_at IS NULL FOR UPDATE LIMIT 1",
+    [dsrId, tenantId],
+  );
+}
+
 export function syncDsrHistory(client, dsr) {
   return Promise.all([
     client.query(

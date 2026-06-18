@@ -13,7 +13,7 @@ import {
   permanentlyDeleteDsr,
   restoreDsr,
   softDeleteDsr,
-  findDsrById,
+  findDsrForUpdate,
   insertDsr,
   listAllActiveDsrsLite,
   listDsrsPage,
@@ -61,7 +61,7 @@ export class DsrService {
       let result;
 
       if (input.id) {
-        const existingResult = await findDsrById(client, dsr.id, actor.tenantId);
+        const existingResult = await findDsrForUpdate(client, dsr.id, actor.tenantId);
         assert(existingResult.rowCount > 0, "DSR not found.", 404);
         const existingOpeningDue = Number(existingResult.rows[0].opening_due || 0);
 

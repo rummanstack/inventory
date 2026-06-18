@@ -6,7 +6,7 @@ import { cleanInteger, cleanMoney, normalizeSettlementBase, finalizeSettlementAm
 import { DSR_DUE_LEDGER_TYPES } from "../lib/dsrDueLedger.js";
 import { SETTLEMENT_ACTIONS } from "../lib/auditActions.js";
 import { getLatestDueLedgerEntry, getFirstDueLedgerEntryForReference } from "../repositories/dsrDueLedgerRepository.js";
-import { findDsrById } from "../repositories/dsrRepository.js";
+import { findDsrForUpdate } from "../repositories/dsrRepository.js";
 import { findIssueByDateAndDsr } from "../repositories/issueRepository.js";
 import {
   countSettlements,
@@ -364,6 +364,9 @@ export class SettlementService {
       businessDate: trustedBase.date,
     });
 
+    const dsrLock = await findDsrForUpdate(client, trustedBase.dsrId, tenantId);
+    assert(dsrLock.rowCount > 0, "Select a valid DSR.");
+
     const latestEntry = await getLatestDueLedgerEntry(client, trustedBase.dsrId, tenantId);
     let latestBalance;
     if (latestEntry) {
@@ -373,9 +376,7 @@ export class SettlementService {
       if (lastSettlementResult.rowCount > 0) {
         latestBalance = Number(lastSettlementResult.rows[0].due_amount || 0);
       } else {
-        const dsrResult = await findDsrById(client, trustedBase.dsrId, tenantId);
-        assert(dsrResult.rowCount > 0, "Select a valid DSR.");
-        latestBalance = Number(dsrResult.rows[0].opening_due || 0);
+        latestBalance = Number(dsrLock.rows[0].opening_due || 0);
       }
     }
 
@@ -463,6 +464,9 @@ export class SettlementService {
       Number(previousSettlement.extra_return_value || 0);
     const oldCollection = Number(previousSettlement.amount_paid || 0);
     const oldNet = oldSaleDue - oldCollection;
+
+    const dsrLock = await findDsrForUpdate(client, base.dsrId, tenantId);
+    assert(dsrLock.rowCount > 0, "Select a valid DSR.");
 
     const previousDueForNew = await getSettlementPreviousDueBaseline(client, previousSettlement, tenantId);
     const latestEntry = await getLatestDueLedgerEntry(client, trustedBase.dsrId, tenantId);

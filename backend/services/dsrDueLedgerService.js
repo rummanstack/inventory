@@ -4,7 +4,7 @@ import { cleanMoney } from "../lib/normalizers.js";
 import { normalizeIsoDate } from "../lib/dateRanges.js";
 import { parsePagination, buildPageResult } from "../lib/pagination.js";
 import { DSR_DUE_LEDGER_TYPES } from "../lib/dsrDueLedger.js";
-import { findDsrById } from "../repositories/dsrRepository.js";
+import { findDsrForUpdate } from "../repositories/dsrRepository.js";
 import {
   countDueLedgerEntries,
   listDueLedgerPage,
@@ -160,7 +160,7 @@ export class DsrDueLedgerService {
     assert(amount > 0, "Amount must be greater than zero.");
 
     return this.databaseManager.withTransaction(async (client) => {
-      const dsrResult = await findDsrById(client, dsrId, actor.tenantId);
+      const dsrResult = await findDsrForUpdate(client, dsrId, actor.tenantId);
       assert(dsrResult.rowCount > 0, "DSR not found.", 404);
       const dsr = dsrResult.rows[0];
 

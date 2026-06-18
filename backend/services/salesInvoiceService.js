@@ -6,7 +6,7 @@ import { STOCK_MOVEMENT_TYPES } from "../lib/stockMovements.js";
 import { CUSTOMER_DUE_LEDGER_TYPES } from "../lib/customerDueLedger.js";
 import { SALES_INVOICE_ACTIONS } from "../lib/auditActions.js";
 import { nextInvoiceNumber } from "../lib/salesNumber.js";
-import { findRetailCustomerById, updateRetailCustomerCurrentDue } from "../repositories/retailCustomerRepository.js";
+import { findRetailCustomerForUpdate, updateRetailCustomerCurrentDue } from "../repositories/retailCustomerRepository.js";
 import { getLatestCustomerDueLedgerEntry } from "../repositories/customerDueLedgerRepository.js";
 import {
   countSalesInvoices,
@@ -209,7 +209,7 @@ export class SalesInvoiceService {
 
     let customer = null;
     if (base.customerId) {
-      const customerResult = await findRetailCustomerById(client, base.customerId, actor.tenantId);
+      const customerResult = await findRetailCustomerForUpdate(client, base.customerId, actor.tenantId);
       assert(customerResult.rowCount > 0, "Customer not found.", 404);
       customer = customerResult.rows[0];
 
@@ -292,6 +292,7 @@ export class SalesInvoiceService {
 
       const dueAmount = Number(invoice.due_amount || 0);
       if (invoice.customer_id && dueAmount > 0) {
+        await findRetailCustomerForUpdate(client, invoice.customer_id, actor.tenantId);
         const latestEntry = await getLatestCustomerDueLedgerEntry(client, invoice.customer_id, actor.tenantId);
         const currentBalance = latestEntry ? latestEntry.balanceAfter : 0;
         const balanceAfter = currentBalance - dueAmount;
@@ -382,6 +383,7 @@ export class SalesInvoiceService {
 
       const dueAmount = Number(invoice.due_amount || 0);
       if (invoice.customer_id && dueAmount > 0) {
+        await findRetailCustomerForUpdate(client, invoice.customer_id, actor.tenantId);
         const latestEntry = await getLatestCustomerDueLedgerEntry(client, invoice.customer_id, actor.tenantId);
         const currentBalance = latestEntry ? latestEntry.balanceAfter : 0;
         const balanceAfter = currentBalance + dueAmount;

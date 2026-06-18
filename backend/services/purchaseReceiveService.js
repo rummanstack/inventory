@@ -7,7 +7,7 @@ import { STOCK_MOVEMENT_TYPES } from "../lib/stockMovements.js";
 import { SUPPLIER_DUE_LEDGER_TYPES } from "../lib/supplierDueLedger.js";
 import { PURCHASE_ACTIONS } from "../lib/auditActions.js";
 import { nextPurchaseNumber } from "../lib/purchaseNumber.js";
-import { findSupplierById, updateSupplierCurrentDue } from "../repositories/supplierRepository.js";
+import { findSupplierForUpdate, updateSupplierCurrentDue } from "../repositories/supplierRepository.js";
 import {
   getLatestSupplierDueLedgerEntry,
   getFirstSupplierDueLedgerEntryForReference,
@@ -209,7 +209,7 @@ export class PurchaseReceiveService {
   }
 
   async createPurchaseReceiptRecord(client, base, actor) {
-    const supplierResult = await findSupplierById(client, base.supplierId, actor.tenantId);
+    const supplierResult = await findSupplierForUpdate(client, base.supplierId, actor.tenantId);
     assert(supplierResult.rowCount > 0, "Supplier not found.", 404);
     const supplier = supplierResult.rows[0];
 
@@ -319,7 +319,7 @@ export class PurchaseReceiveService {
       "Supplier cannot be changed after the purchase is recorded.",
     );
 
-    const supplierResult = await findSupplierById(client, base.supplierId, actor.tenantId);
+    const supplierResult = await findSupplierForUpdate(client, base.supplierId, actor.tenantId);
     assert(supplierResult.rowCount > 0, "Supplier not found.", 404);
     const supplier = supplierResult.rows[0];
 
@@ -487,6 +487,8 @@ export class PurchaseReceiveService {
       }));
       const purchaseDate = String(purchase.purchase_date).slice(0, 10);
 
+      await findSupplierForUpdate(client, purchase.supplier_id, actor.tenantId);
+
       await applyPurchaseInventoryDelta(client, purchaseItems, [], actor.tenantId, {
         referenceId: purchaseId,
         createdById: actor.id,
@@ -582,6 +584,8 @@ export class PurchaseReceiveService {
         lineTotal: Number(row.line_total || 0),
       }));
       const purchaseDate = String(purchase.purchase_date).slice(0, 10);
+
+      await findSupplierForUpdate(client, purchase.supplier_id, actor.tenantId);
 
       await applyPurchaseInventoryDelta(client, [], purchaseItems, actor.tenantId, {
         referenceId: purchaseId,

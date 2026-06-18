@@ -5,7 +5,7 @@ import { parsePagination, buildPageResult } from "../lib/pagination.js";
 import { normalizeSupplierPayment } from "../lib/normalizers.js";
 import { SUPPLIER_DUE_LEDGER_TYPES } from "../lib/supplierDueLedger.js";
 import { SUPPLIER_PAYMENT_ACTIONS } from "../lib/auditActions.js";
-import { findSupplierById, updateSupplierCurrentDue } from "../repositories/supplierRepository.js";
+import { findSupplierForUpdate, updateSupplierCurrentDue } from "../repositories/supplierRepository.js";
 import { getLatestSupplierDueLedgerEntry } from "../repositories/supplierDueLedgerRepository.js";
 import {
   countSupplierPayments,
@@ -87,7 +87,7 @@ export class SupplierPaymentService {
   }
 
   async createSupplierPaymentRecord(client, base, actor) {
-    const supplierResult = await findSupplierById(client, base.supplierId, actor.tenantId);
+    const supplierResult = await findSupplierForUpdate(client, base.supplierId, actor.tenantId);
     assert(supplierResult.rowCount > 0, "Supplier not found.", 404);
     const supplier = supplierResult.rows[0];
 
@@ -152,7 +152,7 @@ export class SupplierPaymentService {
       "Supplier cannot be changed after the payment is recorded.",
     );
 
-    const supplierResult = await findSupplierById(client, base.supplierId, actor.tenantId);
+    const supplierResult = await findSupplierForUpdate(client, base.supplierId, actor.tenantId);
     assert(supplierResult.rowCount > 0, "Supplier not found.", 404);
     const supplier = supplierResult.rows[0];
 
@@ -242,6 +242,7 @@ export class SupplierPaymentService {
         deleteReason: reason,
       });
 
+      await findSupplierForUpdate(client, payment.supplier_id, actor.tenantId);
       const latestEntry = await getLatestSupplierDueLedgerEntry(client, payment.supplier_id, actor.tenantId);
       const currentBalance = latestEntry ? latestEntry.balanceAfter : 0;
       const balanceAfter = currentBalance + amount;
@@ -297,6 +298,7 @@ export class SupplierPaymentService {
       const row = result.rows[0];
       const amount = Number(row.amount || 0);
 
+      await findSupplierForUpdate(client, row.supplier_id, actor.tenantId);
       const latestEntry = await getLatestSupplierDueLedgerEntry(client, row.supplier_id, actor.tenantId);
       const currentBalance = latestEntry ? latestEntry.balanceAfter : 0;
       const balanceAfter = currentBalance - amount;

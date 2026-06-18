@@ -137,6 +137,13 @@ export function findRetailCustomerById(client, id, tenantId) {
   );
 }
 
+export function findRetailCustomerForUpdate(client, id, tenantId) {
+  return client.query(
+    "SELECT * FROM retail_customers WHERE id = $1 AND tenant_id = $2 AND deleted_at IS NULL FOR UPDATE LIMIT 1",
+    [id, tenantId],
+  );
+}
+
 export function updateRetailCustomerCurrentDue(client, id, tenantId, currentDue) {
   return client.query(
     "UPDATE retail_customers SET current_due = $3, updated_at = NOW() WHERE id = $1 AND tenant_id = $2",

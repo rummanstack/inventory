@@ -6,7 +6,7 @@ import { STOCK_MOVEMENT_TYPES } from "../lib/stockMovements.js";
 import { CUSTOMER_DUE_LEDGER_TYPES } from "../lib/customerDueLedger.js";
 import { SALES_RETURN_ACTIONS } from "../lib/auditActions.js";
 import { nextReturnNumber } from "../lib/salesNumber.js";
-import { findRetailCustomerById, updateRetailCustomerCurrentDue } from "../repositories/retailCustomerRepository.js";
+import { findRetailCustomerForUpdate, updateRetailCustomerCurrentDue } from "../repositories/retailCustomerRepository.js";
 import { getLatestCustomerDueLedgerEntry } from "../repositories/customerDueLedgerRepository.js";
 import { findSalesInvoiceById, mapSalesInvoice } from "../repositories/salesInvoiceRepository.js";
 import {
@@ -181,7 +181,7 @@ export class SalesReturnService {
 
       let customer = null;
       if (base.customerId) {
-        const customerResult = await findRetailCustomerById(client, base.customerId, actor.tenantId);
+        const customerResult = await findRetailCustomerForUpdate(client, base.customerId, actor.tenantId);
         assert(customerResult.rowCount > 0, "Customer not found.", 404);
         customer = customerResult.rows[0];
 

@@ -5,7 +5,7 @@ import { parsePagination, buildPageResult } from "../lib/pagination.js";
 import { normalizeCustomerPayment } from "../lib/normalizers.js";
 import { CUSTOMER_DUE_LEDGER_TYPES } from "../lib/customerDueLedger.js";
 import { CUSTOMER_PAYMENT_ACTIONS } from "../lib/auditActions.js";
-import { findRetailCustomerById, updateRetailCustomerCurrentDue } from "../repositories/retailCustomerRepository.js";
+import { findRetailCustomerForUpdate, updateRetailCustomerCurrentDue } from "../repositories/retailCustomerRepository.js";
 import { getLatestCustomerDueLedgerEntry } from "../repositories/customerDueLedgerRepository.js";
 import {
   countCustomerPayments,
@@ -87,7 +87,7 @@ export class CustomerPaymentService {
   }
 
   async createCustomerPaymentRecord(client, base, actor) {
-    const customerResult = await findRetailCustomerById(client, base.customerId, actor.tenantId);
+    const customerResult = await findRetailCustomerForUpdate(client, base.customerId, actor.tenantId);
     assert(customerResult.rowCount > 0, "Customer not found.", 404);
     const customer = customerResult.rows[0];
 
@@ -151,7 +151,7 @@ export class CustomerPaymentService {
       "Customer cannot be changed after the payment is recorded.",
     );
 
-    const customerResult = await findRetailCustomerById(client, base.customerId, actor.tenantId);
+    const customerResult = await findRetailCustomerForUpdate(client, base.customerId, actor.tenantId);
     assert(customerResult.rowCount > 0, "Customer not found.", 404);
     const customer = customerResult.rows[0];
 
@@ -241,6 +241,7 @@ export class CustomerPaymentService {
         deleteReason: reason,
       });
 
+      await findRetailCustomerForUpdate(client, payment.customer_id, actor.tenantId);
       const latestEntry = await getLatestCustomerDueLedgerEntry(client, payment.customer_id, actor.tenantId);
       const currentBalance = latestEntry ? latestEntry.balanceAfter : 0;
       const balanceAfter = currentBalance + amount;
@@ -296,6 +297,7 @@ export class CustomerPaymentService {
       const row = result.rows[0];
       const amount = Number(row.amount || 0);
 
+      await findRetailCustomerForUpdate(client, row.customer_id, actor.tenantId);
       const latestEntry = await getLatestCustomerDueLedgerEntry(client, row.customer_id, actor.tenantId);
       const currentBalance = latestEntry ? latestEntry.balanceAfter : 0;
       const balanceAfter = currentBalance - amount;

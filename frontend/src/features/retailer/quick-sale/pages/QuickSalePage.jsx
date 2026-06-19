@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Play, Printer, Save, Square } from 'lucide-react';
+import { Loader2, Play, Printer, Save, Square } from 'lucide-react';
 import { Alert, Modal, SectionHeader } from '../../../../components/ui.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../../services/inventoryApi.js';
@@ -49,13 +49,26 @@ function mergeCashSessionSnapshots(primary, secondary) {
     return primary;
   }
 
+  const openingCash = Number(secondary.openingCash ?? primary.openingCash ?? 0);
+  const cashSalesAmount = Number(primary.cashSalesAmount ?? secondary.cashSalesAmount ?? 0);
+  const cashSalesCount = Number(primary.cashSalesCount ?? secondary.cashSalesCount ?? 0);
+  const expectedCash = primary.closedAt || secondary.closedAt
+    ? Number(primary.expectedCash ?? secondary.expectedCash ?? openingCash + cashSalesAmount)
+    : openingCash + cashSalesAmount;
+
   return {
     ...secondary,
     ...primary,
-    openingCash: primary.openingCash ?? secondary.openingCash,
-    startedAt: primary.startedAt ?? secondary.startedAt,
-    createdAt: primary.createdAt ?? secondary.createdAt,
-    updatedAt: primary.updatedAt ?? secondary.updatedAt,
+    openingCash,
+    cashSalesAmount,
+    cashSalesCount,
+    expectedCash,
+    variance: primary.closedAt || secondary.closedAt
+      ? Number(primary.variance ?? secondary.variance ?? 0)
+      : 0,
+    startedAt: secondary.startedAt ?? primary.startedAt,
+    createdAt: secondary.createdAt ?? primary.createdAt,
+    updatedAt: secondary.updatedAt ?? primary.updatedAt,
   };
 }
 
@@ -65,6 +78,7 @@ function CashSessionAmountModal({
   description,
   label,
   confirmLabel,
+  loading = false,
   initialValue,
   onClose,
   onConfirm,
@@ -98,10 +112,11 @@ function CashSessionAmountModal({
           />
         </label>
         <div className="flex items-center justify-end gap-2">
-          <button type="button" className="btn-secondary" onClick={onClose}>
+          <button type="button" className="btn-secondary" onClick={onClose} disabled={loading}>
             {t('common.cancel')}
           </button>
-          <button type="button" className="btn-primary" onClick={() => onConfirm(value)}>
+          <button type="button" className="btn-primary" onClick={() => onConfirm(value)} disabled={loading}>
+            {loading ? <Loader2 size={16} className="animate-spin" /> : null}
             {confirmLabel}
           </button>
         </div>
@@ -354,8 +369,14 @@ export default function QuickSalePage() {
             }}
             disabled={savingSession}
           >
-            {session ? <Square size={18} /> : <Play size={18} />}
-            {session ? t('retailer.cashSession.stop') : t('retailer.cashSession.start')}
+            {savingSession ? <Loader2 size={18} className="animate-spin" /> : session ? <Square size={18} /> : <Play size={18} />}
+            {savingSession
+              ? session
+                ? t('retailer.cashSession.stopping')
+                : t('retailer.cashSession.starting')
+              : session
+                ? t('retailer.cashSession.stop')
+                : t('retailer.cashSession.start')}
           </button>
         </div>
 
@@ -418,7 +439,7 @@ export default function QuickSalePage() {
       </div>
 
       {lastInvoice ? (
-        <Alert type="success" className="mt-4">
+        <Alert type="success" className="mt-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <span>{t('retailer.quickSale.lastInvoice', { number: lastInvoice.invoiceNumber })}</span>
             <button type="button" className="btn-secondary" onClick={handlePrintReceipt}>
@@ -446,6 +467,7 @@ export default function QuickSalePage() {
         description={t('retailer.cashSession.startDescription')}
         label={t('retailer.cashSession.openingCash')}
         confirmLabel={t('retailer.cashSession.start')}
+        loading={savingSession}
         initialValue={startCashInput}
         onClose={() => setShowStartModal(false)}
         onConfirm={handleStartSession}
@@ -457,6 +479,7 @@ export default function QuickSalePage() {
         description={t('retailer.cashSession.stopDescription')}
         label={t('retailer.cashSession.countedCash')}
         confirmLabel={t('retailer.cashSession.stop')}
+        loading={savingSession}
         initialValue={stopCashInput}
         onClose={() => setShowStopModal(false)}
         onConfirm={handleStopSession}

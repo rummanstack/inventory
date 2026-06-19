@@ -997,6 +997,8 @@ const en = {
         description: 'Start a session, enter opening cash, and close it later to compare expected cash with the counted cash.',
         start: 'Start Session',
         stop: 'Stop Session',
+        starting: 'Starting...',
+        stopping: 'Stopping...',
         startDescription: 'Enter the cash already in the drawer when the session begins.',
         stopDescription: 'Enter the physical cash count when the session ends.',
         openingCash: 'Opening Cash',

@@ -1,10 +1,63 @@
-import { useState } from 'react';
-import { Printer, Save } from 'lucide-react';
-import { Alert, SectionHeader } from '../../../../components/ui.jsx';
+import { useEffect, useState } from 'react';
+import { Play, Printer, Save, Square } from 'lucide-react';
+import { Alert, Modal, SectionHeader } from '../../../../components/ui.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
+import { inventoryApi } from '../../../../services/inventoryApi.js';
 import { printRetailReceipt } from '../../../../services/receiptService.js';
+import { formatCurrency, formatDateTime, formatNumber } from '../../../../utils/calculations.js';
 import { useSalesInvoiceFormViewModel } from '../../sales-invoices/viewmodels/useSalesInvoiceFormViewModel';
 import SalesInvoiceFormFields from '../../sales-invoices/components/SalesInvoiceFormFields';
+
+function CashSessionAmountModal({
+  open,
+  title,
+  description,
+  label,
+  confirmLabel,
+  initialValue,
+  onClose,
+  onConfirm,
+}) {
+  const { t } = useInventoryApp();
+  const [value, setValue] = useState(initialValue);
+
+  useEffect(() => {
+    if (open) {
+      setValue(initialValue);
+    }
+  }, [open, initialValue]);
+
+  if (!open) {
+    return null;
+  }
+
+  return (
+    <Modal title={title} description={description} onClose={onClose} width="max-w-lg">
+      <div className="space-y-4">
+        <label className="block">
+          <span className="label">{label}</span>
+          <input
+            className="input"
+            type="number"
+            min="0"
+            step="0.01"
+            value={value}
+            onChange={(event) => setValue(event.target.value)}
+            autoFocus
+          />
+        </label>
+        <div className="flex items-center justify-end gap-2">
+          <button type="button" className="btn-secondary" onClick={onClose}>
+            {t('common.cancel')}
+          </button>
+          <button type="button" className="btn-primary" onClick={() => onConfirm(value)}>
+            {confirmLabel}
+          </button>
+        </div>
+      </div>
+    </Modal>
+  );
+}
 
 function QuickSaleForm({ onSaved }) {
   const { t, productDirectory, retailCustomerDirectory, saveSalesInvoice, saveRetailCustomer, tenant, pushToast } = useInventoryApp();
@@ -71,7 +124,7 @@ function QuickSaleForm({ onSaved }) {
       pushToast('error', t('retailer.shared.printReceiptFailed'), t('alerts.requestFailed'));
     }
 
-    onSaved(result.salesInvoice);
+    await onSaved?.(result.salesInvoice);
   }
 
   return (
@@ -92,6 +145,32 @@ export default function QuickSalePage() {
   const { t, tenant, pushToast } = useInventoryApp();
   const [formKey, setFormKey] = useState(0);
   const [lastInvoice, setLastInvoice] = useState(null);
+  const [session, setSession] = useState(null);
+  const [lastClosedSession, setLastClosedSession] = useState(null);
+  const [sessionLoading, setSessionLoading] = useState(true);
+  const [sessionError, setSessionError] = useState('');
+  const [savingSession, setSavingSession] = useState(false);
+  const [showStartModal, setShowStartModal] = useState(false);
+  const [showStopModal, setShowStopModal] = useState(false);
+  const [startCashInput, setStartCashInput] = useState('0');
+  const [stopCashInput, setStopCashInput] = useState('0');
+
+  async function loadSession() {
+    try {
+      setSessionLoading(true);
+      setSessionError('');
+      const result = await inventoryApi.getCurrentRetailCashSession();
+      setSession(result.session || null);
+    } catch (error) {
+      setSessionError(error?.message || t('alerts.requestFailed'));
+    } finally {
+      setSessionLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    loadSession();
+  }, []);
 
   async function handlePrintReceipt() {
     if (!lastInvoice) {
@@ -111,6 +190,61 @@ export default function QuickSalePage() {
     }
   }
 
+  async function handleStartSession(value) {
+    const openingCash = Math.max(0, Number(value || 0));
+    if (!Number.isFinite(openingCash)) {
+      setSessionError(t('retailer.cashSession.openingCashInvalid'));
+      return;
+    }
+
+    try {
+      setSessionError('');
+      setSavingSession(true);
+      const result = await inventoryApi.startRetailCashSession({ openingCash });
+      setSession(result.session || null);
+      setLastClosedSession(null);
+      setShowStartModal(false);
+      pushToast('success', t('retailer.cashSession.title'), t('retailer.cashSession.startSuccess'));
+    } catch (error) {
+      const message = error?.message || t('retailer.cashSession.startFailed');
+      setSessionError(message);
+      pushToast('error', t('retailer.cashSession.title'), message);
+    } finally {
+      setSavingSession(false);
+    }
+  }
+
+  async function handleStopSession(value) {
+    if (!session?.id) {
+      return;
+    }
+
+    const countedCash = Math.max(0, Number(value || 0));
+    if (!Number.isFinite(countedCash)) {
+      setSessionError(t('retailer.cashSession.countedCashInvalid'));
+      return;
+    }
+
+    try {
+      setSessionError('');
+      setSavingSession(true);
+      const result = await inventoryApi.stopRetailCashSession(session.id, { countedCash });
+      setLastClosedSession(result.session || null);
+      setSession(null);
+      setShowStopModal(false);
+      pushToast('success', t('retailer.cashSession.title'), t('retailer.cashSession.stopSuccess'));
+    } catch (error) {
+      const message = error?.message || t('retailer.cashSession.stopFailed');
+      setSessionError(message);
+      pushToast('error', t('retailer.cashSession.title'), message);
+    } finally {
+      setSavingSession(false);
+    }
+  }
+
+  const activeCashSales = session?.cashSalesAmount || 0;
+  const expectedCash = session?.expectedCash || 0;
+
   return (
     <div>
       <SectionHeader
@@ -118,8 +252,95 @@ export default function QuickSalePage() {
         description={t('retailer.quickSale.description')}
       />
 
+      <div className="surface mt-4 p-5">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="max-w-2xl">
+            <p className="text-[11px] font-black uppercase tracking-[0.24em] text-slate-400">
+              {t('retailer.cashSession.eyebrow')}
+            </p>
+            <h2 className="mt-1 text-xl font-black text-slate-950">
+              {t('retailer.cashSession.title')}
+            </h2>
+            <p className="mt-2 text-sm font-medium text-slate-500">
+              {t('retailer.cashSession.description')}
+            </p>
+          </div>
+          <button
+            type="button"
+            className="btn-primary"
+            onClick={() => {
+              if (session) {
+                setStopCashInput(String(session.expectedCash || 0));
+                setShowStopModal(true);
+              } else {
+                setStartCashInput('0');
+                setShowStartModal(true);
+              }
+            }}
+            disabled={savingSession}
+          >
+            {session ? <Square size={18} /> : <Play size={18} />}
+            {session ? t('retailer.cashSession.stop') : t('retailer.cashSession.start')}
+          </button>
+        </div>
+
+        {sessionError ? <Alert type="error" className="mt-4">{sessionError}</Alert> : null}
+
+        {sessionLoading ? (
+          <p className="mt-4 text-sm font-medium text-slate-500">{t('common.loading')}</p>
+        ) : null}
+
+        {session ? (
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">{t('retailer.cashSession.openedAt')}</p>
+              <p className="mt-2 text-sm font-bold text-slate-950">{formatDateTime(session.startedAt)}</p>
+            </div>
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">{t('retailer.cashSession.openingCash')}</p>
+              <p className="mt-2 text-sm font-bold text-slate-950">{formatCurrency(session.openingCash)}</p>
+            </div>
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">{t('retailer.cashSession.cashSales')}</p>
+              <p className="mt-2 text-sm font-bold text-slate-950">
+                {formatCurrency(activeCashSales)} · {formatNumber(session.cashSalesCount)}
+              </p>
+            </div>
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">{t('retailer.cashSession.expectedCash')}</p>
+              <p className="mt-2 text-sm font-bold text-slate-950">{formatCurrency(expectedCash)}</p>
+            </div>
+          </div>
+        ) : (
+          <div className="mt-4 rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-4 text-sm font-medium text-slate-500">
+            {t('retailer.cashSession.noSession')}
+          </div>
+        )}
+
+        {lastClosedSession ? (
+          <Alert type="success" className="mt-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="font-bold text-slate-950">{t('retailer.cashSession.closed')}</p>
+                <p className="mt-1 text-sm text-slate-600">
+                  {t('retailer.cashSession.closedAt')}: {formatDateTime(lastClosedSession.closedAt)}
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="text-sm font-semibold text-slate-600">
+                  {t('retailer.cashSession.variance')}: {formatCurrency(lastClosedSession.variance)}
+                </p>
+                <p className="mt-1 text-xs font-bold text-slate-500">
+                  {t('retailer.cashSession.expectedCash')}: {formatCurrency(lastClosedSession.expectedCash)} · {t('retailer.cashSession.countedCash')}: {formatCurrency(lastClosedSession.countedCash)}
+                </p>
+              </div>
+            </div>
+          </Alert>
+        ) : null}
+      </div>
+
       {lastInvoice ? (
-        <Alert type="success">
+        <Alert type="success" className="mt-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <span>{t('retailer.quickSale.lastInvoice', { number: lastInvoice.invoiceNumber })}</span>
             <button type="button" className="btn-secondary" onClick={handlePrintReceipt}>
@@ -133,12 +354,35 @@ export default function QuickSalePage() {
       <div className="surface mt-4 p-5">
         <QuickSaleForm
           key={formKey}
-          onSaved={(invoice) => {
+          onSaved={async (invoice) => {
             setLastInvoice(invoice);
             setFormKey((value) => value + 1);
+            await loadSession();
           }}
         />
       </div>
+
+      <CashSessionAmountModal
+        open={showStartModal}
+        title={t('retailer.cashSession.start')}
+        description={t('retailer.cashSession.startDescription')}
+        label={t('retailer.cashSession.openingCash')}
+        confirmLabel={t('retailer.cashSession.start')}
+        initialValue={startCashInput}
+        onClose={() => setShowStartModal(false)}
+        onConfirm={handleStartSession}
+      />
+
+      <CashSessionAmountModal
+        open={showStopModal}
+        title={t('retailer.cashSession.stop')}
+        description={t('retailer.cashSession.stopDescription')}
+        label={t('retailer.cashSession.countedCash')}
+        confirmLabel={t('retailer.cashSession.stop')}
+        initialValue={stopCashInput}
+        onClose={() => setShowStopModal(false)}
+        onConfirm={handleStopSession}
+      />
     </div>
   );
 }

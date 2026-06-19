@@ -34,6 +34,7 @@ import { SalesReturnService } from './services/salesReturnService.js';
 import { ContactMessageService } from './services/contactMessageService.js';
 import { FinanceAccountService } from './services/financeAccountService.js';
 import { FinanceDashboardService } from './services/financeDashboardService.js';
+import { RetailCashSessionService } from './services/retailCashSessionService.js';
 import { createApp } from './app.js';
 
 dotenv.config({ path: `${backendRoot}/.env` });
@@ -79,6 +80,7 @@ export async function createBackendApp() {
   const salesReturnService = new SalesReturnService(databaseManager, { auditService });
   const contactMessageService = new ContactMessageService(databaseManager);
   const financeDashboardService = new FinanceDashboardService(databaseManager, { financeAccountService, profitService });
+  const retailCashSessionService = new RetailCashSessionService(databaseManager, { auditService });
 
   const app = createApp({
     authService,
@@ -115,6 +117,7 @@ export async function createBackendApp() {
     financeAccountService,
     financeDashboardService,
     retailCustomerService,
+    retailCashSessionService,
   });
 
   return { app, databaseManager, env };

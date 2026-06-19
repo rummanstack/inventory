@@ -439,7 +439,7 @@ export default function QuickSalePage() {
       </div>
 
       {lastInvoice ? (
-        <Alert type="success" className="mt-6">
+        <Alert type="success" className="mt-8 md:mt-12">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <span>{t('retailer.quickSale.lastInvoice', { number: lastInvoice.invoiceNumber })}</span>
             <button type="button" className="btn-secondary" onClick={handlePrintReceipt}>
@@ -450,7 +450,7 @@ export default function QuickSalePage() {
         </Alert>
       ) : null}
 
-      <div className="surface mt-4 p-5">
+      <div className="surface mt-4 mb-8 p-5 md:mb-12">
         <QuickSaleForm
           key={formKey}
           onSaved={async (invoice) => {

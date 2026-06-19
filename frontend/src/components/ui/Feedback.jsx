@@ -18,7 +18,7 @@ export function EmptyState({ title = 'No data found', description = 'Add records
   );
 }
 
-export function Alert({ type = 'info', children }) {
+export function Alert({ type = 'info', className = '', children }) {
   const tones = {
     info: 'border-brand-soft bg-brand-soft text-brand-strong',
     success: 'border-success-line bg-success-soft text-success-strong',
@@ -26,7 +26,17 @@ export function Alert({ type = 'info', children }) {
     error: 'border-danger-line bg-danger-soft text-danger-strong',
   };
 
-  return <div className={cx('rounded-2xl border px-4 py-3 text-sm font-medium shadow-[0_10px_22px_rgba(15,23,42,0.04)]', tones[type] || tones.info)}>{children}</div>;
+  return (
+    <div
+      className={cx(
+        'rounded-2xl border px-4 py-3 text-sm font-medium shadow-[0_10px_22px_rgba(15,23,42,0.04)]',
+        tones[type] || tones.info,
+        className,
+      )}
+    >
+      {children}
+    </div>
+  );
 }
 
 export function LoadingState({ title, description, compact = false }) {

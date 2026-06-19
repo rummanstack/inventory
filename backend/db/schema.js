@@ -286,7 +286,6 @@ export async function createSchema(pool) {
     ALTER TABLE products ADD COLUMN IF NOT EXISTS damaged_pieces INTEGER NOT NULL DEFAULT 0;
     ALTER TABLE products ADD COLUMN IF NOT EXISTS tax_rate NUMERIC NOT NULL DEFAULT 0;
     ALTER TABLE products ADD COLUMN IF NOT EXISTS refundable BOOLEAN NOT NULL DEFAULT TRUE;
-
     ALTER TABLE stock_movements ADD COLUMN IF NOT EXISTS tenant_id TEXT REFERENCES tenants(id);
     ALTER TABLE stock_movements ADD COLUMN IF NOT EXISTS product_id TEXT NOT NULL DEFAULT '';
     ALTER TABLE stock_movements ADD COLUMN IF NOT EXISTS type TEXT NOT NULL DEFAULT 'MANUAL_ADJUSTMENT';
@@ -768,6 +767,31 @@ export async function createSchema(pool) {
     );
     CREATE INDEX IF NOT EXISTS idx_retail_customers_tenant_id ON retail_customers(tenant_id);
     CREATE INDEX IF NOT EXISTS idx_retail_customers_deleted_at ON retail_customers(tenant_id, deleted_at);
+
+    CREATE TABLE IF NOT EXISTS retail_promotions (
+      id             TEXT PRIMARY KEY,
+      tenant_id      TEXT NOT NULL REFERENCES tenants(id),
+      name           TEXT NOT NULL,
+      description    TEXT NOT NULL DEFAULT '',
+      active         BOOLEAN NOT NULL DEFAULT TRUE,
+      level          TEXT NOT NULL DEFAULT 'LINE',
+      target_type    TEXT NOT NULL DEFAULT 'PRODUCT',
+      target_id      TEXT,
+      sale_type      TEXT NOT NULL DEFAULT 'ALL',
+      discount_type  TEXT NOT NULL DEFAULT 'PERCENT',
+      discount_value NUMERIC NOT NULL DEFAULT 0,
+      min_quantity   INTEGER NOT NULL DEFAULT 0,
+      min_subtotal   NUMERIC NOT NULL DEFAULT 0,
+      start_date     DATE,
+      end_date       DATE,
+      priority       INTEGER NOT NULL DEFAULT 100,
+      created_at     TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at     TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_retail_promotions_tenant_id ON retail_promotions(tenant_id);
+    CREATE INDEX IF NOT EXISTS idx_retail_promotions_active ON retail_promotions(tenant_id, active);
+    CREATE INDEX IF NOT EXISTS idx_retail_promotions_priority ON retail_promotions(tenant_id, priority);
 
     -- Migrate retailer module customer references to retail_customers table
     ALTER TABLE retail_customers ADD COLUMN IF NOT EXISTS opening_due NUMERIC NOT NULL DEFAULT 0;

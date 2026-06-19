@@ -1,9 +1,75 @@
 import { useEffect, useState } from 'react';
 import { createId, todayISO } from '../../../../utils/calculations.js';
 
-function priceForProduct(product, saleType) {
+function formatPromotionPrice(basePrice, promotion) {
+  const price = Number(basePrice || 0);
+  const discountValue = Math.max(0, Number(promotion?.discountValue || 0));
+  if (!promotion || promotion.discountType === 'FIXED') {
+    return Math.max(0, price - discountValue);
+  }
+
+  return Math.max(0, price * (1 - Math.min(100, discountValue) / 100));
+}
+
+function isPromotionActive(promotion, invoiceDate, saleType, product, quantityPieces, lineSubtotal) {
+  if (!promotion || promotion.active === false) return false;
+  if (promotion.level !== 'LINE') return false;
+  if (promotion.saleType !== 'ALL') {
+    const saleTypeMatches = saleType === 'QUICK_SALE'
+      ? promotion.saleType === 'RETAIL' || promotion.saleType === 'QUICK_SALE'
+      : promotion.saleType === saleType;
+    if (!saleTypeMatches) return false;
+  }
+  const date = String(invoiceDate || '').slice(0, 10);
+  const start = promotion.startDate ? String(promotion.startDate).slice(0, 10) : '';
+  const end = promotion.endDate ? String(promotion.endDate).slice(0, 10) : '';
+  if (start && date < start) return false;
+  if (end && date > end) return false;
+  if (promotion.minQuantity && quantityPieces < Number(promotion.minQuantity || 0)) return false;
+  if (promotion.minSubtotal && lineSubtotal < Number(promotion.minSubtotal || 0)) return false;
+
+  if (promotion.targetType === 'ALL') return true;
+  if (promotion.targetType === 'PRODUCT') return promotion.targetId === product?.id;
+  if (promotion.targetType === 'CATEGORY') return promotion.targetId === product?.categoryId;
+  return false;
+}
+
+function bestPromotionForProduct(promotions, product, saleType, invoiceDate, quantityPieces = 1, lineSubtotal = 0) {
+  if (saleType === 'WHOLESALE') {
+    return null;
+  }
+
+  return promotions
+    .filter((promotion) => isPromotionActive(promotion, invoiceDate, saleType, product, quantityPieces, lineSubtotal))
+    .sort((left, right) => {
+      const priorityDiff = Number(left.priority || 0) - Number(right.priority || 0);
+      if (priorityDiff !== 0) return priorityDiff;
+      const leftDiscount = left.discountType === 'FIXED'
+        ? Number(left.discountValue || 0)
+        : Number(product?.retailPrice || 0) * Math.min(100, Number(left.discountValue || 0)) / 100;
+      const rightDiscount = right.discountType === 'FIXED'
+        ? Number(right.discountValue || 0)
+        : Number(product?.retailPrice || 0) * Math.min(100, Number(right.discountValue || 0)) / 100;
+      return rightDiscount - leftDiscount;
+    })[0] || null;
+}
+
+function priceForProduct(product, saleType, invoiceDate, promotions = [], quantityPieces = 1) {
   if (!product) return 0;
-  return saleType === 'WHOLESALE' ? Number(product.wholesalePrice || 0) : Number(product.retailPrice || 0);
+  if (saleType === 'WHOLESALE') {
+    return Number(product.wholesalePrice || 0);
+  }
+
+  const retailPrice = Number(product.retailPrice || 0);
+  const promotion = bestPromotionForProduct(
+    promotions,
+    product,
+    saleType,
+    invoiceDate,
+    quantityPieces,
+    retailPrice * Math.max(1, Number(quantityPieces || 1)),
+  );
+  return promotion ? Math.min(retailPrice, formatPromotionPrice(retailPrice, promotion)) : retailPrice;
 }
 
 function taxRateForProduct(product, defaultTaxRate) {
@@ -27,7 +93,7 @@ function summarizeTaxes(lineRows, discount) {
   return { nextRows, taxableAmount, taxAmount: totalTaxAmount, totalAmount, taxRate };
 }
 
-export function useSalesInvoiceFormViewModel({ products, defaultSaleType = 'RETAIL', defaultCustomerType = 'WALK_IN', defaultTaxRate = 0 }) {
+export function useSalesInvoiceFormViewModel({ products, promotions = [], defaultSaleType = 'RETAIL', defaultCustomerType = 'WALK_IN', defaultTaxRate = 0 }) {
   const [customerId, setCustomerId] = useState('');
   const [customerType, setCustomerType] = useState(defaultCustomerType);
   const [saleType, setSaleType] = useState(defaultSaleType);
@@ -43,7 +109,15 @@ export function useSalesInvoiceFormViewModel({ products, defaultSaleType = 'RETA
     setSaleType(nextSaleType);
     setItems((current) => current.map((row) => {
       const product = products.find((candidate) => candidate.id === row.productId);
-      return product ? { ...row, actualSalePrice: priceForProduct(product, nextSaleType) } : row;
+      return product ? { ...row, actualSalePrice: priceForProduct(product, nextSaleType, invoiceDate, promotions, row.quantityPieces) } : row;
+    }));
+  }
+
+  function changeInvoiceDate(nextDate) {
+    setInvoiceDate(nextDate);
+    setItems((current) => current.map((row) => {
+      const product = products.find((candidate) => candidate.id === row.productId);
+      return product ? { ...row, actualSalePrice: priceForProduct(product, saleType, nextDate, promotions, row.quantityPieces) } : row;
     }));
   }
 
@@ -53,6 +127,13 @@ export function useSalesInvoiceFormViewModel({ products, defaultSaleType = 'RETA
       setCustomerId('');
     }
   }
+
+  useEffect(() => {
+    setItems((current) => current.map((row) => {
+      const product = products.find((candidate) => candidate.id === row.productId);
+      return product ? { ...row, actualSalePrice: priceForProduct(product, saleType, invoiceDate, promotions, row.quantityPieces) } : row;
+    }));
+  }, [promotions, products, saleType, invoiceDate]);
 
   function addItem() {
     const nextProduct = products.find((product) => !items.some((row) => row.productId === product.id)) || products[0];
@@ -67,7 +148,7 @@ export function useSalesInvoiceFormViewModel({ products, defaultSaleType = 'RETA
         productId: nextProduct.id,
         productName: nextProduct.name,
         quantityPieces: '',
-        actualSalePrice: priceForProduct(nextProduct, saleType),
+        actualSalePrice: priceForProduct(nextProduct, saleType, invoiceDate, promotions, 1),
         lineDiscount: 0,
         availableStock: Number(nextProduct.stockPieces || 0),
         taxRate: taxRateForProduct(nextProduct, defaultTaxRate),
@@ -91,9 +172,18 @@ export function useSalesInvoiceFormViewModel({ products, defaultSaleType = 'RETA
           ...row,
           productId: product.id,
           productName: product.name,
-          actualSalePrice: priceForProduct(product, saleType),
+          actualSalePrice: priceForProduct(product, saleType, invoiceDate, promotions, row.quantityPieces),
           availableStock: Number(product.stockPieces || 0),
           taxRate: taxRateForProduct(product, defaultTaxRate),
+        };
+      }
+
+      if (field === 'quantityPieces') {
+        const product = products.find((candidate) => candidate.id === row.productId);
+        return {
+          ...row,
+          quantityPieces: value,
+          actualSalePrice: product ? priceForProduct(product, saleType, invoiceDate, promotions, value) : row.actualSalePrice,
         };
       }
 
@@ -276,7 +366,7 @@ export function useSalesInvoiceFormViewModel({ products, defaultSaleType = 'RETA
     saleType,
     setSaleType: changeSaleType,
     invoiceDate,
-    setInvoiceDate,
+    setInvoiceDate: changeInvoiceDate,
     lineRows: taxedLineRows,
     addItem,
     updateItem,

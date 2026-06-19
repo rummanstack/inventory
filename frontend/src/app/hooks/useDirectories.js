@@ -7,6 +7,7 @@ export function useDirectories() {
   const [supplierDirectory, setSupplierDirectory] = useState([]);
   const [shopDirectory, setShopDirectory] = useState([]);
   const [retailCustomerDirectory, setRetailCustomerDirectory] = useState([]);
+  const [promotionDirectory, setPromotionDirectory] = useState([]);
 
   function upsertProductDirectory(product) {
     setProductDirectory((current) => {
@@ -105,6 +106,32 @@ export function useDirectories() {
     }
   }
 
+  function upsertPromotionDirectory(promotion) {
+    setPromotionDirectory((current) => {
+      const next = current.some((item) => item.id === promotion.id)
+        ? current.map((item) => (item.id === promotion.id ? promotion : item))
+        : [...current, promotion];
+      return next.sort((a, b) => {
+        const priorityDiff = Number(a.priority || 0) - Number(b.priority || 0);
+        if (priorityDiff !== 0) return priorityDiff;
+        return String(a.name || '').localeCompare(String(b.name || ''));
+      });
+    });
+  }
+
+  function removeFromPromotionDirectory(promotionId) {
+    setPromotionDirectory((current) => current.filter((item) => item.id !== promotionId));
+  }
+
+  async function refreshPromotionDirectory() {
+    try {
+      const result = await inventoryApi.listRetailPromotions();
+      setPromotionDirectory(result.promotions || []);
+    } catch {
+      // Best effort - the directory will catch up on the next full refresh.
+    }
+  }
+
   async function refreshProductDirectory() {
     try {
       const result = await inventoryApi.getProductsDirectory();
@@ -129,6 +156,7 @@ export function useDirectories() {
     setSupplierDirectory([]);
     setShopDirectory([]);
     setRetailCustomerDirectory([]);
+    setPromotionDirectory([]);
   }
 
   return {
@@ -137,11 +165,13 @@ export function useDirectories() {
     supplierDirectory,
     shopDirectory,
     retailCustomerDirectory,
+    promotionDirectory,
     setProductDirectory,
     setDsrDirectory,
     setSupplierDirectory,
     setShopDirectory,
     setRetailCustomerDirectory,
+    setPromotionDirectory,
     upsertProductDirectory,
     removeFromProductDirectory,
     upsertDsrDirectory,
@@ -152,11 +182,14 @@ export function useDirectories() {
     removeFromShopDirectory,
     upsertRetailCustomerDirectory,
     removeFromRetailCustomerDirectory,
+    upsertPromotionDirectory,
+    removeFromPromotionDirectory,
     refreshProductDirectory,
     refreshDsrDirectory,
     refreshSupplierDirectory,
     refreshShopDirectory,
     refreshRetailCustomerDirectory,
+    refreshPromotionDirectory,
     resetDirectories,
   };
 }

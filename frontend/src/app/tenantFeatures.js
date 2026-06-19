@@ -20,6 +20,7 @@ export const TENANT_FEATURE_ROUTES = [
   { feature: 'supplier-statement', labelKey: 'nav.supplierStatement' },
   { feature: 'retailer-quick-sale', labelKey: 'nav.retailerQuickSale' },
   { feature: 'retailer-sales-invoices', labelKey: 'nav.retailerSalesInvoices' },
+  { feature: 'retailer-promotions', labelKey: 'nav.retailerPromotions' },
   { feature: 'retailer-customer-due', labelKey: 'nav.retailerCustomerDue' },
   { feature: 'retailer-due-collection', labelKey: 'nav.retailerDueCollection' },
   { feature: 'retailer-sales-return', labelKey: 'nav.retailerSalesReturn' },

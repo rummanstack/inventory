@@ -18,6 +18,7 @@ import { StockMovementService } from './services/stockMovementService.js';
 import { DsrDueLedgerService } from './services/dsrDueLedgerService.js';
 import { CustomerService } from './services/customerService.js';
 import { RetailCustomerService } from './services/retailCustomerService.js';
+import { RetailPromotionService } from './services/retailPromotionService.js';
 import { TenantService } from './services/tenantService.js';
 import { PermissionService } from './services/permissionService.js';
 import { SystemService } from './services/systemService.js';
@@ -65,6 +66,7 @@ export async function createBackendApp() {
   const dsrDueLedgerService = new DsrDueLedgerService(databaseManager, { auditService, financeAccountService });
   const customerService = new CustomerService(databaseManager, { auditService });
   const retailCustomerService = new RetailCustomerService(databaseManager, { auditService });
+  const retailPromotionService = new RetailPromotionService(databaseManager, { auditService });
   const tenantService = new TenantService(databaseManager);
   const permissionService = new PermissionService(databaseManager, { auditService, tenantService });
   const systemService = new SystemService(databaseManager);
@@ -118,6 +120,7 @@ export async function createBackendApp() {
     financeDashboardService,
     retailCustomerService,
     retailCashSessionService,
+    retailPromotionService,
   });
 
   return { app, databaseManager, env };

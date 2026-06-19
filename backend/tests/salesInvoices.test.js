@@ -13,6 +13,43 @@ before(async () => {
   tenant = await createTenantAndAdmin(databaseManager, testApp.app, { name: "Sales Invoice Tenant" });
 });
 
+test("retail promotions reduce the sale price within the active date range", async () => {
+  const product = await createProduct(tenant.agent, {
+    name: "Promo Widget",
+    retailPrice: 100,
+  });
+  await addStock(tenant.agent, product.id, 20);
+
+  const promotionResponse = await tenant.agent.post("/api/retail-promotions").send({
+    name: "Promo Widget Discount",
+    targetType: "PRODUCT",
+    targetId: product.id,
+    saleType: "RETAIL",
+    discountType: "PERCENT",
+    discountValue: 20,
+    startDate: "2026-01-01",
+    endDate: "2026-12-31",
+    active: true,
+    priority: 1,
+  });
+  assert.equal(promotionResponse.status, 201);
+
+  const response = await tenant.agent.post("/api/sales-invoices").send({
+    customerType: "WALK_IN",
+    saleType: "RETAIL",
+    invoiceDate: "2026-01-15",
+    items: [{ productId: product.id, quantityPieces: 3, actualSalePrice: 100 }],
+    discount: 0,
+    paidAmount: 240,
+    paymentMethod: "CASH",
+  });
+
+  assert.equal(response.status, 201);
+  const invoice = response.body.invoice;
+  assert.equal(invoice.totalAmount, 240);
+  assert.equal(invoice.items[0].actualSalePrice, 80);
+});
+
 after(async () => {
   await cleanupTenant(databaseManager, tenant.tenantId);
   await closeTestApp();

@@ -22,6 +22,7 @@ export async function createProduct(agent, overrides = {}) {
     purchasePrice: 50,
     wholesalePrice: 70,
     retailPrice: 90,
+    refundable: true,
     ...overrides,
   });
   if (response.status !== 201) {

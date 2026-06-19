@@ -126,9 +126,10 @@ function CashSessionAmountModal({
 }
 
 function QuickSaleForm({ onSaved }) {
-  const { t, productDirectory, retailCustomerDirectory, saveSalesInvoice, saveRetailCustomer, tenant, pushToast } = useInventoryApp();
+  const { t, productDirectory, promotionDirectory, retailCustomerDirectory, saveSalesInvoice, saveRetailCustomer, tenant, pushToast } = useInventoryApp();
   const vm = useSalesInvoiceFormViewModel({
     products: productDirectory,
+    promotions: promotionDirectory,
     defaultSaleType: 'QUICK_SALE',
     defaultCustomerType: 'WALK_IN',
     defaultTaxRate: tenant?.taxRate || 0,
@@ -191,7 +192,6 @@ function QuickSaleForm({ onSaved }) {
     }
 
     await onSaved?.(result.salesInvoice);
-    persistCashSessionSnapshot(mergeCashSessionSnapshots(readCashSessionSnapshot(), session));
   }
 
   return (

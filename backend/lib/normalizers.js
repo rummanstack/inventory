@@ -366,6 +366,48 @@ export function normalizeRetailCustomer(input) {
   };
 }
 
+const PROMOTION_TARGET_TYPES = ["PRODUCT", "CATEGORY", "ALL"];
+const PROMOTION_LEVELS = ["LINE"];
+const PROMOTION_SALE_TYPES = ["ALL", "WHOLESALE", "RETAIL", "QUICK_SALE"];
+const PROMOTION_DISCOUNT_TYPES = ["PERCENT", "FIXED"];
+
+export function normalizeRetailPromotion(input) {
+  const targetType = PROMOTION_TARGET_TYPES.includes(String(input.targetType || "").trim().toUpperCase())
+    ? String(input.targetType).trim().toUpperCase()
+    : "PRODUCT";
+  const discountType = PROMOTION_DISCOUNT_TYPES.includes(String(input.discountType || "").trim().toUpperCase())
+    ? String(input.discountType).trim().toUpperCase()
+    : "PERCENT";
+  const saleType = PROMOTION_SALE_TYPES.includes(String(input.saleType || "").trim().toUpperCase())
+    ? String(input.saleType).trim().toUpperCase()
+    : "ALL";
+  const level = PROMOTION_LEVELS.includes(String(input.level || "").trim().toUpperCase())
+    ? String(input.level).trim().toUpperCase()
+    : "LINE";
+
+  return {
+    id: input.id || createId("promo"),
+    name: String(input.name || "").trim(),
+    description: String(input.description || "").trim(),
+    active:
+      input.active === false ||
+      String(input.active || "").trim().toLowerCase() === "false"
+        ? false
+        : true,
+    level,
+    targetType,
+    targetId: String(input.targetId || "").trim() || null,
+    saleType,
+    discountType,
+    discountValue: Math.max(0, cleanMoney(input.discountValue)),
+    minQuantity: cleanInteger(input.minQuantity),
+    minSubtotal: Math.max(0, cleanMoney(input.minSubtotal)),
+    startDate: String(input.startDate || "").trim() || null,
+    endDate: String(input.endDate || "").trim() || null,
+    priority: cleanInteger(input.priority) || 100,
+  };
+}
+
 export function normalizeCustomerPayment(input) {
   return {
     id: input.id || createId("customer-payment"),

@@ -9,6 +9,7 @@ import { nextInvoiceNumber } from "../lib/salesNumber.js";
 import { findRetailCustomerForUpdate, updateRetailCustomerCurrentDue } from "../repositories/retailCustomerRepository.js";
 import { findTenantById } from "../repositories/tenantRepository.js";
 import { getLatestCustomerDueLedgerEntry } from "../repositories/customerDueLedgerRepository.js";
+import { listActiveRetailPromotionsForDate } from "../repositories/retailPromotionRepository.js";
 import {
   countSalesInvoices,
   countTrashedSalesInvoices,
@@ -35,6 +36,84 @@ import {
 } from "./shared/inventoryHelpers.js";
 
 const DATE_ERROR = "Invoice date must be in YYYY-MM-DD format.";
+
+function formatPromotionPrice(basePrice, promotion) {
+  const price = Number(basePrice || 0);
+  const discountValue = Math.max(0, Number(promotion?.discountValue || 0));
+  if (!promotion || promotion.discountType === "FIXED") {
+    return Math.max(0, price - discountValue);
+  }
+
+  return Math.max(0, price * (1 - Math.min(100, discountValue) / 100));
+}
+
+function matchesPromotionTarget(promotion, product) {
+  if (!promotion || !product) {
+    return false;
+  }
+
+  if (promotion.targetType === "ALL") {
+    return true;
+  }
+
+  if (promotion.targetType === "PRODUCT") {
+    return promotion.targetId === product.id;
+  }
+
+  if (promotion.targetType === "CATEGORY") {
+    return promotion.targetId && promotion.targetId === product.category_id;
+  }
+
+  return false;
+}
+
+function isPromotionEligibleForSaleType(promotion, saleType) {
+  if (promotion.saleType === "ALL") {
+    return true;
+  }
+
+  if (saleType === "QUICK_SALE") {
+    return promotion.saleType === "RETAIL" || promotion.saleType === "QUICK_SALE";
+  }
+
+  return promotion.saleType === saleType;
+}
+
+function isPromotionActiveForDate(promotion, invoiceDate) {
+  const date = String(invoiceDate || "").slice(0, 10);
+  const start = promotion.startDate ? String(promotion.startDate).slice(0, 10) : null;
+  const end = promotion.endDate ? String(promotion.endDate).slice(0, 10) : null;
+  if (start && date < start) return false;
+  if (end && date > end) return false;
+  return true;
+}
+
+function bestPromotionForProduct(promotions, product, invoiceDate, saleType, quantityPieces = 0, lineSubtotal = 0) {
+  return promotions
+    .filter((promotion) =>
+      promotion.active &&
+      promotion.level === "LINE" &&
+      isPromotionEligibleForSaleType(promotion, saleType) &&
+      isPromotionActiveForDate(promotion, invoiceDate) &&
+      (!promotion.minQuantity || quantityPieces >= Number(promotion.minQuantity || 0)) &&
+      (!promotion.minSubtotal || lineSubtotal >= Number(promotion.minSubtotal || 0)) &&
+      matchesPromotionTarget(promotion, product),
+    )
+    .sort((left, right) => {
+      const priorityDiff = Number(left.priority || 0) - Number(right.priority || 0);
+      if (priorityDiff !== 0) {
+        return priorityDiff;
+      }
+
+      const leftDiscount = left.discountType === "FIXED"
+        ? Number(left.discountValue || 0)
+        : Number(product?.retailPrice || 0) * Math.min(100, Number(left.discountValue || 0)) / 100;
+      const rightDiscount = right.discountType === "FIXED"
+        ? Number(right.discountValue || 0)
+        : Number(product?.retailPrice || 0) * Math.min(100, Number(right.discountValue || 0)) / 100;
+      return rightDiscount - leftDiscount;
+    })[0] || null;
+}
 
 function applyLineItemTaxes(items, productMap, defaultTaxRate = 0, invoiceDiscount = 0) {
   const gross = items.reduce((sum, item) => sum + Number(item.lineTotal || 0), 0);
@@ -166,6 +245,7 @@ export class SalesInvoiceService {
   async createSalesInvoiceRecord(client, base, actor) {
     const productIds = base.items.map((item) => item.productId);
     const productMap = await lockProducts(client, productIds, actor.tenantId);
+    const promotions = await listActiveRetailPromotionsForDate(client, actor.tenantId, base.invoiceDate);
 
     let totalProfit = -base.discount;
     for (const item of base.items) {
@@ -176,6 +256,21 @@ export class SalesInvoiceService {
       );
       const costPriceSnapshot = Number(product.purchase_price || 0);
       item.productName = item.productName || product.name;
+      if (base.saleType !== "WHOLESALE") {
+        const promotion = bestPromotionForProduct(
+          promotions,
+          product,
+          base.invoiceDate,
+          base.saleType,
+          item.quantityPieces,
+          Number(item.actualSalePrice || product.retail_price || 0) * item.quantityPieces,
+        );
+        if (promotion) {
+          const promoPrice = formatPromotionPrice(product.retail_price, promotion);
+          item.actualSalePrice = Math.min(Number(item.actualSalePrice || 0), promoPrice);
+        }
+      }
+      item.lineTotal = Math.max(0, Number(item.actualSalePrice || 0) * item.quantityPieces - Number(item.lineDiscount || 0));
       item.costPriceSnapshot = costPriceSnapshot;
       totalProfit += item.lineTotal - costPriceSnapshot * item.quantityPieces;
     }

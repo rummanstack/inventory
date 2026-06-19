@@ -35,11 +35,13 @@ export function InventoryAppProvider({ children }) {
     supplierDirectory,
     shopDirectory,
     retailCustomerDirectory,
+    promotionDirectory,
     setProductDirectory,
     setDsrDirectory,
     setSupplierDirectory,
     setShopDirectory,
     setRetailCustomerDirectory,
+    setPromotionDirectory,
     upsertProductDirectory,
     removeFromProductDirectory,
     upsertDsrDirectory,
@@ -50,11 +52,14 @@ export function InventoryAppProvider({ children }) {
     removeFromShopDirectory,
     upsertRetailCustomerDirectory,
     removeFromRetailCustomerDirectory,
+    upsertPromotionDirectory,
+    removeFromPromotionDirectory,
     refreshProductDirectory,
     refreshDsrDirectory,
     refreshSupplierDirectory,
     refreshShopDirectory,
     refreshRetailCustomerDirectory,
+    refreshPromotionDirectory,
     resetDirectories,
   } = useDirectories();
   const [user, setUser] = useState(null);
@@ -96,18 +101,20 @@ export function InventoryAppProvider({ children }) {
     try {
       setLoading(true);
       setLoadError('');
-      const [productsResult, dsrsResult, suppliersResult, customersResult, retailCustomersResult] = await Promise.all([
+      const [productsResult, dsrsResult, suppliersResult, customersResult, retailCustomersResult, promotionsResult] = await Promise.all([
         inventoryApi.getProductsDirectory(),
         inventoryApi.getDsrsDirectory(),
         inventoryApi.getActiveSuppliers(),
         inventoryApi.getActiveCustomers(),
         inventoryApi.getActiveRetailCustomers(),
+        inventoryApi.listRetailPromotions(),
       ]);
       setProductDirectory(productsResult.products || []);
       setDsrDirectory(dsrsResult.dsrs || []);
       setSupplierDirectory(suppliersResult.items || []);
       setShopDirectory(customersResult.items || []);
       setRetailCustomerDirectory(retailCustomersResult.items || []);
+      setPromotionDirectory(promotionsResult.promotions || []);
     } catch (error) {
       if (error.status === 401) {
         handleUnauthorized();
@@ -607,6 +614,46 @@ export function InventoryAppProvider({ children }) {
     }
   }
 
+  async function saveRetailPromotion(promotion) {
+    try {
+      const result = promotion.id
+        ? await inventoryApi.updateRetailPromotion(promotion)
+        : await inventoryApi.createRetailPromotion(promotion);
+      upsertPromotionDirectory(result.promotion);
+      pushToast('success', promotion.id ? t('retailer.promotions.editTitle') : t('retailer.promotions.addTitle'), `${result.promotion.name} ${promotion.id ? t('alerts.updated') : t('alerts.created')}`);
+      return { ok: true, promotion: result.promotion };
+    } catch (error) {
+      const message = getFriendlyError(error, t);
+      pushToast('error', t('alerts.requestFailed'), message);
+      return { ok: false, message };
+    }
+  }
+
+  async function deleteRetailPromotion(promotion) {
+    const confirmMessage = t('retailer.promotions.deleteConfirm', { name: promotion.name });
+    const { confirmed } = await confirm({
+      title: t('retailer.promotions.deleteTitle'),
+      description: interpolateConfirm(confirmMessage, { name: promotion.name }),
+      confirmLabel: t('common.delete'),
+      tone: 'rose',
+      requireReason: false,
+    });
+    if (!confirmed) {
+      return { ok: false };
+    }
+
+    try {
+      await inventoryApi.deleteRetailPromotion(promotion.id);
+      removeFromPromotionDirectory(promotion.id);
+      pushToast('success', t('common.delete'), `${promotion.name} ${t('alerts.deleted')}`);
+      return { ok: true };
+    } catch (error) {
+      const message = getFriendlyError(error, t);
+      pushToast('error', t('alerts.deleteFailed'), message);
+      return { ok: false, message };
+    }
+  }
+
   async function restoreTrashedItem({ name, restoreFn, onRestored }) {
     const { confirmed } = await confirm({
       title: t('trash.restoreTitle'),
@@ -887,6 +934,7 @@ export function InventoryAppProvider({ children }) {
       supplierDirectory,
       shopDirectory,
       retailCustomerDirectory,
+      promotionDirectory,
       loading,
       loadError,
       toasts,
@@ -936,11 +984,16 @@ export function InventoryAppProvider({ children }) {
       deleteCustomerPayment,
       restoreCustomerPayment,
       saveSalesReturn,
+      saveRetailPromotion,
+      deleteRetailPromotion,
       saveIssue,
       saveSettlement,
+      upsertPromotionDirectory,
+      removeFromPromotionDirectory,
+      refreshPromotionDirectory,
       updateProfile,
     }),
-    [today, language, t, user, tenant, tenantOptions, permissions, authLoading, productDirectory, dsrDirectory, supplierDirectory, shopDirectory, retailCustomerDirectory, loading, loadError, toasts, confirmation],
+    [today, language, t, user, tenant, tenantOptions, permissions, authLoading, productDirectory, dsrDirectory, supplierDirectory, shopDirectory, retailCustomerDirectory, promotionDirectory, loading, loadError, toasts, confirmation],
   );
 
   return <InventoryAppContext.Provider value={value}>{children}</InventoryAppContext.Provider>;

@@ -19,6 +19,7 @@ export const TENANT_FEATURES = [
   "supplier-statement",
   "retailer-quick-sale",
   "retailer-sales-invoices",
+  "retailer-promotions",
   "retailer-customer-due",
   "retailer-due-collection",
   "retailer-sales-return",

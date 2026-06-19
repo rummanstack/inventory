@@ -26,6 +26,7 @@ import {
   Wallet,
   LayoutDashboard,
   Landmark,
+  Tag,
 } from 'lucide-react';
 import DashboardPage from '../features/dashboard/pages/DashboardPage';
 import ActivityLogsPage from '../features/activity-logs/pages/ActivityLogsPage';
@@ -57,6 +58,7 @@ import SupplierPaymentsPage from '../features/supplier-payments/pages/SupplierPa
 import SupplierStatementPage from '../features/supplier-statement/pages/SupplierStatementPage';
 import QuickSalePage from '../features/retailer/quick-sale/pages/QuickSalePage';
 import SalesInvoicesPage from '../features/retailer/sales-invoices/pages/SalesInvoicesPage';
+import RetailPromotionsPage from '../features/retailer/promotions/pages/RetailPromotionsPage';
 import CustomerDuePage from '../features/retailer/customer-due/pages/CustomerDuePage';
 import DueCollectionPage from '../features/retailer/due-collection/pages/DueCollectionPage';
 import SalesReturnPage from '../features/retailer/sales-return/pages/SalesReturnPage';
@@ -79,6 +81,7 @@ export const APP_ROUTES = [
   { id: 'settlements', path: '/settlements', labelKey: 'nav.eveningSettlement', icon: RotateCcw, component: EveningSettlementPage, group: 'operations', permission: 'create_settlements', feature: 'settlements' },
   { id: 'retailer-quick-sale', path: '/retailer/quick-sale', labelKey: 'nav.retailerQuickSale', icon: ShoppingBag, component: QuickSalePage, group: 'retailer', permission: 'manage_retailers', feature: 'retailer-quick-sale' },
   { id: 'retailer-sales-invoices', path: '/retailer/sales-invoices', labelKey: 'nav.retailerSalesInvoices', icon: Receipt, component: SalesInvoicesPage, group: 'retailer', permission: 'manage_retailers', feature: 'retailer-sales-invoices' },
+  { id: 'retailer-promotions', path: '/retailer/promotions', labelKey: 'nav.retailerPromotions', icon: Tag, component: RetailPromotionsPage, group: 'retailer', permission: 'manage_retailers', feature: 'retailer-promotions' },
   { id: 'retailer-customer-due', path: '/retailer/customer-due', labelKey: 'nav.retailerCustomerDue', icon: Wallet, component: CustomerDuePage, group: 'retailer', permission: 'manage_retailers', feature: 'retailer-customer-due' },
   { id: 'retailer-due-collection', path: '/retailer/due-collection', labelKey: 'nav.retailerDueCollection', icon: HandCoins, component: DueCollectionPage, group: 'retailer', permission: 'manage_retailers', feature: 'retailer-due-collection' },
   { id: 'retailer-sales-return', path: '/retailer/sales-return', labelKey: 'nav.retailerSalesReturn', icon: RotateCcw, component: SalesReturnPage, group: 'retailer', permission: 'manage_retailers', feature: 'retailer-sales-return' },

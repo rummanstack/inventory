@@ -68,8 +68,10 @@ import { ContactMessageController } from "../controllers/contactMessageControlle
 import { createContactRoutes } from "./contact.routes.js";
 import { FinanceAccountController } from "../controllers/financeAccountController.js";
 import { FinanceDashboardController } from "../controllers/financeDashboardController.js";
+import { RetailCashSessionController } from "../controllers/retailCashSessionController.js";
 import { createFinanceAccountsRoutes } from "./financeAccounts.routes.js";
 import { createFinanceDashboardRoutes } from "./financeDashboard.routes.js";
+import { createRetailCashSessionsRoutes } from "./retailCashSessions.routes.js";
 
 export function createApiRouter({
   authService,
@@ -106,6 +108,7 @@ export function createApiRouter({
   financeAccountService,
   financeDashboardService,
   retailCustomerService,
+  retailCashSessionService,
 }) {
   const router = Router();
   const authController = new AuthController(authService, env, tenantService);
@@ -141,6 +144,7 @@ export function createApiRouter({
   const contactMessageController = new ContactMessageController(contactMessageService);
   const financeAccountController = new FinanceAccountController(financeAccountService);
   const financeDashboardController = new FinanceDashboardController(financeDashboardService);
+  const retailCashSessionController = new RetailCashSessionController(retailCashSessionService);
 
   const loginRateLimiter = createRateLimiter({ windowMs: 15 * 60 * 1000, max: 20 });
   const authRateLimiter = createRateLimiter({ windowMs: 15 * 60 * 1000, max: 20 });
@@ -195,6 +199,7 @@ export function createApiRouter({
   router.use("/sales-returns", createSalesReturnsRoutes(salesReturnController));
   router.use("/finance-accounts", createFinanceAccountsRoutes(financeAccountController));
   router.use("/finance-dashboard", createFinanceDashboardRoutes(financeDashboardController));
+  router.use("/retail-cash-sessions", createRetailCashSessionsRoutes(retailCashSessionController));
 
   return router;
 }

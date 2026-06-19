@@ -66,6 +66,11 @@ export const SALES_RETURN_ACTIONS = {
   CREATE: "sales_return.create",
 };
 
+export const RETAIL_CASH_SESSION_ACTIONS = {
+  CREATE: "retail_cash_session.create",
+  CLOSE: "retail_cash_session.close",
+};
+
 export const CUSTOMER_PAYMENT_ACTIONS = {
   CREATE: "customer_payment.create",
   UPDATE: "customer_payment.update",

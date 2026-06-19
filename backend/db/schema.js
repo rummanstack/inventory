@@ -205,6 +205,17 @@ export async function createSchema(pool) {
     ALTER TABLE purchase_receipts ADD COLUMN IF NOT EXISTS tax_amount NUMERIC NOT NULL DEFAULT 0;
     ALTER TABLE sales_invoices ADD COLUMN IF NOT EXISTS tax_rate NUMERIC NOT NULL DEFAULT 0;
     ALTER TABLE sales_invoices ADD COLUMN IF NOT EXISTS tax_amount NUMERIC NOT NULL DEFAULT 0;
+    ALTER TABLE retail_cash_sessions ADD COLUMN IF NOT EXISTS opened_by TEXT REFERENCES users(id) ON DELETE SET NULL;
+    ALTER TABLE retail_cash_sessions ADD COLUMN IF NOT EXISTS closed_by TEXT REFERENCES users(id) ON DELETE SET NULL;
+    ALTER TABLE retail_cash_sessions ADD COLUMN IF NOT EXISTS started_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
+    ALTER TABLE retail_cash_sessions ADD COLUMN IF NOT EXISTS closed_at TIMESTAMPTZ;
+    ALTER TABLE retail_cash_sessions ADD COLUMN IF NOT EXISTS opening_cash NUMERIC NOT NULL DEFAULT 0;
+    ALTER TABLE retail_cash_sessions ADD COLUMN IF NOT EXISTS counted_cash NUMERIC;
+    ALTER TABLE retail_cash_sessions ADD COLUMN IF NOT EXISTS cash_sales_count INTEGER NOT NULL DEFAULT 0;
+    ALTER TABLE retail_cash_sessions ADD COLUMN IF NOT EXISTS cash_sales_amount NUMERIC NOT NULL DEFAULT 0;
+    ALTER TABLE retail_cash_sessions ADD COLUMN IF NOT EXISTS expected_cash NUMERIC NOT NULL DEFAULT 0;
+    ALTER TABLE retail_cash_sessions ADD COLUMN IF NOT EXISTS variance NUMERIC NOT NULL DEFAULT 0;
+    ALTER TABLE retail_cash_sessions ADD COLUMN IF NOT EXISTS note TEXT NOT NULL DEFAULT '';
     ALTER TABLE purchase_receipt_items ADD COLUMN IF NOT EXISTS tax_rate NUMERIC NOT NULL DEFAULT 0;
     ALTER TABLE purchase_receipt_items ADD COLUMN IF NOT EXISTS tax_amount NUMERIC NOT NULL DEFAULT 0;
     ALTER TABLE sales_invoice_items ADD COLUMN IF NOT EXISTS tax_rate NUMERIC NOT NULL DEFAULT 0;
@@ -567,6 +578,30 @@ export async function createSchema(pool) {
     CREATE INDEX IF NOT EXISTS idx_sales_invoices_sale_type ON sales_invoices(tenant_id, sale_type);
     CREATE INDEX IF NOT EXISTS idx_sales_invoices_deleted_at ON sales_invoices(tenant_id, deleted_at);
     CREATE UNIQUE INDEX IF NOT EXISTS idx_sales_invoices_number ON sales_invoices(tenant_id, invoice_number);
+
+    CREATE TABLE IF NOT EXISTS retail_cash_sessions (
+      id               TEXT PRIMARY KEY,
+      tenant_id        TEXT REFERENCES tenants(id),
+      opened_by        TEXT REFERENCES users(id) ON DELETE SET NULL,
+      closed_by        TEXT REFERENCES users(id) ON DELETE SET NULL,
+      started_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      closed_at        TIMESTAMPTZ,
+      opening_cash     NUMERIC NOT NULL DEFAULT 0,
+      counted_cash     NUMERIC,
+      cash_sales_count INTEGER NOT NULL DEFAULT 0,
+      cash_sales_amount NUMERIC NOT NULL DEFAULT 0,
+      expected_cash    NUMERIC NOT NULL DEFAULT 0,
+      variance         NUMERIC NOT NULL DEFAULT 0,
+      note             TEXT NOT NULL DEFAULT '',
+      created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at       TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_retail_cash_sessions_active
+      ON retail_cash_sessions(tenant_id)
+      WHERE closed_at IS NULL;
+    CREATE INDEX IF NOT EXISTS idx_retail_cash_sessions_tenant_started
+      ON retail_cash_sessions(tenant_id, started_at DESC);
 
     CREATE TABLE IF NOT EXISTS sales_invoice_items (
       id                  TEXT PRIMARY KEY,

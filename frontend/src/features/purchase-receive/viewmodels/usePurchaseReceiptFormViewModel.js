@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { createId, todayISO, toPieces } from '../../../utils/calculations.js';
 
 function toLineItemRow(item, products) {
@@ -30,7 +30,7 @@ export function usePurchaseReceiptFormViewModel({ purchaseReceipt, products }) {
       : []
   ));
   const [discountInput, setDiscountInput] = useState(String(Number(purchaseReceipt?.discount || 0)));
-  const [paidAmountInput, setPaidAmountInput] = useState(String(Number(purchaseReceipt?.paidAmount || 0)));
+  const [paidAmountInput, setPaidAmountInputState] = useState(String(Number(purchaseReceipt?.paidAmount || 0)));
   const [paymentMethod, setPaymentMethod] = useState(purchaseReceipt?.paymentMethod || 'CASH');
   const [note, setNote] = useState(purchaseReceipt?.note || '');
   const [reasonInput, setReasonInput] = useState('');
@@ -108,6 +108,28 @@ export function usePurchaseReceiptFormViewModel({ purchaseReceipt, products }) {
   const paidAmountRaw = Math.max(0, Number(paidAmountInput || 0));
   const paidAmount = Math.min(paidAmountRaw, totalAmount);
   const dueAmount = totalAmount - paidAmount;
+
+  useEffect(() => {
+    const currentValue = Number(paidAmountInput || 0);
+    if (Number.isFinite(currentValue) && currentValue > totalAmount) {
+      setPaidAmountInputState(String(totalAmount));
+    }
+  }, [paidAmountInput, totalAmount]);
+
+  function setPaidAmountInput(nextValue) {
+    if (nextValue === '') {
+      setPaidAmountInputState('');
+      return;
+    }
+
+    const numericValue = Number(nextValue);
+    if (!Number.isFinite(numericValue)) {
+      setPaidAmountInputState(String(nextValue));
+      return;
+    }
+
+    setPaidAmountInputState(String(Math.min(Math.max(0, numericValue), totalAmount)));
+  }
 
   const hasValidItems = lineRows.some((row) => row.productId && row.quantityNumber > 0);
   const hasInvalidItems = lineRows.some((row) => !row.productId || row.quantityNumber <= 0 || row.purchasePriceNumber < 0);

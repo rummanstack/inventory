@@ -3,6 +3,7 @@ import { Badge, Modal } from '../../../../components/ui.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
 import AuditHistory from '../../../../components/AuditHistory.jsx';
 import { downloadSheetPdf } from '../../../../services/printService.js';
+import { printRetailReceipt } from '../../../../services/receiptService.js';
 import { inventoryApi } from '../../../../services/inventoryApi.js';
 import { formatCurrency, formatDate } from '../../../../utils/calculations.js';
 import { paymentStatusOf, paymentStatusTone } from '../../../../models/inventoryViewData.js';
@@ -18,13 +19,30 @@ function Field({ label, value }) {
 }
 
 export default function SalesInvoiceViewModal({ salesInvoice, onClose }) {
-  const { t, tenant } = useInventoryApp();
+  const { t, tenant, pushToast } = useInventoryApp();
   const items = salesInvoice.items || [];
   const printTargetId = `sales-invoice-print-${salesInvoice.id}`;
   const businessName = tenant?.name || '';
 
   function recordInvoicePrint(label) {
     inventoryApi.recordPrint({ entityType: 'sales_invoice', entityId: salesInvoice.id, label }).catch(() => {});
+  }
+
+  async function handleReceiptPrint() {
+    const result = await printRetailReceipt(salesInvoice, {
+      businessName: tenant?.name || '',
+      businessAddress: tenant?.address || '',
+      businessPhone: tenant?.phone || '',
+      businessEmail: tenant?.email || '',
+      title: t('retailer.shared.receiptTitle'),
+    });
+
+    if (!result.ok) {
+      pushToast('error', t('retailer.shared.printReceiptFailed'), t('alerts.requestFailed'));
+      return;
+    }
+
+    recordInvoicePrint('receipt');
   }
 
   return (
@@ -106,10 +124,10 @@ export default function SalesInvoiceViewModal({ salesInvoice, onClose }) {
         <button
           type="button"
           className="btn-secondary"
-          onClick={() => { recordInvoicePrint('print'); window.print(); }}
+          onClick={handleReceiptPrint}
         >
           <Printer size={18} />
-          {t('purchaseReceive.printSheet')}
+          {t('retailer.shared.printReceipt')}
         </button>
       </div>
 

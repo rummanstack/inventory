@@ -340,6 +340,9 @@ export function normalizeSalesReturn(input) {
     salesInvoiceId: String(input.salesInvoiceId || "").trim() || null,
     customerId: String(input.customerId || "").trim() || null,
     returnDate: String(input.returnDate || "").trim(),
+    refundMethod: ["CASH", "DUE_ADJUSTMENT"].includes(String(input.refundMethod || "").trim().toUpperCase())
+      ? String(input.refundMethod).trim().toUpperCase()
+      : "DUE_ADJUSTMENT",
     items,
     totalAmount,
     totalProfitAdjustment,

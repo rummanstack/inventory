@@ -33,6 +33,14 @@ async function createInvoiceWithDue(productId, customerId, quantityPieces, price
   return response.body.invoice;
 }
 
+async function getCashBalance() {
+  const response = await tenant.agent.get("/api/finance/accounts");
+  assert.equal(response.status, 200);
+  const cash = (response.body.accounts || []).find((account) => account.type === "CASH");
+  assert.ok(cash, "Cash account should exist");
+  return cash.balance;
+}
+
 test("a return requires the original invoice and rejects an item not on that invoice", async () => {
   const product = await createProduct(tenant.agent, { name: "Return Widget A", retailPrice: 90 });
   await addStock(tenant.agent, product.id, 50);
@@ -67,6 +75,7 @@ test("returning within the remaining quantity restores stock and credits the cus
   const response = await tenant.agent.post("/api/sales-returns").send({
     salesInvoiceId: invoice.id,
     returnDate: "2026-01-21",
+    refundMethod: "DUE_ADJUSTMENT",
     items: [{ salesInvoiceItemId: invoice.items[0].id, productId: product.id, quantityPieces: 5 }],
   });
 
@@ -84,6 +93,29 @@ test("returning within the remaining quantity restores stock and credits the cus
 
   const dueAfter = await getCustomerDueBalance(tenant.agent, customer.id);
   assert.equal(dueAfter, 450, "due reduced by the returned line total");
+});
+
+test("cash refunds withdraw money from cash in hand for fully paid invoices", async () => {
+  const product = await createProduct(tenant.agent, { name: "Return Widget D", retailPrice: 90 });
+  await addStock(tenant.agent, product.id, 50);
+  const invoice = await createInvoiceWithDue(product.id, null, 10, 90, 900);
+
+  const cashBefore = await getCashBalance();
+  assert.equal(cashBefore, 900);
+
+  const response = await tenant.agent.post("/api/sales-returns").send({
+    salesInvoiceId: invoice.id,
+    returnDate: "2026-01-23",
+    refundMethod: "CASH",
+    items: [{ salesInvoiceItemId: invoice.items[0].id, productId: product.id, quantityPieces: 5 }],
+  });
+
+  assert.equal(response.status, 201);
+  assert.equal(response.body.salesReturn.refundMethod, "CASH");
+  assert.equal(response.body.salesReturn.totalAmount, 450);
+
+  const cashAfter = await getCashBalance();
+  assert.equal(cashAfter, 450, "cash balance should reduce by the refunded amount");
 });
 
 test("cumulative returns cannot exceed the originally sold quantity, but the exact remaining amount succeeds", async () => {

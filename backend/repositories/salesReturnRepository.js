@@ -8,6 +8,7 @@ export function mapSalesReturn(row) {
     invoiceNumber: row.invoice_number || null,
     customerId: row.customer_id,
     customerName: row.customer_name || null,
+    refundMethod: row.refund_method || "DUE_ADJUSTMENT",
     totalAmount: Number(row.total_amount || 0),
     totalProfitAdjustment: Number(row.total_profit_adjustment || 0),
     note: row.note,
@@ -101,10 +102,10 @@ export function findSalesReturnById(client, returnId, tenantId) {
 export function insertSalesReturn(client, salesReturn) {
   return client.query(
     `INSERT INTO sales_returns (
-       id, tenant_id, return_number, return_date, sales_invoice_id, customer_id,
-       total_amount, total_profit_adjustment, note, created_by
+      id, tenant_id, return_number, return_date, sales_invoice_id, customer_id,
+       refund_method, total_amount, total_profit_adjustment, note, created_by
      )
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
      RETURNING *`,
     [
       salesReturn.id,
@@ -113,6 +114,7 @@ export function insertSalesReturn(client, salesReturn) {
       salesReturn.returnDate,
       salesReturn.salesInvoiceId,
       salesReturn.customerId,
+      salesReturn.refundMethod || "DUE_ADJUSTMENT",
       salesReturn.totalAmount,
       salesReturn.totalProfitAdjustment,
       salesReturn.note,

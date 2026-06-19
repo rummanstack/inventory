@@ -20,6 +20,11 @@ export function normalizeProduct(input) {
     wholesalePrice: cleanMoney(input.wholesalePrice),
     retailPrice: cleanMoney(input.retailPrice),
     stockPieces: cleanInteger(input.stockPieces),
+    refundable:
+      input.refundable === false ||
+      String(input.refundable || "").trim().toLowerCase() === "false"
+        ? false
+        : true,
     taxRate: Math.min(Math.max(0, cleanMoney(input.taxRate)), 100),
     orderIndex:
       input.orderIndex !== undefined && input.orderIndex !== null && String(input.orderIndex).trim() !== ""

@@ -144,7 +144,11 @@ export class SalesReturnService {
       base.customerId = invoice.customerId;
 
       const productIds = base.items.map((item) => item.productId);
-      await lockProducts(client, productIds, actor.tenantId);
+      const productMap = await lockProducts(client, productIds, actor.tenantId);
+      for (const item of base.items) {
+        const product = productMap.get(item.productId);
+        assert(product?.refundable !== false, `${item.productName} is marked non-refundable.`, 400);
+      }
 
       const year = new Date(base.returnDate).getUTCFullYear();
       const returnNumber = await nextReturnNumber(client, actor.tenantId, year);

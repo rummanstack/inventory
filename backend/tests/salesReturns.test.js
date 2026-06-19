@@ -118,6 +118,22 @@ test("cash refunds withdraw money from cash in hand for fully paid invoices", as
   assert.equal(cashAfter, 450, "cash balance should reduce by the refunded amount");
 });
 
+test("non-refundable products cannot be returned", async () => {
+  const product = await createProduct(tenant.agent, { name: "Final Sale Widget", retailPrice: 90, refundable: false });
+  await addStock(tenant.agent, product.id, 50);
+  const invoice = await createInvoiceWithDue(product.id, null, 10, 90, 900);
+
+  const response = await tenant.agent.post("/api/sales-returns").send({
+    salesInvoiceId: invoice.id,
+    returnDate: "2026-01-24",
+    refundMethod: "CASH",
+    items: [{ salesInvoiceItemId: invoice.items[0].id, productId: product.id, quantityPieces: 1 }],
+  });
+
+  assert.equal(response.status, 400);
+  assert.match(response.body.message, /non-refundable/i);
+});
+
 test("cumulative returns cannot exceed the originally sold quantity, but the exact remaining amount succeeds", async () => {
   const product = await createProduct(tenant.agent, { name: "Return Widget C", retailPrice: 90 });
   await addStock(tenant.agent, product.id, 50);

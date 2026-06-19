@@ -17,6 +17,7 @@ export default function ProductFormModal({ product, onClose, onSave }) {
     purchasePrice: product?.purchasePrice || '',
     wholesalePrice: product?.wholesalePrice || '',
     retailPrice: product?.retailPrice || '',
+    taxRate: product?.taxRate != null ? product.taxRate : '',
     orderIndex: product?.orderIndex != null ? product.orderIndex : '',
     reorderLevel: product?.reorderLevel != null ? product.reorderLevel : '',
   });
@@ -31,6 +32,7 @@ export default function ProductFormModal({ product, onClose, onSave }) {
     const purchasePrice = Number(form.purchasePrice);
     const wholesalePrice = form.wholesalePrice === '' ? 0 : Number(form.wholesalePrice);
     const retailPrice = form.retailPrice === '' ? 0 : Number(form.retailPrice);
+    const taxRate = form.taxRate === '' ? 0 : Number(form.taxRate);
 
     if (!form.name.trim() || !form.categoryId) {
       setError(t('products.productNameCategoryRequired'));
@@ -49,6 +51,7 @@ export default function ProductFormModal({ product, onClose, onSave }) {
       purchasePrice,
       wholesalePrice,
       retailPrice,
+      taxRate,
       orderIndex: form.orderIndex === '' ? null : Number(form.orderIndex),
       reorderLevel: form.reorderLevel === '' ? null : cleanNumber(form.reorderLevel),
     };
@@ -61,6 +64,7 @@ export default function ProductFormModal({ product, onClose, onSave }) {
         payload.purchasePrice === product.purchasePrice &&
         payload.wholesalePrice === (product.wholesalePrice || 0) &&
         payload.retailPrice === (product.retailPrice || 0) &&
+        payload.taxRate === (product.taxRate || 0) &&
         payload.orderIndex === (product.orderIndex ?? null) &&
         payload.reorderLevel === (product.reorderLevel ?? null);
       if (unchanged) {
@@ -112,6 +116,11 @@ export default function ProductFormModal({ product, onClose, onSave }) {
           <div>
             <label className="label">{t('products.retailPrice')}</label>
             <input className="input" type="number" min="0" step="0.01" value={form.retailPrice} onChange={(event) => updateField('retailPrice', event.target.value)} />
+          </div>
+          <div>
+            <label className="label">{t('retailer.shared.taxRateLabel')}</label>
+            <input className="input" type="number" min="0" max="100" step="0.01" value={form.taxRate} onChange={(event) => updateField('taxRate', event.target.value)} />
+            <p className="mt-1 text-xs text-slate-500">{t('products.taxRateHint') || 'Override the company default for this product.'}</p>
           </div>
           <div>
             <label className="label">{t('products.orderIndex')}</label>

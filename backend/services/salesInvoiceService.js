@@ -36,6 +36,33 @@ import {
 
 const DATE_ERROR = "Invoice date must be in YYYY-MM-DD format.";
 
+function applyLineItemTaxes(items, productMap, defaultTaxRate = 0, invoiceDiscount = 0) {
+  const gross = items.reduce((sum, item) => sum + Number(item.lineTotal || 0), 0);
+  const discount = Math.max(0, Number(invoiceDiscount || 0));
+  const discountBase = gross > 0 ? discount : 0;
+
+  let totalTaxAmount = 0;
+  for (const item of items) {
+    const product = productMap.get(item.productId);
+    const taxRate = Math.min(Math.max(0, Number(product?.tax_rate ?? defaultTaxRate ?? 0)), 100);
+    const discountShare = gross > 0 ? discountBase * (Number(item.lineTotal || 0) / gross) : 0;
+    const taxableLine = Math.max(0, Number(item.lineTotal || 0) - discountShare);
+    const taxAmount = Math.max(0, taxableLine * taxRate / 100);
+    item.taxRate = taxRate;
+    item.taxAmount = taxAmount;
+    totalTaxAmount += taxAmount;
+  }
+
+  const taxableAmount = Math.max(0, gross - discountBase);
+  const totalAmount = Math.max(0, taxableAmount + totalTaxAmount);
+  return {
+    taxableAmount,
+    taxAmount: totalTaxAmount,
+    totalAmount,
+    taxRate: taxableAmount > 0 ? Math.min(Math.max(0, (totalTaxAmount / taxableAmount) * 100), 100) : 0,
+  };
+}
+
 async function seedOpeningCustomerLedgerIfNeeded(client, customer, tenantId, actor, businessDate) {
   const existingEntry = await getLatestCustomerDueLedgerEntry(client, customer.id, tenantId);
   if (existingEntry) {
@@ -153,6 +180,14 @@ export class SalesInvoiceService {
       totalProfit += item.lineTotal - costPriceSnapshot * item.quantityPieces;
     }
 
+    const taxSummary = applyLineItemTaxes(base.items, productMap, 0, base.discount);
+    base.taxableAmount = taxSummary.taxableAmount;
+    base.taxAmount = taxSummary.taxAmount;
+    base.totalAmount = taxSummary.totalAmount;
+    base.taxRate = taxSummary.taxRate;
+    base.paidAmount = Math.max(0, Math.min(base.paidAmount, base.totalAmount));
+    base.dueAmount = base.totalAmount - base.paidAmount;
+
     const year = new Date(base.invoiceDate).getUTCFullYear();
     const invoiceNumber = await nextInvoiceNumber(client, actor.tenantId, year);
 
@@ -206,6 +241,8 @@ export class SalesInvoiceService {
         costPriceSnapshot: item.costPriceSnapshot,
         lineDiscount: item.lineDiscount,
         lineTotal: item.lineTotal,
+        taxRate: item.taxRate,
+        taxAmount: item.taxAmount,
       });
     }
 

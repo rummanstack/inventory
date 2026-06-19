@@ -117,7 +117,7 @@ export default function OrgSettingsPage() {
             disabled={!canEdit}
           />
           <p className="mt-1 text-xs text-slate-500">
-            {t('orgSettings.taxHelp') || 'Set this to 0 to hide tax from cashier screens.'}
+            {t('orgSettings.taxHelp') || 'This is the company default. Individual products can override it.'}
           </p>
         </label>
 

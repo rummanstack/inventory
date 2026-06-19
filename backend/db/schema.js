@@ -85,6 +85,7 @@ export async function createSchema(pool) {
       pieces_per_case INTEGER NOT NULL,
       purchase_price NUMERIC NOT NULL,
       stock_pieces INTEGER NOT NULL,
+      tax_rate NUMERIC NOT NULL DEFAULT 0,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
 
@@ -204,6 +205,10 @@ export async function createSchema(pool) {
     ALTER TABLE purchase_receipts ADD COLUMN IF NOT EXISTS tax_amount NUMERIC NOT NULL DEFAULT 0;
     ALTER TABLE sales_invoices ADD COLUMN IF NOT EXISTS tax_rate NUMERIC NOT NULL DEFAULT 0;
     ALTER TABLE sales_invoices ADD COLUMN IF NOT EXISTS tax_amount NUMERIC NOT NULL DEFAULT 0;
+    ALTER TABLE purchase_receipt_items ADD COLUMN IF NOT EXISTS tax_rate NUMERIC NOT NULL DEFAULT 0;
+    ALTER TABLE purchase_receipt_items ADD COLUMN IF NOT EXISTS tax_amount NUMERIC NOT NULL DEFAULT 0;
+    ALTER TABLE sales_invoice_items ADD COLUMN IF NOT EXISTS tax_rate NUMERIC NOT NULL DEFAULT 0;
+    ALTER TABLE sales_invoice_items ADD COLUMN IF NOT EXISTS tax_amount NUMERIC NOT NULL DEFAULT 0;
 
     CREATE INDEX IF NOT EXISTS idx_products_name ON products(name);
     CREATE INDEX IF NOT EXISTS idx_dsrs_name ON dsrs(name);
@@ -266,6 +271,7 @@ export async function createSchema(pool) {
     UPDATE products SET order_index = 9999 WHERE order_index = 0;
 
     ALTER TABLE products ADD COLUMN IF NOT EXISTS damaged_pieces INTEGER NOT NULL DEFAULT 0;
+    ALTER TABLE products ADD COLUMN IF NOT EXISTS tax_rate NUMERIC NOT NULL DEFAULT 0;
 
     ALTER TABLE stock_movements ADD COLUMN IF NOT EXISTS tenant_id TEXT REFERENCES tenants(id);
     ALTER TABLE stock_movements ADD COLUMN IF NOT EXISTS product_id TEXT NOT NULL DEFAULT '';
@@ -468,6 +474,8 @@ export async function createSchema(pool) {
       purchase_price      NUMERIC NOT NULL DEFAULT 0,
       line_discount       NUMERIC NOT NULL DEFAULT 0,
       line_total          NUMERIC NOT NULL DEFAULT 0,
+      tax_rate            NUMERIC NOT NULL DEFAULT 0,
+      tax_amount          NUMERIC NOT NULL DEFAULT 0,
       created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
 
@@ -571,6 +579,8 @@ export async function createSchema(pool) {
       cost_price_snapshot NUMERIC NOT NULL DEFAULT 0,
       line_discount       NUMERIC NOT NULL DEFAULT 0,
       line_total          NUMERIC NOT NULL DEFAULT 0,
+      tax_rate            NUMERIC NOT NULL DEFAULT 0,
+      tax_amount          NUMERIC NOT NULL DEFAULT 0,
       created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
 

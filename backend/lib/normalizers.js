@@ -20,6 +20,7 @@ export function normalizeProduct(input) {
     wholesalePrice: cleanMoney(input.wholesalePrice),
     retailPrice: cleanMoney(input.retailPrice),
     stockPieces: cleanInteger(input.stockPieces),
+    taxRate: Math.min(Math.max(0, cleanMoney(input.taxRate)), 100),
     orderIndex:
       input.orderIndex !== undefined && input.orderIndex !== null && String(input.orderIndex).trim() !== ""
         ? cleanInteger(input.orderIndex)
@@ -186,6 +187,7 @@ export function normalizePurchaseReceipt(input) {
           const purchasePrice = cleanMoney(item.purchasePrice);
           const lineDiscount = Math.max(0, cleanMoney(item.lineDiscount));
           const lineTotal = Math.max(0, quantityPieces * purchasePrice - lineDiscount);
+          const taxRate = Math.min(Math.max(0, cleanMoney(item.taxRate)), 100);
 
           return {
             id: item.id || createId("purchase-item"),
@@ -195,6 +197,8 @@ export function normalizePurchaseReceipt(input) {
             purchasePrice,
             lineDiscount,
             lineTotal,
+            taxRate,
+            taxAmount: Math.max(0, lineTotal * taxRate / 100),
           };
         })
         .filter((item) => item.productId)
@@ -204,9 +208,9 @@ export function normalizePurchaseReceipt(input) {
   const lineDiscountTotal = items.reduce((sum, item) => sum + item.lineDiscount, 0);
   const discount = Math.max(0, cleanMoney(input.discount));
   const taxableAmount = Math.max(0, grossTotal - lineDiscountTotal - discount);
-  const taxRate = Math.min(Math.max(0, cleanMoney(input.taxRate)), 100);
-  const taxAmount = Math.max(0, taxableAmount * taxRate / 100);
+  const taxAmount = items.reduce((sum, item) => sum + Math.max(0, cleanMoney(item.taxAmount)), 0);
   const totalAmount = Math.max(0, taxableAmount + taxAmount);
+  const taxRate = taxableAmount > 0 ? Math.min(Math.max(0, (taxAmount / taxableAmount) * 100), 100) : 0;
   const paidAmount = Math.max(0, Math.min(cleanMoney(input.paidAmount), totalAmount));
   const dueAmount = totalAmount - paidAmount;
 
@@ -249,6 +253,7 @@ export function normalizeSalesInvoice(input) {
           const actualSalePrice = cleanMoney(item.actualSalePrice);
           const lineDiscount = Math.max(0, cleanMoney(item.lineDiscount));
           const lineTotal = Math.max(0, quantityPieces * actualSalePrice - lineDiscount);
+          const taxRate = Math.min(Math.max(0, cleanMoney(item.taxRate)), 100);
 
           return {
             id: item.id || createId("sales-item"),
@@ -258,6 +263,8 @@ export function normalizeSalesInvoice(input) {
             actualSalePrice,
             lineDiscount,
             lineTotal,
+            taxRate,
+            taxAmount: Math.max(0, lineTotal * taxRate / 100),
           };
         })
         .filter((item) => item.productId && item.quantityPieces > 0)
@@ -267,9 +274,9 @@ export function normalizeSalesInvoice(input) {
   const lineDiscountTotal = items.reduce((sum, item) => sum + item.lineDiscount, 0);
   const discount = Math.max(0, cleanMoney(input.discount));
   const taxableAmount = Math.max(0, subtotal - lineDiscountTotal - discount);
-  const taxRate = Math.min(Math.max(0, cleanMoney(input.taxRate)), 100);
-  const taxAmount = Math.max(0, taxableAmount * taxRate / 100);
+  const taxAmount = items.reduce((sum, item) => sum + Math.max(0, cleanMoney(item.taxAmount)), 0);
   const totalAmount = Math.max(0, taxableAmount + taxAmount);
+  const taxRate = taxableAmount > 0 ? Math.min(Math.max(0, (taxAmount / taxableAmount) * 100), 100) : 0;
   const paidAmount = Math.max(0, Math.min(cleanMoney(input.paidAmount), totalAmount));
   const dueAmount = totalAmount - paidAmount;
 

@@ -43,7 +43,9 @@ function itemsSubquery() {
       'quantityPieces', pri.quantity_pieces,
       'purchasePrice', pri.purchase_price,
       'lineDiscount', pri.line_discount,
-      'lineTotal', pri.line_total
+      'lineTotal', pri.line_total,
+      'taxRate', pri.tax_rate,
+      'taxAmount', pri.tax_amount
     ) ORDER BY pri.id), '[]'::json)
     FROM purchase_receipt_items pri
     LEFT JOIN products p ON p.id = pri.product_id
@@ -205,10 +207,10 @@ export function updatePurchaseReceipt(client, purchase) {
 
 export function insertPurchaseReceiptItem(client, item) {
   return client.query(
-    `INSERT INTO purchase_receipt_items (id, tenant_id, purchase_receipt_id, product_id, quantity_pieces, purchase_price, line_discount, line_total)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+    `INSERT INTO purchase_receipt_items (id, tenant_id, purchase_receipt_id, product_id, quantity_pieces, purchase_price, line_discount, line_total, tax_rate, tax_amount)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
      RETURNING *`,
-    [item.id, item.tenantId, item.purchaseReceiptId, item.productId, item.quantityPieces, item.purchasePrice, item.lineDiscount, item.lineTotal],
+    [item.id, item.tenantId, item.purchaseReceiptId, item.productId, item.quantityPieces, item.purchasePrice, item.lineDiscount, item.lineTotal, item.taxRate, item.taxAmount],
   );
 }
 

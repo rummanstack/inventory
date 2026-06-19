@@ -40,6 +40,33 @@ import {
 
 const DATE_ERROR = "Purchase date must be in YYYY-MM-DD format.";
 
+function applyLineItemTaxes(items, productMap, defaultTaxRate = 0, invoiceDiscount = 0) {
+  const gross = items.reduce((sum, item) => sum + Number(item.lineTotal || 0), 0);
+  const discount = Math.max(0, Number(invoiceDiscount || 0));
+  const discountBase = gross > 0 ? discount : 0;
+
+  let totalTaxAmount = 0;
+  for (const item of items) {
+    const product = productMap.get(item.productId);
+    const taxRate = Math.min(Math.max(0, Number(product?.tax_rate ?? defaultTaxRate ?? 0)), 100);
+    const discountShare = gross > 0 ? discountBase * (Number(item.lineTotal || 0) / gross) : 0;
+    const taxableLine = Math.max(0, Number(item.lineTotal || 0) - discountShare);
+    const taxAmount = Math.max(0, taxableLine * taxRate / 100);
+    item.taxRate = taxRate;
+    item.taxAmount = taxAmount;
+    totalTaxAmount += taxAmount;
+  }
+
+  const taxableAmount = Math.max(0, gross - discountBase);
+  const totalAmount = Math.max(0, taxableAmount + totalTaxAmount);
+  return {
+    taxableAmount,
+    taxAmount: totalTaxAmount,
+    totalAmount,
+    taxRate: taxableAmount > 0 ? Math.min(Math.max(0, (totalTaxAmount / taxableAmount) * 100), 100) : 0,
+  };
+}
+
 function sumPurchasePiecesByProduct(items) {
   return items.reduce((map, item) => {
     const current = map.get(item.productId) || 0;
@@ -216,6 +243,15 @@ export class PurchaseReceiveService {
     const supplierResult = await findSupplierForUpdate(client, base.supplierId, actor.tenantId);
     assert(supplierResult.rowCount > 0, "Supplier not found.", 404);
     const supplier = supplierResult.rows[0];
+    const productIds = base.items.map((item) => item.productId);
+    const productMap = await lockProducts(client, productIds, actor.tenantId);
+    const taxSummary = applyLineItemTaxes(base.items, productMap, 0, base.discount);
+    base.taxableAmount = taxSummary.taxableAmount;
+    base.taxAmount = taxSummary.taxAmount;
+    base.totalAmount = taxSummary.totalAmount;
+    base.taxRate = taxSummary.taxRate;
+    base.paidAmount = Math.max(0, Math.min(base.paidAmount, base.totalAmount));
+    base.dueAmount = base.totalAmount - base.paidAmount;
 
     const year = new Date(base.purchaseDate).getUTCFullYear();
     const purchaseNumber = await nextPurchaseNumber(client, actor.tenantId, year);
@@ -243,6 +279,8 @@ export class PurchaseReceiveService {
         purchasePrice: item.purchasePrice,
         lineDiscount: item.lineDiscount,
         lineTotal: item.lineTotal,
+        taxRate: item.taxRate,
+        taxAmount: item.taxAmount,
       });
     }
 
@@ -333,9 +371,18 @@ export class PurchaseReceiveService {
     const supplierResult = await findSupplierForUpdate(client, base.supplierId, actor.tenantId);
     assert(supplierResult.rowCount > 0, "Supplier not found.", 404);
     const supplier = supplierResult.rows[0];
+    const productIds = base.items.map((item) => item.productId);
+    const productMap = await lockProducts(client, productIds, actor.tenantId);
+    const taxSummary = applyLineItemTaxes(base.items, productMap, 0, base.discount);
+    base.taxableAmount = taxSummary.taxableAmount;
+    base.taxAmount = taxSummary.taxAmount;
+    base.totalAmount = taxSummary.totalAmount;
+    base.taxRate = taxSummary.taxRate;
+    base.paidAmount = Math.max(0, Math.min(base.paidAmount, base.totalAmount));
+    base.dueAmount = base.totalAmount - base.paidAmount;
 
     const itemsResult = await client.query(
-      `SELECT product_id, quantity_pieces, purchase_price, line_discount, line_total FROM purchase_receipt_items WHERE purchase_receipt_id = $1`,
+      `SELECT product_id, quantity_pieces, purchase_price, line_discount, line_total, tax_rate, tax_amount FROM purchase_receipt_items WHERE purchase_receipt_id = $1`,
       [base.id],
     );
     const previousItems = itemsResult.rows.map((row) => ({
@@ -344,6 +391,8 @@ export class PurchaseReceiveService {
       purchasePrice: Number(row.purchase_price || 0),
       lineDiscount: Number(row.line_discount || 0),
       lineTotal: Number(row.line_total || 0),
+      taxRate: Number(row.tax_rate || 0),
+      taxAmount: Number(row.tax_amount || 0),
     }));
 
     await applyPurchaseInventoryDelta(client, previousItems, base.items, actor.tenantId, {
@@ -364,6 +413,8 @@ export class PurchaseReceiveService {
         purchasePrice: item.purchasePrice,
         lineDiscount: item.lineDiscount,
         lineTotal: item.lineTotal,
+        taxRate: item.taxRate,
+        taxAmount: item.taxAmount,
       });
     }
 

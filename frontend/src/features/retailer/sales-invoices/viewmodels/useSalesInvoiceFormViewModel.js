@@ -6,6 +6,27 @@ function priceForProduct(product, saleType) {
   return saleType === 'WHOLESALE' ? Number(product.wholesalePrice || 0) : Number(product.retailPrice || 0);
 }
 
+function taxRateForProduct(product, defaultTaxRate) {
+  return Math.min(Math.max(0, Number(product?.taxRate ?? defaultTaxRate ?? 0)), 100);
+}
+
+function summarizeTaxes(lineRows, discount) {
+  const gross = lineRows.reduce((sum, row) => sum + row.lineTotal, 0);
+  const discountBase = Math.max(0, Number(discount || 0));
+  let totalTaxAmount = 0;
+  const nextRows = lineRows.map((row) => {
+    const discountShare = gross > 0 ? discountBase * (row.lineTotal / gross) : 0;
+    const taxableLine = Math.max(0, row.lineTotal - discountShare);
+    const taxAmount = Math.max(0, taxableLine * row.taxRate / 100);
+    totalTaxAmount += taxAmount;
+    return { ...row, taxAmount };
+  });
+  const taxableAmount = Math.max(0, gross - discountBase);
+  const totalAmount = Math.max(0, taxableAmount + totalTaxAmount);
+  const taxRate = taxableAmount > 0 ? Math.min(Math.max(0, (totalTaxAmount / taxableAmount) * 100), 100) : 0;
+  return { nextRows, taxableAmount, taxAmount: totalTaxAmount, totalAmount, taxRate };
+}
+
 export function useSalesInvoiceFormViewModel({ products, defaultSaleType = 'RETAIL', defaultCustomerType = 'WALK_IN', defaultTaxRate = 0 }) {
   const [customerId, setCustomerId] = useState('');
   const [customerType, setCustomerType] = useState(defaultCustomerType);
@@ -49,6 +70,7 @@ export function useSalesInvoiceFormViewModel({ products, defaultSaleType = 'RETA
         actualSalePrice: priceForProduct(nextProduct, saleType),
         lineDiscount: 0,
         availableStock: Number(nextProduct.stockPieces || 0),
+        taxRate: taxRateForProduct(nextProduct, defaultTaxRate),
       },
     ]);
   }
@@ -71,6 +93,7 @@ export function useSalesInvoiceFormViewModel({ products, defaultSaleType = 'RETA
           productName: product.name,
           actualSalePrice: priceForProduct(product, saleType),
           availableStock: Number(product.stockPieces || 0),
+          taxRate: taxRateForProduct(product, defaultTaxRate),
         };
       }
 
@@ -103,7 +126,8 @@ export function useSalesInvoiceFormViewModel({ products, defaultSaleType = 'RETA
     const lineDiscountNumber = Math.max(0, Number(row.lineDiscount || 0));
     const lineGross = quantityNumber * actualSalePriceNumber;
     const lineTotal = Math.max(0, lineGross - lineDiscountNumber);
-    return { ...row, quantityNumber, actualSalePriceNumber, lineDiscountNumber, lineGross, lineTotal };
+    const taxRate = Math.min(Math.max(0, Number(row.taxRate || 0)), 100);
+    return { ...row, quantityNumber, actualSalePriceNumber, lineDiscountNumber, lineGross, lineTotal, taxRate };
   });
 
   const subtotal = lineRows.reduce((sum, row) => sum + row.lineGross, 0);
@@ -111,9 +135,11 @@ export function useSalesInvoiceFormViewModel({ products, defaultSaleType = 'RETA
   const maxDiscount = Math.max(0, subtotal - lineDiscountTotal);
   const discountRaw = Math.max(0, Number(discountInput || 0));
   const discount = Math.min(discountRaw, maxDiscount);
-  const taxableAmount = Math.max(0, subtotal - lineDiscountTotal - discount);
-  const taxRate = Math.min(Math.max(0, Number(taxRateInput || 0)), 100);
-  const taxAmount = Math.max(0, taxableAmount * taxRate / 100);
+  const taxSummary = summarizeTaxes(lineRows, discount);
+  const taxedLineRows = taxSummary.nextRows;
+  const taxableAmount = taxSummary.taxableAmount;
+  const taxRate = taxSummary.taxRate;
+  const taxAmount = taxSummary.taxAmount;
   const totalAmount = Math.max(0, taxableAmount + taxAmount);
   const paidAmountRaw = Math.max(0, Number(paidAmountInput || 0));
   const paidAmount = Math.min(paidAmountRaw, totalAmount);
@@ -222,7 +248,7 @@ export function useSalesInvoiceFormViewModel({ products, defaultSaleType = 'RETA
       customerType,
       saleType,
       invoiceDate,
-      items: lineRows
+      items: taxedLineRows
         .filter((row) => row.productId)
         .map((row) => ({
           productId: row.productId,
@@ -230,6 +256,8 @@ export function useSalesInvoiceFormViewModel({ products, defaultSaleType = 'RETA
           quantityPieces: row.quantityNumber,
           actualSalePrice: row.actualSalePriceNumber,
           lineDiscount: row.lineDiscountNumber,
+          taxRate: row.taxRate,
+          taxAmount: row.taxAmount,
       })),
       discount,
       taxRate,
@@ -249,7 +277,7 @@ export function useSalesInvoiceFormViewModel({ products, defaultSaleType = 'RETA
     setSaleType: changeSaleType,
     invoiceDate,
     setInvoiceDate,
-    lineRows,
+    lineRows: taxedLineRows,
     addItem,
     updateItem,
     removeItem,

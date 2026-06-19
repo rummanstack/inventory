@@ -67,6 +67,7 @@ export class ProductService {
     assert(product.name && product.categoryId, "Product name and category are required.");
     assert(product.piecesPerCase > 0, "Pieces per case must be greater than zero.");
     assert(product.purchasePrice > 0, "Purchase price must be greater than zero.");
+    product.taxRate = Math.min(Math.max(0, Number(product.taxRate || 0)), 100);
 
     return this.databaseManager.withTransaction(async (client) => {
       const category = await findCategoryById(client, product.categoryId, actor.tenantId);

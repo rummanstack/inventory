@@ -46,7 +46,9 @@ function itemsSubquery() {
       'actualSalePrice', sii.actual_sale_price,
       'costPriceSnapshot', sii.cost_price_snapshot,
       'lineDiscount', sii.line_discount,
-      'lineTotal', sii.line_total
+      'lineTotal', sii.line_total,
+      'taxRate', sii.tax_rate,
+      'taxAmount', sii.tax_amount
     ) ORDER BY sii.id), '[]'::json)
     FROM sales_invoice_items sii
     WHERE sii.sales_invoice_id = si.id
@@ -179,8 +181,8 @@ export function insertSalesInvoice(client, invoice) {
 
 export function insertSalesInvoiceItem(client, item) {
   return client.query(
-    `INSERT INTO sales_invoice_items (id, tenant_id, sales_invoice_id, product_id, product_name, quantity_pieces, actual_sale_price, cost_price_snapshot, line_discount, line_total)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+    `INSERT INTO sales_invoice_items (id, tenant_id, sales_invoice_id, product_id, product_name, quantity_pieces, actual_sale_price, cost_price_snapshot, line_discount, line_total, tax_rate, tax_amount)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
      RETURNING *`,
     [
       item.id,
@@ -193,6 +195,8 @@ export function insertSalesInvoiceItem(client, item) {
       item.costPriceSnapshot,
       item.lineDiscount,
       item.lineTotal,
+      item.taxRate,
+      item.taxAmount,
     ],
   );
 }

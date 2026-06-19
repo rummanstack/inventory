@@ -7,6 +7,7 @@ import { CUSTOMER_DUE_LEDGER_TYPES } from "../lib/customerDueLedger.js";
 import { SALES_INVOICE_ACTIONS } from "../lib/auditActions.js";
 import { nextInvoiceNumber } from "../lib/salesNumber.js";
 import { findRetailCustomerForUpdate, updateRetailCustomerCurrentDue } from "../repositories/retailCustomerRepository.js";
+import { findTenantById } from "../repositories/tenantRepository.js";
 import { getLatestCustomerDueLedgerEntry } from "../repositories/customerDueLedgerRepository.js";
 import {
   countSalesInvoices,
@@ -112,24 +113,25 @@ export class SalesInvoiceService {
   }
 
   async saveSalesInvoice(input, actor) {
-    const base = normalizeSalesInvoice(input);
-    base.tenantId = actor.tenantId;
-    assert(base.items.length > 0, "At least one product line item is required.");
-    assert(base.invoiceDate, "Invoice date is required.");
-    base.invoiceDate = normalizeIsoDate(base.invoiceDate, base.invoiceDate, DATE_ERROR);
-
-    if (base.customerType === "WALK_IN") {
-      assert(base.dueAmount === 0, "Walk-in sales must be fully paid.");
-    }
-
-    if (base.dueAmount > 0) {
-      assert(
-        base.customerType === "REGISTERED" && base.customerId,
-        "Due amount requires a registered customer.",
-      );
-    }
-
     return this.databaseManager.withTransaction(async (client) => {
+      const tenant = await findTenantById(client, actor.tenantId);
+      const base = normalizeSalesInvoice({ ...input, taxRate: tenant?.taxRate ?? 0 });
+      base.tenantId = actor.tenantId;
+      assert(base.items.length > 0, "At least one product line item is required.");
+      assert(base.invoiceDate, "Invoice date is required.");
+      base.invoiceDate = normalizeIsoDate(base.invoiceDate, base.invoiceDate, DATE_ERROR);
+
+      if (base.customerType === "WALK_IN") {
+        assert(base.dueAmount === 0, "Walk-in sales must be fully paid.");
+      }
+
+      if (base.dueAmount > 0) {
+        assert(
+          base.customerType === "REGISTERED" && base.customerId,
+          "Due amount requires a registered customer.",
+        );
+      }
+
       return this.createSalesInvoiceRecord(client, base, actor);
     });
   }
@@ -244,6 +246,8 @@ export class SalesInvoiceService {
         invoiceNumber,
         saleType: base.saleType,
         customerId: base.customerId,
+        taxRate: base.taxRate,
+        taxAmount: base.taxAmount,
         totalAmount: base.totalAmount,
         dueAmount: base.dueAmount,
         totalProfit,

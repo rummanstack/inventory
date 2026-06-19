@@ -10,6 +10,8 @@ export function mapSalesInvoice(row) {
     saleType: row.sale_type,
     subtotal: Number(row.subtotal || 0),
     discount: Number(row.discount || 0),
+    taxRate: Number(row.tax_rate || 0),
+    taxAmount: Number(row.tax_amount || 0),
     totalAmount: Number(row.total_amount || 0),
     paidAmount: Number(row.paid_amount || 0),
     dueAmount: Number(row.due_amount || 0),
@@ -148,9 +150,9 @@ export function insertSalesInvoice(client, invoice) {
   return client.query(
     `INSERT INTO sales_invoices (
        id, tenant_id, invoice_number, invoice_date, customer_id, customer_type, sale_type,
-       subtotal, discount, total_amount, paid_amount, due_amount, payment_method, total_profit, note, created_by
+       subtotal, discount, tax_rate, tax_amount, total_amount, paid_amount, due_amount, payment_method, total_profit, note, created_by
      )
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
      RETURNING *`,
     [
       invoice.id,
@@ -162,6 +164,8 @@ export function insertSalesInvoice(client, invoice) {
       invoice.saleType,
       invoice.subtotal,
       invoice.discount,
+      invoice.taxRate,
+      invoice.taxAmount,
       invoice.totalAmount,
       invoice.paidAmount,
       invoice.dueAmount,
@@ -254,14 +258,15 @@ export async function getDailySalesReport(client, { tenantId, dateFrom, dateTo, 
   }
 
   const result = await client.query(
-    `SELECT
-       si.invoice_date AS date,
-       COUNT(*)::INTEGER AS invoice_count,
-       COALESCE(SUM(si.total_amount), 0) AS total_amount,
-       COALESCE(SUM(si.paid_amount), 0) AS paid_amount,
-       COALESCE(SUM(si.due_amount), 0) AS due_amount,
-       COALESCE(SUM(si.total_profit), 0) AS total_profit
-     FROM sales_invoices si
+      `SELECT
+         si.invoice_date AS date,
+         COUNT(*)::INTEGER AS invoice_count,
+         COALESCE(SUM(si.total_amount), 0) AS total_amount,
+         COALESCE(SUM(si.paid_amount), 0) AS paid_amount,
+         COALESCE(SUM(si.due_amount), 0) AS due_amount,
+         COALESCE(SUM(si.tax_amount), 0) AS tax_amount,
+         COALESCE(SUM(si.total_profit), 0) AS total_profit
+       FROM sales_invoices si
      WHERE ${conditions.join(" AND ")}
      GROUP BY si.invoice_date
      ORDER BY si.invoice_date DESC`,
@@ -274,17 +279,19 @@ export async function getDailySalesReport(client, { tenantId, dateFrom, dateTo, 
     totalAmount: Number(row.total_amount || 0),
     paidAmount: Number(row.paid_amount || 0),
     dueAmount: Number(row.due_amount || 0),
+    taxAmount: Number(row.tax_amount || 0),
     totalProfit: Number(row.total_profit || 0),
   }));
 }
 
 export async function sumSalesInvoicesInRange(client, tenantId, dateFrom, dateTo) {
   const result = await client.query(
-    `SELECT
-       COUNT(*)::INTEGER AS count,
-       COALESCE(SUM(total_amount), 0) AS total_amount,
-       COALESCE(SUM(paid_amount), 0) AS paid_amount
-     FROM sales_invoices
+      `SELECT
+         COUNT(*)::INTEGER AS count,
+         COALESCE(SUM(total_amount), 0) AS total_amount,
+         COALESCE(SUM(paid_amount), 0) AS paid_amount,
+         COALESCE(SUM(tax_amount), 0) AS tax_amount
+       FROM sales_invoices
      WHERE tenant_id = $1
        AND invoice_date >= $2
        AND invoice_date < $3
@@ -295,6 +302,7 @@ export async function sumSalesInvoicesInRange(client, tenantId, dateFrom, dateTo
     count: result.rows[0].count,
     totalAmount: Number(result.rows[0].total_amount || 0),
     paidAmount: Number(result.rows[0].paid_amount || 0),
+    taxAmount: Number(result.rows[0].tax_amount || 0),
   };
 }
 
@@ -318,12 +326,13 @@ export async function getProfitReport(client, { tenantId, dateFrom, dateTo, sale
   }
 
   const result = await client.query(
-    `SELECT
-       si.invoice_date AS date,
-       COUNT(DISTINCT si.id)::INTEGER AS invoice_count,
-       COALESCE(SUM(si.total_amount), 0) AS total_sales,
-       COALESCE(SUM(si.total_profit), 0) AS total_profit
-     FROM sales_invoices si
+      `SELECT
+         si.invoice_date AS date,
+         COUNT(DISTINCT si.id)::INTEGER AS invoice_count,
+         COALESCE(SUM(si.total_amount), 0) AS total_sales,
+         COALESCE(SUM(si.tax_amount), 0) AS tax_amount,
+         COALESCE(SUM(si.total_profit), 0) AS total_profit
+       FROM sales_invoices si
      WHERE ${conditions.join(" AND ")}
      GROUP BY si.invoice_date
      ORDER BY si.invoice_date DESC`,
@@ -334,6 +343,7 @@ export async function getProfitReport(client, { tenantId, dateFrom, dateTo, sale
     date: row.date,
     invoiceCount: Number(row.invoice_count || 0),
     totalSales: Number(row.total_sales || 0),
+    taxAmount: Number(row.tax_amount || 0),
     totalProfit: Number(row.total_profit || 0),
   }));
 }

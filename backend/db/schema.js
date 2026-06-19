@@ -9,6 +9,7 @@ export async function createSchema(pool) {
       status      TEXT NOT NULL DEFAULT 'active',
       logo_url    TEXT,
       address     TEXT,
+      tax_rate    NUMERIC NOT NULL DEFAULT 0,
       created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
 
@@ -198,6 +199,11 @@ export async function createSchema(pool) {
     ALTER TABLE settlements ADD COLUMN IF NOT EXISTS extra_returns JSONB NOT NULL DEFAULT '[]';
     ALTER TABLE settlements ADD COLUMN IF NOT EXISTS discount NUMERIC NOT NULL DEFAULT 0;
     ALTER TABLE settlements ADD COLUMN IF NOT EXISTS extra_return_value NUMERIC NOT NULL DEFAULT 0;
+    ALTER TABLE tenants ADD COLUMN IF NOT EXISTS tax_rate NUMERIC NOT NULL DEFAULT 0;
+    ALTER TABLE purchase_receipts ADD COLUMN IF NOT EXISTS tax_rate NUMERIC NOT NULL DEFAULT 0;
+    ALTER TABLE purchase_receipts ADD COLUMN IF NOT EXISTS tax_amount NUMERIC NOT NULL DEFAULT 0;
+    ALTER TABLE sales_invoices ADD COLUMN IF NOT EXISTS tax_rate NUMERIC NOT NULL DEFAULT 0;
+    ALTER TABLE sales_invoices ADD COLUMN IF NOT EXISTS tax_amount NUMERIC NOT NULL DEFAULT 0;
 
     CREATE INDEX IF NOT EXISTS idx_products_name ON products(name);
     CREATE INDEX IF NOT EXISTS idx_dsrs_name ON dsrs(name);
@@ -432,6 +438,8 @@ export async function createSchema(pool) {
       supplier_invoice_no TEXT NOT NULL DEFAULT '',
       purchase_date       DATE NOT NULL,
       discount            NUMERIC NOT NULL DEFAULT 0,
+      tax_rate            NUMERIC NOT NULL DEFAULT 0,
+      tax_amount          NUMERIC NOT NULL DEFAULT 0,
       total_amount        NUMERIC NOT NULL DEFAULT 0,
       paid_amount         NUMERIC NOT NULL DEFAULT 0,
       due_amount          NUMERIC NOT NULL DEFAULT 0,
@@ -529,6 +537,8 @@ export async function createSchema(pool) {
       sale_type         TEXT NOT NULL DEFAULT 'RETAIL',
       subtotal          NUMERIC NOT NULL DEFAULT 0,
       discount          NUMERIC NOT NULL DEFAULT 0,
+      tax_rate          NUMERIC NOT NULL DEFAULT 0,
+      tax_amount        NUMERIC NOT NULL DEFAULT 0,
       total_amount      NUMERIC NOT NULL DEFAULT 0,
       paid_amount       NUMERIC NOT NULL DEFAULT 0,
       due_amount        NUMERIC NOT NULL DEFAULT 0,

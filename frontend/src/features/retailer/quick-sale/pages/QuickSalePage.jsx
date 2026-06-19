@@ -8,7 +8,12 @@ import SalesInvoiceFormFields from '../../sales-invoices/components/SalesInvoice
 
 function QuickSaleForm({ onSaved }) {
   const { t, productDirectory, retailCustomerDirectory, saveSalesInvoice, saveRetailCustomer, tenant, pushToast } = useInventoryApp();
-  const vm = useSalesInvoiceFormViewModel({ products: productDirectory, defaultSaleType: 'QUICK_SALE', defaultCustomerType: 'WALK_IN' });
+  const vm = useSalesInvoiceFormViewModel({
+    products: productDirectory,
+    defaultSaleType: 'QUICK_SALE',
+    defaultCustomerType: 'WALK_IN',
+    defaultTaxRate: tenant?.taxRate || 0,
+  });
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
 

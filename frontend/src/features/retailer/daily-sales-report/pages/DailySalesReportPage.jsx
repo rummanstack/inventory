@@ -15,10 +15,10 @@ export default function DailySalesReportPage() {
 
   async function handleExportExcel() {
     const { utils, writeFile } = await import('xlsx');
-    const header = ['Date', 'Invoices', 'Total Amount', 'Paid Amount', 'Due Amount', 'Profit'];
-    const data = rows.map((row) => [row.date, row.invoiceCount, Number(row.totalAmount), Number(row.paidAmount), Number(row.dueAmount), Number(row.totalProfit)]);
+    const header = ['Date', 'Invoices', 'Total Amount', 'Paid Amount', 'Due Amount', 'Tax', 'Profit'];
+    const data = rows.map((row) => [row.date, row.invoiceCount, Number(row.totalAmount), Number(row.paidAmount), Number(row.dueAmount), Number(row.taxAmount), Number(row.totalProfit)]);
     const ws = utils.aoa_to_sheet([header, ...data]);
-    ws['!cols'] = [{ wch: 14 }, { wch: 10 }, { wch: 16 }, { wch: 16 }, { wch: 16 }, { wch: 14 }];
+    ws['!cols'] = [{ wch: 14 }, { wch: 10 }, { wch: 16 }, { wch: 16 }, { wch: 16 }, { wch: 14 }, { wch: 14 }];
     const wb = utils.book_new();
     utils.book_append_sheet(wb, ws, 'Daily Sales');
     writeFile(wb, `daily-sales-report-${vm.dateFrom}-${vm.dateTo}.xlsx`);
@@ -30,9 +30,10 @@ export default function DailySalesReportPage() {
       acc.totalAmount += row.totalAmount;
       acc.paidAmount += row.paidAmount;
       acc.dueAmount += row.dueAmount;
+      acc.taxAmount += row.taxAmount || 0;
       return acc;
     },
-    { invoiceCount: 0, totalAmount: 0, paidAmount: 0, dueAmount: 0 },
+    { invoiceCount: 0, totalAmount: 0, paidAmount: 0, dueAmount: 0, taxAmount: 0 },
   );
 
   return (
@@ -97,11 +98,12 @@ export default function DailySalesReportPage() {
           </div>
 
           <div id={printTargetId}>
-          <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
             <StatCard title={t('retailer.dailySalesReport.invoiceCount')} value={formatNumber(totals.invoiceCount)} icon={Wallet} tone="slate" />
             <StatCard title={t('retailer.shared.totalAmount')} value={formatCurrency(totals.totalAmount)} icon={Wallet} tone="blue" />
             <StatCard title={t('retailer.shared.paidAmountLabel')} value={formatCurrency(totals.paidAmount)} icon={Wallet} tone="emerald" />
             <StatCard title={t('retailer.shared.dueAmount')} value={formatCurrency(totals.dueAmount)} icon={Wallet} tone="rose" />
+            <StatCard title={t('retailer.shared.taxAmountLabel')} value={formatCurrency(totals.taxAmount)} icon={Wallet} tone="amber" />
           </div>
 
           <div className="surface overflow-hidden">
@@ -117,6 +119,7 @@ export default function DailySalesReportPage() {
                     <th className="px-4 py-3 text-right">{t('retailer.shared.totalAmount')}</th>
                     <th className="px-4 py-3 text-right">{t('retailer.shared.paidAmountLabel')}</th>
                     <th className="px-4 py-3 text-right">{t('retailer.shared.dueAmount')}</th>
+                    <th className="px-4 py-3 text-right">{t('retailer.shared.taxAmountLabel')}</th>
                     <th className="px-4 py-3 text-right">{t('retailer.profitReport.totalProfit')}</th>
                   </tr>
                 </thead>
@@ -128,6 +131,7 @@ export default function DailySalesReportPage() {
                       <td className="table-cell text-right font-bold">{formatCurrency(row.totalAmount)}</td>
                       <td className="table-cell text-right text-emerald-700">{formatCurrency(row.paidAmount)}</td>
                       <td className="table-cell text-right text-rose-700">{formatCurrency(row.dueAmount)}</td>
+                      <td className="table-cell text-right font-bold">{formatCurrency(row.taxAmount)}</td>
                       <td className="table-cell text-right font-bold">{formatCurrency(row.totalProfit)}</td>
                     </tr>
                   ))}

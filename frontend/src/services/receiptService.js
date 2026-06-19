@@ -269,6 +269,7 @@ export function buildReceiptHtml(invoice, {
       <tbody>
         ${buildMoneyRow('Subtotal', invoice?.subtotal)}
         ${buildMoneyRow('Discount', invoice?.discount)}
+        ${Number(invoice?.taxRate || 0) > 0 ? buildMoneyRow(`Tax (${Number(invoice.taxRate || 0).toFixed(2)}%)`, invoice?.taxAmount) : ''}
         <tr class="grand">
           <td class="label">Total</td>
           <td class="value">${escapeHtml(formatCurrency(invoice?.totalAmount))}</td>

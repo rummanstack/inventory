@@ -17,6 +17,7 @@ export default function ProductFormModal({ product, onClose, onSave }) {
     purchasePrice: product?.purchasePrice || '',
     wholesalePrice: product?.wholesalePrice || '',
     retailPrice: product?.retailPrice || '',
+    refundable: product?.refundable !== false,
     taxRate: product?.taxRate != null ? product.taxRate : '',
     orderIndex: product?.orderIndex != null ? product.orderIndex : '',
     reorderLevel: product?.reorderLevel != null ? product.reorderLevel : '',
@@ -51,6 +52,7 @@ export default function ProductFormModal({ product, onClose, onSave }) {
       purchasePrice,
       wholesalePrice,
       retailPrice,
+      refundable: Boolean(form.refundable),
       taxRate,
       orderIndex: form.orderIndex === '' ? null : Number(form.orderIndex),
       reorderLevel: form.reorderLevel === '' ? null : cleanNumber(form.reorderLevel),
@@ -64,6 +66,7 @@ export default function ProductFormModal({ product, onClose, onSave }) {
         payload.purchasePrice === product.purchasePrice &&
         payload.wholesalePrice === (product.wholesalePrice || 0) &&
         payload.retailPrice === (product.retailPrice || 0) &&
+        payload.refundable === (product.refundable !== false) &&
         payload.taxRate === (product.taxRate || 0) &&
         payload.orderIndex === (product.orderIndex ?? null) &&
         payload.reorderLevel === (product.reorderLevel ?? null);
@@ -121,6 +124,20 @@ export default function ProductFormModal({ product, onClose, onSave }) {
             <label className="label">{t('retailer.shared.taxRateLabel')}</label>
             <input className="input" type="number" min="0" max="100" step="0.01" value={form.taxRate} onChange={(event) => updateField('taxRate', event.target.value)} />
             <p className="mt-1 text-xs text-slate-500">{t('products.taxRateHint') || 'Override the company default for this product.'}</p>
+          </div>
+          <div className="sm:col-span-2">
+            <label className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+              <input
+                className="mt-1 h-4 w-4 rounded border-slate-300 text-brand focus:ring-brand"
+                type="checkbox"
+                checked={Boolean(form.refundable)}
+                onChange={(event) => updateField('refundable', event.target.checked)}
+              />
+              <span>
+                <span className="block font-semibold text-slate-950">{t('products.refundable')}</span>
+                <span className="mt-0.5 block text-xs font-medium text-slate-500">{t('products.refundableHint')}</span>
+              </span>
+            </label>
           </div>
           <div>
             <label className="label">{t('products.orderIndex')}</label>

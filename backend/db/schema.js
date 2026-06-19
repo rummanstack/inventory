@@ -85,6 +85,7 @@ export async function createSchema(pool) {
       pieces_per_case INTEGER NOT NULL,
       purchase_price NUMERIC NOT NULL,
       stock_pieces INTEGER NOT NULL,
+      refundable BOOLEAN NOT NULL DEFAULT TRUE,
       tax_rate NUMERIC NOT NULL DEFAULT 0,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
@@ -284,6 +285,7 @@ export async function createSchema(pool) {
 
     ALTER TABLE products ADD COLUMN IF NOT EXISTS damaged_pieces INTEGER NOT NULL DEFAULT 0;
     ALTER TABLE products ADD COLUMN IF NOT EXISTS tax_rate NUMERIC NOT NULL DEFAULT 0;
+    ALTER TABLE products ADD COLUMN IF NOT EXISTS refundable BOOLEAN NOT NULL DEFAULT TRUE;
 
     ALTER TABLE stock_movements ADD COLUMN IF NOT EXISTS tenant_id TEXT REFERENCES tenants(id);
     ALTER TABLE stock_movements ADD COLUMN IF NOT EXISTS product_id TEXT NOT NULL DEFAULT '';

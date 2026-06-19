@@ -167,6 +167,9 @@ export default function ProductsPage() {
                         <p className="font-semibold text-slate-950">{product.name}</p>
                         <p className="text-xs text-slate-500">{product.category}</p>
                       </div>
+                      <Badge tone={product.refundable === false ? 'rose' : 'emerald'}>
+                        {product.refundable === false ? t('products.nonRefundable') : t('products.refundable')}
+                      </Badge>
                       {product.stockPieces === 0 ? <Badge tone="rose">Out</Badge> : null}
                       {product.stockPieces > 0 && product.stockPieces <= product.piecesPerCase ? <Badge tone="amber">Low</Badge> : null}
                     </div>

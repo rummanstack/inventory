@@ -10,6 +10,7 @@ export function mapProduct(row) {
     retailPrice: Number(row.retail_price || 0),
     stockPieces: Number(row.stock_pieces),
     damagedPieces: Number(row.damaged_pieces),
+    refundable: row.refundable !== false && row.refundable !== 0 && row.refundable !== "false",
     taxRate: Number(row.tax_rate || 0),
     orderIndex: Number(row.order_index) >= 9999 ? null : Number(row.order_index),
     reorderLevel: row.reorder_level === null || row.reorder_level === undefined ? null : Number(row.reorder_level),
@@ -77,7 +78,7 @@ export async function listProductsPage(client, { search, categoryId, tenantId, l
 export async function listAllActiveProductsLite(client, tenantId) {
   const result = await client.query(
     `SELECT p.id, p.name, c.name AS category_name, p.category_id, p.pieces_per_case, p.purchase_price,
-            p.wholesale_price, p.retail_price, p.stock_pieces, p.damaged_pieces, p.tax_rate, p.order_index
+            p.wholesale_price, p.retail_price, p.stock_pieces, p.damaged_pieces, p.refundable, p.tax_rate, p.order_index
      FROM products p
      LEFT JOIN categories c ON c.id = p.category_id
      WHERE p.tenant_id = $1 AND p.deleted_at IS NULL
@@ -90,9 +91,9 @@ export async function listAllActiveProductsLite(client, tenantId) {
 export function insertProduct(client, product) {
   return client.query(
     `WITH inserted AS (
-       INSERT INTO products (id, tenant_id, name, category_id, pieces_per_case, purchase_price, wholesale_price, retail_price, stock_pieces, tax_rate, order_index, reorder_level)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-       RETURNING *
+      INSERT INTO products (id, tenant_id, name, category_id, pieces_per_case, purchase_price, wholesale_price, retail_price, stock_pieces, refundable, tax_rate, order_index, reorder_level)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+      RETURNING *
      )
      SELECT inserted.*, c.name AS category_name FROM inserted LEFT JOIN categories c ON c.id = inserted.category_id`,
     [
@@ -105,6 +106,7 @@ export function insertProduct(client, product) {
       product.wholesalePrice,
       product.retailPrice,
       product.stockPieces,
+      product.refundable,
       product.taxRate,
       product.orderIndex ?? 9999,
       product.reorderLevel,
@@ -116,7 +118,7 @@ export function updateProduct(client, product) {
   return client.query(
     `WITH updated AS (
        UPDATE products
-       SET name = $3, category_id = $4, pieces_per_case = $5, purchase_price = $6, wholesale_price = $7, retail_price = $8, tax_rate = $9, order_index = $10, reorder_level = $11
+       SET name = $3, category_id = $4, pieces_per_case = $5, purchase_price = $6, wholesale_price = $7, retail_price = $8, refundable = $9, tax_rate = $10, order_index = $11, reorder_level = $12
        WHERE id = $1 AND tenant_id = $2
        RETURNING *
      )
@@ -130,6 +132,7 @@ export function updateProduct(client, product) {
       product.purchasePrice,
       product.wholesalePrice,
       product.retailPrice,
+      product.refundable,
       product.taxRate,
       product.orderIndex ?? 9999,
       product.reorderLevel,

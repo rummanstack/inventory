@@ -54,6 +54,17 @@ export default function SalesReturnFormModal({ onClose, onSave }) {
           </div>
         </div>
 
+        <div>
+          <label className="label">{t('retailer.salesReturn.refundMethodLabel')}</label>
+          <select className="input" value={vm.refundMethod} onChange={(event) => vm.setRefundMethod(event.target.value)} disabled={saving}>
+            <option value="DUE_ADJUSTMENT">{t('retailer.salesReturn.refundMethodDueAdjustment')}</option>
+            <option value="CASH">{t('retailer.salesReturn.refundMethodCash')}</option>
+          </select>
+          <p className="mt-1 text-xs font-medium text-slate-500">
+            {t('retailer.salesReturn.refundMethodHelp')}
+          </p>
+        </div>
+
         {vm.salesInvoiceId ? (
           <div className="rounded-[22px] border border-slate-200 bg-slate-50 p-4 text-sm">
             <p className="font-bold text-slate-950">{vm.invoiceNumber}</p>

@@ -205,6 +205,7 @@ export async function createSchema(pool) {
     ALTER TABLE purchase_receipts ADD COLUMN IF NOT EXISTS tax_amount NUMERIC NOT NULL DEFAULT 0;
     ALTER TABLE sales_invoices ADD COLUMN IF NOT EXISTS tax_rate NUMERIC NOT NULL DEFAULT 0;
     ALTER TABLE sales_invoices ADD COLUMN IF NOT EXISTS tax_amount NUMERIC NOT NULL DEFAULT 0;
+    ALTER TABLE sales_returns ADD COLUMN IF NOT EXISTS refund_method TEXT NOT NULL DEFAULT 'DUE_ADJUSTMENT';
     ALTER TABLE retail_cash_sessions ADD COLUMN IF NOT EXISTS opened_by TEXT REFERENCES users(id) ON DELETE SET NULL;
     ALTER TABLE retail_cash_sessions ADD COLUMN IF NOT EXISTS closed_by TEXT REFERENCES users(id) ON DELETE SET NULL;
     ALTER TABLE retail_cash_sessions ADD COLUMN IF NOT EXISTS started_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
@@ -669,6 +670,7 @@ export async function createSchema(pool) {
       return_date              DATE NOT NULL,
       sales_invoice_id         TEXT REFERENCES sales_invoices(id) ON DELETE SET NULL,
       customer_id              TEXT REFERENCES customers(id) ON DELETE SET NULL,
+      refund_method            TEXT NOT NULL DEFAULT 'DUE_ADJUSTMENT',
       total_amount             NUMERIC NOT NULL DEFAULT 0,
       total_profit_adjustment  NUMERIC NOT NULL DEFAULT 0,
       note                     TEXT NOT NULL DEFAULT '',

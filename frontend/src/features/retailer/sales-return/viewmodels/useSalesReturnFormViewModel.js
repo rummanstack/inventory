@@ -9,6 +9,7 @@ export function useSalesReturnFormViewModel() {
   const [customerId, setCustomerId] = useState('');
   const [customerName, setCustomerName] = useState('');
   const [returnDate, setReturnDate] = useState(todayISO());
+  const [refundMethod, setRefundMethod] = useState('DUE_ADJUSTMENT');
   const [items, setItems] = useState([]);
   const [note, setNote] = useState('');
   const [loading, setLoading] = useState(false);
@@ -34,6 +35,7 @@ export function useSalesReturnFormViewModel() {
       setInvoiceNumber(invoice.invoiceNumber);
       setCustomerId(invoice.customerId || '');
       setCustomerName(invoice.customerName || '');
+      setRefundMethod(Number(invoice.dueAmount || 0) > 0 ? 'DUE_ADJUSTMENT' : 'CASH');
       setItems((invoice.items || []).map((item) => ({
         rowId: item.id,
         salesInvoiceItemId: item.id,
@@ -69,6 +71,7 @@ export function useSalesReturnFormViewModel() {
       salesInvoiceId: salesInvoiceId || null,
       customerId: customerId || null,
       returnDate,
+      refundMethod,
       items: lineRows
         .filter((row) => row.returnQuantityNumber > 0)
         .map((row) => ({
@@ -94,6 +97,8 @@ export function useSalesReturnFormViewModel() {
     customerName,
     returnDate,
     setReturnDate,
+    refundMethod,
+    setRefundMethod,
     lineRows,
     updateReturnQuantity,
     totalAmount,

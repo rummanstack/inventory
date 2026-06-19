@@ -77,7 +77,7 @@ export async function createBackendApp() {
   const salesInvoiceService = new SalesInvoiceService(databaseManager, { auditService, financeAccountService });
   const customerDueLedgerService = new CustomerDueLedgerService(databaseManager);
   const customerPaymentService = new CustomerPaymentService(databaseManager, { auditService, financeAccountService });
-  const salesReturnService = new SalesReturnService(databaseManager, { auditService });
+  const salesReturnService = new SalesReturnService(databaseManager, { auditService, financeAccountService });
   const contactMessageService = new ContactMessageService(databaseManager);
   const financeDashboardService = new FinanceDashboardService(databaseManager, { financeAccountService, profitService });
   const retailCashSessionService = new RetailCashSessionService(databaseManager, { auditService });

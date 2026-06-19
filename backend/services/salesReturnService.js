@@ -27,11 +27,13 @@ import {
 } from "./shared/inventoryHelpers.js";
 
 const DATE_ERROR = "Return date must be in YYYY-MM-DD format.";
+const REFUND_METHODS = ["CASH", "DUE_ADJUSTMENT"];
 
 export class SalesReturnService {
-  constructor(databaseManager, { auditService }) {
+  constructor(databaseManager, { auditService, financeAccountService }) {
     this.databaseManager = databaseManager;
     this.auditService = auditService;
+    this.financeAccountService = financeAccountService;
   }
 
   recordActivity(client, actor, payload) {
@@ -85,7 +87,16 @@ export class SalesReturnService {
       const invoiceResult = await findSalesInvoiceById(client, base.salesInvoiceId, actor.tenantId);
       assert(invoiceResult.rowCount > 0, "Original sales invoice not found.", 404);
       const invoice = mapSalesInvoice(invoiceResult.rows[0]);
+      base.refundMethod = REFUND_METHODS.includes(base.refundMethod) ? base.refundMethod : "DUE_ADJUSTMENT";
+      if (!input.refundMethod) {
+        base.refundMethod = Number(invoice.dueAmount || 0) > 0 ? "DUE_ADJUSTMENT" : "CASH";
+      }
       const invoiceItemsById = new Map(invoice.items.map((item) => [item.id, item]));
+      assert(
+        base.refundMethod === "DUE_ADJUSTMENT" || Number(invoice.dueAmount || 0) === 0,
+        "Cash refund is only allowed for fully paid sales.",
+        400,
+      );
 
       // Never trust client-supplied product/price/cost or invoice linkage — only the
       // amount actually requested per original invoice line is taken from the client.
@@ -180,7 +191,7 @@ export class SalesReturnService {
       }
 
       let customer = null;
-      if (base.customerId) {
+      if (base.customerId && base.refundMethod === "DUE_ADJUSTMENT") {
         const customerResult = await findRetailCustomerForUpdate(client, base.customerId, actor.tenantId);
         assert(customerResult.rowCount > 0, "Customer not found.", 404);
         customer = customerResult.rows[0];
@@ -206,6 +217,20 @@ export class SalesReturnService {
         await updateRetailCustomerCurrentDue(client, customer.id, actor.tenantId, Math.max(0, balanceAfter));
       }
 
+      if (base.refundMethod === "CASH" && base.totalAmount > 0 && this.financeAccountService) {
+        await this.financeAccountService.recordTransactionInClient(
+          client,
+          {
+            accountType: "CASH",
+            type: "WITHDRAWAL",
+            amount: base.totalAmount,
+            date: base.returnDate,
+            note: `Cash refund for sales return ${returnNumber}`,
+          },
+          actor,
+        );
+      }
+
       await this.recordActivity(client, actor, {
         actionType: SALES_RETURN_ACTIONS.CREATE,
         entityType: "sales_return",
@@ -215,6 +240,7 @@ export class SalesReturnService {
           returnNumber,
           salesInvoiceId: base.salesInvoiceId,
           customerId: base.customerId,
+          refundMethod: base.refundMethod,
           totalAmount: base.totalAmount,
           totalProfitAdjustment,
         },

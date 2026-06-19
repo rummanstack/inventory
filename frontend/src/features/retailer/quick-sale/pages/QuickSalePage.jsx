@@ -8,6 +8,57 @@ import { formatCurrency, formatDateTime, formatNumber } from '../../../../utils/
 import { useSalesInvoiceFormViewModel } from '../../sales-invoices/viewmodels/useSalesInvoiceFormViewModel';
 import SalesInvoiceFormFields from '../../sales-invoices/components/SalesInvoiceFormFields';
 
+const CASH_SESSION_SNAPSHOT_KEY = 'retail.cashSessionSnapshot';
+
+function readCashSessionSnapshot() {
+  try {
+    const raw = window.localStorage.getItem(CASH_SESSION_SNAPSHOT_KEY);
+    if (!raw) {
+      return null;
+    }
+
+    const parsed = JSON.parse(raw);
+    return parsed && parsed.id ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function persistCashSessionSnapshot(session) {
+  try {
+    if (session) {
+      window.localStorage.setItem(CASH_SESSION_SNAPSHOT_KEY, JSON.stringify(session));
+    } else {
+      window.localStorage.removeItem(CASH_SESSION_SNAPSHOT_KEY);
+    }
+  } catch {
+    // Ignore storage write failures.
+  }
+}
+
+function mergeCashSessionSnapshots(primary, secondary) {
+  if (!primary && !secondary) {
+    return null;
+  }
+
+  if (!primary) {
+    return secondary;
+  }
+
+  if (!secondary || primary.id !== secondary.id) {
+    return primary;
+  }
+
+  return {
+    ...secondary,
+    ...primary,
+    openingCash: primary.openingCash ?? secondary.openingCash,
+    startedAt: primary.startedAt ?? secondary.startedAt,
+    createdAt: primary.createdAt ?? secondary.createdAt,
+    updatedAt: primary.updatedAt ?? secondary.updatedAt,
+  };
+}
+
 function CashSessionAmountModal({
   open,
   title,
@@ -125,6 +176,7 @@ function QuickSaleForm({ onSaved }) {
     }
 
     await onSaved?.(result.salesInvoice);
+    persistCashSessionSnapshot(mergeCashSessionSnapshots(readCashSessionSnapshot(), session));
   }
 
   return (
@@ -148,6 +200,7 @@ export default function QuickSalePage() {
   const [session, setSession] = useState(null);
   const [lastClosedSession, setLastClosedSession] = useState(null);
   const [sessionLoading, setSessionLoading] = useState(true);
+  const [sessionLoaded, setSessionLoaded] = useState(false);
   const [sessionError, setSessionError] = useState('');
   const [savingSession, setSavingSession] = useState(false);
   const [showStartModal, setShowStartModal] = useState(false);
@@ -155,12 +208,28 @@ export default function QuickSalePage() {
   const [startCashInput, setStartCashInput] = useState('0');
   const [stopCashInput, setStopCashInput] = useState('0');
 
+  useEffect(() => {
+    const snapshot = readCashSessionSnapshot();
+    if (snapshot) {
+      setSession(snapshot);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (session) {
+      persistCashSessionSnapshot(session);
+    } else if (sessionLoaded) {
+      persistCashSessionSnapshot(null);
+    }
+  }, [session, sessionLoaded]);
+
   async function loadSession() {
     try {
       setSessionLoading(true);
       setSessionError('');
       const result = await inventoryApi.getCurrentRetailCashSession();
-      setSession(result.session || null);
+      setSession(mergeCashSessionSnapshots(result.session || null, readCashSessionSnapshot()));
+      setSessionLoaded(true);
     } catch (error) {
       setSessionError(error?.message || t('alerts.requestFailed'));
     } finally {
@@ -201,7 +270,11 @@ export default function QuickSalePage() {
       setSessionError('');
       setSavingSession(true);
       const result = await inventoryApi.startRetailCashSession({ openingCash });
-      setSession(result.session || null);
+      setSession(mergeCashSessionSnapshots(result.session || null, {
+        ...(result.session || {}),
+        openingCash,
+      }));
+      setSessionLoaded(true);
       setLastClosedSession(null);
       setShowStartModal(false);
       pushToast('success', t('retailer.cashSession.title'), t('retailer.cashSession.startSuccess'));
@@ -231,6 +304,8 @@ export default function QuickSalePage() {
       const result = await inventoryApi.stopRetailCashSession(session.id, { countedCash });
       setLastClosedSession(result.session || null);
       setSession(null);
+      setSessionLoaded(true);
+      persistCashSessionSnapshot(null);
       setShowStopModal(false);
       pushToast('success', t('retailer.cashSession.title'), t('retailer.cashSession.stopSuccess'));
     } catch (error) {
@@ -303,7 +378,7 @@ export default function QuickSalePage() {
             <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
               <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">{t('retailer.cashSession.cashSales')}</p>
               <p className="mt-2 text-sm font-bold text-slate-950">
-                {formatCurrency(activeCashSales)} · {formatNumber(session.cashSalesCount)}
+                {formatCurrency(activeCashSales)} / {formatNumber(session.cashSalesCount)}
               </p>
             </div>
             <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
@@ -325,13 +400,16 @@ export default function QuickSalePage() {
                 <p className="mt-1 text-sm text-slate-600">
                   {t('retailer.cashSession.closedAt')}: {formatDateTime(lastClosedSession.closedAt)}
                 </p>
+                <p className="mt-1 text-sm text-slate-600">
+                  {t('retailer.cashSession.openingCash')}: {formatCurrency(lastClosedSession.openingCash)}
+                </p>
               </div>
               <div className="text-right">
                 <p className="text-sm font-semibold text-slate-600">
                   {t('retailer.cashSession.variance')}: {formatCurrency(lastClosedSession.variance)}
                 </p>
                 <p className="mt-1 text-xs font-bold text-slate-500">
-                  {t('retailer.cashSession.expectedCash')}: {formatCurrency(lastClosedSession.expectedCash)} · {t('retailer.cashSession.countedCash')}: {formatCurrency(lastClosedSession.countedCash)}
+                  {t('retailer.cashSession.expectedCash')}: {formatCurrency(lastClosedSession.expectedCash)} / {t('retailer.cashSession.countedCash')}: {formatCurrency(lastClosedSession.countedCash)}
                 </p>
               </div>
             </div>

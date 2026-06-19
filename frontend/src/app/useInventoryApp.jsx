@@ -188,6 +188,33 @@ export function InventoryAppProvider({ children }) {
     };
   }, []);
 
+  useEffect(() => {
+    function handleFocus(event) {
+      const target = event.target;
+      if (!(target instanceof HTMLInputElement) || target.type !== 'number') {
+        return;
+      }
+
+      const value = String(target.value || '');
+      if (!/^0(?:\.0+)?$/.test(value)) {
+        return;
+      }
+
+      requestAnimationFrame(() => {
+        try {
+          target.select();
+        } catch {
+          // Some browsers may not allow selection on number inputs.
+        }
+      });
+    }
+
+    document.addEventListener('focusin', handleFocus);
+    return () => {
+      document.removeEventListener('focusin', handleFocus);
+    };
+  }, []);
+
   async function saveProduct(product) {
     try {
       const result = product.id ? await inventoryApi.updateProduct(product) : await inventoryApi.createProduct(product);

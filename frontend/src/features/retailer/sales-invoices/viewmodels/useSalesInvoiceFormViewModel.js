@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { createId, todayISO } from '../../../../utils/calculations.js';
 
 function priceForProduct(product, saleType) {
@@ -13,7 +13,7 @@ export function useSalesInvoiceFormViewModel({ products, defaultSaleType = 'RETA
   const [invoiceDate, setInvoiceDate] = useState(todayISO());
   const [items, setItems] = useState([]);
   const [discountInput, setDiscountInput] = useState('0');
-  const [paidAmountInput, setPaidAmountInput] = useState('0');
+  const [paidAmountInput, setPaidAmountInputState] = useState('0');
   const [paymentMethod, setPaymentMethod] = useState('CASH');
   const [note, setNote] = useState('');
 
@@ -104,6 +104,13 @@ export function useSalesInvoiceFormViewModel({ products, defaultSaleType = 'RETA
   const paidAmount = Math.min(paidAmountRaw, totalAmount);
   const dueAmount = totalAmount - paidAmount;
 
+  useEffect(() => {
+    const currentValue = Number(paidAmountInput || 0);
+    if (Number.isFinite(currentValue) && currentValue > totalAmount) {
+      setPaidAmountInputState(String(totalAmount));
+    }
+  }, [paidAmountInput, totalAmount]);
+
   const hasValidItems = lineRows.some((row) => row.productId && row.quantityNumber > 0);
   const hasInvalidItems = lineRows.some((row) => {
     if (!row.productId || row.quantityNumber <= 0 || row.actualSalePriceNumber < 0) {
@@ -113,7 +120,22 @@ export function useSalesInvoiceFormViewModel({ products, defaultSaleType = 'RETA
   });
 
   function markFullyPaid() {
-    setPaidAmountInput(String(totalAmount));
+    setPaidAmountInputState(String(totalAmount));
+  }
+
+  function setPaidAmountInput(nextValue) {
+    if (nextValue === '') {
+      setPaidAmountInputState('');
+      return;
+    }
+
+    const numericValue = Number(nextValue);
+    if (!Number.isFinite(numericValue)) {
+      setPaidAmountInputState(String(nextValue));
+      return;
+    }
+
+    setPaidAmountInputState(String(Math.min(Math.max(0, numericValue), totalAmount)));
   }
 
   function buildPayload() {

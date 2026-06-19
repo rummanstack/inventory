@@ -73,6 +73,15 @@ export function useSalesInvoiceFormViewModel({ products, defaultSaleType = 'RETA
         };
       }
 
+      if (field === 'lineDiscount') {
+        const quantityNumber = Math.max(0, Math.floor(Number(row.quantityPieces || 0)));
+        const actualSalePriceNumber = Math.max(0, Number(row.actualSalePrice || 0));
+        const maxLineDiscount = quantityNumber * actualSalePriceNumber;
+        const numericValue = Number(value);
+        const nextValue = Number.isFinite(numericValue) ? Math.min(Math.max(0, numericValue), maxLineDiscount) : value;
+        return { ...row, [field]: nextValue };
+      }
+
       return { ...row, [field]: value };
     }));
   }
@@ -98,11 +107,20 @@ export function useSalesInvoiceFormViewModel({ products, defaultSaleType = 'RETA
 
   const subtotal = lineRows.reduce((sum, row) => sum + row.lineGross, 0);
   const lineDiscountTotal = lineRows.reduce((sum, row) => sum + row.lineDiscountNumber, 0);
-  const discount = Math.max(0, Number(discountInput || 0));
+  const maxDiscount = Math.max(0, subtotal - lineDiscountTotal);
+  const discountRaw = Math.max(0, Number(discountInput || 0));
+  const discount = Math.min(discountRaw, maxDiscount);
   const totalAmount = Math.max(0, subtotal - lineDiscountTotal - discount);
   const paidAmountRaw = Math.max(0, Number(paidAmountInput || 0));
   const paidAmount = Math.min(paidAmountRaw, totalAmount);
   const dueAmount = totalAmount - paidAmount;
+
+  useEffect(() => {
+    const currentValue = Number(discountInput || 0);
+    if (Number.isFinite(currentValue) && currentValue > maxDiscount) {
+      setDiscountInput(String(maxDiscount));
+    }
+  }, [discountInput, maxDiscount]);
 
   useEffect(() => {
     const currentValue = Number(paidAmountInput || 0);
@@ -110,6 +128,25 @@ export function useSalesInvoiceFormViewModel({ products, defaultSaleType = 'RETA
       setPaidAmountInputState(String(totalAmount));
     }
   }, [paidAmountInput, totalAmount]);
+
+  useEffect(() => {
+    setItems((current) => {
+      let changed = false;
+      const next = current.map((row) => {
+        const quantityNumber = Math.max(0, Math.floor(Number(row.quantityPieces || 0)));
+        const actualSalePriceNumber = Math.max(0, Number(row.actualSalePrice || 0));
+        const maxLineDiscount = quantityNumber * actualSalePriceNumber;
+        const currentDiscount = Math.max(0, Number(row.lineDiscount || 0));
+        const lineDiscount = Math.min(currentDiscount, maxLineDiscount);
+        if (lineDiscount !== currentDiscount) {
+          changed = true;
+          return { ...row, lineDiscount };
+        }
+        return row;
+      });
+      return changed ? next : current;
+    });
+  }, [items]);
 
   const hasValidItems = lineRows.some((row) => row.productId && row.quantityNumber > 0);
   const hasInvalidItems = lineRows.some((row) => {
@@ -121,6 +158,21 @@ export function useSalesInvoiceFormViewModel({ products, defaultSaleType = 'RETA
 
   function markFullyPaid() {
     setPaidAmountInputState(String(totalAmount));
+  }
+
+  function setDiscountValue(nextValue) {
+    if (nextValue === '') {
+      setDiscountInput('');
+      return;
+    }
+
+    const numericValue = Number(nextValue);
+    if (!Number.isFinite(numericValue)) {
+      setDiscountInput(String(nextValue));
+      return;
+    }
+
+    setDiscountInput(String(Math.min(Math.max(0, numericValue), maxDiscount)));
   }
 
   function setPaidAmountInput(nextValue) {
@@ -175,7 +227,7 @@ export function useSalesInvoiceFormViewModel({ products, defaultSaleType = 'RETA
     removeItem,
     getAvailableProducts,
     discountInput,
-    setDiscountInput,
+    setDiscountInput: setDiscountValue,
     paidAmountInput,
     setPaidAmountInput,
     paymentMethod,

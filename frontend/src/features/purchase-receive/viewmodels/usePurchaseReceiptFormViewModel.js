@@ -78,6 +78,15 @@ export function usePurchaseReceiptFormViewModel({ purchaseReceipt, products }) {
         };
       }
 
+      if (field === 'lineDiscount') {
+        const quantityNumber = toPieces(row.caseQty, row.pieceQty, row.piecesPerCase);
+        const purchasePriceNumber = Math.max(0, Number(row.purchasePrice || 0));
+        const maxLineDiscount = quantityNumber * purchasePriceNumber;
+        const numericValue = Number(value);
+        const nextValue = Number.isFinite(numericValue) ? Math.min(Math.max(0, numericValue), maxLineDiscount) : value;
+        return { ...row, [field]: nextValue };
+      }
+
       return { ...row, [field]: value };
     }));
   }
@@ -103,11 +112,20 @@ export function usePurchaseReceiptFormViewModel({ purchaseReceipt, products }) {
 
   const grossTotal = lineRows.reduce((sum, row) => sum + row.lineGross, 0);
   const lineDiscountTotal = lineRows.reduce((sum, row) => sum + row.lineDiscountNumber, 0);
-  const discount = Math.max(0, Number(discountInput || 0));
+  const maxDiscount = Math.max(0, grossTotal - lineDiscountTotal);
+  const discountRaw = Math.max(0, Number(discountInput || 0));
+  const discount = Math.min(discountRaw, maxDiscount);
   const totalAmount = Math.max(0, grossTotal - lineDiscountTotal - discount);
   const paidAmountRaw = Math.max(0, Number(paidAmountInput || 0));
   const paidAmount = Math.min(paidAmountRaw, totalAmount);
   const dueAmount = totalAmount - paidAmount;
+
+  useEffect(() => {
+    const currentValue = Number(discountInput || 0);
+    if (Number.isFinite(currentValue) && currentValue > maxDiscount) {
+      setDiscountInput(String(maxDiscount));
+    }
+  }, [discountInput, maxDiscount]);
 
   useEffect(() => {
     const currentValue = Number(paidAmountInput || 0);
@@ -115,6 +133,25 @@ export function usePurchaseReceiptFormViewModel({ purchaseReceipt, products }) {
       setPaidAmountInputState(String(totalAmount));
     }
   }, [paidAmountInput, totalAmount]);
+
+  useEffect(() => {
+    setItems((current) => {
+      let changed = false;
+      const next = current.map((row) => {
+        const quantityNumber = toPieces(row.caseQty, row.pieceQty, row.piecesPerCase);
+        const purchasePriceNumber = Math.max(0, Number(row.purchasePrice || 0));
+        const maxLineDiscount = quantityNumber * purchasePriceNumber;
+        const currentDiscount = Math.max(0, Number(row.lineDiscount || 0));
+        const lineDiscount = Math.min(currentDiscount, maxLineDiscount);
+        if (lineDiscount !== currentDiscount) {
+          changed = true;
+          return { ...row, lineDiscount };
+        }
+        return row;
+      });
+      return changed ? next : current;
+    });
+  }, [items]);
 
   function setPaidAmountInput(nextValue) {
     if (nextValue === '') {
@@ -129,6 +166,21 @@ export function usePurchaseReceiptFormViewModel({ purchaseReceipt, products }) {
     }
 
     setPaidAmountInputState(String(Math.min(Math.max(0, numericValue), totalAmount)));
+  }
+
+  function setDiscountValue(nextValue) {
+    if (nextValue === '') {
+      setDiscountInput('');
+      return;
+    }
+
+    const numericValue = Number(nextValue);
+    if (!Number.isFinite(numericValue)) {
+      setDiscountInput(String(nextValue));
+      return;
+    }
+
+    setDiscountInput(String(Math.min(Math.max(0, numericValue), maxDiscount)));
   }
 
   const hasValidItems = lineRows.some((row) => row.productId && row.quantityNumber > 0);
@@ -172,7 +224,7 @@ export function usePurchaseReceiptFormViewModel({ purchaseReceipt, products }) {
     removeItem,
     getAvailableProducts,
     discountInput,
-    setDiscountInput,
+    setDiscountInput: setDiscountValue,
     paidAmountInput,
     setPaidAmountInput,
     paymentMethod,

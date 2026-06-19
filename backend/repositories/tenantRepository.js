@@ -9,6 +9,7 @@ export function mapTenant(row) {
     status: row.status,
     logoUrl: row.logo_url || null,
     address: row.address || null,
+    taxRate: Number(row.tax_rate || 0),
     createdAt: row.created_at,
   };
 }
@@ -35,8 +36,8 @@ export async function countTenants(client) {
 
 export async function insertTenant(client, tenant) {
   const result = await client.query(
-    `INSERT INTO tenants (id, name, slug, email, plan, status, logo_url, address)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+    `INSERT INTO tenants (id, name, slug, email, plan, status, logo_url, address, tax_rate)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
      RETURNING *`,
     [
       tenant.id,
@@ -47,6 +48,7 @@ export async function insertTenant(client, tenant) {
       tenant.status || "active",
       tenant.logoUrl || null,
       tenant.address || null,
+      tenant.taxRate ?? 0,
     ],
   );
   return mapTenant(result.rows[0]);
@@ -55,10 +57,10 @@ export async function insertTenant(client, tenant) {
 export async function updateTenant(client, tenant) {
   const result = await client.query(
     `UPDATE tenants
-     SET name = $2, email = $3, plan = $4, logo_url = $5, address = $6
+     SET name = $2, email = $3, plan = $4, logo_url = $5, address = $6, tax_rate = $7
      WHERE id = $1
      RETURNING *`,
-    [tenant.id, tenant.name, tenant.email, tenant.plan, tenant.logoUrl || null, tenant.address || null],
+    [tenant.id, tenant.name, tenant.email, tenant.plan, tenant.logoUrl || null, tenant.address || null, tenant.taxRate ?? 0],
   );
   return mapTenant(result.rows[0]);
 }

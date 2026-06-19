@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Loader2, Save } from 'lucide-react';
 import { Alert, SectionHeader } from '../../../components/ui.jsx';
 import PhotoUploadField from '../../../components/PhotoUploadField.jsx';
@@ -12,9 +12,21 @@ export default function OrgSettingsPage() {
     email: tenant?.email || '',
     address: tenant?.address || '',
     logoUrl: tenant?.logoUrl || '',
+    taxRate: String(Number(tenant?.taxRate || 0)),
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (!tenant) return;
+    setForm({
+      name: tenant.name || '',
+      email: tenant.email || '',
+      address: tenant.address || '',
+      logoUrl: tenant.logoUrl || '',
+      taxRate: String(Number(tenant.taxRate || 0)),
+    });
+  }, [tenant]);
 
   if (!tenant) return null;
 
@@ -90,6 +102,23 @@ export default function OrgSettingsPage() {
             onChange={(e) => handleChange('address', e.target.value)}
             disabled={!canEdit}
           />
+        </label>
+
+        <label className="block">
+          <span className="label">{t('retailer.shared.taxRateLabel')}</span>
+          <input
+            className="input"
+            type="number"
+            min="0"
+            max="100"
+            step="0.01"
+            value={form.taxRate}
+            onChange={(e) => handleChange('taxRate', e.target.value)}
+            disabled={!canEdit}
+          />
+          <p className="mt-1 text-xs text-slate-500">
+            {t('orgSettings.taxHelp') || 'Set this to 0 to hide tax from cashier screens.'}
+          </p>
         </label>
 
         <div className="flex items-center gap-3 pt-2">

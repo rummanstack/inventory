@@ -203,7 +203,10 @@ export function normalizePurchaseReceipt(input) {
   const grossTotal = items.reduce((sum, item) => sum + item.quantityPieces * item.purchasePrice, 0);
   const lineDiscountTotal = items.reduce((sum, item) => sum + item.lineDiscount, 0);
   const discount = Math.max(0, cleanMoney(input.discount));
-  const totalAmount = Math.max(0, grossTotal - lineDiscountTotal - discount);
+  const taxableAmount = Math.max(0, grossTotal - lineDiscountTotal - discount);
+  const taxRate = Math.min(Math.max(0, cleanMoney(input.taxRate)), 100);
+  const taxAmount = Math.max(0, taxableAmount * taxRate / 100);
+  const totalAmount = Math.max(0, taxableAmount + taxAmount);
   const paidAmount = Math.max(0, Math.min(cleanMoney(input.paidAmount), totalAmount));
   const dueAmount = totalAmount - paidAmount;
 
@@ -214,6 +217,8 @@ export function normalizePurchaseReceipt(input) {
     purchaseDate: String(input.purchaseDate || "").trim(),
     items,
     discount,
+    taxRate,
+    taxAmount,
     totalAmount,
     paidAmount,
     dueAmount,
@@ -261,7 +266,10 @@ export function normalizeSalesInvoice(input) {
   const subtotal = items.reduce((sum, item) => sum + item.quantityPieces * item.actualSalePrice, 0);
   const lineDiscountTotal = items.reduce((sum, item) => sum + item.lineDiscount, 0);
   const discount = Math.max(0, cleanMoney(input.discount));
-  const totalAmount = Math.max(0, subtotal - lineDiscountTotal - discount);
+  const taxableAmount = Math.max(0, subtotal - lineDiscountTotal - discount);
+  const taxRate = Math.min(Math.max(0, cleanMoney(input.taxRate)), 100);
+  const taxAmount = Math.max(0, taxableAmount * taxRate / 100);
+  const totalAmount = Math.max(0, taxableAmount + taxAmount);
   const paidAmount = Math.max(0, Math.min(cleanMoney(input.paidAmount), totalAmount));
   const dueAmount = totalAmount - paidAmount;
 
@@ -281,6 +289,8 @@ export function normalizeSalesInvoice(input) {
     items,
     subtotal,
     discount,
+    taxRate,
+    taxAmount,
     totalAmount,
     paidAmount,
     dueAmount,

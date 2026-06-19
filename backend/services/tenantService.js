@@ -15,6 +15,15 @@ import {
 import { TENANT_FEATURES } from "../lib/features.js";
 import { assert } from "../lib/errors.js";
 
+function normalizeTaxRate(value) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) {
+    return 0;
+  }
+
+  return Math.min(Math.max(0, parsed), 100);
+}
+
 export class TenantService {
   constructor(databaseManager) {
     this.databaseManager = databaseManager;
@@ -29,7 +38,7 @@ export class TenantService {
     }
   }
 
-  async createTenant({ name, slug, email, plan = "starter", address, logoUrl }) {
+  async createTenant({ name, slug, email, plan = "starter", address, logoUrl, taxRate = 0 }) {
     assert(name && slug && email, "name, slug and email are required", 400);
     const client = await this.databaseManager.getPool().connect();
     try {
@@ -44,6 +53,7 @@ export class TenantService {
         status: "active",
         address: address || null,
         logoUrl: logoUrl || null,
+        taxRate: normalizeTaxRate(taxRate),
       };
       return await insertTenant(client, tenant);
     } finally {
@@ -68,6 +78,7 @@ export class TenantService {
         plan: fields.plan ?? existing.plan,
         address: fields.address !== undefined ? fields.address : existing.address,
         logoUrl: fields.logoUrl !== undefined ? fields.logoUrl : existing.logoUrl,
+        taxRate: fields.taxRate !== undefined ? normalizeTaxRate(fields.taxRate) : existing.taxRate ?? 0,
       };
       return await updateTenant(client, updated);
     } finally {

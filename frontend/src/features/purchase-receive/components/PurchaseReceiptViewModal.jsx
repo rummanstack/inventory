@@ -63,10 +63,22 @@ export default function PurchaseReceiptViewModal({ purchaseReceipt, onClose }) {
 
         <div className="mt-4 flex justify-end">
           <div className="w-full max-w-xs space-y-2 text-sm">
-            <div className="flex items-center justify-between">
-              <span className="font-semibold text-slate-600">{t('purchaseReceive.discountLabel')}</span>
-              <span className="font-bold text-rose-700">- {formatCurrency(purchaseReceipt.discount)}</span>
+          {Number(purchaseReceipt.taxRate || 0) > 0 ? (
+            <div className="flex items-center justify-between gap-3">
+              <span className="font-semibold text-slate-600">{t('retailer.shared.taxRateLabel')}</span>
+              <span className="font-bold text-slate-950">{Number(purchaseReceipt.taxRate || 0).toFixed(2)}%</span>
             </div>
+          ) : null}
+          <div className="flex items-center justify-between">
+            <span className="font-semibold text-slate-600">{t('purchaseReceive.discountLabel')}</span>
+            <span className="font-bold text-rose-700">- {formatCurrency(purchaseReceipt.discount)}</span>
+          </div>
+          {Number(purchaseReceipt.taxRate || 0) > 0 ? (
+            <div className="flex items-center justify-between">
+              <span className="font-semibold text-slate-600">{t('retailer.shared.taxAmountLabel')}</span>
+              <span className="font-bold text-slate-950">{formatCurrency(purchaseReceipt.taxAmount)}</span>
+            </div>
+          ) : null}
             <div className="flex items-center justify-between border-t border-slate-200 pt-2">
               <span className="font-black uppercase tracking-[0.1em] text-slate-700">{t('purchaseReceive.totalAmount')}</span>
               <span className="font-black text-slate-950">{formatCurrency(purchaseReceipt.totalAmount)}</span>

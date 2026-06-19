@@ -12,6 +12,7 @@ import {
   getLatestSupplierDueLedgerEntry,
   getFirstSupplierDueLedgerEntryForReference,
 } from "../repositories/supplierDueLedgerRepository.js";
+import { findTenantById } from "../repositories/tenantRepository.js";
 import {
   countPurchaseReceipts,
   countTrashedPurchaseReceipts,
@@ -192,14 +193,17 @@ export class PurchaseReceiveService {
   }
 
   async savePurchaseReceipt(input, actor) {
-    const base = normalizePurchaseReceipt(input);
-    base.tenantId = actor.tenantId;
-    assert(base.supplierId, "Supplier is required.");
-    assert(base.purchaseDate, "Purchase date is required.");
-    base.purchaseDate = normalizeIsoDate(base.purchaseDate, base.purchaseDate, DATE_ERROR);
-    assert(base.items.length > 0, "At least one product line item is required.");
-
     return this.databaseManager.withTransaction(async (client) => {
+      const taxRate = input.id
+        ? input.taxRate
+        : ((await findTenantById(client, actor.tenantId))?.taxRate ?? 0);
+      const base = normalizePurchaseReceipt({ ...input, taxRate });
+      base.tenantId = actor.tenantId;
+      assert(base.supplierId, "Supplier is required.");
+      assert(base.purchaseDate, "Purchase date is required.");
+      base.purchaseDate = normalizeIsoDate(base.purchaseDate, base.purchaseDate, DATE_ERROR);
+      assert(base.items.length > 0, "At least one product line item is required.");
+
       if (input.id) {
         return this.updatePurchaseReceiptRecord(client, base, input, actor);
       }
@@ -300,7 +304,14 @@ export class PurchaseReceiveService {
       entityType: "purchase_receipt",
       entityId: base.id,
       description: `${actor.name} recorded purchase ${purchaseNumber} from ${supplier.name}`,
-      metadata: { purchaseNumber, supplierId: supplier.id, totalAmount: base.totalAmount, dueAmount: base.dueAmount },
+      metadata: {
+        purchaseNumber,
+        supplierId: supplier.id,
+        taxRate: base.taxRate,
+        taxAmount: base.taxAmount,
+        totalAmount: base.totalAmount,
+        dueAmount: base.dueAmount,
+      },
     });
 
     const fullResult = await findPurchaseReceiptById(client, base.id, actor.tenantId);

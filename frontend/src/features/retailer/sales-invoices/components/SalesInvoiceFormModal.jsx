@@ -6,8 +6,13 @@ import { useSalesInvoiceFormViewModel } from '../viewmodels/useSalesInvoiceFormV
 import SalesInvoiceFormFields from './SalesInvoiceFormFields';
 
 export default function SalesInvoiceFormModal({ onClose, onSave }) {
-  const { t, productDirectory, retailCustomerDirectory, saveRetailCustomer } = useInventoryApp();
-  const vm = useSalesInvoiceFormViewModel({ products: productDirectory, defaultSaleType: 'RETAIL', defaultCustomerType: 'WALK_IN' });
+  const { t, productDirectory, retailCustomerDirectory, saveRetailCustomer, tenant } = useInventoryApp();
+  const vm = useSalesInvoiceFormViewModel({
+    products: productDirectory,
+    defaultSaleType: 'RETAIL',
+    defaultCustomerType: 'WALK_IN',
+    defaultTaxRate: tenant?.taxRate || 0,
+  });
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
 

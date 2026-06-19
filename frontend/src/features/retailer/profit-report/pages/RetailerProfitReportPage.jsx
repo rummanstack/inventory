@@ -12,14 +12,14 @@ export default function RetailerProfitReportPage() {
   const vm = useRetailerProfitReportViewModel();
   const printTargetId = 'retailer-profit-report-print';
   const rows = vm.report?.rows || [];
-  const totals = vm.report?.totals || { totalSales: 0, totalProfit: 0, invoiceCount: 0 };
+  const totals = vm.report?.totals || { totalSales: 0, totalProfit: 0, invoiceCount: 0, taxAmount: 0 };
 
   async function handleExportExcel() {
     const { utils, writeFile } = await import('xlsx');
-    const header = ['Date', 'Invoices', 'Total Sales', 'Profit'];
-    const data = rows.map((row) => [row.date, row.invoiceCount, Number(row.totalSales), Number(row.totalProfit)]);
+    const header = ['Date', 'Invoices', 'Total Sales', 'Tax', 'Profit'];
+    const data = rows.map((row) => [row.date, row.invoiceCount, Number(row.totalSales), Number(row.taxAmount), Number(row.totalProfit)]);
     const ws = utils.aoa_to_sheet([header, ...data]);
-    ws['!cols'] = [{ wch: 14 }, { wch: 10 }, { wch: 16 }, { wch: 14 }];
+    ws['!cols'] = [{ wch: 14 }, { wch: 10 }, { wch: 16 }, { wch: 14 }, { wch: 14 }];
     const wb = utils.book_new();
     utils.book_append_sheet(wb, ws, 'Profit Report');
     writeFile(wb, `profit-report-${vm.dateFrom}-${vm.dateTo}.xlsx`);
@@ -88,9 +88,10 @@ export default function RetailerProfitReportPage() {
           </div>
 
           <div id={printTargetId}>
-          <div className="mb-6 grid gap-4 sm:grid-cols-3">
+          <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <StatCard title={t('retailer.dailySalesReport.invoiceCount')} value={formatNumber(totals.invoiceCount)} icon={Wallet} tone="slate" />
             <StatCard title={t('retailer.profitReport.totalSales')} value={formatCurrency(totals.totalSales)} icon={Wallet} tone="blue" />
+            <StatCard title={t('retailer.shared.taxAmountLabel')} value={formatCurrency(totals.taxAmount)} icon={Wallet} tone="amber" />
             <StatCard
               title={t('retailer.profitReport.totalProfit')}
               value={formatCurrency(totals.totalProfit)}
@@ -110,6 +111,7 @@ export default function RetailerProfitReportPage() {
                     <th className="px-4 py-3">{t('supplierStatement.when')}</th>
                     <th className="px-4 py-3 text-right">{t('retailer.dailySalesReport.invoiceCount')}</th>
                     <th className="px-4 py-3 text-right">{t('retailer.profitReport.totalSales')}</th>
+                    <th className="px-4 py-3 text-right">{t('retailer.shared.taxAmountLabel')}</th>
                     <th className="px-4 py-3 text-right">{t('retailer.profitReport.totalProfit')}</th>
                   </tr>
                 </thead>
@@ -119,6 +121,7 @@ export default function RetailerProfitReportPage() {
                       <td className="table-cell font-semibold text-slate-950">{formatDate(row.date)}</td>
                       <td className="table-cell text-right">{formatNumber(row.invoiceCount)}</td>
                       <td className="table-cell text-right font-bold">{formatCurrency(row.totalSales)}</td>
+                      <td className="table-cell text-right font-bold">{formatCurrency(row.taxAmount)}</td>
                       <td className={`table-cell text-right font-bold ${row.totalProfit >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>{formatCurrency(row.totalProfit)}</td>
                     </tr>
                   ))}

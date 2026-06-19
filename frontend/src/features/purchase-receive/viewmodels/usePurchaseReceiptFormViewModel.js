@@ -18,7 +18,7 @@ function toLineItemRow(item, products) {
   };
 }
 
-export function usePurchaseReceiptFormViewModel({ purchaseReceipt, products }) {
+export function usePurchaseReceiptFormViewModel({ purchaseReceipt, products, defaultTaxRate = 0 }) {
   const isEdit = Boolean(purchaseReceipt);
 
   const [supplierId, setSupplierId] = useState(purchaseReceipt?.supplierId || '');
@@ -30,6 +30,7 @@ export function usePurchaseReceiptFormViewModel({ purchaseReceipt, products }) {
       : []
   ));
   const [discountInput, setDiscountInput] = useState(String(Number(purchaseReceipt?.discount || 0)));
+  const [taxRateInput, setTaxRateInputState] = useState(String(Number(purchaseReceipt?.taxRate ?? defaultTaxRate ?? 0)));
   const [paidAmountInput, setPaidAmountInputState] = useState(String(Number(purchaseReceipt?.paidAmount || 0)));
   const [paymentMethod, setPaymentMethod] = useState(purchaseReceipt?.paymentMethod || 'CASH');
   const [note, setNote] = useState(purchaseReceipt?.note || '');
@@ -115,7 +116,10 @@ export function usePurchaseReceiptFormViewModel({ purchaseReceipt, products }) {
   const maxDiscount = Math.max(0, grossTotal - lineDiscountTotal);
   const discountRaw = Math.max(0, Number(discountInput || 0));
   const discount = Math.min(discountRaw, maxDiscount);
-  const totalAmount = Math.max(0, grossTotal - lineDiscountTotal - discount);
+  const taxableAmount = Math.max(0, grossTotal - lineDiscountTotal - discount);
+  const taxRate = Math.min(Math.max(0, Number(taxRateInput || 0)), 100);
+  const taxAmount = Math.max(0, taxableAmount * taxRate / 100);
+  const totalAmount = Math.max(0, taxableAmount + taxAmount);
   const paidAmountRaw = Math.max(0, Number(paidAmountInput || 0));
   const paidAmount = Math.min(paidAmountRaw, totalAmount);
   const dueAmount = totalAmount - paidAmount;
@@ -126,6 +130,13 @@ export function usePurchaseReceiptFormViewModel({ purchaseReceipt, products }) {
       setDiscountInput(String(maxDiscount));
     }
   }, [discountInput, maxDiscount]);
+
+  useEffect(() => {
+    const currentValue = Number(taxRateInput || 0);
+    if (Number.isFinite(currentValue) && currentValue > 100) {
+      setTaxRateInputState('100');
+    }
+  }, [taxRateInput]);
 
   useEffect(() => {
     const currentValue = Number(paidAmountInput || 0);
@@ -183,6 +194,21 @@ export function usePurchaseReceiptFormViewModel({ purchaseReceipt, products }) {
     setDiscountInput(String(Math.min(Math.max(0, numericValue), maxDiscount)));
   }
 
+  function setTaxRateInput(nextValue) {
+    if (nextValue === '') {
+      setTaxRateInputState('');
+      return;
+    }
+
+    const numericValue = Number(nextValue);
+    if (!Number.isFinite(numericValue)) {
+      setTaxRateInputState(String(nextValue));
+      return;
+    }
+
+    setTaxRateInputState(String(Math.min(Math.max(0, numericValue), 100)));
+  }
+
   const hasValidItems = lineRows.some((row) => row.productId && row.quantityNumber > 0);
   const hasInvalidItems = lineRows.some((row) => !row.productId || row.quantityNumber <= 0 || row.purchasePriceNumber < 0);
 
@@ -201,8 +227,10 @@ export function usePurchaseReceiptFormViewModel({ purchaseReceipt, products }) {
           quantityPieces: row.quantityNumber,
           purchasePrice: row.purchasePriceNumber,
           lineDiscount: row.lineDiscountNumber,
-        })),
+      })),
       discount,
+      taxRate,
+      taxAmount,
       paidAmount,
       paymentMethod,
       note: note.trim(),
@@ -225,6 +253,11 @@ export function usePurchaseReceiptFormViewModel({ purchaseReceipt, products }) {
     getAvailableProducts,
     discountInput,
     setDiscountInput: setDiscountValue,
+    taxRateInput,
+    setTaxRateInput,
+    taxRate,
+    taxableAmount,
+    taxAmount,
     paidAmountInput,
     setPaidAmountInput,
     paymentMethod,

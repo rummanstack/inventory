@@ -6,13 +6,14 @@ function priceForProduct(product, saleType) {
   return saleType === 'WHOLESALE' ? Number(product.wholesalePrice || 0) : Number(product.retailPrice || 0);
 }
 
-export function useSalesInvoiceFormViewModel({ products, defaultSaleType = 'RETAIL', defaultCustomerType = 'WALK_IN' }) {
+export function useSalesInvoiceFormViewModel({ products, defaultSaleType = 'RETAIL', defaultCustomerType = 'WALK_IN', defaultTaxRate = 0 }) {
   const [customerId, setCustomerId] = useState('');
   const [customerType, setCustomerType] = useState(defaultCustomerType);
   const [saleType, setSaleType] = useState(defaultSaleType);
   const [invoiceDate, setInvoiceDate] = useState(todayISO());
   const [items, setItems] = useState([]);
   const [discountInput, setDiscountInput] = useState('0');
+  const [taxRateInput, setTaxRateInputState] = useState(String(Math.min(Math.max(0, Number(defaultTaxRate || 0)), 100)));
   const [paidAmountInput, setPaidAmountInputState] = useState('0');
   const [paymentMethod, setPaymentMethod] = useState('CASH');
   const [note, setNote] = useState('');
@@ -110,7 +111,10 @@ export function useSalesInvoiceFormViewModel({ products, defaultSaleType = 'RETA
   const maxDiscount = Math.max(0, subtotal - lineDiscountTotal);
   const discountRaw = Math.max(0, Number(discountInput || 0));
   const discount = Math.min(discountRaw, maxDiscount);
-  const totalAmount = Math.max(0, subtotal - lineDiscountTotal - discount);
+  const taxableAmount = Math.max(0, subtotal - lineDiscountTotal - discount);
+  const taxRate = Math.min(Math.max(0, Number(taxRateInput || 0)), 100);
+  const taxAmount = Math.max(0, taxableAmount * taxRate / 100);
+  const totalAmount = Math.max(0, taxableAmount + taxAmount);
   const paidAmountRaw = Math.max(0, Number(paidAmountInput || 0));
   const paidAmount = Math.min(paidAmountRaw, totalAmount);
   const dueAmount = totalAmount - paidAmount;
@@ -121,6 +125,13 @@ export function useSalesInvoiceFormViewModel({ products, defaultSaleType = 'RETA
       setDiscountInput(String(maxDiscount));
     }
   }, [discountInput, maxDiscount]);
+
+  useEffect(() => {
+    const currentValue = Number(taxRateInput || 0);
+    if (Number.isFinite(currentValue) && currentValue > 100) {
+      setTaxRateInputState('100');
+    }
+  }, [taxRateInput]);
 
   useEffect(() => {
     const currentValue = Number(paidAmountInput || 0);
@@ -175,6 +186,21 @@ export function useSalesInvoiceFormViewModel({ products, defaultSaleType = 'RETA
     setDiscountInput(String(Math.min(Math.max(0, numericValue), maxDiscount)));
   }
 
+  function setTaxRateInput(nextValue) {
+    if (nextValue === '') {
+      setTaxRateInputState('');
+      return;
+    }
+
+    const numericValue = Number(nextValue);
+    if (!Number.isFinite(numericValue)) {
+      setTaxRateInputState(String(nextValue));
+      return;
+    }
+
+    setTaxRateInputState(String(Math.min(Math.max(0, numericValue), 100)));
+  }
+
   function setPaidAmountInput(nextValue) {
     if (nextValue === '') {
       setPaidAmountInputState('');
@@ -204,8 +230,10 @@ export function useSalesInvoiceFormViewModel({ products, defaultSaleType = 'RETA
           quantityPieces: row.quantityNumber,
           actualSalePrice: row.actualSalePriceNumber,
           lineDiscount: row.lineDiscountNumber,
-        })),
+      })),
       discount,
+      taxRate,
+      taxAmount,
       paidAmount,
       paymentMethod,
       note: note.trim(),
@@ -228,6 +256,11 @@ export function useSalesInvoiceFormViewModel({ products, defaultSaleType = 'RETA
     getAvailableProducts,
     discountInput,
     setDiscountInput: setDiscountValue,
+    taxRateInput,
+    setTaxRateInput,
+    taxRate,
+    taxableAmount,
+    taxAmount,
     paidAmountInput,
     setPaidAmountInput,
     paymentMethod,

@@ -122,6 +122,18 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, retail
                 <input className="input h-9 w-28 text-right" type="number" min="0" step="0.01" value={vm.discountInput} onChange={(event) => vm.setDiscountInput(event.target.value)} disabled={saving} />
               </dd>
             </div>
+            {vm.taxRate > 0 ? (
+              <>
+                <div className="flex items-center justify-between gap-3">
+                  <dt className="font-semibold text-slate-600">{t('retailer.shared.taxRateLabel')}</dt>
+                  <dd className="font-black text-slate-950">{vm.taxRate.toFixed(2)}%</dd>
+                </div>
+                <div className="flex items-center justify-between">
+                  <dt className="font-semibold text-slate-600">{t('retailer.shared.taxAmountLabel')}</dt>
+                  <dd className="font-black text-slate-950">{formatCurrency(vm.taxAmount)}</dd>
+                </div>
+              </>
+            ) : null}
             <div className="flex items-center justify-between border-t border-slate-200 pt-2">
               <dt className="font-black uppercase tracking-[0.1em] text-slate-700">{t('retailer.shared.totalAmount')}</dt>
               <dd className="font-black text-slate-950">{formatCurrency(vm.totalAmount)}</dd>

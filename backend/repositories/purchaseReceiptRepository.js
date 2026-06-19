@@ -8,6 +8,8 @@ export function mapPurchaseReceipt(row) {
     supplierInvoiceNo: row.supplier_invoice_no,
     purchaseDate: row.purchase_date,
     discount: Number(row.discount || 0),
+    taxRate: Number(row.tax_rate || 0),
+    taxAmount: Number(row.tax_amount || 0),
     totalAmount: Number(row.total_amount || 0),
     paidAmount: Number(row.paid_amount || 0),
     dueAmount: Number(row.due_amount || 0),
@@ -153,9 +155,9 @@ export function insertPurchaseReceipt(client, purchase) {
   return client.query(
     `INSERT INTO purchase_receipts (
        id, tenant_id, purchase_number, supplier_id, supplier_invoice_no, purchase_date,
-       discount, total_amount, paid_amount, due_amount, payment_method, note, created_by
+       discount, tax_rate, tax_amount, total_amount, paid_amount, due_amount, payment_method, note, created_by
      )
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
      RETURNING *`,
     [
       purchase.id,
@@ -165,6 +167,8 @@ export function insertPurchaseReceipt(client, purchase) {
       purchase.supplierInvoiceNo,
       purchase.purchaseDate,
       purchase.discount,
+      purchase.taxRate,
+      purchase.taxAmount,
       purchase.totalAmount,
       purchase.paidAmount,
       purchase.dueAmount,
@@ -178,8 +182,8 @@ export function insertPurchaseReceipt(client, purchase) {
 export function updatePurchaseReceipt(client, purchase) {
   return client.query(
     `UPDATE purchase_receipts
-     SET supplier_invoice_no = $3, purchase_date = $4, discount = $5, total_amount = $6,
-         paid_amount = $7, due_amount = $8, payment_method = $9, note = $10, updated_at = NOW()
+     SET supplier_invoice_no = $3, purchase_date = $4, discount = $5, tax_rate = $6, tax_amount = $7,
+         total_amount = $8, paid_amount = $9, due_amount = $10, payment_method = $11, note = $12, updated_at = NOW()
      WHERE id = $1 AND tenant_id = $2
      RETURNING *`,
     [
@@ -188,6 +192,8 @@ export function updatePurchaseReceipt(client, purchase) {
       purchase.supplierInvoiceNo,
       purchase.purchaseDate,
       purchase.discount,
+      purchase.taxRate,
+      purchase.taxAmount,
       purchase.totalAmount,
       purchase.paidAmount,
       purchase.dueAmount,

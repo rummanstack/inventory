@@ -1,4 +1,5 @@
 import { assert } from "../lib/errors.js";
+import { createId } from "../lib/ids.js";
 import { normalizeIsoDate } from "../lib/dateRanges.js";
 import { parsePagination, buildPageResult } from "../lib/pagination.js";
 import { normalizeSalesReturn } from "../lib/normalizers.js";
@@ -6,7 +7,7 @@ import { STOCK_MOVEMENT_TYPES } from "../lib/stockMovements.js";
 import { CUSTOMER_DUE_LEDGER_TYPES } from "../lib/customerDueLedger.js";
 import { SALES_RETURN_ACTIONS } from "../lib/auditActions.js";
 import { nextReturnNumber } from "../lib/salesNumber.js";
-import { findRetailCustomerForUpdate, updateRetailCustomerCurrentDue } from "../repositories/retailCustomerRepository.js";
+import { findRetailCustomerForUpdate, updateRetailCustomerCurrentDue, updateRetailCustomerLoyaltyBalance } from "../repositories/retailCustomerRepository.js";
 import { getLatestCustomerDueLedgerEntry } from "../repositories/customerDueLedgerRepository.js";
 import { findSalesInvoiceById, mapSalesInvoice } from "../repositories/salesInvoiceRepository.js";
 import {
@@ -18,6 +19,7 @@ import {
   mapSalesReturn,
   sumReturnedQuantitiesByInvoiceItem,
 } from "../repositories/salesReturnRepository.js";
+import { insertRetailLoyaltyLedgerEntry } from "../repositories/retailLoyaltyLedgerRepository.js";
 import {
   logActivity,
   lockProducts,
@@ -28,6 +30,39 @@ import {
 
 const DATE_ERROR = "Return date must be in YYYY-MM-DD format.";
 const REFUND_METHODS = ["CASH", "DUE_ADJUSTMENT"];
+
+function normalizeLoyaltyPoints(value) {
+  const parsed = Number(value || 0);
+  return Number.isFinite(parsed) ? Math.max(0, Math.floor(parsed)) : 0;
+}
+
+async function recordLoyaltyEntry(client, {
+  tenantId,
+  customerId,
+  type,
+  pointsDelta,
+  balanceAfter,
+  referenceType,
+  referenceId,
+  note,
+  createdById,
+  businessDate,
+}) {
+  await insertRetailLoyaltyLedgerEntry(client, {
+    id: createId("loyalty-ledger"),
+    tenantId,
+    customerId,
+    type,
+    pointsDelta,
+    balanceAfter,
+    referenceType,
+    referenceId,
+    note,
+    createdById,
+    businessDate,
+  });
+  await updateRetailCustomerLoyaltyBalance(client, customerId, tenantId, balanceAfter);
+}
 
 export class SalesReturnService {
   constructor(databaseManager, { auditService, financeAccountService }) {
@@ -142,6 +177,7 @@ export class SalesReturnService {
         0,
       );
       base.customerId = invoice.customerId;
+      base.loyaltyPointsAdjustment = 0;
 
       const productIds = base.items.map((item) => item.productId);
       const productMap = await lockProducts(client, productIds, actor.tenantId);
@@ -165,6 +201,33 @@ export class SalesReturnService {
           referenceType: "sales_return",
           referenceId: base.id,
           note: `Sales return ${returnNumber}`,
+          createdById: actor.id,
+          businessDate: base.returnDate,
+        });
+      }
+
+      const originalTotalAmount = Math.max(0, Number(invoice.totalAmount || 0));
+      const returnRatio = originalTotalAmount > 0 ? Math.min(1, base.totalAmount / originalTotalAmount) : 0;
+      const originalEarnedPoints = normalizeLoyaltyPoints(invoice.loyaltyPointsEarned);
+      const originalRedeemedPoints = normalizeLoyaltyPoints(invoice.loyaltyPointsRedeemed);
+      const loyaltyPointsAdjustment = Math.round((originalRedeemedPoints - originalEarnedPoints) * returnRatio);
+      if (invoice.customerId && loyaltyPointsAdjustment !== 0) {
+        const customerResult = await findRetailCustomerForUpdate(client, invoice.customerId, actor.tenantId);
+        assert(customerResult.rowCount > 0, "Customer not found.", 404);
+        const customer = customerResult.rows[0];
+        const currentBalance = Math.max(0, Number(customer.loyalty_points_balance || 0));
+        const balanceAfter = Math.max(0, currentBalance + loyaltyPointsAdjustment);
+        base.loyaltyPointsAdjustment = loyaltyPointsAdjustment;
+
+        await recordLoyaltyEntry(client, {
+          tenantId: actor.tenantId,
+          customerId: customer.id,
+          type: "RETURN",
+          pointsDelta: loyaltyPointsAdjustment,
+          balanceAfter,
+          referenceType: "sales_return",
+          referenceId: base.id,
+          note: `Loyalty adjustment for sales return ${returnNumber}`,
           createdById: actor.id,
           businessDate: base.returnDate,
         });
@@ -247,6 +310,7 @@ export class SalesReturnService {
           refundMethod: base.refundMethod,
           totalAmount: base.totalAmount,
           totalProfitAdjustment,
+          loyaltyPointsAdjustment: base.loyaltyPointsAdjustment,
         },
       });
 

@@ -93,7 +93,17 @@ function summarizeTaxes(lineRows, discount) {
   return { nextRows, taxableAmount, taxAmount: totalTaxAmount, totalAmount, taxRate };
 }
 
-export function useSalesInvoiceFormViewModel({ products, promotions = [], defaultSaleType = 'RETAIL', defaultCustomerType = 'WALK_IN', defaultTaxRate = 0 }) {
+export function useSalesInvoiceFormViewModel({
+  products,
+  promotions = [],
+  retailCustomers = [],
+  defaultSaleType = 'RETAIL',
+  defaultCustomerType = 'WALK_IN',
+  defaultTaxRate = 0,
+  loyaltyEnabled = false,
+  loyaltyPointsPer100 = 1,
+  loyaltyPointValue = 1,
+}) {
   const [customerId, setCustomerId] = useState('');
   const [customerType, setCustomerType] = useState(defaultCustomerType);
   const [saleType, setSaleType] = useState(defaultSaleType);
@@ -102,8 +112,10 @@ export function useSalesInvoiceFormViewModel({ products, promotions = [], defaul
   const [discountInput, setDiscountInput] = useState('0');
   const [taxRateInput, setTaxRateInputState] = useState(String(Math.min(Math.max(0, Number(defaultTaxRate || 0)), 100)));
   const [paidAmountInput, setPaidAmountInputState] = useState('0');
+  const [loyaltyRedeemPointsInput, setLoyaltyRedeemPointsInputState] = useState('0');
   const [paymentMethod, setPaymentMethod] = useState('CASH');
   const [note, setNote] = useState('');
+  const selectedCustomer = customerId ? retailCustomers.find((customer) => customer.id === customerId) : null;
 
   function changeSaleType(nextSaleType) {
     setSaleType(nextSaleType);
@@ -125,6 +137,14 @@ export function useSalesInvoiceFormViewModel({ products, promotions = [], defaul
     setCustomerType(nextCustomerType);
     if (nextCustomerType === 'WALK_IN') {
       setCustomerId('');
+      setLoyaltyRedeemPointsInputState('0');
+    }
+  }
+
+  function changeCustomerId(nextCustomerId) {
+    setCustomerId(nextCustomerId);
+    if (!nextCustomerId) {
+      setLoyaltyRedeemPointsInputState('0');
     }
   }
 
@@ -231,9 +251,18 @@ export function useSalesInvoiceFormViewModel({ products, promotions = [], defaul
   const taxRate = taxSummary.taxRate;
   const taxAmount = taxSummary.taxAmount;
   const totalAmount = Math.max(0, taxableAmount + taxAmount);
+  const loyaltyEligible = Boolean(loyaltyEnabled && customerType === 'REGISTERED' && selectedCustomer && saleType !== 'WHOLESALE');
+  const loyaltyCustomerBalance = Math.max(0, Number(selectedCustomer?.loyaltyPointsBalance || 0));
+  const loyaltyPointsPer100Rate = Math.max(0, Number(loyaltyPointsPer100 || 0));
+  const loyaltyPointCashValue = Math.max(0, Number(loyaltyPointValue || 0));
+  const loyaltyRedeemPointsRaw = Math.max(0, Math.floor(Number(loyaltyRedeemPointsInput || 0)));
+  const loyaltyRedeemPoints = loyaltyEligible ? Math.min(loyaltyRedeemPointsRaw, loyaltyCustomerBalance) : 0;
+  const loyaltyRedeemAmount = loyaltyEligible ? Math.min(totalAmount, loyaltyRedeemPoints * loyaltyPointCashValue) : 0;
+  const netTotalAfterLoyalty = Math.max(0, totalAmount - loyaltyRedeemAmount);
   const paidAmountRaw = Math.max(0, Number(paidAmountInput || 0));
-  const paidAmount = Math.min(paidAmountRaw, totalAmount);
-  const dueAmount = totalAmount - paidAmount;
+  const paidAmount = Math.min(paidAmountRaw, netTotalAfterLoyalty);
+  const dueAmount = netTotalAfterLoyalty - paidAmount;
+  const loyaltyPointsEarned = loyaltyEligible ? Math.floor((paidAmount * loyaltyPointsPer100Rate) / 100) : 0;
 
   useEffect(() => {
     const currentValue = Number(discountInput || 0);
@@ -251,10 +280,24 @@ export function useSalesInvoiceFormViewModel({ products, promotions = [], defaul
 
   useEffect(() => {
     const currentValue = Number(paidAmountInput || 0);
-    if (Number.isFinite(currentValue) && currentValue > totalAmount) {
-      setPaidAmountInputState(String(totalAmount));
+    if (Number.isFinite(currentValue) && currentValue > netTotalAfterLoyalty) {
+      setPaidAmountInputState(String(netTotalAfterLoyalty));
     }
-  }, [paidAmountInput, totalAmount]);
+  }, [paidAmountInput, netTotalAfterLoyalty]);
+
+  useEffect(() => {
+    if (!loyaltyEligible) {
+      if (loyaltyRedeemPointsInput !== '0') {
+        setLoyaltyRedeemPointsInputState('0');
+      }
+      return;
+    }
+
+    const currentValue = Number(loyaltyRedeemPointsInput || 0);
+    if (Number.isFinite(currentValue) && currentValue > loyaltyCustomerBalance) {
+      setLoyaltyRedeemPointsInputState(String(loyaltyCustomerBalance));
+    }
+  }, [loyaltyEligible, loyaltyRedeemPointsInput, loyaltyCustomerBalance]);
 
   useEffect(() => {
     setItems((current) => {
@@ -284,7 +327,7 @@ export function useSalesInvoiceFormViewModel({ products, promotions = [], defaul
   });
 
   function markFullyPaid() {
-    setPaidAmountInputState(String(totalAmount));
+    setPaidAmountInputState(String(netTotalAfterLoyalty));
   }
 
   function setDiscountValue(nextValue) {
@@ -329,7 +372,7 @@ export function useSalesInvoiceFormViewModel({ products, promotions = [], defaul
       return;
     }
 
-    setPaidAmountInputState(String(Math.min(Math.max(0, numericValue), totalAmount)));
+    setPaidAmountInputState(String(Math.min(Math.max(0, numericValue), netTotalAfterLoyalty)));
   }
 
   function buildPayload() {
@@ -353,6 +396,7 @@ export function useSalesInvoiceFormViewModel({ products, promotions = [], defaul
       taxRate,
       taxAmount,
       paidAmount,
+      loyaltyRedeemPoints: loyaltyRedeemPoints,
       paymentMethod,
       note: note.trim(),
     };
@@ -360,7 +404,7 @@ export function useSalesInvoiceFormViewModel({ products, promotions = [], defaul
 
   return {
     customerId,
-    setCustomerId,
+    setCustomerId: changeCustomerId,
     customerType,
     setCustomerType: changeCustomerType,
     saleType,
@@ -389,8 +433,17 @@ export function useSalesInvoiceFormViewModel({ products, promotions = [], defaul
     lineDiscountTotal,
     discount,
     totalAmount,
+    netTotalAfterLoyalty,
     paidAmount,
     dueAmount,
+    loyaltyEligible,
+    selectedCustomer,
+    loyaltyCustomerBalance,
+    loyaltyRedeemPointsInput,
+    setLoyaltyRedeemPointsInput: setLoyaltyRedeemPointsInputState,
+    loyaltyRedeemPoints,
+    loyaltyRedeemAmount,
+    loyaltyPointsEarned,
     hasValidItems,
     hasInvalidItems,
     markFullyPaid,

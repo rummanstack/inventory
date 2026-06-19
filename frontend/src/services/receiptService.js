@@ -73,6 +73,27 @@ function buildMoneyRow(label, value) {
   `;
 }
 
+function buildOptionalMoneyRow(label, value) {
+  if (!value) {
+    return '';
+  }
+
+  return buildMoneyRow(label, value);
+}
+
+function buildTextRow(label, value) {
+  if (value === null || value === undefined || value === '') {
+    return '';
+  }
+
+  return `
+    <tr>
+      <td class="label">${escapeHtml(label)}</td>
+      <td class="value">${escapeHtml(String(value))}</td>
+    </tr>
+  `;
+}
+
 export function buildReceiptHtml(invoice, {
   businessName = '',
   businessAddress = '',
@@ -269,11 +290,13 @@ export function buildReceiptHtml(invoice, {
       <tbody>
         ${buildMoneyRow('Subtotal', invoice?.subtotal)}
         ${buildMoneyRow('Discount', invoice?.discount)}
+        ${buildOptionalMoneyRow('Loyalty Redeem', invoice?.loyaltyRedeemAmount)}
         ${Number(invoice?.taxRate || 0) > 0 ? buildMoneyRow(`Tax (${Number(invoice.taxRate || 0).toFixed(2)}%)`, invoice?.taxAmount) : ''}
         <tr class="grand">
           <td class="label">Total</td>
           <td class="value">${escapeHtml(formatCurrency(invoice?.totalAmount))}</td>
         </tr>
+        ${Number(invoice?.loyaltyPointsEarned || 0) > 0 ? buildTextRow('Loyalty Earned', invoice?.loyaltyPointsEarned) : ''}
         ${buildMoneyRow('Paid', invoice?.paidAmount)}
         <tr class="due">
           <td class="label">Due</td>

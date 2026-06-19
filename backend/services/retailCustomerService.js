@@ -88,6 +88,7 @@ export class RetailCustomerService {
       if (input.id) {
         const existing = await findRetailCustomerById(client, customer.id, actor.tenantId);
         assert(existing.rowCount > 0, "Retail customer not found.", 404);
+        customer.loyaltyPointsBalance = Number(existing.rows[0].loyalty_points_balance || 0);
         result = await updateRetailCustomer(client, customer);
         assert(result.rowCount > 0, "Retail customer not found.", 404);
 
@@ -99,6 +100,7 @@ export class RetailCustomerService {
         });
       } else {
         customer.createdById = actor.id;
+        customer.loyaltyPointsBalance = Math.max(0, Number(customer.loyaltyPointsBalance || 0));
         result = await insertRetailCustomer(client, customer);
 
         await this.recordActivity(client, actor, {

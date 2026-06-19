@@ -90,6 +90,12 @@ export default function SalesInvoiceViewModal({ salesInvoice, onClose }) {
             <span className="font-semibold text-slate-600">{t('retailer.shared.discountLabel')}</span>
             <span className="font-bold text-rose-700">- {formatCurrency(salesInvoice.discount)}</span>
           </div>
+          {Number(salesInvoice.loyaltyRedeemAmount || 0) > 0 ? (
+            <div className="flex items-center justify-between">
+              <span className="font-semibold text-slate-600">{t('retailer.shared.loyaltyRedeemAmount')}</span>
+              <span className="font-bold text-rose-700">- {formatCurrency(salesInvoice.loyaltyRedeemAmount)}</span>
+            </div>
+          ) : null}
           {Number(salesInvoice.taxRate || 0) > 0 ? (
             <>
               <div className="flex items-center justify-between gap-3">
@@ -106,6 +112,12 @@ export default function SalesInvoiceViewModal({ salesInvoice, onClose }) {
             <span className="font-black uppercase tracking-[0.1em] text-slate-700">{t('retailer.shared.totalAmount')}</span>
             <span className="font-black text-slate-950">{formatCurrency(salesInvoice.totalAmount)}</span>
           </div>
+          {Number(salesInvoice.loyaltyPointsEarned || 0) > 0 ? (
+            <div className="flex items-center justify-between">
+              <span className="font-semibold text-slate-600">{t('retailer.shared.loyaltyPointsEarned')}</span>
+              <span className="font-bold text-emerald-700">{salesInvoice.loyaltyPointsEarned}</span>
+            </div>
+          ) : null}
           <div className="flex items-center justify-between">
             <span className="font-semibold text-slate-600">{t('retailer.shared.paidAmountLabel')}</span>
             <span className="font-bold text-emerald-700">{formatCurrency(salesInvoice.paidAmount)}</span>

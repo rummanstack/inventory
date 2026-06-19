@@ -83,6 +83,12 @@ export default function RetailCustomerFormModal({ retailCustomer, onClose, onSav
             <textarea className="input min-h-28" value={form.note} onChange={(event) => updateField('note', event.target.value)} placeholder={t('retailCustomers.noteLabel')} />
           </div>
         </div>
+        {isEdit ? (
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">{t('retailCustomers.loyaltyPoints')}</p>
+            <p className="mt-1 text-lg font-black text-slate-950">{Number(retailCustomer.loyaltyPointsBalance || 0)}</p>
+          </div>
+        ) : null}
         {isEdit ? <AuditHistory entityType="retail_customer" entityId={retailCustomer.id} /> : null}
         <div className="flex justify-end gap-2 pt-2">
           <button type="button" className="btn-secondary" onClick={onClose} disabled={saving}>

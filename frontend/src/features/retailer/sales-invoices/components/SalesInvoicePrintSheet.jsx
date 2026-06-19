@@ -63,20 +63,32 @@ export default function SalesInvoicePrintSheet({ invoice, businessName, printTar
             <span className="text-slate-500">Subtotal</span>
             <span className="font-semibold">{formatCurrency(invoice?.subtotal)}</span>
           </div>
-        <div className="flex justify-between">
-          <span className="text-slate-500">Discount</span>
-          <span className="font-semibold text-rose-700">- {formatCurrency(invoice?.discount)}</span>
-        </div>
-        {Number(invoice?.taxRate || 0) > 0 ? (
           <div className="flex justify-between">
-            <span className="text-slate-500">Tax ({Number(invoice.taxRate || 0).toFixed(2)}%)</span>
-            <span className="font-semibold">{formatCurrency(invoice?.taxAmount)}</span>
+            <span className="text-slate-500">Discount</span>
+            <span className="font-semibold text-rose-700">- {formatCurrency(invoice?.discount)}</span>
           </div>
-        ) : null}
-        <div className="flex justify-between border-t border-slate-300 pt-1 font-bold text-slate-950">
-          <span>Total</span>
-          <span>{formatCurrency(invoice?.totalAmount)}</span>
-        </div>
+          {Number(invoice?.loyaltyRedeemAmount || 0) > 0 ? (
+            <div className="flex justify-between">
+              <span className="text-slate-500">Loyalty Redeem</span>
+              <span className="font-semibold text-rose-700">- {formatCurrency(invoice?.loyaltyRedeemAmount)}</span>
+            </div>
+          ) : null}
+          {Number(invoice?.taxRate || 0) > 0 ? (
+            <div className="flex justify-between">
+              <span className="text-slate-500">Tax ({Number(invoice.taxRate || 0).toFixed(2)}%)</span>
+              <span className="font-semibold">{formatCurrency(invoice?.taxAmount)}</span>
+            </div>
+          ) : null}
+          <div className="flex justify-between border-t border-slate-300 pt-1 font-bold text-slate-950">
+            <span>Total</span>
+            <span>{formatCurrency(invoice?.totalAmount)}</span>
+          </div>
+          {Number(invoice?.loyaltyPointsEarned || 0) > 0 ? (
+            <div className="flex justify-between">
+              <span className="text-slate-500">Loyalty Earned</span>
+              <span className="font-semibold text-emerald-700">{invoice?.loyaltyPointsEarned}</span>
+            </div>
+          ) : null}
           <div className="flex justify-between">
             <span className="text-slate-500">Paid</span>
             <span className="font-semibold text-emerald-700">{formatCurrency(invoice?.paidAmount)}</span>

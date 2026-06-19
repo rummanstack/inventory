@@ -10,9 +10,13 @@ export default function SalesInvoiceFormModal({ onClose, onSave }) {
   const vm = useSalesInvoiceFormViewModel({
     products: productDirectory,
     promotions: promotionDirectory,
+    retailCustomers: retailCustomerDirectory,
     defaultSaleType: 'RETAIL',
     defaultCustomerType: 'WALK_IN',
     defaultTaxRate: tenant?.taxRate || 0,
+    loyaltyEnabled: tenant?.loyaltyEnabled || false,
+    loyaltyPointsPer100: tenant?.loyaltyPointsPer100 ?? 1,
+    loyaltyPointValue: tenant?.loyaltyPointValue ?? 1,
   });
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);

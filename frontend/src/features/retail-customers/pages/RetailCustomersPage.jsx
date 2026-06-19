@@ -103,6 +103,7 @@ export default function RetailCustomersPage() {
                   <th className="px-4 py-3">{t('retailCustomers.name')}</th>
                   <th className="hidden px-4 py-3 sm:table-cell">{t('retailCustomers.phone')}</th>
                   <th className="hidden px-4 py-3 md:table-cell">{t('retailCustomers.address')}</th>
+                  <th className="hidden px-4 py-3 lg:table-cell">{t('retailCustomers.loyaltyPoints')}</th>
                   <th className="px-4 py-3">{t('retailCustomers.status')}</th>
                   {canManage ? <th className="px-4 py-3 text-right">{t('common.actions')}</th> : null}
                 </tr>
@@ -119,6 +120,7 @@ export default function RetailCustomersPage() {
                       </span>
                     </td>
                     <td className="hidden table-cell md:table-cell">{customer.address || '-'}</td>
+                    <td className="hidden table-cell lg:table-cell font-bold text-slate-950">{Number(customer.loyaltyPointsBalance || 0)}</td>
                     <td className="table-cell">
                       <Badge tone={statusTone(customer.status === 'ACTIVE' ? 'Active' : 'Inactive')}>
                         {customer.status === 'ACTIVE' ? t('retailCustomers.statusActive') : t('retailCustomers.statusInactive')}

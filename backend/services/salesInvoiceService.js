@@ -1,15 +1,18 @@
 import { assert } from "../lib/errors.js";
+import { createId } from "../lib/ids.js";
 import { normalizeIsoDate } from "../lib/dateRanges.js";
 import { parsePagination, buildPageResult } from "../lib/pagination.js";
 import { normalizeSalesInvoice, cleanMoney } from "../lib/normalizers.js";
+import { normalizeLoyaltySettings, calculateEarnedLoyaltyPoints, calculateRedeemAmount } from "../lib/loyalty.js";
 import { STOCK_MOVEMENT_TYPES } from "../lib/stockMovements.js";
 import { CUSTOMER_DUE_LEDGER_TYPES } from "../lib/customerDueLedger.js";
 import { SALES_INVOICE_ACTIONS } from "../lib/auditActions.js";
 import { nextInvoiceNumber } from "../lib/salesNumber.js";
-import { findRetailCustomerForUpdate, updateRetailCustomerCurrentDue } from "../repositories/retailCustomerRepository.js";
+import { findRetailCustomerForUpdate, updateRetailCustomerCurrentDue, updateRetailCustomerLoyaltyBalance } from "../repositories/retailCustomerRepository.js";
 import { findTenantById } from "../repositories/tenantRepository.js";
 import { getLatestCustomerDueLedgerEntry } from "../repositories/customerDueLedgerRepository.js";
 import { listActiveRetailPromotionsForDate } from "../repositories/retailPromotionRepository.js";
+import { insertRetailLoyaltyLedgerEntry } from "../repositories/retailLoyaltyLedgerRepository.js";
 import {
   countSalesInvoices,
   countTrashedSalesInvoices,
@@ -36,6 +39,50 @@ import {
 } from "./shared/inventoryHelpers.js";
 
 const DATE_ERROR = "Invoice date must be in YYYY-MM-DD format.";
+
+function normalizeLoyaltyPoints(value) {
+  const parsed = Number(value || 0);
+  return Number.isFinite(parsed) ? Math.max(0, Math.floor(parsed)) : 0;
+}
+
+function loyaltyPointsImpact(invoice, quantityRatio = 1) {
+  const earned = normalizeLoyaltyPoints(invoice.loyaltyPointsEarned);
+  const redeemed = normalizeLoyaltyPoints(invoice.loyaltyPointsRedeemed);
+  const ratio = Math.max(0, Math.min(1, Number(quantityRatio || 0)));
+  return {
+    earned: Math.round(earned * ratio),
+    redeemed: Math.round(redeemed * ratio),
+  };
+}
+
+async function recordLoyaltyEntry(client, {
+  tenantId,
+  customerId,
+  type,
+  pointsDelta,
+  balanceAfter,
+  referenceType,
+  referenceId,
+  note,
+  createdById,
+  businessDate,
+}) {
+  const entry = {
+    id: createId("loyalty-ledger"),
+    tenantId,
+    customerId,
+    type,
+    pointsDelta,
+    balanceAfter,
+    referenceType,
+    referenceId,
+    note,
+    createdById,
+    businessDate,
+  };
+  await insertRetailLoyaltyLedgerEntry(client, entry);
+  await updateRetailCustomerLoyaltyBalance(client, customerId, tenantId, balanceAfter);
+}
 
 function formatPromotionPrice(basePrice, promotion) {
   const price = Number(basePrice || 0);
@@ -223,6 +270,7 @@ export class SalesInvoiceService {
       const tenant = await findTenantById(client, actor.tenantId);
       const base = normalizeSalesInvoice({ ...input, taxRate: tenant?.taxRate ?? 0 });
       base.tenantId = actor.tenantId;
+      base.loyaltyRedeemPoints = normalizeLoyaltyPoints(input.loyaltyRedeemPoints);
       assert(base.items.length > 0, "At least one product line item is required.");
       assert(base.invoiceDate, "Invoice date is required.");
       base.invoiceDate = normalizeIsoDate(base.invoiceDate, base.invoiceDate, DATE_ERROR);
@@ -238,11 +286,11 @@ export class SalesInvoiceService {
         );
       }
 
-      return this.createSalesInvoiceRecord(client, base, actor);
+      return this.createSalesInvoiceRecord(client, base, actor, tenant);
     });
   }
 
-  async createSalesInvoiceRecord(client, base, actor) {
+  async createSalesInvoiceRecord(client, base, actor, tenant) {
     const productIds = base.items.map((item) => item.productId);
     const productMap = await lockProducts(client, productIds, actor.tenantId);
     const promotions = await listActiveRetailPromotionsForDate(client, actor.tenantId, base.invoiceDate);
@@ -280,11 +328,83 @@ export class SalesInvoiceService {
     base.taxAmount = taxSummary.taxAmount;
     base.totalAmount = taxSummary.totalAmount;
     base.taxRate = taxSummary.taxRate;
-    base.paidAmount = Math.max(0, Math.min(base.paidAmount, base.totalAmount));
-    base.dueAmount = base.totalAmount - base.paidAmount;
+    base.loyaltyPointsEarned = 0;
+    base.loyaltyPointsRedeemed = 0;
+    base.loyaltyRedeemAmount = 0;
 
     const year = new Date(base.invoiceDate).getUTCFullYear();
     const invoiceNumber = await nextInvoiceNumber(client, actor.tenantId, year);
+
+    const loyalty = normalizeLoyaltySettings(tenant);
+    let customer = null;
+    let loyaltyBalanceAfter = null;
+
+    if (base.customerId && loyalty.enabled && base.saleType !== "WHOLESALE") {
+      const customerResult = await findRetailCustomerForUpdate(client, base.customerId, actor.tenantId);
+      assert(customerResult.rowCount > 0, "Customer not found.", 404);
+      customer = customerResult.rows[0];
+      const currentLoyaltyBalance = Math.max(0, Number(customer.loyalty_points_balance || 0));
+      const requestedRedeemPoints = normalizeLoyaltyPoints(base.loyaltyRedeemPoints);
+      const redeemPoints = Math.min(requestedRedeemPoints, currentLoyaltyBalance);
+      const redeemAmount = Math.min(base.totalAmount, calculateRedeemAmount(redeemPoints, loyalty.pointValue));
+      const netTotal = Math.max(0, base.totalAmount - redeemAmount);
+      const paidAmount = Math.max(0, Math.min(base.paidAmount, netTotal));
+      const dueAmount = netTotal - paidAmount;
+      const earnedPoints = calculateEarnedLoyaltyPoints(paidAmount, loyalty.pointsPer100);
+
+      base.loyaltyPointsRedeemed = redeemPoints;
+      base.loyaltyRedeemAmount = redeemAmount;
+      base.loyaltyPointsEarned = earnedPoints;
+      base.totalAmount = netTotal;
+      base.paidAmount = paidAmount;
+      base.dueAmount = dueAmount;
+      totalProfit -= redeemAmount;
+      loyaltyBalanceAfter = currentLoyaltyBalance + earnedPoints - redeemPoints;
+    } else {
+      base.paidAmount = Math.max(0, Math.min(base.paidAmount, base.totalAmount));
+      base.dueAmount = base.totalAmount - base.paidAmount;
+    }
+
+    if (customer && loyaltyBalanceAfter !== null) {
+      await recordLoyaltyEntry(client, {
+        tenantId: actor.tenantId,
+        customerId: customer.id,
+        type: "SALE",
+        pointsDelta: base.loyaltyPointsEarned - base.loyaltyPointsRedeemed,
+        balanceAfter: Math.max(0, loyaltyBalanceAfter),
+        referenceType: "sales_invoice",
+        referenceId: base.id,
+        note: `Loyalty update for sale ${invoiceNumber}`,
+        createdById: actor.id,
+        businessDate: base.invoiceDate,
+      });
+    }
+
+    if (base.customerId && base.dueAmount > 0) {
+      if (!customer) {
+        const customerResult = await findRetailCustomerForUpdate(client, base.customerId, actor.tenantId);
+        assert(customerResult.rowCount > 0, "Customer not found.", 404);
+        customer = customerResult.rows[0];
+      }
+      let currentBalance = await seedOpeningCustomerLedgerIfNeeded(client, customer, actor.tenantId, actor, base.invoiceDate);
+
+      currentBalance += base.dueAmount;
+      await recordCustomerDueLedgerEntry(client, {
+        tenantId: actor.tenantId,
+        customerId: customer.id,
+        type: CUSTOMER_DUE_LEDGER_TYPES.SALE_DUE,
+        debit: base.dueAmount,
+        credit: 0,
+        balanceAfter: currentBalance,
+        referenceType: "sales_invoice",
+        referenceId: base.id,
+        note: `Sale due for ${invoiceNumber}`,
+        createdById: actor.id,
+        businessDate: base.invoiceDate,
+      });
+
+      await updateRetailCustomerCurrentDue(client, customer.id, actor.tenantId, Math.max(0, currentBalance));
+    }
 
     for (const item of base.items) {
       const nextBalance = await applyStockDelta(client, item.productId, actor.tenantId, -item.quantityPieces, 0);
@@ -341,34 +461,6 @@ export class SalesInvoiceService {
       });
     }
 
-    let customer = null;
-    if (base.customerId) {
-      const customerResult = await findRetailCustomerForUpdate(client, base.customerId, actor.tenantId);
-      assert(customerResult.rowCount > 0, "Customer not found.", 404);
-      customer = customerResult.rows[0];
-
-      let currentBalance = await seedOpeningCustomerLedgerIfNeeded(client, customer, actor.tenantId, actor, base.invoiceDate);
-
-      if (base.dueAmount > 0) {
-        currentBalance += base.dueAmount;
-        await recordCustomerDueLedgerEntry(client, {
-          tenantId: actor.tenantId,
-          customerId: customer.id,
-          type: CUSTOMER_DUE_LEDGER_TYPES.SALE_DUE,
-          debit: base.dueAmount,
-          credit: 0,
-          balanceAfter: currentBalance,
-          referenceType: "sales_invoice",
-          referenceId: base.id,
-          note: `Sale due for ${invoiceNumber}`,
-          createdById: actor.id,
-          businessDate: base.invoiceDate,
-        });
-
-        await updateRetailCustomerCurrentDue(client, customer.id, actor.tenantId, Math.max(0, currentBalance));
-      }
-    }
-
     await this.recordActivity(client, actor, {
       actionType: SALES_INVOICE_ACTIONS.CREATE,
       entityType: "sales_invoice",
@@ -382,6 +474,9 @@ export class SalesInvoiceService {
         taxAmount: base.taxAmount,
         totalAmount: base.totalAmount,
         dueAmount: base.dueAmount,
+        loyaltyPointsEarned: base.loyaltyPointsEarned,
+        loyaltyPointsRedeemed: base.loyaltyPointsRedeemed,
+        loyaltyRedeemAmount: base.loyaltyRedeemAmount,
         totalProfit,
       },
     });
@@ -425,6 +520,29 @@ export class SalesInvoiceService {
         deletedById: actor.id,
         deleteReason: reason,
       });
+
+      const loyaltyPointsEarned = normalizeLoyaltyPoints(invoice.loyalty_points_earned);
+      const loyaltyPointsRedeemed = normalizeLoyaltyPoints(invoice.loyalty_points_redeemed);
+      const loyaltyPointsDelta = loyaltyPointsEarned - loyaltyPointsRedeemed;
+      if (invoice.customer_id && loyaltyPointsDelta !== 0) {
+        const customerResult = await findRetailCustomerForUpdate(client, invoice.customer_id, actor.tenantId);
+        assert(customerResult.rowCount > 0, "Customer not found.", 404);
+        const customer = customerResult.rows[0];
+        const currentBalance = Math.max(0, Number(customer.loyalty_points_balance || 0));
+        const balanceAfter = Math.max(0, currentBalance - loyaltyPointsDelta);
+        await recordLoyaltyEntry(client, {
+          tenantId: actor.tenantId,
+          customerId: customer.id,
+          type: "SALE_DELETE",
+          pointsDelta: -loyaltyPointsDelta,
+          balanceAfter,
+          referenceType: "sales_invoice",
+          referenceId: invoiceId,
+          note: `Loyalty reversed for deleted sale ${invoice.invoice_number}`,
+          createdById: actor.id,
+          businessDate: invoiceDate,
+        });
+      }
 
       const dueAmount = Number(invoice.due_amount || 0);
       if (invoice.customer_id && dueAmount > 0) {
@@ -512,6 +630,29 @@ export class SalesInvoiceService {
           referenceType: "sales_invoice",
           referenceId: invoiceId,
           note: `Sale ${invoice.invoice_number} restored from trash — stock re-applied`,
+          createdById: actor.id,
+          businessDate: invoiceDate,
+        });
+      }
+
+      const loyaltyPointsEarned = normalizeLoyaltyPoints(invoice.loyalty_points_earned);
+      const loyaltyPointsRedeemed = normalizeLoyaltyPoints(invoice.loyalty_points_redeemed);
+      const loyaltyPointsDelta = loyaltyPointsEarned - loyaltyPointsRedeemed;
+      if (invoice.customer_id && loyaltyPointsDelta !== 0) {
+        const customerResult = await findRetailCustomerForUpdate(client, invoice.customer_id, actor.tenantId);
+        assert(customerResult.rowCount > 0, "Customer not found.", 404);
+        const customer = customerResult.rows[0];
+        const currentBalance = Math.max(0, Number(customer.loyalty_points_balance || 0));
+        const balanceAfter = Math.max(0, currentBalance + loyaltyPointsDelta);
+        await recordLoyaltyEntry(client, {
+          tenantId: actor.tenantId,
+          customerId: customer.id,
+          type: "SALE_RESTORE",
+          pointsDelta: loyaltyPointsDelta,
+          balanceAfter,
+          referenceType: "sales_invoice",
+          referenceId: invoiceId,
+          note: `Loyalty restored for sale ${invoice.invoice_number}`,
           createdById: actor.id,
           businessDate: invoiceDate,
         });

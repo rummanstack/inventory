@@ -46,6 +46,11 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, retail
               <option key={customer.id} value={customer.id}>{customer.name}</option>
             ))}
           </select>
+          {vm.loyaltyEligible && vm.selectedCustomer ? (
+            <p className="mt-1 text-xs font-semibold text-emerald-700">
+              {t('retailer.shared.loyaltyBalance', { points: vm.loyaltyCustomerBalance })}
+            </p>
+          ) : null}
         </div>
       </div>
 
@@ -122,6 +127,28 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, retail
                 <input className="input h-9 w-28 text-right" type="number" min="0" step="0.01" value={vm.discountInput} onChange={(event) => vm.setDiscountInput(event.target.value)} disabled={saving} />
               </dd>
             </div>
+            {vm.loyaltyEligible ? (
+              <>
+                <div className="flex items-center justify-between gap-3">
+                  <dt className="font-semibold text-slate-600">{t('retailer.shared.loyaltyRedeemPoints')}</dt>
+                  <dd className="flex items-center gap-2">
+                    <input
+                      className="input h-9 w-28 text-right"
+                      type="number"
+                      min="0"
+                      step="1"
+                      value={vm.loyaltyRedeemPointsInput}
+                      onChange={(event) => vm.setLoyaltyRedeemPointsInput(event.target.value)}
+                      disabled={saving}
+                    />
+                  </dd>
+                </div>
+                <div className="flex items-center justify-between">
+                  <dt className="font-semibold text-slate-600">{t('retailer.shared.loyaltyRedeemAmount')}</dt>
+                  <dd className="font-black text-rose-700">- {formatCurrency(vm.loyaltyRedeemAmount)}</dd>
+                </div>
+              </>
+            ) : null}
             {vm.taxRate > 0 ? (
               <>
                 <div className="flex items-center justify-between gap-3">
@@ -138,6 +165,18 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, retail
               <dt className="font-black uppercase tracking-[0.1em] text-slate-700">{t('retailer.shared.totalAmount')}</dt>
               <dd className="font-black text-slate-950">{formatCurrency(vm.totalAmount)}</dd>
             </div>
+            {vm.loyaltyEligible ? (
+              <div className="flex items-center justify-between">
+                <dt className="font-semibold text-slate-600">{t('retailer.shared.payableAfterLoyalty')}</dt>
+                <dd className="font-black text-slate-950">{formatCurrency(vm.netTotalAfterLoyalty)}</dd>
+              </div>
+            ) : null}
+            {vm.loyaltyEligible ? (
+              <div className="flex items-center justify-between">
+                <dt className="font-semibold text-slate-600">{t('retailer.shared.loyaltyPointsEarned')}</dt>
+                <dd className="font-black text-emerald-700">{vm.loyaltyPointsEarned}</dd>
+              </div>
+            ) : null}
             <div className="flex items-center justify-between gap-3">
               <dt className="font-semibold text-slate-600">{t('retailer.shared.paidAmountLabel')}</dt>
               <dd className="flex items-center gap-2">

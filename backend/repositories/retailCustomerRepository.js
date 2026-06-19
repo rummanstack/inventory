@@ -7,6 +7,7 @@ export function mapRetailCustomer(row) {
     address: row.address,
     note: row.note,
     status: row.status,
+    loyaltyPointsBalance: Number(row.loyalty_points_balance || 0),
     createdById: row.created_by,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -66,20 +67,20 @@ export async function listAllActiveRetailCustomers(client, tenantId) {
 
 export function insertRetailCustomer(client, customer) {
   return client.query(
-    `INSERT INTO retail_customers (id, tenant_id, name, phone, address, note, status, created_by)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+    `INSERT INTO retail_customers (id, tenant_id, name, phone, address, note, status, loyalty_points_balance, created_by)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
      RETURNING *`,
-    [customer.id, customer.tenantId, customer.name, customer.phone, customer.address, customer.note, customer.status, customer.createdById],
+    [customer.id, customer.tenantId, customer.name, customer.phone, customer.address, customer.note, customer.status, customer.loyaltyPointsBalance ?? 0, customer.createdById],
   );
 }
 
 export function updateRetailCustomer(client, customer) {
   return client.query(
     `UPDATE retail_customers
-     SET name = $3, phone = $4, address = $5, note = $6, status = $7, updated_at = NOW()
+     SET name = $3, phone = $4, address = $5, note = $6, status = $7, loyalty_points_balance = $8, updated_at = NOW()
      WHERE id = $1 AND tenant_id = $2
      RETURNING *`,
-    [customer.id, customer.tenantId, customer.name, customer.phone, customer.address, customer.note, customer.status],
+    [customer.id, customer.tenantId, customer.name, customer.phone, customer.address, customer.note, customer.status, customer.loyaltyPointsBalance ?? 0],
   );
 }
 
@@ -148,5 +149,12 @@ export function updateRetailCustomerCurrentDue(client, id, tenantId, currentDue)
   return client.query(
     "UPDATE retail_customers SET current_due = $3, updated_at = NOW() WHERE id = $1 AND tenant_id = $2",
     [id, tenantId, currentDue],
+  );
+}
+
+export function updateRetailCustomerLoyaltyBalance(client, id, tenantId, loyaltyPointsBalance) {
+  return client.query(
+    "UPDATE retail_customers SET loyalty_points_balance = $3, updated_at = NOW() WHERE id = $1 AND tenant_id = $2",
+    [id, tenantId, loyaltyPointsBalance],
   );
 }

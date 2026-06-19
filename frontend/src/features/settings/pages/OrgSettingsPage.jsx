@@ -13,6 +13,9 @@ export default function OrgSettingsPage() {
     address: tenant?.address || '',
     logoUrl: tenant?.logoUrl || '',
     taxRate: String(Number(tenant?.taxRate || 0)),
+    loyaltyEnabled: Boolean(tenant?.loyaltyEnabled),
+    loyaltyPointsPer100: String(Number(tenant?.loyaltyPointsPer100 ?? 1)),
+    loyaltyPointValue: String(Number(tenant?.loyaltyPointValue ?? 1)),
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -25,6 +28,9 @@ export default function OrgSettingsPage() {
       address: tenant.address || '',
       logoUrl: tenant.logoUrl || '',
       taxRate: String(Number(tenant.taxRate || 0)),
+      loyaltyEnabled: Boolean(tenant.loyaltyEnabled),
+      loyaltyPointsPer100: String(Number(tenant.loyaltyPointsPer100 ?? 1)),
+      loyaltyPointValue: String(Number(tenant.loyaltyPointValue ?? 1)),
     });
   }, [tenant]);
 
@@ -120,6 +126,51 @@ export default function OrgSettingsPage() {
             {t('orgSettings.taxHelp') || 'This is the company default. Individual products can override it.'}
           </p>
         </label>
+
+        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 space-y-4">
+          <label className="flex items-start gap-3">
+            <input
+              className="mt-1 h-4 w-4 rounded border-slate-300 text-brand focus:ring-brand"
+              type="checkbox"
+              checked={Boolean(form.loyaltyEnabled)}
+              onChange={(e) => handleChange('loyaltyEnabled', e.target.checked)}
+              disabled={!canEdit}
+            />
+            <span>
+              <span className="block font-semibold text-slate-950">{t('orgSettings.loyaltyEnabled')}</span>
+              <span className="mt-0.5 block text-xs text-slate-500">
+                {t('orgSettings.loyaltyEnabledHelp') || 'When enabled, customers can earn loyalty points on sales.'}
+              </span>
+            </span>
+          </label>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="block">
+              <span className="label">{t('orgSettings.loyaltyPointsPer100')}</span>
+              <input
+                className="input"
+                type="number"
+                min="0"
+                step="0.01"
+                value={form.loyaltyPointsPer100}
+                onChange={(e) => handleChange('loyaltyPointsPer100', e.target.value)}
+                disabled={!canEdit || !form.loyaltyEnabled}
+              />
+            </label>
+            <label className="block">
+              <span className="label">{t('orgSettings.loyaltyPointValue')}</span>
+              <input
+                className="input"
+                type="number"
+                min="0"
+                step="0.01"
+                value={form.loyaltyPointValue}
+                onChange={(e) => handleChange('loyaltyPointValue', e.target.value)}
+                disabled={!canEdit || !form.loyaltyEnabled}
+              />
+            </label>
+          </div>
+        </div>
 
         <div className="flex items-center gap-3 pt-2">
           <p className="flex-1 text-xs text-slate-500">

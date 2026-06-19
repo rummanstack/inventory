@@ -55,6 +55,11 @@ export default function CustomerDuePage() {
               <option key={customer.id} value={customer.id}>{customer.name}</option>
             ))}
           </select>
+          {selectedCustomer ? (
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700">
+              {t('retailCustomers.loyaltyPoints')}: <span className="font-black text-slate-950">{Number(selectedCustomer.loyaltyPointsBalance || 0)}</span>
+            </div>
+          ) : null}
           <DatePickerField value={vm.dateFrom} onChange={vm.setDateFrom} placeholder={t('supplierStatement.dateFrom')} />
           <DatePickerField value={vm.dateTo} onChange={vm.setDateTo} placeholder={t('supplierStatement.dateTo')} />
         </div>

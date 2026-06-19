@@ -24,6 +24,28 @@ function normalizeTaxRate(value) {
   return Math.min(Math.max(0, parsed), 100);
 }
 
+function normalizeLoyaltyEnabled(value) {
+  return value === true || value === "true" || value === 1 || value === "1";
+}
+
+function normalizeLoyaltyPointsPer100(value) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) {
+    return 1;
+  }
+
+  return Math.min(Math.max(0, parsed), 1000);
+}
+
+function normalizeLoyaltyPointValue(value) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) {
+    return 1;
+  }
+
+  return Math.min(Math.max(0, parsed), 1000000);
+}
+
 export class TenantService {
   constructor(databaseManager) {
     this.databaseManager = databaseManager;
@@ -38,7 +60,7 @@ export class TenantService {
     }
   }
 
-  async createTenant({ name, slug, email, plan = "starter", address, logoUrl, taxRate = 0 }) {
+  async createTenant({ name, slug, email, plan = "starter", address, logoUrl, taxRate = 0, loyaltyEnabled = false, loyaltyPointsPer100 = 1, loyaltyPointValue = 1 }) {
     assert(name && slug && email, "name, slug and email are required", 400);
     const client = await this.databaseManager.getPool().connect();
     try {
@@ -54,6 +76,9 @@ export class TenantService {
         address: address || null,
         logoUrl: logoUrl || null,
         taxRate: normalizeTaxRate(taxRate),
+        loyaltyEnabled: normalizeLoyaltyEnabled(loyaltyEnabled),
+        loyaltyPointsPer100: normalizeLoyaltyPointsPer100(loyaltyPointsPer100),
+        loyaltyPointValue: normalizeLoyaltyPointValue(loyaltyPointValue),
       };
       return await insertTenant(client, tenant);
     } finally {
@@ -79,6 +104,9 @@ export class TenantService {
         address: fields.address !== undefined ? fields.address : existing.address,
         logoUrl: fields.logoUrl !== undefined ? fields.logoUrl : existing.logoUrl,
         taxRate: fields.taxRate !== undefined ? normalizeTaxRate(fields.taxRate) : existing.taxRate ?? 0,
+        loyaltyEnabled: fields.loyaltyEnabled !== undefined ? normalizeLoyaltyEnabled(fields.loyaltyEnabled) : existing.loyaltyEnabled ?? false,
+        loyaltyPointsPer100: fields.loyaltyPointsPer100 !== undefined ? normalizeLoyaltyPointsPer100(fields.loyaltyPointsPer100) : existing.loyaltyPointsPer100 ?? 1,
+        loyaltyPointValue: fields.loyaltyPointValue !== undefined ? normalizeLoyaltyPointValue(fields.loyaltyPointValue) : existing.loyaltyPointValue ?? 1,
       };
       return await updateTenant(client, updated);
     } finally {

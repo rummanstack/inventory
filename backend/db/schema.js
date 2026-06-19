@@ -10,6 +10,9 @@ export async function createSchema(pool) {
       logo_url    TEXT,
       address     TEXT,
       tax_rate    NUMERIC NOT NULL DEFAULT 0,
+      loyalty_enabled BOOLEAN NOT NULL DEFAULT false,
+      loyalty_points_per_100 NUMERIC NOT NULL DEFAULT 1,
+      loyalty_point_value NUMERIC NOT NULL DEFAULT 1,
       created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
 
@@ -202,11 +205,18 @@ export async function createSchema(pool) {
     ALTER TABLE settlements ADD COLUMN IF NOT EXISTS discount NUMERIC NOT NULL DEFAULT 0;
     ALTER TABLE settlements ADD COLUMN IF NOT EXISTS extra_return_value NUMERIC NOT NULL DEFAULT 0;
     ALTER TABLE tenants ADD COLUMN IF NOT EXISTS tax_rate NUMERIC NOT NULL DEFAULT 0;
+    ALTER TABLE tenants ADD COLUMN IF NOT EXISTS loyalty_enabled BOOLEAN NOT NULL DEFAULT false;
+    ALTER TABLE tenants ADD COLUMN IF NOT EXISTS loyalty_points_per_100 NUMERIC NOT NULL DEFAULT 1;
+    ALTER TABLE tenants ADD COLUMN IF NOT EXISTS loyalty_point_value NUMERIC NOT NULL DEFAULT 1;
     ALTER TABLE purchase_receipts ADD COLUMN IF NOT EXISTS tax_rate NUMERIC NOT NULL DEFAULT 0;
     ALTER TABLE purchase_receipts ADD COLUMN IF NOT EXISTS tax_amount NUMERIC NOT NULL DEFAULT 0;
     ALTER TABLE sales_invoices ADD COLUMN IF NOT EXISTS tax_rate NUMERIC NOT NULL DEFAULT 0;
     ALTER TABLE sales_invoices ADD COLUMN IF NOT EXISTS tax_amount NUMERIC NOT NULL DEFAULT 0;
+    ALTER TABLE sales_invoices ADD COLUMN IF NOT EXISTS loyalty_points_earned INTEGER NOT NULL DEFAULT 0;
+    ALTER TABLE sales_invoices ADD COLUMN IF NOT EXISTS loyalty_points_redeemed INTEGER NOT NULL DEFAULT 0;
+    ALTER TABLE sales_invoices ADD COLUMN IF NOT EXISTS loyalty_redeem_amount NUMERIC NOT NULL DEFAULT 0;
     ALTER TABLE sales_returns ADD COLUMN IF NOT EXISTS refund_method TEXT NOT NULL DEFAULT 'DUE_ADJUSTMENT';
+    ALTER TABLE sales_returns ADD COLUMN IF NOT EXISTS loyalty_points_adjustment INTEGER NOT NULL DEFAULT 0;
     ALTER TABLE retail_cash_sessions ADD COLUMN IF NOT EXISTS opened_by TEXT REFERENCES users(id) ON DELETE SET NULL;
     ALTER TABLE retail_cash_sessions ADD COLUMN IF NOT EXISTS closed_by TEXT REFERENCES users(id) ON DELETE SET NULL;
     ALTER TABLE retail_cash_sessions ADD COLUMN IF NOT EXISTS started_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
@@ -563,6 +573,9 @@ export async function createSchema(pool) {
       total_amount      NUMERIC NOT NULL DEFAULT 0,
       paid_amount       NUMERIC NOT NULL DEFAULT 0,
       due_amount        NUMERIC NOT NULL DEFAULT 0,
+      loyalty_points_earned   INTEGER NOT NULL DEFAULT 0,
+      loyalty_points_redeemed INTEGER NOT NULL DEFAULT 0,
+      loyalty_redeem_amount   NUMERIC NOT NULL DEFAULT 0,
       payment_method    TEXT NOT NULL DEFAULT 'CASH',
       total_profit      NUMERIC NOT NULL DEFAULT 0,
       note              TEXT NOT NULL DEFAULT '',
@@ -674,6 +687,7 @@ export async function createSchema(pool) {
       refund_method            TEXT NOT NULL DEFAULT 'DUE_ADJUSTMENT',
       total_amount             NUMERIC NOT NULL DEFAULT 0,
       total_profit_adjustment  NUMERIC NOT NULL DEFAULT 0,
+      loyalty_points_adjustment INTEGER NOT NULL DEFAULT 0,
       note                     TEXT NOT NULL DEFAULT '',
       created_by               TEXT REFERENCES users(id) ON DELETE SET NULL,
       created_at               TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -796,6 +810,26 @@ export async function createSchema(pool) {
     -- Migrate retailer module customer references to retail_customers table
     ALTER TABLE retail_customers ADD COLUMN IF NOT EXISTS opening_due NUMERIC NOT NULL DEFAULT 0;
     ALTER TABLE retail_customers ADD COLUMN IF NOT EXISTS current_due NUMERIC NOT NULL DEFAULT 0;
+    ALTER TABLE retail_customers ADD COLUMN IF NOT EXISTS loyalty_points_balance INTEGER NOT NULL DEFAULT 0;
+
+    CREATE TABLE IF NOT EXISTS retail_loyalty_ledger (
+      id               TEXT PRIMARY KEY,
+      tenant_id        TEXT REFERENCES tenants(id),
+      customer_id      TEXT NOT NULL REFERENCES retail_customers(id) ON DELETE CASCADE,
+      type             TEXT NOT NULL,
+      points_delta     INTEGER NOT NULL DEFAULT 0,
+      balance_after    INTEGER NOT NULL DEFAULT 0,
+      reference_type   TEXT NOT NULL,
+      reference_id     TEXT,
+      note             TEXT NOT NULL DEFAULT '',
+      created_by       TEXT REFERENCES users(id) ON DELETE SET NULL,
+      business_date    DATE,
+      created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+    CREATE INDEX IF NOT EXISTS idx_retail_loyalty_ledger_tenant_customer_created_at
+      ON retail_loyalty_ledger(tenant_id, customer_id, created_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_retail_loyalty_ledger_reference
+      ON retail_loyalty_ledger(reference_type, reference_id);
     ALTER TABLE sales_invoices DROP CONSTRAINT IF EXISTS sales_invoices_customer_id_fkey;
     ALTER TABLE sales_returns DROP CONSTRAINT IF EXISTS sales_returns_customer_id_fkey;
 

@@ -15,6 +15,9 @@ export function mapSalesInvoice(row) {
     totalAmount: Number(row.total_amount || 0),
     paidAmount: Number(row.paid_amount || 0),
     dueAmount: Number(row.due_amount || 0),
+    loyaltyPointsEarned: Number(row.loyalty_points_earned || 0),
+    loyaltyPointsRedeemed: Number(row.loyalty_points_redeemed || 0),
+    loyaltyRedeemAmount: Number(row.loyalty_redeem_amount || 0),
     paymentMethod: row.payment_method,
     totalProfit: Number(row.total_profit || 0),
     note: row.note,
@@ -153,8 +156,9 @@ export function insertSalesInvoice(client, invoice) {
     `INSERT INTO sales_invoices (
        id, tenant_id, invoice_number, invoice_date, customer_id, customer_type, sale_type,
        subtotal, discount, tax_rate, tax_amount, total_amount, paid_amount, due_amount, payment_method, total_profit, note, created_by
+       , loyalty_points_earned, loyalty_points_redeemed, loyalty_redeem_amount
      )
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
      RETURNING *`,
     [
       invoice.id,
@@ -175,6 +179,9 @@ export function insertSalesInvoice(client, invoice) {
       invoice.totalProfit,
       invoice.note,
       invoice.createdById,
+      invoice.loyaltyPointsEarned ?? 0,
+      invoice.loyaltyPointsRedeemed ?? 0,
+      invoice.loyaltyRedeemAmount ?? 0,
     ],
   );
 }

@@ -78,9 +78,9 @@ export default function DailyReportsPage() {
                 <StackedBarChart
                   data={vm.chartRows}
                   segments={[
-                    { key: 'issued', label: t('reports.issued'), color: getCssVar('--issued-soft', '#bfdbfe') },
-                    { key: 'returned', label: t('reports.returned'), color: getCssVar('--returned', '#fdba74') },
-                    { key: 'sold', label: t('reports.sold'), color: getCssVar('--success', '#0f766e') },
+                    { key: 'issued', label: t('reports.issued'), color: getCssVar('--issued-soft', '#bfbdd2') },
+                    { key: 'returned', label: t('reports.returned'), color: getCssVar('--returned', '#f8aa17') },
+                    { key: 'sold', label: t('reports.sold'), color: getCssVar('--success', '#37a864') },
                   ]}
                   totalFormatter={(value) => `${formatNumber(value)} pcs`}
                 />

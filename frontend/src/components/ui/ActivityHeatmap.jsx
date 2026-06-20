@@ -57,8 +57,8 @@ function HeatmapTooltip({ anchor, cell, t, language }) {
   }
 
   const tooltipBg = getCssVar('--tooltip-bg', 'rgba(15, 23, 42, 0.96)');
-  const tooltipTitleColor = getCssVar('--chart-tooltip-title', '#f8fafc');
-  const tooltipBodyColor = getCssVar('--chart-tooltip-body', '#e2e8f0');
+  const tooltipTitleColor = getCssVar('--chart-tooltip-title', '#f8f8f9');
+  const tooltipBodyColor = getCssVar('--chart-tooltip-body', '#f6f6f6');
   const dayDate = new Date(`${cell.date}T00:00:00`);
   const heatmapFullDateFormatter = new Intl.DateTimeFormat(getHeatmapLocale(language), { weekday: 'long', month: 'short', day: 'numeric' });
 
@@ -78,14 +78,14 @@ function HeatmapTooltip({ anchor, cell, t, language }) {
       <div className="mt-2 space-y-1">
         <div className="flex items-center justify-between gap-3 text-[11px] font-bold" style={{ color: tooltipBodyColor }}>
           <span className="inline-flex items-center gap-1.5">
-            <span className="h-2 w-2 rounded-full" style={{ backgroundColor: getCssVar('--secondary', '#2563eb') }} />
+            <span className="h-2 w-2 rounded-full" style={{ backgroundColor: getCssVar('--secondary', '#5e5b8e') }} />
             {t('activityHeatmap.issues')}
           </span>
           <span>{formatNumber(cell.issued, language)}</span>
         </div>
         <div className="flex items-center justify-between gap-3 text-[11px] font-bold" style={{ color: tooltipBodyColor }}>
           <span className="inline-flex items-center gap-1.5">
-            <span className="h-2 w-2 rounded-full" style={{ backgroundColor: getCssVar('--success', '#0f766e') }} />
+            <span className="h-2 w-2 rounded-full" style={{ backgroundColor: getCssVar('--success', '#37a864') }} />
             {t('activityHeatmap.settlements')}
           </span>
           <span>{formatNumber(cell.settled, language)}</span>
@@ -128,7 +128,7 @@ function HeatmapTooltip({ anchor, cell, t, language }) {
 
       {dsrNames.length ? (
         <div className="mt-2.5 border-t border-white/10 pt-2">
-          <p className="text-[9px] font-black uppercase tracking-[0.18em]" style={{ color: getCssVar('--highlight', '#94a3b8') }}>
+          <p className="text-[9px] font-black uppercase tracking-[0.18em]" style={{ color: getCssVar('--highlight', '#c4c5cd') }}>
             {t('activityHeatmap.activeDsrs')}
           </p>
           <p className="mt-1 text-[11px] font-semibold leading-snug" style={{ color: tooltipBodyColor }}>
@@ -138,7 +138,7 @@ function HeatmapTooltip({ anchor, cell, t, language }) {
         </div>
       ) : null}
 
-      <p className="mt-2.5 border-t border-white/10 pt-2 text-[9px] font-black uppercase tracking-[0.18em]" style={{ color: getCssVar('--highlight', '#94a3b8') }}>
+      <p className="mt-2.5 border-t border-white/10 pt-2 text-[9px] font-black uppercase tracking-[0.18em]" style={{ color: getCssVar('--highlight', '#c4c5cd') }}>
         {heatmapActivityLabel(cell, t)}
       </p>
     </div>,
@@ -146,7 +146,7 @@ function HeatmapTooltip({ anchor, cell, t, language }) {
   );
 }
 
-export function ActivityHeatmap({ cells = [], color = getCssVar('--secondary', '#2563eb'), t, language = 'en' }) {
+export function ActivityHeatmap({ cells = [], color = getCssVar('--secondary', '#5e5b8e'), t, language = 'en' }) {
   const [hovered, setHovered] = useState(null);
 
   if (!cells.length) {

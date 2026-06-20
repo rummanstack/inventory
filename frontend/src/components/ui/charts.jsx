@@ -19,8 +19,8 @@ ChartJS.defaults.font.family = "'Inter', 'Segoe UI Variable', 'Segoe UI', 'Aveni
 
 export const chartTooltipStyle = {
   backgroundColor: getCssVar('--tooltip-bg', 'rgba(15, 23, 42, 0.94)'),
-  titleColor: getCssVar('--chart-tooltip-title', '#f8fafc'),
-  bodyColor: getCssVar('--chart-tooltip-body', '#e2e8f0'),
+  titleColor: getCssVar('--chart-tooltip-title', '#f8f8f9'),
+  bodyColor: getCssVar('--chart-tooltip-body', '#f6f6f6'),
   padding: 12,
   cornerRadius: 12,
   displayColors: true,
@@ -29,7 +29,7 @@ export const chartTooltipStyle = {
   bodyFont: { weight: '600', size: 12 },
 };
 
-export const chartAxisTickStyle = { color: getCssVar('--highlight', '#94a3b8'), font: { weight: '700', size: 11 } };
+export const chartAxisTickStyle = { color: getCssVar('--highlight', '#c4c5cd'), font: { weight: '700', size: 11 } };
 export const chartGridStyle = { color: getCssVar('--chart-grid', 'rgba(148,163,184,0.16)'), drawBorder: false };
 
 export function hexToRgba(color, alpha) {
@@ -65,7 +65,7 @@ export function buildBarGradient(chart, color) {
   return gradient;
 }
 
-export function Sparkline({ data = [], color = getCssVar('--secondary', '#2563eb'), height = 40 }) {
+export function Sparkline({ data = [], color = getCssVar('--secondary', '#5e5b8e'), height = 40 }) {
   if (!data.length) {
     return null;
   }
@@ -105,7 +105,7 @@ export function Sparkline({ data = [], color = getCssVar('--secondary', '#2563eb
   );
 }
 
-export function RadialProgressChart({ value = 0, label, valueLabel, color = getCssVar('--secondary', '#2563eb'), trackColor = getCssVar('--muted', '#cbd5e1'), size = 168 }) {
+export function RadialProgressChart({ value = 0, label, valueLabel, color = getCssVar('--secondary', '#5e5b8e'), trackColor = getCssVar('--muted', '#8c8f9e'), size = 168 }) {
   const clamped = Math.max(0, Math.min(100, Number(value) || 0));
 
   const chartData = {
@@ -150,7 +150,7 @@ export function DonutChart({ data, valueFormatter = (value) => value, centerLabe
     datasets: [{
       data: data.map((item) => Number(item.value || 0)),
       backgroundColor: data.map((item) => item.color),
-      borderColor: getCssVar('--surface-white', '#ffffff'),
+      borderColor: getCssVar('--surface-white', '#f8f8f9'),
       borderWidth: 3,
       borderRadius: 10,
       spacing: 3,
@@ -214,11 +214,11 @@ export function TrendChart({ data, series, valueFormatter = (value) => value, he
       borderWidth: 3,
       pointRadius: 4,
       pointHoverRadius: 6,
-      pointBackgroundColor: getCssVar('--surface-white', '#ffffff'),
+      pointBackgroundColor: getCssVar('--surface-white', '#f8f8f9'),
       pointBorderColor: entry.color,
       pointBorderWidth: 2.5,
       pointHoverBackgroundColor: entry.color,
-      pointHoverBorderColor: getCssVar('--surface-white', '#ffffff'),
+      pointHoverBorderColor: getCssVar('--surface-white', '#f8f8f9'),
     })),
   };
 
@@ -269,13 +269,13 @@ export function HorizontalBarChart({ data, valueFormatter = (value) => value, tr
       data: data.map((item) => Number(item[valueKey] || 0)),
       backgroundColor: (context) => {
         const item = data[context.dataIndex];
-        return buildBarGradient(context.chart, item?.color || getCssVar('--secondary', '#2563eb'));
+        return buildBarGradient(context.chart, item?.color || getCssVar('--secondary', '#5e5b8e'));
       },
       borderRadius: 10,
       borderSkipped: false,
       barThickness: 22,
       maxBarThickness: 26,
-      hoverBackgroundColor: (context) => data[context.dataIndex]?.color || getCssVar('--secondary-strong', '#1d4ed8'),
+      hoverBackgroundColor: (context) => data[context.dataIndex]?.color || getCssVar('--secondary-strong', '#373373'),
     }],
   };
 
@@ -286,7 +286,7 @@ export function HorizontalBarChart({ data, valueFormatter = (value) => value, tr
     animation: { duration: 700, easing: 'easeOutQuart' },
     scales: {
       x: { grid: chartGridStyle, ticks: { ...chartAxisTickStyle, callback: (value) => valueFormatter(value) } },
-      y: { grid: { display: false }, ticks: { color: getCssVar('--tick-color', '#475569'), font: { weight: '800', size: 12 } } },
+      y: { grid: { display: false }, ticks: { color: getCssVar('--tick-color', '#2f3347'), font: { weight: '800', size: 12 } } },
     },
     plugins: {
       legend: { display: false },
@@ -332,7 +332,7 @@ export function StackedBarChart({ data, segments, totalFormatter = (value) => va
     animation: { duration: 700, easing: 'easeOutQuart' },
     scales: {
       x: { stacked: true, grid: chartGridStyle, ticks: chartAxisTickStyle },
-      y: { stacked: true, grid: { display: false }, ticks: { color: getCssVar('--tick-color', '#475569'), font: { weight: '800', size: 12 } } },
+      y: { stacked: true, grid: { display: false }, ticks: { color: getCssVar('--tick-color', '#2f3347'), font: { weight: '800', size: 12 } } },
     },
     plugins: {
       legend: { display: false },

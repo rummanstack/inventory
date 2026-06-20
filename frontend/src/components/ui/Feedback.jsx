@@ -9,7 +9,7 @@ export function EmptyState({ title = 'No data found', description = 'Add records
 
   return (
     <div className="flex min-h-52 flex-col items-center justify-center rounded-[28px] border border-dashed border-slate-200 bg-slate-50/60 px-6 py-10 text-center">
-      <div className="rounded-2xl bg-white p-3 text-slate-500 shadow-[0_12px_24px_rgba(15,23,42,0.06)] ring-1 ring-slate-200">
+      <div className="rounded-2xl bg-white p-3 text-slate-500 shadow-[0_12px_24px_rgba(var(--slate-900),0.06)] ring-1 ring-slate-200">
         <Icon size={24} />
       </div>
       <h3 className="mt-4 text-base font-bold text-slate-900">{resolvedTitle}</h3>
@@ -29,7 +29,7 @@ export function Alert({ type = 'info', className = '', children }) {
   return (
     <div
       className={cx(
-        'rounded-2xl border px-4 py-3 text-sm font-medium shadow-[0_10px_22px_rgba(15,23,42,0.04)]',
+        'rounded-2xl border px-4 py-3 text-sm font-medium shadow-[0_10px_22px_rgba(var(--slate-900),0.04)]',
         tones[type] || tones.info,
         className,
       )}
@@ -42,7 +42,7 @@ export function Alert({ type = 'info', className = '', children }) {
 export function LoadingState({ title, description, compact = false }) {
   return (
     <div className={cx('panel relative overflow-hidden', compact ? 'min-h-32 p-4' : 'min-h-64 p-6')}>
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(37,99,235,0.08),transparent_38%),radial-gradient(circle_at_bottom_left,rgba(14,165,233,0.08),transparent_35%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(var(--blue-600),0.08),transparent_38%),radial-gradient(circle_at_bottom_left,rgba(var(--sky-500),0.08),transparent_35%)]" />
       <div className="relative flex flex-col">
         <div className="flex items-start gap-4">
           <div className="h-12 w-12 shrink-0 animate-pulse rounded-2xl bg-slate-200/80" />
@@ -77,7 +77,7 @@ export function PageLoadingState({ title, description }) {
 
 export function TableSkeleton({ rows = 6, columns = 5, showHeader = true }) {
   return (
-    <div className="overflow-hidden rounded-[28px] border border-slate-100 bg-white shadow-[0_16px_35px_rgba(15,23,42,0.05)]">
+    <div className="overflow-hidden rounded-[28px] border border-slate-100 bg-white shadow-[0_16px_35px_rgba(var(--slate-900),0.05)]">
       {showHeader ? (
         <div className="border-b border-slate-100 px-5 py-4">
           <div className="flex items-center justify-between gap-3">
@@ -119,7 +119,7 @@ export function TableSkeleton({ rows = 6, columns = 5, showHeader = true }) {
 
 export function StatCardSkeleton() {
   return (
-    <div className="relative overflow-hidden rounded-[28px] border border-slate-200/80 bg-white p-4 shadow-[0_18px_45px_rgba(15,23,42,0.05)]">
+    <div className="relative overflow-hidden rounded-[28px] border border-slate-200/80 bg-white p-4 shadow-[0_18px_45px_rgba(var(--slate-900),0.05)]">
       <div className="flex items-start justify-between gap-3">
         <div className="w-full">
           <div className="h-3 w-2/3 animate-pulse rounded-full bg-slate-200" />
@@ -161,22 +161,22 @@ export function ToastViewport({ toasts, onDismiss }) {
 
   const tones = {
     success: {
-      shell: 'border-success-line bg-[linear-gradient(135deg,rgba(255,255,255,0.98),var(--success-soft))] text-success-strong',
+      shell: 'border-success-line bg-[linear-gradient(135deg,rgba(var(--white),0.98),var(--success-soft))] text-success-strong',
       icon: 'bg-success text-white shadow-[0_10px_24px_var(--success-line)]',
       bar: 'bg-success',
     },
     error: {
-      shell: 'border-danger-line bg-[linear-gradient(135deg,rgba(255,255,255,0.98),var(--danger-soft))] text-danger-strong',
+      shell: 'border-danger-line bg-[linear-gradient(135deg,rgba(var(--white),0.98),var(--danger-soft))] text-danger-strong',
       icon: 'bg-danger text-white shadow-[0_10px_24px_var(--danger-line)]',
       bar: 'bg-danger',
     },
     warning: {
-      shell: 'border-warning-line bg-[linear-gradient(135deg,rgba(255,255,255,0.98),var(--warning-soft))] text-warning-strong',
+      shell: 'border-warning-line bg-[linear-gradient(135deg,rgba(var(--white),0.98),var(--warning-soft))] text-warning-strong',
       icon: 'bg-warning text-white shadow-[0_10px_24px_var(--warning-line)]',
       bar: 'bg-warning',
     },
     info: {
-      shell: 'border-brand-soft bg-[linear-gradient(135deg,rgba(255,255,255,0.98),var(--brand-soft))] text-slate-950',
+      shell: 'border-brand-soft bg-[linear-gradient(135deg,rgba(var(--white),0.98),var(--brand-soft))] text-slate-950',
       icon: 'bg-brand text-white shadow-[0_10px_24px_var(--brand-soft)]',
       bar: 'bg-brand',
     },
@@ -188,7 +188,7 @@ export function ToastViewport({ toasts, onDismiss }) {
         const Icon = icons[toast.type] || Info;
         const tone = tones[toast.type] || tones.info;
         return (
-          <div key={toast.id} className={cx('pointer-events-auto overflow-hidden rounded-[28px] border shadow-[0_24px_50px_rgba(15,23,42,0.14)] backdrop-blur', tone.shell)}>
+          <div key={toast.id} className={cx('pointer-events-auto overflow-hidden rounded-[28px] border shadow-[0_24px_50px_rgba(var(--slate-900),0.14)] backdrop-blur', tone.shell)}>
             <div className={cx('h-1.5 w-full', tone.bar)} />
             <div className="relative flex items-start gap-3 px-4 py-4">
               <div className="pointer-events-none absolute right-0 top-0 h-24 w-24 rounded-full bg-white/50 blur-2xl" />

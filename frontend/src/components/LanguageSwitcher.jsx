@@ -3,7 +3,7 @@ import { cx } from './ui.jsx';
 
 export default function LanguageSwitcher({ language, onChange, t, compact = false }) {
   return (
-    <div className={cx('inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-1 py-1 shadow-[0_1px_0_rgba(15,23,42,0.03)] sm:gap-2 sm:px-2', compact && 'w-full justify-between')}>
+    <div className={cx('inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-1 py-1 shadow-[0_1px_0_rgba(var(--slate-900),0.03)] sm:gap-2 sm:px-2', compact && 'w-full justify-between')}>
       <span className="hidden h-8 w-8 items-center justify-center rounded-full bg-slate-50 text-slate-400 sm:inline-flex">
         <Languages size={16} />
       </span>

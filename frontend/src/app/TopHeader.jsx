@@ -31,7 +31,7 @@ export default function TopHeader({ title, today, user, tenant, tenantOptions, o
   }, []);
 
   return (
-    <header className="sticky top-0 z-20 border-b border-slate-200/70 bg-white/80 shadow-[0_1px_0_rgba(15,23,42,0.03)] backdrop-blur-2xl no-print">
+    <header className="sticky top-0 z-20 border-b border-slate-200/70 bg-white/80 shadow-[0_1px_0_rgba(var(--slate-900),0.03)] backdrop-blur-2xl no-print">
       <div className="mx-auto flex min-h-20 max-w-[1600px] items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
         <div className="flex items-center gap-3">
           <button type="button" className="icon-btn lg:hidden" title={t('common.openMenu')} onClick={onOpenMenu}>
@@ -61,14 +61,14 @@ export default function TopHeader({ title, today, user, tenant, tenantOptions, o
             <CheckCircle2 size={17} />
             {t('status.liveData')}
           </div>
-          <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3.5 py-2 text-sm font-bold text-slate-700 shadow-[0_1px_0_rgba(15,23,42,0.03)]">
+          <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3.5 py-2 text-sm font-bold text-slate-700 shadow-[0_1px_0_rgba(var(--slate-900),0.03)]">
             <CalendarDays size={17} className="text-[var(--secondary)]" />
             {formatDate(today)}
           </div>
           <Link
             to="/profile"
             title={t('nav.profile')}
-            className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3.5 py-2 text-sm font-bold text-slate-700 shadow-[0_1px_0_rgba(15,23,42,0.03)] transition hover:border-[var(--secondary)] hover:text-[var(--secondary-strong)]"
+            className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3.5 py-2 text-sm font-bold text-slate-700 shadow-[0_1px_0_rgba(var(--slate-900),0.03)] transition hover:border-[var(--secondary)] hover:text-[var(--secondary-strong)]"
           >
             <UserCircle size={17} className="text-[var(--secondary-strong)]" />
             <span className="max-w-44 truncate">{user?.name}</span>

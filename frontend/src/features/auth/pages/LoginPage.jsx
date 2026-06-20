@@ -16,7 +16,7 @@ export default function LoginPage() {
     <div className="page-shell">
       <ToastViewport toasts={toasts} onDismiss={dismissToast} />
       <div className="flex min-h-screen items-center justify-center bg-slate-100 px-4 py-8">
-        <div className="grid w-full max-w-4xl overflow-hidden rounded-[28px] shadow-[0_24px_70px_rgba(15,23,42,0.18)] lg:grid-cols-2">
+        <div className="grid w-full max-w-4xl overflow-hidden rounded-[28px] shadow-[0_24px_70px_rgba(var(--slate-900),0.18)] lg:grid-cols-2">
 
           {/* Hero image */}
           <div className="hidden bg-[var(--login-hero-bg)] lg:block">

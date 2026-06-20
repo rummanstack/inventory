@@ -253,7 +253,7 @@ export function TrendChart({ data, series, valueFormatter = (value) => value, he
         ))}
       </div>
       <div
-        className="rounded-[28px] border border-slate-100 bg-[linear-gradient(180deg,rgba(255,255,255,0.95),rgba(243,247,250,0.95))] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]"
+        className="rounded-[28px] border border-slate-100 bg-[linear-gradient(180deg,rgba(var(--white),0.95),rgba(243,247,250,0.95))] p-4 shadow-[inset_0_1px_0_rgba(var(--white),0.9)]"
         style={{ height }}
       >
         <Line data={chartData} options={options} />

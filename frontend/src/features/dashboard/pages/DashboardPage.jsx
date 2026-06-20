@@ -94,7 +94,7 @@ export default function DashboardPage() {
         </ChartPanel>
       </div>
 
-      <div className="mt-6 overflow-hidden rounded-[34px] border border-slate-200/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(244,247,251,0.96))] shadow-[0_24px_60px_rgba(15,23,42,0.08)]">
+      <div className="mt-6 overflow-hidden rounded-[34px] border border-slate-200/80 bg-[linear-gradient(180deg,rgba(var(--white),0.98),rgba(244,247,251,0.96))] shadow-[0_24px_60px_rgba(var(--slate-900),0.08)]">
         <div className="grid gap-8 p-5 text-slate-950 lg:grid-cols-[1.15fr_0.85fr] lg:p-8">
           <div className="flex flex-col justify-between gap-7">
             <div>
@@ -106,12 +106,12 @@ export default function DashboardPage() {
               <p className="mt-3 max-w-2xl text-sm font-medium leading-7 text-slate-500">{t('dashboard.heroDescription')}</p>
             </div>
             <div className="grid gap-3 md:grid-cols-3">
-              <div className="flex flex-col items-center justify-center rounded-[26px] border border-slate-200 bg-white/85 px-4 py-4 text-center shadow-[0_12px_26px_rgba(15,23,42,0.05)]">
+              <div className="flex flex-col items-center justify-center rounded-[26px] border border-slate-200 bg-white/85 px-4 py-4 text-center shadow-[0_12px_26px_rgba(var(--slate-900),0.05)]">
                 <RadialProgressChart value={vm.completionRate} label={t('dashboard.collectionFlow')} color={getCssVar('--secondary', '#2563eb')} size={132} />
                 <p className="mt-2 text-sm font-medium leading-6 text-slate-500">{t('dashboard.collectionFlowDesc')}</p>
               </div>
               {vm.operationalPulse.slice(1).map((item) => (
-                <div key={item.title} className="rounded-[26px] border border-slate-200 bg-white/85 px-4 py-4 shadow-[0_12px_26px_rgba(15,23,42,0.05)]">
+                <div key={item.title} className="rounded-[26px] border border-slate-200 bg-white/85 px-4 py-4 shadow-[0_12px_26px_rgba(var(--slate-900),0.05)]">
                   <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-500">{item.title}</p>
                   <p className="mt-2 text-3xl font-black tracking-tight text-slate-950">{item.value}</p>
                   <p className="mt-2 text-sm font-medium leading-6 text-slate-500">{item.subtitle}</p>
@@ -119,33 +119,33 @@ export default function DashboardPage() {
               ))}
             </div>
             <div className="flex flex-wrap gap-3 text-sm font-bold">
-              <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-slate-700 shadow-[0_1px_0_rgba(15,23,42,0.03)]">
+              <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-slate-700 shadow-[0_1px_0_rgba(var(--slate-900),0.03)]">
                 <CalendarDays size={16} />
                 {formatDate(today, language)}
               </span>
-              <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-slate-700 shadow-[0_1px_0_rgba(15,23,42,0.03)]">
+              <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-slate-700 shadow-[0_1px_0_rgba(var(--slate-900),0.03)]">
                 <UserCheck size={16} />
                 {t('dashboard.activeDsrs', { count: formatNumber(vm.activeDsrs, language) })}
               </span>
             </div>
           </div>
           <div className="grid min-w-0 gap-3 sm:grid-cols-2">
-            <div className="rounded-[28px] border border-slate-200 bg-white/85 p-5 shadow-[0_12px_26px_rgba(15,23,42,0.05)]">
+            <div className="rounded-[28px] border border-slate-200 bg-white/85 p-5 shadow-[0_12px_26px_rgba(var(--slate-900),0.05)]">
               <p className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">{t('dashboard.payableToday')}</p>
               <p className="mt-3 text-3xl font-black tracking-tight text-slate-950">{formatCurrency(vm.payableToday, language)}</p>
               <p className="mt-2 text-sm font-medium text-slate-500">{t('dashboard.payableTodayDesc')}</p>
             </div>
-            <div className="rounded-[28px] border border-slate-200 bg-white/85 p-5 shadow-[0_12px_26px_rgba(15,23,42,0.05)]">
+            <div className="rounded-[28px] border border-slate-200 bg-white/85 p-5 shadow-[0_12px_26px_rgba(var(--slate-900),0.05)]">
               <p className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">{t('dashboard.stockValue')}</p>
               <p className="mt-3 text-3xl font-black tracking-tight text-slate-950">{formatCurrency(vm.stockValue, language)}</p>
               <p className="mt-2 text-sm font-medium text-slate-500">{t('dashboard.stockValueDesc')}</p>
             </div>
-            <div className="rounded-[28px] border border-slate-200 bg-white/85 p-5 shadow-[0_12px_26px_rgba(15,23,42,0.05)]">
+            <div className="rounded-[28px] border border-slate-200 bg-white/85 p-5 shadow-[0_12px_26px_rgba(var(--slate-900),0.05)]">
               <p className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">{t('dashboard.unitsInStock')}</p>
               <p className="mt-3 text-3xl font-black tracking-tight text-slate-950">{formatNumber(vm.stockUnits, language)}</p>
               <p className="mt-2 text-sm font-medium text-slate-500">{t('dashboard.unitsInStockDesc')}</p>
             </div>
-            <div className="rounded-[28px] border border-slate-200 bg-white/85 p-5 shadow-[0_12px_26px_rgba(15,23,42,0.05)]">
+            <div className="rounded-[28px] border border-slate-200 bg-white/85 p-5 shadow-[0_12px_26px_rgba(var(--slate-900),0.05)]">
               <p className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">{t('dashboard.possibleProfit')}</p>
               <p className="mt-3 text-3xl font-black tracking-tight text-slate-950">{formatCurrency(vm.expectedStockProfit, language)}</p>
               <p className="mt-2 text-sm font-medium text-slate-500">{t('dashboard.possibleProfitDesc')}</p>

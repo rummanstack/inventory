@@ -41,7 +41,7 @@ export function StatCard({ title, value, helper, icon: Icon, tone = 'blue', tren
     },
     indigo: {
       card: 'from-white to-indigo-50/75',
-      icon: 'bg-indigo-600 text-white shadow-[0_10px_20px_rgba(79,70,229,0.24)]',
+      icon: 'bg-indigo-600 text-white shadow-[0_10px_20px_rgba(var(--indigo-600),0.24)]',
       accent: 'bg-indigo-500',
       spark: getCssVar('--purple', '#7c3aed'),
     },
@@ -53,7 +53,7 @@ export function StatCard({ title, value, helper, icon: Icon, tone = 'blue', tren
     },
     slate: {
       card: 'from-white to-slate-100/80',
-      icon: 'bg-slate-800 text-white shadow-[0_10px_20px_rgba(15,23,42,0.18)]',
+      icon: 'bg-slate-800 text-white shadow-[0_10px_20px_rgba(var(--slate-900),0.18)]',
       accent: 'bg-slate-400',
       spark: getCssVar('--tick-color', '#475569'),
     },
@@ -61,7 +61,7 @@ export function StatCard({ title, value, helper, icon: Icon, tone = 'blue', tren
   const toneSet = tones[tone] || tones.blue;
 
   return (
-    <div className={cx('group relative overflow-hidden rounded-[28px] border border-slate-200/80 bg-gradient-to-br p-4 shadow-[0_18px_45px_rgba(15,23,42,0.07)] ring-1 ring-slate-900/[0.03] transition-shadow duration-300 hover:shadow-[0_22px_55px_rgba(15,23,42,0.12)]', toneSet.card)}>
+    <div className={cx('group relative overflow-hidden rounded-[28px] border border-slate-200/80 bg-gradient-to-br p-4 shadow-[0_18px_45px_rgba(var(--slate-900),0.07)] ring-1 ring-slate-900/[0.03] transition-shadow duration-300 hover:shadow-[0_22px_55px_rgba(var(--slate-900),0.12)]', toneSet.card)}>
       <div className={cx('absolute inset-x-0 top-0 h-1 origin-left scale-x-0 transition-transform duration-300 group-hover:scale-x-100', toneSet.accent)} />
       <div className="flex items-start justify-between gap-3">
         <div>

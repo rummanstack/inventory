@@ -72,7 +72,7 @@ export default function AppSidebar({ mobileOpen, setMobileOpen, user, tenant, la
     <>
       <div
         className={cx(
-          'fixed inset-y-0 left-0 z-40 flex w-[min(18rem,85vw)] flex-col overflow-hidden border-r border-slate-200/70 bg-white/80 px-4 py-5 text-slate-900 shadow-[0_1px_0_rgba(15,23,42,0.03)] backdrop-blur-2xl transition-transform duration-300 lg:w-72 lg:translate-x-0',
+          'fixed inset-y-0 left-0 z-40 flex w-[min(18rem,85vw)] flex-col overflow-hidden border-r border-slate-200/70 bg-white/80 px-4 py-5 text-slate-900 shadow-[0_1px_0_rgba(var(--slate-900),0.03)] backdrop-blur-2xl transition-transform duration-300 lg:w-72 lg:translate-x-0',
           mobileOpen ? 'translate-x-0' : '-translate-x-full',
         )}
       >

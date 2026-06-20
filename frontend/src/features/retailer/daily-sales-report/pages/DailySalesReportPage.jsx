@@ -1,5 +1,5 @@
 import { Download, FileSpreadsheet, Printer, Wallet } from 'lucide-react';
-import { Alert, EmptyState, LoadingState, SectionHeader, StatCard } from '../../../../components/ui.jsx';
+import { Alert, EmptyState, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton } from '../../../../components/ui.jsx';
 import { DatePickerField } from '../../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../../services/printService.js';
@@ -44,36 +44,57 @@ export default function DailySalesReportPage() {
         description={t('retailer.dailySalesReport.description')}
       />
 
-      <div className="surface mb-6 grid gap-4 p-5 sm:grid-cols-3">
-        <div>
-          <label className="label">{t('profit.dateFrom')}</label>
-          <DatePickerField value={vm.dateFrom} onChange={vm.setDateFrom} />
-        </div>
-        <div>
-          <label className="label">{t('profit.dateTo')}</label>
-          <DatePickerField value={vm.dateTo} onChange={vm.setDateTo} />
-        </div>
-        <div>
-          <label className="label">{t('retailer.shared.saleTypeLabel')}</label>
-          <select className="input" value={vm.saleType} onChange={(event) => vm.setSaleType(event.target.value)}>
-            <option value="">{t('retailer.shared.allSaleTypes')}</option>
-            <option value="RETAIL">{t('retailer.shared.saleTypes.RETAIL')}</option>
-            <option value="WHOLESALE">{t('retailer.shared.saleTypes.WHOLESALE')}</option>
-            <option value="QUICK_SALE">{t('retailer.shared.saleTypes.QUICK_SALE')}</option>
-          </select>
-        </div>
-      </div>
-
-      {vm.error ? (
-        <div className="mb-6">
-          <Alert type="error">{vm.error}</Alert>
-        </div>
-      ) : null}
-
       {vm.loading ? (
-        <LoadingState />
+        <>
+          <div className="surface mb-6 grid gap-4 p-5 sm:grid-cols-3">
+            <div className="space-y-2">
+              <div className="h-4 w-24 animate-pulse rounded-full bg-slate-200" />
+              <div className="h-11 animate-pulse rounded-2xl bg-slate-100" />
+            </div>
+            <div className="space-y-2">
+              <div className="h-4 w-24 animate-pulse rounded-full bg-slate-200" />
+              <div className="h-11 animate-pulse rounded-2xl bg-slate-100" />
+            </div>
+            <div className="space-y-2">
+              <div className="h-4 w-24 animate-pulse rounded-full bg-slate-200" />
+              <div className="h-11 animate-pulse rounded-2xl bg-slate-100" />
+            </div>
+          </div>
+
+          <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+            {Array.from({ length: 5 }).map((_, i) => <StatCardSkeleton key={i} />)}
+          </div>
+
+          <TableSkeleton rows={6} columns={7} />
+        </>
       ) : (
         <>
+          {vm.error ? (
+            <div className="mb-6">
+              <Alert type="error">{vm.error}</Alert>
+            </div>
+          ) : null}
+
+          <div className="surface mb-6 grid gap-4 p-5 sm:grid-cols-3">
+            <div>
+              <label className="label">{t('profit.dateFrom')}</label>
+              <DatePickerField value={vm.dateFrom} onChange={vm.setDateFrom} />
+            </div>
+            <div>
+              <label className="label">{t('profit.dateTo')}</label>
+              <DatePickerField value={vm.dateTo} onChange={vm.setDateTo} />
+            </div>
+            <div>
+              <label className="label">{t('retailer.shared.saleTypeLabel')}</label>
+              <select className="input" value={vm.saleType} onChange={(event) => vm.setSaleType(event.target.value)}>
+                <option value="">{t('retailer.shared.allSaleTypes')}</option>
+                <option value="RETAIL">{t('retailer.shared.saleTypes.RETAIL')}</option>
+                <option value="WHOLESALE">{t('retailer.shared.saleTypes.WHOLESALE')}</option>
+                <option value="QUICK_SALE">{t('retailer.shared.saleTypes.QUICK_SALE')}</option>
+              </select>
+            </div>
+          </div>
+
           <div className="mb-4 flex flex-wrap gap-2 no-print">
             <button
               type="button"

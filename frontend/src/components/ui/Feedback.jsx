@@ -1,4 +1,4 @@
-import { AlertTriangle, CheckCircle2, Info, Loader2, PackageOpen, X } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Info, PackageOpen, X } from 'lucide-react';
 import { useInventoryApp } from '../../app/useInventoryApp.jsx';
 import { cx } from './utils.js';
 
@@ -43,14 +43,18 @@ export function LoadingState({ title, description, compact = false }) {
   return (
     <div className={cx('panel relative overflow-hidden', compact ? 'min-h-32 p-4' : 'min-h-64 p-6')}>
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(37,99,235,0.08),transparent_38%),radial-gradient(circle_at_bottom_left,rgba(14,165,233,0.08),transparent_35%)]" />
-        <div className="relative flex flex-col items-center text-center">
-        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,var(--secondary-strong),var(--bg-dark))] text-white shadow-[0_16px_32px_rgba(15,23,42,0.18)]">
-          <Loader2 size={22} className="animate-spin" />
+      <div className="relative flex flex-col">
+        <div className="flex items-start gap-4">
+          <div className="h-12 w-12 shrink-0 animate-pulse rounded-2xl bg-slate-200/80" />
+          <div className="min-w-0 flex-1 pt-1">
+            <div className={cx('h-4 animate-pulse rounded-full bg-slate-200/90', compact ? 'w-2/3' : 'w-3/4')} />
+            <div className="mt-2 h-3 animate-pulse rounded-full bg-slate-100" />
+            <div className="mt-2 h-3 w-1/2 animate-pulse rounded-full bg-slate-100" />
+          </div>
         </div>
-        <div className="mt-5 grid w-full max-w-sm gap-2">
-          <div className={cx('mx-auto h-3 rounded-full bg-slate-200/90', compact ? 'w-2/3' : 'w-3/4')} />
-          <div className="mx-auto h-2.5 w-1/2 rounded-full bg-slate-200/80" />
-          <div className="mx-auto h-2.5 w-5/6 rounded-full bg-slate-100" />
+        <div className="mt-6 grid gap-2">
+          <div className={cx('h-10 animate-pulse rounded-2xl bg-slate-100/90', compact ? 'h-8' : '')} />
+          <div className={cx('h-10 animate-pulse rounded-2xl bg-slate-100/80', compact ? 'h-8' : '')} />
         </div>
         {title ? <h3 className="mt-4 text-base font-bold text-slate-950">{title}</h3> : null}
         {description ? <p className="mt-1 max-w-md text-sm font-medium text-slate-500">{description}</p> : null}

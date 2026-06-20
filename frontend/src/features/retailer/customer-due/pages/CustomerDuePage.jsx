@@ -1,5 +1,5 @@
 import { Download, FileSpreadsheet, Printer, RefreshCw, Wallet } from 'lucide-react';
-import { Badge, EmptyState, LoadingState, SectionHeader, StatCard } from '../../../../components/ui.jsx';
+import { Badge, EmptyState, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton } from '../../../../components/ui.jsx';
 import { DatePickerField } from '../../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../../services/printService.js';
@@ -96,9 +96,34 @@ export default function CustomerDuePage() {
       </div>
 
       {vm.loading ? (
-        <div className="surface mt-6 p-5">
-          <LoadingState />
-        </div>
+        <>
+          <div className="surface mt-6 p-5">
+            <div className="grid gap-3 sm:grid-cols-4">
+              <div className="sm:col-span-2">
+                <div className="h-4 w-24 animate-pulse rounded-full bg-slate-200" />
+                <div className="mt-2 h-11 animate-pulse rounded-2xl bg-slate-100" />
+              </div>
+              <div className="h-11 animate-pulse rounded-2xl bg-slate-100 sm:mt-6" />
+              <div className="h-11 animate-pulse rounded-2xl bg-slate-100 sm:mt-6" />
+            </div>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <div className="h-10 w-28 animate-pulse rounded-2xl bg-slate-100" />
+              <div className="h-10 w-32 animate-pulse rounded-2xl bg-slate-100" />
+              <div className="h-10 w-32 animate-pulse rounded-2xl bg-slate-100" />
+            </div>
+          </div>
+
+          <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, i) => <StatCardSkeleton key={i} />)}
+          </div>
+
+          <div className="surface mt-6 overflow-hidden">
+            <div className="border-b border-slate-100 px-5 py-4">
+              <div className="h-4 w-40 animate-pulse rounded-full bg-slate-200" />
+            </div>
+            <TableSkeleton rows={6} columns={7} />
+          </div>
+        </>
       ) : vm.error ? (
         <div className="surface mt-6 p-5">
           <EmptyState title={t('supplierStatement.emptyTitle')} description={vm.error} icon={Wallet} />

@@ -1,5 +1,5 @@
 import { Building2, CircleDollarSign, HandCoins, RotateCcw, Scale, ShoppingBag, Store, TrendingDown, TrendingUp, Wallet } from 'lucide-react';
-import { Alert, EmptyState, LoadingState, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton } from '../../../components/ui.jsx';
+import { Alert, EmptyState, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { formatCurrency, formatDate } from '../../../utils/calculations.js';
@@ -97,7 +97,7 @@ export default function FinanceDashboardPage() {
             <DatePickerField value={rr.dateTo} onChange={rr.setDateTo} />
           </div>
           <button type="button" className="btn-primary" onClick={rr.applyRange} disabled={rr.loading}>
-            {rr.loading ? 'Loading…' : 'Generate Report'}
+            {rr.loading ? <span className="inline-block h-4 w-28 animate-pulse rounded-full bg-white/60" /> : 'Generate Report'}
           </button>
         </div>
 

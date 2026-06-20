@@ -8,8 +8,8 @@ import { useDashboardViewModel } from '../viewmodels/useDashboardViewModel';
 import { getCssVar } from '../../../utils/theme.js';
 
 export default function DashboardPage() {
-  const { productDirectory, dsrDirectory, today, t } = useInventoryApp();
-  const vm = useDashboardViewModel({ products: productDirectory, dsrs: dsrDirectory, today, t });
+  const { productDirectory, dsrDirectory, today, t, language } = useInventoryApp();
+  const vm = useDashboardViewModel({ products: productDirectory, dsrs: dsrDirectory, today, t, language });
 
   if (vm.loading) {
     return (
@@ -48,7 +48,7 @@ export default function DashboardPage() {
         <ChartPanel title={t('dashboard.tradingTrend')} description={t('dashboard.tradingTrendDescription')}>
           <TrendChart
             data={vm.tradingTrend}
-            valueFormatter={formatCurrency}
+            valueFormatter={(value) => formatCurrency(value, language)}
             series={[
               { key: 'paid', label: t('dashboard.payableToday'), color: getCssVar('--success', '#0f766e'), fill: true },
               { key: 'issued', label: t('reports.issued'), color: getCssVar('--secondary', '#2563eb') },
@@ -58,19 +58,19 @@ export default function DashboardPage() {
         </ChartPanel>
 
         <ChartPanel title={t('dashboard.settlementMix')} description={t('dashboard.settlementMixDescription')}>
-          <DonutChart data={vm.settlementMix} centerLabel={t('dashboard.activeRoutes')} centerValue={formatNumber(vm.activeDsrs)} valueFormatter={(value) => `${formatNumber(value)} ${t('common.dsr')}`} />
+          <DonutChart data={vm.settlementMix} centerLabel={t('dashboard.activeRoutes')} centerValue={formatNumber(vm.activeDsrs, language)} valueFormatter={(value) => `${formatNumber(value, language)} ${t('common.dsr')}`} />
         </ChartPanel>
       </div>
 
       <div className="mt-6">
         <ChartPanel title={t('dashboard.activityHeatmap')} description={t('dashboard.activityHeatmapDescription')}>
-          <ActivityHeatmap cells={vm.activityHeatmap} color={getCssVar('--secondary', '#2563eb')} />
+          <ActivityHeatmap cells={vm.activityHeatmap} color={getCssVar('--secondary', '#2563eb')} t={t} language={language} />
         </ChartPanel>
       </div>
 
       <div className="mt-6 grid gap-6 xl:grid-cols-3">
         <ChartPanel title={t('dashboard.inventoryByCategory')} description={t('dashboard.inventoryByCategoryDescription')}>
-          {vm.inventoryByCategory.length ? <HorizontalBarChart data={vm.inventoryByCategory.slice(0, 6)} valueFormatter={formatCurrency} /> : <EmptyState title={t('dashboard.noInventoryTitle')} description={t('dashboard.noInventoryDescription')} icon={Boxes} />}
+          {vm.inventoryByCategory.length ? <HorizontalBarChart data={vm.inventoryByCategory.slice(0, 6)} valueFormatter={(value) => formatCurrency(value, language)} /> : <EmptyState title={t('dashboard.noInventoryTitle')} description={t('dashboard.noInventoryDescription')} icon={Boxes} />}
         </ChartPanel>
 
         <ChartPanel title={t('dashboard.routePerformance')} description={t('dashboard.routePerformanceDescription')}>
@@ -79,10 +79,10 @@ export default function DashboardPage() {
               data={vm.routePerformance}
               segments={[
                 { key: 'issued', label: t('reports.issued'), color: getCssVar('--issued-soft', '#bfdbfe') },
-                { key: 'returned', label: t('reports.returned'), color: getCssVar('--returned', '#fdba74') },
-                { key: 'sold', label: t('reports.sold'), color: getCssVar('--success', '#0f766e') },
+              { key: 'returned', label: t('reports.returned'), color: getCssVar('--returned', '#fdba74') },
+              { key: 'sold', label: t('reports.sold'), color: getCssVar('--success', '#0f766e') },
               ]}
-              totalFormatter={(value) => `${formatNumber(value)} pcs`}
+              totalFormatter={(value) => `${formatNumber(value, language)} ${t('common.pcs')}`}
             />
           ) : (
             <EmptyState title={t('dashboard.noRouteMovementTitle')} description={t('dashboard.noRouteMovementDescription')} icon={Truck} />
@@ -90,7 +90,7 @@ export default function DashboardPage() {
         </ChartPanel>
 
         <ChartPanel title={t('dashboard.topProductsByCash')} description={t('dashboard.topProductsByCashDescription')}>
-          {vm.topPayableProducts.length ? <HorizontalBarChart data={vm.topPayableProducts} valueFormatter={formatCurrency} trackClassName="bg-emerald-50" /> : <EmptyState title={t('dashboard.noSoldProductsTitle')} description={t('dashboard.noSoldProductsDescription')} icon={PackageCheck} />}
+          {vm.topPayableProducts.length ? <HorizontalBarChart data={vm.topPayableProducts} valueFormatter={(value) => formatCurrency(value, language)} trackClassName="bg-emerald-50" /> : <EmptyState title={t('dashboard.noSoldProductsTitle')} description={t('dashboard.noSoldProductsDescription')} icon={PackageCheck} />}
         </ChartPanel>
       </div>
 
@@ -121,33 +121,33 @@ export default function DashboardPage() {
             <div className="flex flex-wrap gap-3 text-sm font-bold">
               <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-slate-700 shadow-[0_1px_0_rgba(15,23,42,0.03)]">
                 <CalendarDays size={16} />
-                {formatDate(today)}
+                {formatDate(today, language)}
               </span>
               <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-slate-700 shadow-[0_1px_0_rgba(15,23,42,0.03)]">
                 <UserCheck size={16} />
-                {t('dashboard.activeDsrs', { count: formatNumber(vm.activeDsrs) })}
+                {t('dashboard.activeDsrs', { count: formatNumber(vm.activeDsrs, language) })}
               </span>
             </div>
           </div>
           <div className="grid min-w-0 gap-3 sm:grid-cols-2">
             <div className="rounded-[28px] border border-slate-200 bg-white/85 p-5 shadow-[0_12px_26px_rgba(15,23,42,0.05)]">
               <p className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">{t('dashboard.payableToday')}</p>
-              <p className="mt-3 text-3xl font-black tracking-tight text-slate-950">{formatCurrency(vm.payableToday)}</p>
+              <p className="mt-3 text-3xl font-black tracking-tight text-slate-950">{formatCurrency(vm.payableToday, language)}</p>
               <p className="mt-2 text-sm font-medium text-slate-500">{t('dashboard.payableTodayDesc')}</p>
             </div>
             <div className="rounded-[28px] border border-slate-200 bg-white/85 p-5 shadow-[0_12px_26px_rgba(15,23,42,0.05)]">
               <p className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">{t('dashboard.stockValue')}</p>
-              <p className="mt-3 text-3xl font-black tracking-tight text-slate-950">{formatCurrency(vm.stockValue)}</p>
+              <p className="mt-3 text-3xl font-black tracking-tight text-slate-950">{formatCurrency(vm.stockValue, language)}</p>
               <p className="mt-2 text-sm font-medium text-slate-500">{t('dashboard.stockValueDesc')}</p>
             </div>
             <div className="rounded-[28px] border border-slate-200 bg-white/85 p-5 shadow-[0_12px_26px_rgba(15,23,42,0.05)]">
               <p className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">{t('dashboard.unitsInStock')}</p>
-              <p className="mt-3 text-3xl font-black tracking-tight text-slate-950">{formatNumber(vm.stockUnits)}</p>
+              <p className="mt-3 text-3xl font-black tracking-tight text-slate-950">{formatNumber(vm.stockUnits, language)}</p>
               <p className="mt-2 text-sm font-medium text-slate-500">{t('dashboard.unitsInStockDesc')}</p>
             </div>
             <div className="rounded-[28px] border border-slate-200 bg-white/85 p-5 shadow-[0_12px_26px_rgba(15,23,42,0.05)]">
               <p className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">{t('dashboard.possibleProfit')}</p>
-              <p className="mt-3 text-3xl font-black tracking-tight text-slate-950">{formatCurrency(vm.expectedStockProfit)}</p>
+              <p className="mt-3 text-3xl font-black tracking-tight text-slate-950">{formatCurrency(vm.expectedStockProfit, language)}</p>
               <p className="mt-2 text-sm font-medium text-slate-500">{t('dashboard.possibleProfitDesc')}</p>
             </div>
           </div>
@@ -155,14 +155,14 @@ export default function DashboardPage() {
       </div>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard title={t('dashboard.products')} value={formatNumber(productDirectory.length)} helper={t('dashboard.productsHelper')} icon={Boxes} tone="blue" />
-        <StatCard title={t('dashboard.salesValueInStock')} value={formatCurrency(vm.stockSellingValue)} helper={t('dashboard.salesValueInStockHelper')} icon={CircleDollarSign} tone="emerald" />
-        <StatCard title={t('dashboard.issuedToday')} value={`${formatNumber(vm.totalIssuedToday)} ${t('common.pcs')}`} helper={t('dashboard.issuedTodayHelper')} icon={Truck} tone="amber" trend={vm.tradingTrend.map((day) => day.issued)} />
-        <StatCard title={t('dashboard.returnedToday')} value={`${formatNumber(vm.totalReturnedToday)} ${t('common.pcs')}`} helper={t('dashboard.returnedTodayHelper')} icon={RotateCcw} tone="slate" />
-        <StatCard title={t('dashboard.soldToday')} value={`${formatNumber(vm.totalSoldToday)} ${t('common.pcs')}`} helper={t('dashboard.soldTodayHelper')} icon={PackageCheck} tone="emerald" trend={vm.tradingTrend.map((day) => day.sold)} />
-        <StatCard title={t('dashboard.pendingReturn')} value={`${formatNumber(vm.pendingRows.length)} ${t('common.dsr')}`} helper={t('dashboard.pendingReturnHelper')} icon={AlertTriangle} tone={vm.pendingRows.length ? 'amber' : 'emerald'} />
-        <StatCard title={t('dashboard.completedSettlement')} value={`${formatNumber(vm.completedRows.length)} ${t('common.dsr')}`} helper={t('dashboard.completedSettlementHelper', { percent: vm.completionRate })} icon={CheckCircle2} tone="blue" />
-        <StatCard title={t('dashboard.lowStock')} value={formatNumber(vm.lowStockAll.length)} helper={t('dashboard.lowStockHelper', { count: vm.outOfStockCount })} icon={AlertTriangle} tone={vm.lowStockAll.length ? 'rose' : 'emerald'} />
+        <StatCard title={t('dashboard.products')} value={formatNumber(productDirectory.length, language)} helper={t('dashboard.productsHelper')} icon={Boxes} tone="blue" />
+        <StatCard title={t('dashboard.salesValueInStock')} value={formatCurrency(vm.stockSellingValue, language)} helper={t('dashboard.salesValueInStockHelper')} icon={CircleDollarSign} tone="emerald" />
+        <StatCard title={t('dashboard.issuedToday')} value={`${formatNumber(vm.totalIssuedToday, language)} ${t('common.pcs')}`} helper={t('dashboard.issuedTodayHelper')} icon={Truck} tone="amber" trend={vm.tradingTrend.map((day) => day.issued)} />
+        <StatCard title={t('dashboard.returnedToday')} value={`${formatNumber(vm.totalReturnedToday, language)} ${t('common.pcs')}`} helper={t('dashboard.returnedTodayHelper')} icon={RotateCcw} tone="slate" />
+        <StatCard title={t('dashboard.soldToday')} value={`${formatNumber(vm.totalSoldToday, language)} ${t('common.pcs')}`} helper={t('dashboard.soldTodayHelper')} icon={PackageCheck} tone="emerald" trend={vm.tradingTrend.map((day) => day.sold)} />
+        <StatCard title={t('dashboard.pendingReturn')} value={`${formatNumber(vm.pendingRows.length, language)} ${t('common.dsr')}`} helper={t('dashboard.pendingReturnHelper')} icon={AlertTriangle} tone={vm.pendingRows.length ? 'amber' : 'emerald'} />
+        <StatCard title={t('dashboard.completedSettlement')} value={`${formatNumber(vm.completedRows.length, language)} ${t('common.dsr')}`} helper={t('dashboard.completedSettlementHelper', { percent: vm.completionRate })} icon={CheckCircle2} tone="blue" />
+        <StatCard title={t('dashboard.lowStock')} value={formatNumber(vm.lowStockAll.length, language)} helper={t('dashboard.lowStockHelper', { count: vm.outOfStockCount })} icon={AlertTriangle} tone={vm.lowStockAll.length ? 'rose' : 'emerald'} />
       </div>
 
       <div className="mt-6 grid gap-4 xl:grid-cols-4">
@@ -196,7 +196,7 @@ export default function DashboardPage() {
         <ChartPanel title={t('dashboard.actionQueue')} description={t('dashboard.actionQueueDescription')}>
           <div className="space-y-3">
             {vm.actionQueue.pendingRows.length
-              ? vm.actionQueue.pendingRows.slice(0, 4).map((row) => <InsightLine key={row.dsrId} label={`${row.dsrName} - ${row.area}`} value={`${formatNumber(row.issuedPieces)} pcs pending`} />)
+              ? vm.actionQueue.pendingRows.slice(0, 4).map((row) => <InsightLine key={row.dsrId} label={`${row.dsrName} - ${row.area}`} value={`${formatNumber(row.issuedPieces, language)} ${t('common.pcs')} ${t('dashboard.pending')}`} />)
               : <div className="rounded-2xl bg-emerald-50 px-4 py-4 text-sm font-bold text-emerald-700">{t('dashboard.noPendingReturn')}</div>}
             {vm.actionQueue.lowStockProducts.length
               ? vm.actionQueue.lowStockProducts.slice(0, 3).map((product) => <InsightLine key={product.id} label={product.name} value={vm.actionQueue.formatCasePiece(product.stockPieces, product.piecesPerCase)} />)

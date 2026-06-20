@@ -3,7 +3,7 @@ import { cx } from '../../../components/ui.jsx';
 import { formatCasePiece, formatCurrency, formatDate } from '../../../utils/calculations.js';
 
 export default function PurchaseReceiptPrintSheet({ purchaseReceipt, printTarget = false, targetId }) {
-  const { t, tenant } = useInventoryApp();
+  const { t, tenant, language } = useInventoryApp();
   if (!purchaseReceipt) return null;
 
   const items = purchaseReceipt.items || [];
@@ -18,7 +18,7 @@ export default function PurchaseReceiptPrintSheet({ purchaseReceipt, printTarget
           </div>
           <div className="rounded-lg border border-slate-300 px-4 py-3 text-sm">
             <p className="font-bold text-slate-950">{t('purchaseReceive.purchaseNumber')}: {purchaseReceipt.purchaseNumber}</p>
-            <p className="mt-1 text-slate-600">{t('purchaseReceive.date')}: {formatDate(purchaseReceipt.purchaseDate)}</p>
+            <p className="mt-1 text-slate-600">{t('purchaseReceive.date')}: {formatDate(purchaseReceipt.purchaseDate, language)}</p>
           </div>
         </div>
       </div>
@@ -42,7 +42,7 @@ export default function PurchaseReceiptPrintSheet({ purchaseReceipt, printTarget
         <table className="w-full border-collapse text-center align-middle text-[11px]">
           <thead>
             <tr className="bg-slate-950 text-white">
-              <th className="border border-slate-800 px-1.5 py-1 align-middle">SL</th>
+              <th className="border border-slate-800 px-1.5 py-1 align-middle">{t('common.sl')}</th>
               <th className="border border-slate-800 px-1.5 py-1 align-middle">{t('products.product')}</th>
               <th className="border border-slate-800 px-1.5 py-1 align-middle">{t('purchaseReceive.quantityPieces')}</th>
               <th className="border border-slate-800 px-1.5 py-1 align-middle">{t('purchaseReceive.purchasePriceLabel')}</th>
@@ -55,10 +55,10 @@ export default function PurchaseReceiptPrintSheet({ purchaseReceipt, printTarget
               <tr key={item.id || index} className="print-break-inside-avoid">
                 <td className="border border-slate-300 px-1.5 py-1 align-middle font-semibold">{index + 1}</td>
                 <td className="border border-slate-300 px-1.5 py-1 align-middle font-semibold text-slate-950">{item.productName}</td>
-                <td className="border border-slate-300 px-1.5 py-1 align-middle">{formatCasePiece(item.quantityPieces, item.piecesPerCase)}</td>
-                <td className="border border-slate-300 px-1.5 py-1 align-middle">{formatCurrency(item.purchasePrice)}</td>
-                <td className="border border-slate-300 px-1.5 py-1 align-middle">{formatCurrency(item.lineDiscount)}</td>
-                <td className="border border-slate-300 px-1.5 py-1 align-middle font-bold">{formatCurrency(item.lineTotal)}</td>
+                <td className="border border-slate-300 px-1.5 py-1 align-middle">{formatCasePiece(item.quantityPieces, item.piecesPerCase, language)}</td>
+                <td className="border border-slate-300 px-1.5 py-1 align-middle">{formatCurrency(item.purchasePrice, language)}</td>
+                <td className="border border-slate-300 px-1.5 py-1 align-middle">{formatCurrency(item.lineDiscount, language)}</td>
+                <td className="border border-slate-300 px-1.5 py-1 align-middle font-bold">{formatCurrency(item.lineTotal, language)}</td>
               </tr>
             ))}
           </tbody>
@@ -75,25 +75,25 @@ export default function PurchaseReceiptPrintSheet({ purchaseReceipt, printTarget
           ) : null}
           <div className="flex items-center justify-between">
             <span className="font-semibold text-slate-600">{t('purchaseReceive.discountLabel')}</span>
-            <span className="font-bold text-rose-700">- {formatCurrency(purchaseReceipt.discount)}</span>
+            <span className="font-bold text-rose-700">- {formatCurrency(purchaseReceipt.discount, language)}</span>
           </div>
           {Number(purchaseReceipt.taxRate || 0) > 0 ? (
             <div className="flex items-center justify-between">
               <span className="font-semibold text-slate-600">{t('retailer.shared.taxAmountLabel')}</span>
-              <span className="font-bold text-slate-950">{formatCurrency(purchaseReceipt.taxAmount)}</span>
+              <span className="font-bold text-slate-950">{formatCurrency(purchaseReceipt.taxAmount, language)}</span>
             </div>
           ) : null}
           <div className="flex items-center justify-between border-t border-slate-200 pt-2">
             <span className="font-black uppercase tracking-[0.1em] text-slate-700">{t('purchaseReceive.totalAmount')}</span>
-            <span className="font-black text-slate-950">{formatCurrency(purchaseReceipt.totalAmount)}</span>
+            <span className="font-black text-slate-950">{formatCurrency(purchaseReceipt.totalAmount, language)}</span>
           </div>
           <div className="flex items-center justify-between">
             <span className="font-semibold text-slate-600">{t('purchaseReceive.paidAmountLabel')}</span>
-            <span className="font-bold text-emerald-700">{formatCurrency(purchaseReceipt.paidAmount)}</span>
+            <span className="font-bold text-emerald-700">{formatCurrency(purchaseReceipt.paidAmount, language)}</span>
           </div>
           <div className="flex items-center justify-between border-t-2 border-slate-300 pt-2">
             <span className="text-base font-black uppercase tracking-[0.1em] text-slate-950">{t('purchaseReceive.dueAmount')}</span>
-            <span className="text-lg font-black text-rose-700">{formatCurrency(purchaseReceipt.dueAmount)}</span>
+            <span className="text-lg font-black text-rose-700">{formatCurrency(purchaseReceipt.dueAmount, language)}</span>
           </div>
         </div>
       </div>

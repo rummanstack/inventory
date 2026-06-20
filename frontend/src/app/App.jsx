@@ -118,12 +118,20 @@ function AppRoutes() {
 
 export default function App() {
   return (
-    <ErrorBoundary>
-      <InventoryAppProvider>
+    <InventoryAppProvider>
+      <AppShell />
+    </InventoryAppProvider>
+  );
+}
+
+function AppShell() {
+  const { t } = useInventoryApp();
+
+  return (
+    <ErrorBoundary t={t}>
         <BrowserRouter>
           <AppRoutes />
         </BrowserRouter>
-      </InventoryAppProvider>
     </ErrorBoundary>
   );
 }

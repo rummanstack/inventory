@@ -8,7 +8,7 @@ import { formatCurrency, formatDate, formatNumber } from '../../../../utils/calc
 import { useRetailerProfitReportViewModel } from '../viewmodels/useRetailerProfitReportViewModel';
 
 export default function RetailerProfitReportPage() {
-  const { t } = useInventoryApp();
+  const { t, language } = useInventoryApp();
   const vm = useRetailerProfitReportViewModel();
   const printTargetId = 'retailer-profit-report-print';
   const rows = vm.report?.rows || [];
@@ -16,12 +16,12 @@ export default function RetailerProfitReportPage() {
 
   async function handleExportExcel() {
     const { utils, writeFile } = await import('xlsx');
-    const header = ['Date', 'Invoices', 'Total Sales', 'Tax', 'Profit'];
+    const header = [t('common.date'), t('retailer.dailySalesReport.invoiceCount'), t('retailer.profitReport.totalSales'), t('retailer.shared.taxAmountLabel'), t('retailer.profitReport.totalProfit')];
     const data = rows.map((row) => [row.date, row.invoiceCount, Number(row.totalSales), Number(row.taxAmount), Number(row.totalProfit)]);
     const ws = utils.aoa_to_sheet([header, ...data]);
     ws['!cols'] = [{ wch: 14 }, { wch: 10 }, { wch: 16 }, { wch: 14 }, { wch: 14 }];
     const wb = utils.book_new();
-    utils.book_append_sheet(wb, ws, 'Profit Report');
+    utils.book_append_sheet(wb, ws, t('retailer.profitReport.sheetName'));
     writeFile(wb, `profit-report-${vm.dateFrom}-${vm.dateTo}.xlsx`);
   }
   const isProfit = totals.totalProfit >= 0;
@@ -96,7 +96,7 @@ export default function RetailerProfitReportPage() {
             </button>
             <button type="button" className="btn-secondary" onClick={handleExportExcel}>
               <FileSpreadsheet size={18} />
-              Export as Excel
+              {t('common.exportExcel')}
             </button>
             <button
               type="button"
@@ -104,18 +104,18 @@ export default function RetailerProfitReportPage() {
               onClick={() => { inventoryApi.recordPrint({ entityType: 'retailer_profit_report', entityId: null, label: 'print' }).catch(() => {}); window.print(); }}
             >
               <Printer size={18} />
-              {t('purchaseReceive.printSheet')}
+              {t('common.print')}
             </button>
           </div>
 
           <div id={printTargetId}>
           <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <StatCard title={t('retailer.dailySalesReport.invoiceCount')} value={formatNumber(totals.invoiceCount)} icon={Wallet} tone="slate" />
-            <StatCard title={t('retailer.profitReport.totalSales')} value={formatCurrency(totals.totalSales)} icon={Wallet} tone="blue" />
-            <StatCard title={t('retailer.shared.taxAmountLabel')} value={formatCurrency(totals.taxAmount)} icon={Wallet} tone="amber" />
+            <StatCard title={t('retailer.dailySalesReport.invoiceCount')} value={formatNumber(totals.invoiceCount, language)} icon={Wallet} tone="slate" />
+            <StatCard title={t('retailer.profitReport.totalSales')} value={formatCurrency(totals.totalSales, language)} icon={Wallet} tone="blue" />
+            <StatCard title={t('retailer.shared.taxAmountLabel')} value={formatCurrency(totals.taxAmount, language)} icon={Wallet} tone="amber" />
             <StatCard
               title={t('retailer.profitReport.totalProfit')}
-              value={formatCurrency(totals.totalProfit)}
+              value={formatCurrency(totals.totalProfit, language)}
               icon={isProfit ? TrendingUp : TrendingDown}
               tone={isProfit ? 'emerald' : 'rose'}
             />
@@ -139,11 +139,11 @@ export default function RetailerProfitReportPage() {
                 <tbody className="divide-y divide-slate-100">
                   {rows.map((row) => (
                     <tr key={row.date} className="hover:bg-slate-50">
-                      <td className="table-cell font-semibold text-slate-950">{formatDate(row.date)}</td>
-                      <td className="table-cell text-right">{formatNumber(row.invoiceCount)}</td>
-                      <td className="table-cell text-right font-bold">{formatCurrency(row.totalSales)}</td>
-                      <td className="table-cell text-right font-bold">{formatCurrency(row.taxAmount)}</td>
-                      <td className={`table-cell text-right font-bold ${row.totalProfit >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>{formatCurrency(row.totalProfit)}</td>
+                      <td className="table-cell font-semibold text-slate-950">{formatDate(row.date, language)}</td>
+                      <td className="table-cell text-right">{formatNumber(row.invoiceCount, language)}</td>
+                      <td className="table-cell text-right font-bold">{formatCurrency(row.totalSales, language)}</td>
+                      <td className="table-cell text-right font-bold">{formatCurrency(row.taxAmount, language)}</td>
+                      <td className={`table-cell text-right font-bold ${row.totalProfit >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>{formatCurrency(row.totalProfit, language)}</td>
                     </tr>
                   ))}
                 </tbody>

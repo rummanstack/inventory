@@ -3,16 +3,31 @@ export function cleanNumber(value) {
   return Number.isFinite(parsed) ? Math.max(0, Math.floor(parsed)) : 0;
 }
 
+export function getPreferredLanguage() {
+  if (typeof window === 'undefined') {
+    return 'en';
+  }
+
+  try {
+    const stored = window.localStorage.getItem('stockledger.language');
+    return stored === 'bn' ? 'bn' : 'en';
+  } catch {
+    return 'en';
+  }
+}
+
 export function toPieces(caseQty, pieceQty, piecesPerCase) {
   return cleanNumber(caseQty) * cleanNumber(piecesPerCase || 1) + cleanNumber(pieceQty);
 }
 
-export function formatCasePiece(totalPieces, piecesPerCase) {
+export function formatCasePiece(totalPieces, piecesPerCase, language = getPreferredLanguage()) {
   const safeTotal = cleanNumber(totalPieces);
   const safeCaseSize = Math.max(1, cleanNumber(piecesPerCase || 1));
   const cases = Math.floor(safeTotal / safeCaseSize);
   const pieces = safeTotal % safeCaseSize;
-  return `${cases} case ${pieces} pcs`;
+  const caseLabel = language === 'bn' ? 'কেস' : 'case';
+  const pieceLabel = language === 'bn' ? 'পিস' : 'pcs';
+  return `${cases} ${caseLabel} ${pieces} ${pieceLabel}`;
 }
 
 export function calculateSold(issuedPieces, returnedPieces) {
@@ -23,16 +38,20 @@ export function calculatePayable(soldPieces, sellingPrice) {
   return cleanNumber(soldPieces) * Number(sellingPrice || 0);
 }
 
-export function formatCurrency(amount) {
+function getLocale(language) {
+  return language === 'bn' ? 'bn-BD' : 'en-GB';
+}
+
+export function formatCurrency(amount, language = getPreferredLanguage()) {
   const value = Number(amount || 0);
-  return `৳${value.toLocaleString('en-BD', {
+  return `৳${value.toLocaleString(getLocale(language), {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })}`;
 }
 
-export function formatNumber(amount) {
-  return Math.round(Number(amount || 0)).toLocaleString('en-BD');
+export function formatNumber(amount, language = getPreferredLanguage()) {
+  return Math.round(Number(amount || 0)).toLocaleString(getLocale(language));
 }
 
 export function todayISO() {
@@ -41,7 +60,7 @@ export function todayISO() {
   return local.toISOString().slice(0, 10);
 }
 
-export function formatDate(date) {
+export function formatDate(date, language = getPreferredLanguage()) {
   if (!date) return '';
 
   const value = date instanceof Date
@@ -52,14 +71,14 @@ export function formatDate(date) {
     return '';
   }
 
-  return new Intl.DateTimeFormat('en-GB', {
+  return new Intl.DateTimeFormat(getLocale(language), {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
   }).format(value);
 }
 
-export function formatDateTime(date) {
+export function formatDateTime(date, language = getPreferredLanguage()) {
   if (!date) return '';
 
   const value = date instanceof Date ? date : new Date(date);
@@ -67,7 +86,7 @@ export function formatDateTime(date) {
     return '';
   }
 
-  return new Intl.DateTimeFormat('en-GB', {
+  return new Intl.DateTimeFormat(getLocale(language), {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
@@ -76,7 +95,7 @@ export function formatDateTime(date) {
   }).format(value);
 }
 
-export function formatMonth(month) {
+export function formatMonth(month, language = getPreferredLanguage()) {
   if (!month) return '';
 
   const value = month instanceof Date
@@ -87,7 +106,7 @@ export function formatMonth(month) {
     return '';
   }
 
-  return new Intl.DateTimeFormat('en-GB', {
+  return new Intl.DateTimeFormat(getLocale(language), {
     month: 'short',
     year: 'numeric',
   }).format(value);

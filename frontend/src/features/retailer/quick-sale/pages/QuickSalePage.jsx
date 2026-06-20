@@ -126,7 +126,7 @@ function CashSessionAmountModal({
 }
 
 function QuickSaleForm({ onSaved }) {
-  const { t, productDirectory, promotionDirectory, retailCustomerDirectory, saveSalesInvoice, saveRetailCustomer, tenant, pushToast } = useInventoryApp();
+  const { t, productDirectory, promotionDirectory, retailCustomerDirectory, saveSalesInvoice, saveRetailCustomer, tenant, pushToast, language } = useInventoryApp();
   const vm = useSalesInvoiceFormViewModel({
     products: productDirectory,
     promotions: promotionDirectory,
@@ -160,7 +160,7 @@ function QuickSaleForm({ onSaved }) {
     const receiptWindow = window.open('', '_blank', 'width=420,height=760');
     if (receiptWindow) {
       receiptWindow.document.open();
-      receiptWindow.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${t('retailer.shared.receiptTitle')}</title><style>body{font-family:Arial,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#fff;color:#111827;font-size:14px;}</style></head><body>Preparing receipt...</body></html>`);
+      receiptWindow.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${t('retailer.shared.receiptTitle')}</title><style>body{font-family:Arial,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#fff;color:#111827;font-size:14px;}</style></head><body>${t('retailer.shared.preparingReceipt')}</body></html>`);
       receiptWindow.document.close();
       receiptWindow.focus();
     }
@@ -185,6 +185,7 @@ function QuickSaleForm({ onSaved }) {
         businessPhone: tenant?.phone || '',
         businessEmail: tenant?.email || '',
         title: t('retailer.shared.receiptTitle'),
+        language,
         receiptWindow,
       });
 
@@ -213,7 +214,7 @@ function QuickSaleForm({ onSaved }) {
 }
 
 export default function QuickSalePage() {
-  const { t, tenant, pushToast } = useInventoryApp();
+  const { t, tenant, pushToast, language } = useInventoryApp();
   const [formKey, setFormKey] = useState(0);
   const [lastInvoice, setLastInvoice] = useState(null);
   const [session, setSession] = useState(null);
@@ -271,6 +272,7 @@ export default function QuickSalePage() {
       businessPhone: tenant?.phone || '',
       businessEmail: tenant?.email || '',
       title: t('retailer.shared.receiptTitle'),
+      language,
     });
 
     if (!result.ok) {

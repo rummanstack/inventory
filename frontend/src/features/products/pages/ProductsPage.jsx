@@ -15,7 +15,7 @@ import { inventoryApi } from '../../../services/inventoryApi.js';
 const PRODUCTS_PRINT_ID = 'products-report-print';
 
 export default function ProductsPage() {
-  const { productDirectory, saveProduct, deleteProduct, addStock, setOpeningStock, t, can, tenant } = useInventoryApp();
+  const { productDirectory, saveProduct, deleteProduct, addStock, setOpeningStock, t, can, tenant, language } = useInventoryApp();
   const vm = useProductsViewModel();
   const [productModal, setProductModal] = useState(null);
   const [stockModalProduct, setStockModalProduct] = useState(null);
@@ -37,21 +37,21 @@ export default function ProductsPage() {
   }, [productDirectory]);
 
   async function handleDownloadPdf() {
-    await inventoryApi.recordPrint({ entityType: 'products_report', entityId: 'all', label: 'Products Report PDF' });
+    await inventoryApi.recordPrint({ entityType: 'products_report', entityId: 'all', label: t('products.reportPdfLabel') });
     downloadSheetPdf(PRODUCTS_PRINT_ID, 'products-report.pdf');
   }
 
   async function handleExportExcel() {
     const columns = [
       { label: '#', value: (_, i) => i + 1, width: 6 },
-      { label: 'Product', value: (p) => p.name, width: 28 },
-      { label: 'Category', value: (p) => p.category || '', width: 20 },
-      { label: 'Case Size', value: (p) => p.piecesPerCase, width: 12 },
-      { label: 'Purchase Price', value: (p) => Number(p.purchasePrice), width: 16 },
-      { label: 'Wholesale Price', value: (p) => Number(p.wholesalePrice), width: 16 },
-      { label: 'Retail Price', value: (p) => Number(p.retailPrice), width: 16 },
-      { label: 'Stock (pcs)', value: (p) => p.stockPieces, width: 14 },
-      { label: 'Damaged (pcs)', value: (p) => p.damagedPieces, width: 14 },
+      { label: t('products.product'), value: (p) => p.name, width: 28 },
+      { label: t('products.category'), value: (p) => p.category || '', width: 20 },
+      { label: t('products.caseSize'), value: (p) => p.piecesPerCase, width: 12 },
+      { label: t('products.purchasePrice'), value: (p) => Number(p.purchasePrice), width: 16 },
+      { label: t('products.wholesalePrice'), value: (p) => Number(p.wholesalePrice), width: 16 },
+      { label: t('products.retailPrice'), value: (p) => Number(p.retailPrice), width: 16 },
+      { label: `${t('products.stock')} (${t('common.pcs')})`, value: (p) => p.stockPieces, width: 14 },
+      { label: `${t('products.damaged')} (${t('common.pcs')})`, value: (p) => p.damagedPieces, width: 14 },
     ];
     const rows = productDirectory.map((p, i) => columns.map((col) => col.value(p, i)));
     const header = columns.map((col) => col.label);
@@ -59,12 +59,12 @@ export default function ProductsPage() {
     const worksheet = utils.aoa_to_sheet([header, ...rows]);
     worksheet['!cols'] = columns.map((col) => ({ wch: col.width }));
     const workbook = utils.book_new();
-    utils.book_append_sheet(workbook, worksheet, 'Products');
+    utils.book_append_sheet(workbook, worksheet, t('products.sheetName'));
     writeFile(workbook, 'products-report.xlsx');
   }
 
   async function handlePrint() {
-    await inventoryApi.recordPrint({ entityType: 'products_report', entityId: 'all', label: 'Products Report Print' });
+    await inventoryApi.recordPrint({ entityType: 'products_report', entityId: 'all', label: t('products.reportPrintLabel') });
     window.print();
   }
 
@@ -97,28 +97,28 @@ export default function ProductsPage() {
             </div>
             <div className="no-print flex flex-wrap items-center gap-2">
               <div className="flex flex-wrap gap-2 text-sm font-bold">
-                <span className="muted-chip">{formatNumber(productDirectory.length)} {t('products.product')}</span>
-                <span className="muted-chip">{formatNumber(outOfStockCount)} out</span>
-                <span className="muted-chip">{formatNumber(veryLowCount)} low</span>
+                <span className="muted-chip">{formatNumber(productDirectory.length, language)} {t('products.product')}</span>
+                <span className="muted-chip">{formatNumber(outOfStockCount, language)} {t('products.outShort')}</span>
+                <span className="muted-chip">{formatNumber(veryLowCount, language)} {t('products.lowShort')}</span>
               </div>
               <button type="button" className="btn-secondary h-8 gap-1.5 px-3 py-1.5 text-xs" onClick={handleDownloadPdf}>
                 <Download size={14} />
-                Download as PDF
+                {t('purchaseReceive.downloadPdf')}
               </button>
               <button type="button" className="btn-secondary h-8 gap-1.5 px-3 py-1.5 text-xs" onClick={handleExportExcel}>
                 <FileSpreadsheet size={14} />
-                Export as Excel
+                {t('common.exportExcel')}
               </button>
               <button type="button" className="btn-secondary h-8 gap-1.5 px-3 py-1.5 text-xs" onClick={handlePrint}>
                 <Printer size={14} />
-                Print
+                {t('common.print')}
               </button>
             </div>
           </div>
           {outOfStockCount || veryLowCount ? (
             <div className="mt-4 grid gap-3 lg:grid-cols-2">
-              {outOfStockCount ? <Alert type="error">{`${outOfStockCount} product currently has no available stock.`}</Alert> : null}
-              {veryLowCount ? <Alert type="warning">{`${veryLowCount} product is at a critically low stock level.`}</Alert> : null}
+              {outOfStockCount ? <Alert type="error">{t('products.noStockAlert', { count: formatNumber(outOfStockCount, language) })}</Alert> : null}
+              {veryLowCount ? <Alert type="warning">{t('products.lowStockAlert', { count: formatNumber(veryLowCount, language) })}</Alert> : null}
             </div>
           ) : null}
           <div className="mt-4 flex flex-col gap-3 sm:flex-row">
@@ -170,19 +170,19 @@ export default function ProductsPage() {
                       <Badge tone={product.refundable === false ? 'rose' : 'emerald'}>
                         {product.refundable === false ? t('products.nonRefundable') : t('products.refundable')}
                       </Badge>
-                      {product.stockPieces === 0 ? <Badge tone="rose">Out</Badge> : null}
-                      {product.stockPieces > 0 && product.stockPieces <= product.piecesPerCase ? <Badge tone="amber">Low</Badge> : null}
+                      {product.stockPieces === 0 ? <Badge tone="rose">{t('products.outShort')}</Badge> : null}
+                      {product.stockPieces > 0 && product.stockPieces <= product.piecesPerCase ? <Badge tone="amber">{t('products.lowShort')}</Badge> : null}
                     </div>
                   </td>
-                  <td className="hidden table-cell sm:table-cell">{product.piecesPerCase} pcs/case</td>
-                  <td className="hidden table-cell md:table-cell">{formatCurrency(product.purchasePrice)}</td>
-                  <td className="hidden table-cell md:table-cell">{formatCurrency(product.wholesalePrice)}</td>
-                  <td className="hidden table-cell md:table-cell">{formatCurrency(product.retailPrice)}</td>
+                  <td className="hidden table-cell sm:table-cell">{formatNumber(product.piecesPerCase, language)} {t('common.pcsPerCase')}</td>
+                  <td className="hidden table-cell md:table-cell">{formatCurrency(product.purchasePrice, language)}</td>
+                  <td className="hidden table-cell md:table-cell">{formatCurrency(product.wholesalePrice, language)}</td>
+                  <td className="hidden table-cell md:table-cell">{formatCurrency(product.retailPrice, language)}</td>
                   <td className="table-cell">
-                    <p className="font-semibold text-slate-950">{formatCasePiece(product.stockPieces, product.piecesPerCase)}</p>
-                    <p className="text-xs text-slate-500">{formatNumber(product.stockPieces)} pcs total</p>
+                    <p className="font-semibold text-slate-950">{formatCasePiece(product.stockPieces, product.piecesPerCase, language)}</p>
+                    <p className="text-xs text-slate-500">{formatNumber(product.stockPieces, language)} {t('products.pcsTotal')}</p>
                     {product.damagedPieces > 0 ? (
-                      <p className="text-xs text-rose-500">{formatNumber(product.damagedPieces)} pcs damaged</p>
+                      <p className="text-xs text-rose-500">{formatNumber(product.damagedPieces, language)} {t('products.pcsDamaged')}</p>
                     ) : null}
                   </td>
                   <td className="table-cell">
@@ -259,6 +259,8 @@ export default function ProductsPage() {
           businessName={businessName}
           printTarget
           targetId={PRODUCTS_PRINT_ID}
+          t={t}
+          language={language}
         />
       </div>
     </div>

@@ -42,9 +42,9 @@ export default function TenantEditModal({ tenant, onClose, onSave }) {
         <label className="block">
           <span className="label">{t('organizations.plan')}</span>
           <select className="input" value={form.plan} onChange={(e) => updateField('plan', e.target.value)}>
-            <option value="starter">Starter</option>
-            <option value="pro">Pro</option>
-            <option value="enterprise">Enterprise</option>
+            <option value="starter">{t('organizations.planStarter')}</option>
+            <option value="pro">{t('organizations.planPro')}</option>
+            <option value="enterprise">{t('organizations.planEnterprise')}</option>
           </select>
         </label>
         <PhotoUploadField label={t('orgSettings.logoUrl')} value={form.logoUrl} onChange={(url) => updateField('logoUrl', url)} shape="square" />

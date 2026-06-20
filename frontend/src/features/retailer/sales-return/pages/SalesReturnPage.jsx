@@ -10,7 +10,7 @@ import SalesReturnFormModal from '../components/SalesReturnFormModal';
 import { useSalesReturnsViewModel } from '../viewmodels/useSalesReturnsViewModel';
 
 export default function SalesReturnPage() {
-  const { saveSalesReturn, t, can, retailCustomerDirectory } = useInventoryApp();
+  const { saveSalesReturn, t, can, retailCustomerDirectory, language } = useInventoryApp();
   const vm = useSalesReturnsViewModel();
   const [showFormModal, setShowFormModal] = useState(false);
   const canManageRetailers = can('manage_retailers');
@@ -25,12 +25,12 @@ export default function SalesReturnPage() {
     });
     const all = result.items || [];
     const { utils, writeFile } = await import('xlsx');
-    const header = ['#', 'Return No.', 'Date', 'Invoice No.', 'Customer', 'Total Amount'];
+    const header = ['#', t('retailer.salesReturn.returnNumber'), t('retailer.shared.invoiceDateLabel'), t('retailer.salesReturn.invoiceNumberLabel'), t('retailer.shared.customerLabel'), t('retailer.shared.totalAmount')];
     const data = all.map((r, i) => [i + 1, r.returnNumber, r.returnDate, r.invoiceNumber || '', r.customerName || '', Number(r.totalAmount)]);
     const ws = utils.aoa_to_sheet([header, ...data]);
     ws['!cols'] = [{ wch: 6 }, { wch: 16 }, { wch: 14 }, { wch: 16 }, { wch: 22 }, { wch: 14 }];
     const wb = utils.book_new();
-    utils.book_append_sheet(wb, ws, 'Sales Returns');
+    utils.book_append_sheet(wb, ws, t('retailer.salesReturn.sheetName'));
     writeFile(wb, `sales-return-report.xlsx`);
   }
 
@@ -56,18 +56,18 @@ export default function SalesReturnPage() {
               <p className="text-sm font-medium text-slate-500">{t('retailer.salesReturn.description')}</p>
             </div>
             <div className="flex flex-wrap items-center gap-2 text-sm font-bold">
-              <span className="muted-chip">{formatNumber(vm.total)} {t('retailer.salesReturn.returnCount')}</span>
+              <span className="muted-chip">{formatNumber(vm.total, language)} {t('retailer.salesReturn.returnCount')}</span>
               <button
                 type="button"
                 className="btn-secondary no-print py-1.5 text-xs"
                 onClick={() => { inventoryApi.recordPrint({ entityType: 'sales_return', entityId: null, label: 'pdf' }).catch(() => {}); downloadSheetPdf('sales-return-print', `sales-return-report.pdf`); }}
               >
                 <Download size={14} />
-                Download as PDF
+                {t('purchaseReceive.downloadPdf')}
               </button>
               <button type="button" className="btn-secondary no-print py-1.5 text-xs" onClick={handleExportExcel}>
                 <FileSpreadsheet size={14} />
-                Export as Excel
+                {t('common.exportExcel')}
               </button>
               <button
                 type="button"
@@ -75,7 +75,7 @@ export default function SalesReturnPage() {
                 onClick={() => { inventoryApi.recordPrint({ entityType: 'sales_return', entityId: null, label: 'print' }).catch(() => {}); window.print(); }}
               >
                 <Printer size={14} />
-                Print
+                {t('common.print')}
               </button>
             </div>
           </div>
@@ -114,12 +114,12 @@ export default function SalesReturnPage() {
             <tbody className="divide-y divide-slate-100">
               {vm.items.map((salesReturn, index) => (
                 <tr key={salesReturn.id} className="hover:bg-slate-50">
-                  <td className="table-cell font-black text-slate-400">{(vm.page - 1) * vm.pageSize + index + 1}</td>
+                  <td className="table-cell font-black text-slate-400">{formatNumber((vm.page - 1) * vm.pageSize + index + 1, language)}</td>
                   <td className="table-cell font-semibold text-slate-950">{salesReturn.returnNumber}</td>
-                  <td className="table-cell">{formatDate(salesReturn.returnDate)}</td>
+                  <td className="table-cell">{formatDate(salesReturn.returnDate, language)}</td>
                   <td className="table-cell">{salesReturn.invoiceNumber || '-'}</td>
                   <td className="table-cell">{salesReturn.customerName || t('retailer.shared.customerTypes.WALK_IN')}</td>
-                  <td className="table-cell text-right font-bold">{formatCurrency(salesReturn.totalAmount)}</td>
+                  <td className="table-cell text-right font-bold">{formatCurrency(salesReturn.totalAmount, language)}</td>
                 </tr>
               ))}
             </tbody>

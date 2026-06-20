@@ -19,7 +19,7 @@ function Field({ label, value }) {
 }
 
 export default function SalesInvoiceViewModal({ salesInvoice, onClose }) {
-  const { t, tenant, pushToast } = useInventoryApp();
+  const { t, tenant, pushToast, language } = useInventoryApp();
   const items = salesInvoice.items || [];
   const printTargetId = `sales-invoice-print-${salesInvoice.id}`;
   const businessName = tenant?.name || '';
@@ -35,6 +35,7 @@ export default function SalesInvoiceViewModal({ salesInvoice, onClose }) {
       businessPhone: tenant?.phone || '',
       businessEmail: tenant?.email || '',
       title: t('retailer.shared.receiptTitle'),
+      language,
     });
 
     if (!result.ok) {
@@ -49,7 +50,7 @@ export default function SalesInvoiceViewModal({ salesInvoice, onClose }) {
     <>
     <Modal title={salesInvoice.invoiceNumber} description={t('retailer.salesInvoices.viewDescription')} onClose={onClose} width="max-w-3xl">
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Field label={t('retailer.shared.invoiceDateLabel')} value={formatDate(salesInvoice.invoiceDate)} />
+        <Field label={t('retailer.shared.invoiceDateLabel')} value={formatDate(salesInvoice.invoiceDate, language)} />
         <Field label={t('retailer.shared.saleTypeLabel')} value={t(`retailer.shared.saleTypes.${salesInvoice.saleType}`)} />
         <Field label={t('retailer.shared.customerTypeLabel')} value={t(`retailer.shared.customerTypes.${salesInvoice.customerType}`)} />
         <Field label={t('retailer.shared.customerLabel')} value={salesInvoice.customerName} />
@@ -70,10 +71,10 @@ export default function SalesInvoiceViewModal({ salesInvoice, onClose }) {
             {items.map((item, index) => (
               <tr key={item.id || index}>
                 <td className="px-3 py-2 font-semibold text-slate-950">{item.productName}</td>
-                <td className="px-3 py-2 text-right">{item.quantityPieces}</td>
-                <td className="px-3 py-2 text-right">{formatCurrency(item.actualSalePrice)}</td>
-                <td className="px-3 py-2 text-right">{formatCurrency(item.lineDiscount)}</td>
-                <td className="px-3 py-2 text-right font-bold">{formatCurrency(item.lineTotal)}</td>
+                <td className="px-3 py-2 text-right">{Number(item.quantityPieces || 0).toLocaleString(language === 'bn' ? 'bn-BD' : 'en-GB')}</td>
+                <td className="px-3 py-2 text-right">{formatCurrency(item.actualSalePrice, language)}</td>
+                <td className="px-3 py-2 text-right">{formatCurrency(item.lineDiscount, language)}</td>
+                <td className="px-3 py-2 text-right font-bold">{formatCurrency(item.lineTotal, language)}</td>
               </tr>
             ))}
           </tbody>
@@ -84,47 +85,47 @@ export default function SalesInvoiceViewModal({ salesInvoice, onClose }) {
         <div className="w-full max-w-xs space-y-2 text-sm">
           <div className="flex items-center justify-between">
             <span className="font-semibold text-slate-600">{t('retailer.shared.subtotal')}</span>
-            <span className="font-bold text-slate-950">{formatCurrency(salesInvoice.subtotal)}</span>
+            <span className="font-bold text-slate-950">{formatCurrency(salesInvoice.subtotal, language)}</span>
           </div>
           <div className="flex items-center justify-between">
             <span className="font-semibold text-slate-600">{t('retailer.shared.discountLabel')}</span>
-            <span className="font-bold text-rose-700">- {formatCurrency(salesInvoice.discount)}</span>
+            <span className="font-bold text-rose-700">- {formatCurrency(salesInvoice.discount, language)}</span>
           </div>
           {Number(salesInvoice.loyaltyRedeemAmount || 0) > 0 ? (
             <div className="flex items-center justify-between">
               <span className="font-semibold text-slate-600">{t('retailer.shared.loyaltyRedeemAmount')}</span>
-              <span className="font-bold text-rose-700">- {formatCurrency(salesInvoice.loyaltyRedeemAmount)}</span>
+              <span className="font-bold text-rose-700">- {formatCurrency(salesInvoice.loyaltyRedeemAmount, language)}</span>
             </div>
           ) : null}
           {Number(salesInvoice.taxRate || 0) > 0 ? (
             <>
               <div className="flex items-center justify-between gap-3">
                 <span className="font-semibold text-slate-600">{t('retailer.shared.taxRateLabel')}</span>
-                <span className="font-bold text-slate-950">{Number(salesInvoice.taxRate || 0).toFixed(2)}%</span>
+                <span className="font-bold text-slate-950">{new Intl.NumberFormat(language === 'bn' ? 'bn-BD' : 'en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(salesInvoice.taxRate || 0))}%</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="font-semibold text-slate-600">{t('retailer.shared.taxAmountLabel')}</span>
-                <span className="font-bold text-slate-950">{formatCurrency(salesInvoice.taxAmount)}</span>
+                <span className="font-bold text-slate-950">{formatCurrency(salesInvoice.taxAmount, language)}</span>
               </div>
             </>
           ) : null}
           <div className="flex items-center justify-between border-t border-slate-200 pt-2">
             <span className="font-black uppercase tracking-[0.1em] text-slate-700">{t('retailer.shared.totalAmount')}</span>
-            <span className="font-black text-slate-950">{formatCurrency(salesInvoice.totalAmount)}</span>
+            <span className="font-black text-slate-950">{formatCurrency(salesInvoice.totalAmount, language)}</span>
           </div>
           {Number(salesInvoice.loyaltyPointsEarned || 0) > 0 ? (
             <div className="flex items-center justify-between">
               <span className="font-semibold text-slate-600">{t('retailer.shared.loyaltyPointsEarned')}</span>
-              <span className="font-bold text-emerald-700">{salesInvoice.loyaltyPointsEarned}</span>
+              <span className="font-bold text-emerald-700">{Number(salesInvoice.loyaltyPointsEarned || 0).toLocaleString(language === 'bn' ? 'bn-BD' : 'en-GB')}</span>
             </div>
           ) : null}
           <div className="flex items-center justify-between">
             <span className="font-semibold text-slate-600">{t('retailer.shared.paidAmountLabel')}</span>
-            <span className="font-bold text-emerald-700">{formatCurrency(salesInvoice.paidAmount)}</span>
+            <span className="font-bold text-emerald-700">{formatCurrency(salesInvoice.paidAmount, language)}</span>
           </div>
           <div className="flex items-center justify-between border-t-2 border-slate-300 pt-2">
             <span className="text-base font-black uppercase tracking-[0.1em] text-slate-950">{t('retailer.shared.dueAmount')}</span>
-            <span className="text-lg font-black"><Badge tone={paymentStatusTone(paymentStatusOf(salesInvoice))}>{formatCurrency(salesInvoice.dueAmount)}</Badge></span>
+            <span className="text-lg font-black"><Badge tone={paymentStatusTone(paymentStatusOf(salesInvoice))}>{formatCurrency(salesInvoice.dueAmount, language)}</Badge></span>
           </div>
         </div>
       </div>
@@ -161,7 +162,7 @@ export default function SalesInvoiceViewModal({ salesInvoice, onClose }) {
     </Modal>
 
     <div className="hidden print:block">
-      <SalesInvoicePrintSheet invoice={salesInvoice} businessName={businessName} printTarget targetId={printTargetId} />
+      <SalesInvoicePrintSheet invoice={salesInvoice} businessName={businessName} printTarget targetId={printTargetId} t={t} language={language} />
     </div>
     </>
   );

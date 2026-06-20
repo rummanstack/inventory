@@ -8,19 +8,19 @@ import { formatCurrency, formatDate, formatNumber } from '../../../../utils/calc
 import { useDailySalesReportViewModel } from '../viewmodels/useDailySalesReportViewModel';
 
 export default function DailySalesReportPage() {
-  const { t } = useInventoryApp();
+  const { t, language } = useInventoryApp();
   const vm = useDailySalesReportViewModel();
   const printTargetId = 'daily-sales-report-print';
   const rows = vm.report?.rows || [];
 
   async function handleExportExcel() {
     const { utils, writeFile } = await import('xlsx');
-    const header = ['Date', 'Invoices', 'Total Amount', 'Paid Amount', 'Due Amount', 'Tax', 'Profit'];
+    const header = [t('common.date'), t('retailer.dailySalesReport.invoiceCount'), t('retailer.shared.totalAmount'), t('retailer.shared.paidAmountLabel'), t('retailer.shared.dueAmount'), t('retailer.shared.taxAmountLabel'), t('retailer.profitReport.totalProfit')];
     const data = rows.map((row) => [row.date, row.invoiceCount, Number(row.totalAmount), Number(row.paidAmount), Number(row.dueAmount), Number(row.taxAmount), Number(row.totalProfit)]);
     const ws = utils.aoa_to_sheet([header, ...data]);
     ws['!cols'] = [{ wch: 14 }, { wch: 10 }, { wch: 16 }, { wch: 16 }, { wch: 16 }, { wch: 14 }, { wch: 14 }];
     const wb = utils.book_new();
-    utils.book_append_sheet(wb, ws, 'Daily Sales');
+    utils.book_append_sheet(wb, ws, t('retailer.dailySalesReport.sheetName'));
     writeFile(wb, `daily-sales-report-${vm.dateFrom}-${vm.dateTo}.xlsx`);
   }
 
@@ -106,7 +106,7 @@ export default function DailySalesReportPage() {
             </button>
             <button type="button" className="btn-secondary" onClick={handleExportExcel}>
               <FileSpreadsheet size={18} />
-              Export as Excel
+              {t('common.exportExcel')}
             </button>
             <button
               type="button"
@@ -114,17 +114,17 @@ export default function DailySalesReportPage() {
               onClick={() => { inventoryApi.recordPrint({ entityType: 'daily_sales_report', entityId: null, label: 'print' }).catch(() => {}); window.print(); }}
             >
               <Printer size={18} />
-              {t('purchaseReceive.printSheet')}
+              {t('common.print')}
             </button>
           </div>
 
           <div id={printTargetId}>
           <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-            <StatCard title={t('retailer.dailySalesReport.invoiceCount')} value={formatNumber(totals.invoiceCount)} icon={Wallet} tone="slate" />
-            <StatCard title={t('retailer.shared.totalAmount')} value={formatCurrency(totals.totalAmount)} icon={Wallet} tone="blue" />
-            <StatCard title={t('retailer.shared.paidAmountLabel')} value={formatCurrency(totals.paidAmount)} icon={Wallet} tone="emerald" />
-            <StatCard title={t('retailer.shared.dueAmount')} value={formatCurrency(totals.dueAmount)} icon={Wallet} tone="rose" />
-            <StatCard title={t('retailer.shared.taxAmountLabel')} value={formatCurrency(totals.taxAmount)} icon={Wallet} tone="amber" />
+            <StatCard title={t('retailer.dailySalesReport.invoiceCount')} value={formatNumber(totals.invoiceCount, language)} icon={Wallet} tone="slate" />
+            <StatCard title={t('retailer.shared.totalAmount')} value={formatCurrency(totals.totalAmount, language)} icon={Wallet} tone="blue" />
+            <StatCard title={t('retailer.shared.paidAmountLabel')} value={formatCurrency(totals.paidAmount, language)} icon={Wallet} tone="emerald" />
+            <StatCard title={t('retailer.shared.dueAmount')} value={formatCurrency(totals.dueAmount, language)} icon={Wallet} tone="rose" />
+            <StatCard title={t('retailer.shared.taxAmountLabel')} value={formatCurrency(totals.taxAmount, language)} icon={Wallet} tone="amber" />
           </div>
 
           <div className="surface overflow-hidden">
@@ -147,13 +147,13 @@ export default function DailySalesReportPage() {
                 <tbody className="divide-y divide-slate-100">
                   {rows.map((row) => (
                     <tr key={row.date} className="hover:bg-slate-50">
-                      <td className="table-cell font-semibold text-slate-950">{formatDate(row.date)}</td>
-                      <td className="table-cell text-right">{formatNumber(row.invoiceCount)}</td>
-                      <td className="table-cell text-right font-bold">{formatCurrency(row.totalAmount)}</td>
-                      <td className="table-cell text-right text-emerald-700">{formatCurrency(row.paidAmount)}</td>
-                      <td className="table-cell text-right text-rose-700">{formatCurrency(row.dueAmount)}</td>
-                      <td className="table-cell text-right font-bold">{formatCurrency(row.taxAmount)}</td>
-                      <td className="table-cell text-right font-bold">{formatCurrency(row.totalProfit)}</td>
+                      <td className="table-cell font-semibold text-slate-950">{formatDate(row.date, language)}</td>
+                      <td className="table-cell text-right">{formatNumber(row.invoiceCount, language)}</td>
+                      <td className="table-cell text-right font-bold">{formatCurrency(row.totalAmount, language)}</td>
+                      <td className="table-cell text-right text-emerald-700">{formatCurrency(row.paidAmount, language)}</td>
+                      <td className="table-cell text-right text-rose-700">{formatCurrency(row.dueAmount, language)}</td>
+                      <td className="table-cell text-right font-bold">{formatCurrency(row.taxAmount, language)}</td>
+                      <td className="table-cell text-right font-bold">{formatCurrency(row.totalProfit, language)}</td>
                     </tr>
                   ))}
                 </tbody>

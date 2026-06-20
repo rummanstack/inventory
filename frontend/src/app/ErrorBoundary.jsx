@@ -27,12 +27,12 @@ export class ErrorBoundary extends Component {
             <div className="rounded-2xl bg-white p-3 text-rose-600 shadow-[0_12px_24px_rgba(15,23,42,0.06)] ring-1 ring-slate-200">
               <AlertTriangle size={24} />
             </div>
-            <h3 className="mt-4 text-base font-bold text-slate-900">Something went wrong</h3>
+            <h3 className="mt-4 text-base font-bold text-slate-900">{this.props.t ? this.props.t('errors.somethingWentWrong') : 'Something went wrong'}</h3>
             <p className="mt-1 max-w-md text-sm font-medium text-slate-500">
-              An unexpected error occurred. Try reloading the page.
+              {this.props.t ? this.props.t('errors.unexpectedError') : 'An unexpected error occurred. Try reloading the page.'}
             </p>
             <button type="button" className="btn-primary mt-5" onClick={() => window.location.reload()}>
-              Reload
+              {this.props.t ? this.props.t('common.reload') : 'Reload'}
             </button>
           </div>
         </div>

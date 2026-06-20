@@ -5,11 +5,11 @@ const LANGUAGE_STORAGE_KEY = 'stockledger.language';
 
 function getInitialLanguage() {
   if (typeof window === 'undefined') {
-    return 'bn';
+    return 'en';
   }
 
   const stored = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
-  return supportedLanguages.includes(stored) ? stored : 'bn';
+  return supportedLanguages.includes(stored) ? stored : 'en';
 }
 
 export function useLanguage() {
@@ -19,6 +19,12 @@ export function useLanguage() {
   function setLanguage(nextLanguage) {
     if (!supportedLanguages.includes(nextLanguage)) {
       return;
+    }
+
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(LANGUAGE_STORAGE_KEY, nextLanguage);
+      document.documentElement.lang = nextLanguage;
+      document.documentElement.dir = 'ltr';
     }
 
     setLanguageState(nextLanguage);

@@ -1,3 +1,4 @@
+import { createTranslator } from '../i18n/translations.js';
 import { formatCurrency, formatDateTime } from '../utils/calculations.js';
 
 function escapeHtml(value) {
@@ -21,30 +22,59 @@ function humanizeCode(value) {
     .replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
-function formatQuantity(quantity) {
+function receiptLocale(language) {
+  return language === 'bn' ? 'bn-BD' : 'en-GB';
+}
+
+function formatQuantity(quantity, language) {
   const value = Number(quantity || 0);
   if (Number.isInteger(value)) {
-    return String(value);
+    return new Intl.NumberFormat(receiptLocale(language)).format(value);
   }
-  return value.toFixed(2).replace(/\.00$/, '');
+  return new Intl.NumberFormat(receiptLocale(language), {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  }).format(value);
 }
 
-function lineTotalText(item) {
-  return formatCurrency(item?.lineTotal ?? Number(item?.actualSalePrice || 0) * Number(item?.quantityPieces || 0));
+function formatPercent(value, language) {
+  return new Intl.NumberFormat(receiptLocale(language), {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(Number(value || 0));
 }
 
-function buildLineItemHtml(item) {
+function formatLocalizedCurrency(value, language) {
+  return formatCurrency(value, language);
+}
+
+function labelFor(t, key, fallback) {
+  const value = t(key);
+  return value === key ? fallback : value;
+}
+
+function translatedValue(t, key, fallback) {
+  const value = t(key);
+  return value === key ? fallback : value;
+}
+
+function lineTotalText(item, language) {
+  return formatLocalizedCurrency(item?.lineTotal ?? Number(item?.actualSalePrice || 0) * Number(item?.quantityPieces || 0), language);
+}
+
+function buildLineItemHtml(item, t, language) {
   const name = escapeHtml(item?.productName || 'Item');
-  const quantity = formatQuantity(item?.quantityPieces);
-  const price = formatCurrency(item?.actualSalePrice);
+  const quantity = formatQuantity(item?.quantityPieces, language);
+  const price = formatLocalizedCurrency(item?.actualSalePrice, language);
   const discount = Number(item?.lineDiscount || 0);
-  const lineTotal = lineTotalText(item);
+  const lineTotal = lineTotalText(item, language);
+  const discountLabel = labelFor(t, 'retailer.shared.discountLabel', 'Discount');
 
   return `
     <tr>
       <td class="item-name">
         <div class="name">${name}</div>
-        <div class="meta">${quantity} x ${price}${discount > 0 ? ` &middot; disc ${formatCurrency(discount)}` : ''}</div>
+        <div class="meta">${quantity} x ${price}${discount > 0 ? ` &middot; ${escapeHtml(discountLabel)} ${formatLocalizedCurrency(discount, language)}` : ''}</div>
       </td>
       <td class="item-total">${lineTotal}</td>
     </tr>
@@ -64,21 +94,21 @@ function buildMetaRow(label, value) {
   `;
 }
 
-function buildMoneyRow(label, value) {
+function buildMoneyRow(label, value, language) {
   return `
     <tr>
       <td class="label">${escapeHtml(label)}</td>
-      <td class="value">${escapeHtml(formatCurrency(value))}</td>
+      <td class="value">${escapeHtml(formatLocalizedCurrency(value, language))}</td>
     </tr>
   `;
 }
 
-function buildOptionalMoneyRow(label, value) {
-  if (!value) {
+function buildOptionalMoneyRow(label, value, language) {
+  if (Number(value || 0) === 0) {
     return '';
   }
 
-  return buildMoneyRow(label, value);
+  return buildMoneyRow(label, value, language);
 }
 
 function buildTextRow(label, value) {
@@ -100,11 +130,30 @@ export function buildReceiptHtml(invoice, {
   businessPhone = '',
   businessEmail = '',
   title = 'Receipt',
+  language = 'en',
   widthMm = 80,
 } = {}) {
+  const t = createTranslator(language);
   const items = Array.isArray(invoice?.items) ? invoice.items : [];
   const safeWidth = Number(widthMm) === 58 ? 58 : 80;
   const businessLines = [businessAddress, businessPhone, businessEmail].filter(Boolean);
+  const invoiceLabel = labelFor(t, 'retailer.shared.invoiceNumberLabel', 'Invoice');
+  const dateLabel = labelFor(t, 'retailer.shared.invoiceDateLabel', 'Date');
+  const customerLabel = labelFor(t, 'retailer.shared.customerLabel', 'Customer');
+  const saleTypeLabel = labelFor(t, 'retailer.shared.saleTypeLabel', 'Sale type');
+  const cashierLabel = labelFor(t, 'retailer.shared.cashierLabel', 'Cashier');
+  const paymentLabel = labelFor(t, 'purchaseReceive.paymentMethodLabel', 'Payment');
+  const subtotalLabel = labelFor(t, 'retailer.shared.subtotal', 'Subtotal');
+  const discountLabel = labelFor(t, 'retailer.shared.discountLabel', 'Discount');
+  const loyaltyRedeemLabel = labelFor(t, 'retailer.shared.loyaltyRedeemAmount', 'Loyalty Redeem');
+  const taxLabel = labelFor(t, 'retailer.shared.taxAmountLabel', 'Tax');
+  const totalLabel = labelFor(t, 'retailer.shared.totalAmount', 'Total');
+  const loyaltyEarnedLabel = labelFor(t, 'retailer.shared.loyaltyPointsEarned', 'Loyalty Earned');
+  const paidLabel = labelFor(t, 'retailer.shared.paidAmountLabel', 'Paid');
+  const dueLabel = labelFor(t, 'retailer.shared.dueAmount', 'Due');
+  const noteLabel = labelFor(t, 'purchaseReceive.noteLabel', 'Note');
+  const receiptThankYou = labelFor(t, 'retailer.shared.receiptThankYou', 'Thank you for your purchase.');
+  const receiptKeepForRecords = labelFor(t, 'retailer.shared.receiptKeepForRecords', 'Please keep this receipt for records.');
 
   return `<!doctype html>
 <html>
@@ -269,12 +318,12 @@ export function buildReceiptHtml(invoice, {
 
     <table class="meta-table">
       <tbody>
-        ${buildMetaRow('Invoice', invoice?.invoiceNumber)}
-        ${buildMetaRow('Date', formatDateTime(invoice?.createdAt || invoice?.invoiceDate))}
-        ${buildMetaRow('Customer', invoice?.customerName || humanizeCode(invoice?.customerType))}
-        ${buildMetaRow('Sale type', humanizeCode(invoice?.saleType))}
-        ${buildMetaRow('Cashier', invoice?.createdByName)}
-        ${buildMetaRow('Payment', humanizeCode(invoice?.paymentMethod))}
+        ${buildMetaRow(invoiceLabel, invoice?.invoiceNumber)}
+        ${buildMetaRow(dateLabel, formatDateTime(invoice?.createdAt || invoice?.invoiceDate, language))}
+        ${buildMetaRow(customerLabel, invoice?.customerName || translatedValue(t, `retailer.shared.customerTypes.${invoice?.customerType}`, humanizeCode(invoice?.customerType)))}
+        ${buildMetaRow(saleTypeLabel, translatedValue(t, `retailer.shared.saleTypes.${invoice?.saleType}`, humanizeCode(invoice?.saleType)))}
+        ${buildMetaRow(cashierLabel, invoice?.createdByName)}
+        ${buildMetaRow(paymentLabel, translatedValue(t, `purchaseReceive.paymentMethods.${invoice?.paymentMethod}`, humanizeCode(invoice?.paymentMethod)))}
       </tbody>
     </table>
 
@@ -282,34 +331,34 @@ export function buildReceiptHtml(invoice, {
 
     <table class="items">
       <tbody>
-        ${items.map((item) => buildLineItemHtml(item)).join('')}
+        ${items.map((item) => buildLineItemHtml(item, t, language)).join('')}
       </tbody>
     </table>
 
     <table class="totals-table">
       <tbody>
-        ${buildMoneyRow('Subtotal', invoice?.subtotal)}
-        ${buildMoneyRow('Discount', invoice?.discount)}
-        ${buildOptionalMoneyRow('Loyalty Redeem', invoice?.loyaltyRedeemAmount)}
-        ${Number(invoice?.taxRate || 0) > 0 ? buildMoneyRow(`Tax (${Number(invoice.taxRate || 0).toFixed(2)}%)`, invoice?.taxAmount) : ''}
+        ${buildMoneyRow(subtotalLabel, invoice?.subtotal, language)}
+        ${buildMoneyRow(discountLabel, invoice?.discount, language)}
+        ${buildOptionalMoneyRow(loyaltyRedeemLabel, invoice?.loyaltyRedeemAmount, language)}
+        ${Number(invoice?.taxRate || 0) > 0 ? buildMoneyRow(`${taxLabel} (${formatPercent(invoice.taxRate || 0, language)}%)`, invoice?.taxAmount, language) : ''}
         <tr class="grand">
-          <td class="label">Total</td>
-          <td class="value">${escapeHtml(formatCurrency(invoice?.totalAmount))}</td>
+          <td class="label">${escapeHtml(totalLabel)}</td>
+          <td class="value">${escapeHtml(formatLocalizedCurrency(invoice?.totalAmount, language))}</td>
         </tr>
-        ${Number(invoice?.loyaltyPointsEarned || 0) > 0 ? buildTextRow('Loyalty Earned', invoice?.loyaltyPointsEarned) : ''}
-        ${buildMoneyRow('Paid', invoice?.paidAmount)}
+        ${Number(invoice?.loyaltyPointsEarned || 0) > 0 ? buildTextRow(loyaltyEarnedLabel, formatQuantity(invoice?.loyaltyPointsEarned, language)) : ''}
+        ${buildMoneyRow(paidLabel, invoice?.paidAmount, language)}
         <tr class="due">
-          <td class="label">Due</td>
-          <td class="value">${escapeHtml(formatCurrency(invoice?.dueAmount))}</td>
+          <td class="label">${escapeHtml(dueLabel)}</td>
+          <td class="value">${escapeHtml(formatLocalizedCurrency(invoice?.dueAmount, language))}</td>
         </tr>
       </tbody>
     </table>
 
-    ${invoice?.note ? `<hr class="divider" /><div class="small"><strong>Note:</strong> ${compactText(invoice.note)}</div>` : ''}
+    ${invoice?.note ? `<hr class="divider" /><div class="small"><strong>${escapeHtml(noteLabel)}:</strong> ${compactText(invoice.note)}</div>` : ''}
 
     <div class="footer">
-      <div>Thank you for your purchase.</div>
-      <div class="small">Please keep this receipt for records.</div>
+      <div>${escapeHtml(receiptThankYou)}</div>
+      <div class="small">${escapeHtml(receiptKeepForRecords)}</div>
     </div>
   </main>
 </body>

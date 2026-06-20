@@ -37,6 +37,20 @@ function getStatusTone(status) {
   }
 }
 
+function isUrgentTicket(ticket) {
+  if (ticket.status === 'RESOLVED' || ticket.status === 'CLOSED') {
+    return false;
+  }
+  return ticket.priority === 'URGENT' || (ticket.priority === 'HIGH' && ticketAgeDays(ticket) >= 2);
+}
+
+function isEscalationCandidate(ticket) {
+  if (ticket.status === 'RESOLVED' || ticket.status === 'CLOSED') {
+    return false;
+  }
+  return isUrgentTicket(ticket) || ticket.status === 'WAITING_CUSTOMER';
+}
+
 function buildTimeline(ticket, t, language) {
   const timeline = [
     {
@@ -290,7 +304,7 @@ export default function HelpDeskPage() {
     const inProgress = tickets.filter((ticket) => ticket.status === 'IN_PROGRESS').length;
     const waiting = tickets.filter((ticket) => ticket.status === 'WAITING_CUSTOMER').length;
     const resolved = tickets.filter((ticket) => ticket.status === 'RESOLVED' || ticket.status === 'CLOSED').length;
-    const urgent = tickets.filter((ticket) => ticket.priority === 'URGENT' || (ticket.priority === 'HIGH' && ticketAgeDays(ticket) >= 2)).length;
+    const urgent = tickets.filter(isUrgentTicket).length;
 
     return {
       total: tickets.length,
@@ -305,7 +319,14 @@ export default function HelpDeskPage() {
   const filteredTickets = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase();
     return tickets.filter((ticket) => {
-      if (activeTab === 'escalations' && !(ticket.priority === 'URGENT' || (ticket.priority === 'HIGH' && ticketAgeDays(ticket) >= 2) || ticket.status === 'WAITING_CUSTOMER')) {
+      // Keep the ticket you're actively viewing visible even if a status
+      // change just moved it out of the active filter, so the detail panel
+      // never silently jumps to a different ticket mid-action.
+      if (ticket.id === selectedTicketId) {
+        return true;
+      }
+
+      if (activeTab === 'escalations' && !isEscalationCandidate(ticket)) {
         return false;
       }
 
@@ -332,14 +353,12 @@ export default function HelpDeskPage() {
         ticket.assigneeName,
       ].some((value) => String(value || '').toLowerCase().includes(normalizedSearch));
     });
-  }, [tickets, activeTab, statusFilter, priorityFilter, categoryFilter, search]);
+  }, [tickets, activeTab, statusFilter, priorityFilter, categoryFilter, search, selectedTicketId]);
 
-  const selectedTicket = useMemo(() => {
-    if (!filteredTickets.length) {
-      return tickets.find((ticket) => ticket.id === selectedTicketId) || tickets[0] || null;
-    }
-    return filteredTickets.find((ticket) => ticket.id === selectedTicketId) || filteredTickets[0] || null;
-  }, [filteredTickets, tickets, selectedTicketId]);
+  const selectedTicket = useMemo(
+    () => tickets.find((ticket) => ticket.id === selectedTicketId) || filteredTickets[0] || null,
+    [tickets, filteredTickets, selectedTicketId],
+  );
 
   useEffect(() => {
     if (!selectedTicket && filteredTickets.length) {
@@ -641,27 +660,41 @@ export default function HelpDeskPage() {
                           </div>
 
                           <div className="mt-4 flex flex-wrap gap-2">
-                            <button type="button" className="btn-secondary h-9 px-3" onClick={() => transitionTicket(selectedTicket.id, 'IN_PROGRESS', { assigneeId: user?.id || '', assigneeName: user?.name || t('helpDesk.systemUser'), note: t('helpDesk.notes.assignedToMe') })}>
-                              {t('helpDesk.assignToMe')}
-                            </button>
-                            <button type="button" className="btn-secondary h-9 px-3" onClick={() => transitionTicket(selectedTicket.id, 'IN_PROGRESS', { note: t('helpDesk.notes.markInProgress') })}>
-                              {t('helpDesk.markInProgress')}
-                            </button>
-                            <button type="button" className="btn-secondary h-9 px-3" onClick={() => transitionTicket(selectedTicket.id, 'WAITING_CUSTOMER', { note: t('helpDesk.notes.waitingCustomer') })}>
-                              {t('helpDesk.waitingCustomer')}
-                            </button>
-                            <button type="button" className="btn-secondary h-9 px-3" onClick={() => transitionTicket(selectedTicket.id, 'RESOLVED', { note: t('helpDesk.notes.resolved') })}>
-                              {t('helpDesk.resolve')}
-                            </button>
-                            <button type="button" className="btn-secondary h-9 px-3" onClick={() => transitionTicket(selectedTicket.id, 'CLOSED', { note: t('helpDesk.notes.closed') })}>
-                              {t('helpDesk.closeTicket')}
-                            </button>
-                            <button type="button" className="btn-secondary h-9 px-3" onClick={() => transitionTicket(selectedTicket.id, 'OPEN', { note: t('helpDesk.notes.reopened') })}>
-                              {t('helpDesk.reopen')}
-                            </button>
-                            <button type="button" className="btn-primary h-9 px-3" onClick={() => transitionTicket(selectedTicket.id, 'IN_PROGRESS', { priority: 'URGENT', escalated: true, note: t('helpDesk.notes.escalated') })}>
-                              {t('helpDesk.escalate')}
-                            </button>
+                            {!(selectedTicket.status === 'IN_PROGRESS' && selectedTicket.assigneeId === user?.id) ? (
+                              <button type="button" className="btn-secondary h-9 px-3" onClick={() => transitionTicket(selectedTicket.id, 'IN_PROGRESS', { assigneeId: user?.id || '', assigneeName: user?.name || t('helpDesk.systemUser'), note: t('helpDesk.notes.assignedToMe') })}>
+                                {t('helpDesk.assignToMe')}
+                              </button>
+                            ) : null}
+                            {selectedTicket.status !== 'IN_PROGRESS' ? (
+                              <button type="button" className="btn-secondary h-9 px-3" onClick={() => transitionTicket(selectedTicket.id, 'IN_PROGRESS', { note: t('helpDesk.notes.markInProgress') })}>
+                                {t('helpDesk.markInProgress')}
+                              </button>
+                            ) : null}
+                            {selectedTicket.status !== 'WAITING_CUSTOMER' ? (
+                              <button type="button" className="btn-secondary h-9 px-3" onClick={() => transitionTicket(selectedTicket.id, 'WAITING_CUSTOMER', { note: t('helpDesk.notes.waitingCustomer') })}>
+                                {t('helpDesk.waitingCustomer')}
+                              </button>
+                            ) : null}
+                            {selectedTicket.status !== 'RESOLVED' ? (
+                              <button type="button" className="btn-secondary h-9 px-3" onClick={() => transitionTicket(selectedTicket.id, 'RESOLVED', { note: t('helpDesk.notes.resolved') })}>
+                                {t('helpDesk.resolve')}
+                              </button>
+                            ) : null}
+                            {selectedTicket.status !== 'CLOSED' ? (
+                              <button type="button" className="btn-secondary h-9 px-3" onClick={() => transitionTicket(selectedTicket.id, 'CLOSED', { note: t('helpDesk.notes.closed') })}>
+                                {t('helpDesk.closeTicket')}
+                              </button>
+                            ) : null}
+                            {selectedTicket.status !== 'OPEN' ? (
+                              <button type="button" className="btn-secondary h-9 px-3" onClick={() => transitionTicket(selectedTicket.id, 'OPEN', { note: t('helpDesk.notes.reopened') })}>
+                                {t('helpDesk.reopen')}
+                              </button>
+                            ) : null}
+                            {selectedTicket.priority !== 'URGENT' ? (
+                              <button type="button" className="btn-primary h-9 px-3" onClick={() => transitionTicket(selectedTicket.id, 'IN_PROGRESS', { priority: 'URGENT', escalated: true, note: t('helpDesk.notes.escalated') })}>
+                                {t('helpDesk.escalate')}
+                              </button>
+                            ) : null}
                           </div>
                         </div>
 
@@ -726,7 +759,7 @@ export default function HelpDeskPage() {
                 </div>
               </div>
               <div className="grid gap-4 p-5 lg:grid-cols-3">
-                {tickets.filter((ticket) => ticket.priority === 'URGENT' || (ticket.priority === 'HIGH' && ticketAgeDays(ticket) >= 2) || ticket.status === 'WAITING_CUSTOMER').map((ticket) => (
+                {tickets.filter(isEscalationCandidate).map((ticket) => (
                   <button
                     key={ticket.id}
                     type="button"
@@ -741,7 +774,7 @@ export default function HelpDeskPage() {
                     <p className="mt-1 text-sm text-slate-600">{ticket.customerName || t('helpDesk.walkInCustomer')}</p>
                   </button>
                 ))}
-                {!tickets.some((ticket) => ticket.priority === 'URGENT' || (ticket.priority === 'HIGH' && ticketAgeDays(ticket) >= 2) || ticket.status === 'WAITING_CUSTOMER') ? (
+                {!tickets.some(isEscalationCandidate) ? (
                   <EmptyState title={t('helpDesk.noEscalationsTitle')} description={t('helpDesk.noEscalationsDescription')} icon={CheckCircle2} />
                 ) : null}
               </div>

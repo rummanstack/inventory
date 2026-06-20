@@ -472,19 +472,19 @@
   }
 
   .btn-primary {
-    @apply inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-[linear-gradient(135deg,var(--secondary-strong),var(--secondary))] px-4 text-sm font-bold text-white shadow-[0_14px_28px_var(--secondary-shadow)] transition duration-200 ease-out hover:brightness-95 hover:shadow-[0_18px_34px_var(--secondary-shadow-strong)] active:brightness-90 focus:outline-none focus:ring-4 focus:ring-[var(--secondary-soft)] disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none;
+    @apply inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-[linear-gradient(135deg,var(--secondary-strong),var(--secondary))] px-4 text-sm font-bold text-white shadow-[0_14px_28px_var(--secondary-shadow)] transition duration-200 ease-out hover:-translate-y-px hover:brightness-95 hover:shadow-[0_18px_34px_var(--secondary-shadow-strong)] active:translate-y-0 active:brightness-90 focus:outline-none focus:ring-4 focus:ring-[var(--secondary-soft)] disabled:cursor-not-allowed disabled:translate-y-0 disabled:bg-slate-300 disabled:shadow-none;
   }
 
   .btn-secondary {
-    @apply inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-700 shadow-[0_1px_0_rgba(var(--slate-900),0.03)] transition duration-200 ease-out hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950 hover:shadow-[0_12px_24px_rgba(var(--slate-900),0.08)] active:bg-slate-100 focus:outline-none focus:ring-4 focus:ring-slate-100 disabled:cursor-not-allowed disabled:text-slate-400 disabled:shadow-none;
+    @apply inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-700 shadow-[0_1px_0_rgba(var(--slate-900),0.03)] transition duration-200 ease-out hover:-translate-y-px hover:border-[var(--secondary-soft)] hover:bg-[var(--secondary-soft)] hover:text-[var(--secondary-strong)] hover:shadow-[0_12px_24px_rgba(var(--slate-900),0.08)] active:translate-y-0 active:bg-[var(--secondary-soft)] focus:outline-none focus:ring-4 focus:ring-[var(--secondary-soft)] disabled:cursor-not-allowed disabled:translate-y-0 disabled:text-slate-400 disabled:shadow-none;
   }
 
   .btn-danger {
-    @apply inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-rose-200 bg-rose-50 px-3 text-sm font-bold text-rose-700 shadow-sm transition duration-200 ease-out hover:border-rose-300 hover:bg-rose-100 hover:shadow-md active:bg-rose-200 focus:outline-none focus:ring-4 focus:ring-rose-100;
+    @apply inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-rose-200 bg-rose-50 px-3 text-sm font-bold text-rose-700 shadow-sm transition duration-200 ease-out hover:-translate-y-px hover:border-rose-300 hover:bg-rose-100 hover:shadow-md active:translate-y-0 active:bg-rose-200 focus:outline-none focus:ring-4 focus:ring-rose-100;
   }
 
   .icon-btn {
-    @apply inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-[0_1px_0_rgba(var(--slate-900),0.03)] transition duration-200 ease-out hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950 hover:shadow-[0_12px_24px_rgba(var(--slate-900),0.08)] active:bg-slate-100 focus:outline-none focus:ring-4 focus:ring-slate-100;
+    @apply inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-[0_1px_0_rgba(var(--slate-900),0.03)] transition duration-200 ease-out hover:-translate-y-px hover:border-[var(--secondary-soft)] hover:bg-[var(--secondary-soft)] hover:text-[var(--secondary-strong)] hover:shadow-[0_12px_24px_rgba(var(--slate-900),0.08)] active:translate-y-0 active:bg-[var(--secondary-soft)] focus:outline-none focus:ring-4 focus:ring-[var(--secondary-soft)];
   }
 
   .surface {

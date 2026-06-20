@@ -42,6 +42,7 @@ export function createApp({
   retailCustomerService,
   retailCashSessionService,
   retailPromotionService,
+  helpDeskService,
 }) {
   const app = express();
 
@@ -87,6 +88,7 @@ export function createApp({
       retailCustomerService,
       retailCashSessionService,
       retailPromotionService,
+      helpDeskService,
     }),
   );
 

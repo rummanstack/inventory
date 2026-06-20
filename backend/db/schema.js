@@ -782,6 +782,57 @@ export async function createSchema(pool) {
     CREATE INDEX IF NOT EXISTS idx_retail_customers_tenant_id ON retail_customers(tenant_id);
     CREATE INDEX IF NOT EXISTS idx_retail_customers_deleted_at ON retail_customers(tenant_id, deleted_at);
 
+    CREATE TABLE IF NOT EXISTS help_desk_ticket_counters (
+      tenant_id  TEXT NOT NULL REFERENCES tenants(id),
+      year       INTEGER NOT NULL,
+      last_value INTEGER NOT NULL DEFAULT 0,
+      PRIMARY KEY (tenant_id, year)
+    );
+
+    CREATE TABLE IF NOT EXISTS help_desk_tickets (
+      id               TEXT PRIMARY KEY,
+      tenant_id        TEXT REFERENCES tenants(id),
+      ticket_number    TEXT NOT NULL,
+      subject          TEXT NOT NULL,
+      category         TEXT NOT NULL DEFAULT 'OTHER',
+      priority         TEXT NOT NULL DEFAULT 'MEDIUM',
+      status           TEXT NOT NULL DEFAULT 'OPEN',
+      channel          TEXT NOT NULL DEFAULT 'IN_APP',
+      customer_name    TEXT NOT NULL DEFAULT '',
+      customer_phone   TEXT NOT NULL DEFAULT '',
+      reference_number TEXT NOT NULL DEFAULT '',
+      description      TEXT NOT NULL DEFAULT '',
+      assignee_id      TEXT REFERENCES users(id) ON DELETE SET NULL,
+      assignee_name    TEXT NOT NULL DEFAULT '',
+      created_by       TEXT REFERENCES users(id) ON DELETE SET NULL,
+      created_by_name  TEXT NOT NULL DEFAULT '',
+      updated_by       TEXT REFERENCES users(id) ON DELETE SET NULL,
+      updated_by_name  TEXT NOT NULL DEFAULT '',
+      escalated_at     TIMESTAMPTZ,
+      closed_at        TIMESTAMPTZ,
+      last_note_at     TIMESTAMPTZ,
+      created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at       TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_help_desk_tickets_number ON help_desk_tickets(tenant_id, ticket_number);
+    CREATE INDEX IF NOT EXISTS idx_help_desk_tickets_tenant_id ON help_desk_tickets(tenant_id);
+    CREATE INDEX IF NOT EXISTS idx_help_desk_tickets_status ON help_desk_tickets(tenant_id, status);
+    CREATE INDEX IF NOT EXISTS idx_help_desk_tickets_priority ON help_desk_tickets(tenant_id, priority);
+    CREATE INDEX IF NOT EXISTS idx_help_desk_tickets_updated_at ON help_desk_tickets(tenant_id, updated_at DESC);
+
+    CREATE TABLE IF NOT EXISTS help_desk_ticket_notes (
+      id          TEXT PRIMARY KEY,
+      tenant_id   TEXT REFERENCES tenants(id),
+      ticket_id   TEXT NOT NULL REFERENCES help_desk_tickets(id) ON DELETE CASCADE,
+      body        TEXT NOT NULL,
+      created_by  TEXT REFERENCES users(id) ON DELETE SET NULL,
+      author_name TEXT NOT NULL DEFAULT '',
+      created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_help_desk_ticket_notes_ticket_id ON help_desk_ticket_notes(ticket_id, created_at ASC);
+
     CREATE TABLE IF NOT EXISTS retail_promotions (
       id             TEXT PRIMARY KEY,
       tenant_id      TEXT NOT NULL REFERENCES tenants(id),

@@ -30,6 +30,7 @@ import { financeDashboardApi } from './api/financeDashboardApi.js';
 import { retailCustomersApi } from './api/retailCustomersApi.js';
 import { retailCashSessionsApi } from './api/retailCashSessionsApi.js';
 import { retailPromotionsApi } from './api/retailPromotionsApi.js';
+import { helpDeskApi } from './api/helpDeskApi.js';
 
 export const inventoryApi = {
   ...authApi,
@@ -64,4 +65,5 @@ export const inventoryApi = {
   ...retailCustomersApi,
   ...retailCashSessionsApi,
   ...retailPromotionsApi,
+  ...helpDeskApi,
 };

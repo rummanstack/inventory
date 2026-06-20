@@ -90,3 +90,10 @@ export const FINANCE_ACCOUNT_ACTIONS = {
   TRANSFER: "finance_account.transfer",
   DELETE: "finance_account.delete_transaction",
 };
+
+export const HELP_DESK_ACTIONS = {
+  CREATE: "help_desk_ticket.create",
+  UPDATE: "help_desk_ticket.update",
+  NOTE: "help_desk_ticket.note",
+  TRANSITION: "help_desk_ticket.transition",
+};

@@ -15,12 +15,12 @@ export default function DamagedStockPage() {
 
   async function handleExportExcel() {
     const { utils, writeFile } = await import('xlsx');
-    const header = ['#', 'Product', 'Category', 'Damaged Pieces', 'Case Size'];
+    const header = ['#', t('damagedStock.product'), t('damagedStock.category'), t('damagedStock.damagedPieces'), t('damagedStock.caseSize')];
     const data = vm.damagedProducts.map((p, i) => [i + 1, p.name, p.category || '', p.damagedPieces, p.piecesPerCase]);
     const ws = utils.aoa_to_sheet([header, ...data]);
     ws['!cols'] = [{ wch: 6 }, { wch: 28 }, { wch: 18 }, { wch: 16 }, { wch: 12 }];
     const wb = utils.book_new();
-    utils.book_append_sheet(wb, ws, 'Damaged Stock');
+    utils.book_append_sheet(wb, ws, t('damagedStock.sheetName'));
     writeFile(wb, 'damaged-stock-report.xlsx');
   }
 
@@ -38,11 +38,11 @@ export default function DamagedStockPage() {
               onClick={() => { inventoryApi.recordPrint({ entityType: 'damaged_stock', entityId: null, label: 'pdf' }).catch(() => {}); downloadSheetPdf('damaged-stock-print', 'damaged-stock-report.pdf'); }}
             >
               <Download size={14} />
-              Download as PDF
+              {t('purchaseReceive.downloadPdf')}
             </button>
             <button type="button" className="btn-secondary no-print py-1.5 text-xs" onClick={handleExportExcel}>
               <FileSpreadsheet size={14} />
-              Export as Excel
+              {t('common.exportExcel')}
             </button>
             <button
               type="button"
@@ -50,7 +50,7 @@ export default function DamagedStockPage() {
               onClick={() => { inventoryApi.recordPrint({ entityType: 'damaged_stock', entityId: null, label: 'print' }).catch(() => {}); window.print(); }}
             >
               <Printer size={14} />
-              Print
+              {t('common.print')}
             </button>
           </div>
         </div>

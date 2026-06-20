@@ -111,7 +111,7 @@ export default function DsrFinancePage() {
     const ws = utils.aoa_to_sheet([header, ...data]);
     ws['!cols'] = [{ wch: 14 }, { wch: 20 }, { wch: 14 }, { wch: 14 }, { wch: 24 }, { wch: 18 }, { wch: 14 }];
     const wb = utils.book_new();
-    utils.book_append_sheet(wb, ws, 'Advance Daily');
+    utils.book_append_sheet(wb, ws, t('dsrFinance.dailySheetName'));
     writeFile(wb, `dsr-advance-daily-${activeVm.date}.xlsx`);
   }
 
@@ -122,7 +122,7 @@ export default function DsrFinancePage() {
     const ws = utils.aoa_to_sheet([header, ...data]);
     ws['!cols'] = [{ wch: 14 }, { wch: 20 }, { wch: 14 }, { wch: 14 }, { wch: 24 }];
     const wb = utils.book_new();
-    utils.book_append_sheet(wb, ws, 'Advance Monthly');
+    utils.book_append_sheet(wb, ws, t('dsrFinance.monthlySheetName'));
     writeFile(wb, `dsr-advance-monthly-${activeVm.month}.xlsx`);
   }
 
@@ -375,11 +375,11 @@ export default function DsrFinancePage() {
                       onClick={() => { inventoryApi.recordPrint({ entityType: 'dsr_advance', entityId: null, label: 'pdf' }).catch(() => {}); downloadSheetPdf('dsr-advance-daily-print', `dsr-advance-${activeVm.date}.pdf`); }}
                     >
                       <Download size={14} />
-                      Download as PDF
+                      {t('purchaseReceive.downloadPdf')}
                     </button>
                     <button type="button" className="btn-secondary no-print py-1.5 text-xs" onClick={handleExportAdvanceDailyExcel}>
                       <FileSpreadsheet size={14} />
-                      Export as Excel
+                      {t('common.exportExcel')}
                     </button>
                   </div>
                 </div>
@@ -444,7 +444,7 @@ export default function DsrFinancePage() {
                     <span className="muted-chip">{formatNumber(monthlyRecords.length)} {t('common.records')}</span>
                     <button type="button" className="btn-secondary py-1.5 text-xs" onClick={handleExportAdvanceMonthlyExcel}>
                       <FileSpreadsheet size={14} />
-                      Export as Excel
+                      {t('common.exportExcel')}
                     </button>
                   </div>
                 </div>

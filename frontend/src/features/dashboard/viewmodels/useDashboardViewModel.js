@@ -22,7 +22,7 @@ function subtractDays(dateISO, days) {
   return date.toISOString().slice(0, 10);
 }
 
-export function useDashboardViewModel({ products, dsrs, today, t }) {
+export function useDashboardViewModel({ products, dsrs, today, t, language = 'en' }) {
   const [todayIssues, setTodayIssues] = useState([]);
   const [todaySettlements, setTodaySettlements] = useState([]);
   const [trendIssues, setTrendIssues] = useState([]);
@@ -106,7 +106,7 @@ export function useDashboardViewModel({ products, dsrs, today, t }) {
   const lowStockAll = getLowStockProducts(products);
   const outOfStockCount = products.filter((product) => product.stockPieces === 0).length;
   const lowStockProducts = [...lowStockAll].sort((a, b) => a.stockPieces - b.stockPieces).slice(0, 8);
-  const dailyRows = buildDailyRows({ date: today, dsrs, issues: todayIssues, settlements: todaySettlements, products });
+  const dailyRows = buildDailyRows({ date: today, dsrs, issues: todayIssues, settlements: todaySettlements, products, language });
   const pendingRows = dailyRows.filter((row) => row.status === 'Pending');
   const completedRows = dailyRows.filter((row) => row.status === 'Completed');
   const issuedDsrIds = new Set(todayIssues.map((issue) => issue.dsrId));
@@ -157,48 +157,48 @@ export function useDashboardViewModel({ products, dsrs, today, t }) {
       {
         iconKey: totalIssuedToday ? 'morningStarted' : 'morningPending',
         title: totalIssuedToday ? t('dashboard.taskMorningStarted') : t('dashboard.taskMorningPending'),
-        detail: totalIssuedToday ? t('dashboard.taskMorningStartedDetail', { count: formatNumber(totalIssuedToday) }) : t('dashboard.taskMorningPendingDetail'),
+        detail: totalIssuedToday ? t('dashboard.taskMorningStartedDetail', { count: formatNumber(totalIssuedToday, language) }) : t('dashboard.taskMorningPendingDetail'),
         tone: totalIssuedToday ? 'emerald' : 'amber',
       },
       {
         iconKey: pendingRows.length ? 'returnPending' : 'returnClear',
         title: pendingRows.length ? t('dashboard.taskReturnPending') : t('dashboard.taskReturnClear'),
-        detail: pendingRows.length ? t('dashboard.taskReturnPendingDetail', { count: formatNumber(pendingRows.length) }) : t('dashboard.taskReturnClearDetail'),
+        detail: pendingRows.length ? t('dashboard.taskReturnPendingDetail', { count: formatNumber(pendingRows.length, language) }) : t('dashboard.taskReturnClearDetail'),
         tone: pendingRows.length ? 'amber' : 'emerald',
       },
       {
         iconKey: lowStockAll.length ? 'stockAttention' : 'stockHealthy',
         title: lowStockAll.length ? t('dashboard.taskStockAttention') : t('dashboard.taskStockHealthy'),
-        detail: lowStockAll.length ? t('dashboard.taskStockAttentionDetail', { lowStock: formatNumber(lowStockAll.length), outOfStock: formatNumber(outOfStockCount) }) : t('dashboard.taskStockHealthyDetail'),
+        detail: lowStockAll.length ? t('dashboard.taskStockAttentionDetail', { lowStock: formatNumber(lowStockAll.length, language), outOfStock: formatNumber(outOfStockCount, language) }) : t('dashboard.taskStockHealthyDetail'),
         tone: lowStockAll.length ? 'rose' : 'emerald',
       },
       {
         iconKey: payableToday ? 'cashVisible' : 'cashEmpty',
         title: payableToday ? t('dashboard.taskCashVisible') : t('dashboard.taskCashEmpty'),
-        detail: payableToday ? t('dashboard.taskCashVisibleDetail', { amount: formatCurrency(payableToday) }) : t('dashboard.taskCashEmptyDetail'),
+        detail: payableToday ? t('dashboard.taskCashVisibleDetail', { amount: formatCurrency(payableToday, language) }) : t('dashboard.taskCashEmptyDetail'),
         tone: payableToday ? 'blue' : 'slate',
       },
     ],
     tradingTrend: buildTradingTrend({ issues: trendIssues, settlements: trendSettlements, today, limit: TREND_DAYS }),
-    activityHeatmap: buildActivityHeatmap({ issues: heatmapIssues, settlements: heatmapSettlements, today, days: HEATMAP_DAYS }),
-    inventoryByCategory: buildCategoryInventory(products),
-    routePerformance: buildRoutePerformance(dailyRows),
-    topPayableProducts: buildTopPayableProducts(todaySettlements),
+    activityHeatmap: buildActivityHeatmap({ issues: heatmapIssues, settlements: heatmapSettlements, today, days: HEATMAP_DAYS, language }),
+    inventoryByCategory: buildCategoryInventory(products, language),
+    routePerformance: buildRoutePerformance(dailyRows, language),
+    topPayableProducts: buildTopPayableProducts(todaySettlements, language),
     settlementMix: [
       { label: t('dashboard.completed'), value: completedRows.length, color: getCssVar('--success', '#0f766e') },
       { label: t('dashboard.pending'), value: pendingRows.length, color: getCssVar('--warning', '#f59e0b') },
       { label: t('dashboard.noIssue'), value: Math.max(activeDsrs - issuedDsrIds.size, 0), color: getCssVar('--muted', '#cbd5e1') },
     ],
     operationalPulse: [
-      { title: t('dashboard.collectionFlow'), value: `${formatNumber(completionRate)}%`, subtitle: t('dashboard.collectionFlowDesc') },
-      { title: t('dashboard.averageTicket'), value: formatCurrency(averagePayable), subtitle: t('dashboard.averageTicketDesc') },
-      { title: t('dashboard.attentionStock'), value: formatNumber(lowStockAll.length), subtitle: t('dashboard.attentionStockDesc') },
+      { title: t('dashboard.collectionFlow'), value: `${formatNumber(completionRate, language)}%`, subtitle: t('dashboard.collectionFlowDesc') },
+      { title: t('dashboard.averageTicket'), value: formatCurrency(averagePayable, language), subtitle: t('dashboard.averageTicketDesc') },
+      { title: t('dashboard.attentionStock'), value: formatNumber(lowStockAll.length, language), subtitle: t('dashboard.attentionStockDesc') },
     ],
     summaryLines: [
-      { label: t('dashboard.issuedTodaySummary'), value: `${formatNumber(issuedDsrIds.size)} / ${formatNumber(activeDsrs)}` },
-      { label: t('dashboard.issueSheetsMade'), value: formatNumber(todayIssues.length) },
-      { label: t('dashboard.averageCashPerDsr'), value: formatCurrency(averagePayable) },
-      { label: t('dashboard.activeDsrNotIssued'), value: `${formatNumber(notIssuedDsrs.length)} DSR` },
+      { label: t('dashboard.issuedTodaySummary'), value: `${formatNumber(issuedDsrIds.size, language)} / ${formatNumber(activeDsrs, language)}` },
+      { label: t('dashboard.issueSheetsMade'), value: formatNumber(todayIssues.length, language) },
+      { label: t('dashboard.averageCashPerDsr'), value: formatCurrency(averagePayable, language) },
+      { label: t('dashboard.activeDsrNotIssued'), value: `${formatNumber(notIssuedDsrs.length, language)} ${t('common.dsr')}` },
       { label: t('dashboard.highestStockSku'), value: topStockValueProducts[0] ? topStockValueProducts[0].name : '-' },
       { label: t('dashboard.bestSoldToday'), value: topSoldProducts[0] ? topSoldProducts[0].productName : '-' },
     ],

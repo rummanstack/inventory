@@ -10,7 +10,7 @@ import CustomerPaymentFormModal from '../components/CustomerPaymentFormModal';
 import { useDueCollectionViewModel } from '../viewmodels/useDueCollectionViewModel';
 
 export default function DueCollectionPage() {
-  const { saveCustomerPayment, deleteCustomerPayment, t, can, retailCustomerDirectory } = useInventoryApp();
+  const { saveCustomerPayment, deleteCustomerPayment, t, can, retailCustomerDirectory, language } = useInventoryApp();
   const vm = useDueCollectionViewModel();
   const [formModal, setFormModal] = useState(null);
   const canManageRetailers = can('manage_retailers');
@@ -25,12 +25,12 @@ export default function DueCollectionPage() {
     });
     const all = result.items || [];
     const { utils, writeFile } = await import('xlsx');
-    const header = ['#', 'Date', 'Customer', 'Amount', 'Method', 'Note'];
+    const header = ['#', t('supplierPayments.date'), t('retailer.shared.customerLabel'), t('supplierPayments.amount'), t('supplierPayments.method'), t('supplierPayments.note')];
     const data = all.map((p, i) => [i + 1, p.paymentDate, p.customerName || '', Number(p.amount), p.paymentMethod, p.note || '']);
     const ws = utils.aoa_to_sheet([header, ...data]);
     ws['!cols'] = [{ wch: 6 }, { wch: 14 }, { wch: 22 }, { wch: 14 }, { wch: 16 }, { wch: 28 }];
     const wb = utils.book_new();
-    utils.book_append_sheet(wb, ws, 'Due Collection');
+    utils.book_append_sheet(wb, ws, t('retailer.dueCollection.sheetName'));
     writeFile(wb, `due-collection-report.xlsx`);
   }
 
@@ -56,18 +56,18 @@ export default function DueCollectionPage() {
               <p className="text-sm font-medium text-slate-500">{t('retailer.dueCollection.description')}</p>
             </div>
             <div className="flex flex-wrap items-center gap-2 text-sm font-bold">
-              <span className="muted-chip">{formatNumber(vm.total)} {t('retailer.dueCollection.paymentCount')}</span>
+              <span className="muted-chip">{formatNumber(vm.total, language)} {t('retailer.dueCollection.paymentCount')}</span>
               <button
                 type="button"
                 className="btn-secondary no-print py-1.5 text-xs"
                 onClick={() => { inventoryApi.recordPrint({ entityType: 'due_collection', entityId: null, label: 'pdf' }).catch(() => {}); downloadSheetPdf('due-collection-print', `due-collection-report.pdf`); }}
               >
                 <Download size={14} />
-                Download as PDF
+                {t('purchaseReceive.downloadPdf')}
               </button>
               <button type="button" className="btn-secondary no-print py-1.5 text-xs" onClick={handleExportExcel}>
                 <FileSpreadsheet size={14} />
-                Export as Excel
+                {t('common.exportExcel')}
               </button>
               <button
                 type="button"
@@ -75,7 +75,7 @@ export default function DueCollectionPage() {
                 onClick={() => { inventoryApi.recordPrint({ entityType: 'due_collection', entityId: null, label: 'print' }).catch(() => {}); window.print(); }}
               >
                 <Printer size={14} />
-                Print
+                {t('common.print')}
               </button>
             </div>
           </div>
@@ -116,9 +116,9 @@ export default function DueCollectionPage() {
               {vm.items.map((payment, index) => (
                 <tr key={payment.id} className="hover:bg-slate-50">
                   <td className="table-cell font-black text-slate-400">{(vm.page - 1) * vm.pageSize + index + 1}</td>
-                  <td className="table-cell">{formatDate(payment.paymentDate)}</td>
+                  <td className="table-cell">{formatDate(payment.paymentDate, language)}</td>
                   <td className="table-cell font-semibold text-slate-950">{payment.customerName || '-'}</td>
-                  <td className="table-cell text-right font-bold text-emerald-700">{formatCurrency(payment.amount)}</td>
+                  <td className="table-cell text-right font-bold text-emerald-700">{formatCurrency(payment.amount, language)}</td>
                   <td className="table-cell">{t(`purchaseReceive.paymentMethods.${payment.paymentMethod}`)}</td>
                   <td className="hidden table-cell lg:table-cell">{payment.note || '-'}</td>
                   <td className="table-cell">

@@ -10,7 +10,7 @@ import { useDailyReportsViewModel } from '../viewmodels/useDailyReportsViewModel
 import { getCssVar } from '../../../utils/theme.js';
 
 export default function DailyReportsPage() {
-  const { productDirectory, dsrDirectory, today, t, tenant } = useInventoryApp();
+  const { productDirectory, dsrDirectory, today, t, tenant, language } = useInventoryApp();
   const vm = useDailyReportsViewModel({ products: productDirectory, dsrs: dsrDirectory, today, t, tenantName: tenant?.name });
 
   function recordReportPrint(label) {
@@ -163,7 +163,7 @@ export default function DailyReportsPage() {
                   </button>
                 </div>
               </div>
-              <PrintableSheet sheet={vm.selectedSheet} printTarget targetId="report-print-sheet" />
+              <PrintableSheet sheet={vm.selectedSheet} printTarget targetId="report-print-sheet" t={t} language={language} />
             </div>
           ) : null}
         </>

@@ -1,13 +1,21 @@
-import { formatNumber } from '../utils/calculations';
+import { formatNumber, getPreferredLanguage } from '../utils/calculations';
 import { getCssVar } from '../utils/theme.js';
 
 const getSecondary = () => getCssVar('--secondary', '#2563eb');
+
+function isBangla(language) {
+  return language === 'bn';
+}
+
+function localize(language, en, bn) {
+  return isBangla(language) ? bn : en;
+}
 
 export function getSettlementFor(settlements, date, dsrId) {
   return settlements.find((settlement) => settlement.date === date && settlement.dsrId === dsrId);
 }
 
-export function aggregateIssuesFor(issues, products, date, dsrId) {
+export function aggregateIssuesFor(issues, products, date, dsrId, language = getPreferredLanguage()) {
   if (!date || !dsrId) {
     return { rows: [], issueIds: [], totalIssuedPieces: 0, totalIssuedValue: 0 };
   }
@@ -27,7 +35,7 @@ export function aggregateIssuesFor(issues, products, date, dsrId) {
         const existing = rows.get(key) || {
           key,
           productId: item.productId,
-          productName: item.productName || currentProduct?.name || 'Archived product',
+          productName: item.productName || currentProduct?.name || localize(language, 'Archived product', 'সংরক্ষিত পণ্য'),
           piecesPerCase: item.piecesPerCase || currentProduct?.piecesPerCase || 1,
           issuedPieces: 0,
           rate,
@@ -47,7 +55,7 @@ export function aggregateIssuesFor(issues, products, date, dsrId) {
   };
 }
 
-export function getDsrSnapshot(dsrs, issues, settlements, dsrId, date) {
+export function getDsrSnapshot(dsrs, issues, settlements, dsrId, date, language = getPreferredLanguage()) {
   const current = dsrs.find((dsr) => dsr.id === dsrId);
   if (current) {
     return { dsrName: current.name, area: current.area, phone: current.phone, status: current.status };
@@ -56,26 +64,26 @@ export function getDsrSnapshot(dsrs, issues, settlements, dsrId, date) {
   const settlement = settlements.find((item) => item.dsrId === dsrId && (!date || item.date === date));
   if (settlement) {
     return {
-      dsrName: settlement.dsrName || 'Archived DSR',
+      dsrName: settlement.dsrName || localize(language, 'Archived DSR', 'সংরক্ষিত ডিএসআর'),
       area: settlement.area || '-',
       phone: settlement.phone || '-',
-      status: 'Archived',
+      status: localize(language, 'Archived', 'সংরক্ষিত'),
     };
   }
 
   const issue = issues.find((item) => item.dsrId === dsrId && (!date || item.date === date));
   return {
-    dsrName: issue?.dsrName || 'Archived DSR',
+    dsrName: issue?.dsrName || localize(language, 'Archived DSR', 'সংরক্ষিত ডিএসআর'),
     area: issue?.area || '-',
     phone: issue?.phone || '-',
-    status: 'Archived',
+    status: localize(language, 'Archived', 'সংরক্ষিত'),
   };
 }
 
-export function buildSheetData({ date, dsrId, dsrs, issues, settlements, products, tenantName }) {
-  const aggregate = aggregateIssuesFor(issues, products, date, dsrId);
+export function buildSheetData({ date, dsrId, dsrs, issues, settlements, products, tenantName, language = getPreferredLanguage() }) {
+  const aggregate = aggregateIssuesFor(issues, products, date, dsrId, language);
   const settlement = getSettlementFor(settlements, date, dsrId);
-  const dsr = getDsrSnapshot(dsrs, issues, settlements, dsrId, date);
+  const dsr = getDsrSnapshot(dsrs, issues, settlements, dsrId, date, language);
   const status = settlement ? 'Completed' : aggregate.issueIds.length > 0 ? 'Pending' : 'No Issue';
   const productMap = new Map(products.map((product) => [product.id, product]));
   const items = settlement
@@ -104,7 +112,7 @@ export function buildSheetData({ date, dsrId, dsrs, issues, settlements, product
         const rate = Number(item.rate || product?.wholesalePrice || 0);
         return {
           ...item,
-          productName: item.productName || product?.name || 'Archived product',
+          productName: item.productName || product?.name || localize(language, 'Archived product', 'সংরক্ষিত পণ্য'),
           piecesPerCase: item.piecesPerCase || product?.piecesPerCase || 1,
           returnedPieces,
           damagedPieces,
@@ -143,14 +151,14 @@ export function buildSheetData({ date, dsrId, dsrs, issues, settlements, product
   };
 }
 
-export function buildDailyRows({ date, dsrs, issues, settlements, products }) {
+export function buildDailyRows({ date, dsrs, issues, settlements, products, language = getPreferredLanguage() }) {
   const ids = new Set(dsrs.map((dsr) => dsr.id));
   issues.filter((issue) => issue.date === date).forEach((issue) => ids.add(issue.dsrId));
   settlements.filter((settlement) => settlement.date === date).forEach((settlement) => ids.add(settlement.dsrId));
 
   return Array.from(ids).map((dsrId) => {
-    const dsr = getDsrSnapshot(dsrs, issues, settlements, dsrId, date);
-    const aggregate = aggregateIssuesFor(issues, products, date, dsrId);
+    const dsr = getDsrSnapshot(dsrs, issues, settlements, dsrId, date, language);
+    const aggregate = aggregateIssuesFor(issues, products, date, dsrId, language);
     const settlement = getSettlementFor(settlements, date, dsrId);
     const returnedPieces = settlement ? settlement.items.reduce((sum, item) => sum + Number(item.returnedPieces || 0), 0) : 0;
     const soldPieces = settlement ? settlement.items.reduce((sum, item) => sum + Number(item.soldPieces || 0), 0) : 0;
@@ -207,9 +215,9 @@ export function paymentStatusTone(status) {
   return 'rose';
 }
 
-export function shortDate(date) {
+export function shortDate(date, language = getPreferredLanguage()) {
   if (!date) return '-';
-  return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(new Date(`${date}T00:00:00`));
+  return new Intl.DateTimeFormat(language === 'bn' ? 'bn-BD' : 'en-US', { month: 'short', day: 'numeric' }).format(new Date(`${date}T00:00:00`));
 }
 
 export function buildTradingTrend({ issues, settlements, today, limit = 7 }) {
@@ -240,7 +248,7 @@ function isoSubtractDays(dateISO, days) {
   return date.toISOString().slice(0, 10);
 }
 
-export function buildActivityHeatmap({ issues, settlements, today, days = 70 }) {
+export function buildActivityHeatmap({ issues, settlements, today, days = 70, language = getPreferredLanguage() }) {
   if (!today) return [];
 
   const issuesByDate = new Map();
@@ -291,6 +299,7 @@ export function buildActivityHeatmap({ issues, settlements, today, days = 70 }) 
       settled,
       count,
       weekday: new Date(`${date}T00:00:00`).getDay(),
+      labelDate: shortDate(date, language),
       dsrNames: Array.from(dsrNames),
       issuedPieces,
       soldPieces,
@@ -304,11 +313,11 @@ export function buildActivityHeatmap({ issues, settlements, today, days = 70 }) 
   return cells.map((cell) => ({ ...cell, intensity: max ? cell.count / max : 0 }));
 }
 
-export function buildCategoryInventory(products) {
+export function buildCategoryInventory(products, language = getPreferredLanguage()) {
   return Array.from(
     products.reduce((map, product) => {
       const key = product.categoryId || 'uncategorized';
-      const label = product.category || 'Uncategorized';
+      const label = product.category || localize(language, 'Uncategorized', 'শ্রেণীহীন');
       const current = map.get(key) || { label, value: 0, units: 0, color: `linear-gradient(90deg, ${getCssVar('--success', '#0f766e')}, ${getCssVar('--secondary', '#2563eb')})` };
       current.value += Number(product.stockPieces || 0) * Number(product.purchasePrice || 0);
       current.units += Number(product.stockPieces || 0);
@@ -320,13 +329,13 @@ export function buildCategoryInventory(products) {
     .map((item, index) => ({
       ...item,
       color: [getCssVar('--secondary', '#2563eb'), getCssVar('--success', '#0f766e'), getCssVar('--accent-orange', '#f97316'), getCssVar('--purple', '#7c3aed'), getCssVar('--danger', '#dc2626'), getCssVar('--teal', '#0891b2')][index % 6],
-      meta: `${formatNumber(item.units)} pcs in stock`,
+      meta: `${formatNumber(item.units, language)} ${localize(language, 'pcs in stock', 'স্টকে পিস')}`,
     }));
 }
 
-export function buildRoutePerformance(rows) {
+export function buildRoutePerformance(rows, language = getPreferredLanguage()) {
   return rows
-    .filter((row) => row.status !== 'No Issue')
+    .filter((row) => row.status !== localize(language, 'No Issue', 'কোনো ইস্যু নেই'))
     .sort((a, b) => b.totalPayable - a.totalPayable || b.soldPieces - a.soldPieces)
     .slice(0, 6)
     .map((row) => ({
@@ -339,7 +348,7 @@ export function buildRoutePerformance(rows) {
     }));
 }
 
-export function buildTopPayableProducts(settlements) {
+export function buildTopPayableProducts(settlements, language = getPreferredLanguage()) {
   return Array.from(
     settlements
       .flatMap((settlement) => settlement.items)
@@ -356,12 +365,12 @@ export function buildTopPayableProducts(settlements) {
     .slice(0, 5)
     .map((item, index) => ({
       ...item,
-      meta: `${formatNumber(item.soldPieces)} pcs sold`,
+      meta: `${formatNumber(item.soldPieces, language)} ${localize(language, 'pcs sold', 'পিস বিক্রি')}`,
       color: [getCssVar('--success', '#0f766e'), getCssVar('--secondary', '#2563eb'), getCssVar('--accent-orange', '#f97316'), getCssVar('--purple', '#7c3aed'), getCssVar('--rose', '#e11d48')][index % 5],
     }));
 }
 
-export function buildHistoryRows({ issues, settlements }) {
+export function buildHistoryRows({ issues, settlements, language = getPreferredLanguage() }) {
   const issueRows = issues.map((issue) => ({
     id: `issue-${issue.id}`,
     recordId: issue.id,

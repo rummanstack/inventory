@@ -4,7 +4,7 @@ import { DatePickerField } from '../../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../../services/printService.js';
 import { inventoryApi } from '../../../../services/inventoryApi.js';
-import { formatCurrency, formatDateTime, reverseEntries } from '../../../../utils/calculations.js';
+import { formatCurrency, formatDateTime, formatNumber, reverseEntries } from '../../../../utils/calculations.js';
 import { useCustomerStatementViewModel } from '../viewmodels/useCustomerStatementViewModel';
 import CustomerDuePrintSheet from '../components/CustomerDuePrintSheet.jsx';
 
@@ -17,7 +17,7 @@ function ledgerTone(type) {
 }
 
 export default function CustomerDuePage() {
-  const { t, tenant, retailCustomerDirectory } = useInventoryApp();
+  const { t, tenant, retailCustomerDirectory, language } = useInventoryApp();
   const vm = useCustomerStatementViewModel({ customers: retailCustomerDirectory });
   const entries = reverseEntries(vm.statement?.entries);
   const printTargetId = 'customer-due-statement-print';
@@ -30,12 +30,20 @@ export default function CustomerDuePage() {
 
   async function handleExportExcel() {
     const { utils, writeFile } = await import('xlsx');
-    const header = ['Date', 'Type', 'Debit', 'Credit', 'Balance After', 'Note', 'Created By'];
+    const header = [
+      t('retailer.customerDue.tableDate'),
+      t('retailer.customerDue.tableType'),
+      t('retailer.customerDue.tableDebit'),
+      t('retailer.customerDue.tableCredit'),
+      t('retailer.customerDue.tableBalance'),
+      t('retailer.customerDue.tableNote'),
+      t('supplierStatement.createdBy'),
+    ];
     const data = entries.map((e) => [e.createdAt, e.type, Number(e.debit || 0), Number(e.credit || 0), Number(e.balanceAfter), e.note || '', e.createdByName || '']);
     const ws = utils.aoa_to_sheet([header, ...data]);
     ws['!cols'] = [{ wch: 20 }, { wch: 22 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 24 }, { wch: 18 }];
     const wb = utils.book_new();
-    utils.book_append_sheet(wb, ws, 'Customer Due');
+    utils.book_append_sheet(wb, ws, t('retailer.customerDue.sheetName'));
     writeFile(wb, `customer-due-${selectedCustomer?.name || vm.customerId}.xlsx`);
   }
 
@@ -57,7 +65,7 @@ export default function CustomerDuePage() {
           </select>
           {selectedCustomer ? (
             <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700">
-              {t('retailCustomers.loyaltyPoints')}: <span className="font-black text-slate-950">{Number(selectedCustomer.loyaltyPointsBalance || 0)}</span>
+              {t('retailCustomers.loyaltyPoints')}: <span className="font-black text-slate-950">{formatNumber(selectedCustomer.loyaltyPointsBalance || 0, language)}</span>
             </div>
           ) : null}
           <DatePickerField value={vm.dateFrom} onChange={vm.setDateFrom} placeholder={t('supplierStatement.dateFrom')} />
@@ -80,7 +88,7 @@ export default function CustomerDuePage() {
               </button>
               <button type="button" className="btn-secondary" onClick={handleExportExcel}>
                 <FileSpreadsheet size={18} />
-                Export as Excel
+                {t('common.exportExcel')}
               </button>
               <button
                 type="button"
@@ -88,7 +96,7 @@ export default function CustomerDuePage() {
                 onClick={() => { recordDuePrint('print'); window.print(); }}
               >
                 <Printer size={18} />
-                {t('purchaseReceive.printSheet')}
+                {t('common.print')}
               </button>
             </>
           ) : null}
@@ -135,10 +143,10 @@ export default function CustomerDuePage() {
       ) : (
         <>
           <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <StatCard title={t('supplierStatement.openingBalance')} value={formatCurrency(vm.statement.openingBalance)} icon={Wallet} tone="slate" />
-            <StatCard title={t('supplierStatement.totalDebit')} value={formatCurrency(vm.statement.totalDebit)} icon={Wallet} tone="rose" />
-            <StatCard title={t('supplierStatement.totalCredit')} value={formatCurrency(vm.statement.totalCredit)} icon={Wallet} tone="emerald" />
-            <StatCard title={t('supplierStatement.closingBalance')} value={formatCurrency(vm.statement.closingBalance)} icon={Wallet} tone="blue" />
+            <StatCard title={t('supplierStatement.openingBalance')} value={formatCurrency(vm.statement.openingBalance, language)} icon={Wallet} tone="slate" />
+            <StatCard title={t('supplierStatement.totalDebit')} value={formatCurrency(vm.statement.totalDebit, language)} icon={Wallet} tone="rose" />
+            <StatCard title={t('supplierStatement.totalCredit')} value={formatCurrency(vm.statement.totalCredit, language)} icon={Wallet} tone="emerald" />
+            <StatCard title={t('supplierStatement.closingBalance')} value={formatCurrency(vm.statement.closingBalance, language)} icon={Wallet} tone="blue" />
           </div>
 
           <div className="surface mt-6 overflow-hidden">
@@ -161,14 +169,14 @@ export default function CustomerDuePage() {
                 <tbody className="divide-y divide-slate-100">
                   {entries.map((entry) => (
                     <tr key={entry.id} className="hover:bg-slate-50">
-                      <td className="table-cell whitespace-nowrap text-sm font-semibold text-slate-700">{formatDateTime(entry.createdAt)}</td>
+                      <td className="table-cell whitespace-nowrap text-sm font-semibold text-slate-700">{formatDateTime(entry.createdAt, language)}</td>
                       <td className="table-cell">
                         <Badge tone={ledgerTone(entry.type)}>{t(`retailer.customerDue.types.${entry.type}`)}</Badge>
                         {entry.note ? <p className="mt-1 max-w-56 truncate text-xs text-slate-500">{entry.note}</p> : null}
                       </td>
-                      <td className="table-cell text-right font-black text-rose-700">{entry.debit ? formatCurrency(entry.debit) : '-'}</td>
-                      <td className="table-cell text-right font-black text-emerald-700">{entry.credit ? formatCurrency(entry.credit) : '-'}</td>
-                      <td className="table-cell text-right font-black text-slate-950">{formatCurrency(entry.balanceAfter)}</td>
+                      <td className="table-cell text-right font-black text-rose-700">{entry.debit ? formatCurrency(entry.debit, language) : '-'}</td>
+                      <td className="table-cell text-right font-black text-emerald-700">{entry.credit ? formatCurrency(entry.credit, language) : '-'}</td>
+                      <td className="table-cell text-right font-black text-slate-950">{formatCurrency(entry.balanceAfter, language)}</td>
                       <td className="hidden table-cell lg:table-cell">
                         <p className="max-w-52 truncate text-xs font-semibold text-slate-600">{entry.referenceType ? `${entry.referenceType} / ${String(entry.referenceId || '').slice(0, 18)}` : '-'}</p>
                       </td>
@@ -199,6 +207,8 @@ export default function CustomerDuePage() {
             dateTo={vm.dateTo}
             printTarget
             targetId={printTargetId}
+            t={t}
+            language={language}
           />
         </div>
       ) : null}

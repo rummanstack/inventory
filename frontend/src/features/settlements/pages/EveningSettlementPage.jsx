@@ -10,7 +10,7 @@ import { formatCasePiece, formatCurrency, formatNumber } from '../../../utils/ca
 import { useSettlementViewModel } from '../viewmodels/useSettlementViewModel';
 
 export default function EveningSettlementPage() {
-  const { productDirectory, dsrDirectory, today, saveSettlement, t, can, tenant } = useInventoryApp();
+  const { productDirectory, dsrDirectory, today, saveSettlement, t, can, tenant, language } = useInventoryApp();
   const vm = useSettlementViewModel({ products: productDirectory, dsrs: dsrDirectory, today, saveSettlementAction: saveSettlement, t, tenantName: tenant?.name });
   const canCreateSettlement = can('create_settlements');
   const canUpdateSettlement = can('update_settlements');
@@ -68,14 +68,14 @@ export default function EveningSettlementPage() {
           </div>
         ) : null}
         <div className="mt-4 flex flex-wrap gap-2">
-          <span className="muted-chip">{formatNumber(issuedPiecesTotal)} issued</span>
-          <span className="muted-chip">{formatNumber(soldPiecesTotal)} sold</span>
-          <span className="muted-chip">{formatNumber(returnedPiecesTotal)} returned</span>
-          <span className="muted-chip">{formatNumber(damagedPiecesTotal)} damaged</span>
-          {vm.totalReturnValue > 0 ? <span className="muted-chip">{formatCurrency(vm.grossIssueValue)} product total</span> : null}
-          <span className="muted-chip">{formatCurrency(vm.totalPayable)} payable</span>
-          {vm.totalReturnValue > 0 ? <span className="muted-chip">-{formatCurrency(vm.totalReturnValue)} return value</span> : null}
-          {vm.discount > 0 ? <span className="muted-chip">-{formatCurrency(vm.discount)} discount</span> : null}
+          <span className="muted-chip">{formatNumber(issuedPiecesTotal, language)} {t('settlement.issued')}</span>
+          <span className="muted-chip">{formatNumber(soldPiecesTotal, language)} {t('settlement.sold')}</span>
+          <span className="muted-chip">{formatNumber(returnedPiecesTotal, language)} {t('settlement.returned')}</span>
+          <span className="muted-chip">{formatNumber(damagedPiecesTotal, language)} {t('settlement.damaged')}</span>
+          {vm.totalReturnValue > 0 ? <span className="muted-chip">{formatCurrency(vm.grossIssueValue, language)} {t('settlement.productTotal')}</span> : null}
+          <span className="muted-chip">{formatCurrency(vm.totalPayable, language)} {t('settlement.payable')}</span>
+          {vm.totalReturnValue > 0 ? <span className="muted-chip">-{formatCurrency(vm.totalReturnValue, language)} {t('settlement.returnValueLabel')}</span> : null}
+          {vm.discount > 0 ? <span className="muted-chip">-{formatCurrency(vm.discount, language)} {t('settlement.discount')}</span> : null}
         </div>
       </div>
 
@@ -217,21 +217,21 @@ export default function EveningSettlementPage() {
                   <dl className="mt-3 space-y-2 text-sm">
                     <div className="flex items-center justify-between">
                       <dt className="font-semibold text-slate-600">{t('settlement.productTotal')}</dt>
-                      <dd className="font-black text-slate-950">{formatCurrency(vm.totalReturnValue > 0 ? vm.grossIssueValue : vm.totalPayable)}</dd>
+                      <dd className="font-black text-slate-950">{formatCurrency(vm.totalReturnValue > 0 ? vm.grossIssueValue : vm.totalPayable, language)}</dd>
                     </div>
                     {vm.totalReturnValue > 0 ? (
                       <div className="flex items-center justify-between">
                         <dt className="font-semibold text-slate-600">{t('settlement.damagedReturnedPrice')}</dt>
-                        <dd className="font-black text-rose-700">- {formatCurrency(vm.totalReturnValue)}</dd>
+                        <dd className="font-black text-rose-700">- {formatCurrency(vm.totalReturnValue, language)}</dd>
                       </div>
                     ) : null}
                     <div className="flex items-center justify-between">
                       <dt className="font-semibold text-slate-600">{t('settlement.todaySales')}</dt>
-                      <dd className="font-black text-slate-950">{formatCurrency(vm.totalPayable - vm.extraReturnValue)}</dd>
+                      <dd className="font-black text-slate-950">{formatCurrency(vm.totalPayable - vm.extraReturnValue, language)}</dd>
                     </div>
                     <div className="flex items-center justify-between">
                       <dt className="font-semibold text-slate-600">{t('settlement.previousDue')}</dt>
-                      <dd className="font-black text-slate-950">+ {formatCurrency(vm.previousDue)}</dd>
+                      <dd className="font-black text-slate-950">+ {formatCurrency(vm.previousDue, language)}</dd>
                     </div>
                     <div className="flex items-center justify-between gap-3">
                       <dt className="font-semibold text-slate-600">{t('settlement.discount')}</dt>
@@ -242,7 +242,7 @@ export default function EveningSettlementPage() {
                     </div>
                     <div className="flex items-center justify-between border-t border-slate-200 pt-2">
                       <dt className="font-black uppercase tracking-[0.1em] text-slate-700">{t('settlement.totalReceivable')}</dt>
-                      <dd className="font-black text-slate-950">{formatCurrency(vm.receivableTotal)}</dd>
+                      <dd className="font-black text-slate-950">{formatCurrency(vm.receivableTotal, language)}</dd>
                     </div>
                     <div className="flex items-center justify-between gap-3">
                       <dt className="font-semibold text-slate-600">{t('settlement.cashReceived')}</dt>
@@ -253,7 +253,7 @@ export default function EveningSettlementPage() {
                     <div className="flex items-center justify-between border-t-2 border-slate-300 pt-2">
                       <dt className="text-base font-black uppercase tracking-[0.1em] text-slate-950">{t('settlement.newDue')}</dt>
                       <dd className={cx('text-lg font-black', vm.dueAmount > 0 ? 'text-rose-700' : 'text-emerald-700')}>
-                        {formatCurrency(Math.max(0, vm.dueAmount))}
+                        {formatCurrency(Math.max(0, vm.dueAmount), language)}
                       </dd>
                     </div>
                   </dl>
@@ -274,7 +274,7 @@ export default function EveningSettlementPage() {
                 <div className="flex flex-col gap-3">
                   <div className="rounded-[22px] border border-emerald-200 bg-emerald-50 px-4 py-3">
                     <p className="text-[11px] font-black uppercase tracking-[0.14em] text-emerald-700">{t('settlement.todayDue')}</p>
-                    <p className="mt-1 text-lg font-black text-emerald-900">{formatCurrency(Math.max(0, vm.todayDue))}</p>
+                    <p className="mt-1 text-lg font-black text-emerald-900">{formatCurrency(Math.max(0, vm.todayDue), language)}</p>
                     <p className="mt-1 text-xs font-medium text-emerald-700">{t('settlement.todayDueHelper')}</p>
                   </div>
                   {vm.completedSettlement ? (
@@ -330,7 +330,7 @@ export default function EveningSettlementPage() {
                 </>
               ) : null}
           </div>
-          <PrintableSheet sheet={vm.sheet} printTarget targetId="settlement-print-sheet" />
+          <PrintableSheet sheet={vm.sheet} printTarget targetId="settlement-print-sheet" t={t} language={language} />
           <div className="surface mt-4 p-5">
             <AuditHistory entityType="settlement" entityId={vm.completedSettlement.id} />
           </div>

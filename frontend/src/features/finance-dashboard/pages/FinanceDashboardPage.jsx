@@ -2,15 +2,15 @@ import { Building2, CircleDollarSign, HandCoins, RotateCcw, Scale, ShoppingBag, 
 import { Alert, EmptyState, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
-import { formatCurrency, formatDate } from '../../../utils/calculations.js';
+import { formatCurrency, formatDate, formatNumber } from '../../../utils/calculations.js';
 import { useFinanceDashboardViewModel } from '../viewmodels/useFinanceDashboardViewModel';
 import { useRangeReportViewModel } from '../viewmodels/useRangeReportViewModel';
 
 const TRANSACTION_TYPE_STYLES = {
-  DEPOSIT:      { label: 'Deposit',      className: 'bg-emerald-50 text-emerald-700 border border-emerald-100' },
-  WITHDRAWAL:   { label: 'Withdrawal',   className: 'bg-rose-50 text-rose-700 border border-rose-100' },
-  TRANSFER_IN:  { label: 'Transfer In',  className: 'bg-blue-50 text-blue-700 border border-blue-100' },
-  TRANSFER_OUT: { label: 'Transfer Out', className: 'bg-amber-50 text-amber-700 border border-amber-100' },
+  DEPOSIT: { labelKey: 'financeDashboard.deposit', className: 'bg-emerald-50 text-emerald-700 border border-emerald-100' },
+  WITHDRAWAL: { labelKey: 'financeDashboard.withdrawal', className: 'bg-rose-50 text-rose-700 border border-rose-100' },
+  TRANSFER_IN: { labelKey: 'financeDashboard.transferIn', className: 'bg-blue-50 text-blue-700 border border-blue-100' },
+  TRANSFER_OUT: { labelKey: 'financeDashboard.transferOut', className: 'bg-amber-50 text-amber-700 border border-amber-100' },
 };
 
 function transactionAmount(tx) {
@@ -24,17 +24,17 @@ function transactionAmountClass(tx) {
 }
 
 function formatPercent(value) {
-  if (!isFinite(value)) return '—';
+  if (!Number.isFinite(value)) return '-';
   return `${value.toFixed(1)}%`;
 }
 
-function BreakdownList({ items }) {
+function BreakdownList({ items, language }) {
   return (
     <div className="divide-y divide-slate-100">
       {items.map(({ label, value, valueClass, bold }) => (
         <div key={label} className={`flex items-center justify-between px-5 py-3 ${bold ? 'bg-slate-50' : ''}`}>
           <span className={`text-sm ${bold ? 'font-bold text-slate-950' : 'text-slate-600'}`}>{label}</span>
-          <span className={`text-sm font-semibold ${valueClass || 'text-slate-800'} ${bold ? 'font-bold' : ''}`}>{formatCurrency(value)}</span>
+          <span className={`text-sm font-semibold ${valueClass || 'text-slate-800'} ${bold ? 'font-bold' : ''}`}>{formatCurrency(value, language)}</span>
         </div>
       ))}
     </div>
@@ -64,12 +64,11 @@ function BreakdownPanelSkeleton({ rows = 4 }) {
 }
 
 export default function FinanceDashboardPage() {
-  const { t } = useInventoryApp();
+  const { t, language } = useInventoryApp();
   const { data, loading, error } = useFinanceDashboardViewModel();
   const rr = useRangeReportViewModel();
 
   const cashInHand = data?.accounts?.find((a) => a.type === 'CASH')?.balance || 0;
-
   const netReceivable = rr.data
     ? rr.data.totalDsrDue + rr.data.totalCustomerDue - rr.data.totalSupplierDue
     : 0;
@@ -82,22 +81,20 @@ export default function FinanceDashboardPage() {
         description={t('financeDashboard.description')}
       />
 
-      {/* ── Range Report ── */}
       <div>
-        <h2 className="mb-4 text-base font-bold text-slate-950">Business Performance Report</h2>
+        <h2 className="mb-4 text-base font-bold text-slate-950">{t('financeDashboard.rangeTitle')}</h2>
 
-        {/* Date range filter */}
-        <div className="surface mb-6 grid gap-4 p-5 sm:grid-cols-[1fr_1fr_auto] items-end">
+        <div className="surface mb-6 grid items-end gap-4 p-5 sm:grid-cols-[1fr_1fr_auto]">
           <div>
-            <label className="label">From</label>
+            <label className="label">{t('financeDashboard.from')}</label>
             <DatePickerField value={rr.dateFrom} onChange={rr.setDateFrom} />
           </div>
           <div>
-            <label className="label">To</label>
+            <label className="label">{t('financeDashboard.to')}</label>
             <DatePickerField value={rr.dateTo} onChange={rr.setDateTo} />
           </div>
           <button type="button" className="btn-primary" onClick={rr.applyRange} disabled={rr.loading}>
-            {rr.loading ? <span className="inline-block h-4 w-28 animate-pulse rounded-full bg-white/60" /> : 'Generate Report'}
+            {rr.loading ? <span className="inline-block h-4 w-28 animate-pulse rounded-full bg-white/60" /> : t('financeDashboard.generateReport')}
           </button>
         </div>
 
@@ -114,80 +111,83 @@ export default function FinanceDashboardPage() {
           </div>
         ) : rr.data ? (
           <div className="space-y-6">
-            {/* Key metrics */}
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-              <StatCard title="Total Revenue" value={formatCurrency(rr.data.revenue)} icon={TrendingUp} tone="blue" />
-              <StatCard title="Cost of Goods" value={formatCurrency(rr.data.cogs)} icon={CircleDollarSign} tone="amber" />
-              <StatCard title="Total Expenses" value={formatCurrency(rr.data.totalExpenses)} icon={CircleDollarSign} tone="slate" />
-              <StatCard title="Gross Profit" value={formatCurrency(rr.data.grossProfit)} helper="Revenue − Cost of Goods" icon={TrendingUp} tone="emerald" />
+              <StatCard title={t('financeDashboard.totalRevenue')} value={formatCurrency(rr.data.revenue, language)} icon={TrendingUp} tone="blue" />
+              <StatCard title={t('financeDashboard.costOfGoods')} value={formatCurrency(rr.data.cogs, language)} icon={CircleDollarSign} tone="amber" />
+              <StatCard title={t('financeDashboard.totalExpenses')} value={formatCurrency(rr.data.totalExpenses, language)} icon={CircleDollarSign} tone="slate" />
+              <StatCard title={t('financeDashboard.grossProfit')} value={formatCurrency(rr.data.grossProfit, language)} helper={t('financeDashboard.revenueMinusCog')} icon={TrendingUp} tone="emerald" />
               <StatCard
-                title="Net Profit"
-                value={formatCurrency(rr.data.netProfit)}
-                helper="After all expenses"
+                title={t('financeDashboard.netProfit')}
+                value={formatCurrency(rr.data.netProfit, language)}
+                helper={t('financeDashboard.afterAllExpenses')}
                 icon={rr.data.netProfit >= 0 ? TrendingUp : TrendingDown}
                 tone={rr.data.netProfit >= 0 ? 'emerald' : 'rose'}
               />
             </div>
 
-            {/* Breakdown panels */}
             <div className="grid gap-6 lg:grid-cols-3">
-              {/* Profit breakdown */}
               <div className="surface overflow-hidden">
                 <div className="border-b border-slate-100 px-5 py-4">
-                  <h3 className="text-sm font-bold text-slate-950">Profit Breakdown</h3>
+                  <h3 className="text-sm font-bold text-slate-950">{t('financeDashboard.profitBreakdown')}</h3>
                 </div>
-                <BreakdownList items={[
-                  { label: 'Revenue', value: rr.data.revenue, valueClass: 'text-blue-600' },
-                  { label: 'Cost of Goods', value: rr.data.cogs, valueClass: 'text-amber-600' },
-                  { label: 'Gross Profit', value: rr.data.grossProfit, valueClass: rr.data.grossProfit >= 0 ? 'text-emerald-600' : 'text-rose-600', bold: true },
-                  { label: 'Operating Expenses', value: rr.data.totalExpenses, valueClass: 'text-slate-600' },
-                  { label: 'Net Profit', value: rr.data.netProfit, valueClass: rr.data.netProfit >= 0 ? 'text-emerald-600' : 'text-rose-600', bold: true },
-                ]} />
+                <BreakdownList
+                  language={language}
+                  items={[
+                    { label: t('financeDashboard.revenue'), value: rr.data.revenue, valueClass: 'text-blue-600' },
+                    { label: t('financeDashboard.costOfGoods'), value: rr.data.cogs, valueClass: 'text-amber-600' },
+                    { label: t('financeDashboard.grossProfit'), value: rr.data.grossProfit, valueClass: rr.data.grossProfit >= 0 ? 'text-emerald-600' : 'text-rose-600', bold: true },
+                    { label: t('financeDashboard.operatingExpenses'), value: rr.data.totalExpenses, valueClass: 'text-slate-600' },
+                    { label: t('financeDashboard.netProfit'), value: rr.data.netProfit, valueClass: rr.data.netProfit >= 0 ? 'text-emerald-600' : 'text-rose-600', bold: true },
+                  ]}
+                />
               </div>
 
-              {/* Expense breakdown */}
               <div className="surface overflow-hidden">
                 <div className="border-b border-slate-100 px-5 py-4">
-                  <h3 className="text-sm font-bold text-slate-950">Expense Breakdown</h3>
+                  <h3 className="text-sm font-bold text-slate-950">{t('financeDashboard.expenseBreakdown')}</h3>
                 </div>
                 {rr.data.expenseBreakdown.length === 0 ? (
                   <div className="p-5">
-                    <p className="text-sm text-slate-400">No expenses in this period.</p>
+                    <p className="text-sm text-slate-400">{t('financeDashboard.noExpensesInPeriod')}</p>
                   </div>
                 ) : (
-                  <BreakdownList items={[
-                    ...rr.data.expenseBreakdown.map((item) => ({ label: item.category, value: item.amount })),
-                    { label: 'Total', value: rr.data.totalExpenses, bold: true },
-                  ]} />
+                  <BreakdownList
+                    language={language}
+                    items={[
+                      ...rr.data.expenseBreakdown.map((item) => ({ label: item.category, value: item.amount })),
+                      { label: t('common.total'), value: rr.data.totalExpenses, bold: true },
+                    ]}
+                  />
                 )}
               </div>
 
-              {/* Outstanding balances */}
               <div className="surface overflow-hidden">
                 <div className="border-b border-slate-100 px-5 py-4">
-                  <h3 className="text-sm font-bold text-slate-950">Outstanding Balances</h3>
-                  <p className="mt-0.5 text-xs text-slate-400">Current balances as of today</p>
+                  <h3 className="text-sm font-bold text-slate-950">{t('financeDashboard.outstandingBalances')}</h3>
+                  <p className="mt-0.5 text-xs text-slate-400">{t('financeDashboard.currentBalancesToday')}</p>
                 </div>
-                <BreakdownList items={[
-                  { label: 'Due from DSRs', value: rr.data.totalDsrDue, valueClass: 'text-amber-600' },
-                  { label: 'Due from Customers', value: rr.data.totalCustomerDue, valueClass: 'text-amber-600' },
-                  { label: 'Owe to Suppliers', value: rr.data.totalSupplierDue, valueClass: 'text-rose-600' },
-                  { label: 'Net Receivable', value: netReceivable, valueClass: netReceivable >= 0 ? 'text-emerald-600' : 'text-rose-600', bold: true },
-                ]} />
+                <BreakdownList
+                  language={language}
+                  items={[
+                    { label: t('financeDashboard.dueFromDsrs'), value: rr.data.totalDsrDue, valueClass: 'text-amber-600' },
+                    { label: t('financeDashboard.dueFromCustomers'), value: rr.data.totalCustomerDue, valueClass: 'text-amber-600' },
+                    { label: t('financeDashboard.oweToSuppliers'), value: rr.data.totalSupplierDue, valueClass: 'text-rose-600' },
+                    { label: t('financeDashboard.netReceivable'), value: netReceivable, valueClass: netReceivable >= 0 ? 'text-emerald-600' : 'text-rose-600', bold: true },
+                  ]}
+                />
               </div>
 
-              {/* Margin analysis */}
               <div className="surface overflow-hidden">
                 <div className="border-b border-slate-100 px-5 py-4">
-                  <h3 className="text-sm font-bold text-slate-950">Margin Analysis</h3>
-                  <p className="mt-0.5 text-xs text-slate-400">As a percentage of revenue</p>
+                  <h3 className="text-sm font-bold text-slate-950">{t('financeDashboard.marginAnalysis')}</h3>
+                  <p className="mt-0.5 text-xs text-slate-400">{t('financeDashboard.asPercentageOfRevenue')}</p>
                 </div>
                 <div className="divide-y divide-slate-100">
                   {[
-                    { label: 'Gross Margin', pct: rr.data.revenue > 0 ? (rr.data.grossProfit / rr.data.revenue) * 100 : 0, positive: rr.data.grossProfit >= 0 },
-                    { label: 'Net Margin', pct: rr.data.revenue > 0 ? (rr.data.netProfit / rr.data.revenue) * 100 : 0, positive: rr.data.netProfit >= 0 },
-                    { label: 'Expense Ratio', pct: rr.data.revenue > 0 ? (rr.data.totalExpenses / rr.data.revenue) * 100 : 0, positive: false },
-                    { label: 'COGS Ratio', pct: rr.data.revenue > 0 ? (rr.data.cogs / rr.data.revenue) * 100 : 0, positive: false },
+                    { label: t('financeDashboard.grossMargin'), pct: rr.data.revenue > 0 ? (rr.data.grossProfit / rr.data.revenue) * 100 : 0, positive: rr.data.grossProfit >= 0 },
+                    { label: t('financeDashboard.netMargin'), pct: rr.data.revenue > 0 ? (rr.data.netProfit / rr.data.revenue) * 100 : 0, positive: rr.data.netProfit >= 0 },
+                    { label: t('financeDashboard.expenseRatio'), pct: rr.data.revenue > 0 ? (rr.data.totalExpenses / rr.data.revenue) * 100 : 0, positive: false },
+                    { label: t('financeDashboard.cogsRatio'), pct: rr.data.revenue > 0 ? (rr.data.cogs / rr.data.revenue) * 100 : 0, positive: false },
                   ].map(({ label, pct, positive }) => (
                     <div key={label} className="flex items-center justify-between px-5 py-3">
                       <span className="text-sm text-slate-600">{label}</span>
@@ -197,36 +197,40 @@ export default function FinanceDashboardPage() {
                 </div>
               </div>
 
-              {/* Cash flow */}
               <div className="surface overflow-hidden">
                 <div className="border-b border-slate-100 px-5 py-4">
-                  <h3 className="text-sm font-bold text-slate-950">Cash Flow</h3>
-                  <p className="mt-0.5 text-xs text-slate-400">Money in and out for this period</p>
+                  <h3 className="text-sm font-bold text-slate-950">{t('financeDashboard.cashFlow')}</h3>
+                  <p className="mt-0.5 text-xs text-slate-400">{t('financeDashboard.moneyInOutPeriod')}</p>
                 </div>
-                <BreakdownList items={[
-                  { label: 'Total Inflow', value: rr.data.cashFlow.inflow, valueClass: 'text-emerald-600' },
-                  { label: 'Total Outflow', value: rr.data.cashFlow.outflow, valueClass: 'text-rose-600' },
-                  {
-                    label: 'Net Movement',
-                    value: rr.data.cashFlow.inflow - rr.data.cashFlow.outflow,
-                    valueClass: rr.data.cashFlow.inflow >= rr.data.cashFlow.outflow ? 'text-emerald-600' : 'text-rose-600',
-                    bold: true,
-                  },
-                ]} />
+                <BreakdownList
+                  language={language}
+                  items={[
+                    { label: t('financeDashboard.totalInflow'), value: rr.data.cashFlow.inflow, valueClass: 'text-emerald-600' },
+                    { label: t('financeDashboard.totalOutflow'), value: rr.data.cashFlow.outflow, valueClass: 'text-rose-600' },
+                    {
+                      label: t('financeDashboard.netMovement'),
+                      value: rr.data.cashFlow.inflow - rr.data.cashFlow.outflow,
+                      valueClass: rr.data.cashFlow.inflow >= rr.data.cashFlow.outflow ? 'text-emerald-600' : 'text-rose-600',
+                      bold: true,
+                    },
+                  ]}
+                />
               </div>
 
-              {/* Sales summary */}
               <div className="surface overflow-hidden">
                 <div className="border-b border-slate-100 px-5 py-4">
-                  <h3 className="text-sm font-bold text-slate-950">Sales Summary</h3>
-                  <p className="mt-0.5 text-xs text-slate-400">{rr.data.sales.count} invoice{rr.data.sales.count !== 1 ? 's' : ''} in this period</p>
+                  <h3 className="text-sm font-bold text-slate-950">{t('financeDashboard.salesSummary')}</h3>
+                  <p className="mt-0.5 text-xs text-slate-400">{t('financeDashboard.invoiceCountPeriod', { count: formatNumber(rr.data.sales.count, language) })}</p>
                 </div>
-                <BreakdownList items={[
-                  { label: 'Total Sales', value: rr.data.sales.totalAmount, valueClass: 'text-blue-600', bold: true },
-                  { label: 'Amount Collected', value: rr.data.sales.paidAmount, valueClass: 'text-emerald-600' },
-                  { label: 'Outstanding', value: rr.data.sales.totalAmount - rr.data.sales.paidAmount, valueClass: 'text-amber-600' },
-                  { label: 'Avg per Invoice', value: rr.data.sales.averageInvoice, valueClass: 'text-slate-600' },
-                ]} />
+                <BreakdownList
+                  language={language}
+                  items={[
+                    { label: t('financeDashboard.totalSales'), value: rr.data.sales.totalAmount, valueClass: 'text-blue-600', bold: true },
+                    { label: t('financeDashboard.amountCollected'), value: rr.data.sales.paidAmount, valueClass: 'text-emerald-600' },
+                    { label: t('financeDashboard.outstanding'), value: rr.data.sales.totalAmount - rr.data.sales.paidAmount, valueClass: 'text-amber-600' },
+                    { label: t('financeDashboard.avgPerInvoice'), value: rr.data.sales.averageInvoice, valueClass: 'text-slate-600' },
+                  ]}
+                />
               </div>
             </div>
           </div>
@@ -262,58 +266,54 @@ export default function FinanceDashboardPage() {
         <Alert type="error">{error}</Alert>
       ) : (
         <>
-          {/* Balance & Receivables */}
           <div>
-            <h2 className="mb-4 text-base font-bold text-slate-950">{t('financeDashboard.balanceTitle') || 'Balances & Receivables'}</h2>
+            <h2 className="mb-4 text-base font-bold text-slate-950">{t('financeDashboard.balanceTitle')}</h2>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              <StatCard title={t('financeDashboard.cashInHand')} value={formatCurrency(cashInHand)} icon={Wallet} tone="emerald" />
-              <StatCard title={t('financeDashboard.dsrReceivables')} value={formatCurrency(data.totalDsrDue)} helper={t('financeDashboard.dsrReceivablesHelper')} icon={HandCoins} tone="amber" />
-              <StatCard title={t('financeDashboard.customerReceivables')} value={formatCurrency(data.totalCustomerDue)} helper={t('financeDashboard.customerReceivablesHelper')} icon={Store} tone="amber" />
-              <StatCard title={t('financeDashboard.supplierPayables')} value={formatCurrency(data.totalSupplierDue)} helper={t('financeDashboard.supplierPayablesHelper')} icon={Building2} tone="rose" />
-              <StatCard title={t('financeDashboard.monthlyExpenses')} value={formatCurrency(data.monthlyExpenses)} helper={t('financeDashboard.monthlyExpensesHelper')} icon={CircleDollarSign} tone="rose" />
-              <StatCard title={t('financeDashboard.monthlyProfit')} value={formatCurrency(data.monthlyProfit)} helper={t('financeDashboard.monthlyProfitHelper')} icon={TrendingUp} tone="emerald" />
-              <StatCard title={t('financeDashboard.netPosition')} value={formatCurrency(data.netPosition)} helper={t('financeDashboard.netPositionHelper')} icon={Scale} tone="slate" />
+              <StatCard title={t('financeDashboard.cashInHand')} value={formatCurrency(cashInHand, language)} icon={Wallet} tone="emerald" />
+              <StatCard title={t('financeDashboard.dsrReceivables')} value={formatCurrency(data.totalDsrDue, language)} helper={t('financeDashboard.dsrReceivablesHelper')} icon={HandCoins} tone="amber" />
+              <StatCard title={t('financeDashboard.customerReceivables')} value={formatCurrency(data.totalCustomerDue, language)} helper={t('financeDashboard.customerReceivablesHelper')} icon={Store} tone="amber" />
+              <StatCard title={t('financeDashboard.supplierPayables')} value={formatCurrency(data.totalSupplierDue, language)} helper={t('financeDashboard.supplierPayablesHelper')} icon={Building2} tone="rose" />
+              <StatCard title={t('financeDashboard.monthlyExpenses')} value={formatCurrency(data.monthlyExpenses, language)} helper={t('financeDashboard.monthlyExpensesHelper')} icon={CircleDollarSign} tone="rose" />
+              <StatCard title={t('financeDashboard.monthlyProfit')} value={formatCurrency(data.monthlyProfit, language)} helper={t('financeDashboard.monthlyProfitHelper')} icon={TrendingUp} tone="emerald" />
+              <StatCard title={t('financeDashboard.netPosition')} value={formatCurrency(data.netPosition, language)} helper={t('financeDashboard.netPositionHelper')} icon={Scale} tone="slate" />
             </div>
           </div>
 
-          {/* Operations This Month */}
           <div>
             <h2 className="mb-4 text-base font-bold text-slate-950">{t('financeDashboard.operationsTitle')}</h2>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               <StatCard
                 title={t('financeDashboard.settlementCollected')}
-                value={formatCurrency(data.monthlySettlementCollected)}
-                helper={`${data.monthlySettlementCount} ${t('financeDashboard.settlementCollectedHelper')}`}
+                value={formatCurrency(data.monthlySettlementCollected, language)}
+                helper={`${formatNumber(data.monthlySettlementCount, language)} ${t('financeDashboard.settlementCollectedHelper')}`}
                 icon={RotateCcw}
                 tone="emerald"
               />
               <StatCard
                 title={t('financeDashboard.settlementDue')}
-                value={formatCurrency(data.monthlySettlementDue)}
+                value={formatCurrency(data.monthlySettlementDue, language)}
                 helper={t('financeDashboard.settlementDueHelper')}
                 icon={HandCoins}
                 tone="rose"
               />
               <StatCard
                 title={t('financeDashboard.monthlySales')}
-                value={formatCurrency(data.monthlySalesAmount)}
-                helper={`${data.monthlySalesCount} invoices · ${t('financeDashboard.monthlySalesHelper')}`}
+                value={formatCurrency(data.monthlySalesAmount, language)}
+                helper={`${formatNumber(data.monthlySalesCount, language)} ${t('financeDashboard.invoices')} · ${t('financeDashboard.monthlySalesHelper')}`}
                 icon={ShoppingBag}
                 tone="blue"
               />
             </div>
           </div>
 
-          {/* Monthly Cash Flow */}
           <div>
             <h2 className="mb-4 text-base font-bold text-slate-950">{t('financeDashboard.cashFlowTitle')}</h2>
             <div className="grid gap-4 sm:grid-cols-2">
-              <StatCard title={t('financeDashboard.monthlyInflow')} value={formatCurrency(data.monthlyInflow)} helper={t('financeDashboard.monthlyInflowHelper')} icon={TrendingUp} tone="emerald" />
-              <StatCard title={t('financeDashboard.monthlyOutflow')} value={formatCurrency(data.monthlyOutflow)} helper={t('financeDashboard.monthlyOutflowHelper')} icon={TrendingDown} tone="rose" />
+              <StatCard title={t('financeDashboard.monthlyInflow')} value={formatCurrency(data.monthlyInflow, language)} helper={t('financeDashboard.monthlyInflowHelper')} icon={TrendingUp} tone="emerald" />
+              <StatCard title={t('financeDashboard.monthlyOutflow')} value={formatCurrency(data.monthlyOutflow, language)} helper={t('financeDashboard.monthlyOutflowHelper')} icon={TrendingDown} tone="rose" />
             </div>
           </div>
 
-          {/* Recent Finance Transactions */}
           <div>
             <h2 className="mb-4 text-base font-bold text-slate-950">{t('financeDashboard.recentTransactionsTitle')}</h2>
             {!data.recentTransactions?.length ? (
@@ -335,15 +335,15 @@ export default function FinanceDashboardPage() {
                       const style = TRANSACTION_TYPE_STYLES[tx.type] || {};
                       return (
                         <tr key={tx.id} className="hover:bg-slate-50">
-                          <td className="whitespace-nowrap px-4 py-3 font-medium text-slate-700">{formatDate(tx.transactionDate)}</td>
+                          <td className="whitespace-nowrap px-4 py-3 font-medium text-slate-700">{formatDate(tx.transactionDate, language)}</td>
                           <td className="px-4 py-3 text-slate-600">{tx.accountName}</td>
                           <td className="px-4 py-3">
                             <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${style.className}`}>
-                              {style.label}
+                              {t(style.labelKey)}
                             </span>
                           </td>
                           <td className={`whitespace-nowrap px-4 py-3 text-right ${transactionAmountClass(tx)}`}>
-                            {formatCurrency(transactionAmount(tx))}
+                            {formatCurrency(transactionAmount(tx), language)}
                           </td>
                           <td className="hidden max-w-xs truncate px-4 py-3 text-slate-500 sm:table-cell">{tx.note}</td>
                         </tr>

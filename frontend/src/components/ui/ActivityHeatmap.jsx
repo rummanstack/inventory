@@ -5,16 +5,18 @@ import { formatCurrency, formatNumber } from '../../utils/calculations.js';
 import { hexToRgba } from './charts.jsx';
 import { cx } from './utils.js';
 
-function heatmapActivityLabel(cell) {
-  if (!cell.count) return 'No activity';
-  if (cell.intensity >= 0.75) return 'Peak activity day';
-  if (cell.intensity >= 0.4) return 'Above average';
-  return 'Light activity';
+function heatmapActivityLabel(cell, t) {
+  if (!cell.count) return t('activityHeatmap.noActivity');
+  if (cell.intensity >= 0.75) return t('activityHeatmap.peakActivityDay');
+  if (cell.intensity >= 0.4) return t('activityHeatmap.aboveAverage');
+  return t('activityHeatmap.lightActivity');
 }
 
-const heatmapFullDateFormatter = new Intl.DateTimeFormat('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+function getHeatmapLocale(language) {
+  return language === 'bn' ? 'bn-BD' : 'en-US';
+}
 
-function HeatmapTooltip({ anchor, cell }) {
+function HeatmapTooltip({ anchor, cell, t, language }) {
   const [style, setStyle] = useState(null);
   const tooltipRef = useRef(null);
 
@@ -58,6 +60,7 @@ function HeatmapTooltip({ anchor, cell }) {
   const tooltipTitleColor = getCssVar('--chart-tooltip-title', '#f8fafc');
   const tooltipBodyColor = getCssVar('--chart-tooltip-body', '#e2e8f0');
   const dayDate = new Date(`${cell.date}T00:00:00`);
+  const heatmapFullDateFormatter = new Intl.DateTimeFormat(getHeatmapLocale(language), { weekday: 'long', month: 'short', day: 'numeric' });
 
   const dsrNames = cell.dsrNames || [];
   const visibleDsrNames = dsrNames.slice(0, 4);
@@ -76,32 +79,32 @@ function HeatmapTooltip({ anchor, cell }) {
         <div className="flex items-center justify-between gap-3 text-[11px] font-bold" style={{ color: tooltipBodyColor }}>
           <span className="inline-flex items-center gap-1.5">
             <span className="h-2 w-2 rounded-full" style={{ backgroundColor: getCssVar('--secondary', '#2563eb') }} />
-            Issues
+            {t('activityHeatmap.issues')}
           </span>
-          <span>{cell.issued}</span>
+          <span>{formatNumber(cell.issued, language)}</span>
         </div>
         <div className="flex items-center justify-between gap-3 text-[11px] font-bold" style={{ color: tooltipBodyColor }}>
           <span className="inline-flex items-center gap-1.5">
             <span className="h-2 w-2 rounded-full" style={{ backgroundColor: getCssVar('--success', '#0f766e') }} />
-            Settlements
+            {t('activityHeatmap.settlements')}
           </span>
-          <span>{cell.settled}</span>
+          <span>{formatNumber(cell.settled, language)}</span>
         </div>
       </div>
 
       {(cell.issuedPieces || cell.soldPieces || cell.returnedPieces) ? (
         <div className="mt-2.5 space-y-1 border-t border-white/10 pt-2">
           <div className="flex items-center justify-between gap-3 text-[11px] font-bold" style={{ color: tooltipBodyColor }}>
-            <span>Pieces issued</span>
-            <span>{formatNumber(cell.issuedPieces)}</span>
+            <span>{t('activityHeatmap.piecesIssued')}</span>
+            <span>{formatNumber(cell.issuedPieces, language)}</span>
           </div>
           <div className="flex items-center justify-between gap-3 text-[11px] font-bold" style={{ color: tooltipBodyColor }}>
-            <span>Pieces sold</span>
-            <span>{formatNumber(cell.soldPieces)}</span>
+            <span>{t('activityHeatmap.piecesSold')}</span>
+            <span>{formatNumber(cell.soldPieces, language)}</span>
           </div>
           <div className="flex items-center justify-between gap-3 text-[11px] font-bold" style={{ color: tooltipBodyColor }}>
-            <span>Pieces returned</span>
-            <span>{formatNumber(cell.returnedPieces)}</span>
+            <span>{t('activityHeatmap.piecesReturned')}</span>
+            <span>{formatNumber(cell.returnedPieces, language)}</span>
           </div>
         </div>
       ) : null}
@@ -109,16 +112,16 @@ function HeatmapTooltip({ anchor, cell }) {
       {cell.settled ? (
         <div className="mt-2.5 space-y-1 border-t border-white/10 pt-2">
           <div className="flex items-center justify-between gap-3 text-[11px] font-bold" style={{ color: tooltipBodyColor }}>
-            <span>Total payable</span>
-            <span>{formatCurrency(cell.totalPayable)}</span>
+            <span>{t('activityHeatmap.totalPayable')}</span>
+            <span>{formatCurrency(cell.totalPayable, language)}</span>
           </div>
           <div className="flex items-center justify-between gap-3 text-[11px] font-bold" style={{ color: tooltipBodyColor }}>
-            <span>Collected</span>
-            <span>{formatCurrency(cell.amountPaid)}</span>
+            <span>{t('activityHeatmap.collected')}</span>
+            <span>{formatCurrency(cell.amountPaid, language)}</span>
           </div>
           <div className="flex items-center justify-between gap-3 text-[11px] font-bold" style={{ color: tooltipBodyColor }}>
-            <span>Due</span>
-            <span>{formatCurrency(cell.dueAmount)}</span>
+            <span>{t('activityHeatmap.due')}</span>
+            <span>{formatCurrency(cell.dueAmount, language)}</span>
           </div>
         </div>
       ) : null}
@@ -126,24 +129,24 @@ function HeatmapTooltip({ anchor, cell }) {
       {dsrNames.length ? (
         <div className="mt-2.5 border-t border-white/10 pt-2">
           <p className="text-[9px] font-black uppercase tracking-[0.18em]" style={{ color: getCssVar('--highlight', '#94a3b8') }}>
-            Active DSRs
+            {t('activityHeatmap.activeDsrs')}
           </p>
           <p className="mt-1 text-[11px] font-semibold leading-snug" style={{ color: tooltipBodyColor }}>
             {visibleDsrNames.join(', ')}
-            {extraDsrCount > 0 ? ` +${extraDsrCount} more` : ''}
+            {extraDsrCount > 0 ? ` +${extraDsrCount} ${t('activityHeatmap.more')}` : ''}
           </p>
         </div>
       ) : null}
 
       <p className="mt-2.5 border-t border-white/10 pt-2 text-[9px] font-black uppercase tracking-[0.18em]" style={{ color: getCssVar('--highlight', '#94a3b8') }}>
-        {heatmapActivityLabel(cell)}
+        {heatmapActivityLabel(cell, t)}
       </p>
     </div>,
     document.body,
   );
 }
 
-export function ActivityHeatmap({ cells = [], color = getCssVar('--secondary', '#2563eb') }) {
+export function ActivityHeatmap({ cells = [], color = getCssVar('--secondary', '#2563eb'), t, language = 'en' }) {
   const [hovered, setHovered] = useState(null);
 
   if (!cells.length) {
@@ -164,7 +167,9 @@ export function ActivityHeatmap({ cells = [], color = getCssVar('--secondary', '
     weeks.push(currentWeek);
   }
 
-  const weekdayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const weekdayLabels = language === 'bn'
+    ? ['রবি', 'সোম', 'মঙ্গল', 'বুধ', 'বৃহ', 'শুক্র', 'শনি']
+    : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   const emptyTone = getCssVar('--chart-grid', 'rgba(148,163,184,0.16)');
   const legendStops = [0, 0.22, 0.46, 0.7, 1];
 
@@ -220,10 +225,10 @@ export function ActivityHeatmap({ cells = [], color = getCssVar('--secondary', '
         </div>
       </div>
 
-      {hovered ? <HeatmapTooltip anchor={hovered.anchor} cell={hovered.cell} /> : null}
+      {hovered ? <HeatmapTooltip anchor={hovered.anchor} cell={hovered.cell} t={t} language={language} /> : null}
 
       <div className="flex items-center justify-end gap-2.5 text-[10px] font-black uppercase tracking-[0.18em] text-slate-400">
-        <span>Less</span>
+        <span>{t('activityHeatmap.less')}</span>
         <div className="flex gap-1">
           {legendStops.map((stop) => (
             <span
@@ -233,7 +238,7 @@ export function ActivityHeatmap({ cells = [], color = getCssVar('--secondary', '
             />
           ))}
         </div>
-        <span>More</span>
+        <span>{t('activityHeatmap.more')}</span>
       </div>
     </div>
   );

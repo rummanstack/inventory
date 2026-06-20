@@ -36,7 +36,7 @@ export default function ExpensesPage() {
     const ws = utils.aoa_to_sheet([header, ...data]);
     ws['!cols'] = [{ wch: 14 }, { wch: 16 }, { wch: 14 }, { wch: 28 }, { wch: 18 }, { wch: 14 }];
     const wb = utils.book_new();
-    utils.book_append_sheet(wb, ws, 'Daily Expenses');
+    utils.book_append_sheet(wb, ws, t('expenses.dailySheetName'));
     writeFile(wb, `expenses-daily-${vm.date}.xlsx`);
   }
 
@@ -47,7 +47,7 @@ export default function ExpensesPage() {
     const ws = utils.aoa_to_sheet([header, ...data]);
     ws['!cols'] = [{ wch: 14 }, { wch: 16 }, { wch: 14 }, { wch: 28 }];
     const wb = utils.book_new();
-    utils.book_append_sheet(wb, ws, 'Monthly Expenses');
+    utils.book_append_sheet(wb, ws, t('expenses.monthlySheetName'));
     writeFile(wb, `expenses-monthly-${vm.month}.xlsx`);
   }
 
@@ -146,11 +146,11 @@ export default function ExpensesPage() {
                       onClick={() => { inventoryApi.recordPrint({ entityType: 'expenses_daily', entityId: null, label: 'pdf' }).catch(() => {}); downloadSheetPdf('expenses-daily-print', `expenses-daily-${vm.date}.pdf`); }}
                     >
                       <Download size={14} />
-                      Download as PDF
+                      {t('purchaseReceive.downloadPdf')}
                     </button>
                     <button type="button" className="btn-secondary no-print py-1.5 text-xs" onClick={handleExportDailyExcel}>
                       <FileSpreadsheet size={14} />
-                      Export as Excel
+                      {t('common.exportExcel')}
                     </button>
                   </div>
                 </div>
@@ -216,11 +216,11 @@ export default function ExpensesPage() {
                       onClick={() => { inventoryApi.recordPrint({ entityType: 'expenses_monthly', entityId: null, label: 'pdf' }).catch(() => {}); downloadSheetPdf('expenses-monthly-print', `expenses-monthly-${vm.month}.pdf`); }}
                     >
                       <Download size={14} />
-                      Download as PDF
+                      {t('purchaseReceive.downloadPdf')}
                     </button>
                     <button type="button" className="btn-secondary no-print py-1.5 text-xs" onClick={handleExportMonthlyExcel}>
                       <FileSpreadsheet size={14} />
-                      Export as Excel
+                      {t('common.exportExcel')}
                     </button>
                   </div>
                 </div>

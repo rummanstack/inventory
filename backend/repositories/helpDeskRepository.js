@@ -77,6 +77,7 @@ function buildFilters({ tenantId, search, status, priority, category, tab }, par
   }
 
   if (tab === "escalations") {
+    conditions.push("t.status NOT IN ('RESOLVED', 'CLOSED')");
     conditions.push("(t.priority = 'URGENT' OR (t.priority = 'HIGH' AND t.created_at <= NOW() - INTERVAL '2 days') OR t.status = 'WAITING_CUSTOMER')");
   } else if (tab === "tickets") {
     conditions.push("t.status <> 'CLOSED'");

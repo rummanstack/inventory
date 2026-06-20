@@ -9,6 +9,10 @@ export const retailCustomersApi = {
     return apiRequest("/retail-customers/active");
   },
 
+  getRetailCustomerRetentionInsights({ inactiveWindowDays } = {}) {
+    return apiRequest(`/retail-customers/retention${buildQueryString({ inactiveWindowDays })}`);
+  },
+
   getRetailCustomer(id) {
     return apiRequest(`/retail-customers/${id}`);
   },

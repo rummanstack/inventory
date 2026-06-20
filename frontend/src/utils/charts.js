@@ -1,8 +1,8 @@
 import { getCssVar } from './theme.js';
 
 function getSeriesColors() {
-  const secondary = getCssVar('--secondary', '#2563eb');
-  const success = getCssVar('--success', '#0f766e');
+  const secondary = getCssVar('--secondary', '#5e5b8e');
+  const success = getCssVar('--success', '#37a864');
   return [success, secondary];
 }
 

@@ -130,9 +130,9 @@ export default function ProfitPage() {
           <TrendChart
             data={chartData}
             series={[
-              { key: 'revenue', label: t('profit.revenue'), color: getCssVar('--secondary', '#2563eb'), fill: true },
-              { key: 'cost', label: t('profit.cost'), color: getCssVar('--warning', '#f59e0b') },
-              { key: 'profit', label: t('profit.netProfitLoss'), color: getCssVar('--success', '#0f766e') },
+              { key: 'revenue', label: t('profit.revenue'), color: getCssVar('--secondary', '#5e5b8e'), fill: true },
+              { key: 'cost', label: t('profit.cost'), color: getCssVar('--warning', '#f8aa17') },
+              { key: 'profit', label: t('profit.netProfitLoss'), color: getCssVar('--success', '#37a864') },
             ]}
             valueFormatter={formatCurrency}
           />

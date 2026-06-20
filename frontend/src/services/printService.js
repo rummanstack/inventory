@@ -18,7 +18,7 @@ export async function downloadSheetPdf(targetId, fileName) {
   const canvas = await html2canvas(element, {
     scale: 2,
     useCORS: true,
-    backgroundColor: getCssVar('--surface-white', '#ffffff'),
+    backgroundColor: getCssVar('--surface-white', '#f8f8f9'),
   });
 
   const imageData = canvas.toDataURL('image/png');

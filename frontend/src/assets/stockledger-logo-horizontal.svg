@@ -1,11 +1,11 @@
 <svg width="1600" height="420" viewBox="0 0 1600 420" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <defs><linearGradient id="g" x1="80" y1="80" x2="340" y2="340" gradientUnits="userSpaceOnUse"><stop stop-color="#0B5FFF"/><stop offset="1" stop-color="#0891B2"/></linearGradient></defs>
+  <defs><linearGradient id="g" x1="80" y1="80" x2="340" y2="340" gradientUnits="userSpaceOnUse"><stop stop-color="#373373"/><stop offset="1" stop-color="#5e5b8e"/></linearGradient></defs>
   <rect x="80" y="80" width="260" height="260" rx="58" fill="url(#g)"/>
   <g stroke="white" stroke-width="15" stroke-linecap="round" stroke-linejoin="round">
     <path d="M127 158L210 121L293 158L210 195L127 158Z"/><path d="M127 202L210 239L293 202"/><path d="M127 244L210 281L293 244"/><path d="M127 158V244"/><path d="M293 158V244"/><path d="M210 195V281"/>
   </g>
   <g fill="white"><rect x="174" y="184" width="16" height="31" rx="8"/><rect x="200" y="165" width="16" height="50" rx="8"/><rect x="226" y="142" width="16" height="73" rx="8"/></g>
-  <text x="380" y="207" font-family="Inter, Arial, sans-serif" font-weight="800" font-size="105" fill="#0F172A">Stock</text>
-  <text x="694" y="207" font-family="Inter, Arial, sans-serif" font-weight="800" font-size="105" fill="#0B5FFF">Ledger</text>
-  <text x="382" y="277" font-family="Inter, Arial, sans-serif" font-size="34" fill="#475569">Smart Inventory. Smooth Business.</text>
+  <text x="380" y="207" font-family="Inter, Arial, sans-serif" font-weight="800" font-size="105" fill="#0e0c25">Stock</text>
+  <text x="694" y="207" font-family="Inter, Arial, sans-serif" font-weight="800" font-size="105" fill="#373373">Ledger</text>
+  <text x="382" y="277" font-family="Inter, Arial, sans-serif" font-size="34" fill="#6c7083">Smart Inventory. Smooth Business.</text>
 </svg>

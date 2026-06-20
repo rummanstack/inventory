@@ -25,37 +25,37 @@ export function StatCard({ title, value, helper, icon: Icon, tone = 'blue', tren
       card: 'from-white to-brand-soft',
       icon: 'bg-brand text-white shadow-[0_10px_20px_var(--secondary-shadow)]',
       accent: 'bg-brand-strong',
-      spark: getCssVar('--brand', '#2563eb'),
+      spark: getCssVar('--brand', '#373373'),
     },
     emerald: {
       card: 'from-white to-success-soft',
       icon: 'bg-success text-white shadow-[0_10px_20px_var(--success-line)]',
       accent: 'bg-success',
-      spark: getCssVar('--success', '#0f766e'),
+      spark: getCssVar('--success', '#37a864'),
     },
     amber: {
       card: 'from-white to-warning-soft',
       icon: 'bg-warning text-white shadow-[0_10px_20px_var(--warning-line)]',
       accent: 'bg-warning',
-      spark: getCssVar('--warning', '#f59e0b'),
+      spark: getCssVar('--warning', '#f8aa17'),
     },
     indigo: {
       card: 'from-white to-indigo-50/75',
       icon: 'bg-indigo-600 text-white shadow-[0_10px_20px_rgba(var(--indigo-600),0.24)]',
       accent: 'bg-indigo-500',
-      spark: getCssVar('--purple', '#7c3aed'),
+      spark: getCssVar('--purple', '#9b44ad'),
     },
     rose: {
       card: 'from-white to-danger-soft',
       icon: 'bg-danger text-white shadow-[0_10px_20px_var(--danger-line)]',
       accent: 'bg-danger',
-      spark: getCssVar('--danger', '#dc2626'),
+      spark: getCssVar('--danger', '#f1454f'),
     },
     slate: {
       card: 'from-white to-slate-100/80',
       icon: 'bg-slate-800 text-white shadow-[0_10px_20px_rgba(var(--slate-900),0.18)]',
       accent: 'bg-slate-400',
-      spark: getCssVar('--tick-color', '#475569'),
+      spark: getCssVar('--tick-color', '#2f3347'),
     },
   };
   const toneSet = tones[tone] || tones.blue;

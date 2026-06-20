@@ -11,58 +11,58 @@
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    --app-bg: #d4d8df;
-    --app-bg-strong: #acadb1;
+    --app-bg: #f2f2f2;
+    --app-bg-strong: #c4c5cd;
     --surface: rgba(var(--white), 0.94);
     --surface-strong: rgba(var(--white), 0.98);
     --surface-line: rgba(var(--slate-900), 0.08);
     --shadow-soft: 0 20px 55px rgba(var(--slate-900), 0.08);
     --shadow-crisp: 0 12px 30px rgba(var(--slate-900), 0.07);
-    --brand: #353536;
-    --brand-strong: #080808;
+    --brand: #373373;
+    --brand-strong: #0e0c25;
     --brand-soft: color-mix(in srgb, var(--brand) 12%, white);
-    /* Secondary aliases to treat brand as secondary token */
-    --secondary: var(--brand);
-    --secondary-strong: var(--brand-strong);
-    --secondary-soft: var(--brand-soft);
-    --secondary-shadow: rgba(53, 53, 54, 0.24);
-    --secondary-shadow-strong: rgba(53, 53, 54, 0.3);
+    /* Secondary is now its own distinct experiment color, not a brand alias */
+    --secondary: #5e5b8e;
+    --secondary-strong: #373373;
+    --secondary-soft: color-mix(in srgb, var(--secondary) 12%, white);
+    --secondary-shadow: rgba(94, 91, 142, 0.24);
+    --secondary-shadow-strong: rgba(94, 91, 142, 0.3);
     /* Additional design tokens for theming and chart palettes */
-    --bg-dark: #0f172a;
+    --bg-dark: #0e0c25;
     --login-hero-bg: #ece7e0;
     --bg-grad-start: #f8fbff;
     --bg-grad-mid: #f2f6fb;
     --bg-grad-end: #eef3f8;
-    --chart-tooltip-title: #f8fafc;
-    --chart-tooltip-body: #e2e8f0;
+    --chart-tooltip-title: #f8f8f9;
+    --chart-tooltip-body: #f6f6f6;
     --chart-grid: rgba(var(--slate-400), 0.16);
-    --tick-color: #475569;
-    --success: #16a34a;
-    --success-strong: #15803d;
-    --success-soft: rgba(22, 163, 74, 0.1);
-    --success-line: rgba(22, 163, 74, 0.24);
-    --warning: #f59e0b;
-    --warning-strong: #92400e;
-    --warning-soft: rgba(245, 158, 11, 0.1);
-    --warning-line: rgba(245, 158, 11, 0.24);
-    --danger: #dc2626;
-    --danger-strong: #b91c1c;
-    --danger-soft: rgba(220, 38, 38, 0.08);
-    --danger-line: rgba(220, 38, 38, 0.2);
+    --tick-color: #2f3347;
+    --success: #37a864;
+    --success-strong: color-mix(in srgb, var(--success) 75%, black);
+    --success-soft: rgba(55, 168, 100, 0.1);
+    --success-line: rgba(55, 168, 100, 0.24);
+    --warning: #f8aa17;
+    --warning-strong: #e79600;
+    --warning-soft: rgba(248, 170, 23, 0.1);
+    --warning-line: rgba(248, 170, 23, 0.24);
+    --danger: #f1454f;
+    --danger-strong: color-mix(in srgb, var(--danger) 75%, black);
+    --danger-soft: rgba(241, 69, 79, 0.08);
+    --danger-line: rgba(241, 69, 79, 0.2);
     /* Status chart tones derived from brand/warning so they re-theme automatically */
     --issued-soft: color-mix(in srgb, var(--secondary) 40%, white);
     --returned: var(--warning);
-    --accent-orange: #f97316;
+    --accent-orange: #f5820f;
     --accent-teal: #0d9488;
-    --purple: #7c3aed;
+    --purple: #9b44ad;
     --teal: #0d9488;
     --rose: #e11d48;
-    --surface-white: #ebedf1;
+    --surface-white: #f8f8f9;
     /* Muted/highlight small accents */
-    --muted: #706f70;
-    --highlight: #94a3b8;
-    --text-strong: #080808;
-    --text-soft: #52607a;
+    --muted: #8c8f9e;
+    --highlight: #c4c5cd;
+    --text-strong: #0e0c25;
+    --text-soft: #6c7083;
 
     /* Full Tailwind palette shades, wired to variables so every bg-/text-/border-/ring-*
        utility class across the app (not just the brand/status tokens above) can be

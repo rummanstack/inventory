@@ -50,9 +50,9 @@ export default function DashboardPage() {
             data={vm.tradingTrend}
             valueFormatter={(value) => formatCurrency(value, language)}
             series={[
-              { key: 'paid', label: t('dashboard.payableToday'), color: getCssVar('--success', '#0f766e'), fill: true },
-              { key: 'issued', label: t('reports.issued'), color: getCssVar('--secondary', '#2563eb') },
-              { key: 'sold', label: t('reports.sold'), color: getCssVar('--accent-orange', '#f97316') },
+              { key: 'paid', label: t('dashboard.payableToday'), color: getCssVar('--success', '#37a864'), fill: true },
+              { key: 'issued', label: t('reports.issued'), color: getCssVar('--secondary', '#5e5b8e') },
+              { key: 'sold', label: t('reports.sold'), color: getCssVar('--accent-orange', '#f5820f') },
             ]}
           />
         </ChartPanel>
@@ -64,7 +64,7 @@ export default function DashboardPage() {
 
       <div className="mt-6">
         <ChartPanel title={t('dashboard.activityHeatmap')} description={t('dashboard.activityHeatmapDescription')}>
-          <ActivityHeatmap cells={vm.activityHeatmap} color={getCssVar('--secondary', '#2563eb')} t={t} language={language} />
+          <ActivityHeatmap cells={vm.activityHeatmap} color={getCssVar('--secondary', '#5e5b8e')} t={t} language={language} />
         </ChartPanel>
       </div>
 
@@ -78,9 +78,9 @@ export default function DashboardPage() {
             <StackedBarChart
               data={vm.routePerformance}
               segments={[
-                { key: 'issued', label: t('reports.issued'), color: getCssVar('--issued-soft', '#bfdbfe') },
-              { key: 'returned', label: t('reports.returned'), color: getCssVar('--returned', '#fdba74') },
-              { key: 'sold', label: t('reports.sold'), color: getCssVar('--success', '#0f766e') },
+                { key: 'issued', label: t('reports.issued'), color: getCssVar('--issued-soft', '#bfbdd2') },
+              { key: 'returned', label: t('reports.returned'), color: getCssVar('--returned', '#f8aa17') },
+              { key: 'sold', label: t('reports.sold'), color: getCssVar('--success', '#37a864') },
               ]}
               totalFormatter={(value) => `${formatNumber(value, language)} ${t('common.pcs')}`}
             />
@@ -107,7 +107,7 @@ export default function DashboardPage() {
             </div>
             <div className="grid gap-3 md:grid-cols-3">
               <div className="flex flex-col items-center justify-center rounded-[26px] border border-slate-200 bg-white/85 px-4 py-4 text-center shadow-[0_12px_26px_rgba(var(--slate-900),0.05)]">
-                <RadialProgressChart value={vm.completionRate} label={t('dashboard.collectionFlow')} color={getCssVar('--secondary', '#2563eb')} size={132} />
+                <RadialProgressChart value={vm.completionRate} label={t('dashboard.collectionFlow')} color={getCssVar('--secondary', '#5e5b8e')} size={132} />
                 <p className="mt-2 text-sm font-medium leading-6 text-slate-500">{t('dashboard.collectionFlowDesc')}</p>
               </div>
               {vm.operationalPulse.slice(1).map((item) => (

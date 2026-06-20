@@ -1,7 +1,7 @@
 import { formatNumber, getPreferredLanguage } from '../utils/calculations';
 import { getCssVar } from '../utils/theme.js';
 
-const getSecondary = () => getCssVar('--secondary', '#2563eb');
+const getSecondary = () => getCssVar('--secondary', '#5e5b8e');
 
 function isBangla(language) {
   return language === 'bn';
@@ -318,7 +318,7 @@ export function buildCategoryInventory(products, language = getPreferredLanguage
     products.reduce((map, product) => {
       const key = product.categoryId || 'uncategorized';
       const label = product.category || localize(language, 'Uncategorized', 'শ্রেণীহীন');
-      const current = map.get(key) || { label, value: 0, units: 0, color: `linear-gradient(90deg, ${getCssVar('--success', '#0f766e')}, ${getCssVar('--secondary', '#2563eb')})` };
+      const current = map.get(key) || { label, value: 0, units: 0, color: `linear-gradient(90deg, ${getCssVar('--success', '#37a864')}, ${getCssVar('--secondary', '#5e5b8e')})` };
       current.value += Number(product.stockPieces || 0) * Number(product.purchasePrice || 0);
       current.units += Number(product.stockPieces || 0);
       map.set(key, current);
@@ -328,7 +328,7 @@ export function buildCategoryInventory(products, language = getPreferredLanguage
     .sort((a, b) => b.value - a.value)
     .map((item, index) => ({
       ...item,
-      color: [getCssVar('--secondary', '#2563eb'), getCssVar('--success', '#0f766e'), getCssVar('--accent-orange', '#f97316'), getCssVar('--purple', '#7c3aed'), getCssVar('--danger', '#dc2626'), getCssVar('--teal', '#0891b2')][index % 6],
+      color: [getCssVar('--secondary', '#5e5b8e'), getCssVar('--success', '#37a864'), getCssVar('--accent-orange', '#f5820f'), getCssVar('--purple', '#9b44ad'), getCssVar('--danger', '#f1454f'), getCssVar('--teal', '#0891b2')][index % 6],
       meta: `${formatNumber(item.units, language)} ${localize(language, 'pcs in stock', 'স্টকে পিস')}`,
     }));
 }
@@ -366,7 +366,7 @@ export function buildTopPayableProducts(settlements, language = getPreferredLang
     .map((item, index) => ({
       ...item,
       meta: `${formatNumber(item.soldPieces, language)} ${localize(language, 'pcs sold', 'পিস বিক্রি')}`,
-      color: [getCssVar('--success', '#0f766e'), getCssVar('--secondary', '#2563eb'), getCssVar('--accent-orange', '#f97316'), getCssVar('--purple', '#7c3aed'), getCssVar('--rose', '#e11d48')][index % 5],
+      color: [getCssVar('--success', '#37a864'), getCssVar('--secondary', '#5e5b8e'), getCssVar('--accent-orange', '#f5820f'), getCssVar('--purple', '#9b44ad'), getCssVar('--rose', '#e11d48')][index % 5],
     }));
 }
 

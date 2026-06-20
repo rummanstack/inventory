@@ -185,9 +185,9 @@ export function useDashboardViewModel({ products, dsrs, today, t, language = 'en
     routePerformance: buildRoutePerformance(dailyRows, language),
     topPayableProducts: buildTopPayableProducts(todaySettlements, language),
     settlementMix: [
-      { label: t('dashboard.completed'), value: completedRows.length, color: getCssVar('--success', '#0f766e') },
-      { label: t('dashboard.pending'), value: pendingRows.length, color: getCssVar('--warning', '#f59e0b') },
-      { label: t('dashboard.noIssue'), value: Math.max(activeDsrs - issuedDsrIds.size, 0), color: getCssVar('--muted', '#cbd5e1') },
+      { label: t('dashboard.completed'), value: completedRows.length, color: getCssVar('--success', '#37a864') },
+      { label: t('dashboard.pending'), value: pendingRows.length, color: getCssVar('--warning', '#f8aa17') },
+      { label: t('dashboard.noIssue'), value: Math.max(activeDsrs - issuedDsrIds.size, 0), color: getCssVar('--muted', '#8c8f9e') },
     ],
     operationalPulse: [
       { title: t('dashboard.collectionFlow'), value: `${formatNumber(completionRate, language)}%`, subtitle: t('dashboard.collectionFlowDesc') },

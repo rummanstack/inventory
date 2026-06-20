@@ -136,7 +136,7 @@ function PickerFrame({ open, anchorRef, panelRef, children, className = '', pane
       ref={panelRef}
       style={style}
       className={cx(
-        'rounded-[24px] border border-slate-200 bg-white p-3 shadow-[0_24px_60px_rgba(15,23,42,0.18)] ring-1 ring-slate-900/[0.04]',
+        'rounded-[24px] border border-slate-200 bg-white p-3 shadow-[0_24px_60px_rgba(var(--slate-900),0.18)] ring-1 ring-slate-900/[0.04]',
         className,
       )}
     >

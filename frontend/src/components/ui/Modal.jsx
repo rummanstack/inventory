@@ -67,11 +67,11 @@ export function ConfirmationDialog({
     slate: Info,
   };
   const toneButton = {
-    rose: 'bg-rose-600 text-white shadow-[0_14px_28px_rgba(225,29,72,0.22)] hover:bg-rose-700 focus:ring-rose-100',
-    amber: 'bg-amber-500 text-white shadow-[0_14px_28px_rgba(245,158,11,0.22)] hover:bg-amber-600 focus:ring-amber-100',
+    rose: 'bg-rose-600 text-white shadow-[0_14px_28px_rgba(var(--rose-600),0.22)] hover:bg-rose-700 focus:ring-rose-100',
+    amber: 'bg-amber-500 text-white shadow-[0_14px_28px_rgba(var(--amber-500),0.22)] hover:bg-amber-600 focus:ring-amber-100',
     blue: 'bg-[var(--secondary)] text-white shadow-[0_14px_28px_var(--secondary-shadow)] hover:bg-[var(--secondary-strong)] focus:ring-[var(--secondary-soft)]',
-    emerald: 'bg-emerald-600 text-white shadow-[0_14px_28px_rgba(5,150,105,0.22)] hover:bg-emerald-700 focus:ring-emerald-100',
-    slate: 'bg-slate-800 text-white shadow-[0_14px_28px_rgba(15,23,42,0.18)] hover:bg-slate-900 focus:ring-slate-100',
+    emerald: 'bg-emerald-600 text-white shadow-[0_14px_28px_rgba(var(--emerald-600),0.22)] hover:bg-emerald-700 focus:ring-emerald-100',
+    slate: 'bg-slate-800 text-white shadow-[0_14px_28px_rgba(var(--slate-900),0.18)] hover:bg-slate-900 focus:ring-slate-100',
   };
   const Icon = toneIcon[tone] || toneIcon.rose;
 

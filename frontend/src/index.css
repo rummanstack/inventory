@@ -13,11 +13,11 @@
     -moz-osx-font-smoothing: grayscale;
     --app-bg: #d4d8df;
     --app-bg-strong: #acadb1;
-    --surface: rgba(255, 255, 255, 0.94);
-    --surface-strong: rgba(255, 255, 255, 0.98);
-    --surface-line: rgba(15, 23, 42, 0.08);
-    --shadow-soft: 0 20px 55px rgba(15, 23, 42, 0.08);
-    --shadow-crisp: 0 12px 30px rgba(15, 23, 42, 0.07);
+    --surface: rgba(var(--white), 0.94);
+    --surface-strong: rgba(var(--white), 0.98);
+    --surface-line: rgba(var(--slate-900), 0.08);
+    --shadow-soft: 0 20px 55px rgba(var(--slate-900), 0.08);
+    --shadow-crisp: 0 12px 30px rgba(var(--slate-900), 0.07);
     --brand: #353536;
     --brand-strong: #080808;
     --brand-soft: color-mix(in srgb, var(--brand) 12%, white);
@@ -35,7 +35,7 @@
     --bg-grad-end: #eef3f8;
     --chart-tooltip-title: #f8fafc;
     --chart-tooltip-body: #e2e8f0;
-    --chart-grid: rgba(148, 163, 184, 0.16);
+    --chart-grid: rgba(var(--slate-400), 0.16);
     --tick-color: #475569;
     --success: #16a34a;
     --success-strong: #15803d;
@@ -63,6 +63,136 @@
     --highlight: #94a3b8;
     --text-strong: #080808;
     --text-soft: #52607a;
+
+    /* Full Tailwind palette shades, wired to variables so every bg-/text-/border-/ring-*
+       utility class across the app (not just the brand/status tokens above) can be
+       re-themed from this one place instead of editing component files.
+       Stored as "R G B" channels (not hex) so Tailwind's opacity modifiers
+       (e.g. border-slate-200/70) keep working via rgb(var(...) / <alpha>). */
+    --slate-50: 248 250 252;
+    --slate-100: 241 245 249;
+    --slate-200: 226 232 240;
+    --slate-300: 203 213 225;
+    --slate-400: 148 163 184;
+    --slate-500: 100 116 139;
+    --slate-600: 71 85 105;
+    --slate-700: 51 65 85;
+    --slate-800: 30 41 59;
+    --slate-900: 15 23 42;
+    --slate-950: 2 6 23;
+
+    --blue-50: 239 246 255;
+    --blue-100: 219 234 254;
+    --blue-200: 191 219 254;
+    --blue-300: 147 197 253;
+    --blue-400: 96 165 250;
+    --blue-500: 59 130 246;
+    --blue-600: 37 99 235;
+    --blue-700: 29 78 216;
+    --blue-800: 30 64 175;
+    --blue-900: 30 58 138;
+    --blue-950: 23 37 84;
+
+    --emerald-50: 236 253 245;
+    --emerald-100: 209 250 229;
+    --emerald-200: 167 243 208;
+    --emerald-300: 110 231 183;
+    --emerald-400: 52 211 153;
+    --emerald-500: 16 185 129;
+    --emerald-600: 5 150 105;
+    --emerald-700: 4 120 87;
+    --emerald-800: 6 95 70;
+    --emerald-900: 6 78 59;
+    --emerald-950: 2 44 34;
+
+    --amber-50: 255 251 235;
+    --amber-100: 254 243 199;
+    --amber-200: 253 230 138;
+    --amber-300: 252 211 77;
+    --amber-400: 251 191 36;
+    --amber-500: 245 158 11;
+    --amber-600: 217 119 6;
+    --amber-700: 180 83 9;
+    --amber-800: 146 64 14;
+    --amber-900: 120 53 15;
+    --amber-950: 69 26 3;
+
+    --indigo-50: 238 242 255;
+    --indigo-100: 224 231 255;
+    --indigo-200: 199 210 254;
+    --indigo-300: 165 180 252;
+    --indigo-400: 129 140 248;
+    --indigo-500: 99 102 241;
+    --indigo-600: 79 70 229;
+    --indigo-700: 67 56 202;
+    --indigo-800: 55 48 163;
+    --indigo-900: 49 46 129;
+    --indigo-950: 30 27 75;
+
+    --purple-50: 250 245 255;
+    --purple-100: 243 232 255;
+    --purple-200: 233 213 255;
+    --purple-300: 216 180 254;
+    --purple-400: 192 132 252;
+    --purple-500: 168 85 247;
+    --purple-600: 147 51 234;
+    --purple-700: 126 34 206;
+    --purple-800: 107 33 168;
+    --purple-900: 88 28 135;
+    --purple-950: 59 7 100;
+
+    --rose-50: 255 241 242;
+    --rose-100: 255 228 230;
+    --rose-200: 254 205 211;
+    --rose-300: 253 164 175;
+    --rose-400: 251 113 133;
+    --rose-500: 244 63 94;
+    --rose-600: 225 29 72;
+    --rose-700: 190 18 60;
+    --rose-800: 159 18 57;
+    --rose-900: 136 19 55;
+    --rose-950: 76 5 25;
+
+    --red-50: 254 242 242;
+    --red-100: 254 226 226;
+    --red-200: 254 202 202;
+    --red-300: 252 165 165;
+    --red-400: 248 113 113;
+    --red-500: 239 68 68;
+    --red-600: 220 38 38;
+    --red-700: 185 28 28;
+    --red-800: 153 27 27;
+    --red-900: 127 29 29;
+    --red-950: 69 10 10;
+
+    --sky-50: 240 249 255;
+    --sky-100: 224 242 254;
+    --sky-200: 186 230 253;
+    --sky-300: 125 211 252;
+    --sky-400: 56 189 248;
+    --sky-500: 14 165 233;
+    --sky-600: 2 132 199;
+    --sky-700: 3 105 161;
+    --sky-800: 7 89 133;
+    --sky-900: 12 74 110;
+    --sky-950: 8 47 73;
+
+    --teal-50: 240 253 250;
+    --teal-100: 204 251 241;
+    --teal-200: 153 246 228;
+    --teal-300: 94 234 212;
+    --teal-400: 45 212 191;
+    --teal-500: 20 184 166;
+    --teal-600: 13 148 136;
+    --teal-700: 15 118 110;
+    --teal-800: 17 94 89;
+    --teal-900: 19 78 74;
+    --teal-950: 4 47 46;
+
+    --white: 255 255 255;
+    --black: 0 0 0;
+    /* Used by a couple of one-off decorative landing-page gradients/shadows. */
+    --cyan-600: 8 145 178;
   }
 
   html {
@@ -77,8 +207,8 @@
     height: 100%;
     overflow: hidden;
     background:
-      radial-gradient(circle at top left, rgba(37, 99, 235, 0.08), transparent 30%),
-      radial-gradient(circle at top right, rgba(14, 165, 233, 0.08), transparent 24%),
+      radial-gradient(circle at top left, rgba(var(--blue-600), 0.08), transparent 30%),
+      radial-gradient(circle at top right, rgba(var(--sky-500), 0.08), transparent 24%),
       linear-gradient(180deg, var(--bg-grad-start) 0%, var(--bg-grad-mid) 52%, var(--bg-grad-end) 100%);
     color: var(--text-strong);
   }
@@ -120,8 +250,8 @@
     min-height: 100vh;
     overflow-x: hidden;
     background:
-      radial-gradient(circle at top left, rgba(37, 99, 235, 0.08), transparent 28%),
-      radial-gradient(circle at top right, rgba(8, 145, 178, 0.08), transparent 24%),
+      radial-gradient(circle at top left, rgba(var(--blue-600), 0.08), transparent 28%),
+      radial-gradient(circle at top right, rgba(var(--cyan-600), 0.08), transparent 24%),
       linear-gradient(180deg, #f8fbff 0%, #f4f7fb 42%, #ffffff 100%);
     color: var(--text-strong);
   }
@@ -131,11 +261,11 @@
   }
 
   .landing-header-inner {
-    @apply landing-container mt-3 flex min-h-16 items-center justify-between gap-2 rounded-full border border-slate-200/70 bg-white/90 px-3 py-3 shadow-[0_10px_30px_rgba(15,23,42,0.08)] backdrop-blur-xl sm:gap-3 sm:px-8;
+    @apply landing-container mt-3 flex min-h-16 items-center justify-between gap-2 rounded-full border border-slate-200/70 bg-white/90 px-3 py-3 shadow-[0_10px_30px_rgba(var(--slate-900),0.08)] backdrop-blur-xl sm:gap-3 sm:px-8;
   }
 
   .brand-mark {
-    @apply flex h-10 w-10 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,var(--brand-strong),var(--teal))] text-white shadow-[0_14px_30px_rgba(37,99,235,0.26)];
+    @apply flex h-10 w-10 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,var(--brand-strong),var(--teal))] text-white shadow-[0_14px_30px_rgba(var(--blue-600),0.26)];
   }
 
   .landing-nav-link {
@@ -143,14 +273,14 @@
   }
 
   .landing-small-cta {
-    @apply inline-flex h-10 items-center justify-center gap-2 whitespace-nowrap rounded-full bg-[linear-gradient(135deg,var(--brand-strong),var(--brand))] px-4 text-sm font-black text-white shadow-[0_14px_28px_rgba(37,99,235,0.22)] transition duration-200 ease-out hover:-translate-y-0.5 hover:brightness-95 hover:shadow-[0_18px_34px_rgba(37,99,235,0.28)] active:brightness-90;
+    @apply inline-flex h-10 items-center justify-center gap-2 whitespace-nowrap rounded-full bg-[linear-gradient(135deg,var(--brand-strong),var(--brand))] px-4 text-sm font-black text-white shadow-[0_14px_28px_rgba(var(--blue-600),0.22)] transition duration-200 ease-out hover:-translate-y-0.5 hover:brightness-95 hover:shadow-[0_18px_34px_rgba(var(--blue-600),0.28)] active:brightness-90;
   }
 
   .landing-hero {
     @apply relative overflow-hidden border-b border-slate-200/70 pb-16 pt-32 sm:pb-20 sm:pt-36 lg:pb-24 lg:pt-40;
     background:
-      linear-gradient(rgba(15, 23, 42, 0.022) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(15, 23, 42, 0.022) 1px, transparent 1px),
+      linear-gradient(rgba(var(--slate-900), 0.022) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(var(--slate-900), 0.022) 1px, transparent 1px),
       linear-gradient(115deg, rgba(248, 251, 255, 0.96), rgba(239, 246, 255, 0.92) 48%, rgba(236, 253, 245, 0.74));
     background-size:
       54px 54px,
@@ -175,15 +305,15 @@
   }
 
   .landing-primary-btn {
-    @apply inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-[linear-gradient(135deg,#08111f,var(--brand-strong)_50%,var(--teal))] px-6 text-base font-black text-white shadow-[0_18px_36px_rgba(29,78,216,0.28)] transition duration-200 ease-out hover:-translate-y-0.5 hover:brightness-95 hover:shadow-[0_22px_44px_rgba(29,78,216,0.34)] active:brightness-90 focus:outline-none focus:ring-4 focus:ring-blue-100;
+    @apply inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-[linear-gradient(135deg,#08111f,var(--brand-strong)_50%,var(--teal))] px-6 text-base font-black text-white shadow-[0_18px_36px_rgba(var(--blue-700),0.28)] transition duration-200 ease-out hover:-translate-y-0.5 hover:brightness-95 hover:shadow-[0_22px_44px_rgba(var(--blue-700),0.34)] active:brightness-90 focus:outline-none focus:ring-4 focus:ring-blue-100;
   }
 
   .landing-secondary-btn {
-    @apply inline-flex h-12 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white/90 px-6 text-base font-black text-slate-800 shadow-[0_12px_28px_rgba(15,23,42,0.07)] transition duration-200 ease-out hover:-translate-y-0.5 hover:border-blue-200 hover:bg-white hover:text-[var(--brand-strong)] hover:shadow-[0_18px_34px_rgba(15,23,42,0.1)] focus:outline-none focus:ring-4 focus:ring-slate-100;
+    @apply inline-flex h-12 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white/90 px-6 text-base font-black text-slate-800 shadow-[0_12px_28px_rgba(var(--slate-900),0.07)] transition duration-200 ease-out hover:-translate-y-0.5 hover:border-blue-200 hover:bg-white hover:text-[var(--brand-strong)] hover:shadow-[0_18px_34px_rgba(var(--slate-900),0.1)] focus:outline-none focus:ring-4 focus:ring-slate-100;
   }
 
   .landing-demo-strip {
-    @apply mt-8 flex max-w-3xl flex-col gap-3 rounded-[24px] border border-white/80 bg-white/90 p-4 shadow-[0_18px_45px_rgba(15,23,42,0.08)] ring-1 ring-slate-900/[0.03] backdrop-blur sm:flex-row;
+    @apply mt-8 flex max-w-3xl flex-col gap-3 rounded-[24px] border border-white/80 bg-white/90 p-4 shadow-[0_18px_45px_rgba(var(--slate-900),0.08)] ring-1 ring-slate-900/[0.03] backdrop-blur sm:flex-row;
   }
 
   .landing-demo-strip > * {
@@ -211,7 +341,7 @@
   }
 
   .landing-floating-note {
-    @apply absolute -bottom-5 left-8 max-w-xs rounded-[22px] border border-blue-100 bg-white/90 p-4 shadow-[0_20px_48px_rgba(15,23,42,0.12)] backdrop-blur;
+    @apply absolute -bottom-5 left-8 max-w-xs rounded-[22px] border border-blue-100 bg-white/90 p-4 shadow-[0_20px_48px_rgba(var(--slate-900),0.12)] backdrop-blur;
   }
 
   .landing-section {
@@ -227,7 +357,7 @@
   }
 
   .problem-panel {
-    @apply grid gap-8 rounded-[28px] border border-slate-200/80 bg-white/90 p-6 shadow-[0_20px_55px_rgba(15,23,42,0.07)] ring-1 ring-slate-900/[0.03] md:grid-cols-[1fr_0.9fr] lg:p-10;
+    @apply grid gap-8 rounded-[28px] border border-slate-200/80 bg-white/90 p-6 shadow-[0_20px_55px_rgba(var(--slate-900),0.07)] ring-1 ring-slate-900/[0.03] md:grid-cols-[1fr_0.9fr] lg:p-10;
   }
 
   .problem-item {
@@ -235,7 +365,7 @@
   }
 
   .feature-story {
-    @apply grid gap-6 rounded-[30px] border border-slate-200/80 bg-white/95 p-4 shadow-[0_22px_58px_rgba(15,23,42,0.08)] ring-1 ring-slate-900/[0.03] lg:grid-cols-2 lg:items-center lg:p-6;
+    @apply grid gap-6 rounded-[30px] border border-slate-200/80 bg-white/95 p-4 shadow-[0_22px_58px_rgba(var(--slate-900),0.08)] ring-1 ring-slate-900/[0.03] lg:grid-cols-2 lg:items-center lg:p-6;
   }
 
   .feature-story-content {
@@ -243,7 +373,7 @@
   }
 
   .landing-feature-card {
-    @apply rounded-[22px] border border-slate-200/80 bg-white/95 p-5 shadow-[0_16px_40px_rgba(15,23,42,0.06)] ring-1 ring-slate-900/[0.03] transition-shadow duration-300 hover:border-blue-100 hover:shadow-[0_22px_50px_rgba(37,99,235,0.1)];
+    @apply rounded-[22px] border border-slate-200/80 bg-white/95 p-5 shadow-[0_16px_40px_rgba(var(--slate-900),0.06)] ring-1 ring-slate-900/[0.03] transition-shadow duration-300 hover:border-blue-100 hover:shadow-[0_22px_50px_rgba(var(--blue-600),0.1)];
   }
 
   .landing-icon {
@@ -251,11 +381,11 @@
   }
 
   .solution-card {
-    @apply overflow-hidden rounded-[26px] border border-slate-200/80 bg-white/95 shadow-[0_18px_44px_rgba(15,23,42,0.07)] ring-1 ring-slate-900/[0.03] transition-shadow duration-300 hover:shadow-[0_24px_54px_rgba(8,145,178,0.12)];
+    @apply overflow-hidden rounded-[26px] border border-slate-200/80 bg-white/95 shadow-[0_18px_44px_rgba(var(--slate-900),0.07)] ring-1 ring-slate-900/[0.03] transition-shadow duration-300 hover:shadow-[0_24px_54px_rgba(var(--cyan-600),0.12)];
   }
 
   .workflow-card {
-    @apply rounded-[24px] border border-slate-200/80 bg-white/95 p-5 shadow-[0_16px_38px_rgba(15,23,42,0.06)] ring-1 ring-slate-900/[0.03];
+    @apply rounded-[24px] border border-slate-200/80 bg-white/95 p-5 shadow-[0_16px_38px_rgba(var(--slate-900),0.06)] ring-1 ring-slate-900/[0.03];
   }
 
   .workflow-number {
@@ -267,11 +397,11 @@
   }
 
   .image-placeholder {
-    @apply relative overflow-hidden rounded-[26px] border border-slate-200/80 bg-slate-100 shadow-[0_18px_44px_rgba(15,23,42,0.07)] ring-1 ring-slate-900/[0.03];
+    @apply relative overflow-hidden rounded-[26px] border border-slate-200/80 bg-slate-100 shadow-[0_18px_44px_rgba(var(--slate-900),0.07)] ring-1 ring-slate-900/[0.03];
   }
 
   .image-placeholder-dashboard {
-    @apply rounded-[30px] shadow-[0_34px_90px_rgba(15,23,42,0.18)];
+    @apply rounded-[30px] shadow-[0_34px_90px_rgba(var(--slate-900),0.18)];
   }
 
   .landing-image {
@@ -283,11 +413,11 @@
   }
 
   .demo-panel {
-    @apply grid gap-8 rounded-[30px] border border-blue-100 bg-[linear-gradient(135deg,rgba(37,99,235,0.06),rgba(8,145,178,0.05)_60%,rgba(255,255,255,0.9))] p-6 shadow-[0_22px_55px_rgba(15,23,42,0.08)] ring-1 ring-slate-900/[0.03] sm:p-8 lg:grid-cols-[1fr_auto] lg:items-center lg:p-10;
+    @apply grid gap-8 rounded-[30px] border border-blue-100 bg-[linear-gradient(135deg,rgba(var(--blue-600),0.06),rgba(var(--cyan-600),0.05)_60%,rgba(var(--white),0.9))] p-6 shadow-[0_22px_55px_rgba(var(--slate-900),0.08)] ring-1 ring-slate-900/[0.03] sm:p-8 lg:grid-cols-[1fr_auto] lg:items-center lg:p-10;
   }
 
   .demo-white-btn {
-    @apply inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-[linear-gradient(135deg,#08111f,var(--brand-strong)_50%,var(--teal))] px-6 text-base font-black text-white shadow-[0_18px_36px_rgba(29,78,216,0.28)] transition duration-200 ease-out hover:-translate-y-0.5 hover:brightness-95 hover:shadow-[0_22px_44px_rgba(29,78,216,0.34)] active:brightness-90;
+    @apply inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-[linear-gradient(135deg,#08111f,var(--brand-strong)_50%,var(--teal))] px-6 text-base font-black text-white shadow-[0_18px_36px_rgba(var(--blue-700),0.28)] transition duration-200 ease-out hover:-translate-y-0.5 hover:brightness-95 hover:shadow-[0_22px_44px_rgba(var(--blue-700),0.34)] active:brightness-90;
   }
 
   .demo-outline-btn {
@@ -295,15 +425,15 @@
   }
 
   .pricing-card {
-    @apply rounded-[24px] border border-slate-200/80 bg-white/95 p-6 shadow-[0_18px_44px_rgba(15,23,42,0.07)] ring-1 ring-slate-900/[0.03];
+    @apply rounded-[24px] border border-slate-200/80 bg-white/95 p-6 shadow-[0_18px_44px_rgba(var(--slate-900),0.07)] ring-1 ring-slate-900/[0.03];
   }
 
   .pricing-card-featured {
-    @apply border-blue-200 shadow-[0_26px_62px_rgba(37,99,235,0.16)] ring-blue-100;
+    @apply border-blue-200 shadow-[0_26px_62px_rgba(var(--blue-600),0.16)] ring-blue-100;
   }
 
   .contact-form {
-    @apply rounded-[24px] border border-slate-200/80 bg-white/95 p-6 shadow-[0_18px_44px_rgba(15,23,42,0.07)] ring-1 ring-slate-900/[0.03] sm:p-8;
+    @apply rounded-[24px] border border-slate-200/80 bg-white/95 p-6 shadow-[0_18px_44px_rgba(var(--slate-900),0.07)] ring-1 ring-slate-900/[0.03] sm:p-8;
   }
 
   .contact-label {
@@ -311,7 +441,7 @@
   }
 
   .contact-input {
-    @apply w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-900 shadow-[0_1px_0_rgba(15,23,42,0.03)] outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-[var(--brand)] focus:ring-4 focus:ring-[var(--brand-soft)];
+    @apply w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-900 shadow-[0_1px_0_rgba(var(--slate-900),0.03)] outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-[var(--brand)] focus:ring-4 focus:ring-[var(--brand-soft)];
   }
 
   .contact-feedback {
@@ -327,7 +457,7 @@
   }
 
   .input {
-    @apply h-10 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 shadow-[0_1px_0_rgba(15,23,42,0.03)] outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-[var(--secondary)] focus:bg-white focus:ring-4 focus:ring-[var(--secondary-soft)] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400;
+    @apply h-10 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 shadow-[0_1px_0_rgba(var(--slate-900),0.03)] outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-[var(--secondary)] focus:bg-white focus:ring-4 focus:ring-[var(--secondary-soft)] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400;
   }
 
   select.input {
@@ -346,7 +476,7 @@
   }
 
   .btn-secondary {
-    @apply inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-700 shadow-[0_1px_0_rgba(15,23,42,0.03)] transition duration-200 ease-out hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950 hover:shadow-[0_12px_24px_rgba(15,23,42,0.08)] active:bg-slate-100 focus:outline-none focus:ring-4 focus:ring-slate-100 disabled:cursor-not-allowed disabled:text-slate-400 disabled:shadow-none;
+    @apply inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-700 shadow-[0_1px_0_rgba(var(--slate-900),0.03)] transition duration-200 ease-out hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950 hover:shadow-[0_12px_24px_rgba(var(--slate-900),0.08)] active:bg-slate-100 focus:outline-none focus:ring-4 focus:ring-slate-100 disabled:cursor-not-allowed disabled:text-slate-400 disabled:shadow-none;
   }
 
   .btn-danger {
@@ -354,11 +484,11 @@
   }
 
   .icon-btn {
-    @apply inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-[0_1px_0_rgba(15,23,42,0.03)] transition duration-200 ease-out hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950 hover:shadow-[0_12px_24px_rgba(15,23,42,0.08)] active:bg-slate-100 focus:outline-none focus:ring-4 focus:ring-slate-100;
+    @apply inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-[0_1px_0_rgba(var(--slate-900),0.03)] transition duration-200 ease-out hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950 hover:shadow-[0_12px_24px_rgba(var(--slate-900),0.08)] active:bg-slate-100 focus:outline-none focus:ring-4 focus:ring-slate-100;
   }
 
   .surface {
-    @apply rounded-[20px] border border-slate-200/80 bg-[rgba(255,255,255,0.94)] shadow-[0_18px_45px_rgba(15,23,42,0.07)] ring-1 ring-slate-900/[0.03] backdrop-blur;
+    @apply rounded-[20px] border border-slate-200/80 bg-[rgba(var(--white),0.94)] shadow-[0_18px_45px_rgba(var(--slate-900),0.07)] ring-1 ring-slate-900/[0.03] backdrop-blur;
   }
 
   .table-head {
@@ -379,22 +509,22 @@
     inset: 0;
     pointer-events: none;
     background-image:
-      linear-gradient(rgba(15, 23, 42, 0.025) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(15, 23, 42, 0.025) 1px, transparent 1px);
+      linear-gradient(rgba(var(--slate-900), 0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(var(--slate-900), 0.025) 1px, transparent 1px);
     background-size: 48px 48px;
-    mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.58), transparent 72%);
+    mask-image: linear-gradient(180deg, rgba(var(--black), 0.58), transparent 72%);
   }
 
   .panel {
-    @apply rounded-[22px] border border-slate-200/80 bg-white/95 shadow-[0_18px_45px_rgba(15,23,42,0.07)] ring-1 ring-slate-900/[0.03] backdrop-blur;
+    @apply rounded-[22px] border border-slate-200/80 bg-white/95 shadow-[0_18px_45px_rgba(var(--slate-900),0.07)] ring-1 ring-slate-900/[0.03] backdrop-blur;
   }
 
   .panel-strong {
-    @apply rounded-[24px] border border-slate-200/70 bg-white shadow-[0_22px_60px_rgba(15,23,42,0.08)] ring-1 ring-slate-900/[0.03];
+    @apply rounded-[24px] border border-slate-200/70 bg-white shadow-[0_22px_60px_rgba(var(--slate-900),0.08)] ring-1 ring-slate-900/[0.03];
   }
 
   .shell-surface {
-    @apply rounded-[24px] border border-slate-200/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(244,247,251,0.96))] shadow-[0_20px_60px_rgba(15,23,42,0.08)] ring-1 ring-slate-900/[0.03];
+    @apply rounded-[24px] border border-slate-200/70 bg-[linear-gradient(180deg,rgba(var(--white),0.98),rgba(244,247,251,0.96))] shadow-[0_20px_60px_rgba(var(--slate-900),0.08)] ring-1 ring-slate-900/[0.03];
   }
 
   .brand-chip {

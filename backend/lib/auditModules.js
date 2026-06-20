@@ -11,6 +11,7 @@ export const AUDIT_MODULES = [
   "suppliers",
   "purchases",
   "retailer",
+  "support",
   "system",
 ];
 
@@ -34,6 +35,7 @@ const ENTITY_TYPE_MODULES = {
   sales_return: "retailer",
   customer_payment: "retailer",
   customer_due_ledger: "retailer",
+  help_desk_ticket: "support",
 };
 
 export function moduleForEntityType(entityType) {

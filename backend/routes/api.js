@@ -8,6 +8,7 @@ import { ActivityLogController } from "../controllers/activityLogController.js";
 import { AuditController } from "../controllers/auditController.js";
 import { ExpenseController } from "../controllers/expenseController.js";
 import { IssueController } from "../controllers/issueController.js";
+import { HelpDeskController } from "../controllers/helpDeskController.js";
 import { ProductController } from "../controllers/productController.js";
 import { CategoryController } from "../controllers/categoryController.js";
 import { StockMovementController } from "../controllers/stockMovementController.js";
@@ -49,6 +50,7 @@ import { createCustomersRoutes } from "./customers.routes.js";
 import { createRetailCustomersRoutes } from "./retailCustomers.routes.js";
 import { createRetailPromotionsRoutes } from "./retailPromotions.routes.js";
 import { createIssuesRoutes } from "./issues.routes.js";
+import { createHelpDeskRoutes } from "./helpDesk.routes.js";
 import { createSettlementsRoutes } from "./settlements.routes.js";
 import { SupplierController } from "../controllers/supplierController.js";
 import { SupplierDueLedgerController } from "../controllers/supplierDueLedgerController.js";
@@ -112,6 +114,7 @@ export function createApiRouter({
   retailCustomerService,
   retailCashSessionService,
   retailPromotionService,
+  helpDeskService,
 }) {
   const router = Router();
   const authController = new AuthController(authService, env, tenantService);
@@ -122,6 +125,7 @@ export function createApiRouter({
   const dsrController = new DsrController(dsrService);
   const customerController = new CustomerController(customerService);
   const retailCustomerController = new RetailCustomerController(retailCustomerService);
+  const helpDeskController = new HelpDeskController(helpDeskService);
   const retailPromotionController = new RetailPromotionController(retailPromotionService);
   const issueController = new IssueController(issueService);
   const settlementController = new SettlementController(settlementService);
@@ -191,6 +195,7 @@ export function createApiRouter({
   router.use("/dsrs", createDsrsRoutes(dsrController));
   router.use("/customers", createCustomersRoutes(customerController));
   router.use("/retail-customers", createRetailCustomersRoutes(retailCustomerController));
+  router.use("/help-desk", createHelpDeskRoutes(helpDeskController));
   router.use("/issues", createIssuesRoutes(issueController));
   router.use("/settlements", createSettlementsRoutes(settlementController));
   router.use("/suppliers", createSuppliersRoutes(supplierController));

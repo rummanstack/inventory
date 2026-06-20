@@ -52,6 +52,7 @@ import ErrorLogsPage from '../features/system/pages/ErrorLogsPage';
 import ShopsPage from '../features/shops/pages/ShopsPage';
 import RetailCustomersPage from '../features/retail-customers/pages/RetailCustomersPage';
 import RetailCustomerRetentionPage from '../features/retail-customers/pages/RetailCustomerRetentionPage';
+import HelpDeskPage from '../features/help-desk/pages/HelpDeskPage';
 import TrashPage from '../features/trash/pages/TrashPage';
 import DamagedStockPage from '../features/damaged-stock/pages/DamagedStockPage';
 import SuppliersPage from '../features/suppliers/pages/SuppliersPage';
@@ -94,6 +95,7 @@ export const APP_ROUTES = [
   { id: 'reports', path: '/reports', labelKey: 'nav.reports', icon: FileText, component: DailyReportsPage, group: 'reports', permission: 'view_state', feature: 'reports' },
   { id: 'history', path: '/history', labelKey: 'nav.history', icon: ClipboardList, component: HistoryPage, group: 'reports', permission: 'view_state', feature: 'history' },
   { id: 'issue-center', path: '/issue-center', labelKey: 'nav.issueCenter', icon: Bug, component: IssueCenterPage, group: 'reports', permission: 'view_activity_logs', feature: 'activity-logs' },
+  { id: 'help-desk', path: '/help-desk', labelKey: 'nav.helpDesk', icon: ShieldCheck, component: HelpDeskPage, group: 'support' },
   { id: 'finance-dashboard', path: '/finance-dashboard', labelKey: 'nav.financeDashboard', icon: LayoutDashboard, component: FinanceDashboardPage, group: 'finance', permission: 'view_finance_dashboard', feature: 'finance-dashboard' },
   { id: 'finance-accounts', path: '/finance-accounts', labelKey: 'nav.financeAccounts', icon: Landmark, component: FinanceAccountsPage, group: 'finance', permission: 'manage_finance_accounts', feature: 'finance-accounts' },
   { id: 'expenses', path: '/expenses', labelKey: 'nav.expenses', icon: CircleDollarSign, component: ExpensesPage, group: 'finance', permission: 'manage_expenses', feature: 'expenses' },

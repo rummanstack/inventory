@@ -7,6 +7,7 @@ export function createRetailCustomersRoutes(retailCustomerController) {
 
   router.get("/trash", requirePermission(PERMISSIONS.MANAGE_RETAILERS), retailCustomerController.listTrash);
   router.get("/active", requirePermission(PERMISSIONS.VIEW_STATE), retailCustomerController.listActive);
+  router.get("/retention", requirePermission(PERMISSIONS.VIEW_STATE), retailCustomerController.retention);
   router.get("/", requirePermission(PERMISSIONS.VIEW_STATE), retailCustomerController.list);
   router.get("/:id", requirePermission(PERMISSIONS.VIEW_STATE), retailCustomerController.get);
   router.post("/", requirePermission(PERMISSIONS.MANAGE_RETAILERS), retailCustomerController.create);

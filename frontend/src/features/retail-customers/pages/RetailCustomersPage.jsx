@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Pencil, Phone, Plus, Search, Trash2, Users } from 'lucide-react';
 import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
 import { statusTone } from '../../../models/inventoryViewData.js';
@@ -9,6 +10,7 @@ import { useRetailCustomersViewModel } from '../viewmodels/useRetailCustomersVie
 
 export default function RetailCustomersPage() {
   const { t, can, pushToast, confirm } = useInventoryApp();
+  const navigate = useNavigate();
   const vm = useRetailCustomersViewModel();
   const [formModal, setFormModal] = useState(null);
   const canManage = can('manage_retailers');
@@ -54,12 +56,19 @@ export default function RetailCustomersPage() {
         eyebrow={t('retailCustomers.eyebrow')}
         title={t('retailCustomers.title')}
         description={t('retailCustomers.description')}
-        action={canManage ? (
-          <button type="button" className="btn-primary" onClick={() => setFormModal({ mode: 'add' })}>
-            <Plus size={18} />
-            {t('retailCustomers.add')}
-          </button>
-        ) : null}
+        action={(
+          <div className="flex flex-wrap gap-2">
+            <button type="button" className="btn-secondary" onClick={() => navigate('/retail-customers/retention')}>
+              {t('retailCustomers.viewRetention')}
+            </button>
+            {canManage ? (
+              <button type="button" className="btn-primary" onClick={() => setFormModal({ mode: 'add' })}>
+                <Plus size={18} />
+                {t('retailCustomers.add')}
+              </button>
+            ) : null}
+          </div>
+        )}
       />
 
       <div className="surface overflow-hidden">

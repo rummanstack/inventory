@@ -19,6 +19,14 @@ export class RetailCustomerController {
     }
   };
 
+  retention = async (req, res, next) => {
+    try {
+      res.json(await this.retailCustomerService.getRetentionInsights(req.query, req.currentUser));
+    } catch (error) {
+      next(error);
+    }
+  };
+
   get = async (req, res, next) => {
     try {
       res.json({ retailCustomer: await this.retailCustomerService.getRetailCustomer(req.params.id, req.currentUser) });

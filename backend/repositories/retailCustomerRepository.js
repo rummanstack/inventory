@@ -8,6 +8,11 @@ export function mapRetailCustomer(row) {
     note: row.note,
     status: row.status,
     loyaltyPointsBalance: Number(row.loyalty_points_balance || 0),
+    purchaseCount: Number(row.purchase_count || 0),
+    firstPurchaseAt: row.first_purchase_at || null,
+    lastPurchaseAt: row.last_purchase_at || null,
+    totalSpent: Number(row.total_spent || 0),
+    totalPaid: Number(row.total_paid || 0),
     createdById: row.created_by,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -24,18 +29,19 @@ function mapTrashedRetailCustomer(row) {
   };
 }
 
-function buildFilters({ search, status, tenantId }) {
+function buildFilters({ search, status, tenantId }, tableAlias = '') {
+  const prefix = tableAlias ? `${tableAlias}.` : '';
   const params = [tenantId];
-  const conditions = ["tenant_id = $1", "deleted_at IS NULL"];
+  const conditions = [`${prefix}tenant_id = $1`, `${prefix}deleted_at IS NULL`];
 
   if (search) {
     params.push(`%${search}%`);
-    conditions.push(`(name ILIKE $${params.length} OR phone ILIKE $${params.length})`);
+    conditions.push(`(${prefix}name ILIKE $${params.length} OR ${prefix}phone ILIKE $${params.length})`);
   }
 
   if (status) {
     params.push(status);
-    conditions.push(`status = $${params.length}`);
+    conditions.push(`${prefix}status = $${params.length}`);
   }
 
   return { params, where: `WHERE ${conditions.join(" AND ")}` };
@@ -48,10 +54,25 @@ export async function countRetailCustomers(client, filters = {}) {
 }
 
 export async function listRetailCustomersPage(client, { limit, offset, ...filters }) {
-  const { params, where } = buildFilters(filters);
+  const { params, where } = buildFilters(filters, 'rc');
   params.push(limit, offset);
   const result = await client.query(
-    `SELECT * FROM retail_customers ${where} ORDER BY created_at DESC LIMIT $${params.length - 1} OFFSET $${params.length}`,
+    `SELECT rc.*, stats.purchase_count, stats.first_purchase_at, stats.last_purchase_at, stats.total_spent, stats.total_paid
+     FROM retail_customers rc
+     LEFT JOIN (
+       SELECT customer_id,
+              COUNT(*)::INTEGER AS purchase_count,
+              MIN(invoice_date) AS first_purchase_at,
+              MAX(invoice_date) AS last_purchase_at,
+              COALESCE(SUM(total_amount), 0) AS total_spent,
+              COALESCE(SUM(paid_amount), 0) AS total_paid
+       FROM sales_invoices
+       WHERE tenant_id = $1 AND deleted_at IS NULL AND customer_id IS NOT NULL
+       GROUP BY customer_id
+     ) stats ON stats.customer_id = rc.id
+     ${where}
+     ORDER BY rc.created_at DESC
+     LIMIT $${params.length - 1} OFFSET $${params.length}`,
     params,
   );
   return result.rows.map(mapRetailCustomer);
@@ -59,7 +80,21 @@ export async function listRetailCustomersPage(client, { limit, offset, ...filter
 
 export async function listAllActiveRetailCustomers(client, tenantId) {
   const result = await client.query(
-    `SELECT * FROM retail_customers WHERE tenant_id = $1 AND deleted_at IS NULL AND status = 'ACTIVE' ORDER BY name ASC`,
+    `SELECT rc.*, stats.purchase_count, stats.first_purchase_at, stats.last_purchase_at, stats.total_spent, stats.total_paid
+     FROM retail_customers rc
+     LEFT JOIN (
+       SELECT customer_id,
+              COUNT(*)::INTEGER AS purchase_count,
+              MIN(invoice_date) AS first_purchase_at,
+              MAX(invoice_date) AS last_purchase_at,
+              COALESCE(SUM(total_amount), 0) AS total_spent,
+              COALESCE(SUM(paid_amount), 0) AS total_paid
+       FROM sales_invoices
+       WHERE tenant_id = $1 AND deleted_at IS NULL AND customer_id IS NOT NULL
+       GROUP BY customer_id
+     ) stats ON stats.customer_id = rc.id
+     WHERE rc.tenant_id = $1 AND rc.deleted_at IS NULL AND rc.status = 'ACTIVE'
+     ORDER BY rc.name ASC`,
     [tenantId],
   );
   return result.rows.map(mapRetailCustomer);

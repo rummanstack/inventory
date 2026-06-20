@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { CircleDollarSign, Download, FileSpreadsheet, Pencil, Plus, Printer, Trash2 } from 'lucide-react';
-import { Alert, Badge, ChartPanel, EmptyState, LoadingState, SectionHeader, HorizontalBarChart, StatCard, TableSkeleton } from '../../../components/ui.jsx';
+import { Alert, Badge, ChartPanel, ChartPanelSkeleton, EmptyState, SectionHeader, HorizontalBarChart, StatCard, TableSkeleton } from '../../../components/ui.jsx';
 import { DatePickerField, MonthPickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../services/printService.js';
@@ -107,8 +107,8 @@ export default function ExpensesPage() {
       {vm.loading ? (
         <div className="mt-6 space-y-6">
           <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-            <LoadingState title={t('status.loadingData')} description={t('expenses.dailyReportDescription')} compact />
-            <LoadingState title={t('status.loadingData')} description={t('expenses.monthlyReportDescription')} compact />
+            <ChartPanelSkeleton height="h-72" />
+            <ChartPanelSkeleton height="h-72" />
           </div>
           <TableSkeleton rows={6} columns={6} />
           <TableSkeleton rows={6} columns={4} />

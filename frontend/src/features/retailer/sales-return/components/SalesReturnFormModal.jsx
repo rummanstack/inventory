@@ -42,7 +42,7 @@ export default function SalesReturnFormModal({ onClose, onSave }) {
               <input className="input" value={vm.invoiceNumberInput} onChange={(event) => vm.setInvoiceNumberInput(event.target.value)} placeholder={t('retailer.shared.invoiceNumberLabel')} disabled={saving} />
               <button type="button" className="btn-secondary" onClick={vm.loadInvoice} disabled={vm.loading || saving}>
                 <Search size={16} />
-                {vm.loading ? t('common.loading') : t('retailer.salesReturn.loadInvoice')}
+                {vm.loading ? <span className="inline-block h-4 w-20 animate-pulse rounded-full bg-slate-200" /> : t('retailer.salesReturn.loadInvoice')}
               </button>
             </div>
             {vm.loadError === 'notFound' ? <p className="mt-1 text-xs font-bold text-rose-600">{t('retailer.salesReturn.invoiceNotFound')}</p> : null}

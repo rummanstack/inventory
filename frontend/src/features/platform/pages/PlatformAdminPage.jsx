@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Plus } from 'lucide-react';
-import { Alert, EmptyState, LoadingState, SectionHeader } from '../../../components/ui.jsx';
+import { Alert, EmptyState, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import TenantsTable from '../components/TenantsTable.jsx';
@@ -84,7 +84,7 @@ export default function PlatformAdminPage() {
       {error ? <Alert type="error">{error}</Alert> : null}
 
       {loading ? (
-        <LoadingState />
+        <TableSkeleton rows={6} columns={7} />
       ) : tenants.length === 0 ? (
         <EmptyState title={t('organizations.emptyTitle')} description={t('organizations.emptyDescription')} />
       ) : (

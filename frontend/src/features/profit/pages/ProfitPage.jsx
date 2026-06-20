@@ -1,5 +1,5 @@
 import { BadgeDollarSign, Download, PiggyBank, TrendingDown, TrendingUp, Wallet } from 'lucide-react';
-import { Alert, ChartPanel, EmptyState, LoadingState, SectionHeader, StatCard, TableSkeleton, TrendChart } from '../../../components/ui.jsx';
+import { Alert, ChartPanel, ChartPanelSkeleton, EmptyState, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton, TrendChart } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../services/printService.js';
@@ -32,14 +32,23 @@ export default function ProfitPage() {
     return (
       <div>
         <SectionHeader eyebrow={t('nav.profit')} description={t('profit.description')} />
-        <LoadingState title={t('status.loadingData')} description={t('profit.description')} />
-        <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <TableSkeleton rows={1} columns={1} showHeader={false} />
-          <TableSkeleton rows={1} columns={1} showHeader={false} />
-          <TableSkeleton rows={1} columns={1} showHeader={false} />
-          <TableSkeleton rows={1} columns={1} showHeader={false} />
+        <div className="surface mb-6 grid gap-4 p-5 md:grid-cols-2">
+          <div className="space-y-2">
+            <div className="h-4 w-24 animate-pulse rounded-full bg-slate-200" />
+            <div className="h-11 animate-pulse rounded-2xl bg-slate-100" />
+          </div>
+          <div className="space-y-2">
+            <div className="h-4 w-24 animate-pulse rounded-full bg-slate-200" />
+            <div className="h-11 animate-pulse rounded-2xl bg-slate-100" />
+          </div>
         </div>
-        <div className="mt-6">
+        <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => <StatCardSkeleton key={i} />)}
+        </div>
+        <div className="mb-6">
+          <ChartPanelSkeleton height="h-80" />
+        </div>
+        <div>
           <TableSkeleton rows={6} columns={5} />
         </div>
       </div>

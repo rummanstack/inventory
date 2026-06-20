@@ -1,6 +1,6 @@
 import { CircleDollarSign, Download, Eye, FileText, PackageCheck, Printer, RotateCcw, Truck } from 'lucide-react';
 import PrintableSheet from '../../../components/PrintableSheet.jsx';
-import { Alert, Badge, ChartPanel, DonutChart, EmptyState, LoadingState, SectionHeader, StackedBarChart, StatCard } from '../../../components/ui.jsx';
+import { Alert, Badge, ChartPanel, ChartPanelSkeleton, DonutChart, EmptyState, SectionHeader, StackedBarChart, StatCard, StatCardSkeleton, TableSkeleton } from '../../../components/ui.jsx';
 import { statusTone } from '../../../models/inventoryViewData.js';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { buildPdfFileName, downloadSheetPdf } from '../../../services/printService.js';
@@ -18,6 +18,36 @@ export default function DailyReportsPage() {
       return;
     }
     inventoryApi.recordPrint({ entityType: 'report', entityId: vm.selectedSheet.dsrId, label: `${vm.selectedSheet.date} ${label}` }).catch(() => {});
+  }
+
+  if (vm.loading) {
+    return (
+      <div>
+        <SectionHeader eyebrow={t('nav.reports')} title={t('nav.reports')} description={t('reports.description')} />
+
+        <div className="mb-6 grid gap-4 lg:grid-cols-[320px_1fr]">
+          <div className="surface rounded-[28px] p-5">
+            <div className="space-y-2">
+              <div className="h-4 w-24 animate-pulse rounded-full bg-slate-200" />
+              <div className="h-11 animate-pulse rounded-2xl bg-slate-100" />
+              <div className="h-3 w-64 animate-pulse rounded-full bg-slate-100" />
+            </div>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, i) => <StatCardSkeleton key={i} />)}
+          </div>
+        </div>
+
+        <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+          <ChartPanelSkeleton height="h-80" />
+          <ChartPanelSkeleton height="h-80" />
+        </div>
+
+        <div className="mt-6">
+          <TableSkeleton rows={6} columns={9} />
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -38,106 +68,104 @@ export default function DailyReportsPage() {
         </div>
       </div>
 
-      {vm.loading ? (
-        <LoadingState title={t('nav.reports')} description={t('status.loadingData')} />
-      ) : vm.error ? (
+      {vm.error ? (
         <Alert type="error">{vm.error}</Alert>
       ) : (
         <>
-      <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-        <ChartPanel title={t('reports.routeReport', { date: formatDate(vm.date) })} description={t('reports.routeReportDescription')}>
-          {vm.chartRows.length ? (
-            <StackedBarChart
-              data={vm.chartRows}
-              segments={[
-                { key: 'issued', label: t('reports.issued'), color: getCssVar('--issued-soft', '#bfdbfe') },
-                { key: 'returned', label: t('reports.returned'), color: getCssVar('--returned', '#fdba74') },
-                { key: 'sold', label: t('reports.sold'), color: getCssVar('--success', '#0f766e') },
-              ]}
-              totalFormatter={(value) => `${formatNumber(value)} pcs`}
-            />
-          ) : (
-            <EmptyState title={t('reports.noRouteTitle')} description={t('reports.noRouteDescription')} icon={FileText} />
-          )}
-        </ChartPanel>
+          <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+            <ChartPanel title={t('reports.routeReport', { date: formatDate(vm.date) })} description={t('reports.routeReportDescription')}>
+              {vm.chartRows.length ? (
+                <StackedBarChart
+                  data={vm.chartRows}
+                  segments={[
+                    { key: 'issued', label: t('reports.issued'), color: getCssVar('--issued-soft', '#bfdbfe') },
+                    { key: 'returned', label: t('reports.returned'), color: getCssVar('--returned', '#fdba74') },
+                    { key: 'sold', label: t('reports.sold'), color: getCssVar('--success', '#0f766e') },
+                  ]}
+                  totalFormatter={(value) => `${formatNumber(value)} pcs`}
+                />
+              ) : (
+                <EmptyState title={t('reports.noRouteTitle')} description={t('reports.noRouteDescription')} icon={FileText} />
+              )}
+            </ChartPanel>
 
-        <ChartPanel title={t('reports.statusMix')} description={t('reports.statusMixDescription')}>
-          <DonutChart data={vm.reportMix} centerLabel={t('reports.routes')} centerValue={formatNumber(vm.rows.length)} valueFormatter={(value) => `${formatNumber(value)} ${t('common.dsr')}`} />
-        </ChartPanel>
-      </div>
-
-      <div className="surface mt-6 overflow-hidden">
-        <div className="border-b border-slate-100 px-5 py-4">
-          <div className="flex items-center justify-between gap-3">
-            <h2 className="text-base font-bold text-slate-950">{t('reports.dsrTable', { date: formatDate(vm.date) })}</h2>
-            <span className="muted-chip">{formatNumber(vm.rows.length)} {t('common.dsr')}</span>
+            <ChartPanel title={t('reports.statusMix')} description={t('reports.statusMixDescription')}>
+              <DonutChart data={vm.reportMix} centerLabel={t('reports.routes')} centerValue={formatNumber(vm.rows.length)} valueFormatter={(value) => `${formatNumber(value)} ${t('common.dsr')}`} />
+            </ChartPanel>
           </div>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="table-head">
-              <tr>
-                <th className="px-4 py-3">{t('dsr.title')}</th>
-                <th className="px-4 py-3">{t('reports.issued')}</th>
-                <th className="px-4 py-3 hidden sm:table-cell">{t('reports.returned')}</th>
-                <th className="px-4 py-3">{t('reports.sold')}</th>
-                <th className="px-4 py-3">{t('reports.payable')}</th>
-                <th className="px-4 py-3 hidden md:table-cell">{t('reports.paid')}</th>
-                <th className="px-4 py-3 hidden lg:table-cell">{t('reports.due')}</th>
-                <th className="px-4 py-3 hidden md:table-cell">{t('dsr.status')}</th>
-                <th className="px-4 py-3 text-right">{t('reports.sheet')}</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {vm.rows.map((row) => (
-                <tr key={row.dsrId} className="hover:bg-slate-50">
-                  <td className="table-cell">
-                    <p className="font-semibold text-slate-950">{row.dsrName}</p>
-                    <p className="text-xs text-slate-500">{row.area}</p>
-                  </td>
-                  <td className="table-cell">{formatNumber(row.issuedPieces)} pcs</td>
-                  <td className="table-cell hidden sm:table-cell">{formatNumber(row.returnedPieces)} pcs</td>
-                  <td className="table-cell font-semibold">{formatNumber(row.soldPieces)} pcs</td>
-                  <td className="table-cell font-bold">{formatCurrency(row.totalPayable)}</td>
-                  <td className="table-cell hidden md:table-cell">{formatCurrency(row.amountPaid || 0)}</td>
-                  <td className="table-cell hidden lg:table-cell">{formatCurrency(row.dueAmount || 0)}</td>
-                  <td className="table-cell hidden md:table-cell">
-                    <Badge tone={statusTone(row.status)}>{row.status}</Badge>
-                  </td>
-                  <td className="table-cell text-right">
-                    <button type="button" className="btn-secondary h-9 px-3" onClick={() => vm.viewSheet(row)} disabled={row.status === 'No Issue'}>
-                      <Eye size={16} />
-                      {t('reports.view')}
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
 
-      {vm.selectedSheet ? (
-        <div className="mt-6">
-          <div className="mb-3 flex items-center justify-between gap-3 no-print">
-            <div>
-              <h2 className="text-lg font-bold text-slate-950">{t('reports.printableSheet')}</h2>
-              <p className="text-sm text-slate-500">{vm.selectedSheet.dsrName} - {formatDate(vm.selectedSheet.date)}</p>
+          <div className="surface mt-6 overflow-hidden">
+            <div className="border-b border-slate-100 px-5 py-4">
+              <div className="flex items-center justify-between gap-3">
+                <h2 className="text-base font-bold text-slate-950">{t('reports.dsrTable', { date: formatDate(vm.date) })}</h2>
+                <span className="muted-chip">{formatNumber(vm.rows.length)} {t('common.dsr')}</span>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <button type="button" className="btn-secondary" onClick={() => { recordReportPrint('pdf'); downloadSheetPdf('report-print-sheet', buildPdfFileName(vm.selectedSheet)); }}>
-                <Download size={18} />
-                {t('reports.downloadPdf')}
-              </button>
-              <button type="button" className="btn-primary" onClick={() => { recordReportPrint('print'); window.print(); }}>
-                <Printer size={18} />
-                {t('reports.printSheet')}
-              </button>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="table-head">
+                  <tr>
+                    <th className="px-4 py-3">{t('dsr.title')}</th>
+                    <th className="px-4 py-3">{t('reports.issued')}</th>
+                    <th className="px-4 py-3 hidden sm:table-cell">{t('reports.returned')}</th>
+                    <th className="px-4 py-3">{t('reports.sold')}</th>
+                    <th className="px-4 py-3">{t('reports.payable')}</th>
+                    <th className="px-4 py-3 hidden md:table-cell">{t('reports.paid')}</th>
+                    <th className="px-4 py-3 hidden lg:table-cell">{t('reports.due')}</th>
+                    <th className="px-4 py-3 hidden md:table-cell">{t('dsr.status')}</th>
+                    <th className="px-4 py-3 text-right">{t('reports.sheet')}</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {vm.rows.map((row) => (
+                    <tr key={row.dsrId} className="hover:bg-slate-50">
+                      <td className="table-cell">
+                        <p className="font-semibold text-slate-950">{row.dsrName}</p>
+                        <p className="text-xs text-slate-500">{row.area}</p>
+                      </td>
+                      <td className="table-cell">{formatNumber(row.issuedPieces)} pcs</td>
+                      <td className="table-cell hidden sm:table-cell">{formatNumber(row.returnedPieces)} pcs</td>
+                      <td className="table-cell font-semibold">{formatNumber(row.soldPieces)} pcs</td>
+                      <td className="table-cell font-bold">{formatCurrency(row.totalPayable)}</td>
+                      <td className="table-cell hidden md:table-cell">{formatCurrency(row.amountPaid || 0)}</td>
+                      <td className="table-cell hidden lg:table-cell">{formatCurrency(row.dueAmount || 0)}</td>
+                      <td className="table-cell hidden md:table-cell">
+                        <Badge tone={statusTone(row.status)}>{row.status}</Badge>
+                      </td>
+                      <td className="table-cell text-right">
+                        <button type="button" className="btn-secondary h-9 px-3" onClick={() => vm.viewSheet(row)} disabled={row.status === 'No Issue'}>
+                          <Eye size={16} />
+                          {t('reports.view')}
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
-          <PrintableSheet sheet={vm.selectedSheet} printTarget targetId="report-print-sheet" />
-        </div>
-      ) : null}
+
+          {vm.selectedSheet ? (
+            <div className="mt-6">
+              <div className="mb-3 flex items-center justify-between gap-3 no-print">
+                <div>
+                  <h2 className="text-lg font-bold text-slate-950">{t('reports.printableSheet')}</h2>
+                  <p className="text-sm text-slate-500">{vm.selectedSheet.dsrName} - {formatDate(vm.selectedSheet.date)}</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button type="button" className="btn-secondary" onClick={() => { recordReportPrint('pdf'); downloadSheetPdf('report-print-sheet', buildPdfFileName(vm.selectedSheet)); }}>
+                    <Download size={18} />
+                    {t('reports.downloadPdf')}
+                  </button>
+                  <button type="button" className="btn-primary" onClick={() => { recordReportPrint('print'); window.print(); }}>
+                    <Printer size={18} />
+                    {t('reports.printSheet')}
+                  </button>
+                </div>
+              </div>
+              <PrintableSheet sheet={vm.selectedSheet} printTarget targetId="report-print-sheet" />
+            </div>
+          ) : null}
         </>
       )}
     </div>

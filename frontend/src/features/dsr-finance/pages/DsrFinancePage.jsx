@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { BadgeDollarSign, Download, FileSpreadsheet, HandCoins, Pencil, Plus, Printer, RefreshCw, Trash2, Wallet } from 'lucide-react';
-import { Alert, Badge, ChartPanel, EmptyState, LoadingState, SectionHeader, HorizontalBarChart, StatCard, TableSkeleton } from '../../../components/ui.jsx';
+import { Alert, Badge, ChartPanel, ChartPanelSkeleton, EmptyState, SectionHeader, HorizontalBarChart, StatCard, StatCardSkeleton, TableSkeleton } from '../../../components/ui.jsx';
 import { DatePickerField, MonthPickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../services/printService.js';
@@ -291,14 +291,11 @@ export default function DsrFinancePage() {
       ) : activeVm.loading ? (
         <div>
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <TableSkeleton rows={1} columns={1} showHeader={false} />
-            <TableSkeleton rows={1} columns={1} showHeader={false} />
-            <TableSkeleton rows={1} columns={1} showHeader={false} />
-            <TableSkeleton rows={1} columns={1} showHeader={false} />
+            {Array.from({ length: 4 }).map((_, i) => <StatCardSkeleton key={i} />)}
           </div>
           <div className="mt-6 grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-            <LoadingState title={t('status.loadingData')} description={t('dsrFinance.dailyReportDescription')} />
-            <LoadingState title={t('status.loadingData')} description={t('dsrFinance.monthlyReportDescription')} />
+            <ChartPanelSkeleton height="h-80" />
+            <ChartPanelSkeleton height="h-80" />
           </div>
           <div className="mt-6">
             <TableSkeleton rows={6} columns={6} />

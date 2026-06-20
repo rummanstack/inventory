@@ -1,5 +1,5 @@
 import { Download, FileSpreadsheet, Printer, TrendingDown, TrendingUp, Wallet } from 'lucide-react';
-import { Alert, EmptyState, LoadingState, SectionHeader, StatCard } from '../../../../components/ui.jsx';
+import { Alert, EmptyState, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton } from '../../../../components/ui.jsx';
 import { DatePickerField } from '../../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../../services/printService.js';
@@ -61,7 +61,28 @@ export default function RetailerProfitReportPage() {
       ) : null}
 
       {vm.loading ? (
-        <LoadingState />
+        <>
+          <div className="surface mb-6 grid gap-4 p-5 sm:grid-cols-3">
+            <div className="space-y-2">
+              <div className="h-4 w-24 animate-pulse rounded-full bg-slate-200" />
+              <div className="h-11 animate-pulse rounded-2xl bg-slate-100" />
+            </div>
+            <div className="space-y-2">
+              <div className="h-4 w-24 animate-pulse rounded-full bg-slate-200" />
+              <div className="h-11 animate-pulse rounded-2xl bg-slate-100" />
+            </div>
+            <div className="space-y-2">
+              <div className="h-4 w-24 animate-pulse rounded-full bg-slate-200" />
+              <div className="h-11 animate-pulse rounded-2xl bg-slate-100" />
+            </div>
+          </div>
+
+          <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, i) => <StatCardSkeleton key={i} />)}
+          </div>
+
+          <TableSkeleton rows={6} columns={5} />
+        </>
       ) : (
         <>
           <div className="mb-4 flex flex-wrap gap-2 no-print">

@@ -87,7 +87,7 @@ export default function AuditHistory({ entityType, entityId }) {
                 <ul className="mt-2 space-y-1">
                   {fields.map((field) => (
                     <li key={field} className="text-xs text-slate-600">
-                      <span className="font-bold">{field}</span>: {formatValue(item.beforeData?.[field])} → {formatValue(item.afterData?.[field])}
+                      <span className="font-bold">{field}</span>: {formatValue(item.beforeData?.[field])}{' -> '}{formatValue(item.afterData?.[field])}
                     </li>
                   ))}
                 </ul>

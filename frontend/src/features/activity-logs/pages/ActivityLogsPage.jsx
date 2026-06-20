@@ -149,7 +149,7 @@ export default function ActivityLogsPage() {
                         <ul className="space-y-1">
                           {Object.keys(log.afterData).map((field) => (
                             <li key={field} className="text-xs text-slate-500">
-                              <span className="font-bold">{field}</span>: {formatValue(log.beforeData?.[field])} → {formatValue(log.afterData?.[field])}
+                              <span className="font-bold">{field}</span>: {formatValue(log.beforeData?.[field])}{' -> '}{formatValue(log.afterData?.[field])}
                             </li>
                           ))}
                         </ul>

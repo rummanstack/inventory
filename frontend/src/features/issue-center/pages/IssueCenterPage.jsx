@@ -8,6 +8,7 @@ import { formatDateTime, formatNumber } from '../../../utils/calculations.js';
 import { actionTone } from '../../../models/inventoryViewData.js';
 import { useDashboardViewModel } from '../../dashboard/viewmodels/useDashboardViewModel.js';
 import { useActivityLogsViewModel } from '../../activity-logs/viewmodels/useActivityLogsViewModel.js';
+import { inventoryApi } from '../../../services/inventoryApi.js';
 
 function getIssueRoute(log) {
   const entityType = String(log?.entityType || '').toLowerCase();
@@ -56,6 +57,26 @@ function isFixLog(log) {
     || /(update|delete|restore|adjust|reverse|correction|repair|fix)/.test(description);
 }
 
+function groupInvoicesByPotentialDuplicate(invoices = []) {
+  const groups = new Map();
+
+  invoices.forEach((invoice) => {
+    const key = [
+      invoice.customerId || invoice.customerName || 'walk-in',
+      invoice.saleType || 'UNKNOWN',
+      Number(invoice.totalAmount || 0).toFixed(2),
+      Number(invoice.paidAmount || 0).toFixed(2),
+      invoice.invoiceDate || '',
+      Array.isArray(invoice.items) ? invoice.items.length : 0,
+    ].join('|');
+    const current = groups.get(key) || [];
+    current.push(invoice);
+    groups.set(key, current);
+  });
+
+  return Array.from(groups.values()).filter((group) => group.length > 1);
+}
+
 function IssueCard({ title, value, helper, icon: Icon, tone }) {
   return <StatCard title={title} value={value} helper={helper} icon={Icon} tone={tone} />;
 }
@@ -66,6 +87,10 @@ export default function IssueCenterPage() {
   const dashboardVm = useDashboardViewModel({ products: productDirectory, dsrs: dsrDirectory, today, t, language });
   const logsVm = useActivityLogsViewModel();
   const [selectedLog, setSelectedLog] = useState(null);
+  const [currentCashSession, setCurrentCashSession] = useState(null);
+  const [smartAlertsLoading, setSmartAlertsLoading] = useState(true);
+  const [smartAlertsError, setSmartAlertsError] = useState('');
+  const [duplicateInvoiceGroups, setDuplicateInvoiceGroups] = useState([]);
 
   const lowStockProducts = useMemo(
     () => [...(dashboardVm.lowStockAll || [])].sort((left, right) => left.stockPieces - right.stockPieces).slice(0, 5),
@@ -82,11 +107,57 @@ export default function IssueCenterPage() {
     [logsVm.logs],
   );
 
+  const settlementMismatchRows = useMemo(() => {
+    return (dashboardVm.completedRows || []).filter((row) => {
+      const expectedDue = Math.max(0, Number(row.totalPayable || 0) - Number(row.previousDue || 0) - Number(row.amountPaid || 0));
+      return Math.abs(expectedDue - Number(row.dueAmount || 0)) > 0.004;
+    });
+  }, [dashboardVm.completedRows]);
+
+  const cashSessionOpen = Boolean(currentCashSession?.session?.isOpen);
+  const cashSessionVariance = Number(currentCashSession?.session?.variance || 0);
+
   useEffect(() => {
     if (!selectedLog && recentFixes.length) {
       setSelectedLog(recentFixes[0]);
     }
   }, [selectedLog, recentFixes]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadSmartAlerts() {
+      try {
+        setSmartAlertsLoading(true);
+        setSmartAlertsError('');
+        const [cashSessionResult, invoiceResult] = await Promise.all([
+          inventoryApi.getCurrentRetailCashSession(),
+          inventoryApi.listSalesInvoices({ dateFrom: today, dateTo: today, pageSize: 100 }),
+        ]);
+        if (cancelled) {
+          return;
+        }
+
+        setCurrentCashSession(cashSessionResult || { session: null });
+        setDuplicateInvoiceGroups(groupInvoicesByPotentialDuplicate(invoiceResult.items || []));
+      } catch (error) {
+        if (!cancelled) {
+          setSmartAlertsError(error?.message || t('alerts.requestFailed'));
+          setCurrentCashSession({ session: null });
+          setDuplicateInvoiceGroups([]);
+        }
+      } finally {
+        if (!cancelled) {
+          setSmartAlertsLoading(false);
+        }
+      }
+    }
+
+    loadSmartAlerts();
+    return () => {
+      cancelled = true;
+    };
+  }, [today, t]);
 
   function openIssueRoute(log) {
     const { path } = getIssueRoute(log);
@@ -144,6 +215,88 @@ export default function IssueCenterPage() {
           icon={Sparkles}
           tone="emerald"
         />
+      </div>
+
+      <div className="surface overflow-hidden">
+        <div className="border-b border-slate-100 px-5 py-4">
+          <h2 className="text-base font-bold text-slate-950">{t('issueCenter.smartAlertsTitle')}</h2>
+          <p className="mt-1 text-sm text-slate-500">{t('issueCenter.smartAlertsDescription')}</p>
+        </div>
+        {smartAlertsError ? <div className="p-5"><Alert type="error">{smartAlertsError}</Alert></div> : null}
+        <div className="grid gap-4 p-5 lg:grid-cols-3">
+          <div className="rounded-[22px] border border-slate-200 bg-slate-50 p-4">
+            <div className="flex items-center justify-between gap-3">
+              <h3 className="text-sm font-bold text-slate-950">{t('issueCenter.cashSessionAlert')}</h3>
+              <Badge tone={cashSessionOpen ? 'amber' : 'emerald'}>{cashSessionOpen ? t('common.open') : t('common.closed')}</Badge>
+            </div>
+            <div className="mt-3 space-y-2 text-sm">
+              {smartAlertsLoading ? (
+                <div className="h-20 animate-pulse rounded-2xl bg-slate-200" />
+              ) : cashSessionOpen ? (
+                <>
+                  <p className="font-semibold text-slate-600">{t('issueCenter.cashSessionOpenMessage')}</p>
+                  <p className="font-bold text-slate-950">{t('issueCenter.cashSessionExpected')}: {formatNumber(Number(currentCashSession?.session?.expectedCash || 0), language)}</p>
+                  <p className={cashSessionVariance === 0 ? 'font-bold text-emerald-700' : 'font-bold text-rose-700'}>
+                    {t('issueCenter.cashSessionVariance')}: {formatNumber(cashSessionVariance, language)}
+                  </p>
+                </>
+              ) : (
+                <EmptyState title={t('issueCenter.cashSessionNone')} description="" icon={RotateCcw} />
+              )}
+            </div>
+          </div>
+
+          <div className="rounded-[22px] border border-slate-200 bg-slate-50 p-4">
+            <div className="flex items-center justify-between gap-3">
+              <h3 className="text-sm font-bold text-slate-950">{t('issueCenter.duplicateInvoiceAlert')}</h3>
+              <Badge tone={duplicateInvoiceGroups.length ? 'rose' : 'emerald'}>{formatNumber(duplicateInvoiceGroups.length, language)}</Badge>
+            </div>
+            <div className="mt-3 space-y-2 text-sm">
+              {smartAlertsLoading ? (
+                <div className="h-20 animate-pulse rounded-2xl bg-slate-200" />
+              ) : duplicateInvoiceGroups.length ? (
+                duplicateInvoiceGroups.slice(0, 3).map((group, index) => (
+                  <div key={`${group[0]?.invoiceNumber || 'group'}-${index}`} className="rounded-2xl bg-white p-3 ring-1 ring-slate-200">
+                    <p className="font-semibold text-slate-950">{t('issueCenter.possibleDuplicate')}</p>
+                    <p className="mt-1 text-xs text-slate-500">
+                      {group.map((invoice) => invoice.invoiceNumber).join(', ')}
+                    </p>
+                  </div>
+                ))
+              ) : (
+                <EmptyState title={t('issueCenter.noDuplicateInvoices')} description="" icon={ClipboardList} />
+              )}
+            </div>
+          </div>
+
+          <div className="rounded-[22px] border border-slate-200 bg-slate-50 p-4">
+            <div className="flex items-center justify-between gap-3">
+              <h3 className="text-sm font-bold text-slate-950">{t('issueCenter.settlementMismatchAlert')}</h3>
+              <Badge tone={settlementMismatchRows.length ? 'rose' : 'emerald'}>{formatNumber(settlementMismatchRows.length, language)}</Badge>
+            </div>
+            <div className="mt-3 space-y-2 text-sm">
+              {smartAlertsLoading ? (
+                <div className="h-20 animate-pulse rounded-2xl bg-slate-200" />
+              ) : settlementMismatchRows.length ? (
+                settlementMismatchRows.slice(0, 3).map((row) => (
+                  <button
+                    key={row.dsrId}
+                    type="button"
+                    className="w-full rounded-2xl bg-white p-3 text-left ring-1 ring-slate-200"
+                    onClick={() => navigate('/settlements')}
+                  >
+                    <p className="font-semibold text-slate-950">{row.dsrName}</p>
+                    <p className="mt-1 text-xs text-slate-500">
+                      {t('issueCenter.mismatchDetected')}: {formatNumber(Number(row.dueAmount || 0), language)}
+                    </p>
+                  </button>
+                ))
+              ) : (
+                <EmptyState title={t('issueCenter.noSettlementMismatch')} description="" icon={AlertTriangle} />
+              )}
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">

@@ -1967,6 +1967,11 @@ const en = {
         label: 'Main Features',
         title: 'Everything you need for your daily business',
         description: 'One simple system for sales, invoices, purchases, settlement and profit.',
+        badges: {
+          retail: 'Retail Sales',
+          operations: 'Daily Operations',
+          stock: 'Stock Control',
+        },
         groups: [
           {
             title: 'Retail & Counter Sales',
@@ -2047,6 +2052,7 @@ const en = {
         title: 'Simple pricing that grows with you',
         description: 'Start small. Upgrade anytime as your business grows.',
         featuredBadge: 'Popular',
+        featuredNote: 'Best for dealers, wholesalers and distributors.',
         contactUs: 'Contact Us',
         showAllFeatures: 'Show all features',
         showLessFeatures: 'Show less',

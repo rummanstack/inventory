@@ -1052,5 +1052,33 @@ export async function createSchema(pool) {
     CREATE INDEX IF NOT EXISTS idx_products_category_id ON products(category_id);
 
     ALTER TABLE products ADD COLUMN IF NOT EXISTS reorder_level INTEGER;
+
+    -- Anonymous landing-page chat: one conversation per visitor browser/device, platform-level
+    -- (not tenant-scoped) since visitors are prospective customers of the product itself.
+    CREATE TABLE IF NOT EXISTS visitor_chats (
+      id                TEXT PRIMARY KEY,
+      visitor_token     TEXT NOT NULL,
+      visitor_name      TEXT NOT NULL DEFAULT '',
+      visitor_phone     TEXT NOT NULL DEFAULT '',
+      status            TEXT NOT NULL DEFAULT 'OPEN',
+      last_message_at   TIMESTAMPTZ,
+      unread_for_admin  BOOLEAN NOT NULL DEFAULT TRUE,
+      created_at        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at        TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_visitor_chats_token ON visitor_chats(visitor_token);
+    CREATE INDEX IF NOT EXISTS idx_visitor_chats_updated_at ON visitor_chats(updated_at DESC);
+
+    CREATE TABLE IF NOT EXISTS visitor_chat_messages (
+      id              BIGSERIAL PRIMARY KEY,
+      visitor_chat_id TEXT NOT NULL REFERENCES visitor_chats(id) ON DELETE CASCADE,
+      sender_role     TEXT NOT NULL,
+      sender_user_id  TEXT REFERENCES users(id) ON DELETE SET NULL,
+      body            TEXT NOT NULL,
+      created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_visitor_chat_messages_chat_id_id ON visitor_chat_messages(visitor_chat_id, id);
   `);
 }

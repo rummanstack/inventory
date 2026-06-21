@@ -1,14 +1,25 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Bell, CalendarDays, CheckCircle2, LogOut, Menu, PackageX, ShieldCheck, UserCircle } from 'lucide-react';
+import { Bell, CalendarDays, CheckCircle2, Clock3, LogOut, Menu, MessageCircle, PackageX, ShieldCheck, UserCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { formatDate, getLowStockProducts, getLowStockThreshold } from '../utils/calculations';
 import { Badge } from '../components/ui';
 import LanguageSwitcher from '../components/LanguageSwitcher';
+import { inventoryApi } from '../services/inventoryApi.js';
+import { usePolling } from '../hooks/usePolling.js';
 
 export default function TopHeader({ title, today, user, tenant, tenantOptions, onSwitchTenant, onLogout, onOpenMenu, language, onLanguageChange, t, products = [] }) {
   const [notifOpen, setNotifOpen] = useState(false);
+  const [now, setNow] = useState(() => new Date());
+  const [visitorChatUnread, setVisitorChatUnread] = useState(0);
   const notifWrapperRef = useRef(null);
   const lowStockProducts = useMemo(() => getLowStockProducts(products), [products]);
+  const isSystemDeveloper = user?.role === 'system_developer';
+  const clockTime = new Intl.DateTimeFormat(language === 'bn' ? 'bn-BD' : 'en-GB', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  }).format(now);
 
   useEffect(() => {
     function onPointerDown(event) {
@@ -30,6 +41,22 @@ export default function TopHeader({ title, today, user, tenant, tenantOptions, o
     };
   }, []);
 
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setNow(new Date());
+    }, 1000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  usePolling(async () => {
+    try {
+      const result = await inventoryApi.countUnreadVisitorChats();
+      setVisitorChatUnread(result?.count || 0);
+    } catch {
+      // Badge just won't update this tick — retried on the next poll.
+    }
+  }, 30000, { enabled: isSystemDeveloper });
+
   return (
     <header className="sticky top-0 z-20 border-b border-white/10 bg-[linear-gradient(180deg,rgba(15,23,42,0.96),rgba(55,51,115,0.92))] shadow-[0_14px_34px_rgba(15,23,42,0.24)] backdrop-blur-2xl no-print">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -47,9 +74,6 @@ export default function TopHeader({ title, today, user, tenant, tenantOptions, o
             <Menu size={20} />
           </button>
           <div>
-            <p className="inline-flex rounded-full border border-white/10 bg-[rgba(255,255,255,0.10)] px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-slate-200">
-              {tenant?.name || t('app.brand')}
-            </p>
             <h1 className="mt-3 text-lg font-black tracking-tight text-white sm:text-xl">{title}</h1>
             {!tenant?.name && t('app.subtitle') ? <p className="mt-1 hidden text-sm font-medium text-slate-300 md:block">{t('app.subtitle')}</p> : null}
           </div>
@@ -68,13 +92,12 @@ export default function TopHeader({ title, today, user, tenant, tenantOptions, o
               ))}
             </select>
           ) : null}
-          <div className="inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-[rgba(16,185,129,0.12)] px-3.5 py-2 text-sm font-bold text-emerald-100">
-            <CheckCircle2 size={17} />
-            {t('status.liveData')}
-          </div>
           <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-[rgba(255,255,255,0.10)] px-3.5 py-2 text-sm font-bold text-white shadow-[0_1px_0_rgba(255,255,255,0.05)]">
             <CalendarDays size={17} className="text-slate-200" />
             {formatDate(today)}
+            <span className="mx-0.5 text-white/40">•</span>
+            <Clock3 size={17} className="text-slate-200" />
+            <span className="min-w-[86px] tabular-nums">{clockTime}</span>
           </div>
           <Link
             to="/profile"
@@ -84,6 +107,18 @@ export default function TopHeader({ title, today, user, tenant, tenantOptions, o
             <UserCircle size={17} className="text-slate-200" />
             <span className="max-w-44 truncate">{user?.name}</span>
           </Link>
+          {isSystemDeveloper ? (
+            <Link
+              to="/platform/visitor-chats"
+              title={t('visitorChats.title')}
+              className="relative inline-flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-[rgba(255,255,255,0.10)] text-white transition hover:border-white/20 hover:bg-[rgba(255,255,255,0.16)]"
+            >
+              <MessageCircle size={17} />
+              {visitorChatUnread > 0 ? (
+                <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full border-2 border-white bg-[var(--danger)]" />
+              ) : null}
+            </Link>
+          ) : null}
           <div className="relative" ref={notifWrapperRef}>
             <button
               type="button"

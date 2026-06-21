@@ -97,3 +97,8 @@ export const HELP_DESK_ACTIONS = {
   NOTE: "help_desk_ticket.note",
   TRANSITION: "help_desk_ticket.transition",
 };
+
+export const VISITOR_CHAT_ACTIONS = {
+  REPLY: "visitor_chat.reply",
+  CLOSE: "visitor_chat.close",
+};

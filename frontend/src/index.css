@@ -445,6 +445,14 @@
     @apply border-slate-200;
   }
 
+  .landing-chat-bubble-visitor {
+    @apply ml-auto border-transparent bg-[linear-gradient(135deg,var(--brand),var(--brand-strong)_58%,var(--teal))] text-white;
+  }
+
+  .landing-chat-bubble-visitor p {
+    @apply text-white;
+  }
+
   .landing-chat-avatar {
     @apply flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,var(--brand),var(--brand-strong))] text-sm font-black text-white;
   }

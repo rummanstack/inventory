@@ -70,6 +70,10 @@ import { createCustomerPaymentsRoutes } from "./customerPayments.routes.js";
 import { createSalesReturnsRoutes } from "./salesReturns.routes.js";
 import { ContactMessageController } from "../controllers/contactMessageController.js";
 import { createContactRoutes } from "./contact.routes.js";
+import { VisitorChatController } from "../controllers/visitorChatController.js";
+import { VisitorChatAdminController } from "../controllers/visitorChatAdminController.js";
+import { createVisitorChatRoutes } from "./visitorChat.routes.js";
+import { createVisitorChatAdminRoutes } from "./visitorChatAdmin.routes.js";
 import { FinanceAccountController } from "../controllers/financeAccountController.js";
 import { FinanceDashboardController } from "../controllers/financeDashboardController.js";
 import { RetailCashSessionController } from "../controllers/retailCashSessionController.js";
@@ -115,6 +119,7 @@ export function createApiRouter({
   retailCashSessionService,
   retailPromotionService,
   helpDeskService,
+  visitorChatService,
 }) {
   const router = Router();
   const authController = new AuthController(authService, env, tenantService);
@@ -150,6 +155,8 @@ export function createApiRouter({
   const customerPaymentController = new CustomerPaymentController(customerPaymentService);
   const salesReturnController = new SalesReturnController(salesReturnService);
   const contactMessageController = new ContactMessageController(contactMessageService);
+  const visitorChatController = new VisitorChatController(visitorChatService);
+  const visitorChatAdminController = new VisitorChatAdminController(visitorChatService);
   const financeAccountController = new FinanceAccountController(financeAccountService);
   const financeDashboardController = new FinanceDashboardController(financeDashboardService);
   const retailCashSessionController = new RetailCashSessionController(retailCashSessionService);
@@ -157,11 +164,15 @@ export function createApiRouter({
   const loginRateLimiter = createRateLimiter({ windowMs: 15 * 60 * 1000, max: 20 });
   const authRateLimiter = createRateLimiter({ windowMs: 15 * 60 * 1000, max: 20 });
   const contactRateLimiter = createRateLimiter({ windowMs: 15 * 60 * 1000, max: 10 });
+  const visitorChatRateLimiter = createRateLimiter({ windowMs: 15 * 60 * 1000, max: 60 });
 
   router.use("/auth", createPublicAuthRoutes(authController, { loginRateLimiter, authRateLimiter }));
 
   // Public contact form — no auth required
   router.use("/contact", createContactRoutes(contactMessageController, { contactRateLimiter }));
+
+  // Public visitor chat widget — no auth required
+  router.use("/visitor-chat", createVisitorChatRoutes(visitorChatController, { visitorChatRateLimiter }));
 
   router.use(requireAuth(authService, env, auditService));
 
@@ -172,6 +183,7 @@ export function createApiRouter({
   // Platform admin routes — no tenant required, system_developer only
   router.use("/platform/tenants", createPlatformTenantsRoutes(tenantController));
   router.use("/platform/backup", createPlatformBackupRoutes(backupController));
+  router.use("/platform/visitor-chats", createVisitorChatAdminRoutes(visitorChatAdminController));
 
   // System developer routes — no tenant required, system_developer only
   router.use("/system", createSystemRoutes(systemController));

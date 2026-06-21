@@ -27,6 +27,7 @@ import {
   LayoutDashboard,
   Landmark,
   Tag,
+  MessageCircle,
 } from 'lucide-react';
 import DashboardPage from '../features/dashboard/pages/DashboardPage';
 import ActivityLogsPage from '../features/activity-logs/pages/ActivityLogsPage';
@@ -45,6 +46,7 @@ import OrgSettingsPage from '../features/settings/pages/OrgSettingsPage';
 import PermissionsPage from '../features/permissions/pages/PermissionsPage';
 import UsersPage from '../features/users/pages/UsersPage';
 import PlatformAdminPage from '../features/platform/pages/PlatformAdminPage';
+import VisitorChatsPage from '../features/platform/pages/VisitorChatsPage';
 import ProfilePage from '../features/profile/pages/ProfilePage';
 import SecurityPage from '../features/security/pages/SecurityPage';
 import SystemHealthPage from '../features/system/pages/SystemHealthPage';
@@ -108,6 +110,7 @@ export const APP_ROUTES = [
   { id: 'permissions', path: '/settings/permissions', labelKey: 'nav.permissions', icon: KeyRound, component: PermissionsPage, group: 'settings', roles: ['system_developer', 'super_admin'] },
   { id: 'users', path: '/settings/users', labelKey: 'nav.users', icon: UserCog, component: UsersPage, group: 'settings', permission: 'manage_users' },
   { id: 'platform', path: '/platform', labelKey: 'nav.platform', icon: ShieldCheck, component: PlatformAdminPage, group: 'developer', role: 'system_developer' },
+  { id: 'visitor-chats', path: '/platform/visitor-chats', labelKey: 'nav.visitorChats', icon: MessageCircle, component: VisitorChatsPage, group: 'developer', role: 'system_developer' },
   { id: 'profile', path: '/profile', labelKey: 'nav.profile', icon: UserCog, component: ProfilePage, group: 'settings' },
   { id: 'security', path: '/security', labelKey: 'nav.security', icon: ShieldCheck, component: SecurityPage },
   { id: 'system-health', path: '/system-health', labelKey: 'nav.systemHealth', icon: Activity, component: SystemHealthPage, group: 'developer', role: 'system_developer' },

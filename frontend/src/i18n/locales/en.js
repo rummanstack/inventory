@@ -1944,6 +1944,25 @@ const en = {
       },
       login: 'Login',
       whatsappUs: 'WhatsApp Us',
+      chat: {
+        launch: 'Live Chat',
+        badge: 'Support Desk',
+        title: 'Chat with us',
+        subtitle: 'We are online 24/7. Send a message and we will reply on WhatsApp.',
+        team: 'StockLedger Team',
+        greeting: 'Tell us what you need. We usually reply quickly during business hours and stay available all day.',
+        label: 'Your message',
+        placeholder: 'Ask about setup, pricing, demo, or support...',
+        openWhatsApp: 'Open WhatsApp',
+        sendMessage: 'Send Message',
+        callUs: 'Call Us',
+        close: 'Close chat',
+        quickReplies: {
+          pricing: 'Need pricing details',
+          setup: 'Need setup help',
+          demo: 'Book a demo',
+        },
+      },
       hero: {
         eyebrow: 'For Shops, Dealers, Wholesalers & DSR Businesses',
         title: 'Manage stock, sales, due and profit — all in one place.',
@@ -2014,7 +2033,7 @@ const en = {
       ],
       solutions: {
         label: 'Who is it for?',
-        title: 'Made for shops, wholesalers and sales teams',
+        title: 'Made for shops, wholesalers, traders, grocery stores and pharmacies',
         description: 'Every business gets a simple workflow that fits how they already work.',
         items: [
           { title: 'Retail Shops', description: 'Quick sale, receipts, customer due, stock and profit — all in one place.' },
@@ -2147,6 +2166,7 @@ const en = {
         profitReport: 'Business owner reviewing daily sales and profit dashboard',
         mobileView: 'StockLedger responsive software view on tablet or mobile',
         contactUs: 'Woman on a phone call with StockLedger support',
+        showing: 'StockLedger showcase image beside the feature cards',
       },
     },
 };

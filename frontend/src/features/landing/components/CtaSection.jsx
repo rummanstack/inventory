@@ -10,7 +10,6 @@ export default function CtaSection({ t }) {
           <div>
             <p className="landing-eyebrow">{t('landing.cta.eyebrow')}</p>
             <h2 className="mt-4 max-w-3xl text-3xl font-black leading-tight text-white sm:text-4xl">{t('landing.cta.title')}</h2>
-            <p className="mt-4 text-base font-semibold leading-7 text-slate-200">{t('landing.cta.text', { phone: contactPhone })}</p>
           </div>
 
           <div className="flex flex-col gap-3 sm:flex-row lg:flex-col xl:flex-row">

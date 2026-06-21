@@ -47,11 +47,11 @@ export const featureShowcaseImage = land('showing.png');
 export const featureCardIcons = [ShoppingBag, ReceiptText, WalletCards, Warehouse, Boxes, BarChart3, RefreshCw, Printer];
 
 export const solutionIcons = [Store, PackageCheck, Truck, Route];
-export const solutionImages = [
-  land('retail-counter.png'),
-  land('supplier-purchase.png'),
-  land('dsr-route.png'),
-  land('delivery-truck.png'),
+export const solutionShowcaseImage = land('showing.png');
+export const solutionHighlightImages = [
+  { src: land('traders.png') },
+  { src: land('grocery.png') },
+  { src: land('pharmacy.png') },
 ];
 
 export const workflowIcons = [Warehouse, Boxes, ReceiptText, WalletCards, BarChart3];
@@ -62,7 +62,6 @@ export const showcaseImages = [
   { src: land('warehouse-stock.png'), key: 'warehouseStock', fit: 'cover' },
   { src: land('profit-report.png'), key: 'profitReport', fit: 'cover' },
   { src: land('contact-support.png'), key: 'contactUs', fit: 'cover' },
-  { src: land('mobile-dashboard.png'), key: 'mobileView', fit: 'cover' },
-  { src: land('retail-counter-2.png'), key: 'retailCounter', fit: 'cover' },
+  { src: land('retail-counter-2.png'), key: 'retailCounter', fit: 'cover', position: 'top' },
   { src: land('due-collection.png'), key: 'dueCollection', fit: 'cover' },
 ];

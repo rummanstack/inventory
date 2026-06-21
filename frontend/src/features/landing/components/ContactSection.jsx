@@ -38,7 +38,7 @@ export default function ContactSection({ t }) {
           description={t('landing.contact.description')}
         />
 
-        <div className="mt-10 flex flex-col gap-10 lg:flex-row lg:items-center">
+        <div className="mt-8 flex flex-col gap-8 lg:flex-row lg:items-center">
           <div className="lg:w-1/2">
             <ImagePlaceholder data={{ src: contactUsImage, alt: t('landing.images.contactUs') }} heightClass="aspect-[4/3]" />
           </div>

@@ -73,7 +73,7 @@ export default function PricingSection({ t }) {
           description={t('landing.pricing.description')}
         />
 
-        <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {plans.map((plan) => (
             <PricingCard
               key={plan.name}

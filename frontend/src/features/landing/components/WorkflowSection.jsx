@@ -13,7 +13,7 @@ export default function WorkflowSection({ t }) {
           description={t('landing.workflow.description')}
         />
 
-        <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           {steps.map((step, index) => {
             const Icon = workflowIcons[index];
             return (

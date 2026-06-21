@@ -101,7 +101,7 @@ export default function VisitorChatsPage() {
     }
   }
 
-  usePolling(pollSelectedChatMessages, 5000, { enabled: Boolean(selectedChatId) });
+  usePolling(pollSelectedChatMessages, 1500, { enabled: Boolean(selectedChatId) });
 
   async function sendReply() {
     const body = draftReply.trim();

@@ -47,7 +47,7 @@ export default function LandingChatWidget({ t }) {
     }
   }
 
-  usePolling(fetchMessages, 5000, { enabled: open });
+  usePolling(fetchMessages, 1500, { enabled: open });
 
   async function sendMessage() {
     const trimmed = message.trim();

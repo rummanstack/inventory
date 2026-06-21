@@ -361,6 +361,10 @@
     @apply relative flex h-full;
   }
 
+  .landing-hero-secondary {
+    @apply absolute -bottom-6 left-6 w-[42%] max-w-[220px];
+  }
+
   .landing-floating-note {
     @apply absolute bottom-4 left-4 right-4 max-w-none rounded-[22px] border border-blue-100 bg-white/95 p-4 text-slate-900 shadow-[0_20px_48px_rgba(var(--slate-900),0.12)] backdrop-blur sm:left-6 sm:right-auto sm:max-w-xs;
   }
@@ -453,8 +457,16 @@
     @apply rounded-[30px] shadow-[0_34px_90px_rgba(var(--blue-700),0.2)];
   }
 
+  .landing-gallery-grid {
+    @apply grid gap-4 sm:grid-cols-2 xl:grid-cols-4;
+  }
+
   .landing-image {
-    @apply h-full w-full object-cover object-top;
+    @apply h-full w-full object-center;
+  }
+
+  .landing-image-cover {
+    @apply object-cover;
   }
 
   .landing-image-contain {

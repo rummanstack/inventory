@@ -1,13 +1,4 @@
-import heroDashboardImage from '../../assets/landing/hero-dashboard.png';
-import ownerLaptopImage from '../../assets/landing/business-owner-dashboard.png';
-import retailCounterImage from '../../assets/landing/retail-quick-sale.png';
-import warehouseStockImage from '../../assets/landing/warehouse-stock-control.png';
-import dsrSettlementImage from '../../assets/landing/dsr-evening-settlement.png';
-import purchaseReceiveImage from '../../assets/landing/purchase-receive.png';
-import dueCollectionImage from '../../assets/landing/customer-due-ledger.png';
-import profitReportImage from '../../assets/landing/profit-report-dashboard.png';
-import mobileViewImage from '../../assets/landing/mobile-dashboard.png';
-import contactUsImage from '../../assets/landing/contact-us.png';
+const land = (name) => encodeURI(`/land/${name}`);
 import {
   BarChart3,
   Boxes,
@@ -35,20 +26,35 @@ export const navLinks = [
   { key: 'contact', href: '#contact-form' },
 ];
 
-export { heroDashboardImage, contactUsImage };
+export const heroDashboardImage = land('dashboard-summary.png');
+export const heroMobileImage = land('mobile-dashboard.png');
+export const contactUsImage = land('support-call.png');
 
-export const featureStoryImages = [retailCounterImage, dsrSettlementImage, purchaseReceiveImage];
+export const featureStoryImages = [
+  land('business-owner.png'),
+  land('evening-settlement.png'),
+  land('warehouse-stock.png'),
+];
 
 export const featureCardIcons = [ShoppingBag, ReceiptText, WalletCards, Warehouse, Boxes, BarChart3, RefreshCw, Printer];
 
 export const solutionIcons = [Store, PackageCheck, Truck, Route];
-export const solutionImages = [retailCounterImage, warehouseStockImage, ownerLaptopImage, dsrSettlementImage];
+export const solutionImages = [
+  land('retail-counter.png'),
+  land('supplier-purchase.png'),
+  land('dsr-route.png'),
+  land('delivery-truck.png'),
+];
 
 export const workflowIcons = [Warehouse, Boxes, ReceiptText, WalletCards, BarChart3];
 
 export const showcaseImages = [
-  { src: dueCollectionImage, key: 'dueCollection', fit: 'cover' },
-  { src: profitReportImage, key: 'profitReport', fit: 'cover' },
-  { src: mobileViewImage, key: 'mobileView', fit: 'cover' },
-  { src: ownerLaptopImage, key: 'ownerLaptop', fit: 'cover' },
+  { src: land('owner-laptop.png'), key: 'ownerLaptop', fit: 'cover' },
+  { src: land('hero-dashboard.png'), key: 'heroDashboard', fit: 'cover' },
+  { src: land('warehouse-stock.png'), key: 'warehouseStock', fit: 'cover' },
+  { src: land('profit-report.png'), key: 'profitReport', fit: 'cover' },
+  { src: land('contact-support.png'), key: 'contactUs', fit: 'cover' },
+  { src: land('mobile-dashboard.png'), key: 'mobileView', fit: 'cover' },
+  { src: land('retail-counter-2.png'), key: 'retailCounter', fit: 'cover' },
+  { src: land('due-collection.png'), key: 'dueCollection', fit: 'cover' },
 ];

@@ -1947,7 +1947,7 @@ const en = {
       hero: {
         eyebrow: 'For Shops, Dealers, Wholesalers & DSR Businesses',
         title: 'Manage stock, sales, due and profit — all in one place.',
-        subtitle: 'No more notebooks or Excel. Record sales, track stock, manage customer and supplier due, and see your daily profit — quickly and easily.',
+        subtitle: 'Record sales, track stock, manage due, and see profit — without notebooks or Excel.',
         callLabel: 'Call',
         liveView: 'Live view',
         liveViewText: 'One simple dashboard for your sales, stock, due and profit.',
@@ -2112,9 +2112,9 @@ const en = {
         ],
       },
       contact: {
-        label: 'Contact Us',
-        title: 'Have a question? Send us a message',
-        description: "Fill in the form and we'll get back to you soon.",
+        label: 'Support',
+        title: 'We are 24/7 online to help',
+        description: 'Send your message and our team will reply quickly.',
         nameLabel: 'Your Name',
         namePlaceholder: 'Enter your name',
         phoneLabel: 'Phone Number',
@@ -2146,7 +2146,7 @@ const en = {
         dueCollection: 'Business owner checking customer due and payment record',
         profitReport: 'Business owner reviewing daily sales and profit dashboard',
         mobileView: 'StockLedger responsive software view on tablet or mobile',
-        contactUs: 'Shop owner getting support from StockLedger team',
+        contactUs: 'Woman on a phone call with StockLedger support',
       },
     },
 };

@@ -19,7 +19,7 @@ export default function SolutionsSection({ t }) {
             const Icon = solutionIcons[index];
             return (
               <article key={solution.title} className="solution-card group">
-                <ImagePlaceholder data={{ src: solutionImages[index], alt: solution.title }} heightClass="h-64 sm:h-72" />
+                <ImagePlaceholder data={{ src: solutionImages[index], alt: solution.title }} heightClass="aspect-[3/2]" fit="cover" />
                 <div className="p-6">
                   <Icon size={28} className="text-[var(--brand)] transition-transform duration-300 group-hover:-rotate-6" />
                   <h3 className="mt-5 text-xl font-black text-slate-950">{solution.title}</h3>

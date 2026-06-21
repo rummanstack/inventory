@@ -17,8 +17,20 @@ function PricingCard({ plan, features, expanded, onToggle, hiddenCount, t }) {
 
   return (
     <article className={`pricing-card flex h-full flex-col ${plan.featured ? 'pricing-card-featured' : ''}`}>
-      <p className="text-xs font-black uppercase tracking-[0.16em] text-[var(--brand-strong)]">{plan.label}</p>
-      <h3 className="mt-4 text-2xl font-black text-slate-950">{plan.name}</h3>
+      {plan.featured ? (
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h3 className="text-2xl font-black text-slate-950">{plan.name}</h3>
+            <p className="mt-2 text-xs font-black uppercase tracking-[0.16em] text-[var(--brand-strong)]">{plan.label}</p>
+          </div>
+          <span className="pricing-card-badge">{t('landing.pricing.featuredBadge')}</span>
+        </div>
+      ) : (
+        <>
+          <p className="text-xs font-black uppercase tracking-[0.16em] text-[var(--brand-strong)]">{plan.label}</p>
+          <h3 className="mt-4 text-2xl font-black text-slate-950">{plan.name}</h3>
+        </>
+      )}
       <p className="mt-5 flex items-baseline gap-1 text-slate-950">
         <span className="text-3xl font-black">{plan.price}</span>
         {plan.cadence ? <span className="text-sm font-black text-slate-500">{plan.cadence}</span> : null}
@@ -50,7 +62,7 @@ function PricingCard({ plan, features, expanded, onToggle, hiddenCount, t }) {
         </button>
       ) : null}
       <div className="mt-auto pt-8">
-        <a href="#contact-form" onClick={focusContactForm} className={`w-full rounded-2xl ${plan.featured ? 'btn-primary' : 'btn-secondary'}`}>
+        <a href="#contact-form" onClick={focusContactForm} className={`w-full rounded-2xl ${plan.featured ? 'btn-primary shadow-[0_18px_34px_rgba(var(--blue-700),0.34)] ring-2 ring-[rgba(var(--brand),0.12)]' : 'btn-secondary'}`}>
           {t('landing.pricing.contactUs')}
         </a>
       </div>

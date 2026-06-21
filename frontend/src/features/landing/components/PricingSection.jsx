@@ -16,7 +16,7 @@ function PricingCard({ plan, features, expanded, onToggle, hiddenCount, t }) {
   const visibleFeatures = expanded ? features : features.slice(0, VISIBLE_FEATURE_COUNT);
 
   return (
-    <article className={`pricing-card flex h-full flex-col ${plan.featured ? 'pricing-card-featured' : ''}`}>
+    <article className={`pricing-card flex h-full flex-col ${plan.featured ? 'pricing-card-featured' : 'pricing-card-muted'}`}>
       {plan.featured ? (
         <div className="flex items-start justify-between gap-3">
           <div>
@@ -27,13 +27,13 @@ function PricingCard({ plan, features, expanded, onToggle, hiddenCount, t }) {
         </div>
       ) : (
         <>
-          <p className="text-xs font-black uppercase tracking-[0.16em] text-[var(--brand-strong)]">{plan.label}</p>
-          <h3 className="mt-4 text-2xl font-black text-slate-950">{plan.name}</h3>
+          <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">{plan.label}</p>
+          <h3 className="mt-4 text-2xl font-black text-slate-900">{plan.name}</h3>
         </>
       )}
       <p className="mt-5 flex items-baseline gap-1 text-slate-950">
         <span className="text-3xl font-black">{plan.price}</span>
-        {plan.cadence ? <span className="text-sm font-black text-slate-500">{plan.cadence}</span> : null}
+        {plan.cadence ? <span className="text-sm font-black text-slate-400">{plan.cadence}</span> : null}
       </p>
       <p className="mt-4 text-sm font-medium leading-6 text-slate-600">{plan.description}</p>
       <div className="mt-6 space-y-3">
@@ -62,7 +62,7 @@ function PricingCard({ plan, features, expanded, onToggle, hiddenCount, t }) {
         </button>
       ) : null}
       <div className="mt-auto pt-8">
-        <a href="#contact-form" onClick={focusContactForm} className={`w-full rounded-2xl ${plan.featured ? 'btn-primary shadow-[0_18px_34px_rgba(var(--blue-700),0.34)] ring-2 ring-[rgba(var(--brand),0.12)]' : 'btn-secondary'}`}>
+        <a href="#contact-form" onClick={focusContactForm} className={`w-full rounded-2xl ${plan.featured ? 'btn-primary shadow-[0_18px_34px_rgba(var(--blue-700),0.34)] ring-2 ring-[rgba(var(--brand),0.12)]' : 'btn-secondary opacity-90'}`}>
           {t('landing.pricing.contactUs')}
         </a>
       </div>
@@ -85,7 +85,7 @@ export default function PricingSection({ t }) {
           description={t('landing.pricing.description')}
         />
 
-        <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {plans.map((plan) => (
             <PricingCard
               key={plan.name}

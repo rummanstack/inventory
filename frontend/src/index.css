@@ -318,7 +318,7 @@
   }
 
   .landing-hero-subtitle {
-    @apply mt-4 max-w-2xl text-base font-medium leading-8 text-[var(--text-soft)] sm:text-lg;
+    @apply mt-4 max-w-xl text-base font-medium leading-7 text-[var(--text-soft)] sm:text-lg;
   }
 
   .landing-hero .landing-hero-subtitle {
@@ -366,7 +366,7 @@
   }
 
   .landing-section {
-    @apply py-12 sm:py-16 lg:py-20;
+    @apply py-10 sm:py-14 lg:py-[4.5rem];
   }
 
   .landing-section-soft {
@@ -375,6 +375,22 @@
 
   .landing-section-brand {
     background: linear-gradient(180deg, rgba(var(--brand-strong), 0.08) 0%, rgba(var(--blue-50), 0.78) 100%);
+  }
+
+  .landing-trust-bar {
+    @apply mt-8 grid gap-3 rounded-[22px] border border-white/10 bg-[rgba(var(--white),0.08)] p-4 text-white ring-1 ring-white/10 sm:grid-cols-3;
+  }
+
+  .landing-trust-item {
+    @apply rounded-2xl border border-white/10 bg-[rgba(var(--white),0.08)] px-4 py-3;
+  }
+
+  .landing-trust-label {
+    @apply block text-[11px] font-black uppercase tracking-[0.16em] text-slate-300;
+  }
+
+  .landing-trust-value {
+    @apply mt-1 block text-sm font-bold text-white;
   }
 
   .landing-section-title {
@@ -459,6 +475,10 @@
 
   .pricing-card {
     @apply rounded-[24px] border border-blue-100 bg-[linear-gradient(180deg,rgba(var(--white),0.98),rgba(var(--blue-50),0.9))] p-6 shadow-[0_18px_44px_rgba(var(--blue-700),0.08)] ring-1 ring-blue-100/60;
+  }
+
+  .pricing-card-muted {
+    @apply border-slate-200 bg-[linear-gradient(180deg,rgba(var(--white),0.96),rgba(var(--slate-50),0.92))] shadow-[0_12px_28px_rgba(var(--slate-900),0.05)] ring-slate-200/60 opacity-95;
   }
 
   .pricing-card-featured {

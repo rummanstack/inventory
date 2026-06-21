@@ -30,13 +30,14 @@ export default function HeroSection({ t }) {
         </div>
 
         <div className="landing-hero-media">
-          <ImagePlaceholder data={heroImage} heightClass="h-[300px] sm:h-[380px] lg:h-[440px]" variant="dashboard" fit="contain" />
+          <ImagePlaceholder data={heroImage} heightClass="h-[300px] sm:h-[380px] lg:h-[440px]" variant="dashboard" fit="cover" position="top" />
           <div className="landing-hero-secondary hidden md:block">
             <ImagePlaceholder
               data={{ src: heroMobileImage, alt: t('landing.images.mobileView') }}
               heightClass="h-[180px] lg:h-[210px]"
               variant="dashboard"
-              fit="contain"
+              fit="cover"
+              position="top"
             />
           </div>
           <div className="landing-floating-note hidden md:block">

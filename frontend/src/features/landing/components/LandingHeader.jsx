@@ -12,9 +12,9 @@ export default function LandingHeader({ language, setLanguage, t }) {
           <span className="brand-mark">
             <img src={logoMark} alt="" className="h-full w-full object-contain" />
           </span>
-          <span>
-            <span className="block text-lg font-black leading-none text-slate-950">StockLedger</span>
-            <span className="mt-1 hidden text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500 sm:block">
+          <span className="hidden sm:block">
+            <span className="block text-lg font-black leading-none text-white">StockLedger</span>
+            <span className="mt-1 block text-[11px] font-bold uppercase tracking-[0.18em] text-slate-300">
               stockledger.live
             </span>
           </span>

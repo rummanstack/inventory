@@ -3,7 +3,7 @@ import { showcaseImages } from '../constants.js';
 
 export default function ImageShowcaseSection({ t }) {
   return (
-    <section className="landing-section bg-white/60">
+    <section className="landing-section landing-section-brand">
       <div className="landing-container">
         <div className="showcase-grid">
           <div>

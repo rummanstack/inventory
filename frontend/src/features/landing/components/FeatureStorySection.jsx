@@ -7,7 +7,7 @@ export default function FeatureStorySection({ t }) {
   const groups = t('landing.featureStory.groups');
 
   return (
-    <section id="features" className="landing-section bg-white/60">
+    <section id="features" className="landing-section landing-section-brand">
       <div className="landing-container">
         <SectionHeader
           label={t('landing.featureStory.label')}

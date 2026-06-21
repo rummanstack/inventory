@@ -12,7 +12,7 @@ export default function HeroSection({ t }) {
   return (
     <section id="top" className="landing-hero">
       <div className="landing-container landing-hero-layout">
-        <div className="max-w-3xl">
+        <div className="landing-hero-copy">
           <p className="landing-eyebrow">{t('landing.hero.eyebrow')}</p>
           <h1 className="landing-hero-title">{t('landing.hero.title')}</h1>
           <p className="landing-hero-subtitle">{t('landing.hero.subtitle')}</p>

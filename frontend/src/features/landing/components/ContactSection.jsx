@@ -30,7 +30,7 @@ export default function ContactSection({ t }) {
   }
 
   return (
-    <section id="contact-form" className="landing-section">
+    <section id="contact-form" className="landing-section landing-section-brand">
       <div className="landing-container">
         <SectionHeader
           label={t('landing.contact.label')}

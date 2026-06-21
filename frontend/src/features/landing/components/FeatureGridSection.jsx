@@ -11,8 +11,8 @@ export default function FeatureGridSection({ t }) {
             const Icon = featureCardIcons[index];
             return (
               <article key={feature.title} className="landing-feature-card group">
-                <span className="landing-icon">
-                  <Icon size={21} />
+                <span className="feature-card-icon">
+                  <Icon size={22} />
                 </span>
                 <h3 className="mt-5 text-base font-black text-slate-950">{feature.title}</h3>
                 <p className="mt-3 text-sm font-medium leading-6 text-slate-600">{feature.description}</p>

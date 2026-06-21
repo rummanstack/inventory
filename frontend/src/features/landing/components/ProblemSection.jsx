@@ -16,7 +16,9 @@ export default function ProblemSection({ t }) {
           <div className="grid gap-3">
             {problems.map((item) => (
               <div key={item} className="problem-item">
-                <CheckCircle2 size={18} className="text-[var(--success)]" />
+                <span className="problem-item-icon">
+                  <CheckCircle2 size={18} />
+                </span>
                 <span>{item}</span>
               </div>
             ))}

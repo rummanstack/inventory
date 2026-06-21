@@ -390,7 +390,11 @@
   }
 
   .problem-item {
-    @apply flex items-start gap-3 rounded-2xl border border-blue-100 bg-white/90 p-4 text-sm font-bold leading-6 text-slate-700;
+    @apply flex items-center gap-4 rounded-2xl border border-blue-100 bg-white/90 p-4 text-sm font-bold leading-6 text-slate-700;
+  }
+
+  .problem-item-icon {
+    @apply flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[var(--brand)];
   }
 
   .feature-story {
@@ -405,8 +409,8 @@
     @apply rounded-[22px] border border-blue-100 bg-[linear-gradient(180deg,rgba(var(--white),0.98),rgba(var(--blue-50),0.92))] p-5 shadow-[0_16px_40px_rgba(var(--blue-700),0.07)] ring-1 ring-blue-100/60 transition-shadow duration-300 hover:border-blue-200 hover:shadow-[0_22px_50px_rgba(var(--blue-600),0.12)];
   }
 
-  .landing-icon {
-    @apply inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,var(--brand-soft),rgba(var(--blue-100),0.95))] text-[var(--brand-strong)] transition-transform duration-300 group-hover:-rotate-6;
+  .feature-card-icon {
+    @apply inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,var(--brand),var(--brand-strong)_60%,var(--teal))] text-white shadow-[0_14px_30px_rgba(var(--blue-700),0.22)] transition-transform duration-300 group-hover:-rotate-6;
   }
 
   .solution-card {

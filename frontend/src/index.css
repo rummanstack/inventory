@@ -281,7 +281,7 @@
   }
 
   .landing-hero {
-    @apply relative overflow-hidden border-b border-blue-100 pb-16 pt-32 sm:pb-20 sm:pt-36 lg:pb-24 lg:pt-40;
+    @apply relative overflow-hidden pb-10 pt-32 sm:pb-12 sm:pt-36 lg:pb-14 lg:pt-40;
     background:
       linear-gradient(rgba(var(--blue-900), 0.03) 1px, transparent 1px),
       linear-gradient(90deg, rgba(var(--blue-900), 0.03) 1px, transparent 1px),
@@ -294,11 +294,11 @@
   }
 
   .landing-hero-layout {
-    @apply grid items-center gap-12 lg:grid-cols-[minmax(0,0.95fr)_minmax(390px,1fr)] xl:gap-16;
+    @apply grid items-stretch gap-12 lg:grid-cols-[minmax(0,0.95fr)_minmax(390px,1fr)] xl:gap-16;
   }
 
   .landing-hero-copy {
-    @apply relative max-w-3xl rounded-[32px] border border-blue-100 bg-[rgba(var(--white),0.96)] px-5 py-6 shadow-[0_24px_60px_rgba(var(--slate-900),0.12)] backdrop-blur-xl sm:px-7 sm:py-7;
+    @apply relative flex h-full max-w-3xl flex-col rounded-[32px] border border-blue-100 bg-[rgba(var(--white),0.96)] px-5 py-5 shadow-[0_24px_60px_rgba(var(--slate-900),0.12)] backdrop-blur-xl sm:px-7 sm:py-6;
   }
 
   .landing-eyebrow {
@@ -310,7 +310,7 @@
   }
 
   .landing-hero-title {
-    @apply mt-5 max-w-4xl text-4xl font-black leading-[1.04] tracking-[-0.035em] text-slate-950 sm:text-5xl lg:text-6xl;
+    @apply mt-4 max-w-4xl text-4xl font-black leading-[1.04] tracking-[-0.035em] text-slate-950 sm:text-5xl lg:text-6xl;
   }
 
   .landing-hero .landing-hero-title {
@@ -318,7 +318,7 @@
   }
 
   .landing-hero-subtitle {
-    @apply mt-6 max-w-2xl text-base font-medium leading-8 text-[var(--text-soft)] sm:text-lg;
+    @apply mt-4 max-w-2xl text-base font-medium leading-8 text-[var(--text-soft)] sm:text-lg;
   }
 
   .landing-hero .landing-hero-subtitle {
@@ -334,7 +334,7 @@
   }
 
   .landing-demo-strip {
-    @apply mt-8 flex max-w-3xl flex-col gap-3 rounded-[24px] border border-blue-100 bg-white/90 p-4 shadow-[0_18px_45px_rgba(var(--slate-900),0.08)] ring-1 ring-slate-900/[0.03] backdrop-blur sm:flex-row;
+    @apply mt-6 flex max-w-3xl flex-col gap-3 rounded-[24px] border border-blue-100 bg-white/90 p-4 shadow-[0_18px_45px_rgba(var(--slate-900),0.08)] ring-1 ring-slate-900/[0.03] backdrop-blur sm:flex-row;
   }
 
   .landing-demo-strip > * {
@@ -358,15 +358,15 @@
   }
 
   .landing-hero-media {
-    @apply relative;
+    @apply relative flex h-full;
   }
 
   .landing-floating-note {
-    @apply absolute -bottom-5 left-8 max-w-xs rounded-[22px] border border-blue-100 bg-white/95 p-4 text-slate-900 shadow-[0_20px_48px_rgba(var(--slate-900),0.12)] backdrop-blur;
+    @apply absolute bottom-4 left-4 right-4 max-w-none rounded-[22px] border border-blue-100 bg-white/95 p-4 text-slate-900 shadow-[0_20px_48px_rgba(var(--slate-900),0.12)] backdrop-blur sm:left-6 sm:right-auto sm:max-w-xs;
   }
 
   .landing-section {
-    @apply py-16 sm:py-20 lg:py-24;
+    @apply py-12 sm:py-16 lg:py-20;
   }
 
   .landing-section-soft {

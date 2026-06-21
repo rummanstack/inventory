@@ -15,7 +15,7 @@ export default function FeatureStorySection({ t }) {
           description={t('landing.featureStory.description')}
         />
 
-        <div className="mt-10 space-y-8">
+        <div className="mt-8 space-y-8">
           {groups.map((group, index) => (
             <article key={group.title} className={`feature-story ${index % 2 === 1 ? 'lg:grid-flow-col-dense' : ''}`}>
               <div className={index % 2 === 1 ? 'lg:col-start-2' : ''}>

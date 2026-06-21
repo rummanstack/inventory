@@ -14,7 +14,7 @@ export default function SolutionsSection({ t }) {
           description={t('landing.solutions.description')}
         />
 
-        <div className="mt-10 grid gap-5 md:grid-cols-2">
+        <div className="mt-8 grid gap-5 md:grid-cols-2">
           {items.map((solution, index) => {
             const Icon = solutionIcons[index];
             return (

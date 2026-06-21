@@ -11,12 +11,12 @@ export default function ImageShowcaseSection({ t }) {
             <h2 className="landing-section-title">{t('landing.showcase.title')}</h2>
             <p className="landing-section-text">{t('landing.showcase.text')}</p>
           </div>
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="landing-gallery-grid">
             {showcaseImages.map((image) => (
               <ImagePlaceholder
                 key={image.key}
                 data={{ src: image.src, alt: t(`landing.images.${image.key}`) }}
-                heightClass="h-52"
+                heightClass="aspect-[3/2]"
                 fit={image.fit}
               />
             ))}

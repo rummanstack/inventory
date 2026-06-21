@@ -24,7 +24,7 @@ export default function FeatureStorySection({ t }) {
           {groups.map((group, index) => (
             <article key={group.title} className={`feature-story ${index % 2 === 1 ? 'lg:grid-flow-col-dense' : ''}`}>
               <div className={index % 2 === 1 ? 'lg:col-start-2' : ''}>
-                <ImagePlaceholder data={{ src: featureStoryImages[index], alt: group.title }} heightClass="h-[260px] sm:h-[320px]" />
+                <ImagePlaceholder data={{ src: featureStoryImages[index], alt: group.title }} heightClass="aspect-[3/2]" fit="cover" />
               </div>
               <div className="feature-story-content">
                 <p className="brand-chip inline-flex">{badges[index]}</p>

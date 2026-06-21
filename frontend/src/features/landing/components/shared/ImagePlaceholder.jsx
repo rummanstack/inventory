@@ -4,7 +4,7 @@ export default function ImagePlaceholder({ data, heightClass, variant = 'photo',
       <img
         src={data.src}
         alt={data.alt}
-        className={`landing-image ${fit === 'contain' ? 'landing-image-contain' : ''}`}
+        className={`landing-image ${fit === 'contain' ? 'landing-image-contain' : 'landing-image-cover'}`}
         style={position ? { objectPosition: position } : undefined}
       />
     </div>

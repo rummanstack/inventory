@@ -2046,6 +2046,7 @@ const en = {
         label: 'Pricing',
         title: 'Simple pricing that grows with you',
         description: 'Start small. Upgrade anytime as your business grows.',
+        featuredBadge: 'Popular',
         contactUs: 'Contact Us',
         showAllFeatures: 'Show all features',
         showLessFeatures: 'Show less',

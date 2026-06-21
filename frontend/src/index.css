@@ -418,7 +418,7 @@
   }
 
   .workflow-number {
-    @apply inline-flex h-9 w-9 items-center justify-center rounded-2xl bg-slate-950 text-sm font-black text-white;
+    @apply inline-flex h-9 w-9 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,var(--brand),var(--brand-strong))] text-sm font-black text-white shadow-[0_10px_24px_rgba(var(--blue-700),0.2)];
   }
 
   .showcase-grid {
@@ -458,7 +458,11 @@
   }
 
   .pricing-card-featured {
-    @apply border-blue-200 shadow-[0_26px_62px_rgba(var(--blue-600),0.16)] ring-blue-100;
+    @apply relative border-[rgba(var(--brand),0.28)] bg-[linear-gradient(180deg,rgba(var(--white),1),rgba(var(--blue-50),0.94))] shadow-[0_28px_70px_rgba(var(--blue-700),0.18)] ring-2 ring-[rgba(var(--brand),0.18)] scale-[1.02];
+  }
+
+  .pricing-card-badge {
+    @apply inline-flex items-center rounded-full bg-[linear-gradient(135deg,var(--brand),var(--brand-strong))] px-3 py-1 text-[11px] font-black uppercase tracking-[0.16em] text-white shadow-[0_10px_24px_rgba(var(--blue-700),0.22)];
   }
 
   .contact-form {

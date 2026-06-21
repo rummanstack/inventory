@@ -2039,6 +2039,7 @@
         label: 'প্রাইসিং',
         title: 'সহজ প্রাইসিং, ব্যবসার সাথে বাড়ে',
         description: 'ছোট থেকে শুরু করুন। প্রয়োজনে যেকোনো সময় আপগ্রেড করুন।',
+        featuredBadge: 'জনপ্রিয়',
         contactUs: 'যোগাযোগ করুন',
         showAllFeatures: 'সব ফিচার দেখুন',
         showLessFeatures: 'কম দেখুন',

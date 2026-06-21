@@ -30,9 +30,9 @@
     /* Additional design tokens for theming and chart palettes */
     --bg-dark: #0e0c25;
     --login-hero-bg: #ece7e0;
-    --bg-grad-start: #f8fbff;
-    --bg-grad-mid: #f2f6fb;
-    --bg-grad-end: #eef3f8;
+    --bg-grad-start: color-mix(in srgb, var(--brand) 3%, white);
+    --bg-grad-mid: color-mix(in srgb, var(--brand) 5%, white);
+    --bg-grad-end: color-mix(in srgb, var(--brand) 7%, white);
     --chart-tooltip-title: #f8f8f9;
     --chart-tooltip-body: #f6f6f6;
     --chart-grid: rgba(var(--slate-400), 0.16);
@@ -717,7 +717,11 @@
   }
 
   .surface {
-    @apply rounded-[20px] border border-slate-200/80 bg-[rgba(var(--white),0.94)] shadow-[0_18px_45px_rgba(var(--slate-900),0.07)] ring-1 ring-slate-900/[0.03] backdrop-blur;
+    @apply rounded-[20px] border border-slate-200/80 bg-[rgba(var(--white),0.94)] shadow-[0_18px_45px_rgba(var(--slate-900),0.07)] ring-1 ring-[color-mix(in_srgb,var(--brand)_8%,transparent)] backdrop-blur;
+    background-image: linear-gradient(90deg, var(--brand), var(--secondary));
+    background-repeat: no-repeat;
+    background-size: 100% 2px;
+    background-position: top left;
   }
 
   .table-head {
@@ -739,13 +743,21 @@
     pointer-events: none;
     background-image:
       linear-gradient(rgba(var(--slate-900), 0.025) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(var(--slate-900), 0.025) 1px, transparent 1px);
-    background-size: 48px 48px;
+      linear-gradient(90deg, rgba(var(--slate-900), 0.025) 1px, transparent 1px),
+      radial-gradient(circle, color-mix(in srgb, var(--brand) 16%, transparent), transparent 70%),
+      radial-gradient(circle, color-mix(in srgb, var(--secondary) 14%, transparent), transparent 70%);
+    background-size: 48px 48px, 48px 48px, 640px 640px, 520px 520px;
+    background-position: 0 0, 0 0, 50% 0%, 22% 30%;
+    background-repeat: repeat, repeat, no-repeat, no-repeat;
     mask-image: linear-gradient(180deg, rgba(var(--black), 0.58), transparent 72%);
   }
 
   .panel {
-    @apply rounded-[22px] border border-slate-200/80 bg-white/95 shadow-[0_18px_45px_rgba(var(--slate-900),0.07)] ring-1 ring-slate-900/[0.03] backdrop-blur;
+    @apply rounded-[22px] border border-slate-200/80 bg-white/95 shadow-[0_18px_45px_rgba(var(--slate-900),0.07)] ring-1 ring-[color-mix(in_srgb,var(--brand)_8%,transparent)] backdrop-blur;
+    background-image: linear-gradient(90deg, var(--brand), var(--secondary));
+    background-repeat: no-repeat;
+    background-size: 100% 2px;
+    background-position: top left;
   }
 
   .panel-strong {

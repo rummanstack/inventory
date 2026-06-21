@@ -1972,6 +1972,7 @@ const en = {
         launch: 'Live Chat',
         badge: 'Support Desk',
         title: 'Chat with us',
+        statusOnline: 'Online now',
         subtitle: 'We are online 24/7. Send a message and we will reply on WhatsApp.',
         team: 'StockLedger Team',
         greeting: 'Tell us what you need. We usually reply quickly during business hours and stay available all day.',

@@ -36,6 +36,14 @@ export const featureStoryImages = [
   land('warehouse-stock.png'),
 ];
 
+export const featureHighlightImages = [
+  land('traders.png'),
+  land('grocery.png'),
+  land('pharmacy.png'),
+];
+
+export const featureShowcaseImage = land('showing.png');
+
 export const featureCardIcons = [ShoppingBag, ReceiptText, WalletCards, Warehouse, Boxes, BarChart3, RefreshCw, Printer];
 
 export const solutionIcons = [Store, PackageCheck, Truck, Route];

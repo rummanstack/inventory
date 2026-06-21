@@ -12,6 +12,7 @@ import CtaSection from '../components/CtaSection.jsx';
 import PricingSection from '../components/PricingSection.jsx';
 import ContactSection from '../components/ContactSection.jsx';
 import LandingFooter from '../components/LandingFooter.jsx';
+import LandingChatWidget from '../components/LandingChatWidget.jsx';
 
 export default function LandingPage() {
   const { language, setLanguage, t } = useLanguage();
@@ -39,6 +40,7 @@ export default function LandingPage() {
       <PricingSection t={t} />
       <ContactSection t={t} />
       <LandingFooter t={t} />
+      <LandingChatWidget t={t} />
     </main>
   );
 }

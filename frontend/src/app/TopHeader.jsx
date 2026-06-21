@@ -31,22 +31,33 @@ export default function TopHeader({ title, today, user, tenant, tenantOptions, o
   }, []);
 
   return (
-    <header className="sticky top-0 z-20 border-b border-slate-200/70 bg-white/80 shadow-[0_1px_0_rgba(var(--slate-900),0.03)] backdrop-blur-2xl no-print">
+    <header className="sticky top-0 z-20 border-b border-white/10 bg-[linear-gradient(180deg,rgba(15,23,42,0.96),rgba(55,51,115,0.92))] shadow-[0_14px_34px_rgba(15,23,42,0.24)] backdrop-blur-2xl no-print">
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -left-20 top-0 h-28 w-28 rounded-full bg-white/10 blur-3xl" />
+        <div className="absolute right-20 top-0 h-24 w-24 rounded-full bg-[rgba(94,91,142,0.18)] blur-3xl" />
+      </div>
       <div className="mx-auto flex min-h-20 max-w-[1600px] items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
         <div className="flex items-center gap-3">
-          <button type="button" className="icon-btn lg:hidden" title={t('common.openMenu')} onClick={onOpenMenu}>
+          <button
+            type="button"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-[rgba(255,255,255,0.10)] text-white transition hover:border-white/20 hover:bg-[rgba(255,255,255,0.16)] lg:hidden"
+            title={t('common.openMenu')}
+            onClick={onOpenMenu}
+          >
             <Menu size={20} />
           </button>
           <div>
-            <p className="brand-chip">{tenant?.name || t('app.brand')}</p>
-            <h1 className="mt-3 text-lg font-black tracking-tight text-slate-950 sm:text-xl">{title}</h1>
-            {!tenant?.name && t('app.subtitle') ? <p className="mt-1 hidden text-sm font-medium text-slate-500 md:block">{t('app.subtitle')}</p> : null}
+            <p className="inline-flex rounded-full border border-white/10 bg-[rgba(255,255,255,0.10)] px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-slate-200">
+              {tenant?.name || t('app.brand')}
+            </p>
+            <h1 className="mt-3 text-lg font-black tracking-tight text-white sm:text-xl">{title}</h1>
+            {!tenant?.name && t('app.subtitle') ? <p className="mt-1 hidden text-sm font-medium text-slate-300 md:block">{t('app.subtitle')}</p> : null}
           </div>
         </div>
         <div className="hidden items-center gap-3 sm:flex">
           {user?.isPlatformUser ? (
             <select
-              className="input w-48 text-sm font-bold"
+              className="input w-48 border-white/10 bg-[rgba(255,255,255,0.10)] text-sm font-bold text-white placeholder:text-slate-300 focus:border-white/20 focus:ring-white/10"
               value={tenant?.id || ''}
               onChange={(event) => onSwitchTenant(event.target.value)}
               title={t('organizations.switchOrganization')}
@@ -57,26 +68,26 @@ export default function TopHeader({ title, today, user, tenant, tenantOptions, o
               ))}
             </select>
           ) : null}
-          <div className="inline-flex items-center gap-2 rounded-full border border-emerald-100 bg-emerald-50 px-3.5 py-2 text-sm font-bold text-emerald-700">
+          <div className="inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-[rgba(16,185,129,0.12)] px-3.5 py-2 text-sm font-bold text-emerald-100">
             <CheckCircle2 size={17} />
             {t('status.liveData')}
           </div>
-          <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3.5 py-2 text-sm font-bold text-slate-700 shadow-[0_1px_0_rgba(var(--slate-900),0.03)]">
-            <CalendarDays size={17} className="text-[var(--secondary)]" />
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-[rgba(255,255,255,0.10)] px-3.5 py-2 text-sm font-bold text-white shadow-[0_1px_0_rgba(255,255,255,0.05)]">
+            <CalendarDays size={17} className="text-slate-200" />
             {formatDate(today)}
           </div>
           <Link
             to="/profile"
             title={t('nav.profile')}
-            className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3.5 py-2 text-sm font-bold text-slate-700 shadow-[0_1px_0_rgba(var(--slate-900),0.03)] transition hover:border-[var(--secondary)] hover:text-[var(--secondary-strong)]"
+            className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-[rgba(255,255,255,0.10)] px-3.5 py-2 text-sm font-bold text-white shadow-[0_1px_0_rgba(255,255,255,0.05)] transition hover:border-white/20 hover:bg-[rgba(255,255,255,0.16)]"
           >
-            <UserCircle size={17} className="text-[var(--secondary-strong)]" />
+            <UserCircle size={17} className="text-slate-200" />
             <span className="max-w-44 truncate">{user?.name}</span>
           </Link>
           <div className="relative" ref={notifWrapperRef}>
             <button
               type="button"
-              className="icon-btn relative"
+              className="relative inline-flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-[rgba(255,255,255,0.10)] text-white transition hover:border-white/20 hover:bg-[rgba(255,255,255,0.16)]"
               title={t('notifications.title')}
               aria-expanded={notifOpen}
               onClick={() => setNotifOpen((open) => !open)}
@@ -130,11 +141,20 @@ export default function TopHeader({ title, today, user, tenant, tenantOptions, o
               </div>
             ) : null}
           </div>
-          <Link to="/security" title={t('nav.security')} className="icon-btn">
+          <Link
+            to="/security"
+            title={t('nav.security')}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-[rgba(255,255,255,0.10)] text-white transition hover:border-white/20 hover:bg-[rgba(255,255,255,0.16)]"
+          >
             <ShieldCheck size={17} />
           </Link>
-          <LanguageSwitcher language={language} onChange={onLanguageChange} t={t} />
-          <button type="button" className="icon-btn" title={t('auth.logout')} onClick={onLogout}>
+          <LanguageSwitcher language={language} onChange={onLanguageChange} t={t} tone="dark" />
+          <button
+            type="button"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-[rgba(255,255,255,0.10)] text-white transition hover:border-white/20 hover:bg-[rgba(255,255,255,0.16)]"
+            title={t('auth.logout')}
+            onClick={onLogout}
+          >
             <LogOut size={17} />
           </button>
         </div>

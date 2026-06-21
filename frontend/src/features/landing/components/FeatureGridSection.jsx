@@ -4,7 +4,7 @@ export default function FeatureGridSection({ t }) {
   const featureCards = t('landing.featureCards');
 
   return (
-    <section className="landing-section">
+    <section className="landing-section landing-section-soft">
       <div className="landing-container">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {featureCards.map((feature, index) => {

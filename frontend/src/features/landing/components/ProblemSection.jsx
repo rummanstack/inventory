@@ -4,7 +4,7 @@ export default function ProblemSection({ t }) {
   const problems = t('landing.problem.items');
 
   return (
-    <section className="landing-section">
+    <section className="landing-section landing-section-soft">
       <div className="landing-container">
         <div className="problem-panel">
           <div>

@@ -250,9 +250,9 @@
     min-height: 100vh;
     overflow-x: hidden;
     background:
-      radial-gradient(circle at top left, rgba(var(--blue-600), 0.08), transparent 28%),
-      radial-gradient(circle at top right, rgba(var(--cyan-600), 0.08), transparent 24%),
-      linear-gradient(180deg, #f8fbff 0%, #f4f7fb 42%, #ffffff 100%);
+      radial-gradient(circle at top left, rgba(var(--blue-600), 0.18), transparent 28%),
+      radial-gradient(circle at top right, rgba(var(--purple-600), 0.14), transparent 24%),
+      linear-gradient(180deg, rgba(var(--bg-dark), 1) 0%, rgba(var(--brand-strong), 0.98) 24rem, #f5f7fc 24rem, #ffffff 68%, rgba(var(--blue-50), 0.84) 100%);
     color: var(--text-strong);
   }
 
@@ -261,59 +261,80 @@
   }
 
   .landing-header-inner {
-    @apply landing-container mt-3 flex min-h-16 items-center justify-between gap-2 rounded-full border border-slate-200/70 bg-white/90 px-3 py-3 shadow-[0_10px_30px_rgba(var(--slate-900),0.08)] backdrop-blur-xl sm:gap-3 sm:px-8;
+    @apply landing-container mt-3 flex min-h-16 items-center justify-between gap-2 rounded-full border border-white/10 bg-[linear-gradient(90deg,var(--bg-dark)_0%,var(--brand-strong)_55%,var(--secondary-strong)_100%)] px-3 py-3 text-white shadow-[0_18px_42px_rgba(var(--slate-900),0.2)] backdrop-blur-xl sm:gap-3 sm:px-8;
+  }
+
+  .landing-logo {
+    @apply block h-10 w-auto sm:h-11 lg:h-12;
   }
 
   .brand-mark {
-    @apply flex h-10 w-10 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,var(--brand-strong),var(--teal))] text-white shadow-[0_14px_30px_rgba(var(--blue-600),0.26)];
+    @apply flex h-10 w-10 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,var(--brand-strong),var(--teal))] text-white shadow-[0_14px_30px_rgba(var(--blue-600),0.3)];
   }
 
   .landing-nav-link {
-    @apply rounded-full px-4 py-2 text-sm font-bold text-slate-600 transition duration-200 ease-out hover:bg-slate-100 hover:text-slate-950;
+    @apply rounded-full px-4 py-2 text-sm font-bold text-slate-200 transition duration-200 ease-out hover:bg-white/10 hover:text-white;
   }
 
   .landing-small-cta {
-    @apply inline-flex h-10 items-center justify-center gap-2 whitespace-nowrap rounded-full bg-[linear-gradient(135deg,var(--brand-strong),var(--brand))] px-4 text-sm font-black text-white shadow-[0_14px_28px_rgba(var(--blue-600),0.22)] transition duration-200 ease-out hover:-translate-y-0.5 hover:brightness-95 hover:shadow-[0_18px_34px_rgba(var(--blue-600),0.28)] active:brightness-90;
+    @apply inline-flex h-10 items-center justify-center gap-2 whitespace-nowrap rounded-full bg-[linear-gradient(135deg,var(--brand),var(--brand-strong)_55%,var(--teal))] px-4 text-sm font-black text-white shadow-[0_14px_28px_rgba(var(--blue-600),0.32)] transition duration-200 ease-out hover:-translate-y-0.5 hover:brightness-105 hover:shadow-[0_18px_34px_rgba(var(--blue-600),0.38)] active:brightness-95;
   }
 
   .landing-hero {
-    @apply relative overflow-hidden border-b border-slate-200/70 pb-16 pt-32 sm:pb-20 sm:pt-36 lg:pb-24 lg:pt-40;
+    @apply relative overflow-hidden border-b border-blue-100 pb-16 pt-32 sm:pb-20 sm:pt-36 lg:pb-24 lg:pt-40;
     background:
-      linear-gradient(rgba(var(--slate-900), 0.022) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(var(--slate-900), 0.022) 1px, transparent 1px),
-      linear-gradient(115deg, rgba(248, 251, 255, 0.96), rgba(239, 246, 255, 0.92) 48%, rgba(236, 253, 245, 0.74));
+      linear-gradient(rgba(var(--blue-900), 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(var(--blue-900), 0.03) 1px, transparent 1px),
+      linear-gradient(115deg, rgba(var(--blue-50), 0.96), rgba(var(--white), 0.98) 48%, rgba(var(--brand-soft), 0.8));
     background-size:
       54px 54px,
       54px 54px,
       auto;
+    color: var(--text-strong);
   }
 
   .landing-hero-layout {
     @apply grid items-center gap-12 lg:grid-cols-[minmax(0,0.95fr)_minmax(390px,1fr)] xl:gap-16;
   }
 
+  .landing-hero-copy {
+    @apply relative max-w-3xl rounded-[32px] border border-blue-100 bg-[rgba(var(--white),0.96)] px-5 py-6 shadow-[0_24px_60px_rgba(var(--slate-900),0.12)] backdrop-blur-xl sm:px-7 sm:py-7;
+  }
+
   .landing-eyebrow {
     @apply text-[11px] font-black uppercase tracking-[0.22em] text-[var(--brand-strong)];
+  }
+
+  .landing-hero .landing-eyebrow {
+    color: var(--brand-strong);
   }
 
   .landing-hero-title {
     @apply mt-5 max-w-4xl text-4xl font-black leading-[1.04] tracking-[-0.035em] text-slate-950 sm:text-5xl lg:text-6xl;
   }
 
+  .landing-hero .landing-hero-title {
+    color: var(--brand-strong);
+  }
+
   .landing-hero-subtitle {
     @apply mt-6 max-w-2xl text-base font-medium leading-8 text-[var(--text-soft)] sm:text-lg;
   }
 
+  .landing-hero .landing-hero-subtitle {
+    color: var(--text-soft);
+  }
+
   .landing-primary-btn {
-    @apply inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-[linear-gradient(135deg,#08111f,var(--brand-strong)_50%,var(--teal))] px-6 text-base font-black text-white shadow-[0_18px_36px_rgba(var(--blue-700),0.28)] transition duration-200 ease-out hover:-translate-y-0.5 hover:brightness-95 hover:shadow-[0_22px_44px_rgba(var(--blue-700),0.34)] active:brightness-90 focus:outline-none focus:ring-4 focus:ring-blue-100;
+    @apply inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-[linear-gradient(135deg,var(--brand),var(--brand-strong)_50%,var(--teal))] px-6 text-base font-black text-white shadow-[0_18px_36px_rgba(var(--blue-700),0.34)] transition duration-200 ease-out hover:-translate-y-0.5 hover:brightness-105 hover:shadow-[0_22px_44px_rgba(var(--blue-700),0.4)] active:brightness-95 focus:outline-none focus:ring-4 focus:ring-blue-100;
   }
 
   .landing-secondary-btn {
-    @apply inline-flex h-12 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white/90 px-6 text-base font-black text-slate-800 shadow-[0_12px_28px_rgba(var(--slate-900),0.07)] transition duration-200 ease-out hover:-translate-y-0.5 hover:border-blue-200 hover:bg-white hover:text-[var(--brand-strong)] hover:shadow-[0_18px_34px_rgba(var(--slate-900),0.1)] focus:outline-none focus:ring-4 focus:ring-slate-100;
+    @apply inline-flex h-12 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-6 text-base font-black text-[var(--brand-strong)] shadow-[0_12px_28px_rgba(var(--slate-900),0.07)] transition duration-200 ease-out hover:-translate-y-0.5 hover:border-blue-200 hover:bg-[var(--brand-soft)] hover:shadow-[0_18px_34px_rgba(var(--slate-900),0.1)] focus:outline-none focus:ring-4 focus:ring-blue-100;
   }
 
   .landing-demo-strip {
-    @apply mt-8 flex max-w-3xl flex-col gap-3 rounded-[24px] border border-white/80 bg-white/90 p-4 shadow-[0_18px_45px_rgba(var(--slate-900),0.08)] ring-1 ring-slate-900/[0.03] backdrop-blur sm:flex-row;
+    @apply mt-8 flex max-w-3xl flex-col gap-3 rounded-[24px] border border-blue-100 bg-white/90 p-4 shadow-[0_18px_45px_rgba(var(--slate-900),0.08)] ring-1 ring-slate-900/[0.03] backdrop-blur sm:flex-row;
   }
 
   .landing-demo-strip > * {
@@ -341,11 +362,19 @@
   }
 
   .landing-floating-note {
-    @apply absolute -bottom-5 left-8 max-w-xs rounded-[22px] border border-blue-100 bg-white/90 p-4 shadow-[0_20px_48px_rgba(var(--slate-900),0.12)] backdrop-blur;
+    @apply absolute -bottom-5 left-8 max-w-xs rounded-[22px] border border-blue-100 bg-white/95 p-4 text-slate-900 shadow-[0_20px_48px_rgba(var(--slate-900),0.12)] backdrop-blur;
   }
 
   .landing-section {
     @apply py-16 sm:py-20 lg:py-24;
+  }
+
+  .landing-section-soft {
+    background: linear-gradient(180deg, rgba(var(--blue-50), 0.78) 0%, rgba(var(--white), 0.98) 100%);
+  }
+
+  .landing-section-brand {
+    background: linear-gradient(180deg, rgba(var(--brand-strong), 0.08) 0%, rgba(var(--blue-50), 0.78) 100%);
   }
 
   .landing-section-title {
@@ -357,15 +386,15 @@
   }
 
   .problem-panel {
-    @apply grid gap-8 rounded-[28px] border border-slate-200/80 bg-white/90 p-6 shadow-[0_20px_55px_rgba(var(--slate-900),0.07)] ring-1 ring-slate-900/[0.03] md:grid-cols-[1fr_0.9fr] lg:p-10;
+    @apply grid gap-8 rounded-[28px] border border-blue-100 bg-[linear-gradient(180deg,rgba(var(--white),0.98),rgba(var(--blue-50),0.9))] p-6 shadow-[0_20px_55px_rgba(var(--blue-700),0.08)] ring-1 ring-blue-100/60 md:grid-cols-[1fr_0.9fr] lg:p-10;
   }
 
   .problem-item {
-    @apply flex items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50/80 p-4 text-sm font-bold leading-6 text-slate-700;
+    @apply flex items-start gap-3 rounded-2xl border border-blue-100 bg-white/90 p-4 text-sm font-bold leading-6 text-slate-700;
   }
 
   .feature-story {
-    @apply grid gap-6 rounded-[30px] border border-slate-200/80 bg-white/95 p-4 shadow-[0_22px_58px_rgba(var(--slate-900),0.08)] ring-1 ring-slate-900/[0.03] lg:grid-cols-2 lg:items-center lg:p-6;
+    @apply grid gap-6 rounded-[30px] border border-blue-100 bg-[linear-gradient(180deg,rgba(var(--white),0.98),rgba(var(--blue-50),0.9))] p-4 shadow-[0_22px_58px_rgba(var(--blue-700),0.08)] ring-1 ring-blue-100/60 lg:grid-cols-2 lg:items-center lg:p-6;
   }
 
   .feature-story-content {
@@ -373,19 +402,19 @@
   }
 
   .landing-feature-card {
-    @apply rounded-[22px] border border-slate-200/80 bg-white/95 p-5 shadow-[0_16px_40px_rgba(var(--slate-900),0.06)] ring-1 ring-slate-900/[0.03] transition-shadow duration-300 hover:border-blue-100 hover:shadow-[0_22px_50px_rgba(var(--blue-600),0.1)];
+    @apply rounded-[22px] border border-blue-100 bg-[linear-gradient(180deg,rgba(var(--white),0.98),rgba(var(--blue-50),0.92))] p-5 shadow-[0_16px_40px_rgba(var(--blue-700),0.07)] ring-1 ring-blue-100/60 transition-shadow duration-300 hover:border-blue-200 hover:shadow-[0_22px_50px_rgba(var(--blue-600),0.12)];
   }
 
   .landing-icon {
-    @apply inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-[var(--brand-soft)] text-[var(--brand-strong)] transition-transform duration-300 group-hover:-rotate-6;
+    @apply inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,var(--brand-soft),rgba(var(--blue-100),0.95))] text-[var(--brand-strong)] transition-transform duration-300 group-hover:-rotate-6;
   }
 
   .solution-card {
-    @apply overflow-hidden rounded-[26px] border border-slate-200/80 bg-white/95 shadow-[0_18px_44px_rgba(var(--slate-900),0.07)] ring-1 ring-slate-900/[0.03] transition-shadow duration-300 hover:shadow-[0_24px_54px_rgba(var(--cyan-600),0.12)];
+    @apply overflow-hidden rounded-[26px] border border-blue-100 bg-[linear-gradient(180deg,rgba(var(--white),0.98),rgba(var(--blue-50),0.9))] shadow-[0_18px_44px_rgba(var(--blue-700),0.08)] ring-1 ring-blue-100/60 transition-shadow duration-300 hover:shadow-[0_24px_54px_rgba(var(--blue-600),0.14)];
   }
 
   .workflow-card {
-    @apply rounded-[24px] border border-slate-200/80 bg-white/95 p-5 shadow-[0_16px_38px_rgba(var(--slate-900),0.06)] ring-1 ring-slate-900/[0.03];
+    @apply rounded-[24px] border border-blue-100 bg-[linear-gradient(180deg,rgba(var(--white),0.98),rgba(var(--blue-50),0.9))] p-5 shadow-[0_16px_38px_rgba(var(--blue-700),0.07)] ring-1 ring-blue-100/60;
   }
 
   .workflow-number {
@@ -397,11 +426,11 @@
   }
 
   .image-placeholder {
-    @apply relative overflow-hidden rounded-[26px] border border-slate-200/80 bg-slate-100 shadow-[0_18px_44px_rgba(var(--slate-900),0.07)] ring-1 ring-slate-900/[0.03];
+    @apply relative overflow-hidden rounded-[26px] border border-blue-100 bg-slate-100 shadow-[0_18px_44px_rgba(var(--blue-700),0.08)] ring-1 ring-blue-100/60;
   }
 
   .image-placeholder-dashboard {
-    @apply rounded-[30px] shadow-[0_34px_90px_rgba(var(--slate-900),0.18)];
+    @apply rounded-[30px] shadow-[0_34px_90px_rgba(var(--blue-700),0.2)];
   }
 
   .landing-image {
@@ -413,19 +442,19 @@
   }
 
   .demo-panel {
-    @apply grid gap-8 rounded-[30px] border border-blue-100 bg-[linear-gradient(135deg,rgba(var(--blue-600),0.06),rgba(var(--cyan-600),0.05)_60%,rgba(var(--white),0.9))] p-6 shadow-[0_22px_55px_rgba(var(--slate-900),0.08)] ring-1 ring-slate-900/[0.03] sm:p-8 lg:grid-cols-[1fr_auto] lg:items-center lg:p-10;
+    @apply grid gap-8 rounded-[30px] border border-white/10 bg-[linear-gradient(135deg,var(--bg-dark)_0%,var(--brand-strong)_48%,var(--secondary-strong)_100%)] p-6 shadow-[0_22px_55px_rgba(var(--slate-900),0.2)] ring-1 ring-white/10 sm:p-8 lg:grid-cols-[1fr_auto] lg:items-center lg:p-10;
   }
 
   .demo-white-btn {
-    @apply inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-[linear-gradient(135deg,#08111f,var(--brand-strong)_50%,var(--teal))] px-6 text-base font-black text-white shadow-[0_18px_36px_rgba(var(--blue-700),0.28)] transition duration-200 ease-out hover:-translate-y-0.5 hover:brightness-95 hover:shadow-[0_22px_44px_rgba(var(--blue-700),0.34)] active:brightness-90;
+    @apply inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-[linear-gradient(135deg,var(--brand),var(--brand-strong)_50%,var(--teal))] px-6 text-base font-black text-white shadow-[0_18px_36px_rgba(var(--blue-700),0.34)] transition duration-200 ease-out hover:-translate-y-0.5 hover:brightness-105 hover:shadow-[0_22px_44px_rgba(var(--blue-700),0.4)] active:brightness-95;
   }
 
   .demo-outline-btn {
-    @apply inline-flex h-12 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white/90 px-6 text-base font-black text-slate-800 transition duration-200 ease-out hover:-translate-y-0.5 hover:border-blue-200 hover:bg-white hover:text-[var(--brand-strong)];
+    @apply inline-flex h-12 items-center justify-center gap-2 rounded-2xl border border-white/15 bg-white/10 px-6 text-base font-black text-white transition duration-200 ease-out hover:-translate-y-0.5 hover:border-white/30 hover:bg-[rgba(var(--white),0.16)];
   }
 
   .pricing-card {
-    @apply rounded-[24px] border border-slate-200/80 bg-white/95 p-6 shadow-[0_18px_44px_rgba(var(--slate-900),0.07)] ring-1 ring-slate-900/[0.03];
+    @apply rounded-[24px] border border-blue-100 bg-[linear-gradient(180deg,rgba(var(--white),0.98),rgba(var(--blue-50),0.9))] p-6 shadow-[0_18px_44px_rgba(var(--blue-700),0.08)] ring-1 ring-blue-100/60;
   }
 
   .pricing-card-featured {
@@ -433,7 +462,7 @@
   }
 
   .contact-form {
-    @apply rounded-[24px] border border-slate-200/80 bg-white/95 p-6 shadow-[0_18px_44px_rgba(var(--slate-900),0.07)] ring-1 ring-slate-900/[0.03] sm:p-8;
+    @apply rounded-[24px] border border-blue-100 bg-[linear-gradient(180deg,rgba(var(--white),0.98),rgba(var(--blue-50),0.9))] p-6 shadow-[0_18px_44px_rgba(var(--blue-700),0.08)] ring-1 ring-blue-100/60 sm:p-8;
   }
 
   .contact-label {

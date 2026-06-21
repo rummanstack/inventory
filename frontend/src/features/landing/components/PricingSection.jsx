@@ -65,7 +65,7 @@ export default function PricingSection({ t }) {
   const hiddenCount = features.length - VISIBLE_FEATURE_COUNT;
 
   return (
-    <section id="pricing" className="landing-section bg-white/60">
+    <section id="pricing" className="landing-section landing-section-soft">
       <div className="landing-container">
         <SectionHeader
           label={t('landing.pricing.label')}

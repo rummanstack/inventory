@@ -5,7 +5,7 @@ export default function WorkflowSection({ t }) {
   const steps = t('landing.workflow.steps');
 
   return (
-    <section id="workflow" className="landing-section">
+    <section id="workflow" className="landing-section landing-section-soft">
       <div className="landing-container">
         <SectionHeader
           label={t('landing.workflow.label')}

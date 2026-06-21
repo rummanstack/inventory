@@ -6,7 +6,7 @@ export default function SolutionsSection({ t }) {
   const items = t('landing.solutions.items');
 
   return (
-    <section id="solutions" className="landing-section bg-white/60">
+    <section id="solutions" className="landing-section landing-section-brand">
       <div className="landing-container">
         <SectionHeader
           label={t('landing.solutions.label')}

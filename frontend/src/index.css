@@ -277,7 +277,7 @@
   }
 
   .landing-small-cta {
-    @apply inline-flex h-10 items-center justify-center gap-2 whitespace-nowrap rounded-full bg-[linear-gradient(135deg,var(--brand),var(--brand-strong)_55%,var(--teal))] px-4 text-sm font-black text-white shadow-[0_14px_28px_rgba(var(--blue-600),0.32)] transition duration-200 ease-out hover:-translate-y-0.5 hover:brightness-105 hover:shadow-[0_18px_34px_rgba(var(--blue-600),0.38)] active:brightness-95;
+    @apply inline-flex h-9 items-center justify-center gap-2 whitespace-nowrap rounded-full border border-[rgba(var(--white),0.18)] bg-white/10 px-3.5 text-sm font-bold text-white shadow-[0_1px_0_rgba(var(--white),0.08)] transition duration-200 ease-out hover:-translate-y-0.5 hover:border-[rgba(var(--white),0.3)] hover:bg-[rgba(var(--white),0.16)] hover:shadow-[0_8px_20px_rgba(var(--slate-950),0.16)] active:translate-y-0 active:bg-[rgba(var(--white),0.14)];
   }
 
   .landing-hero {

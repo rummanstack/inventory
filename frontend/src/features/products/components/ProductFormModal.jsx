@@ -7,13 +7,14 @@ import { cleanNumber } from '../../../utils/calculations.js';
 import { useFormState } from '../../../hooks/useFormState';
 
 export default function ProductFormModal({ product, onClose, onSave }) {
-  const { t, pushToast } = useInventoryApp();
+  const { t, pushToast, tenant } = useInventoryApp();
   const isEdit = Boolean(product);
+  const isElectronics = (tenant?.businessType || 'ELECTRONICS') === 'ELECTRONICS';
   const [categories, setCategories] = useState([]);
   const { form, updateField, error, setError, saving, setSaving } = useFormState({
     name: product?.name || '',
     categoryId: product?.categoryId || '',
-    piecesPerCase: product?.piecesPerCase || 24,
+    piecesPerCase: product?.piecesPerCase || (isElectronics ? 1 : 24),
     purchasePrice: product?.purchasePrice || '',
     wholesalePrice: product?.wholesalePrice || '',
     retailPrice: product?.retailPrice || '',
@@ -131,14 +132,18 @@ export default function ProductFormModal({ product, onClose, onSave }) {
               ))}
             </select>
           </div>
-          <div>
-            <label className="label">{t('products.brand')}</label>
-            <input className="input" value={form.brand} onChange={(event) => updateField('brand', event.target.value)} />
-          </div>
-          <div>
-            <label className="label">{t('products.model')}</label>
-            <input className="input" value={form.model} onChange={(event) => updateField('model', event.target.value)} />
-          </div>
+          {isElectronics ? (
+            <>
+              <div>
+                <label className="label">{t('products.brand')}</label>
+                <input className="input" value={form.brand} onChange={(event) => updateField('brand', event.target.value)} />
+              </div>
+              <div>
+                <label className="label">{t('products.model')}</label>
+                <input className="input" value={form.model} onChange={(event) => updateField('model', event.target.value)} />
+              </div>
+            </>
+          ) : null}
           <div>
             <label className="label">{t('products.sku')}</label>
             <input className="input" value={form.sku} onChange={(event) => updateField('sku', event.target.value)} />
@@ -147,10 +152,12 @@ export default function ProductFormModal({ product, onClose, onSave }) {
             <label className="label">{t('products.barcode')}</label>
             <input className="input" value={form.barcode} onChange={(event) => updateField('barcode', event.target.value)} />
           </div>
-          <div>
-            <label className="label">{t('products.piecesPerCase')}</label>
-            <input className="input" type="number" min="1" value={form.piecesPerCase} onChange={(event) => updateField('piecesPerCase', event.target.value)} />
-          </div>
+          {!isElectronics ? (
+            <div>
+              <label className="label">{t('products.piecesPerCase')}</label>
+              <input className="input" type="number" min="1" value={form.piecesPerCase} onChange={(event) => updateField('piecesPerCase', event.target.value)} />
+            </div>
+          ) : null}
           <div>
             <label className="label">{t('products.purchasePrice')}</label>
             <input className="input" type="number" min="0" step="0.01" value={form.purchasePrice} onChange={(event) => updateField('purchasePrice', event.target.value)} />
@@ -168,10 +175,12 @@ export default function ProductFormModal({ product, onClose, onSave }) {
             <input className="input" type="number" min="0" max="100" step="0.01" value={form.taxRate} onChange={(event) => updateField('taxRate', event.target.value)} />
             <p className="mt-1 text-xs text-slate-500">{t('products.taxRateHint') || 'Override the company default for this product.'}</p>
           </div>
-          <div>
-            <label className="label">{t('products.warrantyMonths')}</label>
-            <input className="input" type="number" min="0" step="1" value={form.warrantyMonths} onChange={(event) => updateField('warrantyMonths', event.target.value)} placeholder="0" />
-          </div>
+          {isElectronics ? (
+            <div>
+              <label className="label">{t('products.warrantyMonths')}</label>
+              <input className="input" type="number" min="0" step="1" value={form.warrantyMonths} onChange={(event) => updateField('warrantyMonths', event.target.value)} placeholder="0" />
+            </div>
+          ) : null}
           <div>
             <label className="label">{t('products.status')}</label>
             <select className="input" value={form.status} onChange={(event) => updateField('status', event.target.value)}>
@@ -193,20 +202,22 @@ export default function ProductFormModal({ product, onClose, onSave }) {
               </span>
             </label>
           </div>
-          <div className="sm:col-span-2">
-            <label className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
-              <input
-                className="mt-1 h-4 w-4 rounded border-slate-300 text-brand focus:ring-brand"
-                type="checkbox"
-                checked={Boolean(form.serialRequired)}
-                onChange={(event) => updateField('serialRequired', event.target.checked)}
-              />
-              <span>
-                <span className="block font-semibold text-slate-950">{t('products.serialRequired')}</span>
-                <span className="mt-0.5 block text-xs font-medium text-slate-500">{t('products.serialRequiredHint')}</span>
-              </span>
-            </label>
-          </div>
+          {isElectronics ? (
+            <div className="sm:col-span-2">
+              <label className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                <input
+                  className="mt-1 h-4 w-4 rounded border-slate-300 text-brand focus:ring-brand"
+                  type="checkbox"
+                  checked={Boolean(form.serialRequired)}
+                  onChange={(event) => updateField('serialRequired', event.target.checked)}
+                />
+                <span>
+                  <span className="block font-semibold text-slate-950">{t('products.serialRequired')}</span>
+                  <span className="mt-0.5 block text-xs font-medium text-slate-500">{t('products.serialRequiredHint')}</span>
+                </span>
+              </label>
+            </div>
+          ) : null}
           <div>
             <label className="label">{t('products.orderIndex')}</label>
             <input className="input" type="number" min="0" step="1" value={form.orderIndex} onChange={(event) => updateField('orderIndex', event.target.value)} placeholder="0" />

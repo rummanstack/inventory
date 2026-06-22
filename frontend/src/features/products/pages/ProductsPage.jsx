@@ -23,6 +23,7 @@ export default function ProductsPage() {
   const [showCategoriesModal, setShowCategoriesModal] = useState(false);
   const [ledgerRefreshKey, setLedgerRefreshKey] = useState(0);
   const canManageProducts = can('manage_products');
+  const isElectronics = (tenant?.businessType || 'ELECTRONICS') === 'ELECTRONICS';
   const outOfStockCount = productDirectory.filter((product) => product.stockPieces === 0).length;
   const veryLowCount = productDirectory.filter((product) => product.stockPieces > 0 && product.stockPieces <= product.piecesPerCase).length;
   const businessName = tenant?.name || '';
@@ -149,7 +150,7 @@ export default function ProductsPage() {
               <tr>
                 <th className="px-4 py-3">#</th>
                 <th className="px-4 py-3">{t('products.product')}</th>
-                <th className="hidden px-4 py-3 sm:table-cell">{t('products.caseSize')}</th>
+                {!isElectronics ? <th className="hidden px-4 py-3 sm:table-cell">{t('products.caseSize')}</th> : null}
                 <th className="hidden px-4 py-3 md:table-cell">{t('products.purchase')}</th>
                 <th className="hidden px-4 py-3 md:table-cell">{t('products.wholesalePrice')}</th>
                 <th className="hidden px-4 py-3 md:table-cell">{t('products.retailPrice')}</th>
@@ -174,7 +175,7 @@ export default function ProductsPage() {
                       {product.stockPieces > 0 && product.stockPieces <= product.piecesPerCase ? <Badge tone="amber">{t('products.lowShort')}</Badge> : null}
                     </div>
                   </td>
-                  <td className="hidden table-cell sm:table-cell">{formatNumber(product.piecesPerCase, language)} {t('common.pcsPerCase')}</td>
+                  {!isElectronics ? <td className="hidden table-cell sm:table-cell">{formatNumber(product.piecesPerCase, language)} {t('common.pcsPerCase')}</td> : null}
                   <td className="hidden table-cell md:table-cell">{formatCurrency(product.purchasePrice, language)}</td>
                   <td className="hidden table-cell md:table-cell">{formatCurrency(product.wholesalePrice, language)}</td>
                   <td className="hidden table-cell md:table-cell">{formatCurrency(product.retailPrice, language)}</td>

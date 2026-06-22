@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import { Save, Search } from 'lucide-react';
 import { Alert, Modal } from '../../../../components/ui.jsx';
 import { DatePickerField } from '../../../../components/DatePicker.jsx';
@@ -80,21 +80,62 @@ export default function SalesReturnFormModal({ onClose, onSave }) {
                   <th className="px-3 py-2 text-left">{t('products.product')}</th>
                   <th className="px-3 py-2 text-right">{t('retailer.salesReturn.soldQuantity')}</th>
                   <th className="px-3 py-2 text-right">{t('retailer.salesReturn.returnQuantity')}</th>
+                  <th className="px-3 py-2 text-left">{t('retailer.salesReturn.conditionLabel')}</th>
                   <th className="px-3 py-2 text-right">{t('retailer.shared.priceLabel')}</th>
                   <th className="px-3 py-2 text-right">{t('retailer.shared.totalAmount')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {vm.lineRows.map((row) => (
-                  <tr key={row.rowId}>
-                    <td className="px-3 py-2 font-semibold text-slate-950">{row.productName}</td>
-                    <td className="px-3 py-2 text-right">{row.originalQuantity}</td>
-                    <td className="px-3 py-2 text-right">
-                      <input className="input h-9 w-24 text-right" type="number" min="0" max={row.originalQuantity} value={row.returnQuantity} onChange={(event) => vm.updateReturnQuantity(row.rowId, event.target.value)} disabled={saving} />
-                    </td>
-                    <td className="px-3 py-2 text-right">{formatCurrency(row.actualSalePrice)}</td>
-                    <td className="px-3 py-2 text-right font-bold">{formatCurrency(row.lineTotal)}</td>
-                  </tr>
+                  <Fragment key={row.rowId}>
+                    <tr>
+                      <td className="px-3 py-2 font-semibold text-slate-950">{row.productName}</td>
+                      <td className="px-3 py-2 text-right">{row.originalQuantity}</td>
+                      <td className="px-3 py-2 text-right">
+                        {row.serialRequired ? (
+                          <span className={`font-semibold ${row.selectedSerialIds.length ? 'text-emerald-600' : 'text-rose-600'}`}>
+                            {t('retailer.salesReturn.serialsSelectedCount', { count: row.selectedSerialIds.length })}
+                          </span>
+                        ) : (
+                          <input className="input h-9 w-24 text-right" type="number" min="0" max={row.originalQuantity} value={row.returnQuantity} onChange={(event) => vm.updateReturnQuantity(row.rowId, event.target.value)} disabled={saving} />
+                        )}
+                      </td>
+                      <td className="px-3 py-2">
+                        <select className="input h-9" value={row.condition} onChange={(event) => vm.updateReturnCondition(row.rowId, event.target.value)} disabled={saving}>
+                          <option value="GOOD">{t('retailer.salesReturn.conditionGood')}</option>
+                          <option value="DAMAGED">{t('retailer.salesReturn.conditionDamaged')}</option>
+                          <option value="WARRANTY">{t('retailer.salesReturn.conditionWarranty')}</option>
+                        </select>
+                      </td>
+                      <td className="px-3 py-2 text-right">{formatCurrency(row.actualSalePrice)}</td>
+                      <td className="px-3 py-2 text-right font-bold">{formatCurrency(row.lineTotal)}</td>
+                    </tr>
+                    {row.serialRequired ? (
+                      <tr>
+                        <td colSpan={6} className="bg-slate-50 px-3 py-2">
+                          <p className="label mb-1">{t('retailer.salesReturn.selectSerialsLabel')}</p>
+                          {row.soldSerials.length ? (
+                            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                              {row.soldSerials.map((serial) => (
+                                <label key={serial.productSerialId} className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700">
+                                  <input
+                                    type="checkbox"
+                                    className="h-4 w-4 rounded border-slate-300"
+                                    checked={row.selectedSerialIds.includes(serial.productSerialId)}
+                                    onChange={() => vm.toggleReturnSerial(row.rowId, serial.productSerialId)}
+                                    disabled={saving}
+                                  />
+                                  {serial.serialNumber || serial.imei1 || serial.imei2}
+                                </label>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-xs font-semibold text-rose-600">{t('retailer.salesReturn.noSoldSerials')}</p>
+                          )}
+                        </td>
+                      </tr>
+                    ) : null}
+                  </Fragment>
                 ))}
               </tbody>
             </table>

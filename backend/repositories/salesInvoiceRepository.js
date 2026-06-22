@@ -6,6 +6,8 @@ export function mapSalesInvoice(row) {
     invoiceDate: row.invoice_date,
     customerId: row.customer_id,
     customerName: row.customer_name || null,
+    customerNameSnapshot: row.customer_name_snapshot || '',
+    customerPhoneSnapshot: row.customer_phone_snapshot || '',
     customerType: row.customer_type,
     saleType: row.sale_type,
     subtotal: Number(row.subtotal || 0),
@@ -157,8 +159,9 @@ export function insertSalesInvoice(client, invoice) {
        id, tenant_id, invoice_number, invoice_date, customer_id, customer_type, sale_type,
        subtotal, discount, tax_rate, tax_amount, total_amount, paid_amount, due_amount, payment_method, total_profit, note, created_by
        , loyalty_points_earned, loyalty_points_redeemed, loyalty_redeem_amount
+       , customer_name_snapshot, customer_phone_snapshot
      )
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23)
      RETURNING *`,
     [
       invoice.id,
@@ -182,6 +185,8 @@ export function insertSalesInvoice(client, invoice) {
       invoice.loyaltyPointsEarned ?? 0,
       invoice.loyaltyPointsRedeemed ?? 0,
       invoice.loyaltyRedeemAmount ?? 0,
+      invoice.customerNameSnapshot ?? '',
+      invoice.customerPhoneSnapshot ?? '',
     ],
   );
 }

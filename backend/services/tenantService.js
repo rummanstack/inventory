@@ -13,6 +13,7 @@ import {
   replaceTenantFeatures,
 } from "../repositories/tenantFeatureRepository.js";
 import { TENANT_FEATURES } from "../lib/features.js";
+import { BUSINESS_TYPES, BUSINESS_TYPE_VALUES } from "../lib/businessTypes.js";
 import { setCachedFeatures } from "../lib/tenantFeatureCache.js";
 import { assert } from "../lib/errors.js";
 
@@ -47,6 +48,19 @@ function normalizeLoyaltyPointValue(value) {
   return Math.min(Math.max(0, parsed), 1000000);
 }
 
+// business_type drives which industry-specific fields/flows (electronics serials &
+// warranty vs. grocery expiry/batch) apply later — it's independent of tenant_features
+// (which menus are on) and role_permissions (what a role can do).
+function normalizeBusinessType(value, fallback = BUSINESS_TYPES.ELECTRONICS) {
+  if (value === undefined || value === null || value === "") {
+    return fallback;
+  }
+
+  const businessType = String(value).trim().toUpperCase();
+  assert(BUSINESS_TYPE_VALUES.includes(businessType), `Invalid business type: ${value}`, 400);
+  return businessType;
+}
+
 export class TenantService {
   constructor(databaseManager) {
     this.databaseManager = databaseManager;
@@ -61,7 +75,7 @@ export class TenantService {
     }
   }
 
-  async createTenant({ name, slug, email, plan = "starter", address, logoUrl, taxRate = 0, loyaltyEnabled = false, loyaltyPointsPer100 = 1, loyaltyPointValue = 1 }) {
+  async createTenant({ name, slug, email, plan = "starter", address, logoUrl, taxRate = 0, loyaltyEnabled = false, loyaltyPointsPer100 = 1, loyaltyPointValue = 1, businessType }) {
     assert(name && slug && email, "name, slug and email are required", 400);
     const client = await this.databaseManager.getPool().connect();
     try {
@@ -80,6 +94,7 @@ export class TenantService {
         loyaltyEnabled: normalizeLoyaltyEnabled(loyaltyEnabled),
         loyaltyPointsPer100: normalizeLoyaltyPointsPer100(loyaltyPointsPer100),
         loyaltyPointValue: normalizeLoyaltyPointValue(loyaltyPointValue),
+        businessType: normalizeBusinessType(businessType),
       };
       return await insertTenant(client, tenant);
     } finally {
@@ -108,6 +123,7 @@ export class TenantService {
         loyaltyEnabled: fields.loyaltyEnabled !== undefined ? normalizeLoyaltyEnabled(fields.loyaltyEnabled) : existing.loyaltyEnabled ?? false,
         loyaltyPointsPer100: fields.loyaltyPointsPer100 !== undefined ? normalizeLoyaltyPointsPer100(fields.loyaltyPointsPer100) : existing.loyaltyPointsPer100 ?? 1,
         loyaltyPointValue: fields.loyaltyPointValue !== undefined ? normalizeLoyaltyPointValue(fields.loyaltyPointValue) : existing.loyaltyPointValue ?? 1,
+        businessType: fields.businessType !== undefined ? normalizeBusinessType(fields.businessType) : existing.businessType ?? BUSINESS_TYPES.ELECTRONICS,
       };
       return await updateTenant(client, updated);
     } finally {

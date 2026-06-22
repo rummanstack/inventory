@@ -1,7 +1,15 @@
 import { Link } from 'react-router-dom';
-import { ArrowUp, MessageCircle, Phone } from 'lucide-react';
-import { contactPhone, navLinks, whatsappUrl } from '../constants.js';
+import { ArrowUp, Facebook, Instagram, Linkedin, MessageCircle, Phone, Send, Twitter } from 'lucide-react';
+import { contactPhone, navLinks, socialLinks, whatsappUrl } from '../constants.js';
 import logoMark from '../../../assets/stockledger-logo-mark.svg';
+
+const SOCIAL_LINKS = [
+  { key: 'facebook', href: socialLinks.facebook, Icon: Facebook },
+  { key: 'instagram', href: socialLinks.instagram, Icon: Instagram },
+  { key: 'linkedin', href: socialLinks.linkedin, Icon: Linkedin },
+  { key: 'twitter', href: socialLinks.twitter, Icon: Twitter },
+  { key: 'telegram', href: socialLinks.telegram, Icon: Send },
+];
 
 export default function LandingFooter({ t }) {
   return (
@@ -19,6 +27,20 @@ export default function LandingFooter({ t }) {
               </div>
             </div>
             <p className="mt-4 text-sm font-medium leading-6 text-slate-300">{t('landing.footer.description')}</p>
+            <div className="mt-5 flex items-center gap-2">
+              {SOCIAL_LINKS.map(({ key, href, Icon }) => (
+                <a
+                  key={key}
+                  href={href}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label={key}
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white transition duration-200 ease-out hover:-translate-y-0.5 hover:border-white/30 hover:bg-white/20"
+                >
+                  <Icon size={16} />
+                </a>
+              ))}
+            </div>
           </div>
 
           <nav className="flex flex-wrap gap-x-6 gap-y-2 lg:pt-2" aria-label="Footer navigation">

@@ -22,6 +22,15 @@ function summarizeTaxes(lineRows, discount) {
   return { nextRows, taxableAmount, taxAmount: totalTaxAmount, totalAmount, taxRate };
 }
 
+function parseSerialsText(serialsText) {
+  return [...new Set(
+    String(serialsText || '')
+      .split('\n')
+      .map((value) => value.trim())
+      .filter(Boolean),
+  )];
+}
+
 function toLineItemRow(item, products) {
   const product = products.find((candidate) => candidate.id === item.productId);
   const piecesPerCase = Math.max(1, Number(item.piecesPerCase || product?.piecesPerCase || 1));
@@ -36,6 +45,8 @@ function toLineItemRow(item, products) {
     pieceQty: totalPieces ? totalPieces % piecesPerCase : '',
     purchasePrice: item.purchasePrice ?? (product?.purchasePrice ?? 0),
     lineDiscount: item.lineDiscount ?? 0,
+    serialRequired: Boolean(product?.serialRequired),
+    serialsText: '',
   };
 }
 
@@ -76,6 +87,8 @@ export function usePurchaseReceiptFormViewModel({ purchaseReceipt, products, def
         purchasePrice: Number(nextProduct.purchasePrice || 0),
         lineDiscount: 0,
         taxRate: taxRateForProduct(nextProduct, defaultTaxRate),
+        serialRequired: Boolean(nextProduct.serialRequired),
+        serialsText: '',
       },
     ]);
   }
@@ -99,6 +112,8 @@ export function usePurchaseReceiptFormViewModel({ purchaseReceipt, products, def
           piecesPerCase: Math.max(1, Number(product.piecesPerCase || 1)),
           purchasePrice: Number(product.purchasePrice || 0),
           taxRate: taxRateForProduct(product, defaultTaxRate),
+          serialRequired: Boolean(product.serialRequired),
+          serialsText: '',
         };
       }
 
@@ -132,7 +147,9 @@ export function usePurchaseReceiptFormViewModel({ purchaseReceipt, products, def
     const lineGross = quantityNumber * purchasePriceNumber;
     const lineTotal = Math.max(0, lineGross - lineDiscountNumber);
     const taxRate = Math.min(Math.max(0, Number(row.taxRate || 0)), 100);
-    return { ...row, quantityNumber, purchasePriceNumber, lineDiscountNumber, lineGross, lineTotal, taxRate };
+    const serials = parseSerialsText(row.serialsText);
+    const serialCountMismatch = row.serialRequired && serials.length !== quantityNumber;
+    return { ...row, quantityNumber, purchasePriceNumber, lineDiscountNumber, lineGross, lineTotal, taxRate, serials, serialCountMismatch };
   });
 
   const grossTotal = lineRows.reduce((sum, row) => sum + row.lineGross, 0);
@@ -236,7 +253,9 @@ export function usePurchaseReceiptFormViewModel({ purchaseReceipt, products, def
   }
 
   const hasValidItems = lineRows.some((row) => row.productId && row.quantityNumber > 0);
-  const hasInvalidItems = lineRows.some((row) => !row.productId || row.quantityNumber <= 0 || row.purchasePriceNumber < 0);
+  const hasInvalidItems = lineRows.some(
+    (row) => !row.productId || row.quantityNumber <= 0 || row.purchasePriceNumber < 0 || row.serialCountMismatch,
+  );
 
   function buildPayload() {
     return {
@@ -255,6 +274,7 @@ export function usePurchaseReceiptFormViewModel({ purchaseReceipt, products, def
           lineDiscount: row.lineDiscountNumber,
           taxRate: row.taxRate,
           taxAmount: row.taxAmount,
+          serials: row.serials,
       })),
       discount,
       taxRate,

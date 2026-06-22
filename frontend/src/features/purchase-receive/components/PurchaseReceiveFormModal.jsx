@@ -94,38 +94,54 @@ export default function PurchaseReceiveFormModal({ purchaseReceipt, onClose, onS
               {vm.lineRows.map((row) => {
                 const availableProducts = vm.getAvailableProducts(row.rowId);
                 return (
-                  <div key={row.rowId} className="grid gap-3 rounded-[22px] border border-slate-200 bg-slate-50 p-4 lg:grid-cols-[minmax(0,1.8fr)_minmax(110px,0.6fr)_minmax(110px,0.6fr)_minmax(110px,0.6fr)_minmax(110px,0.6fr)_auto]">
-                    <div>
-                      <label className="label">{t('products.product')}</label>
-                      <select className="input" value={row.productId} onChange={(event) => vm.updateItem(row.rowId, 'productId', event.target.value)}>
-                        {availableProducts.map((product) => (
-                          <option key={product.id} value={product.id}>{product.name}</option>
-                        ))}
-                      </select>
-                      <p className="mt-1 text-xs font-semibold text-slate-500">{row.piecesPerCase} {t('common.pcsPerCase')}</p>
+                  <div key={row.rowId} className="space-y-3 rounded-[22px] border border-slate-200 bg-slate-50 p-4">
+                    <div className="grid gap-3 lg:grid-cols-[minmax(0,1.8fr)_minmax(110px,0.6fr)_minmax(110px,0.6fr)_minmax(110px,0.6fr)_minmax(110px,0.6fr)_auto]">
+                      <div>
+                        <label className="label">{t('products.product')}</label>
+                        <select className="input" value={row.productId} onChange={(event) => vm.updateItem(row.rowId, 'productId', event.target.value)}>
+                          {availableProducts.map((product) => (
+                            <option key={product.id} value={product.id}>{product.name}</option>
+                          ))}
+                        </select>
+                        <p className="mt-1 text-xs font-semibold text-slate-500">{row.piecesPerCase} {t('common.pcsPerCase')}</p>
+                      </div>
+                      <div>
+                        <label className="label">{t('common.case')}</label>
+                        <input className="input" type="number" min="0" value={row.caseQty} onChange={(event) => vm.updateItem(row.rowId, 'caseQty', event.target.value)} />
+                      </div>
+                      <div>
+                        <label className="label">{t('common.piece')}</label>
+                        <input className="input" type="number" min="0" value={row.pieceQty} onChange={(event) => vm.updateItem(row.rowId, 'pieceQty', event.target.value)} />
+                      </div>
+                      <div>
+                        <label className="label">{t('purchaseReceive.purchasePriceLabel')}</label>
+                        <input className="input" type="number" min="0" step="0.01" value={row.purchasePrice} onChange={(event) => vm.updateItem(row.rowId, 'purchasePrice', event.target.value)} />
+                      </div>
+                      <div>
+                        <label className="label">{t('purchaseReceive.lineDiscountLabel')}</label>
+                        <input className="input" type="number" min="0" step="0.01" value={row.lineDiscount} onChange={(event) => vm.updateItem(row.rowId, 'lineDiscount', event.target.value)} />
+                      </div>
+                      <div className="flex items-end justify-between gap-2 lg:flex-col lg:items-end">
+                        <p className="text-sm font-black text-slate-950">{formatCurrency(row.lineTotal)}</p>
+                        <button type="button" className="icon-btn text-rose-600 hover:text-rose-700" title={t('common.delete')} onClick={() => vm.removeItem(row.rowId)}>
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
                     </div>
-                    <div>
-                      <label className="label">{t('common.case')}</label>
-                      <input className="input" type="number" min="0" value={row.caseQty} onChange={(event) => vm.updateItem(row.rowId, 'caseQty', event.target.value)} />
-                    </div>
-                    <div>
-                      <label className="label">{t('common.piece')}</label>
-                      <input className="input" type="number" min="0" value={row.pieceQty} onChange={(event) => vm.updateItem(row.rowId, 'pieceQty', event.target.value)} />
-                    </div>
-                    <div>
-                      <label className="label">{t('purchaseReceive.purchasePriceLabel')}</label>
-                      <input className="input" type="number" min="0" step="0.01" value={row.purchasePrice} onChange={(event) => vm.updateItem(row.rowId, 'purchasePrice', event.target.value)} />
-                    </div>
-                    <div>
-                      <label className="label">{t('purchaseReceive.lineDiscountLabel')}</label>
-                      <input className="input" type="number" min="0" step="0.01" value={row.lineDiscount} onChange={(event) => vm.updateItem(row.rowId, 'lineDiscount', event.target.value)} />
-                    </div>
-                    <div className="flex items-end justify-between gap-2 lg:flex-col lg:items-end">
-                      <p className="text-sm font-black text-slate-950">{formatCurrency(row.lineTotal)}</p>
-                      <button type="button" className="icon-btn text-rose-600 hover:text-rose-700" title={t('common.delete')} onClick={() => vm.removeItem(row.rowId)}>
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
+                    {row.serialRequired ? (
+                      <div className="rounded-xl border border-dashed border-indigo-300 bg-indigo-50/60 p-3">
+                        <label className="label">{t('purchaseReceive.serialsLabel')}</label>
+                        <textarea
+                          className="input min-h-[80px]"
+                          value={row.serialsText}
+                          onChange={(event) => vm.updateItem(row.rowId, 'serialsText', event.target.value)}
+                          placeholder={t('purchaseReceive.serialsPlaceholder')}
+                        />
+                        <p className={`mt-1 text-xs font-semibold ${row.serialCountMismatch ? 'text-rose-600' : 'text-emerald-600'}`}>
+                          {t('purchaseReceive.serialsCount', { required: row.quantityNumber, entered: row.serials.length })}
+                        </p>
+                      </div>
+                    ) : null}
                   </div>
                 );
               })}

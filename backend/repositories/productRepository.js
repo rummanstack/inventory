@@ -88,7 +88,7 @@ export async function listAllActiveProductsLite(client, tenantId) {
   const result = await client.query(
     `SELECT p.id, p.name, c.name AS category_name, p.category_id, p.pieces_per_case, p.purchase_price,
             p.wholesale_price, p.retail_price, p.stock_pieces, p.damaged_pieces, p.refundable,
-            p.tax_rate, p.order_index
+            p.tax_rate, p.order_index, p.serial_required
      FROM products p
      LEFT JOIN categories c ON c.id = p.category_id
      WHERE p.tenant_id = $1 AND p.deleted_at IS NULL

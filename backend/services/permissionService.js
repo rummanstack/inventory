@@ -30,6 +30,10 @@ const PERMISSION_REQUIRED_FEATURES = {
   manage_retail_customers_write: "retail-customers",
   view_retail_customer_retention: "retail-customer-retention",
   manage_profit_report: "profit",
+  view_product_serials: "product-serials",
+  manage_product_serials: "product-serials",
+  view_warranty_claims: "warranty-claims",
+  manage_warranty_claims: "warranty-claims",
 };
 
 function editableRolesFor(actor) {

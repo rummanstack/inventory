@@ -94,6 +94,8 @@ const en = {
       retailerSalesReturn: 'Sales Return',
       retailerDailySalesReport: 'Daily Sales Report',
       retailerProfitReport: 'Profit Report',
+      productSerials: 'Serial / IMEI',
+      warrantyClaims: 'Warranty Claims',
     },
     backup: {
       title: 'Database Backup',
@@ -121,6 +123,7 @@ const en = {
       overview: 'Overview',
       sales: 'Sales',
       inventory: 'Inventory',
+      warranty: 'Warranty',
       dealer: 'Dealer / DSR',
       purchases: 'Purchases',
       finance: 'Finance',
@@ -174,6 +177,10 @@ const en = {
         view_retail_customer_retention: 'View Retention Insights',
         manage_profit_report: 'Manage Profit / Loss Report',
         view_supplier_statement: 'View Supplier Statement',
+        view_product_serials: 'View Serial / IMEI Records',
+        manage_product_serials: 'Manage Serial / IMEI Records',
+        view_warranty_claims: 'View Warranty Claims',
+        manage_warranty_claims: 'Manage Warranty Claims',
       },
     },
     common: {

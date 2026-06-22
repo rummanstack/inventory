@@ -143,7 +143,7 @@ export const APP_ROUTES = [
   { id: 'error-logs', path: '/error-logs', labelKey: 'nav.errorLogs', icon: Bug, component: ErrorLogsPage, group: 'developer', role: 'system_developer', feature: 'error-logs' },
 ];
 
-export const SIDEBAR_SECTIONS = ['overview', 'sales', 'inventory', 'dealer', 'purchases', 'finance', 'reports', 'system', 'settings', 'support', 'developer'];
+export const SIDEBAR_SECTIONS = ['overview', 'sales', 'inventory', 'warranty', 'dealer', 'purchases', 'finance', 'reports', 'system', 'settings', 'support', 'developer'];
 
 export function getRouteLabel(pathname, t = (key) => key) {
   const matchedRoute = [...APP_ROUTES]

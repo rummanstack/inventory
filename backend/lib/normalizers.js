@@ -229,6 +229,10 @@ export function normalizePurchaseReceipt(input) {
           const lineTotal = Math.max(0, quantityPieces * purchasePrice - lineDiscount);
           const taxRate = Math.min(Math.max(0, cleanMoney(item.taxRate)), 100);
 
+          const serials = Array.isArray(item.serials)
+            ? [...new Set(item.serials.map((serial) => String(serial || "").trim()).filter(Boolean))]
+            : [];
+
           return {
             id: item.id || createId("purchase-item"),
             productId: String(item.productId || "").trim(),
@@ -239,6 +243,7 @@ export function normalizePurchaseReceipt(input) {
             lineTotal,
             taxRate,
             taxAmount: Math.max(0, lineTotal * taxRate / 100),
+            serials,
           };
         })
         .filter((item) => item.productId)

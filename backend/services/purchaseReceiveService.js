@@ -2,7 +2,7 @@ import { assert } from "../lib/errors.js";
 import { diffFields } from "../lib/auditDiff.js";
 import { normalizeIsoDate } from "../lib/dateRanges.js";
 import { parsePagination, buildPageResult } from "../lib/pagination.js";
-import { normalizePurchaseReceipt, cleanMoney } from "../lib/normalizers.js";
+import { normalizePurchaseReceipt, normalizeProductSerial, cleanMoney } from "../lib/normalizers.js";
 import { STOCK_MOVEMENT_TYPES } from "../lib/stockMovements.js";
 import { SUPPLIER_DUE_LEDGER_TYPES } from "../lib/supplierDueLedger.js";
 import { PURCHASE_ACTIONS } from "../lib/auditActions.js";
@@ -29,6 +29,7 @@ import {
   softDeletePurchaseReceipt,
   updatePurchaseReceipt,
 } from "../repositories/purchaseReceiptRepository.js";
+import { findDuplicateProductSerial, insertProductSerial } from "../repositories/productSerialRepository.js";
 import {
   logActivity,
   lockProducts,
@@ -120,6 +121,55 @@ async function applyPurchaseInventoryDelta(client, previousItems, nextItems, ten
     const nextItem = nextItems.find((item) => item.productId === productId);
     if (nextItem) {
       await updateProductPurchasePrice(client, productId, tenantId, nextItem.purchasePrice);
+    }
+  }
+}
+
+function isSerialRequired(product) {
+  return product?.serial_required === true || product?.serial_required === "t";
+}
+
+// Enforced before any mutation: every serial-required line item must supply exactly one
+// serial/IMEI per purchased piece, with no duplicates within this purchase or already in inventory.
+async function validateSerialRequirements(client, items, productMap, tenantId) {
+  const seen = new Set();
+  for (const item of items) {
+    const product = productMap.get(item.productId);
+    if (!isSerialRequired(product)) {
+      continue;
+    }
+
+    assert(
+      item.serials.length === item.quantityPieces,
+      `${product.name} requires ${item.quantityPieces} serial/IMEI number(s), but ${item.serials.length} were entered.`,
+    );
+
+    for (const serial of item.serials) {
+      assert(!seen.has(serial), `Serial/IMEI "${serial}" was entered more than once in this purchase.`);
+      seen.add(serial);
+
+      const duplicate = await findDuplicateProductSerial(client, { tenantId, serialNumber: serial });
+      assert(!duplicate, `Serial/IMEI "${serial}" already exists in inventory.`);
+    }
+  }
+}
+
+async function insertSerialsForItems(client, items, productMap, { tenantId, purchaseReceiptId }) {
+  for (const item of items) {
+    const product = productMap.get(item.productId);
+    if (!isSerialRequired(product) || !item.serials.length) {
+      continue;
+    }
+
+    for (const serial of item.serials) {
+      const serialRecord = normalizeProductSerial({
+        productId: item.productId,
+        serialNumber: serial,
+        purchaseReceiptId,
+        purchaseReceiptItemId: item.id,
+      });
+      serialRecord.tenantId = tenantId;
+      await insertProductSerial(client, serialRecord);
     }
   }
 }
@@ -245,6 +295,7 @@ export class PurchaseReceiveService {
     const supplier = supplierResult.rows[0];
     const productIds = base.items.map((item) => item.productId);
     const productMap = await lockProducts(client, productIds, actor.tenantId);
+    await validateSerialRequirements(client, base.items, productMap, actor.tenantId);
     const taxSummary = applyLineItemTaxes(base.items, productMap, 0, base.discount);
     base.taxableAmount = taxSummary.taxableAmount;
     base.taxAmount = taxSummary.taxAmount;
@@ -283,6 +334,11 @@ export class PurchaseReceiveService {
         taxAmount: item.taxAmount,
       });
     }
+
+    await insertSerialsForItems(client, base.items, productMap, {
+      tenantId: actor.tenantId,
+      purchaseReceiptId: base.id,
+    });
 
     // Seed OPENING ledger entry on first-ever entry for this supplier.
     let currentBalance = await seedOpeningSupplierLedgerIfNeeded(client, supplier, actor.tenantId, actor, base.purchaseDate);

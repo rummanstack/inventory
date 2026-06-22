@@ -30,7 +30,8 @@ function itemsSubquery() {
       'quantityPieces', sri.quantity_pieces,
       'actualSalePrice', sri.actual_sale_price,
       'costPriceSnapshot', sri.cost_price_snapshot,
-      'lineTotal', sri.line_total
+      'lineTotal', sri.line_total,
+      'condition', sri.condition
     ) ORDER BY sri.id), '[]'::json)
     FROM sales_return_items sri
     WHERE sri.sales_return_id = sr.id
@@ -127,8 +128,8 @@ export function insertSalesReturn(client, salesReturn) {
 
 export function insertSalesReturnItem(client, item) {
   return client.query(
-    `INSERT INTO sales_return_items (id, tenant_id, sales_return_id, sales_invoice_item_id, product_id, product_name, quantity_pieces, actual_sale_price, cost_price_snapshot, line_total)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+    `INSERT INTO sales_return_items (id, tenant_id, sales_return_id, sales_invoice_item_id, product_id, product_name, quantity_pieces, actual_sale_price, cost_price_snapshot, line_total, condition)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
      RETURNING *`,
     [
       item.id,
@@ -141,6 +142,7 @@ export function insertSalesReturnItem(client, item) {
       item.actualSalePrice,
       item.costPriceSnapshot,
       item.lineTotal,
+      item.condition || "GOOD",
     ],
   );
 }

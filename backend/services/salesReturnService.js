@@ -20,6 +20,9 @@ import {
   sumReturnedQuantitiesByInvoiceItem,
 } from "../repositories/salesReturnRepository.js";
 import { insertRetailLoyaltyLedgerEntry } from "../repositories/retailLoyaltyLedgerRepository.js";
+import { findProductSerialsForUpdate, updateProductSerial, mapProductSerial } from "../repositories/productSerialRepository.js";
+import { listSalesItemSerialsByInvoiceItem } from "../repositories/salesItemSerialRepository.js";
+import { PRODUCT_SERIAL_STATUSES } from "../lib/productSerials.js";
 import {
   logActivity,
   lockProducts,
@@ -62,6 +65,65 @@ async function recordLoyaltyEntry(client, {
     businessDate,
   });
   await updateRetailCustomerLoyaltyBalance(client, customerId, tenantId, balanceAfter);
+}
+
+function isSerialRequired(product) {
+  return product?.serial_required === true || product?.serial_required === "t";
+}
+
+// Validates that every serial-required return line selected exactly the right number of
+// serials, that each one was actually sold via the original invoice line being returned,
+// and that no serial is reused across two return lines in the same request.
+async function validateReturnSerialSelections(client, items, productMap, tenantId) {
+  const usedSerialIds = new Set();
+  for (const item of items) {
+    const product = productMap.get(item.productId);
+    if (!isSerialRequired(product)) {
+      continue;
+    }
+
+    assert(
+      item.serialIds.length === item.quantityPieces,
+      `${item.productName} requires selecting ${item.quantityPieces} serial/IMEI number(s), but ${item.serialIds.length} were selected.`,
+    );
+
+    const soldSerials = await listSalesItemSerialsByInvoiceItem(client, item.salesInvoiceItemId, tenantId);
+    const soldSerialIds = new Set(soldSerials.map((link) => link.productSerialId));
+
+    for (const serialId of item.serialIds) {
+      assert(!usedSerialIds.has(serialId), "The same serial/IMEI was selected more than once in this return.");
+      usedSerialIds.add(serialId);
+      assert(soldSerialIds.has(serialId), "A selected serial/IMEI was not sold on this invoice line.");
+    }
+  }
+}
+
+// Locks and updates the product_serials rows for every serial-required return line,
+// moving each one to IN_STOCK, DAMAGED, or WARRANTY depending on the reported condition.
+async function processReturnedSerials(client, items, productMap, tenantId) {
+  for (const item of items) {
+    const product = productMap.get(item.productId);
+    if (!isSerialRequired(product) || !item.serialIds.length) {
+      continue;
+    }
+
+    const lockedResult = await findProductSerialsForUpdate(client, item.serialIds, tenantId);
+    assert(lockedResult.rowCount === item.serialIds.length, "One or more selected serial/IMEI numbers could not be found.");
+
+    const nextStatus = item.condition === "DAMAGED"
+      ? PRODUCT_SERIAL_STATUSES.DAMAGED
+      : item.condition === "WARRANTY"
+        ? PRODUCT_SERIAL_STATUSES.WARRANTY
+        : PRODUCT_SERIAL_STATUSES.IN_STOCK;
+
+    for (const row of lockedResult.rows) {
+      assert(row.product_id === item.productId, "A selected serial/IMEI does not belong to this product.");
+      assert(row.status === PRODUCT_SERIAL_STATUSES.SOLD, `Serial/IMEI "${row.serial_number || row.imei1}" was already returned or is not currently sold.`);
+
+      const serial = mapProductSerial(row);
+      await updateProductSerial(client, { ...serial, tenantId, status: nextStatus });
+    }
+  }
 }
 
 export class SalesReturnService {
@@ -186,25 +248,43 @@ export class SalesReturnService {
         assert(product?.refundable !== false, `${item.productName} is marked non-refundable.`, 400);
       }
 
+      await validateReturnSerialSelections(client, base.items, productMap, actor.tenantId);
+
       const year = new Date(base.returnDate).getUTCFullYear();
       const returnNumber = await nextReturnNumber(client, actor.tenantId, year);
 
+      // GOOD goes back to sellable stock; DAMAGED goes to damaged stock instead (its own
+      // counter and movement type, mirroring how settlementService.js already records damage);
+      // WARRANTY changes no stock counters at all (in limbo pending a warranty claim, Phase 10).
       for (const item of base.items) {
-        const nextBalance = await applyStockDelta(client, item.productId, actor.tenantId, item.quantityPieces, 0);
+        if (item.condition === "WARRANTY") {
+          continue;
+        }
+
+        const isDamaged = item.condition === "DAMAGED";
+        const nextBalance = await applyStockDelta(
+          client,
+          item.productId,
+          actor.tenantId,
+          isDamaged ? 0 : item.quantityPieces,
+          isDamaged ? item.quantityPieces : 0,
+        );
         await recordStockMovement(client, {
           tenantId: actor.tenantId,
           productId: item.productId,
-          type: STOCK_MOVEMENT_TYPES.SALES_RETURN,
+          type: isDamaged ? STOCK_MOVEMENT_TYPES.DAMAGE : STOCK_MOVEMENT_TYPES.SALES_RETURN,
           quantityIn: item.quantityPieces,
           quantityOut: 0,
-          balanceAfter: nextBalance.stockPieces,
+          balanceAfter: isDamaged ? nextBalance.damagedPieces : nextBalance.stockPieces,
           referenceType: "sales_return",
           referenceId: base.id,
-          note: `Sales return ${returnNumber}`,
+          note: `Sales return ${returnNumber}${isDamaged ? " (damaged)" : ""}`,
           createdById: actor.id,
           businessDate: base.returnDate,
         });
       }
+
+      await processReturnedSerials(client, base.items, productMap, actor.tenantId);
 
       const originalTotalAmount = Math.max(0, Number(invoice.totalAmount || 0));
       const returnRatio = originalTotalAmount > 0 ? Math.min(1, base.totalAmount / originalTotalAmount) : 0;
@@ -254,6 +334,7 @@ export class SalesReturnService {
           actualSalePrice: item.actualSalePrice,
           costPriceSnapshot: item.costPriceSnapshot,
           lineTotal: item.lineTotal,
+          condition: item.condition,
         });
       }
 

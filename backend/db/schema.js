@@ -1138,6 +1138,10 @@ export async function createSchema(pool) {
     ALTER TABLE sales_invoice_items ADD COLUMN IF NOT EXISTS barcode_snapshot TEXT NOT NULL DEFAULT '';
     ALTER TABLE sales_invoice_items ADD COLUMN IF NOT EXISTS warranty_months_snapshot INTEGER NOT NULL DEFAULT 0;
 
+    -- Electronics retail: track the physical condition of each returned line item so serial
+    -- status and stock vs. damaged-stock placement can follow it correctly (Phase 9).
+    ALTER TABLE sales_return_items ADD COLUMN IF NOT EXISTS condition TEXT NOT NULL DEFAULT 'GOOD';
+
     -- Anonymous landing-page chat: one conversation per visitor browser/device, platform-level
     -- (not tenant-scoped) since visitors are prospective customers of the product itself.
     CREATE TABLE IF NOT EXISTS visitor_chats (

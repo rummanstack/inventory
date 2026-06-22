@@ -1,11 +1,24 @@
+import { Fragment } from 'react';
 import { formatCurrency, formatDate } from '../../../../utils/calculations.js';
 import { cx } from '../../../../components/ui.jsx';
+
+function addMonthsToDate(isoDate, months) {
+  if (!isoDate || !Number(months || 0)) {
+    return null;
+  }
+  const date = new Date(`${isoDate}T00:00:00`);
+  date.setMonth(date.getMonth() + Number(months || 0));
+  return date.toISOString().slice(0, 10);
+}
 
 export default function SalesInvoicePrintSheet({ invoice, businessName, printTarget = false, targetId, t, language = 'en' }) {
   const items = invoice?.items || [];
   const customerType = t(`retailer.shared.customerTypes.${invoice?.customerType}`) || invoice?.customerType;
   const saleType = t(`retailer.shared.saleTypes.${invoice?.saleType}`) || invoice?.saleType;
   const noteLabel = t('purchaseReceive.noteLabel');
+  const customerName = invoice?.customerNameSnapshot || invoice?.customerName || t('retailer.shared.customerTypes.WALK_IN');
+  const customerPhone = invoice?.customerPhoneSnapshot || '';
+  const paymentMethodLabel = invoice?.paymentMethod ? t(`purchaseReceive.paymentMethods.${invoice.paymentMethod}`) : '';
 
   return (
     <div id={targetId} className={cx('mx-auto w-full max-w-[210mm] bg-white p-8', printTarget && 'print-target')}>
@@ -25,7 +38,8 @@ export default function SalesInvoicePrintSheet({ invoice, businessName, printTar
       <div className="mt-4 grid grid-cols-3 gap-4 border-b border-slate-200 pb-4 text-[11px]">
         <div>
           <p className="font-bold uppercase text-slate-400">{t('retailer.shared.customerLabel')}</p>
-          <p className="mt-1 font-semibold text-slate-950">{invoice?.customerName || t('retailer.shared.customerTypes.WALK_IN')}</p>
+          <p className="mt-1 font-semibold text-slate-950">{customerName}</p>
+          {customerPhone ? <p className="mt-0.5 text-slate-500">{customerPhone}</p> : null}
         </div>
         <div>
           <p className="font-bold uppercase text-slate-400">{t('retailer.shared.customerTypeLabel')}</p>
@@ -35,6 +49,12 @@ export default function SalesInvoicePrintSheet({ invoice, businessName, printTar
           <p className="font-bold uppercase text-slate-400">{t('retailer.shared.saleTypeLabel')}</p>
           <p className="mt-1 font-semibold text-slate-950">{saleType}</p>
         </div>
+        {paymentMethodLabel ? (
+          <div>
+            <p className="font-bold uppercase text-slate-400">{t('purchaseReceive.paymentMethodLabel')}</p>
+            <p className="mt-1 font-semibold text-slate-950">{paymentMethodLabel}</p>
+          </div>
+        ) : null}
       </div>
 
       <table className="mt-4 w-full border-collapse text-[10px]">
@@ -48,15 +68,45 @@ export default function SalesInvoicePrintSheet({ invoice, businessName, printTar
           </tr>
         </thead>
         <tbody>
-          {items.map((item, i) => (
-            <tr key={item.id || i} className="print-break-inside-avoid">
-              <td className="border border-slate-200 px-2 py-1.5 font-semibold text-slate-950">{item.productName}</td>
-              <td className="border border-slate-200 px-2 py-1.5 text-right">{Number(item.quantityPieces || 0).toLocaleString(language === 'bn' ? 'bn-BD' : 'en-GB')}</td>
-              <td className="border border-slate-200 px-2 py-1.5 text-right">{formatCurrency(item.actualSalePrice, language)}</td>
-              <td className="border border-slate-200 px-2 py-1.5 text-right">{formatCurrency(item.lineDiscount, language)}</td>
-              <td className="border border-slate-200 px-2 py-1.5 text-right font-bold">{formatCurrency(item.lineTotal, language)}</td>
-            </tr>
-          ))}
+          {items.map((item, i) => {
+            const brandModel = [item.brandSnapshot, item.modelSnapshot].filter(Boolean).join(' / ');
+            const serials = (item.serials || []).map((serial) => serial.serialNumber || serial.imei1 || serial.imei2).filter(Boolean);
+            const warrantyMonths = Number(item.warrantyMonthsSnapshot || 0);
+            const warrantyEndDate = warrantyMonths > 0 ? addMonthsToDate(invoice?.invoiceDate, warrantyMonths) : null;
+            const hasElectronicsDetail = serials.length > 0 || warrantyMonths > 0;
+
+            return (
+              <Fragment key={item.id || i}>
+                <tr className="print-break-inside-avoid">
+                  <td className="border border-slate-200 px-2 py-1.5 font-semibold text-slate-950">
+                    {item.productName}
+                    {brandModel ? <span className="block text-[9px] font-medium text-slate-500">{brandModel}</span> : null}
+                  </td>
+                  <td className="border border-slate-200 px-2 py-1.5 text-right">{Number(item.quantityPieces || 0).toLocaleString(language === 'bn' ? 'bn-BD' : 'en-GB')}</td>
+                  <td className="border border-slate-200 px-2 py-1.5 text-right">{formatCurrency(item.actualSalePrice, language)}</td>
+                  <td className="border border-slate-200 px-2 py-1.5 text-right">{formatCurrency(item.lineDiscount, language)}</td>
+                  <td className="border border-slate-200 px-2 py-1.5 text-right font-bold">{formatCurrency(item.lineTotal, language)}</td>
+                </tr>
+                {hasElectronicsDetail ? (
+                  <tr className="print-break-inside-avoid">
+                    <td colSpan={5} className="border border-slate-200 bg-slate-50 px-2 py-1 text-[9px] text-slate-600">
+                      {serials.length ? (
+                        <span className="mr-3">{t('retailer.salesInvoices.serialPrintLabel')}: {serials.join(', ')}</span>
+                      ) : null}
+                      {warrantyMonths > 0 ? (
+                        <span>
+                          {t('retailer.salesInvoices.warrantyPrintLabel', {
+                            months: warrantyMonths,
+                            endDate: formatDate(warrantyEndDate, language),
+                          })}
+                        </span>
+                      ) : null}
+                    </td>
+                  </tr>
+                ) : null}
+              </Fragment>
+            );
+          })}
         </tbody>
       </table>
 

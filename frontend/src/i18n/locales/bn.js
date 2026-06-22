@@ -1399,6 +1399,8 @@
         noMatchDescription: 'অন্য ফিল্টার চেষ্টা করুন বা নতুন ইনভয়েস তৈরি করুন।',
         deleteTitle: 'সেলস ইনভয়েস মুছুন',
         deleteConfirm: 'ইনভয়েস {number} মুছে ফেলবেন? এটি পূর্বাবস্থায় ফেরানো যাবে না।',
+        serialPrintLabel: 'সিরিয়াল / আইএমইআই',
+        warrantyPrintLabel: 'ওয়ারেন্টি: {months} মাস, {endDate} পর্যন্ত বৈধ',
       },
       promotions: {
         eyebrow: 'রিটেইলার',

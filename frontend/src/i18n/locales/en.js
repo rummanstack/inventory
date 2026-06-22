@@ -1417,6 +1417,8 @@ const en = {
         noMatchDescription: 'Try a different filter or create a new invoice.',
         deleteTitle: 'Delete Sales Invoice',
         deleteConfirm: 'Delete invoice {number}? This cannot be undone.',
+        serialPrintLabel: 'Serial / IMEI',
+        warrantyPrintLabel: 'Warranty: {months} months, valid until {endDate}',
       },
       promotions: {
         eyebrow: 'Retailer',

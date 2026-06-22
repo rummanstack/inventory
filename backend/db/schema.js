@@ -1131,6 +1131,13 @@ export async function createSchema(pool) {
     ALTER TABLE sales_invoices ADD COLUMN IF NOT EXISTS customer_name_snapshot TEXT NOT NULL DEFAULT '';
     ALTER TABLE sales_invoices ADD COLUMN IF NOT EXISTS customer_phone_snapshot TEXT NOT NULL DEFAULT '';
 
+    -- Electronics retail: snapshot brand/model/barcode/warranty on each sold line item, so
+    -- invoice history and reprints stay stable even if the product record changes later (Phase 5).
+    ALTER TABLE sales_invoice_items ADD COLUMN IF NOT EXISTS brand_snapshot TEXT NOT NULL DEFAULT '';
+    ALTER TABLE sales_invoice_items ADD COLUMN IF NOT EXISTS model_snapshot TEXT NOT NULL DEFAULT '';
+    ALTER TABLE sales_invoice_items ADD COLUMN IF NOT EXISTS barcode_snapshot TEXT NOT NULL DEFAULT '';
+    ALTER TABLE sales_invoice_items ADD COLUMN IF NOT EXISTS warranty_months_snapshot INTEGER NOT NULL DEFAULT 0;
+
     -- Anonymous landing-page chat: one conversation per visitor browser/device, platform-level
     -- (not tenant-scoped) since visitors are prospective customers of the product itself.
     CREATE TABLE IF NOT EXISTS visitor_chats (

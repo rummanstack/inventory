@@ -9,6 +9,7 @@ export default function AccountTransactionFormModal({ onClose, onSave }) {
   const { t } = useInventoryApp();
   const { form, updateField, error, setError, saving, setSaving } = useFormState({
     date: todayISO(),
+    accountType: 'CASH',
     type: 'DEPOSIT',
     amount: '',
     note: '',
@@ -32,7 +33,7 @@ export default function AccountTransactionFormModal({ onClose, onSave }) {
     setError('');
     const result = await onSave({
       date: form.date,
-      accountType: 'CASH',
+      accountType: form.accountType,
       type: form.type,
       amount,
       note: form.note.trim(),
@@ -52,6 +53,13 @@ export default function AccountTransactionFormModal({ onClose, onSave }) {
           <div>
             <label className="label">{t('financeAccounts.date')}</label>
             <DatePickerField value={form.date} onChange={(value) => updateField('date', value)} />
+          </div>
+          <div>
+            <label className="label">{t('financeAccounts.account')}</label>
+            <select className="input" value={form.accountType} onChange={(event) => updateField('accountType', event.target.value)}>
+              <option value="CASH">{t('financeAccounts.cashInHand')}</option>
+              <option value="BANK">{t('financeAccounts.bank')}</option>
+            </select>
           </div>
           <div>
             <label className="label">{t('financeAccounts.type')}</label>

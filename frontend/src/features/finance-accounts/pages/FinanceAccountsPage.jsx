@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { Boxes, HandCoins, Plus, Scale, Trash2, Wallet } from 'lucide-react';
+import { ArrowLeftRight, Boxes, HandCoins, Landmark, Plus, Scale, Trash2, Wallet } from 'lucide-react';
 import { Alert, Badge, EmptyState, Pagination, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { formatCurrency, formatDate } from '../../../utils/calculations.js';
 import { useFinanceAccountsViewModel } from '../viewmodels/useFinanceAccountsViewModel';
 import AccountTransactionFormModal from '../components/AccountTransactionFormModal';
+import AccountTransferFormModal from '../components/AccountTransferFormModal';
 
 const TYPE_TONES = {
   DEPOSIT: 'emerald',
@@ -22,9 +23,10 @@ export default function FinanceAccountsPage() {
   const canManage = can('manage_finance_accounts');
 
   const cashBalance = vm.accounts.find((a) => a.type === 'CASH')?.balance || 0;
+  const bankBalance = vm.accounts.find((a) => a.type === 'BANK')?.balance || 0;
   const stockValue = productDirectory.reduce((sum, product) => sum + product.stockPieces * Number(product.purchasePrice || 0), 0);
   const dueTotal = vm.totalDsrDue + vm.totalCustomerDue;
-  const totalCashPosition = cashBalance + stockValue + dueTotal;
+  const totalCashPosition = cashBalance + bankBalance + stockValue + dueTotal;
 
   return (
     <div>
@@ -33,10 +35,16 @@ export default function FinanceAccountsPage() {
         title={t('financeAccounts.title')}
         description={t('financeAccounts.description')}
         action={canManage ? (
-          <button type="button" className="btn-primary" onClick={() => setModal({ type: 'transaction' })}>
-            <Plus size={18} />
-            {t('financeAccounts.addTransaction')}
-          </button>
+          <div className="flex gap-2">
+            <button type="button" className="btn-secondary" onClick={() => setModal({ type: 'transfer' })}>
+              <ArrowLeftRight size={18} />
+              {t('financeAccounts.transfer')}
+            </button>
+            <button type="button" className="btn-primary" onClick={() => setModal({ type: 'transaction' })}>
+              <Plus size={18} />
+              {t('financeAccounts.addTransaction')}
+            </button>
+          </div>
         ) : null}
       />
 
@@ -46,9 +54,10 @@ export default function FinanceAccountsPage() {
         </div>
       ) : null}
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         {vm.accountsLoading ? (
           <>
+            <StatCardSkeleton />
             <StatCardSkeleton />
             <StatCardSkeleton />
             <StatCardSkeleton />
@@ -61,6 +70,12 @@ export default function FinanceAccountsPage() {
               value={formatCurrency(cashBalance)}
               icon={Wallet}
               tone={cashBalance < 0 ? 'rose' : 'emerald'}
+            />
+            <StatCard
+              title={t('financeAccounts.bank')}
+              value={formatCurrency(bankBalance)}
+              icon={Landmark}
+              tone={bankBalance < 0 ? 'rose' : 'indigo'}
             />
             <StatCard
               title={t('financeAccounts.cashInStock')}
@@ -176,6 +191,17 @@ export default function FinanceAccountsPage() {
           onClose={() => setModal(null)}
           onSave={async (value) => {
             const result = await vm.saveTransaction(value);
+            if (result.ok) setModal(null);
+            return result;
+          }}
+        />
+      ) : null}
+
+      {modal?.type === 'transfer' ? (
+        <AccountTransferFormModal
+          onClose={() => setModal(null)}
+          onSave={async (value) => {
+            const result = await vm.saveTransfer(value);
             if (result.ok) setModal(null);
             return result;
           }}

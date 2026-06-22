@@ -3,6 +3,7 @@ import { diffFields } from "../lib/auditDiff.js";
 import { normalizeIsoDate } from "../lib/dateRanges.js";
 import { parsePagination, buildPageResult } from "../lib/pagination.js";
 import { normalizeSupplierPayment } from "../lib/normalizers.js";
+import { accountTypeForPaymentMethod } from "../lib/financeAccounts.js";
 import { SUPPLIER_DUE_LEDGER_TYPES } from "../lib/supplierDueLedger.js";
 import { SUPPLIER_PAYMENT_ACTIONS } from "../lib/auditActions.js";
 import { findSupplierForUpdate, updateSupplierCurrentDue } from "../repositories/supplierRepository.js";
@@ -119,7 +120,7 @@ export class SupplierPaymentService {
       await this.financeAccountService.recordTransactionInClient(
         client,
         {
-          accountType: "CASH",
+          accountType: accountTypeForPaymentMethod(base.paymentMethod),
           type: "WITHDRAWAL",
           amount: base.amount,
           date: base.paymentDate,
@@ -187,7 +188,7 @@ export class SupplierPaymentService {
         await this.financeAccountService.recordTransactionInClient(
           client,
           {
-            accountType: "CASH",
+            accountType: accountTypeForPaymentMethod(base.paymentMethod),
             type: amountDelta > 0 ? "WITHDRAWAL" : "DEPOSIT",
             amount: Math.abs(amountDelta),
             date: base.paymentDate,
@@ -267,7 +268,7 @@ export class SupplierPaymentService {
         await this.financeAccountService.recordTransactionInClient(
           client,
           {
-            accountType: "CASH",
+            accountType: accountTypeForPaymentMethod(payment.payment_method),
             type: "DEPOSIT",
             amount,
             date: String(payment.payment_date).slice(0, 10),
@@ -323,7 +324,7 @@ export class SupplierPaymentService {
         await this.financeAccountService.recordTransactionInClient(
           client,
           {
-            accountType: "CASH",
+            accountType: accountTypeForPaymentMethod(row.payment_method),
             type: "WITHDRAWAL",
             amount,
             date: String(row.payment_date).slice(0, 10),

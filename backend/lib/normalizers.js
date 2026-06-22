@@ -1,5 +1,6 @@
 import { createId } from "./ids.js";
 import { PRODUCT_SERIAL_STATUS_VALUES, PRODUCT_SERIAL_STATUSES } from "./productSerials.js";
+import { WARRANTY_CLAIM_STATUS_VALUES, WARRANTY_CLAIM_STATUSES } from "./warrantyClaims.js";
 
 export function cleanInteger(value) {
   const parsed = Number(value);
@@ -69,6 +70,26 @@ export function normalizeProductSerial(input) {
     salesInvoiceItemId: String(input.salesInvoiceItemId || "").trim() || null,
     warrantyStartDate: String(input.warrantyStartDate || "").trim() || null,
     warrantyEndDate: String(input.warrantyEndDate || "").trim() || null,
+  };
+}
+
+export function normalizeWarrantyClaim(input) {
+  const status = WARRANTY_CLAIM_STATUS_VALUES.includes(String(input.status || "").trim().toUpperCase())
+    ? String(input.status).trim().toUpperCase()
+    : WARRANTY_CLAIM_STATUSES.RECEIVED;
+
+  return {
+    id: input.id || createId("warranty-claim"),
+    customerId: String(input.customerId || "").trim() || null,
+    salesInvoiceId: String(input.salesInvoiceId || "").trim() || null,
+    salesInvoiceItemId: String(input.salesInvoiceItemId || "").trim() || null,
+    productId: String(input.productId || "").trim(),
+    productSerialId: String(input.productSerialId || "").trim() || null,
+    problemNote: String(input.problemNote || "").trim(),
+    receivedDate: String(input.receivedDate || "").trim(),
+    status,
+    supplierId: String(input.supplierId || "").trim() || null,
+    resolutionNote: String(input.resolutionNote || "").trim(),
   };
 }
 

@@ -1142,6 +1142,49 @@ export async function createSchema(pool) {
     -- status and stock vs. damaged-stock placement can follow it correctly (Phase 9).
     ALTER TABLE sales_return_items ADD COLUMN IF NOT EXISTS condition TEXT NOT NULL DEFAULT 'GOOD';
 
+    -- Electronics retail: warranty/service claim tracking (Phase 10).
+    CREATE TABLE IF NOT EXISTS warranty_claim_counters (
+      tenant_id  TEXT NOT NULL REFERENCES tenants(id),
+      year       INTEGER NOT NULL,
+      last_value INTEGER NOT NULL DEFAULT 0,
+      PRIMARY KEY (tenant_id, year)
+    );
+
+    CREATE TABLE IF NOT EXISTS warranty_claims (
+      id                      TEXT PRIMARY KEY,
+      tenant_id               TEXT NOT NULL REFERENCES tenants(id),
+
+      claim_number            TEXT NOT NULL,
+      customer_id             TEXT,
+      sales_invoice_id        TEXT REFERENCES sales_invoices(id) ON DELETE SET NULL,
+      sales_invoice_item_id   TEXT REFERENCES sales_invoice_items(id) ON DELETE SET NULL,
+      product_id              TEXT NOT NULL REFERENCES products(id),
+      product_serial_id        TEXT REFERENCES product_serials(id) ON DELETE SET NULL,
+
+      problem_note             TEXT NOT NULL DEFAULT '',
+      received_date            DATE NOT NULL DEFAULT CURRENT_DATE,
+
+      status                   TEXT NOT NULL DEFAULT 'RECEIVED',
+
+      supplier_id               TEXT REFERENCES suppliers(id) ON DELETE SET NULL,
+      resolution_note            TEXT NOT NULL DEFAULT '',
+
+      created_by                 TEXT REFERENCES users(id) ON DELETE SET NULL,
+      created_at                  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at                  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+      deleted_at                  TIMESTAMPTZ,
+      deleted_by_id                TEXT REFERENCES users(id) ON DELETE SET NULL,
+      delete_reason                 TEXT NOT NULL DEFAULT '',
+
+      UNIQUE (tenant_id, claim_number)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_warranty_claims_tenant_status ON warranty_claims(tenant_id, status);
+    CREATE INDEX IF NOT EXISTS idx_warranty_claims_invoice ON warranty_claims(tenant_id, sales_invoice_id);
+    CREATE INDEX IF NOT EXISTS idx_warranty_claims_serial ON warranty_claims(tenant_id, product_serial_id);
+    CREATE INDEX IF NOT EXISTS idx_warranty_claims_date ON warranty_claims(tenant_id, received_date DESC);
+
     -- Anonymous landing-page chat: one conversation per visitor browser/device, platform-level
     -- (not tenant-scoped) since visitors are prospective customers of the product itself.
     CREATE TABLE IF NOT EXISTS visitor_chats (

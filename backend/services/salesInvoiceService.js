@@ -304,6 +304,10 @@ export class SalesInvoiceService {
       );
       const costPriceSnapshot = Number(product.purchase_price || 0);
       item.productName = item.productName || product.name;
+      item.brandSnapshot = product.brand || '';
+      item.modelSnapshot = product.model || '';
+      item.barcodeSnapshot = product.barcode || '';
+      item.warrantyMonthsSnapshot = Number(product.warranty_months || 0);
       if (base.saleType !== "WHOLESALE") {
         const promotion = bestPromotionForProduct(
           promotions,
@@ -458,6 +462,10 @@ export class SalesInvoiceService {
         lineTotal: item.lineTotal,
         taxRate: item.taxRate,
         taxAmount: item.taxAmount,
+        brandSnapshot: item.brandSnapshot,
+        modelSnapshot: item.modelSnapshot,
+        barcodeSnapshot: item.barcodeSnapshot,
+        warrantyMonthsSnapshot: item.warrantyMonthsSnapshot,
       });
     }
 

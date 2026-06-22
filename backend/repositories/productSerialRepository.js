@@ -12,6 +12,7 @@ export function mapProductSerial(row) {
     purchaseReceiptId: row.purchase_receipt_id || null,
     purchaseReceiptItemId: row.purchase_receipt_item_id || null,
     salesInvoiceId: row.sales_invoice_id || null,
+    invoiceNumber: row.invoice_number || null,
     salesInvoiceItemId: row.sales_invoice_item_id || null,
     warrantyStartDate: row.warranty_start_date || null,
     warrantyEndDate: row.warranty_end_date || null,
@@ -65,8 +66,9 @@ export async function listProductSerialsPage(client, { productId, status, search
   const { params, where } = buildFilters({ productId, status, search, tenantId });
   params.push(limit, offset);
   const result = await client.query(
-    `SELECT ps.*, p.name AS product_name FROM product_serials ps
+    `SELECT ps.*, p.name AS product_name, si.invoice_number FROM product_serials ps
      LEFT JOIN products p ON p.id = ps.product_id
+     LEFT JOIN sales_invoices si ON si.id = ps.sales_invoice_id
      ${where}
      ORDER BY ps.created_at DESC LIMIT $${params.length - 1} OFFSET $${params.length}`,
     params,
@@ -87,8 +89,9 @@ export async function listAvailableProductSerials(client, { productId, tenantId 
 
 export function findProductSerialById(client, id, tenantId) {
   return client.query(
-    `SELECT ps.*, p.name AS product_name FROM product_serials ps
+    `SELECT ps.*, p.name AS product_name, si.invoice_number FROM product_serials ps
      LEFT JOIN products p ON p.id = ps.product_id
+     LEFT JOIN sales_invoices si ON si.id = ps.sales_invoice_id
      WHERE ps.id = $1 AND ps.tenant_id = $2 AND ps.deleted_at IS NULL`,
     [id, tenantId],
   );

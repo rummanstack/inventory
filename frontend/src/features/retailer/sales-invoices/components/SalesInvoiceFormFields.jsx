@@ -5,9 +5,23 @@ import { formatCurrency } from '../../../../utils/calculations.js';
 import { inventoryApi } from '../../../../services/inventoryApi.js';
 import RetailCustomerFormModal from '../../../retail-customers/components/RetailCustomerFormModal.jsx';
 
+function matchesProductQuery(product, query) {
+  const normalizedQuery = query.trim().toLowerCase();
+  if (!normalizedQuery) {
+    return true;
+  }
+  return (
+    product.name.toLowerCase().includes(normalizedQuery) ||
+    (product.barcode || '').toLowerCase().includes(normalizedQuery) ||
+    (product.sku || '').toLowerCase().includes(normalizedQuery)
+  );
+}
+
 export default function SalesInvoiceFormFields({ vm, t, productDirectory, retailCustomerDirectory, saving, saveRetailCustomer }) {
   const [showAddCustomer, setShowAddCustomer] = useState(false);
   const [availableSerialsByProduct, setAvailableSerialsByProduct] = useState({});
+  const [productPickerRowId, setProductPickerRowId] = useState(null);
+  const [productQueries, setProductQueries] = useState({});
 
   useEffect(() => {
     const neededProductIds = [...new Set(
@@ -99,16 +113,47 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, retail
               const availableProducts = vm.getAvailableProducts(row.rowId);
               const overStock = row.quantityNumber > Number(row.availableStock || 0);
               const availableSerials = availableSerialsByProduct[row.productId] || [];
+              const pickerOpen = productPickerRowId === row.rowId;
+              const productQuery = productQueries[row.rowId] || '';
+              const filteredProducts = pickerOpen
+                ? availableProducts.filter((product) => matchesProductQuery(product, productQuery))
+                : [];
+              const selectedProductName = availableProducts.find((product) => product.id === row.productId)?.name || row.productName || '';
               return (
                 <div key={row.rowId} className="space-y-3 rounded-[22px] border border-slate-200 bg-slate-50 p-4">
                   <div className="grid gap-3 lg:grid-cols-[minmax(0,1.8fr)_minmax(110px,0.6fr)_minmax(110px,0.6fr)_minmax(110px,0.6fr)_minmax(110px,0.6fr)_auto]">
-                    <div>
+                    <div className="relative">
                       <label className="label">{t('products.product')}</label>
-                      <select className="input" value={row.productId} onChange={(event) => vm.updateItem(row.rowId, 'productId', event.target.value)} disabled={saving}>
-                        {availableProducts.map((product) => (
-                          <option key={product.id} value={product.id}>{product.name}</option>
-                        ))}
-                      </select>
+                      <input
+                        className="input"
+                        value={pickerOpen ? productQuery : selectedProductName}
+                        onFocus={() => { setProductPickerRowId(row.rowId); setProductQueries((current) => ({ ...current, [row.rowId]: '' })); }}
+                        onChange={(event) => setProductQueries((current) => ({ ...current, [row.rowId]: event.target.value }))}
+                        onBlur={() => setTimeout(() => setProductPickerRowId((current) => (current === row.rowId ? null : current)), 150)}
+                        placeholder={t('retailer.shared.searchProductPlaceholder')}
+                        disabled={saving}
+                      />
+                      {pickerOpen ? (
+                        <div className="absolute z-20 mt-1 max-h-56 w-full overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-lg">
+                          {filteredProducts.length ? filteredProducts.map((product) => (
+                            <button
+                              key={product.id}
+                              type="button"
+                              className="flex w-full flex-col items-start gap-0.5 px-3 py-2 text-left text-sm hover:bg-slate-50"
+                              onMouseDown={() => { vm.updateItem(row.rowId, 'productId', product.id); setProductPickerRowId(null); }}
+                            >
+                              <span className="font-semibold text-slate-950">{product.name}</span>
+                              {product.barcode || product.sku ? (
+                                <span className="text-xs text-slate-500">
+                                  {[product.sku && `SKU: ${product.sku}`, product.barcode && `Barcode: ${product.barcode}`].filter(Boolean).join(' · ')}
+                                </span>
+                              ) : null}
+                            </button>
+                          )) : (
+                            <p className="px-3 py-2 text-sm text-slate-500">{t('retailer.shared.noProductsFound')}</p>
+                          )}
+                        </div>
+                      ) : null}
                       <p className={`mt-1 text-xs font-semibold ${overStock ? 'text-rose-600' : 'text-slate-500'}`}>
                         {t('retailer.shared.availableStock')}: {row.availableStock ?? 0}
                       </p>

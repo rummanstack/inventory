@@ -30,6 +30,8 @@ import {
   MessageCircle,
   ArrowLeftRight,
   AlertTriangle,
+  Fingerprint,
+  Wrench,
 } from 'lucide-react';
 import DashboardPage from '../features/dashboard/pages/DashboardPage';
 import ActivityLogsPage from '../features/activity-logs/pages/ActivityLogsPage';
@@ -75,6 +77,8 @@ import FinanceDashboardPage from '../features/finance-dashboard/pages/FinanceDas
 import FinanceAccountsPage from '../features/finance-accounts/pages/FinanceAccountsPage';
 import StockMovementPage from '../features/stock-movement/pages/StockMovementPage';
 import LowStockAlertsPage from '../features/low-stock-alerts/pages/LowStockAlertsPage';
+import ProductSerialsPage from '../features/product-serials/pages/ProductSerialsPage';
+import WarrantyClaimsPage from '../features/warranty-claims/pages/WarrantyClaimsPage';
 
 export const APP_ROUTES = [
   { id: 'dashboard', path: '/dashboard', labelKey: 'nav.dashboard', icon: BarChart3, component: DashboardPage, group: 'overview', permission: 'view_state', feature: 'dashboard' },
@@ -94,6 +98,10 @@ export const APP_ROUTES = [
   { id: 'damaged-stock', path: '/damaged-stock', labelKey: 'nav.damagedStock', icon: PackageX, component: DamagedStockPage, group: 'inventory', permission: 'view_state', feature: 'damaged-stock' },
   { id: 'stock-movement', path: '/stock-movement', labelKey: 'nav.stockMovement', icon: ArrowLeftRight, component: StockMovementPage, group: 'inventory', permission: 'view_state', feature: 'stock-movement' },
   { id: 'low-stock-alerts', path: '/low-stock-alerts', labelKey: 'nav.lowStockAlerts', icon: AlertTriangle, component: LowStockAlertsPage, group: 'inventory', permission: 'view_state', feature: 'low-stock-alerts' },
+  { id: 'product-serials', path: '/product-serials', labelKey: 'nav.productSerials', icon: Fingerprint, component: ProductSerialsPage, group: 'inventory', permission: 'view_product_serials', feature: 'product-serials' },
+
+  // Warranty
+  { id: 'warranty-claims', path: '/warranty-claims', labelKey: 'nav.warrantyClaims', icon: Wrench, component: WarrantyClaimsPage, group: 'warranty', permission: 'view_warranty_claims', feature: 'warranty-claims' },
 
   // Dealer / DSR
   { id: 'dsrs', path: '/dsrs', labelKey: 'nav.dsrs', icon: Users, component: DsrPage, group: 'dealer', permission: 'view_state', feature: 'dsrs' },

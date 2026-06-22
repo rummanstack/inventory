@@ -215,6 +215,22 @@ export function paymentStatusTone(status) {
   return 'rose';
 }
 
+export function productSerialStatusTone(status) {
+  if (status === 'IN_STOCK') return 'emerald';
+  if (status === 'SOLD') return 'blue';
+  if (status === 'WARRANTY') return 'amber';
+  if (status === 'DAMAGED' || status === 'DELETED') return 'rose';
+  if (status === 'RETURNED') return 'purple';
+  return 'slate';
+}
+
+export function warrantyClaimStatusTone(status) {
+  if (status === 'RECEIVED' || status === 'SENT_TO_SUPPLIER') return 'amber';
+  if (status === 'REPAIRED' || status === 'REPLACED' || status === 'DELIVERED') return 'emerald';
+  if (status === 'REJECTED') return 'rose';
+  return 'slate';
+}
+
 export function shortDate(date, language = getPreferredLanguage()) {
   if (!date) return '-';
   return new Intl.DateTimeFormat(language === 'bn' ? 'bn-BD' : 'en-US', { month: 'short', day: 'numeric' }).format(new Date(`${date}T00:00:00`));

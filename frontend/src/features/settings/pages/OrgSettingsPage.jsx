@@ -16,6 +16,7 @@ export default function OrgSettingsPage() {
     loyaltyEnabled: Boolean(tenant?.loyaltyEnabled),
     loyaltyPointsPer100: String(Number(tenant?.loyaltyPointsPer100 ?? 1)),
     loyaltyPointValue: String(Number(tenant?.loyaltyPointValue ?? 1)),
+    businessType: tenant?.businessType || 'ELECTRONICS',
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -31,6 +32,7 @@ export default function OrgSettingsPage() {
       loyaltyEnabled: Boolean(tenant.loyaltyEnabled),
       loyaltyPointsPer100: String(Number(tenant.loyaltyPointsPer100 ?? 1)),
       loyaltyPointValue: String(Number(tenant.loyaltyPointValue ?? 1)),
+      businessType: tenant.businessType || 'ELECTRONICS',
     });
   }, [tenant]);
 
@@ -90,6 +92,20 @@ export default function OrgSettingsPage() {
             disabled={!canEdit}
             required
           />
+        </label>
+
+        <label className="block">
+          <span className="label">{t('orgSettings.businessType')}</span>
+          <select
+            className="input"
+            value={form.businessType}
+            onChange={(e) => handleChange('businessType', e.target.value)}
+            disabled={!canEdit}
+          >
+            <option value="ELECTRONICS">{t('orgSettings.businessTypeElectronics')}</option>
+            <option value="GROCERY">{t('orgSettings.businessTypeGrocery')}</option>
+          </select>
+          <p className="mt-1 text-xs text-slate-500">{t('orgSettings.businessTypeHelp')}</p>
         </label>
 
         <PhotoUploadField

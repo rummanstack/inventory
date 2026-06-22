@@ -13,6 +13,7 @@ export function mapTenant(row) {
     loyaltyEnabled: row.loyalty_enabled === true || row.loyalty_enabled === 'true' || row.loyalty_enabled === 1,
     loyaltyPointsPer100: Number(row.loyalty_points_per_100 || 0),
     loyaltyPointValue: Number(row.loyalty_point_value || 0),
+    businessType: row.business_type || 'ELECTRONICS',
     createdAt: row.created_at,
   };
 }
@@ -39,8 +40,8 @@ export async function countTenants(client) {
 
 export async function insertTenant(client, tenant) {
   const result = await client.query(
-    `INSERT INTO tenants (id, name, slug, email, plan, status, logo_url, address, tax_rate, loyalty_enabled, loyalty_points_per_100, loyalty_point_value)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+    `INSERT INTO tenants (id, name, slug, email, plan, status, logo_url, address, tax_rate, loyalty_enabled, loyalty_points_per_100, loyalty_point_value, business_type)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
      RETURNING *`,
     [
       tenant.id,
@@ -55,6 +56,7 @@ export async function insertTenant(client, tenant) {
       tenant.loyaltyEnabled ?? false,
       tenant.loyaltyPointsPer100 ?? 1,
       tenant.loyaltyPointValue ?? 1,
+      tenant.businessType || "ELECTRONICS",
     ],
   );
   return mapTenant(result.rows[0]);
@@ -64,7 +66,7 @@ export async function updateTenant(client, tenant) {
   const result = await client.query(
     `UPDATE tenants
      SET name = $2, email = $3, plan = $4, logo_url = $5, address = $6, tax_rate = $7,
-         loyalty_enabled = $8, loyalty_points_per_100 = $9, loyalty_point_value = $10
+         loyalty_enabled = $8, loyalty_points_per_100 = $9, loyalty_point_value = $10, business_type = $11
      WHERE id = $1
      RETURNING *`,
     [
@@ -78,6 +80,7 @@ export async function updateTenant(client, tenant) {
       tenant.loyaltyEnabled ?? false,
       tenant.loyaltyPointsPer100 ?? 1,
       tenant.loyaltyPointValue ?? 1,
+      tenant.businessType || "ELECTRONICS",
     ],
   );
   return mapTenant(result.rows[0]);

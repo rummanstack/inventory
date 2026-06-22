@@ -12,6 +12,7 @@ export default function TenantEditModal({ tenant, onClose, onSave }) {
     plan: tenant.plan || 'starter',
     address: tenant.address || '',
     logoUrl: tenant.logoUrl || '',
+    businessType: tenant.businessType || 'ELECTRONICS',
   });
 
   async function handleSubmit(event) {
@@ -45,6 +46,13 @@ export default function TenantEditModal({ tenant, onClose, onSave }) {
             <option value="starter">{t('organizations.planStarter')}</option>
             <option value="pro">{t('organizations.planPro')}</option>
             <option value="enterprise">{t('organizations.planEnterprise')}</option>
+          </select>
+        </label>
+        <label className="block">
+          <span className="label">{t('organizations.businessType')}</span>
+          <select className="input" value={form.businessType} onChange={(e) => updateField('businessType', e.target.value)}>
+            <option value="ELECTRONICS">{t('organizations.businessTypeElectronics')}</option>
+            <option value="GROCERY">{t('organizations.businessTypeGrocery')}</option>
           </select>
         </label>
         <PhotoUploadField label={t('orgSettings.logoUrl')} value={form.logoUrl} onChange={(url) => updateField('logoUrl', url)} shape="square" />

@@ -1,0 +1,6 @@
+export const BUSINESS_TYPES = {
+  ELECTRONICS: "ELECTRONICS",
+  GROCERY: "GROCERY",
+};
+
+export const BUSINESS_TYPE_VALUES = Object.values(BUSINESS_TYPES);

@@ -10,6 +10,7 @@ export default function TenantCreateModal({ onClose, onSave }) {
     slug: '',
     email: '',
     plan: 'starter',
+    businessType: 'ELECTRONICS',
   });
 
   async function handleSubmit(event) {
@@ -47,6 +48,13 @@ export default function TenantCreateModal({ onClose, onSave }) {
             <option value="starter">{t('organizations.planStarter')}</option>
             <option value="pro">{t('organizations.planPro')}</option>
             <option value="enterprise">{t('organizations.planEnterprise')}</option>
+          </select>
+        </label>
+        <label className="block">
+          <span className="label">{t('organizations.businessType')}</span>
+          <select className="input" value={form.businessType} onChange={(e) => updateField('businessType', e.target.value)}>
+            <option value="ELECTRONICS">{t('organizations.businessTypeElectronics')}</option>
+            <option value="GROCERY">{t('organizations.businessTypeGrocery')}</option>
           </select>
         </label>
         <div className="flex justify-end gap-2 pt-2">

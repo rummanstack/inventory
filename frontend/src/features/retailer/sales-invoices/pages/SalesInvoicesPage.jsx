@@ -14,7 +14,7 @@ export default function SalesInvoicesPage() {
   const vm = useSalesInvoicesViewModel();
   const [showFormModal, setShowFormModal] = useState(false);
   const [viewInvoice, setViewInvoice] = useState(null);
-  const canManageRetailers = can('manage_retailers');
+  const canManageRetailers = can('manage_retail_sales_invoices');
 
   return (
     <div>

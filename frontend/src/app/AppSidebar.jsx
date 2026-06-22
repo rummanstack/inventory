@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { ChevronDown, LogOut, X } from 'lucide-react';
 import { Avatar, cx } from '../components/ui';
-import { APP_ROUTES } from './routes';
+import { APP_ROUTES, SIDEBAR_SECTIONS } from './routes';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 import logoMark from '../assets/stockledger-logo-mark.svg';
 
@@ -19,7 +19,7 @@ function loadCollapsedGroups() {
 
 export default function AppSidebar({ mobileOpen, setMobileOpen, user, tenant, language, onLanguageChange, onLogout, t, can, hasFeature }) {
   const location = useLocation();
-  const sections = ['overview', 'sales', 'inventory', 'dealer', 'purchases', 'finance', 'reports', 'system', 'settings', 'support', 'developer'];
+  const sections = SIDEBAR_SECTIONS;
   const [collapsedGroups, setCollapsedGroups] = useState(loadCollapsedGroups);
 
   const groupedRoutes = sections

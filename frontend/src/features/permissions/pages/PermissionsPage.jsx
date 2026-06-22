@@ -1,13 +1,36 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Loader2, Save } from 'lucide-react';
 import { Alert, SectionHeader } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
+import { APP_ROUTES, SIDEBAR_SECTIONS } from '../../../app/routes.js';
 
-const SUPPLIER_PERMISSION_FEATURES = {
+// Maps a permission to the tenant feature that must be enabled before it can
+// be granted — mirrors PERMISSION_REQUIRED_FEATURES in backend/services/permissionService.js.
+const PERMISSION_REQUIRED_FEATURES = {
   manage_suppliers: 'suppliers',
   manage_purchases: 'purchase-receive',
   manage_supplier_payments: 'supplier-payments',
+  view_supplier_statement: 'supplier-statement',
+  manage_retail_quick_sale: 'retailer-quick-sale',
+  manage_retail_sales_invoices: 'retailer-sales-invoices',
+  manage_retail_sales_returns: 'retailer-sales-return',
+  manage_retail_customer_due: 'retailer-customer-due',
+  manage_retail_due_collection: 'retailer-due-collection',
+  manage_retail_promotions: 'retailer-promotions',
+  manage_retail_daily_sales_report: 'retailer-daily-sales-report',
+  manage_retail_profit_report: 'retailer-profit-report',
+  manage_retail_customers_write: 'retail-customers',
+  view_retail_customer_retention: 'retail-customer-retention',
+  manage_profit_report: 'profit',
+};
+
+// Permissions that gate in-page actions rather than a sidebar route, so they
+// don't show up via APP_ROUTES — assign each to the menu group it belongs to.
+const EXTRA_GROUP_PERMISSIONS = {
+  inventory: ['manage_products'],
+  dealer: ['manage_dsrs', 'manage_customers', 'update_issues', 'update_settlements'],
+  system: ['permanent_delete'],
 };
 
 export default function PermissionsPage() {
@@ -87,9 +110,17 @@ export default function PermissionsPage() {
   }
 
   const visiblePermissions = allPermissions.filter((permission) => {
-    const requiredFeature = SUPPLIER_PERMISSION_FEATURES[permission];
+    const requiredFeature = PERMISSION_REQUIRED_FEATURES[permission];
     return !requiredFeature || hasFeature(requiredFeature);
   });
+
+  const permissionGroups = useMemo(() => {
+    return SIDEBAR_SECTIONS.map((section) => {
+      const routePermissions = APP_ROUTES.filter((route) => route.group === section && route.permission).map((route) => route.permission);
+      const sectionPermissions = [...new Set([...routePermissions, ...(EXTRA_GROUP_PERMISSIONS[section] || [])])];
+      return { section, permissions: sectionPermissions.filter((permission) => visiblePermissions.includes(permission)) };
+    }).filter((group) => group.permissions.length > 0);
+  }, [visiblePermissions]);
 
   if (loading) {
     return (
@@ -131,17 +162,24 @@ export default function PermissionsPage() {
               </button>
             </div>
 
-            <div className="grid gap-2 sm:grid-cols-2">
-              {visiblePermissions.map((permission) => (
-                <label key={permission} className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700">
-                  <input
-                    type="checkbox"
-                    className="h-4 w-4 rounded border-slate-300"
-                    checked={entry.permissions.includes(permission)}
-                    onChange={() => togglePermission(entry.role, permission)}
-                  />
-                  {t(`permissions.items.${permission}`)}
-                </label>
+            <div className="space-y-4">
+              {permissionGroups.map(({ section, permissions }) => (
+                <div key={section}>
+                  <p className="mb-2 text-xs font-black uppercase tracking-[0.12em] text-slate-400">{t(`navGroups.${section}`)}</p>
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    {permissions.map((permission) => (
+                      <label key={permission} className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700">
+                        <input
+                          type="checkbox"
+                          className="h-4 w-4 rounded border-slate-300"
+                          checked={entry.permissions.includes(permission)}
+                          onChange={() => togglePermission(entry.role, permission)}
+                        />
+                        {t(`permissions.items.${permission}`)}
+                      </label>
+                    ))}
+                  </div>
+                </div>
               ))}
             </div>
           </div>

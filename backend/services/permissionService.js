@@ -11,10 +11,25 @@ const EDITABLE_ROLES_BY_ACTOR_ROLE = {
   [USER_ROLES.SUPER_ADMIN]: [USER_ROLES.ADMIN, USER_ROLES.MANAGER, USER_ROLES.OPERATOR],
 };
 
-const SUPPLIER_PERMISSION_FEATURES = {
+// Maps a permission to the tenant feature that must be enabled before a
+// super_admin can grant it to a sub-role — keeps permission assignment from
+// outrunning what the tenant's plan actually has turned on.
+const PERMISSION_REQUIRED_FEATURES = {
   manage_suppliers: "suppliers",
   manage_purchases: "purchase-receive",
   manage_supplier_payments: "supplier-payments",
+  view_supplier_statement: "supplier-statement",
+  manage_retail_quick_sale: "retailer-quick-sale",
+  manage_retail_sales_invoices: "retailer-sales-invoices",
+  manage_retail_sales_returns: "retailer-sales-return",
+  manage_retail_customer_due: "retailer-customer-due",
+  manage_retail_due_collection: "retailer-due-collection",
+  manage_retail_promotions: "retailer-promotions",
+  manage_retail_daily_sales_report: "retailer-daily-sales-report",
+  manage_retail_profit_report: "retailer-profit-report",
+  manage_retail_customers_write: "retail-customers",
+  view_retail_customer_retention: "retail-customer-retention",
+  manage_profit_report: "profit",
 };
 
 function editableRolesFor(actor) {
@@ -61,7 +76,7 @@ export class PermissionService {
     if (actor.role === USER_ROLES.SUPER_ADMIN) {
       const tenantFeatures = await this.tenantService.getTenantFeatures(actor.tenantId);
       for (const permission of cleanPermissions) {
-        const requiredFeature = SUPPLIER_PERMISSION_FEATURES[permission];
+        const requiredFeature = PERMISSION_REQUIRED_FEATURES[permission];
         assert(
           !requiredFeature || tenantFeatures.includes(requiredFeature),
           `Your organization does not have access to enable: ${permission}`,

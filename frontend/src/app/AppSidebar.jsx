@@ -75,6 +75,7 @@ export default function AppSidebar({ mobileOpen, setMobileOpen, user, tenant, la
       <NavLink
         key={route.id}
         to={route.path}
+        end
         onClick={() => setMobileOpen(false)}
         className={({ isActive }) =>
             cx(

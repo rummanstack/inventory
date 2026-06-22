@@ -11,6 +11,8 @@ import { morningIssueApi } from './api/morningIssueApi.js';
 import { permissionsApi } from './api/permissionsApi.js';
 import { platformApi } from './api/platformApi.js';
 import { productsApi } from './api/productsApi.js';
+import { productSerialsApi } from './api/productSerialsApi.js';
+import { warrantyClaimsApi } from './api/warrantyClaimsApi.js';
 import { profitApi } from './api/profitApi.js';
 import { purchaseReceiveApi } from './api/purchaseReceiveApi.js';
 import { settingsApi } from './api/settingsApi.js';
@@ -45,6 +47,8 @@ export const inventoryApi = {
   ...dsrFinanceApi,
   ...databaseBackupApi,
   ...productsApi,
+  ...productSerialsApi,
+  ...warrantyClaimsApi,
   ...categoriesApi,
   ...dsrsApi,
   ...customersApi,

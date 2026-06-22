@@ -446,6 +446,81 @@ export function InventoryAppProvider({ children }) {
     }
   }
 
+  async function saveProductSerial(serial) {
+    try {
+      const result = serial.id ? await inventoryApi.updateProductSerial(serial) : await inventoryApi.createProductSerial(serial);
+      pushToast('success', serial.id ? t('productSerials.editTitle') : t('productSerials.addTitle'), serial.id ? t('alerts.updated') : t('alerts.created'));
+      return { ok: true, serial: result.serial || result };
+    } catch (error) {
+      const message = getFriendlyError(error, t);
+      pushToast('error', t('alerts.requestFailed'), message);
+      return { ok: false, message };
+    }
+  }
+
+  async function deleteProductSerial(serial) {
+    const { confirmed, reason } = await confirm({
+      title: t('productSerials.deleteTitle'),
+      description: t('productSerials.deleteConfirm'),
+      confirmLabel: t('common.delete'),
+      tone: 'rose',
+      requireReason: true,
+      reasonLabel: t('common.deleteReasonLabel'),
+      reasonPlaceholder: t('common.deleteReasonPlaceholder'),
+    });
+    if (!confirmed) {
+      return { ok: false };
+    }
+
+    try {
+      await inventoryApi.deleteProductSerial(serial.id, reason);
+      pushToast('success', t('common.delete'), t('alerts.deleted'));
+      return { ok: true };
+    } catch (error) {
+      const message = getFriendlyError(error, t);
+      pushToast('error', t('alerts.deleteFailed'), message);
+      return { ok: false, message };
+    }
+  }
+
+  async function saveWarrantyClaim(claim) {
+    try {
+      const result = claim.id ? await inventoryApi.updateWarrantyClaim(claim) : await inventoryApi.createWarrantyClaim(claim);
+      pushToast('success', claim.id ? t('warrantyClaims.editTitle') : t('warrantyClaims.addTitle'), claim.id ? t('alerts.updated') : t('alerts.created'));
+      return { ok: true, claim: result.claim || result };
+    } catch (error) {
+      const message = getFriendlyError(error, t);
+      pushToast('error', t('alerts.requestFailed'), message);
+      return { ok: false, message };
+    }
+  }
+
+  async function deleteWarrantyClaim(claim) {
+    const confirmMessage = t('warrantyClaims.deleteConfirm', { number: claim.claimNumber });
+    const { confirmed, reason } = await confirm({
+      title: t('warrantyClaims.deleteTitle'),
+      description: interpolateConfirm(confirmMessage, { number: claim.claimNumber }),
+      confirmLabel: t('common.delete'),
+      tone: 'rose',
+      requireReason: true,
+      reasonLabel: t('common.deleteReasonLabel'),
+      reasonPlaceholder: t('common.deleteReasonPlaceholder'),
+    });
+    if (!confirmed) {
+      return { ok: false };
+    }
+
+    try {
+      await inventoryApi.deleteWarrantyClaim(claim.id, reason);
+      pushToast('success', t('common.delete'), `${claim.claimNumber} ${t('alerts.deleted')}`);
+      return { ok: true };
+    } catch (error) {
+      const message = getFriendlyError(error, t);
+      pushToast('error', t('alerts.deleteFailed'), message);
+      return { ok: false, message };
+    }
+  }
+
   async function savePurchaseReceipt(purchaseReceipt) {
     try {
       const result = purchaseReceipt.id ? await inventoryApi.updatePurchaseReceipt(purchaseReceipt) : await inventoryApi.createPurchaseReceipt(purchaseReceipt);
@@ -971,6 +1046,10 @@ export function InventoryAppProvider({ children }) {
       deleteSupplier,
       restoreSupplier,
       permanentlyDeleteSupplier,
+      saveProductSerial,
+      deleteProductSerial,
+      saveWarrantyClaim,
+      deleteWarrantyClaim,
       savePurchaseReceipt,
       deletePurchaseReceipt,
       restorePurchaseReceipt,

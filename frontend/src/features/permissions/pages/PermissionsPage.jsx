@@ -31,13 +31,11 @@ const PERMISSION_REQUIRED_FEATURES = {
 
 // Permissions that gate in-page actions rather than a sidebar route, so they
 // don't show up via APP_ROUTES — assign each to the menu group it belongs to.
-// view_product_serials/view_warranty_claims are here too: their own menu items
-// (Serial / IMEI, Warranty Claims) don't exist yet, so there's no route to derive from.
 const EXTRA_GROUP_PERMISSIONS = {
-  inventory: ['manage_products', 'view_product_serials', 'manage_product_serials'],
+  inventory: ['manage_products', 'manage_product_serials'],
   dealer: ['manage_dsrs', 'manage_customers', 'update_issues', 'update_settlements'],
   system: ['permanent_delete'],
-  warranty: ['view_warranty_claims', 'manage_warranty_claims'],
+  warranty: ['manage_warranty_claims'],
 };
 
 export default function PermissionsPage() {

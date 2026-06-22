@@ -19,7 +19,7 @@ function loadCollapsedGroups() {
 
 export default function AppSidebar({ mobileOpen, setMobileOpen, user, tenant, language, onLanguageChange, onLogout, t, can, hasFeature }) {
   const location = useLocation();
-  const sections = ['overview', 'inventory', 'operations', 'finance', 'suppliers', 'retailer', 'reports', 'support', 'governance', 'settings', 'developer'];
+  const sections = ['overview', 'sales', 'inventory', 'dealer', 'purchases', 'finance', 'reports', 'system', 'settings', 'support', 'developer'];
   const [collapsedGroups, setCollapsedGroups] = useState(loadCollapsedGroups);
 
   const groupedRoutes = sections
@@ -68,6 +68,42 @@ export default function AppSidebar({ mobileOpen, setMobileOpen, user, tenant, la
     setCollapsedGroups((current) => ({ ...current, [section]: !current[section] }));
   }
 
+  function renderRouteLink(route) {
+    const Icon = route.icon;
+
+    return (
+      <NavLink
+        key={route.id}
+        to={route.path}
+        onClick={() => setMobileOpen(false)}
+        className={({ isActive }) =>
+            cx(
+              'group relative flex w-full items-center gap-3 rounded-xl py-2.5 pr-3 text-left text-sm font-semibold transition',
+              isActive
+              ? 'bg-[rgba(255,255,255,0.14)] pl-4 text-white ring-1 ring-white/12 before:absolute before:left-0 before:top-1/2 before:h-6 before:w-1 before:-translate-y-1/2 before:rounded-full before:bg-white'
+              : 'pl-3 text-slate-200 hover:bg-[rgba(255,255,255,0.08)] hover:text-white',
+          )
+        }
+      >
+        {({ isActive }) => (
+          <>
+            <span
+              className={cx(
+                'flex h-8 w-8 items-center justify-center rounded-md transition',
+                isActive
+                  ? 'bg-[rgba(255,255,255,0.18)] text-white'
+                  : 'bg-[rgba(255,255,255,0.06)] text-slate-200 group-hover:bg-[rgba(255,255,255,0.12)] group-hover:text-white',
+              )}
+            >
+              <Icon size={17} />
+            </span>
+            <span className="flex-1">{t(route.labelKey)}</span>
+          </>
+        )}
+      </NavLink>
+    );
+  }
+
   return (
     <>
       <div
@@ -107,6 +143,14 @@ export default function AppSidebar({ mobileOpen, setMobileOpen, user, tenant, la
         <nav className="premium-scrollbar relative mt-8 min-h-0 flex-1 overflow-y-auto pb-6 pr-1">
           <div className="space-y-5">
             {groupedRoutes.map(({ section, label, routes }) => {
+              if (section === 'overview') {
+                return (
+                  <div key={section} className="space-y-1.5">
+                    {routes.map((route) => renderRouteLink(route))}
+                  </div>
+                );
+              }
+
               const isCollapsed = Boolean(collapsedGroups[section]);
 
               return (
@@ -122,41 +166,7 @@ export default function AppSidebar({ mobileOpen, setMobileOpen, user, tenant, la
                   </button>
                   {isCollapsed ? null : (
                     <div className="space-y-1.5">
-                      {routes.map((route) => {
-                        const Icon = route.icon;
-
-                        return (
-                          <NavLink
-                            key={route.id}
-                            to={route.path}
-                            onClick={() => setMobileOpen(false)}
-                            className={({ isActive }) =>
-                                cx(
-                                  'group relative flex w-full items-center gap-3 rounded-xl py-2.5 pr-3 text-left text-sm font-semibold transition',
-                                  isActive
-                                  ? 'bg-[rgba(255,255,255,0.14)] pl-4 text-white ring-1 ring-white/12 before:absolute before:left-0 before:top-1/2 before:h-6 before:w-1 before:-translate-y-1/2 before:rounded-full before:bg-white'
-                                  : 'pl-3 text-slate-200 hover:bg-[rgba(255,255,255,0.08)] hover:text-white',
-                              )
-                            }
-                          >
-                            {({ isActive }) => (
-                              <>
-                                <span
-                                  className={cx(
-                                    'flex h-8 w-8 items-center justify-center rounded-md transition',
-                                    isActive
-                                      ? 'bg-[rgba(255,255,255,0.18)] text-white'
-                                      : 'bg-[rgba(255,255,255,0.06)] text-slate-200 group-hover:bg-[rgba(255,255,255,0.12)] group-hover:text-white',
-                                  )}
-                                >
-                                  <Icon size={17} />
-                                </span>
-                                <span className="flex-1">{t(route.labelKey)}</span>
-                              </>
-                            )}
-                          </NavLink>
-                        );
-                      })}
+                      {routes.map((route) => renderRouteLink(route))}
                     </div>
                   )}
                 </div>

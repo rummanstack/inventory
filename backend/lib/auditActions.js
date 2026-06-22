@@ -102,3 +102,15 @@ export const VISITOR_CHAT_ACTIONS = {
   REPLY: "visitor_chat.reply",
   CLOSE: "visitor_chat.close",
 };
+
+export const PRODUCT_SERIAL_ACTIONS = {
+  CREATE: "product_serial.create",
+  UPDATE: "product_serial.update",
+  DELETE: "product_serial.delete",
+};
+
+export const WARRANTY_CLAIM_ACTIONS = {
+  CREATE: "warranty_claim.create",
+  UPDATE: "warranty_claim.update",
+  DELETE: "warranty_claim.delete",
+};

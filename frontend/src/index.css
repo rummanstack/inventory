@@ -638,11 +638,19 @@
   }
 
   .demo-white-btn {
-    @apply inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-[linear-gradient(135deg,var(--brand),var(--brand-strong)_50%,var(--teal))] px-6 text-base font-black text-white shadow-[0_18px_36px_rgba(var(--blue-700),0.34)] transition duration-200 ease-out hover:-translate-y-0.5 hover:brightness-105 hover:shadow-[0_22px_44px_rgba(var(--blue-700),0.4)] active:brightness-95;
+    @apply inline-flex h-12 items-center justify-center gap-2.5 rounded-2xl bg-[linear-gradient(135deg,var(--brand),var(--brand-strong)_50%,var(--teal))] px-6 text-base font-black text-white shadow-[0_18px_36px_rgba(var(--blue-700),0.34)] ring-1 ring-white/15 transition duration-200 ease-out hover:-translate-y-1 hover:brightness-110 hover:shadow-[0_24px_48px_rgba(var(--blue-700),0.44)] active:translate-y-0 active:brightness-95;
   }
 
   .demo-outline-btn {
-    @apply inline-flex h-12 items-center justify-center gap-2 rounded-2xl border border-white/15 bg-white/10 px-6 text-base font-black text-white transition duration-200 ease-out hover:-translate-y-0.5 hover:border-white/30 hover:bg-[rgba(var(--white),0.16)];
+    @apply inline-flex h-12 items-center justify-center gap-2.5 rounded-2xl border border-white/15 bg-white/10 px-6 text-base font-black text-white shadow-[0_10px_24px_rgba(var(--slate-900),0.16)] backdrop-blur transition duration-200 ease-out hover:-translate-y-1 hover:border-white/35 hover:bg-white/[0.18] hover:shadow-[0_16px_32px_rgba(var(--slate-900),0.24)] active:translate-y-0;
+  }
+
+  .demo-whatsapp-btn {
+    @apply inline-flex h-12 items-center justify-center gap-2.5 rounded-2xl bg-[linear-gradient(135deg,#34d399_0%,#0f9d6a_100%)] px-6 text-base font-black text-white shadow-[0_18px_36px_rgba(15,157,106,0.4)] ring-1 ring-white/15 transition duration-200 ease-out hover:-translate-y-1 hover:brightness-110 hover:shadow-[0_24px_48px_rgba(15,157,106,0.5)] active:translate-y-0 active:brightness-95;
+  }
+
+  .demo-btn-icon {
+    @apply inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/20 transition duration-200 ease-out group-hover:scale-110 group-hover:bg-white/30;
   }
 
   .pricing-card {

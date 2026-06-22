@@ -13,6 +13,9 @@ import { findTenantById } from "../repositories/tenantRepository.js";
 import { getLatestCustomerDueLedgerEntry } from "../repositories/customerDueLedgerRepository.js";
 import { listActiveRetailPromotionsForDate } from "../repositories/retailPromotionRepository.js";
 import { insertRetailLoyaltyLedgerEntry } from "../repositories/retailLoyaltyLedgerRepository.js";
+import { findProductSerialsForUpdate, updateProductSerial, mapProductSerial } from "../repositories/productSerialRepository.js";
+import { insertSalesItemSerial } from "../repositories/salesItemSerialRepository.js";
+import { PRODUCT_SERIAL_STATUSES } from "../lib/productSerials.js";
 import {
   countSalesInvoices,
   countTrashedSalesInvoices,
@@ -189,6 +192,80 @@ function applyLineItemTaxes(items, productMap, defaultTaxRate = 0, invoiceDiscou
   };
 }
 
+function isSerialRequired(product) {
+  return product?.serial_required === true || product?.serial_required === "t";
+}
+
+function addMonthsToIsoDate(isoDate, months) {
+  const date = new Date(`${isoDate}T00:00:00Z`);
+  date.setUTCMonth(date.getUTCMonth() + Number(months || 0));
+  return date.toISOString().slice(0, 10);
+}
+
+// Validates that every serial-required line item supplied exactly the right number of
+// serial/IMEI selections, with no serial reused across two different line items.
+function validateSerialSelections(items, productMap) {
+  const usedSerialIds = new Set();
+  for (const item of items) {
+    const product = productMap.get(item.productId);
+    if (!isSerialRequired(product)) {
+      continue;
+    }
+
+    assert(
+      item.serialIds.length === item.quantityPieces,
+      `${product.name} requires selecting ${item.quantityPieces} serial/IMEI number(s), but ${item.serialIds.length} were selected.`,
+    );
+
+    for (const serialId of item.serialIds) {
+      assert(!usedSerialIds.has(serialId), "The same serial/IMEI was selected more than once in this sale.");
+      usedSerialIds.add(serialId);
+    }
+  }
+}
+
+// Locks, validates, and consumes the selected product_serials rows for every serial-required
+// line item: links them to this invoice, marks them SOLD, and stamps warranty dates.
+async function consumeSerialSelections(client, items, productMap, { tenantId, salesInvoiceId, invoiceDate }) {
+  for (const item of items) {
+    const product = productMap.get(item.productId);
+    if (!isSerialRequired(product) || !item.serialIds.length) {
+      continue;
+    }
+
+    const lockedResult = await findProductSerialsForUpdate(client, item.serialIds, tenantId);
+    assert(lockedResult.rowCount === item.serialIds.length, "One or more selected serial/IMEI numbers could not be found.");
+
+    for (const row of lockedResult.rows) {
+      assert(row.product_id === item.productId, "A selected serial/IMEI does not belong to this product.");
+      assert(row.status === PRODUCT_SERIAL_STATUSES.IN_STOCK, `Serial/IMEI "${row.serial_number || row.imei1}" is no longer in stock.`);
+
+      const serial = mapProductSerial(row);
+      await insertSalesItemSerial(client, {
+        id: createId("sales-item-serial"),
+        tenantId,
+        salesInvoiceId,
+        salesInvoiceItemId: item.id,
+        productId: item.productId,
+        productSerialId: serial.id,
+        serialNumberSnapshot: serial.serialNumber,
+        imei1Snapshot: serial.imei1,
+        imei2Snapshot: serial.imei2,
+      });
+
+      await updateProductSerial(client, {
+        ...serial,
+        tenantId,
+        status: PRODUCT_SERIAL_STATUSES.SOLD,
+        salesInvoiceId,
+        salesInvoiceItemId: item.id,
+        warrantyStartDate: invoiceDate,
+        warrantyEndDate: addMonthsToIsoDate(invoiceDate, item.warrantyMonthsSnapshot),
+      });
+    }
+  }
+}
+
 async function seedOpeningCustomerLedgerIfNeeded(client, customer, tenantId, actor, businessDate) {
   const existingEntry = await getLatestCustomerDueLedgerEntry(client, customer.id, tenantId);
   if (existingEntry) {
@@ -326,6 +403,8 @@ export class SalesInvoiceService {
       item.costPriceSnapshot = costPriceSnapshot;
       totalProfit += item.lineTotal - costPriceSnapshot * item.quantityPieces;
     }
+
+    validateSerialSelections(base.items, productMap);
 
     const taxSummary = applyLineItemTaxes(base.items, productMap, 0, base.discount);
     base.taxableAmount = taxSummary.taxableAmount;
@@ -468,6 +547,12 @@ export class SalesInvoiceService {
         warrantyMonthsSnapshot: item.warrantyMonthsSnapshot,
       });
     }
+
+    await consumeSerialSelections(client, base.items, productMap, {
+      tenantId: actor.tenantId,
+      salesInvoiceId: base.id,
+      invoiceDate: base.invoiceDate,
+    });
 
     await this.recordActivity(client, actor, {
       actionType: SALES_INVOICE_ACTIONS.CREATE,

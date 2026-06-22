@@ -299,6 +299,9 @@ export function normalizeSalesInvoice(input) {
           const lineDiscount = Math.max(0, cleanMoney(item.lineDiscount));
           const lineTotal = Math.max(0, quantityPieces * actualSalePrice - lineDiscount);
           const taxRate = Math.min(Math.max(0, cleanMoney(item.taxRate)), 100);
+          const serialIds = Array.isArray(item.serialIds)
+            ? [...new Set(item.serialIds.map((id) => String(id || "").trim()).filter(Boolean))]
+            : [];
 
           return {
             id: item.id || createId("sales-item"),
@@ -310,6 +313,7 @@ export function normalizeSalesInvoice(input) {
             lineTotal,
             taxRate,
             taxAmount: Math.max(0, lineTotal * taxRate / 100),
+            serialIds,
           };
         })
         .filter((item) => item.productId && item.quantityPieces > 0)

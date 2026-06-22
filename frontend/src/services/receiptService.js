@@ -1,5 +1,14 @@
 import { createTranslator } from '../i18n/translations.js';
-import { formatCurrency, formatDateTime } from '../utils/calculations.js';
+import { formatCurrency, formatDate, formatDateTime } from '../utils/calculations.js';
+
+function addMonthsToDate(isoDate, months) {
+  if (!isoDate || !Number(months || 0)) {
+    return null;
+  }
+  const date = new Date(`${isoDate}T00:00:00`);
+  date.setMonth(date.getMonth() + Number(months || 0));
+  return date.toISOString().slice(0, 10);
+}
 
 function escapeHtml(value) {
   return String(value ?? '')
@@ -62,19 +71,30 @@ function lineTotalText(item, language) {
   return formatLocalizedCurrency(item?.lineTotal ?? Number(item?.actualSalePrice || 0) * Number(item?.quantityPieces || 0), language);
 }
 
-function buildLineItemHtml(item, t, language) {
+function buildLineItemHtml(item, t, language, invoiceDate) {
   const name = escapeHtml(item?.productName || 'Item');
+  const brandModel = [item?.brandSnapshot, item?.modelSnapshot].filter(Boolean).join(' / ');
   const quantity = formatQuantity(item?.quantityPieces, language);
   const price = formatLocalizedCurrency(item?.actualSalePrice, language);
   const discount = Number(item?.lineDiscount || 0);
   const lineTotal = lineTotalText(item, language);
   const discountLabel = labelFor(t, 'retailer.shared.discountLabel', 'Discount');
+  const serialLabel = labelFor(t, 'retailer.salesInvoices.serialPrintLabel', 'Serial / IMEI');
+  const serials = (item?.serials || []).map((serial) => serial?.serialNumber || serial?.imei1 || serial?.imei2).filter(Boolean);
+  const warrantyMonths = Number(item?.warrantyMonthsSnapshot || 0);
+  const warrantyEndDate = warrantyMonths > 0 ? addMonthsToDate(invoiceDate, warrantyMonths) : null;
+  const warrantyText = warrantyMonths > 0
+    ? t('retailer.salesInvoices.warrantyPrintLabel', { months: warrantyMonths, endDate: formatDate(warrantyEndDate, language) })
+    : '';
 
   return `
     <tr>
       <td class="item-name">
         <div class="name">${name}</div>
+        ${brandModel ? `<div class="meta">${escapeHtml(brandModel)}</div>` : ''}
         <div class="meta">${quantity} x ${price}${discount > 0 ? ` &middot; ${escapeHtml(discountLabel)} ${formatLocalizedCurrency(discount, language)}` : ''}</div>
+        ${serials.length ? `<div class="meta">${escapeHtml(serialLabel)}: ${escapeHtml(serials.join(', '))}</div>` : ''}
+        ${warrantyText ? `<div class="meta">${escapeHtml(warrantyText)}</div>` : ''}
       </td>
       <td class="item-total">${lineTotal}</td>
     </tr>
@@ -331,7 +351,7 @@ export function buildReceiptHtml(invoice, {
 
     <table class="items">
       <tbody>
-        ${items.map((item) => buildLineItemHtml(item, t, language)).join('')}
+        ${items.map((item) => buildLineItemHtml(item, t, language, invoice?.invoiceDate)).join('')}
       </tbody>
     </table>
 

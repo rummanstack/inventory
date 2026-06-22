@@ -1069,6 +1069,42 @@ export async function createSchema(pool) {
     CREATE INDEX IF NOT EXISTS idx_products_brand ON products(tenant_id, brand);
     CREATE INDEX IF NOT EXISTS idx_products_status ON products(tenant_id, status);
 
+    -- Electronics retail: individual serial/IMEI tracking per unit (Phase 2).
+    CREATE TABLE IF NOT EXISTS product_serials (
+      id                        TEXT PRIMARY KEY,
+      tenant_id                 TEXT NOT NULL REFERENCES tenants(id),
+      product_id                 TEXT NOT NULL REFERENCES products(id),
+
+      serial_number              TEXT NOT NULL DEFAULT '',
+      imei1                       TEXT NOT NULL DEFAULT '',
+      imei2                       TEXT NOT NULL DEFAULT '',
+
+      status                      TEXT NOT NULL DEFAULT 'IN_STOCK',
+
+      purchase_receipt_id         TEXT REFERENCES purchase_receipts(id) ON DELETE SET NULL,
+      purchase_receipt_item_id    TEXT REFERENCES purchase_receipt_items(id) ON DELETE SET NULL,
+
+      sales_invoice_id             TEXT REFERENCES sales_invoices(id) ON DELETE SET NULL,
+      sales_invoice_item_id         TEXT REFERENCES sales_invoice_items(id) ON DELETE SET NULL,
+
+      warranty_start_date          DATE,
+      warranty_end_date            DATE,
+
+      created_at                   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at                   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+      deleted_at                   TIMESTAMPTZ,
+      deleted_by_id                TEXT REFERENCES users(id) ON DELETE SET NULL,
+      delete_reason                TEXT NOT NULL DEFAULT ''
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_product_serials_tenant_product ON product_serials(tenant_id, product_id);
+    CREATE INDEX IF NOT EXISTS idx_product_serials_status ON product_serials(tenant_id, status);
+    CREATE INDEX IF NOT EXISTS idx_product_serials_serial_number ON product_serials(tenant_id, serial_number);
+    CREATE INDEX IF NOT EXISTS idx_product_serials_imei1 ON product_serials(tenant_id, imei1);
+    CREATE INDEX IF NOT EXISTS idx_product_serials_imei2 ON product_serials(tenant_id, imei2);
+    CREATE INDEX IF NOT EXISTS idx_product_serials_sale ON product_serials(tenant_id, sales_invoice_id);
+
     -- Anonymous landing-page chat: one conversation per visitor browser/device, platform-level
     -- (not tenant-scoped) since visitors are prospective customers of the product itself.
     CREATE TABLE IF NOT EXISTS visitor_chats (

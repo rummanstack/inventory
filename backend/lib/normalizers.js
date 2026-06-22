@@ -1,4 +1,5 @@
 import { createId } from "./ids.js";
+import { PRODUCT_SERIAL_STATUS_VALUES, PRODUCT_SERIAL_STATUSES } from "./productSerials.js";
 
 export function cleanInteger(value) {
   const parsed = Number(value);
@@ -47,6 +48,27 @@ export function normalizeProduct(input) {
     status: input.status === "INACTIVE" ? "INACTIVE" : "ACTIVE",
     description: String(input.description || "").trim(),
     imageUrl: String(input.imageUrl || "").trim() || null,
+  };
+}
+
+export function normalizeProductSerial(input) {
+  const status = PRODUCT_SERIAL_STATUS_VALUES.includes(String(input.status || "").trim().toUpperCase())
+    ? String(input.status).trim().toUpperCase()
+    : PRODUCT_SERIAL_STATUSES.IN_STOCK;
+
+  return {
+    id: input.id || createId("serial"),
+    productId: String(input.productId || "").trim(),
+    serialNumber: String(input.serialNumber || "").trim(),
+    imei1: String(input.imei1 || "").trim(),
+    imei2: String(input.imei2 || "").trim(),
+    status,
+    purchaseReceiptId: String(input.purchaseReceiptId || "").trim() || null,
+    purchaseReceiptItemId: String(input.purchaseReceiptItemId || "").trim() || null,
+    salesInvoiceId: String(input.salesInvoiceId || "").trim() || null,
+    salesInvoiceItemId: String(input.salesInvoiceItemId || "").trim() || null,
+    warrantyStartDate: String(input.warrantyStartDate || "").trim() || null,
+    warrantyEndDate: String(input.warrantyEndDate || "").trim() || null,
   };
 }
 

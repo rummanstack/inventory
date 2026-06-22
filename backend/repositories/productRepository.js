@@ -42,7 +42,7 @@ export async function countProducts(client, { search, categoryId, tenantId } = {
 
   if (search) {
     params.push(`%${search}%`);
-    conditions.push(`(p.name ILIKE $${params.length} OR c.name ILIKE $${params.length})`);
+    conditions.push(`(p.name ILIKE $${params.length} OR c.name ILIKE $${params.length} OR p.barcode ILIKE $${params.length} OR p.sku ILIKE $${params.length})`);
   }
 
   if (categoryId) {
@@ -64,7 +64,7 @@ export async function listProductsPage(client, { search, categoryId, tenantId, l
 
   if (search) {
     params.push(`%${search}%`);
-    conditions.push(`(p.name ILIKE $${params.length} OR c.name ILIKE $${params.length})`);
+    conditions.push(`(p.name ILIKE $${params.length} OR c.name ILIKE $${params.length} OR p.barcode ILIKE $${params.length} OR p.sku ILIKE $${params.length})`);
   }
 
   if (categoryId) {
@@ -88,7 +88,8 @@ export async function listAllActiveProductsLite(client, tenantId) {
   const result = await client.query(
     `SELECT p.id, p.name, c.name AS category_name, p.category_id, p.pieces_per_case, p.purchase_price,
             p.wholesale_price, p.retail_price, p.stock_pieces, p.damaged_pieces, p.refundable,
-            p.tax_rate, p.order_index, p.serial_required
+            p.tax_rate, p.order_index, p.serial_required, p.sku, p.barcode, p.brand, p.model,
+            p.warranty_months, p.status
      FROM products p
      LEFT JOIN categories c ON c.id = p.category_id
      WHERE p.tenant_id = $1 AND p.deleted_at IS NULL

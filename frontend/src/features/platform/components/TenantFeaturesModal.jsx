@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Save } from 'lucide-react';
 import { Alert, Modal } from '../../../components/ui.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { TENANT_FEATURE_ROUTES } from '../../../app/tenantFeatures.js';
+import { APP_ROUTES, SIDEBAR_SECTIONS } from '../../../app/routes.js';
 
 export default function TenantFeaturesModal({ tenant, onClose, onSave }) {
   const { t } = useInventoryApp();
@@ -38,6 +39,19 @@ export default function TenantFeaturesModal({ tenant, onClose, onSave }) {
     };
   }, [tenant.id]);
 
+  const labelKeyByFeature = useMemo(
+    () => Object.fromEntries(TENANT_FEATURE_ROUTES.map((route) => [route.feature, route.labelKey])),
+    [],
+  );
+
+  const featureGroups = useMemo(() => {
+    return SIDEBAR_SECTIONS.map((section) => {
+      const sectionFeatures = APP_ROUTES.filter((route) => route.group === section && route.feature).map((route) => route.feature);
+      const features = [...new Set(sectionFeatures)].filter((feature) => labelKeyByFeature[feature]);
+      return { section, features };
+    }).filter((group) => group.features.length > 0);
+  }, [labelKeyByFeature]);
+
   function toggleFeature(feature) {
     setSelected((current) =>
       current.includes(feature) ? current.filter((entry) => entry !== feature) : [...current, feature],
@@ -58,7 +72,7 @@ export default function TenantFeaturesModal({ tenant, onClose, onSave }) {
   }
 
   return (
-    <Modal title={t('organizations.featuresTitle')} description={tenant.name} onClose={onClose} width="max-w-xl">
+    <Modal title={t('organizations.featuresTitle')} description={tenant.name} onClose={onClose} width="max-w-2xl">
       {loading ? (
         <div className="space-y-4">
           <div className="space-y-2">
@@ -82,22 +96,31 @@ export default function TenantFeaturesModal({ tenant, onClose, onSave }) {
         <form className="space-y-4" onSubmit={handleSubmit}>
           {error ? <Alert type="error">{error}</Alert> : null}
           <p className="text-sm text-slate-500">{t('organizations.featuresDescription')}</p>
-          <div className="grid gap-2 sm:grid-cols-2">
-            {TENANT_FEATURE_ROUTES.map((route) => (
-              <label
-                key={route.feature}
-                className="flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
-              >
-                <input
-                  type="checkbox"
-                  className="h-4 w-4 rounded border-slate-300"
-                  checked={selected.includes(route.feature)}
-                  onChange={() => toggleFeature(route.feature)}
-                />
-                {t(route.labelKey)}
-              </label>
+
+          <div className="max-h-[60vh] space-y-4 overflow-y-auto pr-1">
+            {featureGroups.map(({ section, features }) => (
+              <div key={section}>
+                <p className="mb-2 text-xs font-black uppercase tracking-[0.12em] text-slate-400">{t(`navGroups.${section}`)}</p>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {features.map((feature) => (
+                    <label
+                      key={feature}
+                      className="flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                    >
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4 rounded border-slate-300"
+                        checked={selected.includes(feature)}
+                        onChange={() => toggleFeature(feature)}
+                      />
+                      {t(labelKeyByFeature[feature])}
+                    </label>
+                  ))}
+                </div>
+              </div>
             ))}
           </div>
+
           <div className="flex justify-end gap-2 pt-2">
             <button type="button" className="btn-secondary" onClick={onClose} disabled={saving}>
               {t('common.cancel')}

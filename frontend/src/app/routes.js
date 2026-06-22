@@ -28,6 +28,8 @@ import {
   Landmark,
   Tag,
   MessageCircle,
+  ArrowLeftRight,
+  AlertTriangle,
 } from 'lucide-react';
 import DashboardPage from '../features/dashboard/pages/DashboardPage';
 import ActivityLogsPage from '../features/activity-logs/pages/ActivityLogsPage';
@@ -71,6 +73,8 @@ import DailySalesReportPage from '../features/retailer/daily-sales-report/pages/
 import RetailerProfitReportPage from '../features/retailer/profit-report/pages/RetailerProfitReportPage';
 import FinanceDashboardPage from '../features/finance-dashboard/pages/FinanceDashboardPage';
 import FinanceAccountsPage from '../features/finance-accounts/pages/FinanceAccountsPage';
+import StockMovementPage from '../features/stock-movement/pages/StockMovementPage';
+import LowStockAlertsPage from '../features/low-stock-alerts/pages/LowStockAlertsPage';
 
 export const APP_ROUTES = [
   { id: 'dashboard', path: '/dashboard', labelKey: 'nav.dashboard', icon: BarChart3, component: DashboardPage, group: 'overview', permission: 'view_state' },
@@ -88,6 +92,8 @@ export const APP_ROUTES = [
   // Inventory
   { id: 'products', path: '/products', labelKey: 'nav.products', icon: Boxes, component: ProductsPage, group: 'inventory', permission: 'view_state', feature: 'products' },
   { id: 'damaged-stock', path: '/damaged-stock', labelKey: 'nav.damagedStock', icon: PackageX, component: DamagedStockPage, group: 'inventory', permission: 'view_state', feature: 'products' },
+  { id: 'stock-movement', path: '/stock-movement', labelKey: 'nav.stockMovement', icon: ArrowLeftRight, component: StockMovementPage, group: 'inventory', permission: 'view_state', feature: 'products' },
+  { id: 'low-stock-alerts', path: '/low-stock-alerts', labelKey: 'nav.lowStockAlerts', icon: AlertTriangle, component: LowStockAlertsPage, group: 'inventory', permission: 'view_state', feature: 'products' },
 
   // Dealer / DSR
   { id: 'dsrs', path: '/dsrs', labelKey: 'nav.dsrs', icon: Users, component: DsrPage, group: 'dealer', permission: 'view_state', feature: 'dsrs' },

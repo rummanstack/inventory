@@ -39,6 +39,15 @@ import {
 export const contactPhone = '01678560660';
 export const whatsappUrl = 'https://wa.me/8801678560660';
 
+// TODO: replace '#' with your real profile URLs for each platform.
+export const socialLinks = {
+  facebook: '#',
+  instagram: '#',
+  linkedin: '#',
+  twitter: '#',
+  telegram: '#',
+};
+
 export const navLinks = [
   { key: 'features', href: '#features' },
   { key: 'solutions', href: '#solutions' },

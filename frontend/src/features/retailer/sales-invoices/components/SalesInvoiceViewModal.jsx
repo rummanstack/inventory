@@ -1,3 +1,4 @@
+import { Fragment } from 'react';
 import { Download, Printer } from 'lucide-react';
 import { Badge, Modal } from '../../../../components/ui.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
@@ -16,6 +17,15 @@ function Field({ label, value }) {
       <p className="mt-1 text-sm font-semibold text-slate-950">{value || '-'}</p>
     </div>
   );
+}
+
+function addMonthsToDate(isoDate, months) {
+  if (!isoDate || !Number(months || 0)) {
+    return null;
+  }
+  const date = new Date(`${isoDate}T00:00:00`);
+  date.setMonth(date.getMonth() + Number(months || 0));
+  return date.toISOString().slice(0, 10);
 }
 
 export default function SalesInvoiceViewModal({ salesInvoice, onClose }) {
@@ -68,15 +78,45 @@ export default function SalesInvoiceViewModal({ salesInvoice, onClose }) {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {items.map((item, index) => (
-              <tr key={item.id || index}>
-                <td className="px-3 py-2 font-semibold text-slate-950">{item.productName}</td>
-                <td className="px-3 py-2 text-right">{Number(item.quantityPieces || 0).toLocaleString(language === 'bn' ? 'bn-BD' : 'en-GB')}</td>
-                <td className="px-3 py-2 text-right">{formatCurrency(item.actualSalePrice, language)}</td>
-                <td className="px-3 py-2 text-right">{formatCurrency(item.lineDiscount, language)}</td>
-                <td className="px-3 py-2 text-right font-bold">{formatCurrency(item.lineTotal, language)}</td>
-              </tr>
-            ))}
+            {items.map((item, index) => {
+              const brandModel = [item.brandSnapshot, item.modelSnapshot].filter(Boolean).join(' / ');
+              const serials = (item.serials || []).map((serial) => serial.serialNumber || serial.imei1 || serial.imei2).filter(Boolean);
+              const warrantyMonths = Number(item.warrantyMonthsSnapshot || 0);
+              const warrantyEndDate = warrantyMonths > 0 ? addMonthsToDate(salesInvoice.invoiceDate, warrantyMonths) : null;
+              const hasElectronicsDetail = serials.length > 0 || warrantyMonths > 0;
+
+              return (
+                <Fragment key={item.id || index}>
+                  <tr>
+                    <td className="px-3 py-2 font-semibold text-slate-950">
+                      {item.productName}
+                      {brandModel ? <span className="block text-xs font-medium text-slate-500">{brandModel}</span> : null}
+                    </td>
+                    <td className="px-3 py-2 text-right">{Number(item.quantityPieces || 0).toLocaleString(language === 'bn' ? 'bn-BD' : 'en-GB')}</td>
+                    <td className="px-3 py-2 text-right">{formatCurrency(item.actualSalePrice, language)}</td>
+                    <td className="px-3 py-2 text-right">{formatCurrency(item.lineDiscount, language)}</td>
+                    <td className="px-3 py-2 text-right font-bold">{formatCurrency(item.lineTotal, language)}</td>
+                  </tr>
+                  {hasElectronicsDetail ? (
+                    <tr>
+                      <td colSpan={5} className="bg-slate-50 px-3 py-1.5 text-xs text-slate-600">
+                        {serials.length ? (
+                          <span className="mr-3">{t('retailer.salesInvoices.serialPrintLabel')}: {serials.join(', ')}</span>
+                        ) : null}
+                        {warrantyMonths > 0 ? (
+                          <span>
+                            {t('retailer.salesInvoices.warrantyPrintLabel', {
+                              months: warrantyMonths,
+                              endDate: formatDate(warrantyEndDate, language),
+                            })}
+                          </span>
+                        ) : null}
+                      </td>
+                    </tr>
+                  ) : null}
+                </Fragment>
+              );
+            })}
           </tbody>
         </table>
       </div>

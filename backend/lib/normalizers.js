@@ -360,6 +360,8 @@ export function normalizeSalesInvoice(input) {
   };
 }
 
+const RETURN_ITEM_CONDITIONS = ["GOOD", "DAMAGED", "WARRANTY"];
+
 export function normalizeSalesReturn(input) {
   const items = Array.isArray(input.items)
     ? input.items
@@ -368,6 +370,12 @@ export function normalizeSalesReturn(input) {
           const actualSalePrice = cleanMoney(item.actualSalePrice);
           const costPriceSnapshot = cleanMoney(item.costPriceSnapshot);
           const lineTotal = quantityPieces * actualSalePrice;
+          const condition = RETURN_ITEM_CONDITIONS.includes(String(item.condition || "").trim().toUpperCase())
+            ? String(item.condition).trim().toUpperCase()
+            : "GOOD";
+          const serialIds = Array.isArray(item.serialIds)
+            ? [...new Set(item.serialIds.map((id) => String(id || "").trim()).filter(Boolean))]
+            : [];
 
           return {
             id: item.id || createId("sales-return-item"),
@@ -378,6 +386,8 @@ export function normalizeSalesReturn(input) {
             actualSalePrice,
             costPriceSnapshot,
             lineTotal,
+            condition,
+            serialIds,
           };
         })
         .filter((item) => item.productId && item.quantityPieces > 0)

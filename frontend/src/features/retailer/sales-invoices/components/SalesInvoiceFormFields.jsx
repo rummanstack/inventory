@@ -1,11 +1,42 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { DatePickerField } from '../../../../components/DatePicker.jsx';
 import { formatCurrency } from '../../../../utils/calculations.js';
+import { inventoryApi } from '../../../../services/inventoryApi.js';
 import RetailCustomerFormModal from '../../../retail-customers/components/RetailCustomerFormModal.jsx';
 
 export default function SalesInvoiceFormFields({ vm, t, productDirectory, retailCustomerDirectory, saving, saveRetailCustomer }) {
   const [showAddCustomer, setShowAddCustomer] = useState(false);
+  const [availableSerialsByProduct, setAvailableSerialsByProduct] = useState({});
+
+  useEffect(() => {
+    const neededProductIds = [...new Set(
+      vm.lineRows.filter((row) => row.serialRequired && row.productId).map((row) => row.productId),
+    )];
+    const missingProductIds = neededProductIds.filter((productId) => !(productId in availableSerialsByProduct));
+    if (!missingProductIds.length) {
+      return;
+    }
+
+    let cancelled = false;
+    Promise.all(
+      missingProductIds.map((productId) =>
+        inventoryApi.listAvailableProductSerials(productId).then((result) => [productId, result.serials || []])),
+    ).then((entries) => {
+      if (cancelled) return;
+      setAvailableSerialsByProduct((current) => {
+        const next = { ...current };
+        for (const [productId, serials] of entries) {
+          next[productId] = serials;
+        }
+        return next;
+      });
+    }).catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
+  }, [vm.lineRows, availableSerialsByProduct]);
 
   return (
     <>
@@ -67,37 +98,76 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, retail
             {vm.lineRows.map((row) => {
               const availableProducts = vm.getAvailableProducts(row.rowId);
               const overStock = row.quantityNumber > Number(row.availableStock || 0);
+              const availableSerials = availableSerialsByProduct[row.productId] || [];
               return (
-                <div key={row.rowId} className="grid gap-3 rounded-[22px] border border-slate-200 bg-slate-50 p-4 lg:grid-cols-[minmax(0,1.8fr)_minmax(110px,0.6fr)_minmax(110px,0.6fr)_minmax(110px,0.6fr)_minmax(110px,0.6fr)_auto]">
-                  <div>
-                    <label className="label">{t('products.product')}</label>
-                    <select className="input" value={row.productId} onChange={(event) => vm.updateItem(row.rowId, 'productId', event.target.value)} disabled={saving}>
-                      {availableProducts.map((product) => (
-                        <option key={product.id} value={product.id}>{product.name}</option>
-                      ))}
-                    </select>
-                    <p className={`mt-1 text-xs font-semibold ${overStock ? 'text-rose-600' : 'text-slate-500'}`}>
-                      {t('retailer.shared.availableStock')}: {row.availableStock ?? 0}
-                    </p>
+                <div key={row.rowId} className="space-y-3 rounded-[22px] border border-slate-200 bg-slate-50 p-4">
+                  <div className="grid gap-3 lg:grid-cols-[minmax(0,1.8fr)_minmax(110px,0.6fr)_minmax(110px,0.6fr)_minmax(110px,0.6fr)_minmax(110px,0.6fr)_auto]">
+                    <div>
+                      <label className="label">{t('products.product')}</label>
+                      <select className="input" value={row.productId} onChange={(event) => vm.updateItem(row.rowId, 'productId', event.target.value)} disabled={saving}>
+                        {availableProducts.map((product) => (
+                          <option key={product.id} value={product.id}>{product.name}</option>
+                        ))}
+                      </select>
+                      <p className={`mt-1 text-xs font-semibold ${overStock ? 'text-rose-600' : 'text-slate-500'}`}>
+                        {t('retailer.shared.availableStock')}: {row.availableStock ?? 0}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="label">{t('retailer.shared.quantityLabel')}</label>
+                      <input
+                        className="input"
+                        type="number"
+                        min="0"
+                        value={row.quantityPieces}
+                        onChange={(event) => vm.updateItem(row.rowId, 'quantityPieces', event.target.value)}
+                        disabled={saving || row.serialRequired}
+                      />
+                      {row.serialRequired ? <p className="mt-1 text-xs font-semibold text-slate-500">{t('retailer.shared.serialQuantityHint')}</p> : null}
+                    </div>
+                    <div>
+                      <label className="label">{t('retailer.shared.priceLabel')}</label>
+                      <input className="input" type="number" min="0" step="0.01" value={row.actualSalePrice} onChange={(event) => vm.updateItem(row.rowId, 'actualSalePrice', event.target.value)} disabled={saving} />
+                    </div>
+                    <div>
+                      <label className="label">{t('retailer.shared.lineDiscountLabel')}</label>
+                      <input className="input" type="number" min="0" step="0.01" value={row.lineDiscount} onChange={(event) => vm.updateItem(row.rowId, 'lineDiscount', event.target.value)} disabled={saving} />
+                    </div>
+                    <div className="flex items-end justify-between gap-2 lg:flex-col lg:items-end">
+                      <p className="text-sm font-black text-slate-950">{formatCurrency(row.lineTotal)}</p>
+                      <button type="button" className="icon-btn text-rose-600 hover:text-rose-700" title={t('common.delete')} onClick={() => vm.removeItem(row.rowId)} disabled={saving}>
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
                   </div>
-                  <div>
-                    <label className="label">{t('retailer.shared.quantityLabel')}</label>
-                    <input className="input" type="number" min="0" value={row.quantityPieces} onChange={(event) => vm.updateItem(row.rowId, 'quantityPieces', event.target.value)} disabled={saving} />
-                  </div>
-                  <div>
-                    <label className="label">{t('retailer.shared.priceLabel')}</label>
-                    <input className="input" type="number" min="0" step="0.01" value={row.actualSalePrice} onChange={(event) => vm.updateItem(row.rowId, 'actualSalePrice', event.target.value)} disabled={saving} />
-                  </div>
-                  <div>
-                    <label className="label">{t('retailer.shared.lineDiscountLabel')}</label>
-                    <input className="input" type="number" min="0" step="0.01" value={row.lineDiscount} onChange={(event) => vm.updateItem(row.rowId, 'lineDiscount', event.target.value)} disabled={saving} />
-                  </div>
-                  <div className="flex items-end justify-between gap-2 lg:flex-col lg:items-end">
-                    <p className="text-sm font-black text-slate-950">{formatCurrency(row.lineTotal)}</p>
-                    <button type="button" className="icon-btn text-rose-600 hover:text-rose-700" title={t('common.delete')} onClick={() => vm.removeItem(row.rowId)} disabled={saving}>
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
+                  {row.serialRequired ? (
+                    <div className="rounded-xl border border-dashed border-indigo-300 bg-indigo-50/60 p-3">
+                      <p className="label mb-2">
+                        {t('retailer.shared.selectSerialsLabel')}
+                        <span className={`ml-2 font-semibold ${row.serialIds.length ? 'text-emerald-600' : 'text-rose-600'}`}>
+                          {t('retailer.shared.serialsSelectedCount', { count: row.serialIds.length })}
+                        </span>
+                      </p>
+                      {availableSerials.length ? (
+                        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                          {availableSerials.map((serial) => (
+                            <label key={serial.id} className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700">
+                              <input
+                                type="checkbox"
+                                className="h-4 w-4 rounded border-slate-300"
+                                checked={row.serialIds.includes(serial.id)}
+                                onChange={() => vm.toggleItemSerial(row.rowId, serial.id)}
+                                disabled={saving}
+                              />
+                              {serial.serialNumber || serial.imei1 || serial.imei2}
+                            </label>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-xs font-semibold text-rose-600">{t('retailer.shared.noSerialsAvailable')}</p>
+                      )}
+                    </div>
+                  ) : null}
                 </div>
               );
             })}

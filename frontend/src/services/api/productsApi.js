@@ -52,4 +52,8 @@ export const productsApi = {
   listStockMovements({ page, pageSize, productId, type, dateFrom, dateTo } = {}) {
     return apiRequest(`/stock-movements${buildQueryString({ page, pageSize, productId, type, dateFrom, dateTo })}`);
   },
+
+  listAvailableProductSerials(productId) {
+    return apiRequest(`/product-serials/available${buildQueryString({ productId })}`);
+  },
 };

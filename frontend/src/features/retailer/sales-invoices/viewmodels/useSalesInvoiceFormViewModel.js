@@ -172,6 +172,8 @@ export function useSalesInvoiceFormViewModel({
         lineDiscount: 0,
         availableStock: Number(nextProduct.stockPieces || 0),
         taxRate: taxRateForProduct(nextProduct, defaultTaxRate),
+        serialRequired: Boolean(nextProduct.serialRequired),
+        serialIds: [],
       },
     ]);
   }
@@ -195,6 +197,8 @@ export function useSalesInvoiceFormViewModel({
           actualSalePrice: priceForProduct(product, saleType, invoiceDate, promotions, row.quantityPieces),
           availableStock: Number(product.stockPieces || 0),
           taxRate: taxRateForProduct(product, defaultTaxRate),
+          serialRequired: Boolean(product.serialRequired),
+          serialIds: [],
         };
       }
 
@@ -222,6 +226,29 @@ export function useSalesInvoiceFormViewModel({
 
   function removeItem(rowId) {
     setItems((current) => current.filter((row) => row.rowId !== rowId));
+  }
+
+  // Toggling a serial selection also drives quantityPieces — for serial-required
+  // products, quantity always equals however many serials are currently selected.
+  function toggleItemSerial(rowId, serialId) {
+    setItems((current) => current.map((row) => {
+      if (row.rowId !== rowId) {
+        return row;
+      }
+
+      const hasSerial = row.serialIds.includes(serialId);
+      const nextSerialIds = hasSerial ? row.serialIds.filter((id) => id !== serialId) : [...row.serialIds, serialId];
+      const product = products.find((candidate) => candidate.id === row.productId);
+
+      return {
+        ...row,
+        serialIds: nextSerialIds,
+        quantityPieces: nextSerialIds.length,
+        actualSalePrice: product
+          ? priceForProduct(product, saleType, invoiceDate, promotions, nextSerialIds.length)
+          : row.actualSalePrice,
+      };
+    }));
   }
 
   function getAvailableProducts(rowId) {
@@ -323,6 +350,9 @@ export function useSalesInvoiceFormViewModel({
     if (!row.productId || row.quantityNumber <= 0 || row.actualSalePriceNumber < 0) {
       return true;
     }
+    if (row.serialRequired && row.serialIds.length !== row.quantityNumber) {
+      return true;
+    }
     return row.quantityNumber > Number(row.availableStock || 0);
   });
 
@@ -391,6 +421,7 @@ export function useSalesInvoiceFormViewModel({
           lineDiscount: row.lineDiscountNumber,
           taxRate: row.taxRate,
           taxAmount: row.taxAmount,
+          serialIds: row.serialIds,
       })),
       discount,
       taxRate,
@@ -415,6 +446,7 @@ export function useSalesInvoiceFormViewModel({
     addItem,
     updateItem,
     removeItem,
+    toggleItemSerial,
     getAvailableProducts,
     discountInput,
     setDiscountInput: setDiscountValue,

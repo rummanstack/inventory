@@ -2,6 +2,7 @@ import { createSchema } from "../db/schema.js";
 import { createId } from "../lib/ids.js";
 import { hashPassword } from "../lib/passwords.js";
 import { loadPermissionCache } from "../lib/permissionCache.js";
+import { loadFeatureCache } from "../lib/tenantFeatureCache.js";
 import { USER_ROLES } from "../lib/roles.js";
 import { countUsers, findUserByRole, insertUser } from "../repositories/userRepository.js";
 import { countTenants, insertTenant, listTenants } from "../repositories/tenantRepository.js";
@@ -127,4 +128,5 @@ export async function initializeDatabase(databaseManager, env) {
   }
 
   await loadPermissionCache(databaseManager.getPool());
+  await loadFeatureCache(databaseManager.getPool());
 }

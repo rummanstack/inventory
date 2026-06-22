@@ -13,6 +13,7 @@ import {
   replaceTenantFeatures,
 } from "../repositories/tenantFeatureRepository.js";
 import { TENANT_FEATURES } from "../lib/features.js";
+import { setCachedFeatures } from "../lib/tenantFeatureCache.js";
 import { assert } from "../lib/errors.js";
 
 function normalizeTaxRate(value) {
@@ -152,6 +153,7 @@ export class TenantService {
       const existing = await findTenantById(client, tenantId);
       assert(existing, "Organization not found", 404);
       await replaceTenantFeatures(client, tenantId, cleanFeatures);
+      setCachedFeatures(tenantId, cleanFeatures);
       return cleanFeatures;
     } finally {
       client.release();

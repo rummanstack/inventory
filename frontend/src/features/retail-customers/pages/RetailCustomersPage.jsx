@@ -13,7 +13,7 @@ export default function RetailCustomersPage() {
   const navigate = useNavigate();
   const vm = useRetailCustomersViewModel();
   const [formModal, setFormModal] = useState(null);
-  const canManage = can('manage_retailers');
+  const canManage = can('manage_retail_customers_write');
 
   async function saveRetailCustomer(payload) {
     try {

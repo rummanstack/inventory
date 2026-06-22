@@ -1,9 +1,11 @@
 import { Router } from "express";
 import { requirePermission } from "../middleware/requireRole.js";
+import { requireFeature } from "../middleware/requireFeature.js";
 import { PERMISSIONS } from "../lib/permissions.js";
 
 export function createUsersRoutes(userController) {
   const router = Router();
+  router.use(requireFeature("user-management"));
 
   router.get("/", requirePermission(PERMISSIONS.MANAGE_USERS), userController.list);
   router.post("/", requirePermission(PERMISSIONS.MANAGE_USERS), userController.create);

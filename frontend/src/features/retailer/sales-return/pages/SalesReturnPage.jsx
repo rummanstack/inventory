@@ -13,7 +13,7 @@ export default function SalesReturnPage() {
   const { saveSalesReturn, t, can, retailCustomerDirectory, language } = useInventoryApp();
   const vm = useSalesReturnsViewModel();
   const [showFormModal, setShowFormModal] = useState(false);
-  const canManageRetailers = can('manage_retailers');
+  const canManageRetailers = can('manage_retail_sales_returns');
 
   async function handleExportExcel() {
     const result = await inventoryApi.listSalesReturns({

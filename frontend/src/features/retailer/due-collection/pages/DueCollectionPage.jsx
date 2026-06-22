@@ -13,7 +13,7 @@ export default function DueCollectionPage() {
   const { saveCustomerPayment, deleteCustomerPayment, t, can, retailCustomerDirectory, language } = useInventoryApp();
   const vm = useDueCollectionViewModel();
   const [formModal, setFormModal] = useState(null);
-  const canManageRetailers = can('manage_retailers');
+  const canManageRetailers = can('manage_retail_due_collection');
 
   async function handleExportExcel() {
     const result = await inventoryApi.listCustomerPayments({

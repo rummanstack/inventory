@@ -1080,5 +1080,62 @@ export async function createSchema(pool) {
     );
 
     CREATE INDEX IF NOT EXISTS idx_visitor_chat_messages_chat_id_id ON visitor_chat_messages(visitor_chat_id, id);
+
+    -- Per-menu-item permission split: expand any existing role_permissions row
+    -- that referenced a retired shared permission into all of its granular
+    -- successors, for the same (role, tenant_id) scope, so no tenant silently
+    -- loses access it had before the split. Idempotent via ON CONFLICT.
+    DO $$
+    DECLARE
+      new_perm TEXT;
+      new_perms TEXT[] := ARRAY[
+        'manage_retail_quick_sale','manage_retail_sales_invoices','manage_retail_sales_returns',
+        'manage_retail_customer_due','manage_retail_due_collection','manage_retail_promotions',
+        'manage_retail_daily_sales_report','manage_retail_profit_report','manage_retail_customers_write'
+      ];
+    BEGIN
+      FOREACH new_perm IN ARRAY new_perms LOOP
+        INSERT INTO role_permissions (role, tenant_id, permission)
+        SELECT role, tenant_id, new_perm FROM role_permissions WHERE permission = 'manage_retailers'
+        ON CONFLICT (role, tenant_id, permission) DO NOTHING;
+      END LOOP;
+    END $$;
+
+    INSERT INTO role_permissions (role, tenant_id, permission)
+    SELECT role, tenant_id, 'manage_profit_report' FROM role_permissions WHERE permission = 'manage_dsr_finance'
+    ON CONFLICT (role, tenant_id, permission) DO NOTHING;
+
+    INSERT INTO role_permissions (role, tenant_id, permission)
+    SELECT role, tenant_id, 'view_retail_customer_retention' FROM role_permissions WHERE permission = 'view_state'
+    ON CONFLICT (role, tenant_id, permission) DO NOTHING;
+
+    INSERT INTO role_permissions (role, tenant_id, permission)
+    SELECT role, tenant_id, 'view_supplier_statement' FROM role_permissions WHERE permission = 'manage_suppliers'
+    ON CONFLICT (role, tenant_id, permission) DO NOTHING;
+
+    DELETE FROM role_permissions WHERE permission = 'manage_retailers';
+
+    -- Per-menu-item tenant feature split: backfill the new feature keys onto
+    -- every tenant that already has an explicit tenant_features config, so
+    -- they don't lose access to previously-always-on items (Dashboard, etc.)
+    -- now that feature flags are enforced server-side. Tenants with zero rows
+    -- are left untouched on purpose — getTenantFeatures() already treats "no
+    -- rows" as "everything enabled", and inserting rows here would wrongly
+    -- freeze them out of any future feature additions.
+    DO $$
+    DECLARE
+      new_feature TEXT;
+      new_features TEXT[] := ARRAY[
+        'dashboard','my-profile','security','help-desk','org-settings','user-management','permissions',
+        'retail-customers','retail-customer-retention','database-backup','platform','visitor-chats',
+        'system-health','error-logs','damaged-stock','stock-movement','low-stock-alerts'
+      ];
+    BEGIN
+      FOREACH new_feature IN ARRAY new_features LOOP
+        INSERT INTO tenant_features (tenant_id, feature)
+        SELECT DISTINCT tenant_id, new_feature FROM tenant_features
+        ON CONFLICT (tenant_id, feature) DO NOTHING;
+      END LOOP;
+    END $$;
   `);
 }

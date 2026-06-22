@@ -1,9 +1,11 @@
 import { Router } from "express";
 import { requirePermission } from "../middleware/requireRole.js";
+import { requireFeature } from "../middleware/requireFeature.js";
 import { PERMISSIONS } from "../lib/permissions.js";
 
 export function createDsrDueLedgerRoutes(dsrDueLedgerController) {
   const router = Router();
+  router.use(requireFeature("dsr-finance"));
 
   router.get("/", requirePermission(PERMISSIONS.VIEW_STATE), dsrDueLedgerController.list);
   router.get("/statement", requirePermission(PERMISSIONS.VIEW_STATE), dsrDueLedgerController.statement);

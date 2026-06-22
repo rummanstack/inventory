@@ -220,7 +220,7 @@ export default function RetailPromotionsPage() {
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
   const [promotionModal, setPromotionModal] = useState(null);
-  const canManageRetailers = can('manage_retailers');
+  const canManageRetailers = can('manage_retail_promotions');
 
   useEffect(() => {
     let cancelled = false;

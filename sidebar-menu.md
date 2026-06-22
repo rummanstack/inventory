@@ -21,8 +21,8 @@ Each item lists its gate: `permission` (checked via `can()`), `feature` (tenant-
 ## Inventory
 - Products — permission: `view_state`, feature: `products`
 - Damaged Stock — permission: `view_state`, feature: `products`
-- ~~Stock Movement~~ — not built yet, intentionally left out
-- ~~Low Stock Alerts~~ — not built yet, intentionally left out
+- Stock Movement — permission: `view_state`, feature: `products` (new page; reuses the existing `StockLedgerPanel` component, global view across all products)
+- Low Stock Alerts — permission: `view_state`, feature: `products` (new page; uses the existing `getLowStockProducts`/`getLowStockThreshold` helpers already used by the Dashboard widget)
 
 ## Dealer / DSR
 - DSRs — permission: `view_state`, feature: `dsrs`

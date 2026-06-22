@@ -6,7 +6,7 @@ export default function CtaSection({ t }) {
   return (
     <section id="get-started" className="landing-section">
       <div className="landing-container">
-        <div className="demo-panel">
+        <div className="cta-panel">
           <div>
             <p className="landing-eyebrow">{t('landing.cta.eyebrow')}</p>
             <h2 className="mt-4 max-w-3xl text-3xl font-black leading-tight text-white sm:text-4xl">{t('landing.cta.title')}</h2>
@@ -17,7 +17,7 @@ export default function CtaSection({ t }) {
               {t('landing.login')}
               <ArrowRight size={18} className="transition duration-200 group-hover:translate-x-1" />
             </Link>
-            <a href={`tel:${contactPhone}`} className="demo-outline-btn group">
+            <a href={`tel:${contactPhone}`} className="cta-outline-btn group">
               <span className="demo-btn-icon"><Phone size={15} /></span>
               {t('landing.cta.callNow')}
             </a>

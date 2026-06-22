@@ -1340,6 +1340,7 @@
       supplierLabel: 'সাপ্লায়ার',
       selectSupplier: 'সাপ্লায়ার নির্বাচন করুন',
       paymentDateLabel: 'পেমেন্টের তারিখ',
+      dueAfterPaymentLabel: 'পেমেন্টের পর বকেয়া',
       amountLabel: 'পরিমাণ',
       paymentMethodLabel: 'পেমেন্ট মেথড',
       noteLabel: 'নোট',

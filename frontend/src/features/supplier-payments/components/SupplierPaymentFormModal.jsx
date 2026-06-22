@@ -4,10 +4,10 @@ import { Alert, Modal } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import AuditHistory from '../../../components/AuditHistory.jsx';
-import { todayISO } from '../../../utils/calculations.js';
+import { formatCurrency, todayISO } from '../../../utils/calculations.js';
 import { useFormState } from '../../../hooks/useFormState';
 
-const PAYMENT_METHODS = ['CASH', 'MOBILE_BANKING', 'CHEQUE'];
+const PAYMENT_METHODS = ['CASH', 'BANK'];
 
 export default function SupplierPaymentFormModal({ payment, onClose, onSave }) {
   const { t, pushToast, supplierDirectory } = useInventoryApp();
@@ -20,6 +20,12 @@ export default function SupplierPaymentFormModal({ payment, onClose, onSave }) {
     note: payment?.note || '',
   });
   const [reason, setReason] = useState('');
+  const selectedSupplier = supplierDirectory.find((supplier) => supplier.id === form.supplierId) || null;
+  const currentDue = Number(selectedSupplier?.currentDue || 0);
+  // When editing, this payment's own amount is already netted out of the supplier's
+  // currentDue snapshot, so add it back before subtracting the (possibly changed) amount.
+  const dueBaseline = isEdit ? currentDue + Number(payment?.amount || 0) : currentDue;
+  const dueAfterPayment = dueBaseline - (Number(form.amount) || 0);
 
   async function submitForm(event) {
     event.preventDefault();
@@ -85,6 +91,18 @@ export default function SupplierPaymentFormModal({ payment, onClose, onSave }) {
               ))}
             </select>
           </div>
+          {selectedSupplier ? (
+            <div className="sm:col-span-2 grid gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm sm:grid-cols-2">
+              <div>
+                <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">{t('suppliers.currentDueLabel')}</p>
+                <p className="mt-1 text-lg font-black text-slate-950">{formatCurrency(dueBaseline)}</p>
+              </div>
+              <div>
+                <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">{t('supplierPayments.dueAfterPaymentLabel')}</p>
+                <p className={`mt-1 text-lg font-black ${dueAfterPayment < 0 ? 'text-rose-600' : 'text-emerald-700'}`}>{formatCurrency(dueAfterPayment)}</p>
+              </div>
+            </div>
+          ) : null}
           <div>
             <label className="label">{t('supplierPayments.paymentDateLabel')}</label>
             <DatePickerField value={form.paymentDate} onChange={(value) => updateField('paymentDate', value)} />

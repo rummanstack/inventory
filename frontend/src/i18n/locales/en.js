@@ -1357,6 +1357,7 @@ const en = {
       supplierLabel: 'Supplier',
       selectSupplier: 'Select Supplier',
       paymentDateLabel: 'Payment Date',
+      dueAfterPaymentLabel: 'Due After Payment',
       amountLabel: 'Amount',
       paymentMethodLabel: 'Payment Method',
       noteLabel: 'Note',

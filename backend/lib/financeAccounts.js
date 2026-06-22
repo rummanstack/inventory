@@ -3,6 +3,7 @@
 // cheques both settle through the bank, not the physical cash drawer).
 const PAYMENT_METHOD_ACCOUNT_TYPES = {
   CASH: "CASH",
+  BANK: "BANK",
   MOBILE_BANKING: "BANK",
   CHEQUE: "BANK",
 };

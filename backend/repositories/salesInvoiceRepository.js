@@ -57,7 +57,16 @@ function itemsSubquery() {
       'brandSnapshot', sii.brand_snapshot,
       'modelSnapshot', sii.model_snapshot,
       'barcodeSnapshot', sii.barcode_snapshot,
-      'warrantyMonthsSnapshot', sii.warranty_months_snapshot
+      'warrantyMonthsSnapshot', sii.warranty_months_snapshot,
+      'serials', (
+        SELECT COALESCE(json_agg(json_build_object(
+          'serialNumber', sis.serial_number_snapshot,
+          'imei1', sis.imei1_snapshot,
+          'imei2', sis.imei2_snapshot
+        ) ORDER BY sis.created_at), '[]'::json)
+        FROM sales_item_serials sis
+        WHERE sis.sales_invoice_item_id = sii.id
+      )
     ) ORDER BY sii.id), '[]'::json)
     FROM sales_invoice_items sii
     WHERE sii.sales_invoice_id = si.id

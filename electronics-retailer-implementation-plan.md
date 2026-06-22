@@ -252,16 +252,14 @@ Make invoices reliable for electronics sales and invoice print.
 ```sql
 ALTER TABLE sales_invoices ADD COLUMN IF NOT EXISTS customer_name_snapshot TEXT NOT NULL DEFAULT '';
 ALTER TABLE sales_invoices ADD COLUMN IF NOT EXISTS customer_phone_snapshot TEXT NOT NULL DEFAULT '';
-ALTER TABLE sales_invoices ADD COLUMN IF NOT EXISTS payment_status TEXT NOT NULL DEFAULT 'PAID';
 ```
 
-## Payment Status Values
+## Payment Status — already exists, no column needed
 
-```txt
-PAID
-PARTIAL
-DUE
-```
+Payment status is **already computed live** from `due_amount`/`paid_amount` — do not add a stored `payment_status` column, it would become a second source of truth that can drift from the real values.
+
+- Backend: `backend/repositories/salesInvoiceRepository.js` (`buildFilters`, ~line 95-101) already filters by the same PAID/PARTIAL/DUE logic.
+- Frontend: `paymentStatusOf()` in `frontend/src/models/inventoryViewData.js` (~line 206-210) already computes it for display.
 
 ## Calculation Rules
 
@@ -273,7 +271,7 @@ total_amount = subtotal - discount + tax_amount - loyalty_redeem_amount
 due_amount = total_amount - paid_amount
 ```
 
-Payment status:
+Payment status (derived, not stored):
 
 ```txt
 if due_amount <= 0 => PAID
@@ -642,50 +640,49 @@ Add to current sales report:
 
 # Phase 12: Permissions and Tenant Features
 
+> The app already gives every sidebar menu item its own individual backend permission and tenant feature flag, both enforced server-side (not just used to hide links) — see `backend/lib/permissions.js`, `backend/lib/features.js`, `backend/middleware/requireFeature.js`, and the per-menu grouping in `frontend/src/features/permissions/pages/PermissionsPage.jsx`. The two new menu items below must follow that existing convention, not introduce a separate scheme.
+
 ## Add Tenant Features
 
-Add these tenant feature keys:
+One feature key per new menu item, added to `TENANT_FEATURES` in `backend/lib/features.js` and `TENANT_FEATURE_ROUTES` in `frontend/src/app/tenantFeatures.js`:
 
 ```txt
-product-serials
-warranty-claims
-electronics-retail
+product-serials      (Serial / IMEI menu item)
+warranty-claims       (Warranty Claims menu item)
 ```
+
+Drop `electronics-retail` — it doesn't map to any single menu item, which breaks the established 1:1 convention. If a master on/off switch for the whole electronics feature set is actually wanted, that's a separate decision to make explicitly later, not bundled in here.
 
 ## Add Permissions
 
-Add these permissions:
+Route-gating permission (one per new menu item, same role as `view_state` on other list pages):
 
 ```txt
-manage_product_serials
-view_product_serials
-manage_warranty_claims
-view_warranty_claims
+view_product_serials      — gates the Serial / IMEI page route + its API reads
+view_warranty_claims      — gates the Warranty Claims page route + its API reads
+```
+
+In-page action permissions (gate write actions inside those pages, same pattern as `manage_products` already gating the Add/Edit buttons inside the Products page — see `EXTRA_GROUP_PERMISSIONS` in `PermissionsPage.jsx`):
+
+```txt
+manage_product_serials    — add/edit/delete a serial record
+manage_warranty_claims     — create/update a warranty claim
 ```
 
 ## Sidebar Placement
 
-Recommended sidebar:
+The sidebar was reorganized earlier — "Retailer" is now **Sales**, and Daily Sales Report / Profit Report already live under **Reports**, not under Sales. Place the two new items into the existing structure (`frontend/src/app/routes.js`, `SIDEBAR_SECTIONS`):
 
 ```txt
-Retailer
-- Quick Sale
-- Sales Invoices
-- Customers
-- Customer Due
-- Due Collection
-- Sales Return
-- Daily Sales Report
-- Profit Report
-
-Inventory
+Inventory (existing group — add to it)
 - Products
-- Serial / IMEI
 - Damaged Stock
 - Stock Movement
+- Low Stock Alerts
+- Serial / IMEI            <- new
 
-Warranty / Service
-- Warranty Claims
+Warranty (new group, or fold into Support — decide before implementing)
+- Warranty Claims          <- new
 ```
 
 ---
@@ -693,6 +690,8 @@ Warranty / Service
 # Phase 13: API Endpoints
 
 ## Product APIs
+
+Note: current product search (`listProductsPage()` in `backend/repositories/productRepository.js`) only does an `ILIKE` substring match on name/category — there is no barcode/SKU lookup today. The barcode/SKU search endpoint below is a genuinely new capability, not a tweak to an existing one.
 
 Update existing product APIs to support:
 

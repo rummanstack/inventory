@@ -14,6 +14,15 @@ export function mapProduct(row) {
     taxRate: Number(row.tax_rate || 0),
     orderIndex: Number(row.order_index) >= 9999 ? null : Number(row.order_index),
     reorderLevel: row.reorder_level === null || row.reorder_level === undefined ? null : Number(row.reorder_level),
+    sku: row.sku || '',
+    barcode: row.barcode || '',
+    brand: row.brand || '',
+    model: row.model || '',
+    serialRequired: row.serial_required === true || row.serial_required === 't',
+    warrantyMonths: Number(row.warranty_months || 0),
+    status: row.status === 'INACTIVE' ? 'INACTIVE' : 'ACTIVE',
+    description: row.description || '',
+    imageUrl: row.image_url || null,
   };
 }
 
@@ -92,8 +101,12 @@ export async function listAllActiveProductsLite(client, tenantId) {
 export function insertProduct(client, product) {
   return client.query(
     `WITH inserted AS (
-      INSERT INTO products (id, tenant_id, name, category_id, pieces_per_case, purchase_price, wholesale_price, retail_price, stock_pieces, refundable, tax_rate, order_index, reorder_level)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+      INSERT INTO products (
+        id, tenant_id, name, category_id, pieces_per_case, purchase_price, wholesale_price, retail_price,
+        stock_pieces, refundable, tax_rate, order_index, reorder_level,
+        sku, barcode, brand, model, serial_required, warranty_months, status, description, image_url
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22)
       RETURNING *
      )
      SELECT inserted.*, c.name AS category_name FROM inserted LEFT JOIN categories c ON c.id = inserted.category_id`,
@@ -111,6 +124,15 @@ export function insertProduct(client, product) {
       product.taxRate,
       product.orderIndex ?? 9999,
       product.reorderLevel,
+      product.sku,
+      product.barcode,
+      product.brand,
+      product.model,
+      product.serialRequired,
+      product.warrantyMonths,
+      product.status,
+      product.description,
+      product.imageUrl,
     ],
   );
 }
@@ -119,7 +141,10 @@ export function updateProduct(client, product) {
   return client.query(
     `WITH updated AS (
        UPDATE products
-       SET name = $3, category_id = $4, pieces_per_case = $5, purchase_price = $6, wholesale_price = $7, retail_price = $8, refundable = $9, tax_rate = $10, order_index = $11, reorder_level = $12
+       SET name = $3, category_id = $4, pieces_per_case = $5, purchase_price = $6, wholesale_price = $7, retail_price = $8,
+           refundable = $9, tax_rate = $10, order_index = $11, reorder_level = $12,
+           sku = $13, barcode = $14, brand = $15, model = $16, serial_required = $17, warranty_months = $18,
+           status = $19, description = $20, image_url = $21
        WHERE id = $1 AND tenant_id = $2
        RETURNING *
      )
@@ -137,6 +162,15 @@ export function updateProduct(client, product) {
       product.taxRate,
       product.orderIndex ?? 9999,
       product.reorderLevel,
+      product.sku,
+      product.barcode,
+      product.brand,
+      product.model,
+      product.serialRequired,
+      product.warrantyMonths,
+      product.status,
+      product.description,
+      product.imageUrl,
     ],
   );
 }

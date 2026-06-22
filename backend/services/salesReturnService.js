@@ -339,6 +339,7 @@ export class SalesReturnService {
       }
 
       let customer = null;
+      let dueAdjustmentOverflow = 0;
       if (base.customerId && base.refundMethod === "DUE_ADJUSTMENT") {
         const customerResult = await findRetailCustomerForUpdate(client, base.customerId, actor.tenantId);
         assert(customerResult.rowCount > 0, "Customer not found.", 404);
@@ -346,7 +347,12 @@ export class SalesReturnService {
 
         const latestEntry = await getLatestCustomerDueLedgerEntry(client, customer.id, actor.tenantId);
         const currentBalance = latestEntry ? latestEntry.balanceAfter : Math.max(0, Number(customer.opening_due || 0));
-        const balanceAfter = currentBalance - base.totalAmount;
+        // The return value can exceed what the customer still owes (e.g. they already part-paid
+        // the original sale). Whatever doesn't fit against the due is an overpayment owed back
+        // to the customer, so it's floored at 0 here and paid out as cash below instead of being
+        // silently lost to a negative due that nothing ever surfaces or refunds.
+        const balanceAfter = Math.max(0, currentBalance - base.totalAmount);
+        dueAdjustmentOverflow = Math.max(0, base.totalAmount - currentBalance);
 
         await recordCustomerDueLedgerEntry(client, {
           tenantId: actor.tenantId,
@@ -362,18 +368,21 @@ export class SalesReturnService {
           businessDate: base.returnDate,
         });
 
-        await updateRetailCustomerCurrentDue(client, customer.id, actor.tenantId, Math.max(0, balanceAfter));
+        await updateRetailCustomerCurrentDue(client, customer.id, actor.tenantId, balanceAfter);
       }
 
-      if (base.refundMethod === "CASH" && base.totalAmount > 0 && this.financeAccountService) {
+      const cashRefundAmount = base.refundMethod === "CASH" ? base.totalAmount : dueAdjustmentOverflow;
+      if (cashRefundAmount > 0 && this.financeAccountService) {
         await this.financeAccountService.recordTransactionInClient(
           client,
           {
             accountType: "CASH",
             type: "WITHDRAWAL",
-            amount: base.totalAmount,
+            amount: cashRefundAmount,
             date: base.returnDate,
-            note: `Cash refund for sales return ${returnNumber}`,
+            note: dueAdjustmentOverflow > 0
+              ? `Cash refund (overpaid return) for sales return ${returnNumber}`
+              : `Cash refund for sales return ${returnNumber}`,
           },
           actor,
         );

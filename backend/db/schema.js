@@ -1105,6 +1105,27 @@ export async function createSchema(pool) {
     CREATE INDEX IF NOT EXISTS idx_product_serials_imei2 ON product_serials(tenant_id, imei2);
     CREATE INDEX IF NOT EXISTS idx_product_serials_sale ON product_serials(tenant_id, sales_invoice_id);
 
+    -- Electronics retail: links sold serial/IMEI units to the sales invoice line that sold
+    -- them (Phase 3). One invoice item can carry several serials (quantity > 1).
+    CREATE TABLE IF NOT EXISTS sales_item_serials (
+      id                      TEXT PRIMARY KEY,
+      tenant_id               TEXT NOT NULL REFERENCES tenants(id),
+      sales_invoice_id        TEXT NOT NULL REFERENCES sales_invoices(id) ON DELETE CASCADE,
+      sales_invoice_item_id   TEXT NOT NULL REFERENCES sales_invoice_items(id) ON DELETE CASCADE,
+      product_id              TEXT NOT NULL REFERENCES products(id),
+      product_serial_id       TEXT NOT NULL REFERENCES product_serials(id),
+
+      serial_number_snapshot  TEXT NOT NULL DEFAULT '',
+      imei1_snapshot          TEXT NOT NULL DEFAULT '',
+      imei2_snapshot          TEXT NOT NULL DEFAULT '',
+
+      created_at              TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_sales_item_serials_invoice ON sales_item_serials(tenant_id, sales_invoice_id);
+    CREATE INDEX IF NOT EXISTS idx_sales_item_serials_item ON sales_item_serials(tenant_id, sales_invoice_item_id);
+    CREATE INDEX IF NOT EXISTS idx_sales_item_serials_serial ON sales_item_serials(tenant_id, product_serial_id);
+
     -- Anonymous landing-page chat: one conversation per visitor browser/device, platform-level
     -- (not tenant-scoped) since visitors are prospective customers of the product itself.
     CREATE TABLE IF NOT EXISTS visitor_chats (

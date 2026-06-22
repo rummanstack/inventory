@@ -1053,6 +1053,22 @@ export async function createSchema(pool) {
 
     ALTER TABLE products ADD COLUMN IF NOT EXISTS reorder_level INTEGER;
 
+    -- Electronics retail: SKU/barcode/brand/model + serial/warranty requirements (Phase 1).
+    ALTER TABLE products ADD COLUMN IF NOT EXISTS sku TEXT NOT NULL DEFAULT '';
+    ALTER TABLE products ADD COLUMN IF NOT EXISTS barcode TEXT NOT NULL DEFAULT '';
+    ALTER TABLE products ADD COLUMN IF NOT EXISTS brand TEXT NOT NULL DEFAULT '';
+    ALTER TABLE products ADD COLUMN IF NOT EXISTS model TEXT NOT NULL DEFAULT '';
+    ALTER TABLE products ADD COLUMN IF NOT EXISTS serial_required BOOLEAN NOT NULL DEFAULT false;
+    ALTER TABLE products ADD COLUMN IF NOT EXISTS warranty_months INTEGER NOT NULL DEFAULT 0;
+    ALTER TABLE products ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'ACTIVE';
+    ALTER TABLE products ADD COLUMN IF NOT EXISTS description TEXT NOT NULL DEFAULT '';
+    ALTER TABLE products ADD COLUMN IF NOT EXISTS image_url TEXT;
+
+    CREATE INDEX IF NOT EXISTS idx_products_barcode ON products(tenant_id, barcode);
+    CREATE INDEX IF NOT EXISTS idx_products_sku ON products(tenant_id, sku);
+    CREATE INDEX IF NOT EXISTS idx_products_brand ON products(tenant_id, brand);
+    CREATE INDEX IF NOT EXISTS idx_products_status ON products(tenant_id, status);
+
     -- Anonymous landing-page chat: one conversation per visitor browser/device, platform-level
     -- (not tenant-scoped) since visitors are prospective customers of the product itself.
     CREATE TABLE IF NOT EXISTS visitor_chats (

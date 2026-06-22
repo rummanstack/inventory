@@ -34,6 +34,19 @@ export function normalizeProduct(input) {
       input.reorderLevel !== undefined && input.reorderLevel !== null && String(input.reorderLevel).trim() !== ""
         ? cleanInteger(input.reorderLevel)
         : null,
+    sku: String(input.sku || "").trim(),
+    barcode: String(input.barcode || "").trim(),
+    brand: String(input.brand || "").trim(),
+    model: String(input.model || "").trim(),
+    serialRequired:
+      input.serialRequired === true ||
+      String(input.serialRequired || "").trim().toLowerCase() === "true"
+        ? true
+        : false,
+    warrantyMonths: cleanInteger(input.warrantyMonths),
+    status: input.status === "INACTIVE" ? "INACTIVE" : "ACTIVE",
+    description: String(input.description || "").trim(),
+    imageUrl: String(input.imageUrl || "").trim() || null,
   };
 }
 

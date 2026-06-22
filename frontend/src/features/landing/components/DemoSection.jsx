@@ -25,7 +25,7 @@ export default function DemoSection({ t }) {
               <ArrowRight size={18} className="transition duration-200 group-hover:translate-x-1" />
             </Link>
             <a href={`tel:${demoPhone}`} className="demo-outline-btn group">
-              <span className="demo-btn-icon"><Phone size={15} /></span>
+              <span className="demo-btn-icon-soft"><Phone size={15} /></span>
               {t('landing.demo.callNow')}
             </a>
             <a href={whatsappUrl} target="_blank" rel="noreferrer" className="demo-whatsapp-btn group">

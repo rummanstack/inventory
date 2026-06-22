@@ -167,7 +167,7 @@ export default function LandingChatWidget({ t }) {
           <X size={18} />
         ) : (
           <>
-            <span className="landing-live-chat-dot" />
+            {/* <span className="landing-live-chat-dot" /> */}
             <MessageCircle size={18} />
             <span className="hidden sm:inline">{t('landing.chat.launch')}</span>
           </>

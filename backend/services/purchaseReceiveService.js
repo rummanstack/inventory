@@ -3,6 +3,7 @@ import { diffFields } from "../lib/auditDiff.js";
 import { normalizeIsoDate } from "../lib/dateRanges.js";
 import { parsePagination, buildPageResult } from "../lib/pagination.js";
 import { normalizePurchaseReceipt, normalizeProductSerial, cleanMoney } from "../lib/normalizers.js";
+import { accountTypeForPaymentMethod } from "../lib/financeAccounts.js";
 import { STOCK_MOVEMENT_TYPES } from "../lib/stockMovements.js";
 import { SUPPLIER_DUE_LEDGER_TYPES } from "../lib/supplierDueLedger.js";
 import { PURCHASE_ACTIONS } from "../lib/auditActions.js";
@@ -383,7 +384,7 @@ export class PurchaseReceiveService {
       await this.financeAccountService.recordTransactionInClient(
         client,
         {
-          accountType: "CASH",
+          accountType: accountTypeForPaymentMethod(base.paymentMethod),
           type: "WITHDRAWAL",
           amount: base.paidAmount,
           date: base.purchaseDate,
@@ -535,7 +536,7 @@ export class PurchaseReceiveService {
         await this.financeAccountService.recordTransactionInClient(
           client,
           {
-            accountType: "CASH",
+            accountType: accountTypeForPaymentMethod(base.paymentMethod),
             type: paidDelta > 0 ? "WITHDRAWAL" : "DEPOSIT",
             amount: Math.abs(paidDelta),
             date: base.purchaseDate,
@@ -665,7 +666,7 @@ export class PurchaseReceiveService {
         await this.financeAccountService.recordTransactionInClient(
           client,
           {
-            accountType: "CASH",
+            accountType: accountTypeForPaymentMethod(purchase.payment_method),
             type: "DEPOSIT",
             amount: paidAmount,
             date: purchaseDate,
@@ -758,7 +759,7 @@ export class PurchaseReceiveService {
         await this.financeAccountService.recordTransactionInClient(
           client,
           {
-            accountType: "CASH",
+            accountType: accountTypeForPaymentMethod(purchase.payment_method),
             type: "WITHDRAWAL",
             amount: paidAmount,
             date: purchaseDate,

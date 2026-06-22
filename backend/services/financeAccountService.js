@@ -19,12 +19,13 @@ import {
 } from "../repositories/financeAccountRepository.js";
 import { logActivity, recordFinanceAccountTransaction } from "./shared/inventoryHelpers.js";
 
-const ACCOUNT_TYPES = ["CASH"];
+export const ACCOUNT_TYPES = ["CASH", "BANK"];
 const TRANSACTION_TYPES = ["DEPOSIT", "WITHDRAWAL"];
 const DATE_ERROR = "Date must be in YYYY-MM-DD format.";
 
 const DEFAULT_ACCOUNTS = [
   { type: "CASH", name: "Cash in Hand" },
+  { type: "BANK", name: "Bank" },
 ];
 
 function computeAmounts(type, amount, currentBalance) {
@@ -63,8 +64,11 @@ export class FinanceAccountService {
   }
 
   async recordTransactionInClient(client, { accountType, type, amount, date, note }, actor) {
+    const normalizedAccountType = ACCOUNT_TYPES.includes(String(accountType || "").toUpperCase())
+      ? String(accountType).toUpperCase()
+      : "CASH";
     await this.ensureDefaultAccounts(client, actor.tenantId);
-    const accountSummary = await findAccountByType(client, actor.tenantId, accountType);
+    const accountSummary = await findAccountByType(client, actor.tenantId, normalizedAccountType);
     const account = await findAccountForUpdate(client, accountSummary.id, actor.tenantId);
 
     if (type === "WITHDRAWAL") {

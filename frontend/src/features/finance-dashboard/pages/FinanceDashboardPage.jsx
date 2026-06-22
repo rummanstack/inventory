@@ -1,4 +1,4 @@
-import { Building2, CircleDollarSign, HandCoins, RotateCcw, Scale, ShoppingBag, Store, TrendingDown, TrendingUp, Wallet } from 'lucide-react';
+import { Building2, CircleDollarSign, HandCoins, Landmark, RotateCcw, Scale, ShoppingBag, Store, TrendingDown, TrendingUp, Wallet } from 'lucide-react';
 import { Alert, EmptyState, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
@@ -69,6 +69,7 @@ export default function FinanceDashboardPage() {
   const rr = useRangeReportViewModel();
 
   const cashInHand = data?.accounts?.find((a) => a.type === 'CASH')?.balance || 0;
+  const bankBalance = data?.accounts?.find((a) => a.type === 'BANK')?.balance || 0;
   const netReceivable = rr.data
     ? rr.data.totalDsrDue + rr.data.totalCustomerDue - rr.data.totalSupplierDue
     : 0;
@@ -270,6 +271,7 @@ export default function FinanceDashboardPage() {
             <h2 className="mb-4 text-base font-bold text-slate-950">{t('financeDashboard.balanceTitle')}</h2>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               <StatCard title={t('financeDashboard.cashInHand')} value={formatCurrency(cashInHand, language)} icon={Wallet} tone="emerald" />
+              <StatCard title={t('financeAccounts.bank')} value={formatCurrency(bankBalance, language)} icon={Landmark} tone="indigo" />
               <StatCard title={t('financeDashboard.dsrReceivables')} value={formatCurrency(data.totalDsrDue, language)} helper={t('financeDashboard.dsrReceivablesHelper')} icon={HandCoins} tone="amber" />
               <StatCard title={t('financeDashboard.customerReceivables')} value={formatCurrency(data.totalCustomerDue, language)} helper={t('financeDashboard.customerReceivablesHelper')} icon={Store} tone="amber" />
               <StatCard title={t('financeDashboard.supplierPayables')} value={formatCurrency(data.totalSupplierDue, language)} helper={t('financeDashboard.supplierPayablesHelper')} icon={Building2} tone="rose" />

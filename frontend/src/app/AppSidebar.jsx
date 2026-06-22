@@ -80,8 +80,8 @@ export default function AppSidebar({ mobileOpen, setMobileOpen, user, tenant, la
             cx(
               'group relative flex w-full items-center gap-3 rounded-xl py-2.5 pr-3 text-left text-sm font-semibold transition',
               isActive
-              ? 'bg-[rgba(255,255,255,0.14)] pl-4 text-white ring-1 ring-white/12 before:absolute before:left-0 before:top-1/2 before:h-6 before:w-1 before:-translate-y-1/2 before:rounded-full before:bg-white'
-              : 'pl-3 text-slate-200 hover:bg-[rgba(255,255,255,0.08)] hover:text-white',
+              ? 'bg-[linear-gradient(135deg,var(--secondary-strong),var(--brand-strong))] pl-4 text-white shadow-[0_10px_20px_var(--secondary-shadow)] before:absolute before:left-0 before:top-1/2 before:h-6 before:w-1 before:-translate-y-1/2 before:rounded-full before:bg-white'
+              : 'pl-3 text-slate-600 hover:bg-slate-100 hover:text-slate-950',
           )
         }
       >
@@ -91,8 +91,8 @@ export default function AppSidebar({ mobileOpen, setMobileOpen, user, tenant, la
               className={cx(
                 'flex h-8 w-8 items-center justify-center rounded-md transition',
                 isActive
-                  ? 'bg-[rgba(255,255,255,0.18)] text-white'
-                  : 'bg-[rgba(255,255,255,0.06)] text-slate-200 group-hover:bg-[rgba(255,255,255,0.12)] group-hover:text-white',
+                  ? 'bg-white/20 text-white'
+                  : 'bg-slate-100 text-slate-500 group-hover:bg-slate-200 group-hover:text-slate-900',
               )}
             >
               <Icon size={17} />
@@ -108,31 +108,27 @@ export default function AppSidebar({ mobileOpen, setMobileOpen, user, tenant, la
     <>
       <div
         className={cx(
-          'fixed inset-y-0 left-0 z-40 flex w-[min(18rem,85vw)] flex-col overflow-hidden border-r border-white/10 bg-[linear-gradient(180deg,var(--bg-dark)_0%,var(--secondary-strong)_42%,#1f1b4a_100%)] px-4 py-5 text-white shadow-[0_24px_60px_rgba(15,23,42,0.35)] backdrop-blur-2xl transition-transform duration-300 lg:w-72 lg:translate-x-0',
+          'fixed inset-y-0 left-0 z-40 flex w-[min(18rem,85vw)] flex-col overflow-hidden border-r border-slate-200 bg-white px-4 py-5 text-slate-950 shadow-[0_24px_60px_rgba(var(--slate-900),0.08)] transition-transform duration-300 lg:w-72 lg:translate-x-0',
           mobileOpen ? 'translate-x-0' : '-translate-x-full',
         )}
       >
-        <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="absolute -right-16 top-10 h-44 w-44 rounded-full bg-white/10 blur-3xl" />
-          <div className="absolute -left-20 bottom-24 h-56 w-56 rounded-full bg-[rgba(94,91,142,0.18)] blur-3xl" />
-        </div>
         <div className="relative flex items-center justify-between px-2">
           <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-[rgba(255,255,255,0.12)] text-white shadow-[0_16px_32px_rgba(0,0,0,0.25)] backdrop-blur">
+            <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 text-slate-950 shadow-[0_8px_18px_rgba(var(--slate-900),0.06)]">
               <img src={tenant?.logoUrl || logoMark} alt="" className="h-full w-full object-contain p-1.5" />
             </div>
             <div>
-              <h2 className="mt-1 text-xl font-black tracking-normal text-white">{tenant?.name || t('app.brand')}</h2>
+              <h2 className="mt-1 text-xl font-black tracking-normal text-slate-950">{tenant?.name || t('app.brand')}</h2>
               {tenant?.plan ? (
-                <p className="text-xs font-semibold capitalize text-slate-300">{tenant.plan}</p>
+                <p className="text-xs font-semibold capitalize text-slate-500">{tenant.plan}</p>
               ) : t('app.subtitle') ? (
-                <p className="text-xs font-semibold text-slate-300">{t('app.subtitle')}</p>
+                <p className="text-xs font-semibold text-slate-500">{t('app.subtitle')}</p>
               ) : null}
             </div>
           </div>
           <button
             type="button"
-            className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-[rgba(255,255,255,0.10)] text-white transition hover:border-white/20 hover:bg-[rgba(255,255,255,0.16)] lg:hidden"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-600 transition hover:border-slate-300 hover:bg-slate-100 hover:text-slate-950 lg:hidden"
             title={t('common.closeMenu')}
             onClick={() => setMobileOpen(false)}
           >
@@ -157,12 +153,12 @@ export default function AppSidebar({ mobileOpen, setMobileOpen, user, tenant, la
                 <div key={section} className="space-y-2">
                   <button
                     type="button"
-                    className="flex w-full items-center justify-between gap-2 rounded-xl px-2.5 py-2 text-left transition hover:bg-[rgba(255,255,255,0.08)]"
+                    className="flex w-full items-center justify-between gap-2 rounded-xl px-2.5 py-2 text-left transition hover:bg-slate-100"
                     onClick={() => toggleGroup(section)}
                     aria-expanded={!isCollapsed}
                   >
-                    <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-300">{label}</p>
-                    <ChevronDown size={16} className={cx('shrink-0 text-slate-300 transition-transform', isCollapsed && '-rotate-90')} />
+                    <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-400">{label}</p>
+                    <ChevronDown size={16} className={cx('shrink-0 text-slate-400 transition-transform', isCollapsed && '-rotate-90')} />
                   </button>
                   {isCollapsed ? null : (
                     <div className="space-y-1.5">
@@ -179,18 +175,18 @@ export default function AppSidebar({ mobileOpen, setMobileOpen, user, tenant, la
           to="/profile"
           onClick={() => setMobileOpen(false)}
           title={t('profile.online')}
-          className="mt-4 flex items-center gap-3 rounded-2xl border border-white/10 bg-[rgba(255,255,255,0.10)] px-3 py-2.5 text-white transition hover:border-white/20 hover:bg-[rgba(255,255,255,0.14)]"
+          className="mt-4 flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-slate-950 transition hover:border-slate-300 hover:bg-slate-100"
         >
           <Avatar name={user?.name} imageUrl={user?.avatarUrl} size={40} status="online" />
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-bold text-white">{user?.name}</p>
-            <p className="truncate text-xs font-medium text-slate-300">{user?.email}</p>
+            <p className="truncate text-sm font-bold text-slate-950">{user?.name}</p>
+            <p className="truncate text-xs font-medium text-slate-500">{user?.email}</p>
           </div>
         </Link>
 
         <button
           type="button"
-          className="mt-2 inline-flex h-10 w-full items-center justify-center gap-2 rounded-2xl border border-white/10 bg-[rgba(255,255,255,0.10)] px-3 text-sm font-bold text-white transition hover:border-white/20 hover:bg-[rgba(255,255,255,0.14)]"
+          className="mt-2 inline-flex h-10 w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-3 text-sm font-bold text-slate-950 transition hover:border-slate-300 hover:bg-slate-100"
           onClick={onLogout}
         >
           <LogOut size={16} />

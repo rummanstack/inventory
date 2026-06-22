@@ -60,6 +60,7 @@ function itemsSubquery() {
       'warrantyMonthsSnapshot', sii.warranty_months_snapshot,
       'serials', (
         SELECT COALESCE(json_agg(json_build_object(
+          'productSerialId', sis.product_serial_id,
           'serialNumber', sis.serial_number_snapshot,
           'imei1', sis.imei1_snapshot,
           'imei2', sis.imei2_snapshot

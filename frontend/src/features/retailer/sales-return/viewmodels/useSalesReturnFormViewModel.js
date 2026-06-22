@@ -45,6 +45,10 @@ export function useSalesReturnFormViewModel() {
         returnQuantity: 0,
         actualSalePrice: item.actualSalePrice,
         costPriceSnapshot: item.costPriceSnapshot,
+        soldSerials: item.serials || [],
+        serialRequired: (item.serials || []).length > 0,
+        selectedSerialIds: [],
+        condition: 'GOOD',
       })));
     } catch (error) {
       setLoadError(error.message);
@@ -57,8 +61,28 @@ export function useSalesReturnFormViewModel() {
     setItems((current) => current.map((row) => (row.rowId === rowId ? { ...row, returnQuantity: value } : row)));
   }
 
+  function updateReturnCondition(rowId, condition) {
+    setItems((current) => current.map((row) => (row.rowId === rowId ? { ...row, condition } : row)));
+  }
+
+  function toggleReturnSerial(rowId, serialId) {
+    setItems((current) => current.map((row) => {
+      if (row.rowId !== rowId) {
+        return row;
+      }
+
+      const hasSerial = row.selectedSerialIds.includes(serialId);
+      const selectedSerialIds = hasSerial
+        ? row.selectedSerialIds.filter((id) => id !== serialId)
+        : [...row.selectedSerialIds, serialId];
+      return { ...row, selectedSerialIds };
+    }));
+  }
+
   const lineRows = items.map((row) => {
-    const returnQuantityNumber = Math.max(0, Math.min(Math.floor(Number(row.returnQuantity || 0)), row.originalQuantity));
+    const returnQuantityNumber = row.serialRequired
+      ? row.selectedSerialIds.length
+      : Math.max(0, Math.min(Math.floor(Number(row.returnQuantity || 0)), row.originalQuantity));
     const lineTotal = returnQuantityNumber * Number(row.actualSalePrice || 0);
     return { ...row, returnQuantityNumber, lineTotal };
   });
@@ -81,6 +105,8 @@ export function useSalesReturnFormViewModel() {
           quantityPieces: row.returnQuantityNumber,
           actualSalePrice: row.actualSalePrice,
           costPriceSnapshot: row.costPriceSnapshot,
+          condition: row.condition,
+          serialIds: row.selectedSerialIds,
         })),
       note: note.trim(),
     };
@@ -101,6 +127,8 @@ export function useSalesReturnFormViewModel() {
     setRefundMethod,
     lineRows,
     updateReturnQuantity,
+    updateReturnCondition,
+    toggleReturnSerial,
     totalAmount,
     hasValidItems,
     note,

@@ -10,6 +10,7 @@ import SupplierFormModal from '../../suppliers/components/SupplierFormModal.jsx'
 
 export default function PurchaseReceiveFormModal({ purchaseReceipt, onClose, onSave }) {
   const { t, supplierDirectory, productDirectory, saveSupplier, tenant } = useInventoryApp();
+  const isElectronics = (tenant?.businessType || 'ELECTRONICS') === 'ELECTRONICS';
   const vm = usePurchaseReceiptFormViewModel({
     purchaseReceipt,
     products: productDirectory,
@@ -95,7 +96,7 @@ export default function PurchaseReceiveFormModal({ purchaseReceipt, onClose, onS
                 const availableProducts = vm.getAvailableProducts(row.rowId);
                 return (
                   <div key={row.rowId} className="space-y-3 rounded-[22px] border border-slate-200 bg-slate-50 p-4">
-                    <div className="grid gap-3 lg:grid-cols-[minmax(0,1.8fr)_minmax(110px,0.6fr)_minmax(110px,0.6fr)_minmax(110px,0.6fr)_minmax(110px,0.6fr)_auto]">
+                    <div className={isElectronics ? 'grid gap-3 lg:grid-cols-[minmax(0,1.8fr)_minmax(110px,0.6fr)_minmax(110px,0.6fr)_minmax(110px,0.6fr)_auto]' : 'grid gap-3 lg:grid-cols-[minmax(0,1.8fr)_minmax(110px,0.6fr)_minmax(110px,0.6fr)_minmax(110px,0.6fr)_minmax(110px,0.6fr)_auto]'}>
                       <div>
                         <label className="label">{t('products.product')}</label>
                         <select className="input" value={row.productId} onChange={(event) => vm.updateItem(row.rowId, 'productId', event.target.value)}>
@@ -103,12 +104,14 @@ export default function PurchaseReceiveFormModal({ purchaseReceipt, onClose, onS
                             <option key={product.id} value={product.id}>{product.name}</option>
                           ))}
                         </select>
-                        <p className="mt-1 text-xs font-semibold text-slate-500">{row.piecesPerCase} {t('common.pcsPerCase')}</p>
+                        {!isElectronics ? <p className="mt-1 text-xs font-semibold text-slate-500">{row.piecesPerCase} {t('common.pcsPerCase')}</p> : null}
                       </div>
-                      <div>
-                        <label className="label">{t('common.case')}</label>
-                        <input className="input" type="number" min="0" value={row.caseQty} onChange={(event) => vm.updateItem(row.rowId, 'caseQty', event.target.value)} />
-                      </div>
+                      {!isElectronics ? (
+                        <div>
+                          <label className="label">{t('common.case')}</label>
+                          <input className="input" type="number" min="0" value={row.caseQty} onChange={(event) => vm.updateItem(row.rowId, 'caseQty', event.target.value)} />
+                        </div>
+                      ) : null}
                       <div>
                         <label className="label">{t('common.piece')}</label>
                         <input className="input" type="number" min="0" value={row.pieceQty} onChange={(event) => vm.updateItem(row.rowId, 'pieceQty', event.target.value)} />

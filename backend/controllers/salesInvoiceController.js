@@ -61,11 +61,4 @@ export class SalesInvoiceController {
     }
   };
 
-  profitReport = async (req, res, next) => {
-    try {
-      res.json(await this.salesInvoiceService.getProfitReport(req.query, req.currentUser));
-    } catch (error) {
-      next(error);
-    }
-  };
 }

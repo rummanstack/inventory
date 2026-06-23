@@ -19,7 +19,6 @@ const PERMISSION_REQUIRED_FEATURES = {
   manage_retail_due_collection: 'retailer-due-collection',
   manage_retail_promotions: 'retailer-promotions',
   manage_retail_daily_sales_report: 'retailer-daily-sales-report',
-  manage_retail_profit_report: 'retailer-profit-report',
   manage_retail_customers_write: 'retail-customers',
   view_retail_customer_retention: 'retail-customer-retention',
   manage_profit_report: 'profit',

@@ -1,14 +1,31 @@
 import { assert } from "../lib/errors.js";
 import { addDays, normalizeIsoDate, startOfIsoWeek } from "../lib/dateRanges.js";
 import { listExpensesInRange } from "../repositories/expenseRepository.js";
-import { listProductCostMap, listSettlementsInRange } from "../repositories/profitRepository.js";
+import {
+  listInvoiceItemProfitByProduct,
+  listInvoiceProfitByCustomer,
+  listProductCostMap,
+  listProductDirectoryForProfit,
+  listReturnItemProfitByProduct,
+  listReturnProfitAdjustmentByCustomer,
+  listSettlementsInRange,
+  listSettlementsWithDsrInRange,
+} from "../repositories/profitRepository.js";
 import { getProfitReport as listRetailerSalesByDate } from "../repositories/salesInvoiceRepository.js";
 import { getProfitAdjustmentsByDate } from "../repositories/salesReturnRepository.js";
 
 const DATE_ERROR = "Date must be in YYYY-MM-DD format.";
 
 function emptyTotals() {
-  return { revenue: 0, cost: 0, expenses: 0, profit: 0 };
+  return { revenue: 0, cost: 0, expenses: 0, grossProfit: 0, profit: 0 };
+}
+
+function normalizeDateRange(dateFrom, dateTo) {
+  const today = new Date().toISOString().slice(0, 10);
+  const normalizedDateTo = normalizeIsoDate(dateTo, today, DATE_ERROR);
+  const normalizedDateFrom = normalizeIsoDate(dateFrom, addDays(normalizedDateTo, -29), DATE_ERROR);
+  assert(normalizedDateFrom <= normalizedDateTo, "Start date must be before or equal to end date.");
+  return { normalizedDateFrom, normalizedDateTo };
 }
 
 export class ProfitService {
@@ -17,11 +34,7 @@ export class ProfitService {
   }
 
   async getProfitReport({ dateFrom, dateTo }, actor) {
-    const today = new Date().toISOString().slice(0, 10);
-    const normalizedDateTo = normalizeIsoDate(dateTo, today, DATE_ERROR);
-    const normalizedDateFrom = normalizeIsoDate(dateFrom, addDays(normalizedDateTo, -29), DATE_ERROR);
-    assert(normalizedDateFrom <= normalizedDateTo, "Start date must be before or equal to end date.");
-
+    const { normalizedDateFrom, normalizedDateTo } = normalizeDateRange(dateFrom, dateTo);
     const tenantId = actor.tenantId;
 
     return this.databaseManager.withClient(async (client) => {
@@ -89,6 +102,7 @@ export class ProfitService {
           revenue: totals.revenue,
           cost: totals.cost,
           expenses: totals.expenses,
+          grossProfit: totals.revenue - totals.cost,
           profit: totals.revenue - totals.cost - totals.expenses,
         }));
 
@@ -107,12 +121,175 @@ export class ProfitService {
           revenue: sum.revenue + row.revenue,
           cost: sum.cost + row.cost,
           expenses: sum.expenses + row.expenses,
+          grossProfit: sum.grossProfit + row.grossProfit,
           profit: sum.profit + row.profit,
         }),
         emptyTotals(),
       );
 
       return { dateFrom: normalizedDateFrom, dateTo: normalizedDateTo, daily, weekly, monthly, totals };
+    });
+  }
+
+  // Per-dimension breakdowns show gross profit (revenue - cost of goods sold) only.
+  // Operating expenses (the `expenses` table) aren't attributable to a single DSR/
+  // product/customer/category, so allocating them per row would be arbitrary — net
+  // profit (gross - expenses) only makes sense at the whole-business level, which is
+  // what getProfitReport above already provides.
+  async getDsrProfitBreakdown({ dateFrom, dateTo }, actor) {
+    const { normalizedDateFrom, normalizedDateTo } = normalizeDateRange(dateFrom, dateTo);
+    const tenantId = actor.tenantId;
+
+    return this.databaseManager.withClient(async (client) => {
+      const [settlements, productCostMap] = await Promise.all([
+        listSettlementsWithDsrInRange(client, normalizedDateFrom, normalizedDateTo, tenantId),
+        listProductCostMap(client, tenantId),
+      ]);
+
+      const dsrMap = new Map();
+      for (const settlement of settlements) {
+        const row = dsrMap.get(settlement.dsrId) || { dsrId: settlement.dsrId, dsrName: settlement.dsrName, revenue: 0, cost: 0 };
+
+        for (const item of settlement.items) {
+          const soldPieces = Number(item.soldPieces || 0);
+          const rate = Number(item.rate || 0);
+          const cost = Number(productCostMap.get(item.productId) || 0);
+          row.revenue += soldPieces * rate;
+          row.cost += soldPieces * cost;
+        }
+
+        row.revenue -= settlement.discount + settlement.extraReturnValue;
+        dsrMap.set(settlement.dsrId, row);
+      }
+
+      const rows = [...dsrMap.values()]
+        .map((row) => ({ ...row, grossProfit: row.revenue - row.cost }))
+        .sort((left, right) => right.grossProfit - left.grossProfit);
+
+      return { dateFrom: normalizedDateFrom, dateTo: normalizedDateTo, rows };
+    });
+  }
+
+  async getProductProfitBreakdown({ dateFrom, dateTo }, actor) {
+    const { normalizedDateFrom, normalizedDateTo } = normalizeDateRange(dateFrom, dateTo);
+    const tenantId = actor.tenantId;
+
+    return this.databaseManager.withClient(async (client) => {
+      const [settlements, productCostMap, invoiceItems, returnItems, productDirectory] = await Promise.all([
+        listSettlementsWithDsrInRange(client, normalizedDateFrom, normalizedDateTo, tenantId),
+        listProductCostMap(client, tenantId),
+        listInvoiceItemProfitByProduct(client, { tenantId, dateFrom: normalizedDateFrom, dateTo: normalizedDateTo }),
+        listReturnItemProfitByProduct(client, { tenantId, dateFrom: normalizedDateFrom, dateTo: normalizedDateTo }),
+        listProductDirectoryForProfit(client, tenantId),
+      ]);
+
+      const productMap = new Map();
+      const ensureRow = (productId) => {
+        if (!productMap.has(productId)) {
+          productMap.set(productId, { productId, revenue: 0, cost: 0, quantity: 0 });
+        }
+        return productMap.get(productId);
+      };
+
+      for (const settlement of settlements) {
+        for (const item of settlement.items) {
+          const row = ensureRow(item.productId);
+          const soldPieces = Number(item.soldPieces || 0);
+          const rate = Number(item.rate || 0);
+          const cost = Number(productCostMap.get(item.productId) || 0);
+          row.revenue += soldPieces * rate;
+          row.cost += soldPieces * cost;
+          row.quantity += soldPieces;
+        }
+      }
+
+      for (const entry of invoiceItems) {
+        const row = ensureRow(entry.productId);
+        row.revenue += entry.revenue;
+        row.cost += entry.cost;
+        row.quantity += entry.quantity;
+      }
+
+      for (const entry of returnItems) {
+        const row = ensureRow(entry.productId);
+        row.revenue -= entry.revenue;
+        row.cost -= entry.cost;
+        row.quantity -= entry.quantity;
+      }
+
+      const directoryMap = new Map(productDirectory.map((product) => [product.id, product]));
+      const rows = [...productMap.values()]
+        .map((row) => {
+          const product = directoryMap.get(row.productId);
+          return {
+            productId: row.productId,
+            productName: product?.name || row.productId,
+            categoryId: product?.categoryId || null,
+            categoryName: product?.categoryName || null,
+            quantity: row.quantity,
+            revenue: row.revenue,
+            cost: row.cost,
+            grossProfit: row.revenue - row.cost,
+          };
+        })
+        .sort((left, right) => right.grossProfit - left.grossProfit);
+
+      return { dateFrom: normalizedDateFrom, dateTo: normalizedDateTo, rows };
+    });
+  }
+
+  async getCategoryProfitBreakdown(params, actor) {
+    const productBreakdown = await this.getProductProfitBreakdown(params, actor);
+
+    const categoryMap = new Map();
+    for (const row of productBreakdown.rows) {
+      const key = row.categoryId || "__UNCATEGORIZED__";
+      const entry = categoryMap.get(key) || {
+        categoryId: row.categoryId,
+        categoryName: row.categoryName,
+        revenue: 0,
+        cost: 0,
+        quantity: 0,
+      };
+      entry.revenue += row.revenue;
+      entry.cost += row.cost;
+      entry.quantity += row.quantity;
+      categoryMap.set(key, entry);
+    }
+
+    const rows = [...categoryMap.values()]
+      .map((row) => ({ ...row, grossProfit: row.revenue - row.cost }))
+      .sort((left, right) => right.grossProfit - left.grossProfit);
+
+    return { dateFrom: productBreakdown.dateFrom, dateTo: productBreakdown.dateTo, rows };
+  }
+
+  // customer_id/customer_name_snapshot come straight from sales_invoices — DSR
+  // settlements aren't tied to an individual shop within a settlement, so this
+  // dimension only covers the registered-customer retail/wholesale channel.
+  async getCustomerProfitBreakdown({ dateFrom, dateTo }, actor) {
+    const { normalizedDateFrom, normalizedDateTo } = normalizeDateRange(dateFrom, dateTo);
+    const tenantId = actor.tenantId;
+
+    return this.databaseManager.withClient(async (client) => {
+      const [invoiceRows, returnAdjustments] = await Promise.all([
+        listInvoiceProfitByCustomer(client, { tenantId, dateFrom: normalizedDateFrom, dateTo: normalizedDateTo }),
+        listReturnProfitAdjustmentByCustomer(client, { tenantId, dateFrom: normalizedDateFrom, dateTo: normalizedDateTo }),
+      ]);
+
+      const adjustmentMap = new Map(returnAdjustments.map((entry) => [entry.customerId || "", entry.adjustment]));
+
+      const rows = invoiceRows
+        .map((row) => ({
+          customerId: row.customerId,
+          customerName: row.customerName,
+          invoiceCount: row.invoiceCount,
+          revenue: row.revenue,
+          grossProfit: row.grossProfit + (adjustmentMap.get(row.customerId || "") || 0),
+        }))
+        .sort((left, right) => right.grossProfit - left.grossProfit);
+
+      return { dateFrom: normalizedDateFrom, dateTo: normalizedDateTo, rows };
     });
   }
 }
@@ -126,6 +303,7 @@ function groupRows(daily, buildGroupKey) {
     group.revenue += row.revenue;
     group.cost += row.cost;
     group.expenses += row.expenses;
+    group.grossProfit += row.grossProfit;
     group.profit += row.profit;
     groups.set(key, group);
   }

@@ -28,8 +28,4 @@ export const salesInvoicesApi = {
   getDailySalesReport({ dateFrom, dateTo, saleType } = {}) {
     return apiRequest(`/sales-invoices/reports/daily${buildQueryString({ dateFrom, dateTo, saleType })}`);
   },
-
-  getRetailerProfitReport({ dateFrom, dateTo, saleType } = {}) {
-    return apiRequest(`/sales-invoices/reports/profit${buildQueryString({ dateFrom, dateTo, saleType })}`);
-  },
 };

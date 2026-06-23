@@ -25,7 +25,6 @@ export const TENANT_FEATURE_ROUTES = [
   { feature: 'retailer-due-collection', labelKey: 'nav.retailerDueCollection' },
   { feature: 'retailer-sales-return', labelKey: 'nav.retailerSalesReturn' },
   { feature: 'retailer-daily-sales-report', labelKey: 'nav.retailerDailySalesReport' },
-  { feature: 'retailer-profit-report', labelKey: 'nav.retailerProfitReport' },
   { feature: 'finance-dashboard', labelKey: 'nav.financeDashboard' },
   { feature: 'finance-accounts', labelKey: 'nav.financeAccounts' },
   { feature: 'dashboard', labelKey: 'nav.dashboard' },

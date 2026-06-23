@@ -72,7 +72,6 @@ import CustomerDuePage from '../features/retailer/customer-due/pages/CustomerDue
 import DueCollectionPage from '../features/retailer/due-collection/pages/DueCollectionPage';
 import SalesReturnPage from '../features/retailer/sales-return/pages/SalesReturnPage';
 import DailySalesReportPage from '../features/retailer/daily-sales-report/pages/DailySalesReportPage';
-import RetailerProfitReportPage from '../features/retailer/profit-report/pages/RetailerProfitReportPage';
 import FinanceDashboardPage from '../features/finance-dashboard/pages/FinanceDashboardPage';
 import FinanceAccountsPage from '../features/finance-accounts/pages/FinanceAccountsPage';
 import StockMovementPage from '../features/stock-movement/pages/StockMovementPage';
@@ -125,7 +124,6 @@ export const APP_ROUTES = [
   // Reports
   { id: 'retailer-daily-sales-report', path: '/retailer/daily-sales-report', labelKey: 'nav.retailerDailySalesReport', icon: FileText, component: DailySalesReportPage, group: 'reports', permission: 'manage_retail_daily_sales_report', feature: 'retailer-daily-sales-report' },
   { id: 'reports', path: '/reports', labelKey: 'nav.reports', icon: FileText, component: DailyReportsPage, group: 'reports', permission: 'view_state', feature: 'reports' },
-  { id: 'retailer-profit-report', path: '/retailer/profit-report', labelKey: 'nav.retailerProfitReport', icon: TrendingUp, component: RetailerProfitReportPage, group: 'reports', permission: 'manage_retail_profit_report', feature: 'retailer-profit-report' },
   { id: 'history', path: '/history', labelKey: 'nav.history', icon: ClipboardList, component: HistoryPage, group: 'reports', permission: 'view_state', feature: 'history' },
 
   // System

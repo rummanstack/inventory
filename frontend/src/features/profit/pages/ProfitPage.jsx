@@ -1,4 +1,4 @@
-import { BadgeDollarSign, Download, FileSpreadsheet, PiggyBank, TrendingDown, TrendingUp, Wallet } from 'lucide-react';
+import { BadgeDollarSign, Download, FileSpreadsheet, PiggyBank, Printer, TrendingDown, TrendingUp, Wallet } from 'lucide-react';
 import { Alert, ChartPanel, ChartPanelSkeleton, EmptyState, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton, TrendChart } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
@@ -36,7 +36,7 @@ function marginOf(row) {
   return (row.grossProfit / row.revenue) * 100;
 }
 
-function BreakdownTable({ t, language, columns, rows, emptyIcon, exportFileName, sheetName }) {
+function BreakdownTable({ t, language, columns, rows, emptyIcon, exportFileName, pdfFileName, sheetName, printId }) {
   async function handleExportExcel() {
     const { utils, writeFile } = await import('xlsx');
     const header = columns.map((column) => column.label);
@@ -49,14 +49,32 @@ function BreakdownTable({ t, language, columns, rows, emptyIcon, exportFileName,
   }
 
   return (
-    <div className="surface overflow-hidden">
+    <div id={printId} className="surface overflow-hidden print-target">
       <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
         <h2 className="text-base font-bold text-slate-950">{t('profit.tableTitle')}</h2>
         {rows.length ? (
-          <button type="button" className="btn-secondary py-1.5 text-xs" onClick={handleExportExcel}>
-            <FileSpreadsheet size={14} />
-            {t('common.exportExcel')}
-          </button>
+          <div className="flex items-center gap-2 no-print">
+            <button
+              type="button"
+              className="btn-secondary py-1.5 text-xs"
+              onClick={() => { inventoryApi.recordPrint({ entityType: 'profit_breakdown', entityId: null, label: 'pdf' }).catch(() => {}); downloadSheetPdf(printId, pdfFileName); }}
+            >
+              <Download size={14} />
+              {t('purchaseReceive.downloadPdf')}
+            </button>
+            <button type="button" className="btn-secondary py-1.5 text-xs" onClick={handleExportExcel}>
+              <FileSpreadsheet size={14} />
+              {t('common.exportExcel')}
+            </button>
+            <button
+              type="button"
+              className="btn-secondary py-1.5 text-xs"
+              onClick={() => { inventoryApi.recordPrint({ entityType: 'profit_breakdown', entityId: null, label: 'print' }).catch(() => {}); window.print(); }}
+            >
+              <Printer size={14} />
+              {t('common.print')}
+            </button>
+          </div>
         ) : null}
       </div>
       {rows.length ? (
@@ -145,6 +163,11 @@ export default function ProfitPage() {
     return downloadSheetPdf('profit-report-table', `profit-report-${vm.dateFrom}-to-${vm.dateTo}.pdf`);
   }
 
+  function handlePrintOverview() {
+    inventoryApi.recordPrint({ entityType: 'report', entityId: `${vm.dateFrom}_to_${vm.dateTo}`, label: `profit ${vm.dateFrom} to ${vm.dateTo} print` }).catch(() => {});
+    window.print();
+  }
+
   const breakdownRows = (vm.breakdowns[vm.tab]?.rows || []);
 
   return (
@@ -183,10 +206,14 @@ export default function ProfitPage() {
 
       {vm.tab === 'overview' ? (
         <>
-          <div className="mb-6 flex justify-end">
+          <div className="mb-6 flex justify-end gap-2">
             <button type="button" className="btn-secondary" onClick={handleDownloadPdf}>
               <Download size={18} />
               {t('profit.downloadPdf')}
+            </button>
+            <button type="button" className="btn-secondary" onClick={handlePrintOverview}>
+              <Printer size={18} />
+              {t('common.print')}
             </button>
           </div>
 
@@ -233,7 +260,7 @@ export default function ProfitPage() {
             )}
           </ChartPanel>
 
-          <div id="profit-report-table" className="mt-6 surface overflow-hidden">
+          <div id="profit-report-table" className="mt-6 surface overflow-hidden print-target">
             <div className="border-b border-slate-100 px-5 py-4">
               <h2 className="text-base font-bold text-slate-950">{t('profit.tableTitle')}</h2>
             </div>
@@ -292,7 +319,9 @@ export default function ProfitPage() {
               language={language}
               emptyIcon={Wallet}
               sheetName={t('profit.tabByDsr')}
+              printId="profit-breakdown-dsr"
               exportFileName={`profit-by-dsr-${vm.dateFrom}-${vm.dateTo}.xlsx`}
+              pdfFileName={`profit-by-dsr-${vm.dateFrom}-${vm.dateTo}.pdf`}
               rows={breakdownRows.map((row) => ({ key: row.dsrId, ...row }))}
               columns={[
                 { key: 'name', label: t('profit.dsrName'), value: (row) => row.dsrName || row.dsrId },
@@ -308,7 +337,9 @@ export default function ProfitPage() {
               language={language}
               emptyIcon={Wallet}
               sheetName={t('profit.tabByProduct')}
+              printId="profit-breakdown-product"
               exportFileName={`profit-by-product-${vm.dateFrom}-${vm.dateTo}.xlsx`}
+              pdfFileName={`profit-by-product-${vm.dateFrom}-${vm.dateTo}.pdf`}
               rows={breakdownRows.map((row) => ({ key: row.productId, ...row }))}
               columns={[
                 { key: 'name', label: t('profit.productName'), value: (row) => row.productName },
@@ -326,7 +357,9 @@ export default function ProfitPage() {
               language={language}
               emptyIcon={Wallet}
               sheetName={t('profit.tabByCustomer')}
+              printId="profit-breakdown-customer"
               exportFileName={`profit-by-customer-${vm.dateFrom}-${vm.dateTo}.xlsx`}
+              pdfFileName={`profit-by-customer-${vm.dateFrom}-${vm.dateTo}.pdf`}
               rows={breakdownRows.map((row, index) => ({ key: row.customerId || `walk-in-${index}`, ...row }))}
               columns={[
                 { key: 'name', label: t('profit.customerName'), value: (row) => row.customerName || t('profit.walkInCustomer') },
@@ -342,7 +375,9 @@ export default function ProfitPage() {
               language={language}
               emptyIcon={Wallet}
               sheetName={t('profit.tabByCategory')}
+              printId="profit-breakdown-category"
               exportFileName={`profit-by-category-${vm.dateFrom}-${vm.dateTo}.xlsx`}
+              pdfFileName={`profit-by-category-${vm.dateFrom}-${vm.dateTo}.pdf`}
               rows={breakdownRows.map((row, index) => ({ key: row.categoryId || `uncategorized-${index}`, ...row }))}
               columns={[
                 { key: 'name', label: t('profit.categoryName'), value: (row) => row.categoryName || t('profit.uncategorized') },

@@ -198,7 +198,7 @@ export default function CustomerDuePage() {
       )}
 
       {vm.statement ? (
-        <div className="hidden print:block">
+        <div className="absolute -left-[10000px] top-0">
           <CustomerDuePrintSheet
             statement={vm.statement}
             customerName={selectedCustomer?.name || ''}

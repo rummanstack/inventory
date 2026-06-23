@@ -1,13 +1,17 @@
 import { useState } from 'react';
-import { Eye, Plus, Receipt, Search, Trash2 } from 'lucide-react';
+import { Download, Eye, FileSpreadsheet, Plus, Printer, Receipt, Search, Trash2 } from 'lucide-react';
 import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton } from '../../../../components/ui.jsx';
 import { DatePickerField } from '../../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
+import { downloadSheetPdf } from '../../../../services/printService.js';
+import { inventoryApi } from '../../../../services/inventoryApi.js';
 import { formatCurrency, formatDate, formatNumber } from '../../../../utils/calculations.js';
 import SalesInvoiceFormModal from '../components/SalesInvoiceFormModal';
 import SalesInvoiceViewModal from '../components/SalesInvoiceViewModal';
 import { useSalesInvoicesViewModel } from '../viewmodels/useSalesInvoicesViewModel';
 import { paymentStatusOf, paymentStatusTone } from '../../../../models/inventoryViewData.js';
+
+const SALES_INVOICES_PRINT_ID = 'sales-invoices-print';
 
 export default function SalesInvoicesPage() {
   const { saveSalesInvoice, deleteSalesInvoice, t, can, retailCustomerDirectory } = useInventoryApp();
@@ -15,6 +19,37 @@ export default function SalesInvoicesPage() {
   const [showFormModal, setShowFormModal] = useState(false);
   const [viewInvoice, setViewInvoice] = useState(null);
   const canManageRetailers = can('manage_retail_sales_invoices');
+
+  async function handleExportExcel() {
+    const result = await inventoryApi.listSalesInvoices({
+      customerId: vm.customerId || undefined,
+      invoiceNumber: vm.invoiceNumber || undefined,
+      saleType: vm.saleType || undefined,
+      paymentStatus: vm.paymentStatus || undefined,
+      dateFrom: vm.dateFrom || undefined,
+      dateTo: vm.dateTo || undefined,
+      page: 1,
+      pageSize: 10000,
+    });
+    const all = result.items || [];
+    const { utils, writeFile } = await import('xlsx');
+    const header = ['#', t('retailer.shared.invoiceNumberLabel'), t('retailer.shared.invoiceDateLabel'), t('retailer.shared.customerLabel'), t('retailer.shared.saleTypeLabel'), t('retailer.shared.totalAmount'), t('retailer.shared.dueAmount'), t('purchaseReceive.paymentStatus')];
+    const data = all.map((invoice, i) => [
+      i + 1,
+      invoice.invoiceNumber,
+      invoice.invoiceDate,
+      invoice.customerName || t('retailer.shared.customerTypes.WALK_IN'),
+      t(`retailer.shared.saleTypes.${invoice.saleType}`),
+      Number(invoice.totalAmount),
+      Number(invoice.dueAmount),
+      t(`purchaseReceive.paymentStatuses.${paymentStatusOf(invoice)}`),
+    ]);
+    const ws = utils.aoa_to_sheet([header, ...data]);
+    ws['!cols'] = [{ wch: 6 }, { wch: 16 }, { wch: 14 }, { wch: 22 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 14 }];
+    const wb = utils.book_new();
+    utils.book_append_sheet(wb, ws, t('retailer.salesInvoices.sheetName'));
+    writeFile(wb, 'sales-invoices-report.xlsx');
+  }
 
   return (
     <div>
@@ -30,15 +65,35 @@ export default function SalesInvoicesPage() {
         ) : null}
       />
 
-      <div className="surface overflow-hidden">
+      <div id={SALES_INVOICES_PRINT_ID} className="surface overflow-hidden print-target">
         <div className="border-b border-slate-100 p-5">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="space-y-2">
               <p className="text-[11px] font-black uppercase tracking-[0.22em] text-slate-400">{t('retailer.salesInvoices.eyebrow')}</p>
               <p className="text-sm font-medium text-slate-500">{t('retailer.salesInvoices.description')}</p>
             </div>
-            <div className="flex flex-wrap gap-2 text-sm font-bold">
+            <div className="flex flex-wrap items-center gap-2 text-sm font-bold">
               <span className="muted-chip">{formatNumber(vm.total)} {t('retailer.salesInvoices.invoiceCount')}</span>
+              <button
+                type="button"
+                className="btn-secondary no-print py-1.5 text-xs"
+                onClick={() => { inventoryApi.recordPrint({ entityType: 'sales_invoices', entityId: null, label: 'pdf' }).catch(() => {}); downloadSheetPdf(SALES_INVOICES_PRINT_ID, 'sales-invoices-report.pdf'); }}
+              >
+                <Download size={14} />
+                {t('purchaseReceive.downloadPdf')}
+              </button>
+              <button type="button" className="btn-secondary no-print py-1.5 text-xs" onClick={handleExportExcel}>
+                <FileSpreadsheet size={14} />
+                {t('common.exportExcel')}
+              </button>
+              <button
+                type="button"
+                className="btn-secondary no-print py-1.5 text-xs"
+                onClick={() => { inventoryApi.recordPrint({ entityType: 'sales_invoices', entityId: null, label: 'print' }).catch(() => {}); window.print(); }}
+              >
+                <Printer size={14} />
+                {t('common.print')}
+              </button>
             </div>
           </div>
           <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
@@ -91,7 +146,7 @@ export default function SalesInvoicesPage() {
                 <th className="px-4 py-3 text-right">{t('retailer.shared.totalAmount')}</th>
                 <th className="hidden px-4 py-3 text-right sm:table-cell">{t('retailer.shared.dueAmount')}</th>
                 <th className="px-4 py-3">{t('purchaseReceive.paymentStatus')}</th>
-                <th className="px-4 py-3 text-right">{t('common.actions')}</th>
+                <th className="px-4 py-3 text-right no-print">{t('common.actions')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -109,7 +164,7 @@ export default function SalesInvoicesPage() {
                       {t(`purchaseReceive.paymentStatuses.${paymentStatusOf(invoice)}`)}
                     </Badge>
                   </td>
-                  <td className="table-cell">
+                  <td className="table-cell no-print">
                     <div className="flex justify-end gap-2">
                       <button type="button" className="icon-btn" title={t('common.view')} onClick={() => setViewInvoice(invoice)}>
                         <Eye size={16} />

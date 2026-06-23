@@ -1,4 +1,4 @@
-import { CircleDollarSign, Download, Eye, FileText, PackageCheck, Printer, RotateCcw, Truck } from 'lucide-react';
+import { CircleDollarSign, Download, Eye, FileSpreadsheet, FileText, PackageCheck, Printer, RotateCcw, Truck } from 'lucide-react';
 import PrintableSheet from '../../../components/PrintableSheet.jsx';
 import { Alert, Badge, ChartPanel, ChartPanelSkeleton, DonutChart, EmptyState, SectionHeader, StackedBarChart, StatCard, StatCardSkeleton, TableSkeleton } from '../../../components/ui.jsx';
 import { statusTone } from '../../../models/inventoryViewData.js';
@@ -18,6 +18,28 @@ export default function DailyReportsPage() {
       return;
     }
     inventoryApi.recordPrint({ entityType: 'report', entityId: vm.selectedSheet.dsrId, label: `${vm.selectedSheet.date} ${label}` }).catch(() => {});
+  }
+
+  async function handleExportSheetExcel() {
+    const sheet = vm.selectedSheet;
+    if (!sheet) return;
+    const { utils, writeFile } = await import('xlsx');
+    const rows = [...(sheet.items || []), ...(sheet.extraReturns || []).map((item) => ({ ...item, isExtraReturn: true }))];
+    const header = [t('products.product'), t('settlement.issued'), t('settlement.returnCase'), t('settlement.damagedCase'), t('settlement.sold'), t('settlement.rate'), t('settlement.payable')];
+    const data = rows.map((item) => [
+      item.productName,
+      Number(item.issuedPieces || 0),
+      Number(item.returnedPieces || 0),
+      Number(item.damagedPieces || 0),
+      Number(item.soldPieces || 0),
+      Number(item.rate || 0),
+      Number(item.payable || 0),
+    ]);
+    const ws = utils.aoa_to_sheet([header, ...data]);
+    ws['!cols'] = [{ wch: 24 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 14 }];
+    const wb = utils.book_new();
+    utils.book_append_sheet(wb, ws, t('reports.printableSheet'));
+    writeFile(wb, `${sheet.dsrName || 'dsr'}-${sheet.date}.xlsx`.toLowerCase().replace(/[^a-z0-9.-]+/g, '-'));
   }
 
   if (vm.loading) {
@@ -156,6 +178,10 @@ export default function DailyReportsPage() {
                   <button type="button" className="btn-secondary" onClick={() => { recordReportPrint('pdf'); downloadSheetPdf('report-print-sheet', buildPdfFileName(vm.selectedSheet)); }}>
                     <Download size={18} />
                     {t('reports.downloadPdf')}
+                  </button>
+                  <button type="button" className="btn-secondary" onClick={handleExportSheetExcel}>
+                    <FileSpreadsheet size={18} />
+                    {t('common.exportExcel')}
                   </button>
                   <button type="button" className="btn-primary" onClick={() => { recordReportPrint('print'); window.print(); }}>
                     <Printer size={18} />

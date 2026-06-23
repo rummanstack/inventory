@@ -128,7 +128,7 @@ export default function PurchaseReceiptViewModal({ purchaseReceipt, onClose }) {
         </div>
       </Modal>
 
-      <div className="hidden print:block">
+      <div className="absolute -left-[10000px] top-0">
         <PurchaseReceiptPrintSheet purchaseReceipt={purchaseReceipt} printTarget targetId={printTargetId} />
       </div>
     </>

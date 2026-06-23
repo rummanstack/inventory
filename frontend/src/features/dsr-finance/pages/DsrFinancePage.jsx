@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { BadgeDollarSign, Download, FileSpreadsheet, HandCoins, Pencil, Plus, Printer, RefreshCw, Trash2, Wallet } from 'lucide-react';
-import { Alert, Badge, ChartPanel, ChartPanelSkeleton, EmptyState, SectionHeader, HorizontalBarChart, StatCard, StatCardSkeleton, TableSkeleton } from '../../../components/ui.jsx';
+import { Alert, Badge, ChartPanel, ChartPanelSkeleton, EmptyState, SectionHeader, HorizontalBarChart, StatCard, StatCardSkeleton, TableSkeleton, cx } from '../../../components/ui.jsx';
 import { DatePickerField, MonthPickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../services/printService.js';
@@ -62,6 +62,22 @@ export default function DsrFinancePage() {
   const [modal, setModal] = useState(null);
   const [showSettleModal, setShowSettleModal] = useState(false);
   const canManageDsrFinance = can('manage_dsr_finance');
+  // The daily and monthly advance sections are both on screen at once, but the global
+  // print CSS (`.print-target`) shows every matching element regardless of which button
+  // was clicked — so only the section currently being printed gets the class.
+  const [printingSection, setPrintingSection] = useState(null);
+
+  useEffect(() => {
+    const resetPrintingSection = () => setPrintingSection(null);
+    window.addEventListener('afterprint', resetPrintingSection);
+    return () => window.removeEventListener('afterprint', resetPrintingSection);
+  }, []);
+
+  function printAdvanceSection(section) {
+    inventoryApi.recordPrint({ entityType: 'dsr_advance', entityId: null, label: 'print' }).catch(() => {});
+    setPrintingSection(section);
+    requestAnimationFrame(() => window.print());
+  }
 
   const isDueTab = activeTab === 'due';
   const activeVm = activeTab === 'advance' ? advanceVm : dueVm;
@@ -196,7 +212,7 @@ export default function DsrFinancePage() {
                   {t('dsrDueLedger.settleDue')}
                 </button>
                 {dueVm.statement ? (
-                  <>
+                  <div className="flex items-center gap-2 no-print">
                     <button
                       type="button"
                       className="btn-secondary"
@@ -213,7 +229,7 @@ export default function DsrFinancePage() {
                       <Printer size={16} />
                       {t('purchaseReceive.printSheet')}
                     </button>
-                  </>
+                  </div>
                 ) : null}
               </div>
             </div>
@@ -230,7 +246,7 @@ export default function DsrFinancePage() {
                 <StatCard title={t('dsrDueLedger.closingBalance')} value={formatCurrency(dueVm.statement?.closingBalance || 0)} icon={Wallet} tone="blue" />
               </div>
 
-              <div id="dsr-due-statement-print" className="surface mt-6 overflow-hidden">
+              <div id="dsr-due-statement-print" className="surface mt-6 overflow-hidden print-target">
                 <div className="border-b border-slate-100 px-5 py-4">
                   <h2 className="text-base font-bold text-slate-950">{t('dsrDueLedger.entriesTitle')}</h2>
                 </div>
@@ -363,23 +379,31 @@ export default function DsrFinancePage() {
           </div>
 
           <div className="mt-6 grid gap-6 xl:grid-cols-2">
-            <div id="dsr-advance-daily-print" className="surface overflow-hidden">
+            <div id="dsr-advance-daily-print" className={cx('surface overflow-hidden', printingSection === 'daily' && 'print-target')}>
               <div className="border-b border-slate-100 px-5 py-4">
                 <div className="flex items-center justify-between gap-3">
                   <h2 className="text-base font-bold text-slate-950">{t(moduleConfig.dailyListKey, { date: formatDate(activeVm.date) })}</h2>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 no-print">
                     <span className="muted-chip">{formatNumber(dailyRecords.length)} {t('common.records')}</span>
                     <button
                       type="button"
-                      className="btn-secondary no-print py-1.5 text-xs"
+                      className="btn-secondary py-1.5 text-xs"
                       onClick={() => { inventoryApi.recordPrint({ entityType: 'dsr_advance', entityId: null, label: 'pdf' }).catch(() => {}); downloadSheetPdf('dsr-advance-daily-print', `dsr-advance-${activeVm.date}.pdf`); }}
                     >
                       <Download size={14} />
                       {t('purchaseReceive.downloadPdf')}
                     </button>
-                    <button type="button" className="btn-secondary no-print py-1.5 text-xs" onClick={handleExportAdvanceDailyExcel}>
+                    <button type="button" className="btn-secondary py-1.5 text-xs" onClick={handleExportAdvanceDailyExcel}>
                       <FileSpreadsheet size={14} />
                       {t('common.exportExcel')}
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-secondary py-1.5 text-xs"
+                      onClick={() => printAdvanceSection('daily')}
+                    >
+                      <Printer size={14} />
+                      {t('common.print')}
                     </button>
                   </div>
                 </div>
@@ -436,15 +460,31 @@ export default function DsrFinancePage() {
               ) : null}
             </div>
 
-            <div className="surface overflow-hidden">
+            <div id="dsr-advance-monthly-print" className={cx('surface overflow-hidden', printingSection === 'monthly' && 'print-target')}>
               <div className="border-b border-slate-100 px-5 py-4">
                 <div className="flex items-center justify-between gap-3">
                   <h2 className="text-base font-bold text-slate-950">{t(moduleConfig.monthlyListKey, { month: activeVm.month })}</h2>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 no-print">
                     <span className="muted-chip">{formatNumber(monthlyRecords.length)} {t('common.records')}</span>
+                    <button
+                      type="button"
+                      className="btn-secondary py-1.5 text-xs"
+                      onClick={() => { inventoryApi.recordPrint({ entityType: 'dsr_advance', entityId: null, label: 'pdf' }).catch(() => {}); downloadSheetPdf('dsr-advance-monthly-print', `dsr-advance-${activeVm.month}.pdf`); }}
+                    >
+                      <Download size={14} />
+                      {t('purchaseReceive.downloadPdf')}
+                    </button>
                     <button type="button" className="btn-secondary py-1.5 text-xs" onClick={handleExportAdvanceMonthlyExcel}>
                       <FileSpreadsheet size={14} />
                       {t('common.exportExcel')}
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-secondary py-1.5 text-xs"
+                      onClick={() => printAdvanceSection('monthly')}
+                    >
+                      <Printer size={14} />
+                      {t('common.print')}
                     </button>
                   </div>
                 </div>

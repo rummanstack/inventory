@@ -118,7 +118,7 @@ export default function DailySalesReportPage() {
             </button>
           </div>
 
-          <div id={printTargetId}>
+          <div id={printTargetId} className="print-target">
           <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
             <StatCard title={t('retailer.dailySalesReport.invoiceCount')} value={formatNumber(totals.invoiceCount, language)} icon={Wallet} tone="slate" />
             <StatCard title={t('retailer.shared.totalAmount')} value={formatCurrency(totals.totalAmount, language)} icon={Wallet} tone="blue" />

@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
-import { ClipboardList, FileSpreadsheet, RefreshCw } from 'lucide-react';
+import { ClipboardList, Download, FileSpreadsheet, Printer, RefreshCw } from 'lucide-react';
 import { Alert, Badge, EmptyState, Pagination, TableSkeleton } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
+import { downloadSheetPdf } from '../../../services/printService.js';
 import { formatDateTime, formatNumber, todayISO } from '../../../utils/calculations.js';
 import { usePagination } from '../../../hooks/usePagination.js';
 
 const LEDGER_PAGE_SIZE = 10;
+const STOCK_LEDGER_PRINT_ID = 'stock-ledger-panel-print';
 
 function subtractDays(dateISO, days) {
   const date = new Date(`${dateISO}T00:00:00`);
@@ -36,7 +38,7 @@ function formatReference(movement) {
   return `${movement.referenceType || 'reference'} / ${shortId}`;
 }
 
-export default function StockLedgerPanel({ products, t, refreshKey = 0, fixedType, sectionTitle, sectionDescription }) {
+export default function StockLedgerPanel({ products, t, refreshKey = 0, fixedType, sectionTitle, sectionDescription, printTarget = false }) {
   const today = todayISO();
   const [productId, setProductId] = useState('');
   const [dateFrom, setDateFrom] = useState(subtractDays(today, 29));
@@ -115,19 +117,39 @@ export default function StockLedgerPanel({ products, t, refreshKey = 0, fixedTyp
   }
 
   return (
-    <section className="surface mt-6 overflow-hidden">
-      <div className="border-b border-slate-100 px-5 py-4">
+    <section id={printTarget ? STOCK_LEDGER_PRINT_ID : undefined} className={`surface mt-6 overflow-hidden ${printTarget ? 'print-target' : ''}`}>
+      <div className={`border-b border-slate-100 px-5 py-4 ${printTarget ? 'no-print' : ''}`}>
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
             <p className="brand-chip">{t('stockLedger.eyebrow')}</p>
             <h2 className="mt-3 text-lg font-black text-slate-950">{sectionTitle || t('stockLedger.title')}</h2>
             <p className="mt-1 max-w-3xl text-sm font-medium leading-6 text-slate-500">{sectionDescription || t('stockLedger.description')}</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
+            {printTarget ? (
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={() => { inventoryApi.recordPrint({ entityType: 'stock_ledger', entityId: null, label: 'pdf' }).catch(() => {}); downloadSheetPdf(STOCK_LEDGER_PRINT_ID, `stock-ledger-${dateFrom}-${dateTo}.pdf`); }}
+              >
+                <Download size={16} />
+                {t('purchaseReceive.downloadPdf')}
+              </button>
+            ) : null}
             <button type="button" className="btn-secondary" onClick={handleExportExcel}>
               <FileSpreadsheet size={16} />
-              Export as Excel
+              {t('common.exportExcel')}
             </button>
+            {printTarget ? (
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={() => { inventoryApi.recordPrint({ entityType: 'stock_ledger', entityId: null, label: 'print' }).catch(() => {}); window.print(); }}
+              >
+                <Printer size={16} />
+                {t('common.print')}
+              </button>
+            ) : null}
             <button type="button" className="btn-secondary" onClick={() => setVersion((value) => value + 1)}>
               <RefreshCw size={16} />
               {t('stockLedger.refresh')}
@@ -226,7 +248,7 @@ export default function StockLedgerPanel({ products, t, refreshKey = 0, fixedTyp
       ) : null}
 
       {!loading && !error && movements.length ? (
-        <div className="flex flex-col gap-3 border-t border-slate-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 border-t border-slate-100 px-5 py-4 no-print sm:flex-row sm:items-center sm:justify-between">
           <span className="muted-chip">{formatNumber(total)} {t('common.records')}</span>
           <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
         </div>

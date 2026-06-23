@@ -1,8 +1,10 @@
 import { useState } from 'react';
-import { FileText, RotateCcw, Search, Truck } from 'lucide-react';
+import { Download, FileSpreadsheet, FileText, Printer, RotateCcw, Search, Truck } from 'lucide-react';
 import { Alert, Badge, EmptyState, Pagination, SectionHeader, StatCard, TableSkeleton } from '../../../components/ui.jsx';
 import { statusTone } from '../../../models/inventoryViewData.js';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
+import { downloadSheetPdf } from '../../../services/printService.js';
+import { inventoryApi } from '../../../services/inventoryApi.js';
 import { formatCurrency, formatDate, formatNumber } from '../../../utils/calculations.js';
 import { useHistoryViewModel } from '../viewmodels/useHistoryViewModel';
 
@@ -11,12 +13,34 @@ const TABS = [
   { key: 'settlements', labelKey: 'history.settlementsTab', icon: RotateCcw },
 ];
 
+const HISTORY_PRINT_ID = 'history-print';
+
 export default function HistoryPage() {
   const { t } = useInventoryApp();
   const [activeTab, setActiveTab] = useState('issues');
   const issuesVm = useHistoryViewModel('issues');
   const settlementsVm = useHistoryViewModel('settlements');
   const vm = activeTab === 'issues' ? issuesVm : settlementsVm;
+
+  async function handleExportExcel() {
+    const { utils, writeFile } = await import('xlsx');
+    const header = [t('common.date'), t('history.type'), t('dsr.title'), t('history.qty'), t('history.amount'), t('history.paid'), t('history.due'), t('dsr.status')];
+    const data = vm.rows.map((row) => [
+      formatDate(row.date),
+      row.type === 'Morning Issue' ? t('history.issueType') : t('history.settlementType'),
+      `${row.dsrName} / ${row.area}`,
+      Number(row.pieces),
+      Number(row.amount),
+      Number(row.amountPaid || 0),
+      Number(row.dueAmount || 0),
+      row.status === 'Issued' ? t('history.issued') : t('history.completed'),
+    ]);
+    const ws = utils.aoa_to_sheet([header, ...data]);
+    ws['!cols'] = [{ wch: 14 }, { wch: 16 }, { wch: 24 }, { wch: 10 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 14 }];
+    const wb = utils.book_new();
+    utils.book_append_sheet(wb, ws, t('history.sheetName'));
+    writeFile(wb, `history-${activeTab}.xlsx`);
+  }
 
   return (
     <div>
@@ -27,8 +51,8 @@ export default function HistoryPage() {
         <StatCard title={t('history.settlements')} value={formatNumber(settlementsVm.total)} helper={t('history.settlementHelper')} icon={RotateCcw} tone="emerald" />
       </div>
 
-      <div className="surface overflow-hidden">
-        <div className="border-b border-slate-100 p-4">
+      <div id={HISTORY_PRINT_ID} className="surface overflow-hidden print-target">
+        <div className="border-b border-slate-100 p-4 no-print">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex flex-wrap gap-2">
               {TABS.map((tab) => {
@@ -51,6 +75,28 @@ export default function HistoryPage() {
               <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
               <input className="input pl-10" value={vm.search} onChange={(event) => vm.setSearch(event.target.value)} placeholder={t('history.searchByDsrPlaceholder')} />
             </div>
+          </div>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button
+              type="button"
+              className="btn-secondary py-1.5 text-xs"
+              onClick={() => { inventoryApi.recordPrint({ entityType: 'history', entityId: null, label: 'pdf' }).catch(() => {}); downloadSheetPdf(HISTORY_PRINT_ID, `history-${activeTab}.pdf`); }}
+            >
+              <Download size={14} />
+              {t('purchaseReceive.downloadPdf')}
+            </button>
+            <button type="button" className="btn-secondary py-1.5 text-xs" onClick={handleExportExcel}>
+              <FileSpreadsheet size={14} />
+              {t('common.exportExcel')}
+            </button>
+            <button
+              type="button"
+              className="btn-secondary py-1.5 text-xs"
+              onClick={() => { inventoryApi.recordPrint({ entityType: 'history', entityId: null, label: 'print' }).catch(() => {}); window.print(); }}
+            >
+              <Printer size={14} />
+              {t('common.print')}
+            </button>
           </div>
         </div>
         <div className="overflow-x-auto">
@@ -109,7 +155,7 @@ export default function HistoryPage() {
           </div>
         ) : null}
         {!vm.loading && !vm.error && vm.rows.length ? (
-          <div className="border-t border-slate-100 p-4">
+          <div className="border-t border-slate-100 p-4 no-print">
             <Pagination page={vm.page} totalPages={vm.totalPages} onPageChange={vm.setPage} />
           </div>
         ) : null}

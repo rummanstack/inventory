@@ -1,17 +1,46 @@
 import { useState } from 'react';
-import { Pencil, Plus, Trash2, Wallet } from 'lucide-react';
+import { Download, FileSpreadsheet, Pencil, Plus, Printer, Trash2, Wallet } from 'lucide-react';
 import { Alert, EmptyState, Pagination, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
+import { inventoryApi } from '../../../services/inventoryApi.js';
+import { downloadSheetPdf } from '../../../services/printService.js';
 import { formatCurrency, formatDate, formatNumber } from '../../../utils/calculations.js';
 import SupplierPaymentFormModal from '../components/SupplierPaymentFormModal';
 import { useSupplierPaymentsViewModel } from '../viewmodels/useSupplierPaymentsViewModel';
+
+const SUPPLIER_PAYMENTS_PRINT_ID = 'supplier-payments-print';
 
 export default function SupplierPaymentsPage() {
   const { saveSupplierPayment, deleteSupplierPayment, t, can, supplierDirectory } = useInventoryApp();
   const vm = useSupplierPaymentsViewModel();
   const [formModal, setFormModal] = useState(null);
   const canManagePayments = can('manage_supplier_payments');
+
+  async function handleExportExcel() {
+    const result = await inventoryApi.listSupplierPayments({
+      page: 1,
+      pageSize: 10000,
+      supplierId: vm.supplierId || undefined,
+      dateFrom: vm.dateFrom || undefined,
+      dateTo: vm.dateTo || undefined,
+    });
+    const all = result.items || [];
+    const { utils, writeFile } = await import('xlsx');
+    const header = [t('supplierPayments.date'), t('supplierPayments.supplier'), t('supplierPayments.amount'), t('supplierPayments.method'), t('supplierPayments.note')];
+    const data = all.map((payment) => [
+      payment.paymentDate,
+      payment.supplierName || '',
+      Number(payment.amount || 0),
+      t(`purchaseReceive.paymentMethods.${payment.paymentMethod}`),
+      payment.note || '',
+    ]);
+    const ws = utils.aoa_to_sheet([header, ...data]);
+    ws['!cols'] = [{ wch: 14 }, { wch: 24 }, { wch: 14 }, { wch: 16 }, { wch: 28 }];
+    const wb = utils.book_new();
+    utils.book_append_sheet(wb, ws, t('supplierPayments.sheetName'));
+    writeFile(wb, 'supplier-payments.xlsx');
+  }
 
   return (
     <div>
@@ -27,8 +56,33 @@ export default function SupplierPaymentsPage() {
         ) : null}
       />
 
-      <div className="surface overflow-hidden">
-        <div className="border-b border-slate-100 p-5">
+      <div id={SUPPLIER_PAYMENTS_PRINT_ID} className="surface overflow-hidden print-target">
+        <div className="flex items-center justify-between border-b border-slate-100 px-5 py-3 no-print">
+          <span className="text-sm font-bold text-slate-700">{t('supplierPayments.title')}</span>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              className="btn-secondary py-1.5 text-xs"
+              onClick={() => { inventoryApi.recordPrint({ entityType: 'supplier_payments', entityId: null, label: 'pdf' }).catch(() => {}); downloadSheetPdf(SUPPLIER_PAYMENTS_PRINT_ID, 'supplier-payments.pdf'); }}
+            >
+              <Download size={14} />
+              {t('purchaseReceive.downloadPdf')}
+            </button>
+            <button type="button" className="btn-secondary py-1.5 text-xs" onClick={handleExportExcel}>
+              <FileSpreadsheet size={14} />
+              {t('common.exportExcel')}
+            </button>
+            <button
+              type="button"
+              className="btn-secondary py-1.5 text-xs"
+              onClick={() => { inventoryApi.recordPrint({ entityType: 'supplier_payments', entityId: null, label: 'print' }).catch(() => {}); window.print(); }}
+            >
+              <Printer size={14} />
+              {t('common.print')}
+            </button>
+          </div>
+        </div>
+        <div className="border-b border-slate-100 p-5 no-print">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="space-y-2">
               <p className="text-[11px] font-black uppercase tracking-[0.22em] text-slate-400">{t('supplierPayments.eyebrow')}</p>
@@ -68,7 +122,7 @@ export default function SupplierPaymentsPage() {
                 <th className="px-4 py-3 text-right">{t('supplierPayments.amount')}</th>
                 <th className="px-4 py-3">{t('supplierPayments.method')}</th>
                 <th className="hidden px-4 py-3 lg:table-cell">{t('supplierPayments.note')}</th>
-                <th className="px-4 py-3 text-right">{t('common.actions')}</th>
+                <th className="px-4 py-3 text-right no-print">{t('common.actions')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -80,7 +134,7 @@ export default function SupplierPaymentsPage() {
                   <td className="table-cell text-right font-bold text-emerald-700">{formatCurrency(payment.amount)}</td>
                   <td className="table-cell">{t(`purchaseReceive.paymentMethods.${payment.paymentMethod}`)}</td>
                   <td className="hidden table-cell lg:table-cell">{payment.note || '-'}</td>
-                  <td className="table-cell">
+                  <td className="table-cell no-print">
                     {canManagePayments ? (
                       <div className="flex justify-end gap-2">
                         <button type="button" className="icon-btn" title={t('common.edit')} onClick={() => setFormModal({ mode: 'edit', payment })}>
@@ -104,7 +158,7 @@ export default function SupplierPaymentsPage() {
           </div>
         ) : null}
         {!vm.loading && !vm.error && vm.items.length ? (
-          <div className="border-t border-slate-100 px-5 py-4">
+          <div className="border-t border-slate-100 px-5 py-4 no-print">
             <Pagination page={vm.page} totalPages={vm.totalPages} onPageChange={vm.setPage} />
           </div>
         ) : null}

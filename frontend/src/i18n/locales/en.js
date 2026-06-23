@@ -462,6 +462,7 @@ const en = {
       noMatchDescription: 'Try a different search or filter, or add a new record.',
       deleteTitle: 'Delete Serial / IMEI Record',
       deleteConfirm: 'Delete this serial/IMEI record? This cannot be undone.',
+      sheetName: 'Product Serials',
     },
     warrantyClaims: {
       eyebrow: 'Warranty',
@@ -504,6 +505,7 @@ const en = {
       noMatchDescription: 'Try a different search or filter, or create a new claim.',
       deleteTitle: 'Delete Warranty Claim',
       deleteConfirm: 'Delete claim {number}? This cannot be undone.',
+      sheetName: 'Warranty Claims',
     },
     dsrDueLedger: {
       eyebrow: 'DSR Finance',
@@ -678,6 +680,7 @@ const en = {
       transactionCount: 'Transactions',
       noMatchTitle: 'No transactions found',
       noMatchDescription: 'Record a deposit, withdrawal, or transfer to see it here.',
+      sheetName: 'Finance Accounts',
     },
     expenses: {
       eyebrow: 'Operations',
@@ -870,6 +873,7 @@ const en = {
       },
       noLogsTitle: 'No activity logs matched',
       noLogsDescription: 'Try another search term.',
+      sheetName: 'Activity Logs',
     },
     issueCenter: {
       title: 'Issue Center',
@@ -962,6 +966,7 @@ const en = {
       phone: 'Phone',
       area: 'Area',
       status: 'Status',
+      sheetName: 'DSR Directory',
       noMatchTitle: 'No DSR matched',
       noMatchDescription: 'Try another search or add a route salesman.',
       editTitle: 'Edit DSR',
@@ -996,6 +1001,7 @@ const en = {
       status: 'Status',
       noMatchTitle: 'No shops matched',
       noMatchDescription: 'Try another search or add a new shop.',
+      sheetName: 'Shops',
       editTitle: 'Edit Shop',
       addTitle: 'Add Shop',
       modalDescription: 'Enter shop details and optionally assign a DSR.',
@@ -1034,6 +1040,7 @@ const en = {
       status: 'Status',
       noMatchTitle: 'No customers matched',
       noMatchDescription: 'Try another search or add a new customer.',
+      sheetName: 'Retail Customers',
       editTitle: 'Edit Customer',
       addTitle: 'Add Customer',
       modalDescription: 'Enter customer details.',
@@ -1282,6 +1289,7 @@ const en = {
       viewDescription: 'Supplier details.',
       deleteTitle: 'Delete Supplier',
       deleteConfirm: 'Delete {name}? This cannot be undone.',
+      sheetName: 'Suppliers',
     },
     purchaseReceive: {
       eyebrow: 'Purchase Receive',
@@ -1354,6 +1362,7 @@ const en = {
       printableTitle: 'Purchase Receive',
       receivedBy: 'Received By',
       authorizedSignature: 'Authorized Signature',
+      sheetName: 'Purchase Receive',
     },
     supplierPayments: {
       eyebrow: 'Supplier Payments',
@@ -1387,6 +1396,7 @@ const en = {
       noMatchDescription: 'Try another filter or record a new payment.',
       deleteTitle: 'Delete Supplier Payment',
       deleteConfirm: 'Delete this payment? This will reverse the due adjustment.',
+      sheetName: 'Supplier Payments',
     },
     supplierStatement: {
       eyebrow: 'Supplier Statement',
@@ -1420,6 +1430,7 @@ const en = {
       printSheet: 'Print Sheet',
       downloadPdf: 'Download as PDF',
       printableTitle: 'Supplier Statement',
+      sheetName: 'Supplier Statement',
     },
     retailer: {
       shared: {
@@ -1528,6 +1539,7 @@ const en = {
         noMatchDescription: 'Try a different filter or create a new invoice.',
         deleteTitle: 'Delete Sales Invoice',
         deleteConfirm: 'Delete invoice {number}? This cannot be undone.',
+        sheetName: 'Sales Invoices',
         serialPrintLabel: 'Serial / IMEI',
         warrantyPrintLabel: 'Warranty: {months} months, valid until {endDate}',
       },
@@ -2087,6 +2099,7 @@ const en = {
       completed: 'Completed',
       noMatchTitle: 'No history matched',
       noMatchDescription: 'Try another search term or create issue and settlement records first.',
+      sheetName: 'History',
     },
     shell: {
       brand: 'Stock Ledger',
@@ -2140,8 +2153,10 @@ const en = {
         badge: 'Support Desk',
         title: 'Chat with us',
         statusOnline: 'Online now',
+        replyTime: 'Typically replies in a few minutes',
         subtitle: 'We are online 24/7. Send a message and we will reply on WhatsApp.',
         team: 'StockLedger Team',
+        quickRepliesLabel: 'Quick questions',
         greeting: 'Tell us what you need. We usually reply quickly during business hours and stay available all day.',
         label: 'Your message',
         placeholder: 'Ask about setup, pricing, demo, or support...',

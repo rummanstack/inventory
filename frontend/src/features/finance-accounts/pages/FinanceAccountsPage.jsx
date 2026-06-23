@@ -1,12 +1,16 @@
 import { useState } from 'react';
-import { ArrowLeftRight, Boxes, HandCoins, Landmark, Plus, Scale, Trash2, Wallet } from 'lucide-react';
+import { ArrowLeftRight, Boxes, Download, FileSpreadsheet, HandCoins, Landmark, Plus, Printer, Scale, Trash2, Wallet } from 'lucide-react';
 import { Alert, Badge, EmptyState, Pagination, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
+import { downloadSheetPdf } from '../../../services/printService.js';
+import { inventoryApi } from '../../../services/inventoryApi.js';
 import { formatCurrency, formatDate } from '../../../utils/calculations.js';
 import { useFinanceAccountsViewModel } from '../viewmodels/useFinanceAccountsViewModel';
 import AccountTransactionFormModal from '../components/AccountTransactionFormModal';
 import AccountTransferFormModal from '../components/AccountTransferFormModal';
+
+const FINANCE_ACCOUNTS_PRINT_ID = 'finance-accounts-print';
 
 const TYPE_TONES = {
   DEPOSIT: 'emerald',
@@ -27,6 +31,25 @@ export default function FinanceAccountsPage() {
   const stockValue = productDirectory.reduce((sum, product) => sum + product.stockPieces * Number(product.purchasePrice || 0), 0);
   const dueTotal = vm.totalDsrDue + vm.totalCustomerDue;
   const totalCashPosition = cashBalance + bankBalance + stockValue + dueTotal;
+
+  async function handleExportExcel() {
+    const { utils, writeFile } = await import('xlsx');
+    const header = [t('financeAccounts.date'), t('financeAccounts.account'), t('financeAccounts.type'), t('financeAccounts.amount'), t('financeAccounts.balanceAfter'), t('financeAccounts.note'), t('financeAccounts.createdBy')];
+    const data = vm.items.map((transaction) => [
+      formatDate(transaction.transactionDate),
+      transaction.accountName,
+      t(`financeAccounts.${transaction.type === 'DEPOSIT' ? 'deposit' : transaction.type === 'WITHDRAWAL' ? 'withdrawal' : transaction.type === 'TRANSFER_IN' ? 'transferIn' : 'transferOut'}`),
+      transaction.debit > 0 ? Number(transaction.debit) : -Number(transaction.credit),
+      Number(transaction.balanceAfter),
+      transaction.note || '',
+      transaction.createdByName || '',
+    ]);
+    const ws = utils.aoa_to_sheet([header, ...data]);
+    ws['!cols'] = [{ wch: 14 }, { wch: 18 }, { wch: 16 }, { wch: 14 }, { wch: 16 }, { wch: 24 }, { wch: 18 }];
+    const wb = utils.book_new();
+    utils.book_append_sheet(wb, ws, t('financeAccounts.sheetName'));
+    writeFile(wb, 'finance-accounts.xlsx');
+  }
 
   return (
     <div>
@@ -102,8 +125,8 @@ export default function FinanceAccountsPage() {
         )}
       </div>
 
-      <div className="surface mt-6 overflow-hidden">
-        <div className="border-b border-slate-100 p-5">
+      <div id={FINANCE_ACCOUNTS_PRINT_ID} className="surface mt-6 overflow-hidden print-target">
+        <div className="border-b border-slate-100 p-5 no-print">
           <div className="grid gap-3 sm:grid-cols-3">
             <select className="input" value={vm.accountType} onChange={(event) => vm.setAccountType(event.target.value)}>
               <option value="">{t('financeAccounts.allAccounts')}</option>
@@ -113,6 +136,28 @@ export default function FinanceAccountsPage() {
             </select>
             <DatePickerField value={vm.dateFrom} onChange={vm.setDateFrom} placeholder={t('financeAccounts.dateFrom')} />
             <DatePickerField value={vm.dateTo} onChange={vm.setDateTo} placeholder={t('financeAccounts.dateTo')} />
+          </div>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button
+              type="button"
+              className="btn-secondary py-1.5 text-xs"
+              onClick={() => { inventoryApi.recordPrint({ entityType: 'finance_accounts', entityId: null, label: 'pdf' }).catch(() => {}); downloadSheetPdf(FINANCE_ACCOUNTS_PRINT_ID, 'finance-accounts.pdf'); }}
+            >
+              <Download size={14} />
+              {t('purchaseReceive.downloadPdf')}
+            </button>
+            <button type="button" className="btn-secondary py-1.5 text-xs" onClick={handleExportExcel}>
+              <FileSpreadsheet size={14} />
+              {t('common.exportExcel')}
+            </button>
+            <button
+              type="button"
+              className="btn-secondary py-1.5 text-xs"
+              onClick={() => { inventoryApi.recordPrint({ entityType: 'finance_accounts', entityId: null, label: 'print' }).catch(() => {}); window.print(); }}
+            >
+              <Printer size={14} />
+              {t('common.print')}
+            </button>
           </div>
         </div>
 
@@ -136,7 +181,7 @@ export default function FinanceAccountsPage() {
                   <th className="px-4 py-3 text-right">{t('financeAccounts.balanceAfter')}</th>
                   <th className="hidden px-4 py-3 lg:table-cell">{t('financeAccounts.note')}</th>
                   <th className="hidden px-4 py-3 md:table-cell">{t('financeAccounts.createdBy')}</th>
-                  {canManage ? <th className="px-4 py-3 text-right">{t('common.actions')}</th> : null}
+                  {canManage ? <th className="px-4 py-3 text-right no-print">{t('common.actions')}</th> : null}
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -158,7 +203,7 @@ export default function FinanceAccountsPage() {
                     </td>
                     <td className="hidden table-cell md:table-cell">{transaction.createdByName || '-'}</td>
                     {canManage ? (
-                      <td className="table-cell">
+                      <td className="table-cell no-print">
                         <div className="flex justify-end gap-2">
                           <button type="button" className="icon-btn text-rose-600 hover:text-rose-700" title={t('common.delete')} onClick={() => vm.deleteTransaction(transaction.id)}>
                             <Trash2 size={16} />
@@ -180,7 +225,7 @@ export default function FinanceAccountsPage() {
         ) : null}
 
         {!vm.loading && !vm.error && vm.items.length ? (
-          <div className="border-t border-slate-100 px-5 py-4">
+          <div className="border-t border-slate-100 px-5 py-4 no-print">
             <Pagination page={vm.page} totalPages={vm.totalPages} onPageChange={vm.setPage} />
           </div>
         ) : null}

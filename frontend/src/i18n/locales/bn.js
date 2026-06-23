@@ -445,6 +445,7 @@
       noMatchDescription: 'অন্য কোনো সার্চ বা ফিল্টার ব্যবহার করুন, বা নতুন রেকর্ড যোগ করুন।',
       deleteTitle: 'সিরিয়াল / আইএমইআই রেকর্ড মুছুন',
       deleteConfirm: 'এই সিরিয়াল/আইএমইআই রেকর্ডটি মুছে ফেলবেন? এটি ফিরিয়ে আনা যাবে না।',
+      sheetName: 'পণ্য সিরিয়াল',
     },
     warrantyClaims: {
       eyebrow: 'ওয়ারেন্টি',
@@ -487,6 +488,7 @@
       noMatchDescription: 'অন্য কোনো সার্চ বা ফিল্টার ব্যবহার করুন, বা নতুন ক্লেইম তৈরি করুন।',
       deleteTitle: 'ওয়ারেন্টি ক্লেইম মুছুন',
       deleteConfirm: 'ক্লেইম {number} মুছে ফেলবেন? এটি ফিরিয়ে আনা যাবে না।',
+      sheetName: 'ওয়ারেন্টি ক্লেইম',
     },
     dsrDueLedger: {
       eyebrow: 'ডিএসআর আর্থিক',
@@ -661,6 +663,7 @@
       transactionCount: 'লেনদেন',
       noMatchTitle: 'কোনো লেনদেন পাওয়া যায়নি',
       noMatchDescription: 'জমা, উত্তোলন বা স্থানান্তর রেকর্ড করলে এখানে দেখা যাবে।',
+      sheetName: 'ফাইন্যান্স অ্যাকাউন্ট',
     },
     expenses: {
       eyebrow: 'পরিচালনা',
@@ -853,6 +856,7 @@
       },
       noLogsTitle: 'কোনো কার্যকলাপ লগ মেলেনি',
       noLogsDescription: 'অন্য কিছু খুঁজুন।',
+      sheetName: 'কার্যকলাপ লগ',
     },
     issueCenter: {
       title: 'ইস্যু সেন্টার',
@@ -945,6 +949,7 @@
       phone: 'ফোন',
       area: 'এলাকা',
       status: 'অবস্থা',
+      sheetName: 'ডিএসআর তালিকা',
       noMatchTitle: 'কোনো ডিএসআর মেলেনি',
       noMatchDescription: 'অন্য কিছু খুঁজে দেখুন বা নতুন রুট সেলসম্যান যোগ করুন।',
       editTitle: 'ডিএসআর এডিট',
@@ -979,6 +984,7 @@
       status: 'অবস্থা',
       noMatchTitle: 'কোনো দোকান মেলেনি',
       noMatchDescription: 'অন্য কিছু খুঁজে দেখুন বা নতুন দোকান যোগ করুন।',
+      sheetName: 'দোকান',
       editTitle: 'দোকান এডিট',
       addTitle: 'দোকান যোগ',
       modalDescription: 'দোকানের তথ্য দিন এবং ইচ্ছা করলে একজন ডিএসআর নিয়োগ করুন।',
@@ -1017,6 +1023,7 @@
       status: 'অবস্থা',
       noMatchTitle: 'কোনো গ্রাহক মেলেনি',
       noMatchDescription: 'অন্য কিছু খুঁজে দেখুন বা নতুন গ্রাহক যোগ করুন।',
+      sheetName: 'রিটেইল গ্রাহক',
       editTitle: 'গ্রাহক এডিট',
       addTitle: 'গ্রাহক যোগ',
       modalDescription: 'গ্রাহকের তথ্য দিন।',
@@ -1265,6 +1272,7 @@
       viewDescription: 'সাপ্লায়ারের বিস্তারিত তথ্য।',
       deleteTitle: 'সাপ্লায়ার মুছুন',
       deleteConfirm: '{name} মুছবেন? এটি ফেরানো যাবে না।',
+      sheetName: 'সাপ্লায়ার তালিকা',
     },
     purchaseReceive: {
       eyebrow: 'পারচেজ রিসিভ',
@@ -1337,6 +1345,7 @@
       printableTitle: 'পারচেজ রিসিভ',
       receivedBy: 'গ্রহণকারী',
       authorizedSignature: 'অনুমোদিত স্বাক্ষর',
+      sheetName: 'পারচেজ রিসিভ',
     },
     supplierPayments: {
       eyebrow: 'সাপ্লায়ার পেমেন্ট',
@@ -1370,6 +1379,7 @@
       noMatchDescription: 'অন্য ফিল্টার চেষ্টা করুন বা নতুন পেমেন্ট রেকর্ড করুন।',
       deleteTitle: 'সাপ্লায়ার পেমেন্ট মুছুন',
       deleteConfirm: 'এই পেমেন্ট মুছবেন? এটি বকেয়া সমন্বয় বিপরীত করবে।',
+      sheetName: 'সাপ্লায়ার পেমেন্ট',
     },
     supplierStatement: {
       eyebrow: 'সাপ্লায়ার বিবরণী',
@@ -1403,6 +1413,7 @@
       printSheet: 'প্রিন্ট শিট',
       downloadPdf: 'পিডিএফ ডাউনলোড',
       printableTitle: 'সাপ্লায়ার বিবরণী',
+      sheetName: 'সাপ্লায়ার বিবরণী',
     },
     retailer: {
       shared: {
@@ -1511,6 +1522,7 @@
         noMatchDescription: 'অন্য ফিল্টার চেষ্টা করুন বা নতুন ইনভয়েস তৈরি করুন।',
         deleteTitle: 'সেলস ইনভয়েস মুছুন',
         deleteConfirm: 'ইনভয়েস {number} মুছে ফেলবেন? এটি পূর্বাবস্থায় ফেরানো যাবে না।',
+        sheetName: 'সেলস ইনভয়েস',
         serialPrintLabel: 'সিরিয়াল / আইএমইআই',
         warrantyPrintLabel: 'ওয়ারেন্টি: {months} মাস, {endDate} পর্যন্ত বৈধ',
       },
@@ -2075,6 +2087,7 @@
       due: 'বকেয়া',
       noMatchTitle: 'কোনো হিস্ট্রি মেলেনি',
       noMatchDescription: 'অন্য কিছু খুঁজুন বা আগে ইস্যু ও সেটেলমেন্ট রেকর্ড তৈরি করুন।',
+      sheetName: 'ইতিহাস',
     },
     shell: {
       brand: 'Stock Ledger',
@@ -2134,8 +2147,10 @@
         badge: 'সাপোর্ট ডেস্ক',
         title: 'আমাদের সাথে চ্যাট করুন',
         statusOnline: 'এখন অনলাইন',
+        replyTime: 'সাধারণত কয়েক মিনিটের মধ্যে উত্তর দিই',
         subtitle: 'আমরা ২৪/৭ অনলাইনে আছি। মেসেজ পাঠালে হোয়াটসঅ্যাপে রিপ্লাই পাবেন।',
         team: 'স্টকলেজার টিম',
+        quickRepliesLabel: 'দ্রুত প্রশ্ন',
         greeting: 'আপনার কী দরকার বলুন। আমরা সাধারণত দ্রুত উত্তর দিই এবং সারাদিনই অনলাইনে থাকি।',
         label: 'আপনার মেসেজ',
         placeholder: 'সেটআপ, প্রাইসিং, ডেমো বা সাপোর্ট সম্পর্কে লিখুন...',

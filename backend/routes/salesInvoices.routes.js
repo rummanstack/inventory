@@ -8,7 +8,6 @@ export function createSalesInvoicesRoutes(salesInvoiceController) {
 
   router.get("/trash", requireFeature("retailer-sales-invoices"), requirePermission(PERMISSIONS.MANAGE_RETAIL_SALES_INVOICES), salesInvoiceController.listTrash);
   router.get("/reports/daily", requireFeature("retailer-daily-sales-report"), requirePermission(PERMISSIONS.MANAGE_RETAIL_DAILY_SALES_REPORT), salesInvoiceController.dailySalesReport);
-  router.get("/reports/profit", requireFeature("retailer-profit-report"), requirePermission(PERMISSIONS.MANAGE_RETAIL_PROFIT_REPORT), salesInvoiceController.profitReport);
   router.get("/", requireFeature("retailer-sales-invoices"), requirePermission(PERMISSIONS.MANAGE_RETAIL_SALES_INVOICES), salesInvoiceController.list);
   router.get("/:id", requireFeature("retailer-sales-invoices"), requirePermission(PERMISSIONS.MANAGE_RETAIL_SALES_INVOICES), salesInvoiceController.get);
   router.post("/", requireFeature("retailer-sales-invoices"), requirePermission(PERMISSIONS.MANAGE_RETAIL_SALES_INVOICES), salesInvoiceController.create);

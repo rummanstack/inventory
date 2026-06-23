@@ -11,4 +11,36 @@ export class ProfitController {
       next(error);
     }
   };
+
+  byDsr = async (req, res, next) => {
+    try {
+      res.json(await this.profitService.getDsrProfitBreakdown(req.query, req.currentUser));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  byProduct = async (req, res, next) => {
+    try {
+      res.json(await this.profitService.getProductProfitBreakdown(req.query, req.currentUser));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  byCategory = async (req, res, next) => {
+    try {
+      res.json(await this.profitService.getCategoryProfitBreakdown(req.query, req.currentUser));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  byCustomer = async (req, res, next) => {
+    try {
+      res.json(await this.profitService.getCustomerProfitBreakdown(req.query, req.currentUser));
+    } catch (error) {
+      next(error);
+    }
+  };
 }

@@ -30,9 +30,7 @@ import {
   restoreSalesInvoice,
   softDeleteSalesInvoice,
   getDailySalesReport,
-  getProfitReport,
 } from "../repositories/salesInvoiceRepository.js";
-import { getProfitAdjustmentsByDate } from "../repositories/salesReturnRepository.js";
 import {
   logActivity,
   lockProducts,
@@ -856,41 +854,6 @@ export class SalesInvoiceService {
     return this.databaseManager.withClient(async (client) => {
       const rows = await getDailySalesReport(client, { tenantId: actor.tenantId, dateFrom, dateTo, saleType });
       return { rows, dateFrom: dateFrom || null, dateTo: dateTo || null, saleType: saleType || null };
-    });
-  }
-
-  async getProfitReport(query = {}, actor) {
-    const dateFrom = String(query.dateFrom || "").trim()
-      ? normalizeIsoDate(query.dateFrom, query.dateFrom, DATE_ERROR)
-      : undefined;
-    const dateTo = String(query.dateTo || "").trim()
-      ? normalizeIsoDate(query.dateTo, query.dateTo, DATE_ERROR)
-      : undefined;
-    const saleType = ["WHOLESALE", "RETAIL", "QUICK_SALE"].includes(query.saleType) ? query.saleType : undefined;
-
-    return this.databaseManager.withClient(async (client) => {
-      const [rows, adjustments] = await Promise.all([
-        getProfitReport(client, { tenantId: actor.tenantId, dateFrom, dateTo, saleType }),
-        getProfitAdjustmentsByDate(client, { tenantId: actor.tenantId, dateFrom, dateTo }),
-      ]);
-
-      const adjustmentByDate = new Map(adjustments.map((entry) => [String(entry.date), entry.adjustment]));
-      const merged = rows.map((row) => {
-        const adjustment = adjustmentByDate.get(String(row.date)) || 0;
-        return { ...row, totalProfit: row.totalProfit + adjustment };
-      });
-
-      const totals = merged.reduce(
-        (acc, row) => {
-          acc.totalSales += row.totalSales;
-          acc.totalProfit += row.totalProfit;
-          acc.invoiceCount += row.invoiceCount;
-          return acc;
-        },
-        { totalSales: 0, totalProfit: 0, invoiceCount: 0 },
-      );
-
-      return { rows: merged, totals, dateFrom: dateFrom || null, dateTo: dateTo || null, saleType: saleType || null };
     });
   }
 }

@@ -16,7 +16,7 @@ import {
   updateExpense,
 } from "../repositories/expenseRepository.js";
 
-const EXPENSE_CATEGORIES = ["Salary", "Office", "Rent", "Vehicle", "Other"];
+const EXPENSE_CATEGORIES = ["Office", "Rent", "Vehicle", "Other"];
 const EXPENSE_DATE_ERROR = "Expense date must be in YYYY-MM-DD format.";
 
 function normalizeCategory(value) {

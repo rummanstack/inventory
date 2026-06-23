@@ -65,6 +65,19 @@ test("a claim is rejected for a serial that has not been sold", async () => {
   assert.match(response.body.message, /has not been sold/);
 });
 
+test("a claim for a serial-required product is rejected when no serial/IMEI is selected", async () => {
+  const product = await createProduct(tenant.agent, { name: "Claim No Serial Widget", serialRequired: true, warrantyMonths: 6, retailPrice: 90 });
+
+  const response = await tenant.agent.post("/api/warranty-claims").send({
+    productId: product.id,
+    receivedDate: "2026-01-05",
+    problemNote: "Picked manually, bypassing serial search",
+  });
+
+  assert.equal(response.status, 400);
+  assert.match(response.body.message, /Select the sold serial\/IMEI/);
+});
+
 test("a claim is rejected once the warranty period has expired", async () => {
   const product = await createProduct(tenant.agent, { name: "Claim Expired Widget", serialRequired: true, warrantyMonths: 1, retailPrice: 90 });
   const serial = await receiveOneSerial(product, "SN-CLAIM-EXPIRED-1", "2024-01-01");

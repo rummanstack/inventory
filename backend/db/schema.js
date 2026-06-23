@@ -1109,9 +1109,39 @@ export async function createSchema(pool) {
     CREATE INDEX IF NOT EXISTS idx_product_serials_imei2 ON product_serials(tenant_id, imei2);
     CREATE INDEX IF NOT EXISTS idx_product_serials_sale ON product_serials(tenant_id, sales_invoice_id);
 
-    CREATE UNIQUE INDEX IF NOT EXISTS uq_product_serials_serial_number ON product_serials(tenant_id, serial_number) WHERE serial_number <> '' AND deleted_at IS NULL;
-    CREATE UNIQUE INDEX IF NOT EXISTS uq_product_serials_imei1 ON product_serials(tenant_id, imei1) WHERE imei1 <> '' AND deleted_at IS NULL;
-    CREATE UNIQUE INDEX IF NOT EXISTS uq_product_serials_imei2 ON product_serials(tenant_id, imei2) WHERE imei2 <> '' AND deleted_at IS NULL;
+    -- Electronics retail: one row per non-blank serial_number/imei1/imei2 value, so a single
+    -- unique index can enforce that an identifier value is never reused across *any* of those
+    -- three columns — not just within the same column (which per-column unique indexes can't do,
+    -- since a unique index only constrains the tuple of columns it covers, never a union of
+    -- values drawn from different columns across different rows).
+    CREATE TABLE IF NOT EXISTS product_serial_identifiers (
+      id                  TEXT PRIMARY KEY,
+      tenant_id           TEXT NOT NULL REFERENCES tenants(id),
+      product_serial_id   TEXT NOT NULL REFERENCES product_serials(id) ON DELETE CASCADE,
+      identifier_type     TEXT NOT NULL,
+      identifier_value    TEXT NOT NULL,
+      created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      deleted_at          TIMESTAMPTZ
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_product_serial_identifiers_serial_id ON product_serial_identifiers(product_serial_id);
+
+    CREATE UNIQUE INDEX IF NOT EXISTS uq_product_serial_identifiers_value
+      ON product_serial_identifiers(tenant_id, identifier_value) WHERE deleted_at IS NULL;
+
+    -- One-time backfill for serials that existed before this table did; a no-op once every
+    -- serial already has its identifier rows.
+    INSERT INTO product_serial_identifiers (id, tenant_id, product_serial_id, identifier_type, identifier_value, deleted_at)
+    SELECT 'serial-identifier-' || md5(ps.id || ':' || src.identifier_type), ps.tenant_id, ps.id, src.identifier_type, src.identifier_value, ps.deleted_at
+    FROM product_serials ps
+    CROSS JOIN LATERAL (
+      VALUES ('SERIAL_NUMBER', ps.serial_number), ('IMEI1', ps.imei1), ('IMEI2', ps.imei2)
+    ) AS src(identifier_type, identifier_value)
+    WHERE src.identifier_value <> ''
+      AND NOT EXISTS (
+        SELECT 1 FROM product_serial_identifiers psi
+        WHERE psi.product_serial_id = ps.id AND psi.identifier_type = src.identifier_type
+      );
 
     -- Electronics retail: links sold serial/IMEI units to the sales invoice line that sold
     -- them (Phase 3). One invoice item can carry several serials (quantity > 1).

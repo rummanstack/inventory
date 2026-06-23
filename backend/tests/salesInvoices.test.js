@@ -113,6 +113,55 @@ test("a sale is rejected when the requested quantity exceeds available stock", a
   assert.equal(updatedProduct.stockPieces, 5, "stock must be unchanged after the rejected sale");
 });
 
+test("trashing and restoring a sale flips its serials between SOLD and IN_STOCK", async () => {
+  const product = await createProduct(tenant.agent, { name: "Serial Sale Widget", serialRequired: true, retailPrice: 90 });
+  const supplier = await tenant.agent.post("/api/suppliers").send({ name: "Serial Sale Supplier", phone: "0100000001", address: "Addr" });
+  assert.equal(supplier.status, 201);
+
+  const purchaseResponse = await tenant.agent.post("/api/purchase-receive").send({
+    supplierId: supplier.body.supplier.id,
+    purchaseDate: "2026-01-14",
+    items: [{ productId: product.id, quantityPieces: 1, purchasePrice: 40, serials: ["SN-SALE-1"] }],
+    discount: 0,
+    paidAmount: 0,
+    paymentMethod: "CASH",
+  });
+  assert.equal(purchaseResponse.status, 201);
+
+  const serialListResponse = await tenant.agent.get("/api/product-serials").query({ productId: product.id });
+  const serial = serialListResponse.body.items.find((item) => item.serialNumber === "SN-SALE-1");
+  assert.ok(serial);
+  assert.equal(serial.status, "IN_STOCK");
+
+  const saleResponse = await tenant.agent.post("/api/sales-invoices").send({
+    customerType: "WALK_IN",
+    saleType: "QUICK_SALE",
+    invoiceDate: "2026-01-15",
+    items: [{ productId: product.id, quantityPieces: 1, actualSalePrice: 90, serialIds: [serial.id] }],
+    discount: 0,
+    paidAmount: 90,
+    paymentMethod: "CASH",
+  });
+  assert.equal(saleResponse.status, 201);
+  const invoice = saleResponse.body.invoice;
+
+  const soldSerial = await tenant.agent.get(`/api/product-serials/${serial.id}`);
+  assert.equal(soldSerial.body.status, "SOLD");
+
+  const deleteResponse = await tenant.agent.delete(`/api/sales-invoices/${invoice.id}`).send({ reason: "test trash" });
+  assert.equal(deleteResponse.status, 200);
+
+  const afterDelete = await tenant.agent.get(`/api/product-serials/${serial.id}`);
+  assert.equal(afterDelete.status, 200);
+  assert.equal(afterDelete.body.status, "IN_STOCK", "trashing the sale must put the serial back in stock");
+
+  const restoreResponse = await tenant.agent.post(`/api/sales-invoices/${invoice.id}/restore`);
+  assert.equal(restoreResponse.status, 200);
+
+  const afterRestore = await tenant.agent.get(`/api/product-serials/${serial.id}`);
+  assert.equal(afterRestore.body.status, "SOLD", "restoring the sale must mark the serial sold again");
+});
+
 test("a walk-in sale must be fully paid — a due amount is rejected", async () => {
   const product = await createProduct(tenant.agent, { name: "Walkin Widget", retailPrice: 90 });
   await addStock(tenant.agent, product.id, 20);

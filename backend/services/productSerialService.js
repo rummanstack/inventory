@@ -19,6 +19,10 @@ import {
 import { findProductForUpdate } from "../repositories/productRepository.js";
 import { logActivity } from "./shared/inventoryHelpers.js";
 
+function isSerialRequired(product) {
+  return product?.serial_required === true || product?.serial_required === "t";
+}
+
 export class ProductSerialService {
   constructor(databaseManager, { auditService } = {}) {
     this.databaseManager = databaseManager;
@@ -78,6 +82,7 @@ export class ProductSerialService {
     return this.databaseManager.withTransaction(async (client) => {
       const productResult = await findProductForUpdate(client, serial.productId, actor.tenantId);
       assert(productResult.rowCount > 0, "Product not found.", 404);
+      assert(isSerialRequired(productResult.rows[0]), "This product is not marked as serial/IMEI required.", 400);
 
       await this.assertUnique(client, actor.tenantId, serial);
 

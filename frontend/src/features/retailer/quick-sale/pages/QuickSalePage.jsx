@@ -388,7 +388,7 @@ export default function QuickSalePage() {
 
         {sessionError ? <Alert type="error" className="mt-4">{sessionError}</Alert> : null}
 
-        {sessionLoading ? (
+        {sessionLoading && !session ? (
           <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             {Array.from({ length: 4 }).map((_, index) => (
               <div key={index} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">

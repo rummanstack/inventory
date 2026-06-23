@@ -56,7 +56,7 @@ export default function ProductsPage() {
       { label: '#', value: (_, i) => i + 1, width: 6 },
       { label: t('products.product'), value: (p) => p.name, width: 28 },
       { label: t('products.category'), value: (p) => p.category || '', width: 20 },
-      { label: t('products.caseSize'), value: (p) => p.piecesPerCase, width: 12 },
+      ...(isElectronics ? [] : [{ label: t('products.caseSize'), value: (p) => p.piecesPerCase, width: 12 }]),
       { label: t('products.purchasePrice'), value: (p) => Number(p.purchasePrice), width: 16 },
       { label: t('products.wholesalePrice'), value: (p) => Number(p.wholesalePrice), width: 16 },
       { label: t('products.retailPrice'), value: (p) => Number(p.retailPrice), width: 16 },
@@ -202,7 +202,9 @@ export default function ProductsPage() {
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-semibold text-slate-500">{t('products.stock')}</span>
-                    <span className="font-semibold text-slate-950">{formatCasePiece(product.stockPieces, product.piecesPerCase, language)}</span>
+                    <span className="font-semibold text-slate-950">
+                      {isElectronics ? `${formatNumber(product.stockPieces, language)} ${t('common.pcs')}` : formatCasePiece(product.stockPieces, product.piecesPerCase, language)}
+                    </span>
                   </div>
                 </div>
                 {canManageProducts ? (
@@ -269,8 +271,14 @@ export default function ProductsPage() {
                   <td className="hidden table-cell md:table-cell">{formatCurrency(product.wholesalePrice, language)}</td>
                   <td className="hidden table-cell md:table-cell">{formatCurrency(product.retailPrice, language)}</td>
                   <td className="table-cell">
-                    <p className="font-semibold text-slate-950">{formatCasePiece(product.stockPieces, product.piecesPerCase, language)}</p>
-                    <p className="text-xs text-slate-500">{formatNumber(product.stockPieces, language)} {t('products.pcsTotal')}</p>
+                    {isElectronics ? (
+                      <p className="font-semibold text-slate-950">{formatNumber(product.stockPieces, language)} {t('common.pcs')}</p>
+                    ) : (
+                      <>
+                        <p className="font-semibold text-slate-950">{formatCasePiece(product.stockPieces, product.piecesPerCase, language)}</p>
+                        <p className="text-xs text-slate-500">{formatNumber(product.stockPieces, language)} {t('products.pcsTotal')}</p>
+                      </>
+                    )}
                     {product.damagedPieces > 0 ? (
                       <p className="text-xs text-rose-500">{formatNumber(product.damagedPieces, language)} {t('products.pcsDamaged')}</p>
                     ) : null}
@@ -351,6 +359,7 @@ export default function ProductsPage() {
           targetId={PRODUCTS_PRINT_ID}
           t={t}
           language={language}
+          isElectronics={isElectronics}
         />
       </div>
     </div>

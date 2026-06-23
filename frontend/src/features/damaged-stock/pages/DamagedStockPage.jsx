@@ -9,16 +9,23 @@ import DamageClearHistoryPanel from '../components/DamageClearHistoryPanel';
 import { useDamagedStockViewModel } from '../viewmodels/useDamagedStockViewModel';
 
 export default function DamagedStockPage() {
-  const { productDirectory, clearDamagedStock, t, can } = useInventoryApp();
+  const { productDirectory, clearDamagedStock, t, can, tenant } = useInventoryApp();
+  const isElectronics = (tenant?.businessType || 'ELECTRONICS') === 'ELECTRONICS';
   const vm = useDamagedStockViewModel({ products: productDirectory });
   const canManageProducts = can('manage_products');
 
   async function handleExportExcel() {
     const { utils, writeFile } = await import('xlsx');
-    const header = ['#', t('damagedStock.product'), t('damagedStock.category'), t('damagedStock.damagedPieces'), t('damagedStock.caseSize')];
-    const data = vm.damagedProducts.map((p, i) => [i + 1, p.name, p.category || '', p.damagedPieces, p.piecesPerCase]);
+    const header = isElectronics
+      ? ['#', t('damagedStock.product'), t('damagedStock.category'), t('damagedStock.damagedPieces')]
+      : ['#', t('damagedStock.product'), t('damagedStock.category'), t('damagedStock.damagedPieces'), t('damagedStock.caseSize')];
+    const data = vm.damagedProducts.map((p, i) => isElectronics
+      ? [i + 1, p.name, p.category || '', p.damagedPieces]
+      : [i + 1, p.name, p.category || '', p.damagedPieces, p.piecesPerCase]);
     const ws = utils.aoa_to_sheet([header, ...data]);
-    ws['!cols'] = [{ wch: 6 }, { wch: 28 }, { wch: 18 }, { wch: 16 }, { wch: 12 }];
+    ws['!cols'] = isElectronics
+      ? [{ wch: 6 }, { wch: 28 }, { wch: 18 }, { wch: 16 }]
+      : [{ wch: 6 }, { wch: 28 }, { wch: 18 }, { wch: 16 }, { wch: 12 }];
     const wb = utils.book_new();
     utils.book_append_sheet(wb, ws, t('damagedStock.sheetName'));
     writeFile(wb, 'damaged-stock-report.xlsx');
@@ -71,8 +78,14 @@ export default function DamagedStockPage() {
                     <td className="table-cell font-semibold text-slate-950">{product.name}</td>
                     <td className="table-cell text-slate-500">{product.category}</td>
                     <td className="table-cell">
-                      <p className="font-semibold text-rose-600">{formatCasePiece(product.damagedPieces, product.piecesPerCase)}</p>
-                      <p className="text-xs text-slate-500">{formatNumber(product.damagedPieces)} {t('common.pcs')}</p>
+                      {isElectronics ? (
+                        <p className="font-semibold text-rose-600">{formatNumber(product.damagedPieces)} {t('common.pcs')}</p>
+                      ) : (
+                        <>
+                          <p className="font-semibold text-rose-600">{formatCasePiece(product.damagedPieces, product.piecesPerCase)}</p>
+                          <p className="text-xs text-slate-500">{formatNumber(product.damagedPieces)} {t('common.pcs')}</p>
+                        </>
+                      )}
                     </td>
                     <td className="table-cell text-right no-print">
                       {canManageProducts ? (

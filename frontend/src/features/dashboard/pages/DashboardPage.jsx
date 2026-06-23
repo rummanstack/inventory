@@ -8,7 +8,8 @@ import { useDashboardViewModel } from '../viewmodels/useDashboardViewModel';
 import { getCssVar } from '../../../utils/theme.js';
 
 export default function DashboardPage() {
-  const { productDirectory, dsrDirectory, today, t, language } = useInventoryApp();
+  const { productDirectory, dsrDirectory, today, t, language, tenant } = useInventoryApp();
+  const isElectronics = (tenant?.businessType || 'ELECTRONICS') === 'ELECTRONICS';
   const vm = useDashboardViewModel({ products: productDirectory, dsrs: dsrDirectory, today, t, language });
 
   if (vm.loading) {
@@ -199,7 +200,7 @@ export default function DashboardPage() {
               ? vm.actionQueue.pendingRows.slice(0, 4).map((row) => <InsightLine key={row.dsrId} label={`${row.dsrName} - ${row.area}`} value={`${formatNumber(row.issuedPieces, language)} ${t('common.pcs')} ${t('dashboard.pending')}`} />)
               : <div className="rounded-2xl bg-emerald-50 px-4 py-4 text-sm font-bold text-emerald-700">{t('dashboard.noPendingReturn')}</div>}
             {vm.actionQueue.lowStockProducts.length
-              ? vm.actionQueue.lowStockProducts.slice(0, 3).map((product) => <InsightLine key={product.id} label={product.name} value={vm.actionQueue.formatCasePiece(product.stockPieces, product.piecesPerCase)} />)
+              ? vm.actionQueue.lowStockProducts.slice(0, 3).map((product) => <InsightLine key={product.id} label={product.name} value={isElectronics ? `${formatNumber(product.stockPieces, language)} ${t('common.pcs')}` : vm.actionQueue.formatCasePiece(product.stockPieces, product.piecesPerCase)} />)
               : <div className="rounded-2xl bg-sky-50 px-4 py-4 text-sm font-bold text-sky-700">{t('dashboard.stockHealthy')}</div>}
           </div>
         </ChartPanel>

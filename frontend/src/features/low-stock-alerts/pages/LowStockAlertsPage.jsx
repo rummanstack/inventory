@@ -4,9 +4,14 @@ import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { formatCasePiece, formatNumber, getLowStockProducts, getLowStockThreshold } from '../../../utils/calculations.js';
 
 export default function LowStockAlertsPage() {
-  const { productDirectory, t, language } = useInventoryApp();
+  const { productDirectory, t, language, tenant } = useInventoryApp();
+  const isElectronics = (tenant?.businessType || 'ELECTRONICS') === 'ELECTRONICS';
   const lowStockProducts = [...getLowStockProducts(productDirectory)].sort((a, b) => a.stockPieces - b.stockPieces);
   const outOfStockCount = lowStockProducts.filter((product) => product.stockPieces === 0).length;
+
+  function formatStock(pieces, piecesPerCase) {
+    return isElectronics ? `${formatNumber(pieces, language)} ${t('common.pcs')}` : formatCasePiece(pieces, piecesPerCase, language);
+  }
 
   async function handleExportExcel() {
     const { utils, writeFile } = await import('xlsx');
@@ -14,8 +19,8 @@ export default function LowStockAlertsPage() {
     const data = lowStockProducts.map((product) => [
       product.name,
       product.category || '',
-      formatCasePiece(product.stockPieces, product.piecesPerCase, language),
-      formatCasePiece(getLowStockThreshold(product), product.piecesPerCase, language),
+      formatStock(product.stockPieces, product.piecesPerCase),
+      formatStock(getLowStockThreshold(product), product.piecesPerCase),
       product.stockPieces === 0 ? t('lowStockAlerts.outOfStock') : t('lowStockAlerts.lowStock'),
     ]);
     const ws = utils.aoa_to_sheet([header, ...data]);
@@ -66,10 +71,10 @@ export default function LowStockAlertsPage() {
                     <td className="table-cell font-semibold text-slate-950">{product.name}</td>
                     <td className="table-cell text-slate-500">{product.category}</td>
                     <td className="table-cell text-right font-semibold text-slate-700">
-                      {formatCasePiece(product.stockPieces, product.piecesPerCase, language)}
+                      {formatStock(product.stockPieces, product.piecesPerCase)}
                     </td>
                     <td className="table-cell text-right text-slate-500">
-                      {formatCasePiece(getLowStockThreshold(product), product.piecesPerCase, language)}
+                      {formatStock(getLowStockThreshold(product), product.piecesPerCase)}
                     </td>
                     <td className="table-cell">
                       <Badge tone={product.stockPieces === 0 ? 'rose' : 'amber'}>

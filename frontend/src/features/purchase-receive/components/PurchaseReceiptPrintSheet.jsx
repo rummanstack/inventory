@@ -1,9 +1,10 @@
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { cx } from '../../../components/ui.jsx';
-import { formatCasePiece, formatCurrency, formatDate } from '../../../utils/calculations.js';
+import { formatCasePiece, formatCurrency, formatDate, formatNumber } from '../../../utils/calculations.js';
 
 export default function PurchaseReceiptPrintSheet({ purchaseReceipt, printTarget = false, targetId }) {
   const { t, tenant, language } = useInventoryApp();
+  const isElectronics = (tenant?.businessType || 'ELECTRONICS') === 'ELECTRONICS';
   if (!purchaseReceipt) return null;
 
   const items = purchaseReceipt.items || [];
@@ -55,7 +56,9 @@ export default function PurchaseReceiptPrintSheet({ purchaseReceipt, printTarget
               <tr key={item.id || index} className="print-break-inside-avoid">
                 <td className="border border-slate-300 px-1.5 py-1 align-middle font-semibold">{index + 1}</td>
                 <td className="border border-slate-300 px-1.5 py-1 align-middle font-semibold text-slate-950">{item.productName}</td>
-                <td className="border border-slate-300 px-1.5 py-1 align-middle">{formatCasePiece(item.quantityPieces, item.piecesPerCase, language)}</td>
+                <td className="border border-slate-300 px-1.5 py-1 align-middle">
+                  {isElectronics ? `${formatNumber(item.quantityPieces, language)} ${t('common.pcs')}` : formatCasePiece(item.quantityPieces, item.piecesPerCase, language)}
+                </td>
                 <td className="border border-slate-300 px-1.5 py-1 align-middle">{formatCurrency(item.purchasePrice, language)}</td>
                 <td className="border border-slate-300 px-1.5 py-1 align-middle">{formatCurrency(item.lineDiscount, language)}</td>
                 <td className="border border-slate-300 px-1.5 py-1 align-middle font-bold">{formatCurrency(item.lineTotal, language)}</td>

@@ -61,6 +61,19 @@ function normalizeBusinessType(value, fallback = BUSINESS_TYPES.ELECTRONICS) {
   return businessType;
 }
 
+// Dealer/DSR distribution (morning issue, evening settlement, DSR finance/due ledger) is
+// a grocery-distribution concept and doesn't apply to electronics retail. Serial/warranty
+// tracking is the reverse — an electronics concept that doesn't apply to grocery. New
+// tenants get a feature set that matches their business type by default; this only runs
+// at creation time so it never silently removes a feature an existing tenant relies on.
+const DEALER_DISTRIBUTION_FEATURES = ["dsrs", "customers", "morning-issue", "settlements", "dsr-finance"];
+const ELECTRONICS_ONLY_FEATURES = ["product-serials", "warranty-claims"];
+
+function defaultFeaturesForBusinessType(businessType) {
+  const excluded = businessType === BUSINESS_TYPES.GROCERY ? ELECTRONICS_ONLY_FEATURES : DEALER_DISTRIBUTION_FEATURES;
+  return TENANT_FEATURES.filter((feature) => !excluded.includes(feature));
+}
+
 export class TenantService {
   constructor(databaseManager) {
     this.databaseManager = databaseManager;
@@ -77,8 +90,7 @@ export class TenantService {
 
   async createTenant({ name, slug, email, plan = "starter", address, logoUrl, taxRate = 0, loyaltyEnabled = false, loyaltyPointsPer100 = 1, loyaltyPointValue = 1, businessType }) {
     assert(name && slug && email, "name, slug and email are required", 400);
-    const client = await this.databaseManager.getPool().connect();
-    try {
+    return this.databaseManager.withTransaction(async (client) => {
       const existing = await findTenantBySlug(client, slug);
       assert(!existing, "Organization code already in use", 409);
       const tenant = {
@@ -96,10 +108,12 @@ export class TenantService {
         loyaltyPointValue: normalizeLoyaltyPointValue(loyaltyPointValue),
         businessType: normalizeBusinessType(businessType),
       };
-      return await insertTenant(client, tenant);
-    } finally {
-      client.release();
-    }
+      const created = await insertTenant(client, tenant);
+      const defaultFeatures = defaultFeaturesForBusinessType(created.businessType);
+      await replaceTenantFeatures(client, created.id, defaultFeatures);
+      setCachedFeatures(created.id, defaultFeatures);
+      return created;
+    });
   }
 
   async updateTenant(tenantId, fields) {

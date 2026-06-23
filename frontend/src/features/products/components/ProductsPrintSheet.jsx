@@ -1,7 +1,7 @@
 import { cx } from '../../../components/ui.jsx';
 import { formatCasePiece, formatCurrency, formatNumber } from '../../../utils/calculations.js';
 
-export default function ProductsPrintSheet({ products, businessName, printTarget = false, targetId, t, language = 'en' }) {
+export default function ProductsPrintSheet({ products, businessName, printTarget = false, targetId, t, language = 'en', isElectronics = false }) {
   return (
     <div id={targetId} className={cx('mx-auto w-full max-w-[210mm] bg-white p-8', printTarget && 'print-target')}>
       <div className="border-b-2 border-slate-950 pb-4">
@@ -39,7 +39,7 @@ export default function ProductsPrintSheet({ products, businessName, printTarget
               <td className="border border-slate-200 px-1.5 py-1 text-right">{formatCurrency(product.wholesalePrice, language)}</td>
               <td className="border border-slate-200 px-1.5 py-1 text-right">{formatCurrency(product.retailPrice, language)}</td>
               <td className={`border border-slate-200 px-1.5 py-1 text-right font-bold ${product.stockPieces === 0 ? 'text-rose-700' : product.stockPieces <= product.piecesPerCase ? 'text-amber-700' : 'text-emerald-700'}`}>
-                {formatCasePiece(product.stockPieces, product.piecesPerCase, language)}
+                {isElectronics ? `${formatNumber(product.stockPieces, language)} ${t('common.pcs')}` : formatCasePiece(product.stockPieces, product.piecesPerCase, language)}
               </td>
               <td className="border border-slate-200 px-1.5 py-1 text-right text-rose-600">
                 {product.damagedPieces > 0 ? formatNumber(product.damagedPieces, language) : '-'}

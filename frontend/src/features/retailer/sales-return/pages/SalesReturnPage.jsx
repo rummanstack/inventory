@@ -48,7 +48,7 @@ export default function SalesReturnPage() {
         ) : null}
       />
 
-      <div id="sales-return-print" className="surface overflow-hidden">
+      <div id="sales-return-print" className="surface overflow-hidden print-target">
         <div className="border-b border-slate-100 p-5">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="space-y-2">

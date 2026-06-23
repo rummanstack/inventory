@@ -1,17 +1,34 @@
 import { useState } from 'react';
-import { MapPin, Pencil, Phone, Plus, Search, Trash2, Users } from 'lucide-react';
+import { Download, FileSpreadsheet, MapPin, Pencil, Phone, Plus, Printer, Search, Trash2, Users } from 'lucide-react';
 import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
 import { statusTone } from '../../../models/inventoryViewData.js';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
+import { downloadSheetPdf } from '../../../services/printService.js';
+import { inventoryApi } from '../../../services/inventoryApi.js';
 import { formatNumber } from '../../../utils/calculations.js';
 import DsrFormModal from '../components/DsrFormModal';
 import { useDsrViewModel } from '../viewmodels/useDsrViewModel';
+
+const DSR_PRINT_ID = 'dsr-print';
 
 export default function DsrPage() {
   const { today, saveDsr, deleteDsr, t, can } = useInventoryApp();
   const vm = useDsrViewModel({ today });
   const [dsrModal, setDsrModal] = useState(null);
   const canManageDsrs = can('manage_dsrs');
+
+  async function handleExportExcel() {
+    const result = await inventoryApi.listDsrs({ search: vm.search || undefined, page: 1, pageSize: 10000 });
+    const all = result.items || [];
+    const { utils, writeFile } = await import('xlsx');
+    const header = ['#', t('dsr.name'), t('dsr.phone'), t('dsr.area'), t('dsr.status')];
+    const data = all.map((dsr, i) => [i + 1, dsr.name, dsr.phone || '', dsr.area || '', dsr.status]);
+    const ws = utils.aoa_to_sheet([header, ...data]);
+    ws['!cols'] = [{ wch: 6 }, { wch: 22 }, { wch: 16 }, { wch: 18 }, { wch: 12 }];
+    const wb = utils.book_new();
+    utils.book_append_sheet(wb, ws, t('dsr.sheetName'));
+    writeFile(wb, 'dsr-directory.xlsx');
+  }
 
   return (
     <div>
@@ -27,16 +44,36 @@ export default function DsrPage() {
         ) : null}
       />
 
-      <div className="surface overflow-hidden">
+      <div id={DSR_PRINT_ID} className="surface overflow-hidden print-target">
         <div className="border-b border-slate-100 p-5">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="space-y-2">
               <p className="text-[11px] font-black uppercase tracking-[0.22em] text-slate-400">{t('dsr.eyebrow')}</p>
               <p className="text-sm font-medium text-slate-500">{t('dsr.description')}</p>
             </div>
-            <div className="flex flex-wrap gap-2 text-sm font-bold">
+            <div className="flex flex-wrap items-center gap-2 text-sm font-bold">
               <span className="muted-chip">{formatNumber(vm.total)} {t('common.dsr')}</span>
               <span className="muted-chip">{formatNumber(vm.inProgressDsrIds.size)} {t('dsr.inProgress')}</span>
+              <button
+                type="button"
+                className="btn-secondary no-print py-1.5 text-xs"
+                onClick={() => { inventoryApi.recordPrint({ entityType: 'dsr', entityId: null, label: 'pdf' }).catch(() => {}); downloadSheetPdf(DSR_PRINT_ID, 'dsr-directory.pdf'); }}
+              >
+                <Download size={14} />
+                {t('purchaseReceive.downloadPdf')}
+              </button>
+              <button type="button" className="btn-secondary no-print py-1.5 text-xs" onClick={handleExportExcel}>
+                <FileSpreadsheet size={14} />
+                {t('common.exportExcel')}
+              </button>
+              <button
+                type="button"
+                className="btn-secondary no-print py-1.5 text-xs"
+                onClick={() => { inventoryApi.recordPrint({ entityType: 'dsr', entityId: null, label: 'print' }).catch(() => {}); window.print(); }}
+              >
+                <Printer size={14} />
+                {t('common.print')}
+              </button>
             </div>
           </div>
           <div className="relative mt-4 max-w-md">
@@ -62,7 +99,7 @@ export default function DsrPage() {
                 <th className="hidden px-4 py-3 sm:table-cell">{t('dsr.phone')}</th>
                 <th className="hidden px-4 py-3 md:table-cell">{t('dsr.area')}</th>
                 <th className="px-4 py-3">{t('dsr.status')}</th>
-                <th className="px-4 py-3 text-right">{t('common.actions')}</th>
+                <th className="px-4 py-3 text-right no-print">{t('common.actions')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -93,7 +130,7 @@ export default function DsrPage() {
                       {vm.inProgressDsrIds.has(dsr.id) ? <Badge tone="amber">{t('dsr.outside')}</Badge> : null}
                     </div>
                   </td>
-                  <td className="table-cell">
+                  <td className="table-cell no-print">
                     <div className="flex justify-end gap-2">
                       {canManageDsrs ? (
                         <>

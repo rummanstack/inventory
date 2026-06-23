@@ -1,10 +1,16 @@
-import { Building2, CircleDollarSign, HandCoins, Landmark, RotateCcw, Scale, ShoppingBag, Store, TrendingDown, TrendingUp, Wallet } from 'lucide-react';
-import { Alert, EmptyState, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton } from '../../../components/ui.jsx';
+import { useEffect, useState } from 'react';
+import { Building2, CircleDollarSign, Download, FileSpreadsheet, HandCoins, Landmark, Printer, RotateCcw, Scale, ShoppingBag, Store, TrendingDown, TrendingUp, Wallet } from 'lucide-react';
+import { Alert, cx, EmptyState, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
+import { downloadSheetPdf } from '../../../services/printService.js';
+import { inventoryApi } from '../../../services/inventoryApi.js';
 import { formatCurrency, formatDate, formatNumber } from '../../../utils/calculations.js';
 import { useFinanceDashboardViewModel } from '../viewmodels/useFinanceDashboardViewModel';
 import { useRangeReportViewModel } from '../viewmodels/useRangeReportViewModel';
+
+const RANGE_REPORT_PRINT_ID = 'finance-dashboard-range-report';
+const RECENT_TRANSACTIONS_PRINT_ID = 'finance-dashboard-recent-transactions';
 
 const TRANSACTION_TYPE_STYLES = {
   DEPOSIT: { labelKey: 'financeDashboard.deposit', className: 'bg-emerald-50 text-emerald-700 border border-emerald-100' },
@@ -67,12 +73,83 @@ export default function FinanceDashboardPage() {
   const { t, language } = useInventoryApp();
   const { data, loading, error } = useFinanceDashboardViewModel();
   const rr = useRangeReportViewModel();
+  // Both report sections below can be on screen at once, but the global print CSS
+  // (`.print-target`) shows every matching element regardless of which button was
+  // clicked — so only the section currently being printed gets the class.
+  const [printingSection, setPrintingSection] = useState(null);
+
+  useEffect(() => {
+    const resetPrintingSection = () => setPrintingSection(null);
+    window.addEventListener('afterprint', resetPrintingSection);
+    return () => window.removeEventListener('afterprint', resetPrintingSection);
+  }, []);
+
+  function printSection(section, entityType) {
+    inventoryApi.recordPrint({ entityType, entityId: null, label: 'print' }).catch(() => {});
+    setPrintingSection(section);
+    requestAnimationFrame(() => window.print());
+  }
 
   const cashInHand = data?.accounts?.find((a) => a.type === 'CASH')?.balance || 0;
   const bankBalance = data?.accounts?.find((a) => a.type === 'BANK')?.balance || 0;
   const netReceivable = rr.data
     ? rr.data.totalDsrDue + rr.data.totalCustomerDue - rr.data.totalSupplierDue
     : 0;
+
+  async function handleExportRangeReportExcel() {
+    if (!rr.data) return;
+    const { utils, writeFile } = await import('xlsx');
+    const header = [t('financeDashboard.profitBreakdown'), t('common.total')];
+    const rows = [
+      [t('financeDashboard.revenue'), Number(rr.data.revenue)],
+      [t('financeDashboard.costOfGoods'), Number(rr.data.cogs)],
+      [t('financeDashboard.grossProfit'), Number(rr.data.grossProfit)],
+      [t('financeDashboard.operatingExpenses'), Number(rr.data.totalExpenses)],
+      [t('financeDashboard.netProfit'), Number(rr.data.netProfit)],
+      [],
+      [t('financeDashboard.expenseBreakdown')],
+      ...rr.data.expenseBreakdown.map((item) => [item.category, Number(item.amount)]),
+      [],
+      [t('financeDashboard.outstandingBalances')],
+      [t('financeDashboard.dueFromDsrs'), Number(rr.data.totalDsrDue)],
+      [t('financeDashboard.dueFromCustomers'), Number(rr.data.totalCustomerDue)],
+      [t('financeDashboard.oweToSuppliers'), Number(rr.data.totalSupplierDue)],
+      [t('financeDashboard.netReceivable'), Number(netReceivable)],
+      [],
+      [t('financeDashboard.cashFlow')],
+      [t('financeDashboard.totalInflow'), Number(rr.data.cashFlow.inflow)],
+      [t('financeDashboard.totalOutflow'), Number(rr.data.cashFlow.outflow)],
+      [t('financeDashboard.netMovement'), Number(rr.data.cashFlow.inflow - rr.data.cashFlow.outflow)],
+      [],
+      [t('financeDashboard.salesSummary')],
+      [t('financeDashboard.totalSales'), Number(rr.data.sales.totalAmount)],
+      [t('financeDashboard.amountCollected'), Number(rr.data.sales.paidAmount)],
+      [t('financeDashboard.outstanding'), Number(rr.data.sales.totalAmount - rr.data.sales.paidAmount)],
+      [t('financeDashboard.avgPerInvoice'), Number(rr.data.sales.averageInvoice)],
+    ];
+    const ws = utils.aoa_to_sheet([header, ...rows]);
+    ws['!cols'] = [{ wch: 28 }, { wch: 18 }];
+    const wb = utils.book_new();
+    utils.book_append_sheet(wb, ws, t('financeDashboard.rangeTitle'));
+    writeFile(wb, `finance-dashboard-${rr.dateFrom}-${rr.dateTo}.xlsx`);
+  }
+
+  async function handleExportTransactionsExcel() {
+    const { utils, writeFile } = await import('xlsx');
+    const header = [t('financeAccounts.date'), t('financeAccounts.account'), t('financeAccounts.type'), t('financeAccounts.amount'), t('financeAccounts.note')];
+    const rows = (data.recentTransactions || []).map((tx) => [
+      formatDate(tx.transactionDate),
+      tx.accountName,
+      t(TRANSACTION_TYPE_STYLES[tx.type]?.labelKey || tx.type),
+      transactionAmount(tx),
+      tx.note || '',
+    ]);
+    const ws = utils.aoa_to_sheet([header, ...rows]);
+    ws['!cols'] = [{ wch: 14 }, { wch: 18 }, { wch: 16 }, { wch: 14 }, { wch: 24 }];
+    const wb = utils.book_new();
+    utils.book_append_sheet(wb, ws, t('financeDashboard.recentTransactionsTitle'));
+    writeFile(wb, 'finance-dashboard-recent-transactions.xlsx');
+  }
 
   return (
     <div className="space-y-10">
@@ -111,7 +188,29 @@ export default function FinanceDashboardPage() {
             </div>
           </div>
         ) : rr.data ? (
-          <div className="space-y-6">
+          <div id={RANGE_REPORT_PRINT_ID} className={cx('space-y-6', printingSection === 'range' && 'print-target')}>
+            <div className="flex justify-end gap-2 no-print">
+              <button
+                type="button"
+                className="btn-secondary py-1.5 text-xs"
+                onClick={() => { inventoryApi.recordPrint({ entityType: 'finance_dashboard', entityId: null, label: 'pdf' }).catch(() => {}); downloadSheetPdf(RANGE_REPORT_PRINT_ID, `finance-dashboard-${rr.dateFrom}-${rr.dateTo}.pdf`); }}
+              >
+                <Download size={14} />
+                {t('purchaseReceive.downloadPdf')}
+              </button>
+              <button type="button" className="btn-secondary py-1.5 text-xs" onClick={handleExportRangeReportExcel}>
+                <FileSpreadsheet size={14} />
+                {t('common.exportExcel')}
+              </button>
+              <button
+                type="button"
+                className="btn-secondary py-1.5 text-xs"
+                onClick={() => printSection('range', 'finance_dashboard')}
+              >
+                <Printer size={14} />
+                {t('common.print')}
+              </button>
+            </div>
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
               <StatCard title={t('financeDashboard.totalRevenue')} value={formatCurrency(rr.data.revenue, language)} icon={TrendingUp} tone="blue" />
               <StatCard title={t('financeDashboard.costOfGoods')} value={formatCurrency(rr.data.cogs, language)} icon={CircleDollarSign} tone="amber" />
@@ -321,7 +420,29 @@ export default function FinanceDashboardPage() {
             {!data.recentTransactions?.length ? (
               <p className="text-sm text-slate-500">{t('financeDashboard.noRecentTransactions')}</p>
             ) : (
-              <div className="surface overflow-hidden">
+              <div id={RECENT_TRANSACTIONS_PRINT_ID} className={cx('surface overflow-hidden', printingSection === 'transactions' && 'print-target')}>
+                <div className="flex justify-end gap-2 border-b border-slate-100 px-4 py-3 no-print">
+                  <button
+                    type="button"
+                    className="btn-secondary py-1.5 text-xs"
+                    onClick={() => { inventoryApi.recordPrint({ entityType: 'finance_dashboard_transactions', entityId: null, label: 'pdf' }).catch(() => {}); downloadSheetPdf(RECENT_TRANSACTIONS_PRINT_ID, 'finance-dashboard-recent-transactions.pdf'); }}
+                  >
+                    <Download size={14} />
+                    {t('purchaseReceive.downloadPdf')}
+                  </button>
+                  <button type="button" className="btn-secondary py-1.5 text-xs" onClick={handleExportTransactionsExcel}>
+                    <FileSpreadsheet size={14} />
+                    {t('common.exportExcel')}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-secondary py-1.5 text-xs"
+                    onClick={() => printSection('transactions', 'finance_dashboard_transactions')}
+                  >
+                    <Printer size={14} />
+                    {t('common.print')}
+                  </button>
+                </div>
                 <table className="w-full text-sm">
                   <thead className="table-head">
                     <tr>

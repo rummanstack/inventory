@@ -78,6 +78,20 @@ export function formatDate(date, language = getPreferredLanguage()) {
   }).format(value);
 }
 
+export function formatTime(date, language = getPreferredLanguage()) {
+  if (!date) return '';
+
+  const value = date instanceof Date ? date : new Date(date);
+  if (Number.isNaN(value.getTime())) {
+    return '';
+  }
+
+  return new Intl.DateTimeFormat(getLocale(language), {
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(value);
+}
+
 export function formatDateTime(date, language = getPreferredLanguage()) {
   if (!date) return '';
 

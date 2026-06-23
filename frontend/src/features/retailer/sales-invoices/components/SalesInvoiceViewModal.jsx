@@ -201,7 +201,7 @@ export default function SalesInvoiceViewModal({ salesInvoice, onClose }) {
       </div>
     </Modal>
 
-    <div className="hidden print:block">
+    <div className="absolute -left-[10000px] top-0">
       <SalesInvoicePrintSheet invoice={salesInvoice} businessName={businessName} printTarget targetId={printTargetId} t={t} language={language} />
     </div>
     </>

@@ -351,7 +351,7 @@ export default function ProductsPage() {
         <CategoriesManagerModal onClose={() => setShowCategoriesModal(false)} onChanged={() => vm.reload()} />
       ) : null}
 
-      <div className="hidden print:block">
+      <div className="absolute -left-[10000px] top-0">
         <ProductsPrintSheet
           products={productDirectory}
           businessName={businessName}

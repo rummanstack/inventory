@@ -1,9 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ArrowRight, RefreshCw, Sparkles, TrendingUp, Users, UserRound } from 'lucide-react';
+import { ArrowRight, Download, FileSpreadsheet, Printer, RefreshCw, Sparkles, TrendingUp, Users, UserRound } from 'lucide-react';
 import { Alert, Badge, EmptyState, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
+import { downloadSheetPdf } from '../../../services/printService.js';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import { formatCurrency, formatDate, formatNumber } from '../../../utils/calculations.js';
+
+const RETENTION_PRINT_ID = 'retail-customer-retention-print';
 
 function formatDays(value, t, language) {
   if (value === null || value === undefined || Number.isNaN(Number(value))) {
@@ -82,6 +85,50 @@ export default function RetailCustomerRetentionPage() {
     loadRetention();
   }, [inactiveWindowDays, t]);
 
+  async function handleExportExcel() {
+    const { utils, writeFile } = await import('xlsx');
+    const wb = utils.book_new();
+
+    const repeatHeader = [t('retailCustomers.name'), t('retailCustomers.phone'), t('retailCustomers.retention.purchases'), t('retailCustomers.retention.spent'), t('retailCustomers.retention.lastPurchase'), t('retailCustomers.loyaltyPoints'), t('retailCustomers.retention.tier')];
+    const repeatData = repeatCustomers.map((customer) => [
+      customer.name,
+      customer.phone || '',
+      Number(customer.purchaseCount || 0),
+      Number(customer.totalSpent || 0),
+      customer.lastPurchaseAt ? formatDate(customer.lastPurchaseAt) : '',
+      Number(customer.pointsBalance || 0),
+      t(`retailCustomers.retention.tiers.${customer.customerTier}`),
+    ]);
+    const repeatWs = utils.aoa_to_sheet([repeatHeader, ...repeatData]);
+    repeatWs['!cols'] = [{ wch: 22 }, { wch: 16 }, { wch: 12 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 10 }];
+    utils.book_append_sheet(wb, repeatWs, t('retailCustomers.retention.repeatTitle'));
+
+    const inactiveHeader = [t('retailCustomers.name'), t('retailCustomers.phone'), t('retailCustomers.retention.daysIdle'), t('retailCustomers.retention.lastPurchase'), t('retailCustomers.loyaltyPoints')];
+    const inactiveData = inactiveCustomers.map((customer) => [
+      customer.name,
+      customer.phone || '',
+      customer.daysSinceLastPurchase ?? '',
+      customer.lastPurchaseAt ? formatDate(customer.lastPurchaseAt) : '',
+      Number(customer.pointsBalance || 0),
+    ]);
+    const inactiveWs = utils.aoa_to_sheet([inactiveHeader, ...inactiveData]);
+    inactiveWs['!cols'] = [{ wch: 22 }, { wch: 16 }, { wch: 12 }, { wch: 14 }, { wch: 14 }];
+    utils.book_append_sheet(wb, inactiveWs, t('retailCustomers.retention.inactiveTitle'));
+
+    const rewardHeader = [t('retailCustomers.name'), t('retailCustomers.phone'), t('retailCustomers.loyaltyPoints'), t('retailCustomers.retention.nextReward')];
+    const rewardData = rewardCandidates.map((customer) => [
+      customer.name,
+      customer.phone || '',
+      Number(customer.pointsBalance || 0),
+      customer.pointsToNextReward === 0 ? t('retailCustomers.retention.rewardReady') : Number(customer.pointsToNextReward || 0),
+    ]);
+    const rewardWs = utils.aoa_to_sheet([rewardHeader, ...rewardData]);
+    rewardWs['!cols'] = [{ wch: 22 }, { wch: 16 }, { wch: 14 }, { wch: 16 }];
+    utils.book_append_sheet(wb, rewardWs, t('retailCustomers.retention.rewardTitle'));
+
+    writeFile(wb, 'retail-customer-retention.xlsx');
+  }
+
   if (loading && !response) {
     return (
       <div className="space-y-6">
@@ -142,6 +189,26 @@ export default function RetailCustomerRetentionPage() {
               <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
               {t('common.reload')}
             </button>
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={() => { inventoryApi.recordPrint({ entityType: 'retail_customer_retention', entityId: null, label: 'pdf' }).catch(() => {}); downloadSheetPdf(RETENTION_PRINT_ID, 'retail-customer-retention.pdf'); }}
+            >
+              <Download size={16} />
+              {t('purchaseReceive.downloadPdf')}
+            </button>
+            <button type="button" className="btn-secondary" onClick={handleExportExcel}>
+              <FileSpreadsheet size={16} />
+              {t('common.exportExcel')}
+            </button>
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={() => { inventoryApi.recordPrint({ entityType: 'retail_customer_retention', entityId: null, label: 'print' }).catch(() => {}); window.print(); }}
+            >
+              <Printer size={16} />
+              {t('common.print')}
+            </button>
           </div>
         )}
       />
@@ -151,6 +218,7 @@ export default function RetailCustomerRetentionPage() {
         <EmptyState title={t('retailCustomers.retention.emptyTitle')} description={t('retailCustomers.retention.emptyDescription')} icon={Users} />
       ) : null}
 
+      <div id={RETENTION_PRINT_ID} className="print-target space-y-6">
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
         <StatCard title={t('retailCustomers.retention.totalCustomers')} value={formatNumber(summary.totalCustomers || 0, language)} icon={Users} tone="slate" />
         <StatCard title={t('retailCustomers.retention.purchasedCustomers')} value={formatNumber(summary.purchasedCustomers || 0, language)} icon={TrendingUp} tone="blue" />
@@ -349,6 +417,7 @@ export default function RetailCustomerRetentionPage() {
             ) : null}
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

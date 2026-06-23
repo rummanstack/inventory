@@ -1,12 +1,16 @@
 import { useState } from 'react';
-import { Eye, Pencil, Phone, Plus, Search, Store, Trash2 } from 'lucide-react';
+import { Download, Eye, FileSpreadsheet, Pencil, Phone, Plus, Printer, Search, Store, Trash2 } from 'lucide-react';
 import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
 import { statusTone } from '../../../models/inventoryViewData.js';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
+import { downloadSheetPdf } from '../../../services/printService.js';
+import { inventoryApi } from '../../../services/inventoryApi.js';
 import { formatCurrency, formatNumber } from '../../../utils/calculations.js';
 import ShopFormModal from '../components/ShopFormModal';
 import ShopViewModal from '../components/ShopViewModal';
 import { useShopsViewModel } from '../viewmodels/useShopsViewModel';
+
+const SHOPS_PRINT_ID = 'shops-print';
 
 export default function ShopsPage() {
   const { saveShop, deleteShop, t, can } = useInventoryApp();
@@ -14,6 +18,27 @@ export default function ShopsPage() {
   const [formModal, setFormModal] = useState(null);
   const [viewShop, setViewShop] = useState(null);
   const canManageShops = can('manage_customers');
+
+  async function handleExportExcel() {
+    const result = await inventoryApi.listCustomers({ search: vm.search || undefined, status: vm.status || undefined, page: 1, pageSize: 10000 });
+    const all = result.items || [];
+    const { utils, writeFile } = await import('xlsx');
+    const header = ['#', t('shops.shopName'), t('shops.phone'), t('shops.market'), t('shops.assignedDsr'), t('shops.currentDue'), t('shops.status')];
+    const data = all.map((shop, i) => [
+      i + 1,
+      shop.shopName,
+      shop.phone || '',
+      shop.market || '',
+      shop.assignedDsrName || t('shops.unassigned'),
+      Number(shop.currentDue || 0),
+      shop.status === 'ACTIVE' ? t('shops.statusActive') : t('shops.statusInactive'),
+    ]);
+    const ws = utils.aoa_to_sheet([header, ...data]);
+    ws['!cols'] = [{ wch: 6 }, { wch: 24 }, { wch: 16 }, { wch: 18 }, { wch: 18 }, { wch: 14 }, { wch: 12 }];
+    const wb = utils.book_new();
+    utils.book_append_sheet(wb, ws, t('shops.sheetName'));
+    writeFile(wb, 'shops.xlsx');
+  }
 
   return (
     <div>
@@ -29,15 +54,35 @@ export default function ShopsPage() {
         ) : null}
       />
 
-      <div className="surface overflow-hidden">
+      <div id={SHOPS_PRINT_ID} className="surface overflow-hidden print-target">
         <div className="border-b border-slate-100 p-5">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="space-y-2">
               <p className="text-[11px] font-black uppercase tracking-[0.22em] text-slate-400">{t('shops.eyebrow')}</p>
               <p className="text-sm font-medium text-slate-500">{t('shops.description')}</p>
             </div>
-            <div className="flex flex-wrap gap-2 text-sm font-bold">
+            <div className="flex flex-wrap items-center gap-2 text-sm font-bold">
               <span className="muted-chip">{formatNumber(vm.total)} {t('shops.shopCount')}</span>
+              <button
+                type="button"
+                className="btn-secondary no-print py-1.5 text-xs"
+                onClick={() => { inventoryApi.recordPrint({ entityType: 'shops', entityId: null, label: 'pdf' }).catch(() => {}); downloadSheetPdf(SHOPS_PRINT_ID, 'shops.pdf'); }}
+              >
+                <Download size={14} />
+                {t('purchaseReceive.downloadPdf')}
+              </button>
+              <button type="button" className="btn-secondary no-print py-1.5 text-xs" onClick={handleExportExcel}>
+                <FileSpreadsheet size={14} />
+                {t('common.exportExcel')}
+              </button>
+              <button
+                type="button"
+                className="btn-secondary no-print py-1.5 text-xs"
+                onClick={() => { inventoryApi.recordPrint({ entityType: 'shops', entityId: null, label: 'print' }).catch(() => {}); window.print(); }}
+              >
+                <Printer size={14} />
+                {t('common.print')}
+              </button>
             </div>
           </div>
           <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -72,7 +117,7 @@ export default function ShopsPage() {
                 <th className="hidden px-4 py-3 md:table-cell">{t('shops.assignedDsr')}</th>
                 <th className="px-4 py-3 text-right">{t('shops.currentDue')}</th>
                 <th className="px-4 py-3">{t('shops.status')}</th>
-                <th className="px-4 py-3 text-right">{t('common.actions')}</th>
+                <th className="px-4 py-3 text-right no-print">{t('common.actions')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -99,7 +144,7 @@ export default function ShopsPage() {
                       {shop.status === 'ACTIVE' ? t('shops.statusActive') : t('shops.statusInactive')}
                     </Badge>
                   </td>
-                  <td className="table-cell">
+                  <td className="table-cell no-print">
                     <div className="flex justify-end gap-2">
                       <button type="button" className="icon-btn" title={t('common.view')} onClick={() => setViewShop(shop)}>
                         <Eye size={16} />

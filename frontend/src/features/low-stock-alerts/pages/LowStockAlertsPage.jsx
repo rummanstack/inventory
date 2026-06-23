@@ -1,7 +1,11 @@
-import { AlertTriangle, FileSpreadsheet } from 'lucide-react';
+import { AlertTriangle, Download, FileSpreadsheet, Printer } from 'lucide-react';
 import { Alert, Badge, EmptyState, SectionHeader } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
+import { downloadSheetPdf } from '../../../services/printService.js';
+import { inventoryApi } from '../../../services/inventoryApi.js';
 import { formatCasePiece, formatNumber, getLowStockProducts, getLowStockThreshold } from '../../../utils/calculations.js';
+
+const LOW_STOCK_PRINT_ID = 'low-stock-alerts-print';
 
 export default function LowStockAlertsPage() {
   const { productDirectory, t, language, tenant } = useInventoryApp();
@@ -42,14 +46,32 @@ export default function LowStockAlertsPage() {
         </div>
       ) : null}
 
-      <div className="surface overflow-hidden">
+      <div id={LOW_STOCK_PRINT_ID} className="surface overflow-hidden print-target">
         <div className="flex items-center justify-between border-b border-slate-100 px-5 py-3">
           <span className="text-sm font-bold text-slate-700">{t('nav.lowStockAlerts')}</span>
           {lowStockProducts.length ? (
-            <button type="button" className="btn-secondary py-1.5 text-xs" onClick={handleExportExcel}>
-              <FileSpreadsheet size={14} />
-              {t('common.exportExcel')}
-            </button>
+            <div className="flex gap-2 no-print">
+              <button
+                type="button"
+                className="btn-secondary py-1.5 text-xs"
+                onClick={() => { inventoryApi.recordPrint({ entityType: 'low_stock_alerts', entityId: null, label: 'pdf' }).catch(() => {}); downloadSheetPdf(LOW_STOCK_PRINT_ID, 'low-stock-alerts.pdf'); }}
+              >
+                <Download size={14} />
+                {t('purchaseReceive.downloadPdf')}
+              </button>
+              <button type="button" className="btn-secondary py-1.5 text-xs" onClick={handleExportExcel}>
+                <FileSpreadsheet size={14} />
+                {t('common.exportExcel')}
+              </button>
+              <button
+                type="button"
+                className="btn-secondary py-1.5 text-xs"
+                onClick={() => { inventoryApi.recordPrint({ entityType: 'low_stock_alerts', entityId: null, label: 'print' }).catch(() => {}); window.print(); }}
+              >
+                <Printer size={14} />
+                {t('common.print')}
+              </button>
+            </div>
           ) : null}
         </div>
 

@@ -1,13 +1,17 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Eye, FileText, Pencil, Phone, Plus, Search, Truck, Trash2 } from 'lucide-react';
+import { Download, Eye, FileSpreadsheet, FileText, Pencil, Phone, Plus, Printer, Search, Truck, Trash2 } from 'lucide-react';
 import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
 import { statusTone } from '../../../models/inventoryViewData.js';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
+import { inventoryApi } from '../../../services/inventoryApi.js';
+import { downloadSheetPdf } from '../../../services/printService.js';
 import { formatCurrency, formatNumber } from '../../../utils/calculations.js';
 import SupplierFormModal from '../components/SupplierFormModal';
 import SupplierViewModal from '../components/SupplierViewModal';
 import { useSuppliersViewModel } from '../viewmodels/useSuppliersViewModel';
+
+const SUPPLIERS_PRINT_ID = 'suppliers-print';
 
 export default function SuppliersPage() {
   const { saveSupplier, deleteSupplier, t, can } = useInventoryApp();
@@ -16,6 +20,26 @@ export default function SuppliersPage() {
   const [formModal, setFormModal] = useState(null);
   const [viewSupplier, setViewSupplier] = useState(null);
   const canManageSuppliers = can('manage_suppliers');
+
+  async function handleExportExcel() {
+    const result = await inventoryApi.listSuppliers({ page: 1, pageSize: 10000, search: vm.search || undefined, status: vm.status || undefined });
+    const all = result.items || [];
+    const { utils, writeFile } = await import('xlsx');
+    const header = [t('suppliers.nameLabel'), t('suppliers.phoneLabel'), t('suppliers.addressLabel'), t('suppliers.openingDueLabel'), t('suppliers.currentDueLabel'), t('suppliers.status')];
+    const data = all.map((supplier) => [
+      supplier.name,
+      supplier.phone || '',
+      supplier.address || '',
+      Number(supplier.openingDue || 0),
+      Number(supplier.currentDue || 0),
+      supplier.status === 'ACTIVE' ? t('suppliers.statusActive') : t('suppliers.statusInactive'),
+    ]);
+    const ws = utils.aoa_to_sheet([header, ...data]);
+    ws['!cols'] = [{ wch: 26 }, { wch: 16 }, { wch: 28 }, { wch: 16 }, { wch: 16 }, { wch: 12 }];
+    const wb = utils.book_new();
+    utils.book_append_sheet(wb, ws, t('suppliers.sheetName'));
+    writeFile(wb, 'suppliers.xlsx');
+  }
 
   return (
     <div>
@@ -31,8 +55,33 @@ export default function SuppliersPage() {
         ) : null}
       />
 
-      <div className="surface overflow-hidden">
-        <div className="border-b border-slate-100 p-5">
+      <div id={SUPPLIERS_PRINT_ID} className="surface overflow-hidden print-target">
+        <div className="flex items-center justify-between border-b border-slate-100 px-5 py-3 no-print">
+          <span className="text-sm font-bold text-slate-700">{t('suppliers.title')}</span>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              className="btn-secondary py-1.5 text-xs"
+              onClick={() => { inventoryApi.recordPrint({ entityType: 'suppliers', entityId: null, label: 'pdf' }).catch(() => {}); downloadSheetPdf(SUPPLIERS_PRINT_ID, 'suppliers.pdf'); }}
+            >
+              <Download size={14} />
+              {t('purchaseReceive.downloadPdf')}
+            </button>
+            <button type="button" className="btn-secondary py-1.5 text-xs" onClick={handleExportExcel}>
+              <FileSpreadsheet size={14} />
+              {t('common.exportExcel')}
+            </button>
+            <button
+              type="button"
+              className="btn-secondary py-1.5 text-xs"
+              onClick={() => { inventoryApi.recordPrint({ entityType: 'suppliers', entityId: null, label: 'print' }).catch(() => {}); window.print(); }}
+            >
+              <Printer size={14} />
+              {t('common.print')}
+            </button>
+          </div>
+        </div>
+        <div className="border-b border-slate-100 p-5 no-print">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="space-y-2">
               <p className="text-[11px] font-black uppercase tracking-[0.22em] text-slate-400">{t('suppliers.eyebrow')}</p>
@@ -74,7 +123,7 @@ export default function SuppliersPage() {
                 <th className="px-4 py-3 text-right">{t('suppliers.openingDueLabel')}</th>
                 <th className="px-4 py-3 text-right">{t('suppliers.currentDueLabel')}</th>
                 <th className="px-4 py-3">{t('suppliers.status')}</th>
-                <th className="px-4 py-3 text-right">{t('common.actions')}</th>
+                <th className="px-4 py-3 text-right no-print">{t('common.actions')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -96,7 +145,7 @@ export default function SuppliersPage() {
                       {supplier.status === 'ACTIVE' ? t('suppliers.statusActive') : t('suppliers.statusInactive')}
                     </Badge>
                   </td>
-                  <td className="table-cell">
+                  <td className="table-cell no-print">
                     <div className="flex justify-end gap-2">
                       <button type="button" className="icon-btn" title={t('suppliers.viewStatement')} onClick={() => navigate(`/supplier-statement?supplierId=${supplier.id}`)}>
                         <FileText size={16} />
@@ -128,7 +177,7 @@ export default function SuppliersPage() {
           </div>
         ) : null}
         {!vm.loading && !vm.error && vm.items.length ? (
-          <div className="border-t border-slate-100 px-5 py-4">
+          <div className="border-t border-slate-100 px-5 py-4 no-print">
             <Pagination page={vm.page} totalPages={vm.totalPages} onPageChange={vm.setPage} />
           </div>
         ) : null}

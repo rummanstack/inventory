@@ -35,7 +35,7 @@ export default function DamagedStockPage() {
     <div>
       <SectionHeader eyebrow={t('damagedStock.eyebrow')} title={t('damagedStock.title')} description={t('damagedStock.description')} />
 
-      <div id="damaged-stock-print" className="surface overflow-hidden">
+      <div id="damaged-stock-print" className="surface overflow-hidden print-target">
         <div className="flex items-center justify-between border-b border-slate-100 px-5 py-3">
           <span className="text-sm font-bold text-slate-700">{t('damagedStock.title')}</span>
           <div className="flex gap-2">

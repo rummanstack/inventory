@@ -1,15 +1,18 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Pencil, Plus, Receipt, Search, Trash2, Wrench } from 'lucide-react';
+import { Download, FileSpreadsheet, Pencil, Plus, Printer, Receipt, Search, Trash2, Wrench } from 'lucide-react';
 import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
+import { inventoryApi } from '../../../services/inventoryApi.js';
+import { downloadSheetPdf } from '../../../services/printService.js';
 import { formatDate, formatNumber } from '../../../utils/calculations.js';
 import { warrantyClaimStatusTone } from '../../../models/inventoryViewData.js';
 import WarrantyClaimFormModal from '../components/WarrantyClaimFormModal';
 import { useWarrantyClaimsViewModel } from '../viewmodels/useWarrantyClaimsViewModel';
 
 const STATUS_VALUES = ['RECEIVED', 'SENT_TO_SUPPLIER', 'REPAIRED', 'REPLACED', 'REJECTED', 'DELIVERED'];
+const WARRANTY_CLAIMS_PRINT_ID = 'warranty-claims-print';
 
 export default function WarrantyClaimsPage() {
   const { saveWarrantyClaim, deleteWarrantyClaim, t, can, productDirectory, supplierDirectory } = useInventoryApp();
@@ -17,6 +20,35 @@ export default function WarrantyClaimsPage() {
   const vm = useWarrantyClaimsViewModel();
   const [formModal, setFormModal] = useState(null);
   const canManage = can('manage_warranty_claims');
+
+  async function handleExportExcel() {
+    const result = await inventoryApi.listWarrantyClaims({
+      page: 1,
+      pageSize: 10000,
+      search: vm.search || undefined,
+      status: vm.status || undefined,
+      supplierId: vm.supplierId || undefined,
+      productId: vm.productId || undefined,
+      dateFrom: vm.dateFrom || undefined,
+      dateTo: vm.dateTo || undefined,
+    });
+    const all = result.items || [];
+    const { utils, writeFile } = await import('xlsx');
+    const header = [t('warrantyClaims.claimNumberLabel'), t('products.product'), t('warrantyClaims.serialLabel'), t('retailer.shared.customerLabel'), t('warrantyClaims.receivedDateLabel'), t('warrantyClaims.statusLabel')];
+    const data = all.map((claim) => [
+      claim.claimNumber,
+      claim.productName || '',
+      claim.serialNumber || claim.imei1 || claim.imei2 || '',
+      claim.customerName || '',
+      claim.receivedDate,
+      t(`warrantyClaims.statuses.${claim.status}`),
+    ]);
+    const ws = utils.aoa_to_sheet([header, ...data]);
+    ws['!cols'] = [{ wch: 18 }, { wch: 24 }, { wch: 20 }, { wch: 22 }, { wch: 16 }, { wch: 16 }];
+    const wb = utils.book_new();
+    utils.book_append_sheet(wb, ws, t('warrantyClaims.sheetName'));
+    writeFile(wb, 'warranty-claims.xlsx');
+  }
 
   return (
     <div>
@@ -32,8 +64,33 @@ export default function WarrantyClaimsPage() {
         ) : null}
       />
 
-      <div className="surface overflow-hidden">
-        <div className="border-b border-slate-100 p-5">
+      <div id={WARRANTY_CLAIMS_PRINT_ID} className="surface overflow-hidden print-target">
+        <div className="flex items-center justify-between border-b border-slate-100 px-5 py-3 no-print">
+          <span className="text-sm font-bold text-slate-700">{t('warrantyClaims.title')}</span>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              className="btn-secondary py-1.5 text-xs"
+              onClick={() => { inventoryApi.recordPrint({ entityType: 'warranty_claims', entityId: null, label: 'pdf' }).catch(() => {}); downloadSheetPdf(WARRANTY_CLAIMS_PRINT_ID, 'warranty-claims.pdf'); }}
+            >
+              <Download size={14} />
+              {t('purchaseReceive.downloadPdf')}
+            </button>
+            <button type="button" className="btn-secondary py-1.5 text-xs" onClick={handleExportExcel}>
+              <FileSpreadsheet size={14} />
+              {t('common.exportExcel')}
+            </button>
+            <button
+              type="button"
+              className="btn-secondary py-1.5 text-xs"
+              onClick={() => { inventoryApi.recordPrint({ entityType: 'warranty_claims', entityId: null, label: 'print' }).catch(() => {}); window.print(); }}
+            >
+              <Printer size={14} />
+              {t('common.print')}
+            </button>
+          </div>
+        </div>
+        <div className="border-b border-slate-100 p-5 no-print">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="space-y-2">
               <p className="text-[11px] font-black uppercase tracking-[0.22em] text-slate-400">{t('warrantyClaims.eyebrow')}</p>
@@ -91,7 +148,7 @@ export default function WarrantyClaimsPage() {
                 <th className="hidden px-4 py-3 md:table-cell">{t('retailer.shared.customerLabel')}</th>
                 <th className="px-4 py-3">{t('warrantyClaims.receivedDateLabel')}</th>
                 <th className="px-4 py-3">{t('warrantyClaims.statusLabel')}</th>
-                <th className="px-4 py-3 text-right">{t('common.actions')}</th>
+                <th className="px-4 py-3 text-right no-print">{t('common.actions')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -105,7 +162,7 @@ export default function WarrantyClaimsPage() {
                   <td className="table-cell">
                     <Badge tone={warrantyClaimStatusTone(claim.status)}>{t(`warrantyClaims.statuses.${claim.status}`)}</Badge>
                   </td>
-                  <td className="table-cell">
+                  <td className="table-cell no-print">
                     <div className="flex justify-end gap-2">
                       {claim.invoiceNumber ? (
                         <button type="button" className="icon-btn" title={claim.invoiceNumber} onClick={() => navigate(`/retailer/sales-invoices?invoiceNumber=${encodeURIComponent(claim.invoiceNumber)}`)}>
@@ -136,7 +193,7 @@ export default function WarrantyClaimsPage() {
           </div>
         ) : null}
         {!vm.loading && !vm.error && vm.items.length ? (
-          <div className="border-t border-slate-100 px-5 py-4">
+          <div className="border-t border-slate-100 px-5 py-4 no-print">
             <Pagination page={vm.page} totalPages={vm.totalPages} onPageChange={vm.setPage} />
           </div>
         ) : null}

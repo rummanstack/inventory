@@ -1,7 +1,9 @@
 import { useState } from 'react';
-import { Eye, Fingerprint, Pencil, Plus, Search, Trash2 } from 'lucide-react';
+import { Download, Eye, FileSpreadsheet, Fingerprint, Pencil, Plus, Printer, Search, Trash2 } from 'lucide-react';
 import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
+import { inventoryApi } from '../../../services/inventoryApi.js';
+import { downloadSheetPdf } from '../../../services/printService.js';
 import { formatNumber } from '../../../utils/calculations.js';
 import { productSerialStatusTone } from '../../../models/inventoryViewData.js';
 import ProductSerialFormModal from '../components/ProductSerialFormModal';
@@ -9,6 +11,7 @@ import ProductSerialViewModal from '../components/ProductSerialViewModal';
 import { useProductSerialsViewModel } from '../viewmodels/useProductSerialsViewModel';
 
 const STATUS_VALUES = ['IN_STOCK', 'SOLD', 'RETURNED', 'DAMAGED', 'WARRANTY', 'DELETED'];
+const PRODUCT_SERIALS_PRINT_ID = 'product-serials-print';
 
 export default function ProductSerialsPage() {
   const { saveProductSerial, deleteProductSerial, t, can, productDirectory } = useInventoryApp();
@@ -16,6 +19,32 @@ export default function ProductSerialsPage() {
   const [formModal, setFormModal] = useState(null);
   const [viewSerial, setViewSerial] = useState(null);
   const canManage = can('manage_product_serials');
+
+  async function handleExportExcel() {
+    const result = await inventoryApi.listProductSerials({
+      page: 1,
+      pageSize: 10000,
+      search: vm.search || undefined,
+      productId: vm.productId || undefined,
+      status: vm.status || undefined,
+    });
+    const all = result.items || [];
+    const { utils, writeFile } = await import('xlsx');
+    const header = [t('products.product'), t('productSerials.serialNumberLabel'), t('productSerials.imei1Label'), t('productSerials.imei2Label'), t('productSerials.statusLabel'), t('productSerials.linkedInvoiceLabel')];
+    const data = all.map((serial) => [
+      serial.productName || '',
+      serial.serialNumber || '',
+      serial.imei1 || '',
+      serial.imei2 || '',
+      t(`productSerials.statuses.${serial.status}`),
+      serial.invoiceNumber || '',
+    ]);
+    const ws = utils.aoa_to_sheet([header, ...data]);
+    ws['!cols'] = [{ wch: 24 }, { wch: 20 }, { wch: 18 }, { wch: 18 }, { wch: 14 }, { wch: 20 }];
+    const wb = utils.book_new();
+    utils.book_append_sheet(wb, ws, t('productSerials.sheetName'));
+    writeFile(wb, 'product-serials.xlsx');
+  }
 
   return (
     <div>
@@ -31,8 +60,33 @@ export default function ProductSerialsPage() {
         ) : null}
       />
 
-      <div className="surface overflow-hidden">
-        <div className="border-b border-slate-100 p-5">
+      <div id={PRODUCT_SERIALS_PRINT_ID} className="surface overflow-hidden print-target">
+        <div className="flex items-center justify-between border-b border-slate-100 px-5 py-3 no-print">
+          <span className="text-sm font-bold text-slate-700">{t('productSerials.title')}</span>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              className="btn-secondary py-1.5 text-xs"
+              onClick={() => { inventoryApi.recordPrint({ entityType: 'product_serials', entityId: null, label: 'pdf' }).catch(() => {}); downloadSheetPdf(PRODUCT_SERIALS_PRINT_ID, 'product-serials.pdf'); }}
+            >
+              <Download size={14} />
+              {t('purchaseReceive.downloadPdf')}
+            </button>
+            <button type="button" className="btn-secondary py-1.5 text-xs" onClick={handleExportExcel}>
+              <FileSpreadsheet size={14} />
+              {t('common.exportExcel')}
+            </button>
+            <button
+              type="button"
+              className="btn-secondary py-1.5 text-xs"
+              onClick={() => { inventoryApi.recordPrint({ entityType: 'product_serials', entityId: null, label: 'print' }).catch(() => {}); window.print(); }}
+            >
+              <Printer size={14} />
+              {t('common.print')}
+            </button>
+          </div>
+        </div>
+        <div className="border-b border-slate-100 p-5 no-print">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="space-y-2">
               <p className="text-[11px] font-black uppercase tracking-[0.22em] text-slate-400">{t('productSerials.eyebrow')}</p>
@@ -80,7 +134,7 @@ export default function ProductSerialsPage() {
                 <th className="hidden px-4 py-3 sm:table-cell">{t('productSerials.imei1Label')}</th>
                 <th className="px-4 py-3">{t('productSerials.statusLabel')}</th>
                 <th className="hidden px-4 py-3 md:table-cell">{t('productSerials.linkedInvoiceLabel')}</th>
-                <th className="px-4 py-3 text-right">{t('common.actions')}</th>
+                <th className="px-4 py-3 text-right no-print">{t('common.actions')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -94,7 +148,7 @@ export default function ProductSerialsPage() {
                     <Badge tone={productSerialStatusTone(serial.status)}>{t(`productSerials.statuses.${serial.status}`)}</Badge>
                   </td>
                   <td className="hidden table-cell md:table-cell">{serial.invoiceNumber || '-'}</td>
-                  <td className="table-cell">
+                  <td className="table-cell no-print">
                     <div className="flex justify-end gap-2">
                       <button type="button" className="icon-btn" title={t('common.view')} onClick={() => setViewSerial(serial)}>
                         <Eye size={16} />
@@ -123,7 +177,7 @@ export default function ProductSerialsPage() {
           </div>
         ) : null}
         {!vm.loading && !vm.error && vm.items.length ? (
-          <div className="border-t border-slate-100 px-5 py-4">
+          <div className="border-t border-slate-100 px-5 py-4 no-print">
             <Pagination page={vm.page} totalPages={vm.totalPages} onPageChange={vm.setPage} />
           </div>
         ) : null}

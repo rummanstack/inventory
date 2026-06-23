@@ -1,10 +1,14 @@
-import { ClipboardList, Search } from 'lucide-react';
+import { ClipboardList, Download, FileSpreadsheet, Printer, Search } from 'lucide-react';
 import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
+import { downloadSheetPdf } from '../../../services/printService.js';
+import { inventoryApi } from '../../../services/inventoryApi.js';
 import { formatDateTime, formatNumber } from '../../../utils/calculations.js';
 import { useActivityLogsViewModel } from '../viewmodels/useActivityLogsViewModel';
 import { actionTone } from '../../../models/inventoryViewData.js';
+
+const ACTIVITY_LOGS_PRINT_ID = 'activity-logs-print';
 
 const AUDIT_MODULES = [
   'products',
@@ -32,6 +36,24 @@ function formatValue(value) {
 export default function ActivityLogsPage() {
   const { t } = useInventoryApp();
   const vm = useActivityLogsViewModel();
+
+  async function handleExportExcel() {
+    const { utils, writeFile } = await import('xlsx');
+    const header = [t('activityLogs.when'), t('activityLogs.user'), t('activityLogs.action'), t('activityLogs.entity'), t('activityLogs.descriptionColumn'), t('activityLogs.reason')];
+    const data = vm.logs.map((log) => [
+      formatDateTime(log.createdAt),
+      log.userName || '',
+      log.actionType,
+      `${log.entityType}${log.entityId ? ` / ${log.entityId}` : ''}`,
+      log.description || '',
+      log.reason || '',
+    ]);
+    const ws = utils.aoa_to_sheet([header, ...data]);
+    ws['!cols'] = [{ wch: 18 }, { wch: 20 }, { wch: 20 }, { wch: 24 }, { wch: 40 }, { wch: 24 }];
+    const wb = utils.book_new();
+    utils.book_append_sheet(wb, ws, t('activityLogs.sheetName'));
+    writeFile(wb, 'activity-logs.xlsx');
+  }
 
   return (
     <div>
@@ -104,11 +126,33 @@ export default function ActivityLogsPage() {
         </div>
       </div>
 
-      <div className="surface mt-6 overflow-hidden">
+      <div id={ACTIVITY_LOGS_PRINT_ID} className="surface mt-6 overflow-hidden print-target">
         <div className="border-b border-slate-100 px-5 py-4">
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-base font-bold text-slate-950">{t('activityLogs.tableTitle')}</h2>
-            <span className="muted-chip">{formatNumber(vm.total)} {t('common.records')}</span>
+            <div className="flex items-center gap-2 no-print">
+              <span className="muted-chip">{formatNumber(vm.total)} {t('common.records')}</span>
+              <button
+                type="button"
+                className="btn-secondary py-1.5 text-xs"
+                onClick={() => { inventoryApi.recordPrint({ entityType: 'activity_logs', entityId: null, label: 'pdf' }).catch(() => {}); downloadSheetPdf(ACTIVITY_LOGS_PRINT_ID, 'activity-logs.pdf'); }}
+              >
+                <Download size={14} />
+                {t('purchaseReceive.downloadPdf')}
+              </button>
+              <button type="button" className="btn-secondary py-1.5 text-xs" onClick={handleExportExcel}>
+                <FileSpreadsheet size={14} />
+                {t('common.exportExcel')}
+              </button>
+              <button
+                type="button"
+                className="btn-secondary py-1.5 text-xs"
+                onClick={() => { inventoryApi.recordPrint({ entityType: 'activity_logs', entityId: null, label: 'print' }).catch(() => {}); window.print(); }}
+              >
+                <Printer size={14} />
+                {t('common.print')}
+              </button>
+            </div>
           </div>
         </div>
         <div className="overflow-x-auto">

@@ -1,13 +1,17 @@
 import { useState } from 'react';
-import { Eye, Pencil, Plus, Search, ShoppingCart, Trash2 } from 'lucide-react';
+import { Download, Eye, FileSpreadsheet, Pencil, Plus, Printer, Search, ShoppingCart, Trash2 } from 'lucide-react';
 import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
+import { inventoryApi } from '../../../services/inventoryApi';
+import { downloadSheetPdf } from '../../../services/printService.js';
 import { formatCurrency, formatDate, formatNumber } from '../../../utils/calculations.js';
 import PurchaseReceiveFormModal from '../components/PurchaseReceiveFormModal';
 import PurchaseReceiptViewModal from '../components/PurchaseReceiptViewModal';
 import { usePurchaseReceiveViewModel } from '../viewmodels/usePurchaseReceiveViewModel';
 import { paymentStatusOf, paymentStatusTone } from '../../../models/inventoryViewData.js';
+
+const PURCHASE_RECEIVE_PRINT_ID = 'purchase-receive-list-print';
 
 export default function PurchaseReceivePage() {
   const { savePurchaseReceipt, deletePurchaseReceipt, t, can, supplierDirectory } = useInventoryApp();
@@ -15,6 +19,36 @@ export default function PurchaseReceivePage() {
   const [formModal, setFormModal] = useState(null);
   const [viewReceipt, setViewReceipt] = useState(null);
   const canManagePurchases = can('manage_purchases');
+
+  async function handleExportExcel() {
+    const result = await inventoryApi.listPurchaseReceipts({
+      page: 1,
+      pageSize: 10000,
+      supplierId: vm.supplierId || undefined,
+      purchaseNumber: vm.purchaseNumber || undefined,
+      supplierInvoiceNo: vm.supplierInvoiceNo || undefined,
+      dateFrom: vm.dateFrom || undefined,
+      dateTo: vm.dateTo || undefined,
+      paymentStatus: vm.paymentStatus || undefined,
+    });
+    const all = result.items || [];
+    const { utils, writeFile } = await import('xlsx');
+    const header = [t('purchaseReceive.purchaseNumber'), t('purchaseReceive.supplier'), t('purchaseReceive.date'), t('purchaseReceive.supplierInvoiceNo'), t('purchaseReceive.totalAmount'), t('purchaseReceive.dueAmount'), t('purchaseReceive.paymentStatus')];
+    const data = all.map((receipt) => [
+      receipt.purchaseNumber,
+      receipt.supplierName || '',
+      receipt.purchaseDate,
+      receipt.supplierInvoiceNo || '',
+      Number(receipt.totalAmount || 0),
+      Number(receipt.dueAmount || 0),
+      t(`purchaseReceive.paymentStatuses.${paymentStatusOf(receipt)}`),
+    ]);
+    const ws = utils.aoa_to_sheet([header, ...data]);
+    ws['!cols'] = [{ wch: 18 }, { wch: 24 }, { wch: 14 }, { wch: 20 }, { wch: 16 }, { wch: 16 }, { wch: 14 }];
+    const wb = utils.book_new();
+    utils.book_append_sheet(wb, ws, t('purchaseReceive.sheetName'));
+    writeFile(wb, 'purchase-receive.xlsx');
+  }
 
   return (
     <div>
@@ -30,8 +64,33 @@ export default function PurchaseReceivePage() {
         ) : null}
       />
 
-      <div className="surface overflow-hidden">
-        <div className="border-b border-slate-100 p-5">
+      <div id={PURCHASE_RECEIVE_PRINT_ID} className={`surface overflow-hidden ${viewReceipt ? '' : 'print-target'}`}>
+        <div className="flex items-center justify-between border-b border-slate-100 px-5 py-3 no-print">
+          <span className="text-sm font-bold text-slate-700">{t('purchaseReceive.title')}</span>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              className="btn-secondary py-1.5 text-xs"
+              onClick={() => { inventoryApi.recordPrint({ entityType: 'purchase_receive_list', entityId: null, label: 'pdf' }).catch(() => {}); downloadSheetPdf(PURCHASE_RECEIVE_PRINT_ID, 'purchase-receive.pdf'); }}
+            >
+              <Download size={14} />
+              {t('purchaseReceive.downloadPdf')}
+            </button>
+            <button type="button" className="btn-secondary py-1.5 text-xs" onClick={handleExportExcel}>
+              <FileSpreadsheet size={14} />
+              {t('common.exportExcel')}
+            </button>
+            <button
+              type="button"
+              className="btn-secondary py-1.5 text-xs"
+              onClick={() => { inventoryApi.recordPrint({ entityType: 'purchase_receive_list', entityId: null, label: 'print' }).catch(() => {}); window.print(); }}
+            >
+              <Printer size={14} />
+              {t('common.print')}
+            </button>
+          </div>
+        </div>
+        <div className="border-b border-slate-100 p-5 no-print">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="space-y-2">
               <p className="text-[11px] font-black uppercase tracking-[0.22em] text-slate-400">{t('purchaseReceive.eyebrow')}</p>
@@ -86,7 +145,7 @@ export default function PurchaseReceivePage() {
                 <th className="px-4 py-3 text-right">{t('purchaseReceive.totalAmount')}</th>
                 <th className="hidden px-4 py-3 text-right sm:table-cell">{t('purchaseReceive.dueAmount')}</th>
                 <th className="px-4 py-3">{t('purchaseReceive.paymentStatus')}</th>
-                <th className="px-4 py-3 text-right">{t('common.actions')}</th>
+                <th className="px-4 py-3 text-right no-print">{t('common.actions')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -104,7 +163,7 @@ export default function PurchaseReceivePage() {
                       {t(`purchaseReceive.paymentStatuses.${paymentStatusOf(receipt)}`)}
                     </Badge>
                   </td>
-                  <td className="table-cell">
+                  <td className="table-cell no-print">
                     <div className="flex justify-end gap-2">
                       <button type="button" className="icon-btn" title={t('common.view')} onClick={() => setViewReceipt(receipt)}>
                         <Eye size={16} />
@@ -133,7 +192,7 @@ export default function PurchaseReceivePage() {
           </div>
         ) : null}
         {!vm.loading && !vm.error && vm.items.length ? (
-          <div className="border-t border-slate-100 px-5 py-4">
+          <div className="border-t border-slate-100 px-5 py-4 no-print">
             <Pagination page={vm.page} totalPages={vm.totalPages} onPageChange={vm.setPage} />
           </div>
         ) : null}

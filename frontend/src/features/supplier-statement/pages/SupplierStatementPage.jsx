@@ -1,4 +1,4 @@
-import { Download, Printer, RefreshCw, Wallet } from 'lucide-react';
+import { Download, FileSpreadsheet, Printer, RefreshCw, Wallet } from 'lucide-react';
 import { Badge, EmptyState, SectionHeader, StatCard, TableSkeleton } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
@@ -24,6 +24,23 @@ export default function SupplierStatementPage() {
   function recordStatementPrint(label) {
     if (!vm.supplierId) return;
     inventoryApi.recordPrint({ entityType: 'supplier_statement', entityId: vm.supplierId, label }).catch(() => {});
+  }
+
+  async function handleExportExcel() {
+    const { utils, writeFile } = await import('xlsx');
+    const header = [t('supplierStatement.when'), t('supplierStatement.type'), t('supplierStatement.debit'), t('supplierStatement.credit'), t('supplierStatement.balanceAfter')];
+    const data = entries.map((entry) => [
+      entry.createdAt,
+      t(`supplierStatement.types.${entry.type}`),
+      Number(entry.debit || 0),
+      Number(entry.credit || 0),
+      Number(entry.balanceAfter || 0),
+    ]);
+    const ws = utils.aoa_to_sheet([header, ...data]);
+    ws['!cols'] = [{ wch: 20 }, { wch: 18 }, { wch: 14 }, { wch: 14 }, { wch: 14 }];
+    const wb = utils.book_new();
+    utils.book_append_sheet(wb, ws, t('supplierStatement.sheetName'));
+    writeFile(wb, `supplier-statement-${vm.statement?.supplier?.name || vm.supplierId}.xlsx`);
   }
 
   return (
@@ -67,6 +84,10 @@ export default function SupplierStatementPage() {
               >
                 <Printer size={18} />
                 {t('supplierStatement.printSheet')}
+              </button>
+              <button type="button" className="btn-secondary" onClick={handleExportExcel}>
+                <FileSpreadsheet size={18} />
+                {t('common.exportExcel')}
               </button>
             </>
           ) : null}
@@ -140,7 +161,7 @@ export default function SupplierStatementPage() {
             ) : null}
           </div>
 
-          <div className="hidden print:block">
+          <div className="absolute -left-[10000px] top-0">
             <SupplierStatementPrintSheet statement={vm.statement} printTarget targetId={printTargetId} />
           </div>
         </>

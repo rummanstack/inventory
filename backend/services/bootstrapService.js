@@ -18,54 +18,14 @@ const FIRST_TENANT_TABLES = [
   "activity_logs",
 ];
 
-async function ensureFirstTenant(pool, env) {
-  const tenantCount = await countTenants(pool);
-  if (tenantCount > 0) {
-    const tenants = await listTenants(pool);
-    return { tenant: tenants[0], isNew: false };
-  }
-
-  const tenantName = env.DEFAULT_TENANT_NAME || "Arinda Enterprise";
-  const tenantSlug = env.DEFAULT_TENANT_SLUG || "arinda";
-
-  const tenant = await insertTenant(pool, {
-    id: createId("tenant"),
-    name: tenantName,
-    slug: tenantSlug,
-    email: env.DEFAULT_SUPER_ADMIN_EMAIL,
-    plan: "starter",
-    status: "active",
-  });
-
-  return { tenant, isNew: true };
-}
-
 async function backfillTenantId(pool, tenantId) {
   for (const table of FIRST_TENANT_TABLES) {
     await pool.query(`UPDATE ${table} SET tenant_id = $1 WHERE tenant_id IS NULL`, [tenantId]);
   }
 
-  await pool.query(
-    `UPDATE users SET tenant_id = $1 WHERE tenant_id IS NULL AND role != 'system_developer'`,
-    [tenantId],
-  );
-}
-
-async function seedSuperAdminIfEmpty(pool, env, tenantId) {
-  const userCount = await countUsers(pool);
-  if (userCount > 0) {
-    return;
-  }
-
-  await insertUser(pool, {
-    id: createId("user"),
-    name: env.DEFAULT_SUPER_ADMIN_NAME,
-    email: env.DEFAULT_SUPER_ADMIN_EMAIL,
-    passwordHash: await hashPassword(env.DEFAULT_SUPER_ADMIN_PASSWORD),
-    role: USER_ROLES.SUPER_ADMIN,
-    status: "active",
+  await pool.query(`UPDATE users SET tenant_id = $1 WHERE tenant_id IS NULL AND role != 'system_developer'`, [
     tenantId,
-  });
+  ]);
 }
 
 async function seedSystemDeveloperIfEmpty(pool, env) {
@@ -97,11 +57,6 @@ export async function initializeDatabase(databaseManager, env) {
 
       await createSchema(client);
 
-      const { tenant: firstTenant, isNew: isFirstRun } = await ensureFirstTenant(client, env);
-      if (isFirstRun) {
-        await backfillTenantId(client, firstTenant.id);
-      }
-      await seedSuperAdminIfEmpty(client, env, firstTenant.id);
       await seedSystemDeveloperIfEmpty(client, env);
 
       await client.query("SELECT pg_advisory_unlock($1)", [824928173]);

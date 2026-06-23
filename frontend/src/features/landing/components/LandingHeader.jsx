@@ -14,9 +14,6 @@ export default function LandingHeader({ language, setLanguage, t }) {
           </span>
           <span className="hidden sm:block">
             <span className="block text-lg font-black leading-none text-white">StockLedger</span>
-            <span className="mt-1 block text-[11px] font-bold uppercase tracking-[0.18em] text-slate-300">
-              stockledger.live
-            </span>
           </span>
         </a>
 

@@ -4,7 +4,7 @@ import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import AuditHistory from '../../../components/AuditHistory.jsx';
 import { downloadSheetPdf } from '../../../services/printService.js';
 import { inventoryApi } from '../../../services/inventoryApi';
-import { formatCasePiece, formatCurrency, formatDate } from '../../../utils/calculations.js';
+import { formatCasePiece, formatCurrency, formatDate, formatNumber } from '../../../utils/calculations.js';
 import { paymentStatusOf, paymentStatusTone } from '../../../models/inventoryViewData.js';
 import PurchaseReceiptPrintSheet from './PurchaseReceiptPrintSheet';
 
@@ -18,7 +18,8 @@ function Field({ label, value }) {
 }
 
 export default function PurchaseReceiptViewModal({ purchaseReceipt, onClose }) {
-  const { t } = useInventoryApp();
+  const { t, tenant } = useInventoryApp();
+  const isElectronics = (tenant?.businessType || 'ELECTRONICS') === 'ELECTRONICS';
   const items = purchaseReceipt.items || [];
   const printTargetId = `purchase-receipt-print-${purchaseReceipt.id}`;
 
@@ -51,7 +52,9 @@ export default function PurchaseReceiptViewModal({ purchaseReceipt, onClose }) {
               {items.map((item, index) => (
                 <tr key={item.id || index}>
                   <td className="px-3 py-2 font-semibold text-slate-950">{item.productName}</td>
-                  <td className="px-3 py-2 text-right">{formatCasePiece(item.quantityPieces, item.piecesPerCase)}</td>
+                  <td className="px-3 py-2 text-right">
+                    {isElectronics ? `${formatNumber(item.quantityPieces)} ${t('common.pcs')}` : formatCasePiece(item.quantityPieces, item.piecesPerCase)}
+                  </td>
                   <td className="px-3 py-2 text-right">{formatCurrency(item.purchasePrice)}</td>
                   <td className="px-3 py-2 text-right">{formatCurrency(item.lineDiscount)}</td>
                   <td className="px-3 py-2 text-right font-bold">{formatCurrency(item.lineTotal)}</td>

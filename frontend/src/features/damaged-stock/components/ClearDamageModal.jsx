@@ -2,10 +2,11 @@ import { useState } from 'react';
 import { PackageX } from 'lucide-react';
 import { Alert, Modal } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
-import { formatCasePiece, toPieces } from '../../../utils/calculations.js';
+import { formatCasePiece, formatNumber, toPieces } from '../../../utils/calculations.js';
 
 export default function ClearDamageModal({ product, onClose, onSave }) {
-  const { t } = useInventoryApp();
+  const { t, tenant } = useInventoryApp();
+  const isElectronics = (tenant?.businessType || 'ELECTRONICS') === 'ELECTRONICS';
   const [caseQty, setCaseQty] = useState(0);
   const [pieceQty, setPieceQty] = useState(0);
   const [note, setNote] = useState('');
@@ -38,18 +39,24 @@ export default function ClearDamageModal({ product, onClose, onSave }) {
         <div className="grid gap-4 rounded-xl border border-slate-200 bg-slate-50 p-4 sm:grid-cols-2">
           <div>
             <p className="text-xs font-bold uppercase text-slate-500">{t('damagedStock.damagedQty')}</p>
-            <p className="mt-1 text-lg font-bold text-slate-950">{formatCasePiece(product.damagedPieces, product.piecesPerCase)}</p>
+            <p className="mt-1 text-lg font-bold text-slate-950">
+              {isElectronics ? `${formatNumber(product.damagedPieces)} ${t('common.pcs')}` : formatCasePiece(product.damagedPieces, product.piecesPerCase)}
+            </p>
           </div>
           <div>
             <p className="text-xs font-bold uppercase text-slate-500">{t('damagedStock.afterClear')}</p>
-            <p className="mt-1 text-lg font-bold text-emerald-700">{formatCasePiece(Math.max(0, remainingDamaged), product.piecesPerCase)}</p>
+            <p className="mt-1 text-lg font-bold text-emerald-700">
+              {isElectronics ? `${formatNumber(Math.max(0, remainingDamaged))} ${t('common.pcs')}` : formatCasePiece(Math.max(0, remainingDamaged), product.piecesPerCase)}
+            </p>
           </div>
         </div>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <label className="label">{t('common.case')}</label>
-            <input className="input" type="number" min="0" value={caseQty} onChange={(event) => setCaseQty(event.target.value)} />
-          </div>
+        <div className={isElectronics ? 'grid gap-4' : 'grid gap-4 sm:grid-cols-2'}>
+          {!isElectronics ? (
+            <div>
+              <label className="label">{t('common.case')}</label>
+              <input className="input" type="number" min="0" value={caseQty} onChange={(event) => setCaseQty(event.target.value)} />
+            </div>
+          ) : null}
           <div>
             <label className="label">{t('common.piece')}</label>
             <input className="input" type="number" min="0" value={pieceQty} onChange={(event) => setPieceQty(event.target.value)} />

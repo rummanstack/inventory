@@ -5,6 +5,7 @@ import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import { cleanNumber } from '../../../utils/calculations.js';
 import { useFormState } from '../../../hooks/useFormState';
+import PhotoUploadField from '../../../components/PhotoUploadField.jsx';
 
 export default function ProductFormModal({ product, onClose, onSave }) {
   const { t, pushToast, tenant } = useInventoryApp();
@@ -118,6 +119,13 @@ export default function ProductFormModal({ product, onClose, onSave }) {
     <Modal title={isEdit ? t('products.editTitle') : t('products.addTitle')} description={t('products.modalDescription')} onClose={onClose}>
       <form className="space-y-4" onSubmit={submitForm}>
         {error ? <Alert type="error">{error}</Alert> : null}
+        <PhotoUploadField
+          label={t('products.imageUrl')}
+          value={form.imageUrl}
+          onChange={(url) => updateField('imageUrl', url)}
+          shape="square"
+          disabled={saving}
+        />
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <label className="label">{t('products.productName')}</label>
@@ -226,10 +234,6 @@ export default function ProductFormModal({ product, onClose, onSave }) {
             <label className="label">{t('products.reorderLevel')}</label>
             <input className="input" type="number" min="0" step="1" value={form.reorderLevel} onChange={(event) => updateField('reorderLevel', event.target.value)} placeholder="auto" />
             <p className="mt-1 text-xs text-slate-500">{t('products.reorderLevelHint')}</p>
-          </div>
-          <div>
-            <label className="label">{t('products.imageUrl')}</label>
-            <input className="input" value={form.imageUrl} onChange={(event) => updateField('imageUrl', event.target.value)} placeholder="https://..." />
           </div>
           <div className="sm:col-span-2">
             <label className="label">{t('products.productDescription')}</label>

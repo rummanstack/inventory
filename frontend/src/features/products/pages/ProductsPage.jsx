@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react';
-import { Boxes, Download, FileSpreadsheet, ListTree, PackagePlus, Pencil, Plus, Printer, Search, Trash2 } from 'lucide-react';
-import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
+import { useEffect, useMemo, useState } from 'react';
+import { Boxes, Download, FileSpreadsheet, ImageOff, LayoutGrid, List, ListTree, PackagePlus, Pencil, Plus, Printer, Search, Trash2 } from 'lucide-react';
+import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton, cx } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { formatCasePiece, formatCurrency, formatNumber } from '../../../utils/calculations.js';
 import ProductFormModal from '../components/ProductFormModal';
@@ -13,6 +13,7 @@ import { downloadSheetPdf } from '../../../services/printService.js';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 
 const PRODUCTS_PRINT_ID = 'products-report-print';
+const VIEW_MODE_STORAGE_KEY = 'products-view-mode';
 
 export default function ProductsPage() {
   const { productDirectory, saveProduct, deleteProduct, addStock, setOpeningStock, t, can, tenant, language } = useInventoryApp();
@@ -22,6 +23,14 @@ export default function ProductsPage() {
   const [stockModalMode, setStockModalMode] = useState('add');
   const [showCategoriesModal, setShowCategoriesModal] = useState(false);
   const [ledgerRefreshKey, setLedgerRefreshKey] = useState(0);
+  const [viewMode, setViewMode] = useState(() => {
+    if (typeof window === 'undefined') return 'list';
+    return window.localStorage.getItem(VIEW_MODE_STORAGE_KEY) === 'grid' ? 'grid' : 'list';
+  });
+
+  useEffect(() => {
+    window.localStorage.setItem(VIEW_MODE_STORAGE_KEY, viewMode);
+  }, [viewMode]);
   const canManageProducts = can('manage_products');
   const isElectronics = (tenant?.businessType || 'ELECTRONICS') === 'ELECTRONICS';
   const outOfStockCount = productDirectory.filter((product) => product.stockPieces === 0).length;
@@ -133,6 +142,26 @@ export default function ProductsPage() {
                 <option key={category.id} value={category.id}>{category.name}</option>
               ))}
             </select>
+            <div className="no-print flex shrink-0 items-center gap-1 self-start rounded-xl border border-slate-200 bg-white p-1">
+              <button
+                type="button"
+                className={cx('icon-btn', viewMode === 'list' && 'bg-slate-100 text-slate-950')}
+                title={t('products.viewList')}
+                aria-pressed={viewMode === 'list'}
+                onClick={() => setViewMode('list')}
+              >
+                <List size={16} />
+              </button>
+              <button
+                type="button"
+                className={cx('icon-btn', viewMode === 'grid' && 'bg-slate-100 text-slate-950')}
+                title={t('products.viewGrid')}
+                aria-pressed={viewMode === 'grid'}
+                onClick={() => setViewMode('grid')}
+              >
+                <LayoutGrid size={16} />
+              </button>
+            </div>
           </div>
         </div>
         {vm.loading ? (
@@ -143,6 +172,57 @@ export default function ProductsPage() {
           <div className="p-5">
             <Alert type="error">{vm.error}</Alert>
           </div>
+        ) : viewMode === 'grid' ? (
+        <div className="grid grid-cols-2 gap-4 p-5 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+          {vm.items.map((product) => (
+            <div key={product.id} className="flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white">
+              <div className="relative aspect-square w-full bg-slate-50">
+                {product.imageUrl ? (
+                  <img src={product.imageUrl} alt={product.name} className="h-full w-full object-cover" />
+                ) : (
+                  <div className="flex h-full w-full flex-col items-center justify-center gap-1 text-slate-300">
+                    <ImageOff size={28} />
+                    <span className="text-[10px] font-semibold uppercase tracking-wide">{t('products.noImage')}</span>
+                  </div>
+                )}
+                <div className="absolute left-2 top-2 flex flex-col gap-1">
+                  {product.stockPieces === 0 ? <Badge tone="rose">{t('products.outShort')}</Badge> : null}
+                  {product.stockPieces > 0 && product.stockPieces <= product.piecesPerCase ? <Badge tone="amber">{t('products.lowShort')}</Badge> : null}
+                </div>
+              </div>
+              <div className="flex flex-1 flex-col gap-2 p-3">
+                <div>
+                  <p className="font-semibold text-slate-950">{product.name}</p>
+                  <p className="text-xs text-slate-500">{product.category}</p>
+                </div>
+                <div className="mt-auto space-y-1 border-t border-slate-100 pt-2 text-sm">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-slate-500">{t('products.retailPrice')}</span>
+                    <span className="font-bold text-slate-950">{formatCurrency(product.retailPrice, language)}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-slate-500">{t('products.stock')}</span>
+                    <span className="font-semibold text-slate-950">{formatCasePiece(product.stockPieces, product.piecesPerCase, language)}</span>
+                  </div>
+                </div>
+                {canManageProducts ? (
+                  <div className="mt-1 flex items-center gap-2">
+                    <button type="button" className="btn-secondary h-8 flex-1 px-2 text-xs" onClick={() => { setStockModalMode('add'); setStockModalProduct(product); }}>
+                      <PackagePlus size={14} />
+                      {t('products.stockActions')}
+                    </button>
+                    <button type="button" className="icon-btn" title={t('common.edit')} onClick={() => setProductModal({ mode: 'edit', product })}>
+                      <Pencil size={14} />
+                    </button>
+                    <button type="button" className="icon-btn text-rose-600 hover:text-rose-700" title={t('common.delete')} onClick={async () => { const r = await deleteProduct(product); if (r.ok) vm.reload(); }}>
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          ))}
+        </div>
         ) : (
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -163,16 +243,25 @@ export default function ProductsPage() {
                 <tr key={product.id} className="hover:bg-slate-50">
                   <td className="table-cell font-black text-slate-400">{(vm.page - 1) * vm.pageSize + index + 1}</td>
                   <td className="table-cell">
-                    <div className="flex items-start gap-2">
-                      <div>
-                        <p className="font-semibold text-slate-950">{product.name}</p>
-                        <p className="text-xs text-slate-500">{product.category}</p>
+                    <div className="flex items-start gap-3">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-slate-200 bg-slate-50">
+                        {product.imageUrl ? (
+                          <img src={product.imageUrl} alt="" className="h-full w-full object-cover" />
+                        ) : (
+                          <ImageOff size={16} className="text-slate-300" />
+                        )}
                       </div>
-                      <Badge tone={product.refundable === false ? 'rose' : 'emerald'}>
-                        {product.refundable === false ? t('products.nonRefundable') : t('products.refundable')}
-                      </Badge>
-                      {product.stockPieces === 0 ? <Badge tone="rose">{t('products.outShort')}</Badge> : null}
-                      {product.stockPieces > 0 && product.stockPieces <= product.piecesPerCase ? <Badge tone="amber">{t('products.lowShort')}</Badge> : null}
+                      <div className="flex items-start gap-2">
+                        <div>
+                          <p className="font-semibold text-slate-950">{product.name}</p>
+                          <p className="text-xs text-slate-500">{product.category}</p>
+                        </div>
+                        <Badge tone={product.refundable === false ? 'rose' : 'emerald'}>
+                          {product.refundable === false ? t('products.nonRefundable') : t('products.refundable')}
+                        </Badge>
+                        {product.stockPieces === 0 ? <Badge tone="rose">{t('products.outShort')}</Badge> : null}
+                        {product.stockPieces > 0 && product.stockPieces <= product.piecesPerCase ? <Badge tone="amber">{t('products.lowShort')}</Badge> : null}
+                      </div>
                     </div>
                   </td>
                   {!isElectronics ? <td className="hidden table-cell sm:table-cell">{formatNumber(product.piecesPerCase, language)} {t('common.pcsPerCase')}</td> : null}

@@ -65,7 +65,7 @@ export class ProfitService {
           day.cost += soldPieces * cost;
         }
 
-        day.revenue -= settlement.discount + settlement.extraReturnValue;
+        day.revenue -= settlement.discount + (settlement.extraReturnValue - settlement.extraDamagedValue);
       }
 
       for (const expense of expenses) {
@@ -158,7 +158,7 @@ export class ProfitService {
           row.cost += soldPieces * cost;
         }
 
-        row.revenue -= settlement.discount + settlement.extraReturnValue;
+        row.revenue -= settlement.discount + (settlement.extraReturnValue - settlement.extraDamagedValue);
         dsrMap.set(settlement.dsrId, row);
       }
 

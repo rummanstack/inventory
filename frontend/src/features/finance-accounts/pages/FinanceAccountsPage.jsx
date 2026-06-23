@@ -28,7 +28,7 @@ export default function FinanceAccountsPage() {
 
   const cashBalance = vm.accounts.find((a) => a.type === 'CASH')?.balance || 0;
   const bankBalance = vm.accounts.find((a) => a.type === 'BANK')?.balance || 0;
-  const stockValue = productDirectory.reduce((sum, product) => sum + product.stockPieces * Number(product.purchasePrice || 0), 0);
+  const stockValue = productDirectory.reduce((sum, product) => sum + (product.stockPieces + Number(product.damagedPieces || 0)) * Number(product.purchasePrice || 0), 0);
   const dueTotal = vm.totalDsrDue + vm.totalCustomerDue;
   const totalCashPosition = cashBalance + bankBalance + stockValue + dueTotal;
 

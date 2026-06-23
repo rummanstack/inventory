@@ -96,7 +96,7 @@ export function useDashboardViewModel({ products, dsrs, today, t, language = 'en
 
   const activeDsrs = dsrs.filter((dsr) => dsr.status === 'Active').length;
   const stockUnits = products.reduce((sum, product) => sum + product.stockPieces, 0);
-  const stockValue = products.reduce((sum, product) => sum + product.stockPieces * Number(product.purchasePrice || 0), 0);
+  const stockValue = products.reduce((sum, product) => sum + (product.stockPieces + Number(product.damagedPieces || 0)) * Number(product.purchasePrice || 0), 0);
   const stockSellingValue = products.reduce((sum, product) => sum + product.stockPieces * Number(product.wholesalePrice || 0), 0);
   const expectedStockProfit = stockSellingValue - stockValue;
   const totalIssuedToday = todayIssues.reduce((sum, issue) => sum + issue.items.reduce((itemSum, item) => itemSum + item.issuedPieces, 0), 0);

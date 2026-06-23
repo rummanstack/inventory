@@ -25,6 +25,10 @@ import { logActivity } from "./shared/inventoryHelpers.js";
 
 const DATE_ERROR = "Received date must be in YYYY-MM-DD format.";
 
+function isSerialRequired(product) {
+  return product?.serial_required === true || product?.serial_required === "t";
+}
+
 export class WarrantyClaimService {
   constructor(databaseManager, { auditService } = {}) {
     this.databaseManager = databaseManager;
@@ -108,6 +112,9 @@ export class WarrantyClaimService {
     return this.databaseManager.withTransaction(async (client) => {
       const productResult = await findProductForUpdate(client, claim.productId, actor.tenantId);
       assert(productResult.rowCount > 0, "Product not found.", 404);
+      if (isSerialRequired(productResult.rows[0])) {
+        assert(claim.productSerialId, "Select the sold serial/IMEI for this product before filing a warranty claim.", 400);
+      }
 
       if (claim.productSerialId) {
         const serialResult = await findProductSerialById(client, claim.productSerialId, actor.tenantId);

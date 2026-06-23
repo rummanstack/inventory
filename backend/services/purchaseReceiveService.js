@@ -233,7 +233,15 @@ async function reconcilePurchaseItemSerials(client, { tenantId, purchaseReceiptI
       matchedPreviousIds.add(previous.id);
     }
 
-    const previousSerials = sameProduct ? (serialsByItemId.get(item.id) || []) : [];
+    const existingSerialsForItemId = serialsByItemId.get(item.id) || [];
+
+    if (!sameProduct) {
+      // New line, or this line's product changed — none of the serials currently tied to
+      // this item id can carry over to a different product.
+      toRemove.push(...existingSerialsForItemId);
+    }
+
+    const previousSerials = sameProduct ? existingSerialsForItemId : [];
     const previousValues = new Set(previousSerials.map((serial) => serial.serial_number));
     const nextValues = new Set(item.serials);
 

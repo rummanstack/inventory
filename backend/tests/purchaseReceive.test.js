@@ -158,6 +158,46 @@ test("editing an unrelated field on a serial-required purchase leaves the serial
   assert.equal(serialAfter.status, "IN_STOCK");
 });
 
+test("changing a purchase line's product removes the old product's serial instead of leaving it orphaned", async () => {
+  const productA = await createProduct(tenant.agent, { name: "Swap Widget A", serialRequired: true, purchasePrice: 40 });
+  const productB = await createProduct(tenant.agent, { name: "Swap Widget B", serialRequired: true, purchasePrice: 40 });
+  const supplier = await createSupplier(tenant.agent, { name: "Swap Supplier" });
+
+  const createResponse = await tenant.agent.post("/api/purchase-receive").send({
+    supplierId: supplier.id,
+    purchaseDate: "2026-02-01",
+    items: [{ productId: productA.id, quantityPieces: 1, purchasePrice: 40, serials: ["SN-SWAP-A"] }],
+    discount: 0,
+    paidAmount: 0,
+    paymentMethod: "CASH",
+  });
+  assert.equal(createResponse.status, 201);
+  const receipt = createResponse.body.purchaseReceipt;
+  const itemId = receipt.items[0].id;
+
+  const updateResponse = await tenant.agent.put(`/api/purchase-receive/${receipt.id}`).send({
+    supplierId: supplier.id,
+    purchaseDate: "2026-02-01",
+    items: [{ id: itemId, productId: productB.id, quantityPieces: 1, purchasePrice: 40, serials: ["SN-SWAP-B"] }],
+    discount: 0,
+    paidAmount: 0,
+    paymentMethod: "CASH",
+    reason: "Wrong product was selected",
+  });
+  assert.equal(updateResponse.status, 200);
+
+  const oldProductSerials = await tenant.agent.get("/api/product-serials").query({ productId: productA.id });
+  assert.equal(
+    oldProductSerials.body.items.find((item) => item.serialNumber === "SN-SWAP-A"),
+    undefined,
+    "the old product's serial must not be left behind once the line points at a different product",
+  );
+
+  const newSerial = await findSerialByNumber(tenant.agent, productB.id, "SN-SWAP-B");
+  assert.equal(newSerial.purchaseReceiptItemId, itemId);
+  assert.equal(newSerial.status, "IN_STOCK");
+});
+
 test("editing a purchase to drop a serial that has already been sold is rejected", async () => {
   const product = await createProduct(tenant.agent, { name: "Serial Sold Widget", serialRequired: true, purchasePrice: 40, retailPrice: 90 });
   const supplier = await createSupplier(tenant.agent, { name: "Serial Sold Supplier" });

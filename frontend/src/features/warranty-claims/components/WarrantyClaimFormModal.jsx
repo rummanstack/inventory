@@ -153,7 +153,7 @@ export default function WarrantyClaimFormModal({ claim, onClose, onSave }) {
             <p className="mt-2 text-xs font-medium text-slate-500">{t('warrantyClaims.manualProductHint')}</p>
             <select className="input mt-2" value={form.productId} onChange={(event) => { updateField('productId', event.target.value); updateField('productSerialId', ''); }}>
               <option value="">{t('warrantyClaims.selectProduct')}</option>
-              {productDirectory.map((product) => (
+              {productDirectory.filter((product) => !product.serialRequired).map((product) => (
                 <option key={product.id} value={product.id}>{product.name}</option>
               ))}
             </select>

@@ -1,3 +1,4 @@
+import { createId } from "../lib/ids.js";
 import { PRODUCT_SERIAL_STATUSES } from "../lib/productSerials.js";
 
 export function mapProductSerial(row) {
@@ -111,46 +112,57 @@ export function findProductSerialsForUpdate(client, ids, tenantId) {
   );
 }
 
-// Looks for any other non-deleted serial in this tenant sharing a serial_number/imei1/imei2
-// value with the candidate (ignoring blank values, and excluding the row being updated).
+// Looks for any other live identifier value in this tenant — serial_number, imei1, or imei2,
+// on any serial row — matching one of the candidate's values (ignoring blank values, and
+// excluding the row being updated). Checked against product_serial_identifiers rather than
+// product_serials directly so a value can't be reused across *different* identifier columns
+// either (see the unique index on that table for the DB-level half of this guarantee).
 export async function findDuplicateProductSerial(client, { tenantId, serialNumber, imei1, imei2, excludeId }) {
-  const params = [tenantId];
-  const valueConditions = [];
-
-  if (serialNumber) {
-    params.push(serialNumber);
-    valueConditions.push(`serial_number = $${params.length}`);
-  }
-  if (imei1) {
-    params.push(imei1);
-    valueConditions.push(`imei1 = $${params.length}`);
-  }
-  if (imei2) {
-    params.push(imei2);
-    valueConditions.push(`imei2 = $${params.length}`);
-  }
-
-  if (valueConditions.length === 0) {
+  const values = [serialNumber, imei1, imei2].filter(Boolean);
+  if (!values.length) {
     return null;
   }
 
+  const params = [tenantId, values];
   let excludeClause = "";
   if (excludeId) {
     params.push(excludeId);
-    excludeClause = `AND id <> $${params.length}`;
+    excludeClause = `AND psi.product_serial_id <> $${params.length}`;
   }
 
   const result = await client.query(
-    `SELECT * FROM product_serials
-     WHERE tenant_id = $1 AND deleted_at IS NULL ${excludeClause} AND (${valueConditions.join(" OR ")})
+    `SELECT ps.* FROM product_serial_identifiers psi
+     JOIN product_serials ps ON ps.id = psi.product_serial_id
+     WHERE psi.tenant_id = $1 AND psi.identifier_value = ANY($2) AND psi.deleted_at IS NULL ${excludeClause}
      LIMIT 1`,
     params,
   );
   return result.rows[0] || null;
 }
 
-export function insertProductSerial(client, serial) {
-  return client.query(
+// Replaces this serial's identifier rows to match its current serial_number/imei1/imei2 —
+// called after every insert/update so product_serial_identifiers never drifts from the
+// columns it mirrors.
+async function syncProductSerialIdentifiers(client, serial) {
+  await client.query("DELETE FROM product_serial_identifiers WHERE product_serial_id = $1", [serial.id]);
+
+  const identifiers = [
+    ["SERIAL_NUMBER", serial.serialNumber],
+    ["IMEI1", serial.imei1],
+    ["IMEI2", serial.imei2],
+  ].filter(([, value]) => value);
+
+  for (const [identifierType, identifierValue] of identifiers) {
+    await client.query(
+      `INSERT INTO product_serial_identifiers (id, tenant_id, product_serial_id, identifier_type, identifier_value)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [createId("serial-identifier"), serial.tenantId, serial.id, identifierType, identifierValue],
+    );
+  }
+}
+
+export async function insertProductSerial(client, serial) {
+  const result = await client.query(
     `WITH inserted AS (
       INSERT INTO product_serials (
         id, tenant_id, product_id, serial_number, imei1, imei2, status,
@@ -177,10 +189,13 @@ export function insertProductSerial(client, serial) {
       serial.warrantyEndDate,
     ],
   );
+
+  await syncProductSerialIdentifiers(client, serial);
+  return result;
 }
 
-export function updateProductSerial(client, serial) {
-  return client.query(
+export async function updateProductSerial(client, serial) {
+  const result = await client.query(
     `WITH updated AS (
        UPDATE product_serials
        SET serial_number = $3, imei1 = $4, imei2 = $5, status = $6,
@@ -203,32 +218,39 @@ export function updateProductSerial(client, serial) {
       serial.warrantyEndDate,
     ],
   );
+
+  await syncProductSerialIdentifiers(client, serial);
+  return result;
 }
 
-export function softDeleteProductSerial(client, id, tenantId, { deletedById, deleteReason } = {}) {
-  return client.query(
+export async function softDeleteProductSerial(client, id, tenantId, { deletedById, deleteReason } = {}) {
+  const result = await client.query(
     `UPDATE product_serials
      SET deleted_at = NOW(), deleted_by_id = $3, delete_reason = $4
      WHERE id = $1 AND tenant_id = $2 AND deleted_at IS NULL`,
     [id, tenantId, deletedById || null, deleteReason || ""],
   );
+  await client.query("UPDATE product_serial_identifiers SET deleted_at = NOW() WHERE product_serial_id = $1", [id]);
+  return result;
 }
 
 // Hard delete, used only when a purchase edit corrects a serial that was never actually
 // received (the row is being removed outright, not trashed) — callers must confirm the
-// serial is still IN_STOCK first.
+// serial is still IN_STOCK first. Its identifier rows cascade-delete with it.
 export function deleteProductSerialById(client, id, tenantId) {
   return client.query("DELETE FROM product_serials WHERE id = $1 AND tenant_id = $2", [id, tenantId]);
 }
 
-export function restoreProductSerial(client, id, tenantId) {
-  return client.query(
+export async function restoreProductSerial(client, id, tenantId) {
+  const result = await client.query(
     `UPDATE product_serials
      SET deleted_at = NULL, deleted_by_id = NULL, delete_reason = ''
      WHERE id = $1 AND tenant_id = $2 AND deleted_at IS NOT NULL
      RETURNING *`,
     [id, tenantId],
   );
+  await client.query("UPDATE product_serial_identifiers SET deleted_at = NULL WHERE product_serial_id = $1", [id]);
+  return result;
 }
 
 // Used by purchase delete/restore to keep serial rows in sync with the stock reversal

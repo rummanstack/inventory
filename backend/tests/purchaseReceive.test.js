@@ -4,6 +4,20 @@ import { getTestApp, closeTestApp } from "./helpers/testApp.js";
 import { createTenantAndAdmin, cleanupTenant } from "./helpers/fixtures.js";
 import { createProduct, createSupplier, depositCash, getCashAccount } from "./helpers/seeders.js";
 
+async function findSerialByNumber(agent, productId, serialNumber) {
+  const response = await agent.get("/api/product-serials").query({ productId });
+  assert.equal(response.status, 200);
+  const serial = response.body.items.find((item) => item.serialNumber === serialNumber);
+  assert.ok(serial, `serial ${serialNumber} should exist for product ${productId}`);
+  return serial;
+}
+
+async function getSerial(agent, serialId) {
+  const response = await agent.get(`/api/product-serials/${serialId}`);
+  assert.equal(response.status, 200);
+  return response.body;
+}
+
 let databaseManager;
 let tenant;
 
@@ -106,4 +120,142 @@ test("a purchase that would overdraw the cash account is rejected and leaves no 
 
   const cashAfter = await getCashAccount(tenant.agent);
   assert.equal(cashAfter.balance, cashBefore.balance);
+});
+
+test("editing an unrelated field on a serial-required purchase leaves the serial linked to its purchase item", async () => {
+  const product = await createProduct(tenant.agent, { name: "Serial Edit Widget", serialRequired: true, purchasePrice: 40 });
+  const supplier = await createSupplier(tenant.agent, { name: "Serial Edit Supplier" });
+
+  const createResponse = await tenant.agent.post("/api/purchase-receive").send({
+    supplierId: supplier.id,
+    purchaseDate: "2026-02-01",
+    items: [{ productId: product.id, quantityPieces: 1, purchasePrice: 40, serials: ["SN-EDIT-1"] }],
+    discount: 0,
+    paidAmount: 0,
+    paymentMethod: "CASH",
+  });
+  assert.equal(createResponse.status, 201);
+  const receipt = createResponse.body.purchaseReceipt;
+  const itemId = receipt.items[0].id;
+
+  const serialBefore = await findSerialByNumber(tenant.agent, product.id, "SN-EDIT-1");
+  assert.equal(serialBefore.purchaseReceiptItemId, itemId);
+  assert.equal(serialBefore.status, "IN_STOCK");
+
+  const updateResponse = await tenant.agent.put(`/api/purchase-receive/${receipt.id}`).send({
+    supplierId: supplier.id,
+    purchaseDate: "2026-02-01",
+    items: [{ id: itemId, productId: product.id, quantityPieces: 1, purchasePrice: 40, serials: ["SN-EDIT-1"] }],
+    discount: 5,
+    paidAmount: 0,
+    paymentMethod: "CASH",
+    reason: "Correcting discount",
+  });
+  assert.equal(updateResponse.status, 200);
+
+  const serialAfter = await getSerial(tenant.agent, serialBefore.id);
+  assert.equal(serialAfter.purchaseReceiptItemId, itemId, "serial must stay linked to the same purchase item after an unrelated edit");
+  assert.equal(serialAfter.status, "IN_STOCK");
+});
+
+test("editing a purchase to drop a serial that has already been sold is rejected", async () => {
+  const product = await createProduct(tenant.agent, { name: "Serial Sold Widget", serialRequired: true, purchasePrice: 40, retailPrice: 90 });
+  const supplier = await createSupplier(tenant.agent, { name: "Serial Sold Supplier" });
+
+  const createResponse = await tenant.agent.post("/api/purchase-receive").send({
+    supplierId: supplier.id,
+    purchaseDate: "2026-02-02",
+    items: [{ productId: product.id, quantityPieces: 2, purchasePrice: 40, serials: ["SN-SOLD-1", "SN-SOLD-2"] }],
+    discount: 0,
+    paidAmount: 0,
+    paymentMethod: "CASH",
+  });
+  assert.equal(createResponse.status, 201);
+  const receipt = createResponse.body.purchaseReceipt;
+  const itemId = receipt.items[0].id;
+  const soldSerial = await findSerialByNumber(tenant.agent, product.id, "SN-SOLD-1");
+
+  const saleResponse = await tenant.agent.post("/api/sales-invoices").send({
+    customerType: "WALK_IN",
+    saleType: "QUICK_SALE",
+    invoiceDate: "2026-02-03",
+    items: [{ productId: product.id, quantityPieces: 1, actualSalePrice: 90, serialIds: [soldSerial.id] }],
+    discount: 0,
+    paidAmount: 90,
+    paymentMethod: "CASH",
+  });
+  assert.equal(saleResponse.status, 201);
+
+  const updateResponse = await tenant.agent.put(`/api/purchase-receive/${receipt.id}`).send({
+    supplierId: supplier.id,
+    purchaseDate: "2026-02-02",
+    items: [{ id: itemId, productId: product.id, quantityPieces: 1, purchasePrice: 40, serials: ["SN-SOLD-2"] }],
+    discount: 0,
+    paidAmount: 0,
+    paymentMethod: "CASH",
+    reason: "Trying to drop a sold serial",
+  });
+  assert.equal(updateResponse.status, 400);
+  assert.match(updateResponse.body.message, /already been sold or used/);
+});
+
+test("trashing and restoring a purchase round-trips its serial rows", async () => {
+  const product = await createProduct(tenant.agent, { name: "Serial Trash Widget", serialRequired: true, purchasePrice: 40 });
+  const supplier = await createSupplier(tenant.agent, { name: "Serial Trash Supplier" });
+
+  const createResponse = await tenant.agent.post("/api/purchase-receive").send({
+    supplierId: supplier.id,
+    purchaseDate: "2026-02-04",
+    items: [{ productId: product.id, quantityPieces: 1, purchasePrice: 40, serials: ["SN-TRASH-1"] }],
+    discount: 0,
+    paidAmount: 0,
+    paymentMethod: "CASH",
+  });
+  assert.equal(createResponse.status, 201);
+  const receipt = createResponse.body.purchaseReceipt;
+  const serial = await findSerialByNumber(tenant.agent, product.id, "SN-TRASH-1");
+
+  const deleteResponse = await tenant.agent.delete(`/api/purchase-receive/${receipt.id}`).send({ reason: "test trash" });
+  assert.equal(deleteResponse.status, 200);
+
+  const afterDelete = await tenant.agent.get(`/api/product-serials/${serial.id}`);
+  assert.equal(afterDelete.status, 404, "soft-deleted serial should not be visible through the normal lookup");
+
+  const restoreResponse = await tenant.agent.post(`/api/purchase-receive/${receipt.id}/restore`);
+  assert.equal(restoreResponse.status, 200);
+
+  const afterRestore = await getSerial(tenant.agent, serial.id);
+  assert.equal(afterRestore.status, "IN_STOCK");
+});
+
+test("deleting a purchase that already sold one of its serials is rejected", async () => {
+  const product = await createProduct(tenant.agent, { name: "Serial Delete Sold Widget", serialRequired: true, purchasePrice: 40, retailPrice: 90 });
+  const supplier = await createSupplier(tenant.agent, { name: "Serial Delete Sold Supplier" });
+
+  const createResponse = await tenant.agent.post("/api/purchase-receive").send({
+    supplierId: supplier.id,
+    purchaseDate: "2026-02-05",
+    items: [{ productId: product.id, quantityPieces: 1, purchasePrice: 40, serials: ["SN-DELSOLD-1"] }],
+    discount: 0,
+    paidAmount: 0,
+    paymentMethod: "CASH",
+  });
+  assert.equal(createResponse.status, 201);
+  const receipt = createResponse.body.purchaseReceipt;
+  const serial = await findSerialByNumber(tenant.agent, product.id, "SN-DELSOLD-1");
+
+  const saleResponse = await tenant.agent.post("/api/sales-invoices").send({
+    customerType: "WALK_IN",
+    saleType: "QUICK_SALE",
+    invoiceDate: "2026-02-06",
+    items: [{ productId: product.id, quantityPieces: 1, actualSalePrice: 90, serialIds: [serial.id] }],
+    discount: 0,
+    paidAmount: 90,
+    paymentMethod: "CASH",
+  });
+  assert.equal(saleResponse.status, 201);
+
+  const deleteResponse = await tenant.agent.delete(`/api/purchase-receive/${receipt.id}`).send({ reason: "should be blocked" });
+  assert.equal(deleteResponse.status, 400);
+  assert.match(deleteResponse.body.message, /already been sold or used/);
 });

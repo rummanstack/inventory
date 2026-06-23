@@ -17,7 +17,7 @@ import { findTenantById } from "../repositories/tenantRepository.js";
 import {
   countPurchaseReceipts,
   countTrashedPurchaseReceipts,
-  deletePurchaseReceiptItems,
+  deletePurchaseReceiptItemsByIds,
   findPurchaseReceiptById,
   findPurchaseReceiptForUpdate,
   getPurchaseReceiptItems,
@@ -29,8 +29,17 @@ import {
   restorePurchaseReceipt,
   softDeletePurchaseReceipt,
   updatePurchaseReceipt,
+  updatePurchaseReceiptItem,
 } from "../repositories/purchaseReceiptRepository.js";
-import { findDuplicateProductSerial, insertProductSerial } from "../repositories/productSerialRepository.js";
+import {
+  findDuplicateProductSerial,
+  insertProductSerial,
+  findProductSerialsByPurchaseReceiptId,
+  softDeleteProductSerial,
+  restoreProductSerial,
+  deleteProductSerialById,
+} from "../repositories/productSerialRepository.js";
+import { PRODUCT_SERIAL_STATUSES } from "../lib/productSerials.js";
 import {
   logActivity,
   lockProducts,
@@ -172,6 +181,110 @@ async function insertSerialsForItems(client, items, productMap, { tenantId, purc
       serialRecord.tenantId = tenantId;
       await insertProductSerial(client, serialRecord);
     }
+  }
+}
+
+// Soft-deletes (or restores) every serial received on this purchase, used by trash/restore
+// to keep product_serials consistent with the stock reversal those actions already perform.
+async function softDeletePurchaseSerials(client, purchaseReceiptId, tenantId, actor, deleteReason) {
+  const lockedResult = await findProductSerialsByPurchaseReceiptId(client, purchaseReceiptId, tenantId);
+  for (const row of lockedResult.rows) {
+    assert(
+      row.status === PRODUCT_SERIAL_STATUSES.IN_STOCK,
+      `Cannot delete this purchase — serial/IMEI "${row.serial_number || row.imei1}" from this purchase has already been sold or used.`,
+    );
+  }
+
+  for (const row of lockedResult.rows) {
+    await softDeleteProductSerial(client, row.id, tenantId, { deletedById: actor.id, deleteReason });
+  }
+}
+
+async function restorePurchaseSerials(client, purchaseReceiptId, tenantId) {
+  const lockedResult = await findProductSerialsByPurchaseReceiptId(client, purchaseReceiptId, tenantId, { includeDeleted: true });
+  for (const row of lockedResult.rows) {
+    await restoreProductSerial(client, row.id, tenantId);
+  }
+}
+
+// On update, reconciles product_serials against the new item list directly (matched by
+// purchase_receipt_item id) instead of relying on delete-all-then-reinsert-all item
+// persistence, which would otherwise orphan every existing serial via
+// purchase_receipt_item_id's ON DELETE SET NULL — even for lines nobody touched.
+async function reconcilePurchaseItemSerials(client, { tenantId, purchaseReceiptId, previousItems, nextItems, productMap }) {
+  const lockedResult = await findProductSerialsByPurchaseReceiptId(client, purchaseReceiptId, tenantId);
+  const serialsByItemId = new Map();
+  for (const row of lockedResult.rows) {
+    const list = serialsByItemId.get(row.purchase_receipt_item_id) || [];
+    list.push(row);
+    serialsByItemId.set(row.purchase_receipt_item_id, list);
+  }
+
+  const previousById = new Map(previousItems.map((item) => [item.id, item]));
+  const matchedPreviousIds = new Set();
+  const toRemove = [];
+  const toAdd = [];
+
+  for (const item of nextItems) {
+    const product = productMap.get(item.productId);
+    const previous = previousById.get(item.id) || null;
+    const sameProduct = Boolean(previous) && previous.productId === item.productId;
+    if (previous) {
+      matchedPreviousIds.add(previous.id);
+    }
+
+    const previousSerials = sameProduct ? (serialsByItemId.get(item.id) || []) : [];
+    const previousValues = new Set(previousSerials.map((serial) => serial.serial_number));
+    const nextValues = new Set(item.serials);
+
+    toRemove.push(...previousSerials.filter((serial) => !nextValues.has(serial.serial_number)));
+
+    if (isSerialRequired(product)) {
+      assert(
+        item.serials.length === item.quantityPieces,
+        `${product.name} requires ${item.quantityPieces} serial/IMEI number(s), but ${item.serials.length} were entered.`,
+      );
+
+      const seenInItem = new Set();
+      for (const value of item.serials) {
+        assert(!seenInItem.has(value), `Serial/IMEI "${value}" was entered more than once in this purchase.`);
+        seenInItem.add(value);
+        if (!previousValues.has(value)) {
+          toAdd.push({ item, serialNumber: value });
+        }
+      }
+    }
+  }
+
+  for (const previous of previousItems) {
+    if (!matchedPreviousIds.has(previous.id)) {
+      toRemove.push(...(serialsByItemId.get(previous.id) || []));
+    }
+  }
+
+  for (const row of toRemove) {
+    assert(
+      row.status === PRODUCT_SERIAL_STATUSES.IN_STOCK,
+      `Cannot remove serial/IMEI "${row.serial_number || row.imei1}" — it has already been sold or used.`,
+    );
+  }
+
+  for (const row of toRemove) {
+    await deleteProductSerialById(client, row.id, tenantId);
+  }
+
+  for (const { item, serialNumber } of toAdd) {
+    const duplicate = await findDuplicateProductSerial(client, { tenantId, serialNumber });
+    assert(!duplicate, `Serial/IMEI "${serialNumber}" already exists in inventory.`);
+
+    const serialRecord = normalizeProductSerial({
+      productId: item.productId,
+      serialNumber,
+      purchaseReceiptId,
+      purchaseReceiptItemId: item.id,
+    });
+    serialRecord.tenantId = tenantId;
+    await insertProductSerial(client, serialRecord);
   }
 }
 
@@ -439,10 +552,11 @@ export class PurchaseReceiveService {
     base.dueAmount = base.totalAmount - base.paidAmount;
 
     const itemsResult = await client.query(
-      `SELECT product_id, quantity_pieces, purchase_price, line_discount, line_total, tax_rate, tax_amount FROM purchase_receipt_items WHERE purchase_receipt_id = $1`,
+      `SELECT id, product_id, quantity_pieces, purchase_price, line_discount, line_total, tax_rate, tax_amount FROM purchase_receipt_items WHERE purchase_receipt_id = $1`,
       [base.id],
     );
     const previousItems = itemsResult.rows.map((row) => ({
+      id: row.id,
       productId: row.product_id,
       quantityPieces: Number(row.quantity_pieces || 0),
       purchasePrice: Number(row.purchase_price || 0),
@@ -452,6 +566,14 @@ export class PurchaseReceiveService {
       taxAmount: Number(row.tax_amount || 0),
     }));
 
+    await reconcilePurchaseItemSerials(client, {
+      tenantId: actor.tenantId,
+      purchaseReceiptId: base.id,
+      previousItems,
+      nextItems: base.items,
+      productMap,
+    });
+
     await applyPurchaseInventoryDelta(client, previousItems, base.items, actor.tenantId, {
       referenceId: base.id,
       createdById: actor.id,
@@ -459,9 +581,13 @@ export class PurchaseReceiveService {
       businessDate: base.purchaseDate,
     });
 
-    await deletePurchaseReceiptItems(client, base.id);
+    const previousIds = new Set(previousItems.map((item) => item.id));
+    const nextIds = new Set(base.items.map((item) => item.id));
+    const removedItemIds = previousItems.filter((item) => !nextIds.has(item.id)).map((item) => item.id);
+    await deletePurchaseReceiptItemsByIds(client, removedItemIds);
+
     for (const item of base.items) {
-      await insertPurchaseReceiptItem(client, {
+      const itemPayload = {
         id: item.id,
         tenantId: actor.tenantId,
         purchaseReceiptId: base.id,
@@ -472,7 +598,13 @@ export class PurchaseReceiveService {
         lineTotal: item.lineTotal,
         taxRate: item.taxRate,
         taxAmount: item.taxAmount,
-      });
+      };
+
+      if (previousIds.has(item.id)) {
+        await updatePurchaseReceiptItem(client, itemPayload);
+      } else {
+        await insertPurchaseReceiptItem(client, itemPayload);
+      }
     }
 
     const updateResult = await updatePurchaseReceipt(client, { ...base, purchaseNumber: previousPurchase.purchase_number });
@@ -608,6 +740,8 @@ export class PurchaseReceiveService {
 
       await findSupplierForUpdate(client, purchase.supplier_id, actor.tenantId);
 
+      await softDeletePurchaseSerials(client, purchaseId, actor.tenantId, actor, reason);
+
       await applyPurchaseInventoryDelta(client, purchaseItems, [], actor.tenantId, {
         referenceId: purchaseId,
         createdById: actor.id,
@@ -705,6 +839,8 @@ export class PurchaseReceiveService {
       const purchaseDate = String(purchase.purchase_date).slice(0, 10);
 
       await findSupplierForUpdate(client, purchase.supplier_id, actor.tenantId);
+
+      await restorePurchaseSerials(client, purchaseId, actor.tenantId);
 
       await applyPurchaseInventoryDelta(client, [], purchaseItems, actor.tenantId, {
         referenceId: purchaseId,

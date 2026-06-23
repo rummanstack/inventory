@@ -3,6 +3,7 @@ import { normalizeIsoDate } from "../lib/dateRanges.js";
 import { parsePagination, buildPageResult } from "../lib/pagination.js";
 import { normalizeWarrantyClaim } from "../lib/normalizers.js";
 import { WARRANTY_CLAIM_STATUS_VALUES } from "../lib/warrantyClaims.js";
+import { PRODUCT_SERIAL_STATUSES } from "../lib/productSerials.js";
 import { WARRANTY_CLAIM_ACTIONS } from "../lib/auditActions.js";
 import { nextWarrantyClaimNumber } from "../lib/warrantyClaimNumber.js";
 import {
@@ -111,7 +112,21 @@ export class WarrantyClaimService {
       if (claim.productSerialId) {
         const serialResult = await findProductSerialById(client, claim.productSerialId, actor.tenantId);
         assert(serialResult.rowCount > 0, "Selected serial/IMEI record not found.", 404);
-        assert(serialResult.rows[0].product_id === claim.productId, "Selected serial/IMEI does not belong to this product.", 400);
+        const serial = serialResult.rows[0];
+        assert(serial.product_id === claim.productId, "Selected serial/IMEI does not belong to this product.", 400);
+        assert(
+          serial.status === PRODUCT_SERIAL_STATUSES.SOLD,
+          "This serial/IMEI has not been sold, so it is not eligible for a warranty claim.",
+          400,
+        );
+        if (serial.warranty_end_date) {
+          const warrantyEndDate = String(serial.warranty_end_date).slice(0, 10);
+          assert(
+            claim.receivedDate <= warrantyEndDate,
+            `The warranty period for this serial/IMEI ended on ${warrantyEndDate}.`,
+            400,
+          );
+        }
       }
 
       const year = new Date(claim.receivedDate).getUTCFullYear();

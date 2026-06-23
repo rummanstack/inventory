@@ -218,6 +218,22 @@ export function deletePurchaseReceiptItems(client, purchaseId) {
   return client.query(`DELETE FROM purchase_receipt_items WHERE purchase_receipt_id = $1`, [purchaseId]);
 }
 
+export function deletePurchaseReceiptItemsByIds(client, ids) {
+  if (!ids.length) {
+    return Promise.resolve({ rowCount: 0 });
+  }
+  return client.query(`DELETE FROM purchase_receipt_items WHERE id = ANY($1)`, [ids]);
+}
+
+export function updatePurchaseReceiptItem(client, item) {
+  return client.query(
+    `UPDATE purchase_receipt_items
+     SET product_id = $3, quantity_pieces = $4, purchase_price = $5, line_discount = $6, line_total = $7, tax_rate = $8, tax_amount = $9
+     WHERE id = $1 AND tenant_id = $2`,
+    [item.id, item.tenantId, item.productId, item.quantityPieces, item.purchasePrice, item.lineDiscount, item.lineTotal, item.taxRate, item.taxAmount],
+  );
+}
+
 export function softDeletePurchaseReceipt(client, purchaseId, tenantId, { deletedById, deleteReason } = {}) {
   return client.query(
     `UPDATE purchase_receipts

@@ -1070,6 +1070,9 @@ export async function createSchema(pool) {
     CREATE INDEX IF NOT EXISTS idx_products_brand ON products(tenant_id, brand);
     CREATE INDEX IF NOT EXISTS idx_products_status ON products(tenant_id, status);
 
+    CREATE UNIQUE INDEX IF NOT EXISTS uq_products_sku ON products(tenant_id, sku) WHERE sku <> '';
+    CREATE UNIQUE INDEX IF NOT EXISTS uq_products_barcode ON products(tenant_id, barcode) WHERE barcode <> '';
+
     -- Electronics retail: individual serial/IMEI tracking per unit (Phase 2).
     CREATE TABLE IF NOT EXISTS product_serials (
       id                        TEXT PRIMARY KEY,
@@ -1105,6 +1108,10 @@ export async function createSchema(pool) {
     CREATE INDEX IF NOT EXISTS idx_product_serials_imei1 ON product_serials(tenant_id, imei1);
     CREATE INDEX IF NOT EXISTS idx_product_serials_imei2 ON product_serials(tenant_id, imei2);
     CREATE INDEX IF NOT EXISTS idx_product_serials_sale ON product_serials(tenant_id, sales_invoice_id);
+
+    CREATE UNIQUE INDEX IF NOT EXISTS uq_product_serials_serial_number ON product_serials(tenant_id, serial_number) WHERE serial_number <> '' AND deleted_at IS NULL;
+    CREATE UNIQUE INDEX IF NOT EXISTS uq_product_serials_imei1 ON product_serials(tenant_id, imei1) WHERE imei1 <> '' AND deleted_at IS NULL;
+    CREATE UNIQUE INDEX IF NOT EXISTS uq_product_serials_imei2 ON product_serials(tenant_id, imei2) WHERE imei2 <> '' AND deleted_at IS NULL;
 
     -- Electronics retail: links sold serial/IMEI units to the sales invoice line that sold
     -- them (Phase 3). One invoice item can carry several serials (quantity > 1).

@@ -214,6 +214,35 @@ export function softDeleteProductSerial(client, id, tenantId, { deletedById, del
   );
 }
 
+// Hard delete, used only when a purchase edit corrects a serial that was never actually
+// received (the row is being removed outright, not trashed) — callers must confirm the
+// serial is still IN_STOCK first.
+export function deleteProductSerialById(client, id, tenantId) {
+  return client.query("DELETE FROM product_serials WHERE id = $1 AND tenant_id = $2", [id, tenantId]);
+}
+
+export function restoreProductSerial(client, id, tenantId) {
+  return client.query(
+    `UPDATE product_serials
+     SET deleted_at = NULL, deleted_by_id = NULL, delete_reason = ''
+     WHERE id = $1 AND tenant_id = $2 AND deleted_at IS NOT NULL
+     RETURNING *`,
+    [id, tenantId],
+  );
+}
+
+// Used by purchase delete/restore to keep serial rows in sync with the stock reversal
+// those actions already perform on the parent purchase receipt.
+export function findProductSerialsByPurchaseReceiptId(client, purchaseReceiptId, tenantId, { includeDeleted = false } = {}) {
+  const deletedClause = includeDeleted ? "ps.deleted_at IS NOT NULL" : "ps.deleted_at IS NULL";
+  return client.query(
+    `SELECT ps.* FROM product_serials ps
+     WHERE ps.purchase_receipt_id = $1 AND ps.tenant_id = $2 AND ${deletedClause}
+     FOR UPDATE`,
+    [purchaseReceiptId, tenantId],
+  );
+}
+
 export async function countTrashedProductSerials(client, tenantId) {
   const result = await client.query(
     "SELECT COUNT(*)::INTEGER AS count FROM product_serials WHERE tenant_id = $1 AND deleted_at IS NOT NULL",

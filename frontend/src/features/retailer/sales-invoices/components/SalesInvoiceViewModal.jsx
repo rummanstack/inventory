@@ -23,8 +23,8 @@ function addMonthsToDate(isoDate, months) {
   if (!isoDate || !Number(months || 0)) {
     return null;
   }
-  const date = new Date(`${isoDate}T00:00:00`);
-  date.setMonth(date.getMonth() + Number(months || 0));
+  const date = new Date(`${isoDate}T00:00:00Z`);
+  date.setUTCMonth(date.getUTCMonth() + Number(months || 0));
   return date.toISOString().slice(0, 10);
 }
 

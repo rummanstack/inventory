@@ -409,6 +409,8 @@ export function useSalesInvoiceFormViewModel({
     return {
       customerId: customerType === 'REGISTERED' ? customerId || null : null,
       customerType,
+      customerName: customerType === 'REGISTERED' ? (selectedCustomer?.name || '') : '',
+      customerPhone: customerType === 'REGISTERED' ? (selectedCustomer?.phone || '') : '',
       saleType,
       invoiceDate,
       items: taxedLineRows

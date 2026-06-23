@@ -14,7 +14,7 @@ import { getLatestCustomerDueLedgerEntry } from "../repositories/customerDueLedg
 import { listActiveRetailPromotionsForDate } from "../repositories/retailPromotionRepository.js";
 import { insertRetailLoyaltyLedgerEntry } from "../repositories/retailLoyaltyLedgerRepository.js";
 import { findProductSerialsForUpdate, updateProductSerial, mapProductSerial } from "../repositories/productSerialRepository.js";
-import { insertSalesItemSerial } from "../repositories/salesItemSerialRepository.js";
+import { insertSalesItemSerial, listSalesItemSerialsByInvoice } from "../repositories/salesItemSerialRepository.js";
 import { PRODUCT_SERIAL_STATUSES } from "../lib/productSerials.js";
 import {
   countSalesInvoices,
@@ -263,6 +263,25 @@ async function consumeSerialSelections(client, items, productMap, { tenantId, sa
         warrantyEndDate: addMonthsToIsoDate(invoiceDate, item.warrantyMonthsSnapshot),
       });
     }
+  }
+}
+
+// Flips every serial sold on this invoice between SOLD and IN_STOCK, used by trash/restore
+// to keep product_serials consistent with the stock reversal those actions already perform.
+async function flipInvoiceSerialStatuses(client, salesInvoiceId, tenantId, { fromStatus, toStatus }) {
+  const links = await listSalesItemSerialsByInvoice(client, salesInvoiceId, tenantId);
+  if (!links.length) {
+    return;
+  }
+
+  const serialIds = links.map((link) => link.productSerialId);
+  const lockedResult = await findProductSerialsForUpdate(client, serialIds, tenantId);
+  assert(lockedResult.rowCount === serialIds.length, "One or more serial/IMEI numbers linked to this invoice could not be found.");
+
+  for (const row of lockedResult.rows) {
+    assert(row.status === fromStatus, `Serial/IMEI "${row.serial_number || row.imei1}" is not currently ${fromStatus}.`);
+    const serial = mapProductSerial(row);
+    await updateProductSerial(client, { ...serial, tenantId, status: toStatus });
   }
 }
 
@@ -609,6 +628,11 @@ export class SalesInvoiceService {
         });
       }
 
+      await flipInvoiceSerialStatuses(client, invoiceId, actor.tenantId, {
+        fromStatus: PRODUCT_SERIAL_STATUSES.SOLD,
+        toStatus: PRODUCT_SERIAL_STATUSES.IN_STOCK,
+      });
+
       await softDeleteSalesInvoice(client, invoiceId, actor.tenantId, {
         deletedById: actor.id,
         deleteReason: reason,
@@ -707,6 +731,11 @@ export class SalesInvoiceService {
           `${product.name} does not have enough available stock to restore sale ${invoice.invoice_number}.`,
         );
       }
+
+      await flipInvoiceSerialStatuses(client, invoiceId, actor.tenantId, {
+        fromStatus: PRODUCT_SERIAL_STATUSES.IN_STOCK,
+        toStatus: PRODUCT_SERIAL_STATUSES.SOLD,
+      });
 
       // Restore: re-apply the same effects a fresh sale would — stock out, due back on the
       // ledger, cash back in — now that we know the stock is actually available to support it.

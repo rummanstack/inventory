@@ -131,7 +131,7 @@ function QuickSaleForm({ onSaved }) {
     products: productDirectory,
     promotions: promotionDirectory,
     retailCustomers: retailCustomerDirectory,
-    defaultSaleType: 'QUICK_SALE',
+    defaultSaleType: 'RETAIL',
     defaultCustomerType: 'WALK_IN',
     defaultTaxRate: tenant?.taxRate || 0,
     loyaltyEnabled: tenant?.loyaltyEnabled || false,

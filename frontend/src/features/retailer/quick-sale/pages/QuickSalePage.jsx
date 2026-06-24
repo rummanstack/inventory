@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Loader2, Play, Printer, Save, Square } from 'lucide-react';
 import { Alert, Modal, SectionHeader } from '../../../../components/ui.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
@@ -140,6 +140,28 @@ function QuickSaleForm({ onSaved }) {
   });
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+  const formRef = useRef(null);
+
+  useEffect(() => {
+    function handleKeyDown(event) {
+      const tag = document.activeElement?.tagName?.toLowerCase();
+      const inInput = tag === 'input' || tag === 'textarea' || tag === 'select';
+
+      // / — focus first product search (only when not already in an input)
+      if (event.key === '/' && !inInput) {
+        event.preventDefault();
+        document.querySelector('[data-role="product-search"]')?.focus();
+      }
+
+      // Ctrl+Enter — submit the sale
+      if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
+        event.preventDefault();
+        formRef.current?.requestSubmit();
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   async function submitForm(event) {
     event.preventDefault();
@@ -200,10 +222,14 @@ function QuickSaleForm({ onSaved }) {
   }
 
   return (
-    <form className="space-y-4" onSubmit={submitForm}>
+    <form ref={formRef} className="space-y-4" onSubmit={submitForm}>
       {error ? <Alert type="error">{error}</Alert> : null}
       <SalesInvoiceFormFields vm={vm} t={t} productDirectory={productDirectory} retailCustomerDirectory={retailCustomerDirectory} saving={saving} saveRetailCustomer={saveRetailCustomer} />
-      <div className="flex justify-end gap-2 pt-2">
+      <div className="flex items-center justify-between pt-2">
+        <p className="text-xs text-slate-400 select-none">
+          <kbd className="rounded border border-slate-200 bg-slate-100 px-1.5 py-0.5 font-mono text-[10px] text-slate-500">/</kbd> search &nbsp;
+          <kbd className="rounded border border-slate-200 bg-slate-100 px-1.5 py-0.5 font-mono text-[10px] text-slate-500">Ctrl+↵</kbd> submit
+        </p>
         <button type="submit" className="btn-primary" disabled={saving}>
           <Save size={18} />
           {saving ? t('common.saving') : t('retailer.quickSale.save')}
@@ -337,6 +363,18 @@ export default function QuickSalePage() {
       setSavingSession(false);
     }
   }
+
+  // Ctrl+P — reprint last receipt from anywhere on the page
+  useEffect(() => {
+    function handleKeyDown(event) {
+      if (event.key === 'p' && (event.ctrlKey || event.metaKey) && lastInvoice) {
+        event.preventDefault();
+        handlePrintReceipt();
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [lastInvoice]);
 
   const activeCashSales = session?.cashSalesAmount || 0;
   const expectedCash = session?.expectedCash || 0;

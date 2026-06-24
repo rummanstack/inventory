@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { AlertTriangle, Save, Truck } from 'lucide-react';
 import { Alert, EmptyState, SectionHeader, TableSkeleton, cx } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
@@ -5,12 +6,25 @@ import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { formatCasePiece, formatCurrency, formatNumber } from '../../../utils/calculations.js';
 import { useMorningIssueViewModel } from '../viewmodels/useMorningIssueViewModel';
 
+const autoSelect = (e) => e.target.select();
+
 export default function MorningIssuePage() {
   const { productDirectory, dsrDirectory, today, saveIssue, t, can } = useInventoryApp();
   const vm = useMorningIssueViewModel({ products: productDirectory, dsrs: dsrDirectory, today, saveIssueAction: saveIssue, t });
   const canCreateIssue = can('create_issues');
   const canUpdateIssue = can('update_issues');
   const canEditIssue = (vm.existingIssue ? canUpdateIssue : canCreateIssue) && !vm.existingSettlement;
+
+  useEffect(() => {
+    function handleKeyDown(event) {
+      if (event.key === 's' && (event.ctrlKey || event.metaKey) && canEditIssue && !vm.saving) {
+        event.preventDefault();
+        vm.saveIssue();
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [canEditIssue, vm.saving, vm.saveIssue]);
 
   return (
     <div>
@@ -84,6 +98,7 @@ export default function MorningIssuePage() {
               <button type="button" className="btn-primary" onClick={vm.saveIssue} disabled={vm.saving || !productDirectory.length || Boolean(vm.invalidRows.length) || Boolean(vm.existingSettlement)}>
                 <Save size={18} />
                 {vm.saving ? t('common.saving') : vm.existingIssue ? t('morningIssue.updateIssue') : t('morningIssue.saveIssue')}
+                <kbd className="ml-1 rounded border border-indigo-400/40 bg-indigo-500/20 px-1 py-0.5 font-mono text-[10px] text-indigo-200">Ctrl+S</kbd>
               </button>
             ) : (
               <span className="text-sm font-semibold text-slate-400">-</span>
@@ -120,10 +135,10 @@ export default function MorningIssuePage() {
                           <p className="text-xs text-slate-500">{formatNumber(row.availableStock)} {t('common.pcs')}</p>
                         </td>
                         <td className="table-cell">
-                          <input className="input h-9 w-24" type="number" min="0" value={quantity.caseQty || ''} onChange={(event) => vm.updateQuantity(row.id, 'caseQty', event.target.value)} disabled={vm.saving} />
+                          <input className="input h-9 w-24" type="number" min="0" value={quantity.caseQty || ''} onFocus={autoSelect} onChange={(event) => vm.updateQuantity(row.id, 'caseQty', event.target.value)} disabled={vm.saving} />
                         </td>
                         <td className="table-cell">
-                          <input className="input h-9 w-24" type="number" min="0" value={quantity.pieceQty || ''} onChange={(event) => vm.updateQuantity(row.id, 'pieceQty', event.target.value)} disabled={vm.saving} />
+                          <input className="input h-9 w-24" type="number" min="0" value={quantity.pieceQty || ''} onFocus={autoSelect} onChange={(event) => vm.updateQuantity(row.id, 'pieceQty', event.target.value)} disabled={vm.saving} />
                         </td>
                         <td className="table-cell">
                           <p className={cx('font-semibold', row.invalid ? 'text-rose-700' : 'text-slate-950')}>{formatCasePiece(row.issuedPieces, row.piecesPerCase)}</p>

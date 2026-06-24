@@ -31,6 +31,7 @@ import {
   ArrowLeftRight,
   AlertTriangle,
   Fingerprint,
+  Vault,
   Wrench,
 } from 'lucide-react';
 import DashboardPage from '../features/dashboard/pages/DashboardPage';
@@ -79,12 +80,14 @@ import LowStockAlertsPage from '../features/low-stock-alerts/pages/LowStockAlert
 import ProductSerialsPage from '../features/product-serials/pages/ProductSerialsPage';
 import WarrantyClaimsPage from '../features/warranty-claims/pages/WarrantyClaimsPage';
 import RepairJobsPage from '../features/repair-jobs/pages/RepairJobsPage';
+import CashSessionsPage from '../features/retailer/cash-sessions/pages/CashSessionsPage';
 
 export const APP_ROUTES = [
   { id: 'dashboard', path: '/dashboard', labelKey: 'nav.dashboard', icon: BarChart3, component: DashboardPage, group: 'overview', permission: 'view_state', feature: 'dashboard' },
 
   // Sales
   { id: 'retailer-quick-sale', path: '/retailer/quick-sale', labelKey: 'nav.retailerQuickSale', icon: ShoppingBag, component: QuickSalePage, group: 'sales', permission: 'manage_retail_quick_sale', feature: 'retailer-quick-sale' },
+  { id: 'cash-session-history', path: '/retailer/cash-sessions', labelKey: 'nav.cashSessionHistory', icon: Vault, component: CashSessionsPage, group: 'sales', permission: 'manage_retail_quick_sale', feature: 'retailer-quick-sale' },
   { id: 'retailer-sales-invoices', path: '/retailer/sales-invoices', labelKey: 'nav.retailerSalesInvoices', icon: Receipt, component: SalesInvoicesPage, group: 'sales', permission: 'manage_retail_sales_invoices', feature: 'retailer-sales-invoices' },
   { id: 'retailer-sales-return', path: '/retailer/sales-return', labelKey: 'nav.retailerSalesReturn', icon: RotateCcw, component: SalesReturnPage, group: 'sales', permission: 'manage_retail_sales_returns', feature: 'retailer-sales-return' },
   { id: 'retail-customers', path: '/retail-customers', labelKey: 'nav.retailCustomers', icon: Users, component: RetailCustomersPage, group: 'sales', permission: 'view_state', feature: 'retail-customers' },

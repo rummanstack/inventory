@@ -8,6 +8,7 @@ export function createRetailCashSessionsRoutes(retailCashSessionController) {
   router.use(requireFeature("retailer-quick-sale"));
 
   router.get("/current", requirePermission(PERMISSIONS.MANAGE_RETAIL_QUICK_SALE), retailCashSessionController.getCurrentSession);
+  router.get("/", requirePermission(PERMISSIONS.MANAGE_RETAIL_QUICK_SALE), retailCashSessionController.listSessions);
   router.post("/", requirePermission(PERMISSIONS.MANAGE_RETAIL_QUICK_SALE), retailCashSessionController.startSession);
   router.post("/:id/stop", requirePermission(PERMISSIONS.MANAGE_RETAIL_QUICK_SALE), retailCashSessionController.stopSession);
 

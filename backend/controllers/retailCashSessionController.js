@@ -27,4 +27,12 @@ export class RetailCashSessionController {
       next(error);
     }
   };
+
+  listSessions = async (req, res, next) => {
+    try {
+      res.json(await this.retailCashSessionService.listSessions(req.query, req.currentUser));
+    } catch (error) {
+      next(error);
+    }
+  };
 }

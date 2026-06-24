@@ -135,7 +135,7 @@ export default function PurchaseReceiveFormModal({ purchaseReceipt, onClose, onS
                       <div className="rounded-xl border border-dashed border-indigo-300 bg-indigo-50/60 p-3">
                         <label className="label">{t('purchaseReceive.serialsLabel')}</label>
                         <textarea
-                          className="input min-h-[80px]"
+                          className="input min-h-[120px]"
                           value={row.serialsText}
                           onChange={(event) => vm.updateItem(row.rowId, 'serialsText', event.target.value)}
                           placeholder={t('purchaseReceive.serialsPlaceholder')}

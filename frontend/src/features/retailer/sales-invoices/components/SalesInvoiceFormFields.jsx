@@ -96,7 +96,6 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, retail
           <select className="input" value={vm.saleType} onChange={(event) => vm.setSaleType(event.target.value)} disabled={saving}>
             <option value="RETAIL">{t('retailer.shared.saleTypes.RETAIL')}</option>
             <option value="WHOLESALE">{t('retailer.shared.saleTypes.WHOLESALE')}</option>
-            <option value="QUICK_SALE">{t('retailer.shared.saleTypes.QUICK_SALE')}</option>
           </select>
         </div>
         <div>

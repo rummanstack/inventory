@@ -17,6 +17,13 @@ function matchesProductQuery(product, query) {
 
 const autoSelect = (e) => e.target.select();
 
+function isLowStock(product) {
+  const threshold = product.reorderLevel !== null && product.reorderLevel !== undefined
+    ? product.reorderLevel
+    : product.piecesPerCase * 4;
+  return Number(product.stockPieces) > 0 && Number(product.stockPieces) <= threshold;
+}
+
 export default function SalesInvoiceFormFields({ vm, t, productDirectory, retailCustomerDirectory, saving, saveRetailCustomer }) {
   const [showAddCustomer, setShowAddCustomer] = useState(false);
   const [availableSerialsByProduct, setAvailableSerialsByProduct] = useState({});
@@ -119,6 +126,12 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, retail
               <option key={customer.id} value={customer.id}>{customer.name}</option>
             ))}
           </select>
+          {vm.customerType === 'REGISTERED' && vm.selectedCustomer ? (() => {
+            const due = Number(vm.selectedCustomer.totalSpent || 0) - Number(vm.selectedCustomer.totalPaid || 0);
+            return due > 0
+              ? <p className="mt-1 text-xs font-bold text-amber-600">Outstanding due: {formatCurrency(due)}</p>
+              : <p className="mt-1 text-xs font-semibold text-emerald-600">No outstanding due</p>;
+          })() : null}
           {vm.loyaltyEligible && vm.selectedCustomer ? (
             <p className="mt-1 text-xs font-semibold text-emerald-700">
               {t('retailer.shared.loyaltyBalance', { points: vm.loyaltyCustomerBalance })}
@@ -186,8 +199,15 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, retail
                                   {[product.sku && `SKU: ${product.sku}`, product.barcode && `Barcode: ${product.barcode}`].filter(Boolean).join(' · ')}
                                 </span>
                               ) : null}
-                              <span className={`text-xs font-semibold ${Number(product.stockPieces || 0) === 0 ? 'text-rose-500' : 'text-slate-400'}`}>
-                                {Number(product.stockPieces || 0)} in stock
+                              <span className={`text-xs font-semibold ${
+                                Number(product.stockPieces) === 0 ? 'text-rose-500' :
+                                isLowStock(product) ? 'text-amber-500' : 'text-slate-400'
+                              }`}>
+                                {Number(product.stockPieces) === 0
+                                  ? '⚠ Out of stock'
+                                  : isLowStock(product)
+                                    ? `⚠ Low: ${product.stockPieces} left`
+                                    : `${product.stockPieces} in stock`}
                               </span>
                             </button>
                           )) : (
@@ -195,10 +215,16 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, retail
                           )}
                         </div>
                       ) : null}
-                      <p className={`mt-1 text-xs font-semibold ${overStock ? 'text-rose-600' : 'text-slate-500'}`}>
-                        {t('retailer.shared.availableStock')}: {row.availableStock ?? 0}
-                        {overStock ? ' — exceeds stock' : ''}
-                      </p>
+                      {(() => {
+                        const selectedProduct = row.productId ? productDirectory.find((p) => p.id === row.productId) : null;
+                        const low = selectedProduct && isLowStock(selectedProduct);
+                        return (
+                          <p className={`mt-1 text-xs font-semibold ${overStock ? 'text-rose-600' : low ? 'text-amber-500' : 'text-slate-500'}`}>
+                            {t('retailer.shared.availableStock')}: {row.availableStock ?? 0}
+                            {overStock ? ' — exceeds available stock' : low ? ' — low stock' : ''}
+                          </p>
+                        );
+                      })()}
                     </div>
                     <div>
                       <label className="label">{t('retailer.shared.quantityLabel')}</label>

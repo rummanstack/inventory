@@ -130,7 +130,7 @@ function TradeInReceipt({ receipt, onClose }) {
 }
 
 export default function TradeInFormModal({ onClose, onSave }) {
-  const { t, productDirectory } = useInventoryApp();
+  const { t, productDirectory, language } = useInventoryApp();
   const today = new Date().toISOString().slice(0, 10);
 
   const { form, updateField, error, setError, saving, setSaving } = useFormState({
@@ -449,7 +449,7 @@ export default function TradeInFormModal({ onClose, onSave }) {
                           />
                         </td>
                         <td className="px-2 py-1.5 text-right font-medium text-slate-900">
-                          {lineTotal.toLocaleString()}
+                          {formatCurrency(lineTotal, language)}
                         </td>
                         <td className="px-2 py-1.5 text-center">
                           {soldItems.length > 1 && (
@@ -474,15 +474,15 @@ export default function TradeInFormModal({ onClose, onSave }) {
           <div className="grid grid-cols-3 gap-3">
             <div className="rounded-xl bg-emerald-50 border border-emerald-200 px-4 py-3 text-center">
               <p className="text-[11px] font-black uppercase tracking-[0.14em] text-emerald-500">{t('tradeIns.totalTradeInValueLabel')}</p>
-              <p className="text-lg font-bold text-emerald-700">{totalTradeInValue.toLocaleString()}</p>
+              <p className="text-lg font-bold text-emerald-700">{formatCurrency(totalTradeInValue, language)}</p>
             </div>
             <div className="rounded-xl bg-indigo-50 border border-indigo-200 px-4 py-3 text-center">
               <p className="text-[11px] font-black uppercase tracking-[0.14em] text-indigo-500">{t('tradeIns.totalSaleAmountLabel')}</p>
-              <p className="text-lg font-bold text-indigo-700">{totalSaleAmount.toLocaleString()}</p>
+              <p className="text-lg font-bold text-indigo-700">{formatCurrency(totalSaleAmount, language)}</p>
             </div>
             <div className={`rounded-xl border px-4 py-3 text-center ${paymentAmount >= 0 ? 'bg-slate-900 border-slate-900' : 'bg-amber-50 border-amber-200'}`}>
               <p className={`text-[11px] font-black uppercase tracking-[0.14em] ${paymentAmount >= 0 ? 'text-slate-400' : 'text-amber-500'}`}>{t('tradeIns.paymentAmountLabel')}</p>
-              <p className={`text-lg font-bold ${paymentAmount >= 0 ? 'text-white' : 'text-amber-700'}`}>{Math.abs(paymentAmount).toLocaleString()}{paymentAmount < 0 ? ' ← shop pays' : ''}</p>
+              <p className={`text-lg font-bold ${paymentAmount >= 0 ? 'text-white' : 'text-amber-700'}`}>{formatCurrency(Math.abs(paymentAmount), language)}{paymentAmount < 0 ? ' ← shop pays' : ''}</p>
             </div>
           </div>
 

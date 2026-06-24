@@ -9,12 +9,13 @@ import { quotationStatusTone } from '../../../models/inventoryViewData.js';
 import QuotationFormModal from '../components/QuotationFormModal';
 import QuotationViewModal from '../components/QuotationViewModal';
 import { useQuotationsViewModel } from '../viewmodels/useQuotationsViewModel';
+import { formatCurrency, formatDateHuman } from '../../../utils/calculations.js';
 
 const QUOTATION_STATUS_VALUES = ['DRAFT', 'SENT', 'ACCEPTED', 'REJECTED', 'EXPIRED', 'CONVERTED'];
 const QUOTATIONS_PRINT_ID = 'quotations-print';
 
 export default function QuotationsPage() {
-  const { saveQuotation, deleteQuotation, t, can } = useInventoryApp();
+  const { saveQuotation, deleteQuotation, t, can, language } = useInventoryApp();
   const vm = useQuotationsViewModel();
   const [formModal, setFormModal] = useState(null);
   const [viewModal, setViewModal] = useState(null);
@@ -83,7 +84,7 @@ export default function QuotationsPage() {
       q.customerName || '—',
       String(q.quoteDate || '').slice(0, 10),
       q.status,
-      Number(q.totalAmount).toLocaleString(),
+      formatCurrency(q.totalAmount, language),
     ]);
     await downloadSheetPdf({
       title: t('quotations.title'),
@@ -230,15 +231,15 @@ export default function QuotationsPage() {
                         <p className="text-xs text-slate-400">{quotation.customerPhone}</p>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-slate-600">{String(quotation.quoteDate || '').slice(0, 10)}</td>
-                    <td className="px-4 py-3 text-slate-600">{String(quotation.validUntil || '').slice(0, 10)}</td>
+                    <td className="px-4 py-3 text-slate-600">{formatDateHuman(quotation.quoteDate, language)}</td>
+                    <td className="px-4 py-3 text-slate-600">{formatDateHuman(quotation.validUntil, language)}</td>
                     <td className="px-4 py-3">
                       <Badge tone={quotationStatusTone(quotation.status)}>
                         {t(`quotations.statuses.${quotation.status}`)}
                       </Badge>
                     </td>
                     <td className="px-4 py-3 text-right font-semibold text-slate-900">
-                      {Number(quotation.totalAmount).toLocaleString()}
+                      {formatCurrency(quotation.totalAmount, language)}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-1">

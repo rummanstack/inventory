@@ -11,7 +11,7 @@ function addMonthsToDate(isoDate, months) {
   return date.toISOString().slice(0, 10);
 }
 
-export default function SalesInvoicePrintSheet({ invoice, businessName, printTarget = false, targetId, t, language = 'en' }) {
+export default function SalesInvoicePrintSheet({ invoice, businessName, businessAddress = '', businessPhone = '', businessEmail = '', printTarget = false, targetId, t, language = 'en' }) {
   const items = invoice?.items || [];
   const customerType = t(`retailer.shared.customerTypes.${invoice?.customerType}`) || invoice?.customerType;
   const saleType = t(`retailer.shared.saleTypes.${invoice?.saleType}`) || invoice?.saleType;
@@ -26,11 +26,17 @@ export default function SalesInvoicePrintSheet({ invoice, businessName, printTar
         <div className="flex items-start justify-between">
           <div>
             <h2 className="text-2xl font-black text-slate-950">{businessName}</h2>
-            <p className="mt-1 text-sm font-semibold text-slate-600">{t('retailer.salesInvoices.title')}</p>
+            {businessAddress ? <p className="mt-0.5 text-xs text-slate-500">{businessAddress}</p> : null}
+            {(businessPhone || businessEmail) ? (
+              <p className="mt-0.5 text-xs text-slate-500">
+                {[businessPhone, businessEmail].filter(Boolean).join(' · ')}
+              </p>
+            ) : null}
           </div>
-          <div className="text-right text-sm">
-            <p className="text-lg font-black text-slate-950">{invoice?.invoiceNumber}</p>
-            <p className="mt-1 text-slate-500">{t('retailer.shared.invoiceDateLabel')}: {formatDate(invoice?.invoiceDate, language)}</p>
+          <div className="text-right">
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-400">{t('retailer.salesInvoices.title')}</p>
+            <p className="mt-1 text-2xl font-black text-slate-950">{invoice?.invoiceNumber}</p>
+            <p className="mt-1 text-xs text-slate-500">{formatDate(invoice?.invoiceDate, language)}</p>
           </div>
         </div>
       </div>
@@ -163,6 +169,11 @@ export default function SalesInvoicePrintSheet({ invoice, businessName, printTar
       <div className="mt-12 flex justify-between text-[11px] font-semibold text-slate-950">
         <div className="w-36"><div className="border-t border-slate-900 pt-2">{t('retailer.shared.receiptCustomerSignature')}</div></div>
         <div className="w-36"><div className="border-t border-slate-900 pt-2 text-right">{t('retailer.shared.receiptAuthorizedBy')}</div></div>
+      </div>
+
+      <div className="mt-10 border-t border-slate-200 pt-4 text-center text-[10px] text-slate-400">
+        <p className="font-semibold">{businessName}{businessPhone ? ` · ${businessPhone}` : ''}</p>
+        <p className="mt-0.5">Thank you for your business!</p>
       </div>
     </div>
   );

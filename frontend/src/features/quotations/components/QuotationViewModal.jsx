@@ -1,14 +1,21 @@
 import { useState } from 'react';
-import { ArrowRight, RefreshCw } from 'lucide-react';
+import { ArrowRight, Printer, RefreshCw } from 'lucide-react';
 import { Alert, Badge, Modal } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { quotationStatusTone } from '../../../models/inventoryViewData.js';
+import { formatCurrency, formatDate } from '../../../utils/calculations.js';
+import QuotationPrintSheet from './QuotationPrintSheet.jsx';
 
 const PAYMENT_METHODS = ['CASH', 'CARD', 'MOBILE_BANKING', 'BANK_TRANSFER', 'CREDIT'];
 
 export default function QuotationViewModal({ quotation, onClose, onConverted }) {
-  const { t, convertQuotation } = useInventoryApp();
+  const { t, language, tenant, convertQuotation } = useInventoryApp();
+  const printId = `quotation-print-${quotation?.id || 'preview'}`;
+
+  function handlePrint() {
+    window.print();
+  }
   const [showConvert, setShowConvert] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('CASH');
   const [paidAmount, setPaidAmount] = useState(String(quotation?.totalAmount ?? 0));
@@ -39,9 +46,10 @@ export default function QuotationViewModal({ quotation, onClose, onConverted }) 
   const tone = quotationStatusTone(quotation?.status);
 
   return (
+    <>
     <Modal
       title={t('quotations.viewTitle')}
-      description={`${quotation?.quoteNumber} · ${quotation?.quoteDate}`}
+      description={`${quotation?.quoteNumber} · ${formatDate(quotation?.quoteDate, language)}`}
       onClose={onClose}
       width="max-w-2xl"
     >
@@ -51,7 +59,7 @@ export default function QuotationViewModal({ quotation, onClose, onConverted }) 
           <Badge tone={tone}>{t(`quotations.statuses.${quotation?.status}`)}</Badge>
           {quotation?.validUntil && (
             <span className="text-xs text-slate-500">
-              {t('quotations.validUntilLabel')}: {String(quotation.validUntil).slice(0, 10)}
+              {t('quotations.validUntilLabel')}: {formatDate(quotation.validUntil, language)}
             </span>
           )}
           {quotation?.convertedInvoiceNumber && (
@@ -102,9 +110,9 @@ export default function QuotationViewModal({ quotation, onClose, onConverted }) 
                 <tr key={i} className="hover:bg-slate-50">
                   <td className="px-3 py-2 font-medium text-slate-900">{item.productName}</td>
                   <td className="px-3 py-2 text-right text-slate-600">{item.quantity}</td>
-                  <td className="px-3 py-2 text-right text-slate-600">{Number(item.unitPrice).toLocaleString()}</td>
-                  <td className="px-3 py-2 text-right text-slate-400">{Number(item.discountAmount || 0) > 0 ? Number(item.discountAmount).toLocaleString() : '—'}</td>
-                  <td className="px-3 py-2 text-right font-semibold text-slate-900">{Number(item.lineTotal).toLocaleString()}</td>
+                  <td className="px-3 py-2 text-right text-slate-600">{formatCurrency(item.unitPrice, language)}</td>
+                  <td className="px-3 py-2 text-right text-slate-400">{Number(item.discountAmount || 0) > 0 ? formatCurrency(item.discountAmount, language) : '—'}</td>
+                  <td className="px-3 py-2 text-right font-semibold text-slate-900">{formatCurrency(item.lineTotal, language)}</td>
                 </tr>
               ))}
             </tbody>
@@ -116,23 +124,23 @@ export default function QuotationViewModal({ quotation, onClose, onConverted }) 
           <div className="w-64 space-y-1 text-sm">
             <div className="flex justify-between text-slate-600">
               <span>{t('quotations.subtotalLabel')}</span>
-              <span>{Number(quotation?.subtotal || 0).toLocaleString()}</span>
+              <span>{formatCurrency(quotation?.subtotal, language)}</span>
             </div>
             {Number(quotation?.discountAmount || 0) > 0 && (
               <div className="flex justify-between text-rose-600">
                 <span>{t('quotations.discountLabel')}</span>
-                <span>−{Number(quotation.discountAmount).toLocaleString()}</span>
+                <span>−{formatCurrency(quotation.discountAmount, language)}</span>
               </div>
             )}
             {Number(quotation?.taxAmount || 0) > 0 && (
               <div className="flex justify-between text-slate-600">
                 <span>{t('quotations.taxAmountLabel')} ({quotation?.taxRate}%)</span>
-                <span>{Number(quotation.taxAmount).toLocaleString()}</span>
+                <span>{formatCurrency(quotation.taxAmount, language)}</span>
               </div>
             )}
             <div className="flex justify-between font-bold text-slate-900 border-t border-slate-200 pt-1">
               <span>{t('quotations.totalLabel')}</span>
-              <span>{Number(quotation?.totalAmount || 0).toLocaleString()}</span>
+              <span>{formatCurrency(quotation?.totalAmount, language)}</span>
             </div>
           </div>
         </div>
@@ -146,8 +154,16 @@ export default function QuotationViewModal({ quotation, onClose, onConverted }) 
         )}
 
         {/* Convert section */}
-        {canConvert && !showConvert && (
-          <div className="flex justify-end">
+        <div className="flex items-center justify-between border-t border-slate-100 pt-4">
+          <button
+            type="button"
+            className="btn btn-ghost gap-1.5 text-slate-600"
+            onClick={handlePrint}
+          >
+            <Printer className="h-4 w-4" />
+            {t('common.print')}
+          </button>
+          {canConvert && !showConvert && (
             <button
               type="button"
               className="btn btn-primary"
@@ -156,8 +172,8 @@ export default function QuotationViewModal({ quotation, onClose, onConverted }) 
               <ArrowRight className="h-4 w-4" />
               {t('quotations.convertButton')}
             </button>
-          </div>
-        )}
+          )}
+        </div>
 
         {canConvert && showConvert && (
           <div className="rounded-xl border border-indigo-200 bg-indigo-50 p-4 space-y-4">
@@ -205,5 +221,20 @@ export default function QuotationViewModal({ quotation, onClose, onConverted }) 
         )}
       </div>
     </Modal>
+
+    <div className="absolute -left-[10000px] top-0">
+      <QuotationPrintSheet
+        quotation={quotation}
+        businessName={tenant?.name || ''}
+        businessAddress={tenant?.address || ''}
+        businessPhone={tenant?.phone || ''}
+        businessEmail={tenant?.email || ''}
+        printTarget
+        targetId={printId}
+        t={t}
+        language={language}
+      />
+    </div>
+    </>
   );
 }

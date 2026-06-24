@@ -1,9 +1,10 @@
 import { Badge, Modal } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { tradeInConditionTone } from '../../../models/inventoryViewData.js';
+import { formatCurrency, formatDate } from '../../../utils/calculations.js';
 
 export default function TradeInViewModal({ tradeIn, onClose }) {
-  const { t } = useInventoryApp();
+  const { t, language } = useInventoryApp();
 
   const received = tradeIn?.receivedItems || [];
   const sold = tradeIn?.soldItems || [];
@@ -64,7 +65,7 @@ export default function TradeInViewModal({ tradeIn, onClose }) {
                       </Badge>
                     </td>
                     <td className="px-3 py-2 text-right text-slate-600">{item.quantity}</td>
-                    <td className="px-3 py-2 text-right font-semibold text-emerald-700">{Number(item.tradeInValue).toLocaleString()}</td>
+                    <td className="px-3 py-2 text-right font-semibold text-emerald-700">{formatCurrency(item.tradeInValue, language)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -90,8 +91,8 @@ export default function TradeInViewModal({ tradeIn, onClose }) {
                   <tr key={i} className="hover:bg-indigo-50">
                     <td className="px-3 py-2 font-medium text-slate-900">{item.productName}</td>
                     <td className="px-3 py-2 text-right text-slate-600">{item.quantity}</td>
-                    <td className="px-3 py-2 text-right text-slate-600">{Number(item.unitPrice).toLocaleString()}</td>
-                    <td className="px-3 py-2 text-right font-semibold text-indigo-700">{Number(item.lineTotal).toLocaleString()}</td>
+                    <td className="px-3 py-2 text-right text-slate-600">{formatCurrency(item.unitPrice, language)}</td>
+                    <td className="px-3 py-2 text-right font-semibold text-indigo-700">{formatCurrency(item.lineTotal, language)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -103,15 +104,15 @@ export default function TradeInViewModal({ tradeIn, onClose }) {
         <div className="grid grid-cols-3 gap-3">
           <div className="rounded-xl bg-emerald-50 border border-emerald-200 px-4 py-3 text-center">
             <p className="text-[11px] font-black uppercase tracking-[0.14em] text-emerald-500">{t('tradeIns.totalTradeInValueLabel')}</p>
-            <p className="text-lg font-bold text-emerald-700">{Number(tradeIn?.totalTradeInValue || 0).toLocaleString()}</p>
+            <p className="text-lg font-bold text-emerald-700">{formatCurrency(tradeIn?.totalTradeInValue, language)}</p>
           </div>
           <div className="rounded-xl bg-indigo-50 border border-indigo-200 px-4 py-3 text-center">
             <p className="text-[11px] font-black uppercase tracking-[0.14em] text-indigo-500">{t('tradeIns.totalSaleAmountLabel')}</p>
-            <p className="text-lg font-bold text-indigo-700">{Number(tradeIn?.totalSaleAmount || 0).toLocaleString()}</p>
+            <p className="text-lg font-bold text-indigo-700">{formatCurrency(tradeIn?.totalSaleAmount, language)}</p>
           </div>
           <div className={`rounded-xl border px-4 py-3 text-center ${paymentAmount >= 0 ? 'bg-slate-900 border-slate-900' : 'bg-amber-50 border-amber-200'}`}>
             <p className={`text-[11px] font-black uppercase tracking-[0.14em] ${paymentAmount >= 0 ? 'text-slate-400' : 'text-amber-500'}`}>{t('tradeIns.paymentAmountLabel')}</p>
-            <p className={`text-lg font-bold ${paymentAmount >= 0 ? 'text-white' : 'text-amber-700'}`}>{Math.abs(paymentAmount).toLocaleString()}</p>
+            <p className={`text-lg font-bold ${paymentAmount >= 0 ? 'text-white' : 'text-amber-700'}`}>{formatCurrency(Math.abs(paymentAmount), language)}</p>
           </div>
         </div>
 

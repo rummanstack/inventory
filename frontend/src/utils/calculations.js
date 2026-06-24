@@ -60,6 +60,35 @@ export function todayISO() {
   return local.toISOString().slice(0, 10);
 }
 
+export function formatDateHuman(date, language = getPreferredLanguage()) {
+  if (!date) return '';
+
+  const value = date instanceof Date
+    ? date
+    : new Date(typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date) ? `${date}T00:00:00` : date);
+
+  if (Number.isNaN(value.getTime())) return '';
+
+  const now = new Date();
+  const localToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const localValue = new Date(value.getFullYear(), value.getMonth(), value.getDate());
+  const diffDays = Math.round((localToday.getTime() - localValue.getTime()) / 86400000);
+
+  const locale = getLocale(language);
+
+  if (diffDays === 0) return language === 'bn' ? 'আজ' : 'Today';
+  if (diffDays === 1) return language === 'bn' ? 'গতকাল' : 'Yesterday';
+  if (diffDays >= 2 && diffDays <= 6) {
+    return new Intl.DateTimeFormat(locale, { weekday: 'long' }).format(value);
+  }
+
+  if (value.getFullYear() === now.getFullYear()) {
+    return new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short' }).format(value);
+  }
+
+  return new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short', year: 'numeric' }).format(value);
+}
+
 export function formatDate(date, language = getPreferredLanguage()) {
   if (!date) return '';
 

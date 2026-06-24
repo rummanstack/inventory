@@ -8,11 +8,12 @@ import { downloadSheetPdf } from '../../../services/printService.js';
 import TradeInFormModal from '../components/TradeInFormModal';
 import TradeInViewModal from '../components/TradeInViewModal';
 import { useTradeInsViewModel } from '../viewmodels/useTradeInsViewModel';
+import { formatCurrency, formatDateHuman } from '../../../utils/calculations.js';
 
 const TRADEIN_PRINT_ID = 'trade-ins-print';
 
 export default function TradeInsPage() {
-  const { saveTradeIn, deleteTradeIn, t, can } = useInventoryApp();
+  const { saveTradeIn, deleteTradeIn, t, can, language } = useInventoryApp();
   const vm = useTradeInsViewModel();
   const [showForm, setShowForm] = useState(false);
   const [viewModal, setViewModal] = useState(null);
@@ -77,9 +78,9 @@ export default function TradeInsPage() {
         tr.tradeInNumber,
         tr.customerName || '—',
         String(tr.tradeInDate || '').slice(0, 10),
-        Number(tr.totalTradeInValue).toLocaleString(),
-        Number(tr.totalSaleAmount).toLocaleString(),
-        Number(tr.paymentAmount).toLocaleString(),
+        formatCurrency(tr.totalTradeInValue, language),
+        formatCurrency(tr.totalSaleAmount, language),
+        formatCurrency(tr.paymentAmount, language),
       ]),
       filename: `${t('tradeIns.sheetName')}.pdf`,
     });
@@ -210,16 +211,16 @@ export default function TradeInsPage() {
                           <p className="text-xs text-slate-400">{tradeIn.customerPhone}</p>
                         )}
                       </td>
-                      <td className="px-4 py-3 text-slate-600">{String(tradeIn.tradeInDate || '').slice(0, 10)}</td>
+                      <td className="px-4 py-3 text-slate-600">{formatDateHuman(tradeIn.tradeInDate, language)}</td>
                       <td className="px-4 py-3 text-right text-emerald-700 font-medium">
-                        {Number(tradeIn.totalTradeInValue).toLocaleString()}
+                        {formatCurrency(tradeIn.totalTradeInValue, language)}
                       </td>
                       <td className="px-4 py-3 text-right text-indigo-700 font-medium">
-                        {Number(tradeIn.totalSaleAmount).toLocaleString()}
+                        {formatCurrency(tradeIn.totalSaleAmount, language)}
                       </td>
                       <td className="px-4 py-3 text-right">
                         <span className={`font-semibold ${payment < 0 ? 'text-amber-600' : 'text-slate-900'}`}>
-                          {payment < 0 ? '←' : ''} {Math.abs(payment).toLocaleString()}
+                          {payment < 0 ? '← ' : ''}{formatCurrency(Math.abs(payment), language)}
                         </span>
                       </td>
                       <td className="px-4 py-3">

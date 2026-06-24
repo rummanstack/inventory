@@ -114,3 +114,9 @@ export const WARRANTY_CLAIM_ACTIONS = {
   UPDATE: "warranty_claim.update",
   DELETE: "warranty_claim.delete",
 };
+
+export const REPAIR_JOB_ACTIONS = {
+  CREATE: "repair_job.create",
+  UPDATE: "repair_job.update",
+  DELETE: "repair_job.delete",
+};

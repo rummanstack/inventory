@@ -1308,4 +1308,47 @@ export async function createSchema(pool) {
       END LOOP;
     END $$;
   `);
+
+  await client.query(`
+    CREATE TABLE IF NOT EXISTS repair_job_counters (
+      tenant_id  TEXT NOT NULL REFERENCES tenants(id),
+      year       INTEGER NOT NULL,
+      last_value INTEGER NOT NULL DEFAULT 0,
+      PRIMARY KEY (tenant_id, year)
+    );
+
+    CREATE TABLE IF NOT EXISTS repair_jobs (
+      id                  TEXT PRIMARY KEY,
+      tenant_id           TEXT NOT NULL REFERENCES tenants(id),
+      job_number          TEXT NOT NULL,
+      customer_name       TEXT NOT NULL DEFAULT '',
+      customer_phone      TEXT NOT NULL DEFAULT '',
+      product_id          TEXT REFERENCES products(id) ON DELETE SET NULL,
+      serial_number       TEXT NOT NULL DEFAULT '',
+      problem_description TEXT NOT NULL DEFAULT '',
+      estimated_cost      NUMERIC NOT NULL DEFAULT 0,
+      labor_cost          NUMERIC NOT NULL DEFAULT 0,
+      actual_cost         NUMERIC NOT NULL DEFAULT 0,
+      parts_used          TEXT NOT NULL DEFAULT '',
+      technician_id       TEXT REFERENCES users(id) ON DELETE SET NULL,
+      status              TEXT NOT NULL DEFAULT 'RECEIVED',
+      approval_status     TEXT NOT NULL DEFAULT 'PENDING',
+      received_date       DATE NOT NULL DEFAULT CURRENT_DATE,
+      promised_date       DATE,
+      delivered_date      DATE,
+      resolution_note     TEXT NOT NULL DEFAULT '',
+      created_by          TEXT REFERENCES users(id) ON DELETE SET NULL,
+      created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      deleted_at          TIMESTAMPTZ,
+      deleted_by_id       TEXT REFERENCES users(id) ON DELETE SET NULL,
+      delete_reason       TEXT NOT NULL DEFAULT '',
+      UNIQUE (tenant_id, job_number)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_repair_jobs_tenant_status ON repair_jobs(tenant_id, status);
+    CREATE INDEX IF NOT EXISTS idx_repair_jobs_tenant_technician ON repair_jobs(tenant_id, technician_id);
+    CREATE INDEX IF NOT EXISTS idx_repair_jobs_date ON repair_jobs(tenant_id, received_date DESC);
+    CREATE INDEX IF NOT EXISTS idx_repair_jobs_deleted ON repair_jobs(tenant_id, deleted_at);
+  `);
 }

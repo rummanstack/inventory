@@ -231,6 +231,23 @@ export function warrantyClaimStatusTone(status) {
   return 'slate';
 }
 
+export function repairJobStatusTone(status) {
+  if (status === 'RECEIVED') return 'slate';
+  if (status === 'DIAGNOSING') return 'amber';
+  if (status === 'AWAITING_PARTS') return 'orange';
+  if (status === 'IN_REPAIR') return 'blue';
+  if (status === 'READY') return 'emerald';
+  if (status === 'DELIVERED') return 'green';
+  if (status === 'CANCELLED') return 'rose';
+  return 'slate';
+}
+
+export function repairJobApprovalTone(approvalStatus) {
+  if (approvalStatus === 'APPROVED') return 'emerald';
+  if (approvalStatus === 'DECLINED') return 'rose';
+  return 'amber';
+}
+
 export function shortDate(date, language = getPreferredLanguage()) {
   if (!date) return '-';
   return new Intl.DateTimeFormat(language === 'bn' ? 'bn-BD' : 'en-US', { month: 'short', day: 'numeric' }).format(new Date(`${date}T00:00:00`));

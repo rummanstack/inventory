@@ -14,6 +14,7 @@ import { CategoryController } from "../controllers/categoryController.js";
 import { StockMovementController } from "../controllers/stockMovementController.js";
 import { ProductSerialController } from "../controllers/productSerialController.js";
 import { WarrantyClaimController } from "../controllers/warrantyClaimController.js";
+import { RepairJobController } from "../controllers/repairJobController.js";
 import { DsrDueLedgerController } from "../controllers/dsrDueLedgerController.js";
 import { CustomerController } from "../controllers/customerController.js";
 import { RetailCustomerController } from "../controllers/retailCustomerController.js";
@@ -48,6 +49,7 @@ import { createCategoriesRoutes } from "./categories.routes.js";
 import { createStockMovementsRoutes } from "./stockMovements.routes.js";
 import { createProductSerialsRoutes } from "./productSerials.routes.js";
 import { createWarrantyClaimsRoutes } from "./warrantyClaims.routes.js";
+import { createRepairJobsRoutes } from "./repairJobs.routes.js";
 import { createDsrDueLedgerRoutes } from "./dsrDueLedger.routes.js";
 import { createDsrsRoutes } from "./dsrs.routes.js";
 import { createCustomersRoutes } from "./customers.routes.js";
@@ -102,6 +104,7 @@ export function createApiRouter({
   stockMovementService,
   productSerialService,
   warrantyClaimService,
+  repairJobService,
   dsrDueLedgerService,
   customerService,
   databaseManager,
@@ -134,6 +137,7 @@ export function createApiRouter({
   const stockMovementController = new StockMovementController(stockMovementService);
   const productSerialController = new ProductSerialController(productSerialService);
   const warrantyClaimController = new WarrantyClaimController(warrantyClaimService);
+  const repairJobController = new RepairJobController(repairJobService);
   const dsrDueLedgerController = new DsrDueLedgerController(dsrDueLedgerService);
   const dsrController = new DsrController(dsrService);
   const customerController = new CustomerController(customerService);
@@ -213,6 +217,7 @@ export function createApiRouter({
   router.use("/stock-movements", createStockMovementsRoutes(stockMovementController));
   router.use("/product-serials", createProductSerialsRoutes(productSerialController));
   router.use("/warranty-claims", createWarrantyClaimsRoutes(warrantyClaimController));
+  router.use("/repair-jobs", createRepairJobsRoutes(repairJobController));
   router.use("/dsr-due-ledger", createDsrDueLedgerRoutes(dsrDueLedgerController));
   router.use("/dsrs", createDsrsRoutes(dsrController));
   router.use("/customers", createCustomersRoutes(customerController));

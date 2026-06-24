@@ -1,6 +1,12 @@
 import { createId } from "./ids.js";
 import { PRODUCT_SERIAL_STATUS_VALUES, PRODUCT_SERIAL_STATUSES } from "./productSerials.js";
 import { WARRANTY_CLAIM_STATUS_VALUES, WARRANTY_CLAIM_STATUSES } from "./warrantyClaims.js";
+import {
+  REPAIR_JOB_STATUS_VALUES,
+  REPAIR_JOB_STATUSES,
+  REPAIR_JOB_APPROVAL_STATUS_VALUES,
+  REPAIR_JOB_APPROVAL_STATUSES,
+} from "./repairJobs.js";
 
 export function cleanInteger(value) {
   const parsed = Number(value);
@@ -496,6 +502,38 @@ export function normalizeCustomerPayment(input) {
     amount: Math.max(0, cleanMoney(input.amount)),
     paymentMethod: String(input.paymentMethod || "CASH").trim().toUpperCase() || "CASH",
     note: String(input.note || "").trim(),
+  };
+}
+
+export function normalizeRepairJob(input) {
+  const status = REPAIR_JOB_STATUS_VALUES.includes(String(input.status || "").trim().toUpperCase())
+    ? String(input.status).trim().toUpperCase()
+    : REPAIR_JOB_STATUSES.RECEIVED;
+
+  const approvalStatus = REPAIR_JOB_APPROVAL_STATUS_VALUES.includes(
+    String(input.approvalStatus || "").trim().toUpperCase(),
+  )
+    ? String(input.approvalStatus).trim().toUpperCase()
+    : REPAIR_JOB_APPROVAL_STATUSES.PENDING;
+
+  return {
+    id: input.id || createId("repair-job"),
+    customerName: String(input.customerName || "").trim(),
+    customerPhone: String(input.customerPhone || "").trim(),
+    productId: String(input.productId || "").trim() || null,
+    serialNumber: String(input.serialNumber || "").trim(),
+    problemDescription: String(input.problemDescription || "").trim(),
+    estimatedCost: Math.max(0, cleanMoney(input.estimatedCost)),
+    laborCost: Math.max(0, cleanMoney(input.laborCost)),
+    actualCost: Math.max(0, cleanMoney(input.actualCost)),
+    partsUsed: String(input.partsUsed || "").trim(),
+    technicianId: String(input.technicianId || "").trim() || null,
+    status,
+    approvalStatus,
+    receivedDate: String(input.receivedDate || "").trim(),
+    promisedDate: String(input.promisedDate || "").trim() || null,
+    deliveredDate: String(input.deliveredDate || "").trim() || null,
+    resolutionNote: String(input.resolutionNote || "").trim(),
   };
 }
 

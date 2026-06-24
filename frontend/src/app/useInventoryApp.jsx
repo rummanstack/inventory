@@ -521,6 +521,44 @@ export function InventoryAppProvider({ children }) {
     }
   }
 
+  async function saveRepairJob(job) {
+    try {
+      const result = job.id ? await inventoryApi.updateRepairJob(job) : await inventoryApi.createRepairJob(job);
+      pushToast('success', job.id ? t('repairJobs.editTitle') : t('repairJobs.addTitle'), job.id ? t('alerts.updated') : t('alerts.created'));
+      return { ok: true, job: result };
+    } catch (error) {
+      const message = getFriendlyError(error, t);
+      pushToast('error', t('alerts.requestFailed'), message);
+      return { ok: false, message };
+    }
+  }
+
+  async function deleteRepairJob(job) {
+    const confirmMessage = t('repairJobs.deleteConfirm', { number: job.jobNumber });
+    const { confirmed, reason } = await confirm({
+      title: t('repairJobs.deleteTitle'),
+      description: interpolateConfirm(confirmMessage, { number: job.jobNumber }),
+      confirmLabel: t('common.delete'),
+      tone: 'rose',
+      requireReason: true,
+      reasonLabel: t('common.deleteReasonLabel'),
+      reasonPlaceholder: t('common.deleteReasonPlaceholder'),
+    });
+    if (!confirmed) {
+      return { ok: false };
+    }
+
+    try {
+      await inventoryApi.deleteRepairJob(job.id, reason);
+      pushToast('success', t('common.delete'), `${job.jobNumber} ${t('alerts.deleted')}`);
+      return { ok: true };
+    } catch (error) {
+      const message = getFriendlyError(error, t);
+      pushToast('error', t('alerts.deleteFailed'), message);
+      return { ok: false, message };
+    }
+  }
+
   async function savePurchaseReceipt(purchaseReceipt) {
     try {
       const result = purchaseReceipt.id ? await inventoryApi.updatePurchaseReceipt(purchaseReceipt) : await inventoryApi.createPurchaseReceipt(purchaseReceipt);
@@ -1050,6 +1088,8 @@ export function InventoryAppProvider({ children }) {
       deleteProductSerial,
       saveWarrantyClaim,
       deleteWarrantyClaim,
+      saveRepairJob,
+      deleteRepairJob,
       savePurchaseReceipt,
       deletePurchaseReceipt,
       restorePurchaseReceipt,

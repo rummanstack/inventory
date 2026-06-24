@@ -45,4 +45,5 @@ export const TENANT_FEATURES = [
   "low-stock-alerts",
   "product-serials",
   "warranty-claims",
+  "repair-jobs",
 ];

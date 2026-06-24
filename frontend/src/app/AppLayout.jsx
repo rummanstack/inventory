@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { HelpCircle } from 'lucide-react';
 import { Alert, ConfirmationDialog, PageLoadingState, ToastViewport } from '../components/ui';
 import { useInventoryApp } from './useInventoryApp.jsx';
 import AppSidebar from './AppSidebar';
@@ -9,6 +10,7 @@ import TopHeader from './TopHeader';
 
 export default function AppLayout() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
   const { today, user, tenant, tenantOptions, switchTenant, loading, loadError, toasts, dismissToast, logout, t, language, setLanguage, can, hasFeature, confirmation, closeConfirmation, productDirectory } = useInventoryApp();
 
@@ -47,6 +49,15 @@ export default function AppLayout() {
         onCancel={() => closeConfirmation(false)}
       />
       {user?.mustChangePassword ? <MustChangePasswordModal /> : null}
+      {location.pathname !== '/help-desk' && (
+        <button
+          onClick={() => navigate('/help-desk')}
+          className="fixed bottom-6 right-6 z-50 flex h-13 w-13 items-center justify-center rounded-full bg-indigo-600 text-white shadow-lg hover:bg-indigo-700 active:scale-95 transition-all"
+          title={t('nav.helpDesk')}
+        >
+          <HelpCircle className="h-6 w-6" />
+        </button>
+      )}
     </div>
   );
 }

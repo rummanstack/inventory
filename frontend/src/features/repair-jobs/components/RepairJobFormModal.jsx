@@ -10,12 +10,12 @@ const JOB_STATUS_VALUES = ['RECEIVED', 'DIAGNOSING', 'AWAITING_PARTS', 'IN_REPAI
 const APPROVAL_STATUS_VALUES = ['PENDING', 'APPROVED', 'DECLINED'];
 
 export default function RepairJobFormModal({ job, onClose, onSave }) {
-  const { t, productDirectory } = useInventoryApp();
+  const { t } = useInventoryApp();
   const isEdit = Boolean(job);
   const { form, updateField, error, setError, saving, setSaving } = useFormState({
     customerName: job?.customerName || '',
     customerPhone: job?.customerPhone || '',
-    productId: job?.productId || '',
+    deviceName: job?.deviceName || '',
     serialNumber: job?.serialNumber || '',
     problemDescription: job?.problemDescription || '',
     estimatedCost: job?.estimatedCost ?? '',
@@ -71,7 +71,7 @@ export default function RepairJobFormModal({ job, onClose, onSave }) {
       : {
           customerName: form.customerName.trim(),
           customerPhone: form.customerPhone.trim(),
-          productId: form.productId || null,
+          deviceName: form.deviceName.trim(),
           serialNumber: form.serialNumber.trim(),
           problemDescription: form.problemDescription.trim(),
           estimatedCost: form.estimatedCost === '' ? 0 : Number(form.estimatedCost),
@@ -136,13 +136,13 @@ export default function RepairJobFormModal({ job, onClose, onSave }) {
               />
             </div>
             <div>
-              <label className="label">{t('products.product')}</label>
-              <select className="input" value={form.productId} onChange={(event) => updateField('productId', event.target.value)}>
-                <option value="">— {t('products.product')} —</option>
-                {productDirectory.map((product) => (
-                  <option key={product.id} value={product.id}>{product.name}</option>
-                ))}
-              </select>
+              <label className="label">{t('repairJobs.deviceNameLabel')}</label>
+              <input
+                className="input"
+                value={form.deviceName}
+                onChange={(event) => updateField('deviceName', event.target.value)}
+                placeholder="e.g. iPhone 13, Samsung A54"
+              />
             </div>
             <div>
               <label className="label">{t('repairJobs.serialLabel')}</label>

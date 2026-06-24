@@ -707,6 +707,7 @@ const en = {
       customerLabel: 'Customer',
       customerNameLabel: 'Customer Name',
       customerPhoneLabel: 'Customer Phone',
+      deviceNameLabel: 'Device / Product',
       serialLabel: 'Serial / IMEI',
       statusLabel: 'Status',
       approvalStatusLabel: 'Approval',

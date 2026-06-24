@@ -524,6 +524,7 @@ export function normalizeRepairJob(input) {
     id: input.id || createId("repair-job"),
     customerName: String(input.customerName || "").trim(),
     customerPhone: String(input.customerPhone || "").trim(),
+    deviceName: String(input.deviceName || "").trim(),
     productId: String(input.productId || "").trim() || null,
     serialNumber: String(input.serialNumber || "").trim(),
     problemDescription: String(input.problemDescription || "").trim(),

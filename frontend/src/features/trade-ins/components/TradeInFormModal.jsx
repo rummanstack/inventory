@@ -62,8 +62,8 @@ function TradeInReceipt({ receipt, onClose }) {
         <p className="mb-2 text-xs font-black uppercase tracking-[0.14em] text-slate-400">Devices Taken In</p>
         <div className="overflow-hidden rounded-xl border border-emerald-200">
           <table className="w-full text-sm">
-            <thead className="bg-emerald-50">
-              <tr className="text-left text-[11px] font-black uppercase tracking-[0.12em] text-emerald-600">
+            <thead className="bg-emerald-50 text-left text-[11px] font-black uppercase tracking-[0.14em] text-emerald-600">
+              <tr>
                 <th className="px-3 py-2">Device</th>
                 <th className="px-3 py-2">Serial</th>
                 <th className="px-3 py-2">Condition</th>
@@ -90,8 +90,8 @@ function TradeInReceipt({ receipt, onClose }) {
         <p className="mb-2 text-xs font-black uppercase tracking-[0.14em] text-slate-400">Devices Sold</p>
         <div className="overflow-hidden rounded-xl border border-indigo-200">
           <table className="w-full text-sm">
-            <thead className="bg-indigo-50">
-              <tr className="text-left text-[11px] font-black uppercase tracking-[0.12em] text-indigo-600">
+            <thead className="bg-indigo-50 text-left text-[11px] font-black uppercase tracking-[0.14em] text-indigo-600">
+              <tr>
                 <th className="px-3 py-2">Device</th>
                 <th className="px-3 py-2 text-right">Qty</th>
                 <th className="px-3 py-2 text-right">Unit Price</th>

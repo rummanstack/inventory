@@ -5,15 +5,15 @@ export default function TenantsTable({ tenants, togglingId, t, onEdit, onFeature
   return (
     <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-soft">
       <table className="w-full text-sm">
-        <thead>
-          <tr className="border-b border-slate-200 bg-slate-50">
-            <th className="px-4 py-3 text-left text-xs font-black uppercase tracking-wider text-slate-500">{t('organizations.table.organization')}</th>
-            <th className="px-4 py-3 text-left text-xs font-black uppercase tracking-wider text-slate-500">{t('organizations.table.code')}</th>
-            <th className="px-4 py-3 text-left text-xs font-black uppercase tracking-wider text-slate-500">{t('organizations.table.plan')}</th>
-            <th className="px-4 py-3 text-left text-xs font-black uppercase tracking-wider text-slate-500">{t('organizations.table.status')}</th>
-            <th className="px-4 py-3 text-right text-xs font-black uppercase tracking-wider text-slate-500">{t('organizations.table.edit')}</th>
-            <th className="px-4 py-3 text-right text-xs font-black uppercase tracking-wider text-slate-500">{t('organizations.table.features')}</th>
-            <th className="px-4 py-3 text-right text-xs font-black uppercase tracking-wider text-slate-500">{t('organizations.table.toggle')}</th>
+        <thead className="table-head">
+          <tr className="border-b border-slate-200">
+            <th className="px-4 py-3">{t('organizations.table.organization')}</th>
+            <th className="px-4 py-3">{t('organizations.table.code')}</th>
+            <th className="px-4 py-3">{t('organizations.table.plan')}</th>
+            <th className="px-4 py-3">{t('organizations.table.status')}</th>
+            <th className="px-4 py-3 text-right">{t('organizations.table.edit')}</th>
+            <th className="px-4 py-3 text-right">{t('organizations.table.features')}</th>
+            <th className="px-4 py-3 text-right">{t('organizations.table.toggle')}</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-100">

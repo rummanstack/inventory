@@ -154,7 +154,10 @@ export default function WarrantyClaimsPage() {
             <tbody className="divide-y divide-slate-100">
               {vm.items.map((claim) => (
                 <tr key={claim.id} className="hover:bg-slate-50">
-                  <td className="table-cell font-semibold text-slate-950">{claim.claimNumber}</td>
+                  <td className="table-cell">
+                    <div className="font-semibold text-slate-950">{claim.claimNumber}</div>
+                    {claim.rmaNumber ? <div className="text-xs text-amber-700 font-medium">{claim.rmaNumber}</div> : null}
+                  </td>
                   <td className="table-cell">{claim.productName || '-'}</td>
                   <td className="hidden table-cell sm:table-cell">{claim.serialNumber || claim.imei1 || claim.imei2 || '-'}</td>
                   <td className="hidden table-cell md:table-cell">{claim.customerName || '-'}</td>

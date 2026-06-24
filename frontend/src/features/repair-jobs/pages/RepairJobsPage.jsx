@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { CheckCircle2, Clock, FileSpreadsheet, LayoutGrid, List, Package, Pencil, Plus, Search, ShieldAlert, Table2, Trash2, Wrench } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { CheckCircle2, Clock, GripVertical, LayoutGrid, Package, Pencil, Plus, Search, ShieldAlert, Table2, Trash2, Wrench } from 'lucide-react';
 import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
@@ -11,14 +11,13 @@ import WarrantyClaimFormModal from '../../warranty-claims/components/WarrantyCla
 import { useRepairJobsViewModel } from '../viewmodels/useRepairJobsViewModel';
 
 const JOB_STATUS_VALUES = ['RECEIVED', 'DIAGNOSING', 'AWAITING_PARTS', 'IN_REPAIR', 'READY', 'DELIVERED', 'CANCELLED'];
-const ACTIVE_STATUSES = ['RECEIVED', 'DIAGNOSING', 'AWAITING_PARTS', 'IN_REPAIR', 'READY'];
 
 const BOARD_COLUMNS = [
-  { status: 'RECEIVED',       icon: Package,     bg: 'bg-slate-50',   border: 'border-slate-200', header: 'bg-slate-100 text-slate-700' },
-  { status: 'DIAGNOSING',     icon: Search,      bg: 'bg-blue-50',    border: 'border-blue-200',  header: 'bg-blue-100 text-blue-700'   },
-  { status: 'AWAITING_PARTS', icon: Clock,       bg: 'bg-amber-50',   border: 'border-amber-200', header: 'bg-amber-100 text-amber-700' },
-  { status: 'IN_REPAIR',      icon: Wrench,      bg: 'bg-indigo-50',  border: 'border-indigo-200',header: 'bg-indigo-100 text-indigo-700'},
-  { status: 'READY',          icon: CheckCircle2,bg: 'bg-emerald-50', border: 'border-emerald-200',header:'bg-emerald-100 text-emerald-700'},
+  { status: 'RECEIVED',       icon: Package,      bg: 'bg-slate-50',    border: 'border-slate-200',  header: 'bg-slate-100 text-slate-700'   },
+  { status: 'DIAGNOSING',     icon: Search,       bg: 'bg-blue-50',     border: 'border-blue-200',   header: 'bg-blue-100 text-blue-700'     },
+  { status: 'AWAITING_PARTS', icon: Clock,        bg: 'bg-amber-50',    border: 'border-amber-200',  header: 'bg-amber-100 text-amber-700'   },
+  { status: 'IN_REPAIR',      icon: Wrench,       bg: 'bg-indigo-50',   border: 'border-indigo-200', header: 'bg-indigo-100 text-indigo-700' },
+  { status: 'READY',          icon: CheckCircle2, bg: 'bg-emerald-50',  border: 'border-emerald-200',header: 'bg-emerald-100 text-emerald-700'},
 ];
 
 function isOverdue(job) {
@@ -26,17 +25,30 @@ function isOverdue(job) {
   return job.promisedDate < new Date().toISOString().slice(0, 10);
 }
 
-function JobCard({ job, canManage, t, onEdit, onDelete, onEscalate }) {
+function JobCard({ job, canManage, t, onEdit, onDelete, onEscalate, onDragStart, isDragging }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm space-y-2 hover:shadow-md transition-shadow">
+    <div
+      draggable={canManage}
+      onDragStart={(e) => {
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', job.id);
+        onDragStart(job.id);
+      }}
+      className={`rounded-xl border border-slate-200 bg-white p-3 shadow-sm space-y-2 transition-all
+        ${canManage ? 'cursor-grab active:cursor-grabbing' : ''}
+        ${isDragging ? 'opacity-40 scale-[0.97]' : 'hover:shadow-md'}`}
+    >
       <div className="flex items-start justify-between gap-2">
-        <button
-          type="button"
-          className="text-xs font-bold text-indigo-600 hover:text-indigo-800 text-left"
-          onClick={() => onEdit(job)}
-        >
-          {job.jobNumber}
-        </button>
+        <div className="flex items-center gap-1.5 min-w-0">
+          {canManage ? <GripVertical size={13} className="shrink-0 text-slate-300" /> : null}
+          <button
+            type="button"
+            className="text-xs font-bold text-indigo-600 hover:text-indigo-800 text-left truncate"
+            onClick={() => onEdit(job)}
+          >
+            {job.jobNumber}
+          </button>
+        </div>
         <Badge tone={repairJobApprovalTone(job.approvalStatus)} className="shrink-0 text-[10px]">
           {t(`repairJobs.approvalStatuses.${job.approvalStatus}`)}
         </Badge>
@@ -71,27 +83,27 @@ function JobCard({ job, canManage, t, onEdit, onDelete, onEscalate }) {
         <div className="flex items-center gap-1 pt-1">
           <button
             type="button"
-            className="icon-btn text-amber-500 hover:text-amber-700"
+            className="flex h-7 w-7 items-center justify-center rounded-lg text-amber-500 transition hover:bg-amber-50 hover:text-amber-700"
             title={t('warrantyClaims.escalateFromRepairJob')}
-            onClick={() => onEscalate(job)}
+            onClick={(e) => { e.stopPropagation(); onEscalate(job); }}
           >
-            <ShieldAlert size={14} />
+            <ShieldAlert size={13} />
           </button>
           <button
             type="button"
-            className="icon-btn"
+            className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
             title={t('common.edit')}
-            onClick={() => onEdit(job)}
+            onClick={(e) => { e.stopPropagation(); onEdit(job); }}
           >
-            <Pencil size={14} />
+            <Pencil size={13} />
           </button>
           <button
             type="button"
-            className="icon-btn text-rose-500 hover:text-rose-700"
+            className="flex h-7 w-7 items-center justify-center rounded-lg text-rose-400 transition hover:bg-rose-50 hover:text-rose-700"
             title={t('common.delete')}
-            onClick={() => onDelete(job)}
+            onClick={(e) => { e.stopPropagation(); onDelete(job); }}
           >
-            <Trash2 size={14} />
+            <Trash2 size={13} />
           </button>
         </div>
       ) : null}
@@ -109,6 +121,9 @@ export default function RepairJobsPage() {
   const [boardJobs, setBoardJobs] = useState([]);
   const [boardLoading, setBoardLoading] = useState(false);
   const [boardVersion, setBoardVersion] = useState(0);
+  const [dragJobId, setDragJobId] = useState(null);
+  const [dragOverCol, setDragOverCol] = useState(null);
+  const dragCounters = useRef({});
   const canManage = can('manage_repair_jobs');
 
   useEffect(() => {
@@ -144,6 +159,30 @@ export default function RepairJobsPage() {
     }
   }
 
+  async function handleStatusChange(job, newStatus) {
+    if (job.status === newStatus) return;
+    setBoardJobs((prev) => prev.map((j) => j.id === job.id ? { ...j, status: newStatus } : j));
+    await saveRepairJob({
+      id: job.id,
+      status: newStatus,
+      approvalStatus: job.approvalStatus,
+      technicianId: job.technicianId || null,
+      laborCost: job.laborCost || 0,
+      actualCost: job.actualCost || 0,
+      partsUsed: job.partsUsed || '',
+      promisedDate: job.promisedDate || null,
+      deliveredDate: job.deliveredDate || null,
+      resolutionNote: job.resolutionNote || '',
+    });
+    vm.reload();
+  }
+
+  function handleDragEnd() {
+    setDragJobId(null);
+    setDragOverCol(null);
+    dragCounters.current = {};
+  }
+
   const boardByStatus = BOARD_COLUMNS.reduce((acc, col) => {
     acc[col.status] = boardJobs.filter((j) => j.status === col.status);
     return acc;
@@ -157,7 +196,7 @@ export default function RepairJobsPage() {
         eyebrow={t('repairJobs.eyebrow')}
         title={t('repairJobs.title')}
         description={t('repairJobs.description')}
-        actions={
+        action={
           <div className="flex items-center gap-2">
             <div className="flex rounded-xl border border-slate-200 bg-slate-50 p-0.5">
               <button
@@ -205,9 +244,43 @@ export default function RepairJobsPage() {
                 {BOARD_COLUMNS.map((col) => {
                   const jobs = boardByStatus[col.status] || [];
                   const ColIcon = col.icon;
+                  const isOver = dragOverCol === col.status;
+                  const draggedJob = dragJobId ? boardJobs.find((j) => j.id === dragJobId) : null;
+                  const sameCol = draggedJob?.status === col.status;
+
                   return (
-                    <div key={col.status} className={`rounded-2xl border ${col.border} ${col.bg} p-3 min-h-[200px]`}>
-                      <div className={`flex items-center justify-between rounded-xl px-3 py-2 mb-3 ${col.header}`}>
+                    <div
+                      key={col.status}
+                      className={`rounded-2xl border-2 p-3 min-h-[200px] transition-all
+                        ${isOver && !sameCol
+                          ? 'border-indigo-400 bg-indigo-50/80 scale-[1.01]'
+                          : `${col.border} ${col.bg}`
+                        }`}
+                      onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }}
+                      onDragEnter={(e) => {
+                        e.preventDefault();
+                        dragCounters.current[col.status] = (dragCounters.current[col.status] || 0) + 1;
+                        setDragOverCol(col.status);
+                      }}
+                      onDragLeave={() => {
+                        dragCounters.current[col.status] = (dragCounters.current[col.status] || 1) - 1;
+                        if (dragCounters.current[col.status] <= 0) {
+                          setDragOverCol((prev) => prev === col.status ? null : prev);
+                        }
+                      }}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        const jobId = e.dataTransfer.getData('text/plain');
+                        const job = boardJobs.find((j) => j.id === jobId);
+                        if (job && job.status !== col.status) {
+                          handleStatusChange(job, col.status);
+                        }
+                        setDragJobId(null);
+                        setDragOverCol(null);
+                        dragCounters.current = {};
+                      }}
+                    >
+                      <div className={`flex items-center justify-between rounded-xl px-3 py-2 mb-3 ${isOver && !sameCol ? 'bg-indigo-100 text-indigo-700' : col.header}`}>
                         <div className="flex items-center gap-2">
                           <ColIcon size={14} />
                           <span className="text-xs font-black uppercase tracking-wide">
@@ -217,29 +290,35 @@ export default function RepairJobsPage() {
                         <span className="text-xs font-black">{jobs.length}</span>
                       </div>
 
-                      {jobs.length === 0 ? (
-                        <p className="py-4 text-center text-xs text-slate-400">{t('repairJobs.emptyColumn')}</p>
-                      ) : (
-                        <div className="space-y-2">
-                          {jobs.map((job) => (
+                      <div className={`space-y-2 min-h-[60px] rounded-xl transition-all ${isOver && !sameCol ? 'ring-2 ring-dashed ring-indigo-300 p-1.5' : ''}`}>
+                        {jobs.length === 0 ? (
+                          <p className={`py-4 text-center text-xs ${isOver && !sameCol ? 'text-indigo-400 font-semibold' : 'text-slate-400'}`}>
+                            {isOver && !sameCol ? '↓ Drop here' : t('repairJobs.emptyColumn')}
+                          </p>
+                        ) : (
+                          jobs.map((job) => (
                             <JobCard
                               key={job.id}
                               job={job}
                               canManage={canManage}
                               t={t}
+                              isDragging={dragJobId === job.id}
+                              onDragStart={setDragJobId}
                               onEdit={(j) => setFormModal({ mode: 'edit', job: j })}
                               onDelete={handleDelete}
                               onEscalate={(j) => setEscalateModal({ jobId: j.id, jobNumber: j.jobNumber, productId: j.productId })}
                             />
-                          ))}
-                        </div>
-                      )}
+                          ))
+                        )}
+                        {isOver && !sameCol && jobs.length > 0 ? (
+                          <div className="h-1.5 rounded-full bg-indigo-300/60 mx-1" />
+                        ) : null}
+                      </div>
                     </div>
                   );
                 })}
               </div>
 
-              {/* Closed jobs summary row */}
               {(deliveredCount > 0 || cancelledCount > 0) ? (
                 <div className="mt-4 flex flex-wrap gap-3">
                   {deliveredCount > 0 ? (

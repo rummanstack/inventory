@@ -1359,6 +1359,10 @@ export async function createSchema(pool) {
   `);
 
   await pool.query(`
+    ALTER TABLE repair_jobs ADD COLUMN IF NOT EXISTS device_name TEXT NOT NULL DEFAULT '';
+  `);
+
+  await pool.query(`
     ALTER TABLE warranty_claims ADD COLUMN IF NOT EXISTS repair_job_id TEXT REFERENCES repair_jobs(id) ON DELETE SET NULL;
   `);
 

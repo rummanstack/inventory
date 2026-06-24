@@ -5,7 +5,8 @@ export function mapRepairJob(row) {
     customerName: row.customer_name || "",
     customerPhone: row.customer_phone || "",
     productId: row.product_id || null,
-    productName: row.product_name || null,
+    deviceName: row.device_name || "",
+    productName: row.product_name || row.device_name || null,
     serialNumber: row.serial_number || "",
     problemDescription: row.problem_description || "",
     estimatedCost: Number(row.estimated_cost || 0),
@@ -127,19 +128,19 @@ export function insertRepairJob(client, job) {
     `WITH inserted AS (
       INSERT INTO repair_jobs (
         id, tenant_id, job_number, customer_name, customer_phone,
-        product_id, serial_number, problem_description,
+        device_name, product_id, serial_number, problem_description,
         estimated_cost, labor_cost, actual_cost, parts_used,
         technician_id, status, approval_status,
         received_date, promised_date, delivered_date,
         resolution_note, created_by
       )
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21)
       RETURNING *
     )
     SELECT ${BASE_SELECT} FROM inserted rj ${BASE_JOINS}`,
     [
       job.id, job.tenantId, job.jobNumber, job.customerName, job.customerPhone,
-      job.productId, job.serialNumber, job.problemDescription,
+      job.deviceName || '', job.productId, job.serialNumber, job.problemDescription,
       job.estimatedCost, job.laborCost, job.actualCost, job.partsUsed,
       job.technicianId, job.status, job.approvalStatus,
       job.receivedDate, job.promisedDate, job.deliveredDate,

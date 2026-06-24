@@ -96,6 +96,7 @@ export class WarrantyClaimService {
           invoiceNumber: row.invoice_number || null,
           customerId: row.customer_id || null,
           customerName: row.customer_name || null,
+          supplierId: row.supplier_id || null,
         },
       };
     });

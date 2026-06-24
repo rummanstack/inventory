@@ -1309,14 +1309,13 @@ export async function createSchema(pool) {
     END $$;
   `);
 
-  await client.query(`
+  await pool.query(`
     ALTER TABLE warranty_claims ADD COLUMN IF NOT EXISTS rma_number TEXT NOT NULL DEFAULT '';
     ALTER TABLE warranty_claims ADD COLUMN IF NOT EXISTS sent_to_supplier_date DATE;
     ALTER TABLE warranty_claims ADD COLUMN IF NOT EXISTS received_from_supplier_date DATE;
-    ALTER TABLE warranty_claims ADD COLUMN IF NOT EXISTS repair_job_id TEXT REFERENCES repair_jobs(id) ON DELETE SET NULL;
   `);
 
-  await client.query(`
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS repair_job_counters (
       tenant_id  TEXT NOT NULL REFERENCES tenants(id),
       year       INTEGER NOT NULL,
@@ -1359,7 +1358,11 @@ export async function createSchema(pool) {
     CREATE INDEX IF NOT EXISTS idx_repair_jobs_deleted ON repair_jobs(tenant_id, deleted_at);
   `);
 
-  await client.query(`
+  await pool.query(`
+    ALTER TABLE warranty_claims ADD COLUMN IF NOT EXISTS repair_job_id TEXT REFERENCES repair_jobs(id) ON DELETE SET NULL;
+  `);
+
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS quotation_counters (
       tenant_id TEXT NOT NULL REFERENCES tenants(id),
       year INTEGER NOT NULL,
@@ -1414,7 +1417,7 @@ export async function createSchema(pool) {
     CREATE INDEX IF NOT EXISTS idx_quotation_items_quotation ON quotation_items(quotation_id);
   `);
 
-  await client.query(`
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS trade_in_counters (
       tenant_id TEXT NOT NULL REFERENCES tenants(id),
       year      INTEGER NOT NULL,

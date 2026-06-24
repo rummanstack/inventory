@@ -178,6 +178,31 @@ export function useDashboardViewModel({ products, dsrs, today, t, language = 'en
   const yesterdaySoldPcs = yesterdaySettlements.reduce((sum, s) => sum + s.items.reduce((s2, i) => s2 + Number(i.soldPieces || 0), 0), 0);
   const yesterdayPayable = yesterdaySettlements.reduce((sum, s) => sum + Number(s.amountPaid || 0), 0);
 
+  // Top & least selling products over the 7-day trend period (DSR channel)
+  const trendSalesByProduct = trendSettlements
+    .flatMap((s) => s.items)
+    .reduce((map, item) => {
+      const existing = map.get(item.productId) || { productId: item.productId, productName: item.productName, soldPieces: 0 };
+      existing.soldPieces += Number(item.soldPieces || 0);
+      map.set(item.productId, existing);
+      return map;
+    }, new Map());
+
+  const topSellingProducts = Array.from(trendSalesByProduct.values())
+    .filter((p) => p.soldPieces > 0)
+    .sort((a, b) => b.soldPieces - a.soldPieces)
+    .slice(0, 7)
+    .map((p) => ({ label: p.productName, value: p.soldPieces }));
+
+  const leastSellingProducts = products
+    .filter((p) => p.stockPieces > 0)
+    .map((p) => ({
+      label: p.name,
+      value: trendSalesByProduct.get(p.id)?.soldPieces || 0,
+    }))
+    .sort((a, b) => a.value - b.value)
+    .slice(0, 7);
+
   // DSR leaderboard (top 5 by total cash collected today, aggregated across settlements)
   const dsrLeaderboard = Array.from(
     todaySettlements.reduce((map, s) => {
@@ -264,6 +289,8 @@ export function useDashboardViewModel({ products, dsrs, today, t, language = 'en
       lowStockProducts,
       formatCasePiece,
     },
+    topSellingProducts,
+    leastSellingProducts,
     // New insights
     retailPos: {
       invoiceCount: retailInvoiceCount,

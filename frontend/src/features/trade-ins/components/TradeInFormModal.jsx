@@ -116,13 +116,13 @@ function TradeInReceipt({ receipt, onClose }) {
       </div>
 
       <div className="grid grid-cols-3 gap-3">
-        <SummaryCard label="Trade-In Credit" value={formatCurrency(totalTradeIn)} tone="emerald" />
-        <SummaryCard label="Sale Total" value={formatCurrency(totalSale)} tone="indigo" />
-        <SummaryCard label={net >= 0 ? 'Customer Pays' : 'Shop Pays'} value={formatCurrency(Math.abs(net))} tone={net >= 0 ? 'slate' : 'amber'} />
+        <SummaryCard label={t('tradeIns.tradeInCredit')} value={formatCurrency(totalTradeIn)} tone="emerald" />
+        <SummaryCard label={t('tradeIns.saleTotal')} value={formatCurrency(totalSale)} tone="indigo" />
+        <SummaryCard label={net >= 0 ? t('tradeIns.paymentAmountLabel') : t('tradeIns.shopPays')} value={formatCurrency(Math.abs(net))} tone={net >= 0 ? 'slate' : 'amber'} />
       </div>
 
       <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-        <span className="text-xs font-bold uppercase tracking-wide text-slate-500">Payment Method</span>
+        <span className="text-xs font-bold uppercase tracking-wide text-slate-500">{t('tradeIns.paymentMethodLabel')}</span>
         <span className="text-sm font-bold text-slate-900">{(receipt.paymentMethod || '').replace('_', ' ')}</span>
       </div>
 
@@ -291,7 +291,7 @@ export default function TradeInFormModal({ onClose, onSave }) {
             <div className="mb-2 flex items-center justify-between">
               <div>
                 <p className="text-sm font-semibold text-slate-900">{t('tradeIns.receivedSectionLabel')}</p>
-                <p className="text-xs text-slate-400">Devices the shop is taking in — adds to stock if product selected</p>
+                <p className="text-xs text-slate-400">{t('tradeIns.receivedSectionHint')}</p>
               </div>
               <button type="button" className="btn-secondary py-1 text-xs" onClick={() => setReceivedItems((p) => [...p, emptyReceived()])}>
                 <Plus size={14} />
@@ -395,7 +395,7 @@ export default function TradeInFormModal({ onClose, onSave }) {
             <div className="mb-2 flex items-center justify-between">
               <div>
                 <p className="text-sm font-semibold text-slate-900">{t('tradeIns.soldSectionLabel')}</p>
-                <p className="text-xs text-slate-400">Devices the shop is selling — deducts from stock if product selected</p>
+                <p className="text-xs text-slate-400">{t('tradeIns.soldSectionHint')}</p>
               </div>
               <button type="button" className="btn-secondary py-1 text-xs" onClick={() => setSoldItems((p) => [...p, emptySold()])}>
                 <Plus size={14} />

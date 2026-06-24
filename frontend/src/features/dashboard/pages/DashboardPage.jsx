@@ -356,7 +356,7 @@ export default function DashboardPage() {
             </p>
             <div className="mt-6 flex flex-col items-center justify-center gap-2 py-8 text-center">
               <Lock size={20} className="text-slate-300" />
-              <p className="text-xs font-medium text-slate-400">Finance data unavailable</p>
+              <p className="text-xs font-medium text-slate-400">{t('dashboard.financeUnavailable')}</p>
             </div>
           </div>
         )}
@@ -482,8 +482,8 @@ export default function DashboardPage() {
       {/* ── 5. TOP SELLS + LEAST SELLS ── */}
       <div className="grid gap-6 xl:grid-cols-2">
         <ChartPanel
-          title="Top Selling Products"
-          description="Products with the highest pieces sold via DSR over the last 7 days."
+          title={t('dashboard.topSellingTitle')}
+          description={t('dashboard.topSellingDesc')}
         >
           {vm.topSellingProducts.length ? (
             <HorizontalBarChart
@@ -492,16 +492,16 @@ export default function DashboardPage() {
             />
           ) : (
             <EmptyState
-              title="No sales recorded yet"
-              description="Complete DSR settlements to see the top selling products."
+              title={t('dashboard.topSellingEmpty')}
+              description={t('dashboard.topSellingEmptyDesc')}
               icon={PackageCheck}
             />
           )}
         </ChartPanel>
 
         <ChartPanel
-          title="Least Selling Products"
-          description="In-stock products with the lowest DSR sales over the last 7 days."
+          title={t('dashboard.leastSellingTitle')}
+          description={t('dashboard.leastSellingDesc')}
         >
           {vm.leastSellingProducts.length ? (
             <HorizontalBarChart
@@ -511,8 +511,8 @@ export default function DashboardPage() {
             />
           ) : (
             <EmptyState
-              title="No products in stock"
-              description="Add products to see least selling insights."
+              title={t('dashboard.noProductsInStock')}
+              description={t('dashboard.noProductsInStockDesc')}
               icon={Boxes}
             />
           )}

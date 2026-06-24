@@ -191,7 +191,7 @@ export default function ProductFormModal({ product, onClose, onSave }) {
           <div>
             <label className="label">{t('retailer.shared.taxRateLabel')}</label>
             <input className="input" type="number" min="0" max="100" step="0.01" value={form.taxRate} onChange={(event) => updateField('taxRate', event.target.value)} />
-            <p className="mt-1 text-xs text-slate-500">{t('products.taxRateHint') || 'Override the company default for this product.'}</p>
+            <p className="mt-1 text-xs text-slate-500">{t('products.taxRateHint')}</p>
           </div>
           {isElectronics ? (
             <div>

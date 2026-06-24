@@ -56,7 +56,7 @@ function JobCard({ job, canManage, t, onEdit, onDelete, onEscalate }) {
             {isOverdue(job) ? '⚠ ' : ''}Due {formatDate(job.promisedDate)}
           </span>
         ) : (
-          <span className="text-[11px] text-slate-300">No deadline</span>
+          <span className="text-[11px] text-slate-300">{t('repairJobs.noDeadline')}</span>
         )}
         {job.estimatedCost > 0 ? (
           <span className="text-[11px] font-semibold text-slate-500">{formatCurrency(job.estimatedCost)}</span>
@@ -218,7 +218,7 @@ export default function RepairJobsPage() {
                       </div>
 
                       {jobs.length === 0 ? (
-                        <p className="py-4 text-center text-xs text-slate-400">Empty</p>
+                        <p className="py-4 text-center text-xs text-slate-400">{t('repairJobs.emptyColumn')}</p>
                       ) : (
                         <div className="space-y-2">
                           {jobs.map((job) => (

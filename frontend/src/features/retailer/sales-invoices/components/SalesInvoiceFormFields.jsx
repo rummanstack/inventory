@@ -128,8 +128,8 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, retail
           {vm.customerType === 'REGISTERED' && vm.selectedCustomer ? (() => {
             const due = Number(vm.selectedCustomer.totalSpent || 0) - Number(vm.selectedCustomer.totalPaid || 0);
             return due > 0
-              ? <p className="mt-1 text-xs font-bold text-amber-600">Outstanding due: {formatCurrency(due)}</p>
-              : <p className="mt-1 text-xs font-semibold text-emerald-600">No outstanding due</p>;
+              ? <p className="mt-1 text-xs font-bold text-amber-600">{t('retailer.shared.outstandingDue')}: {formatCurrency(due)}</p>
+              : <p className="mt-1 text-xs font-semibold text-emerald-600">{t('retailer.shared.noOutstandingDue')}</p>;
           })() : null}
           {vm.loyaltyEligible && vm.selectedCustomer ? (
             <p className="mt-1 text-xs font-semibold text-emerald-700">

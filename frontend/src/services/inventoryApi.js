@@ -14,6 +14,7 @@ import { productsApi } from './api/productsApi.js';
 import { productSerialsApi } from './api/productSerialsApi.js';
 import { warrantyClaimsApi } from './api/warrantyClaimsApi.js';
 import { repairJobsApi } from './api/repairJobsApi.js';
+import { quotationsApi } from './api/quotationsApi.js';
 import { profitApi } from './api/profitApi.js';
 import { purchaseReceiveApi } from './api/purchaseReceiveApi.js';
 import { settingsApi } from './api/settingsApi.js';
@@ -51,6 +52,7 @@ export const inventoryApi = {
   ...productSerialsApi,
   ...warrantyClaimsApi,
   ...repairJobsApi,
+  ...quotationsApi,
   ...categoriesApi,
   ...dsrsApi,
   ...customersApi,

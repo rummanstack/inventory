@@ -559,6 +559,53 @@ export function InventoryAppProvider({ children }) {
     }
   }
 
+  async function saveQuotation(quotation) {
+    try {
+      const result = quotation.id ? await inventoryApi.updateQuotation(quotation) : await inventoryApi.createQuotation(quotation);
+      pushToast('success', quotation.id ? t('quotations.editTitle') : t('quotations.addTitle'), quotation.id ? t('alerts.updated') : t('alerts.created'));
+      return { ok: true, quotation: result };
+    } catch (error) {
+      const message = getFriendlyError(error, t);
+      pushToast('error', t('alerts.requestFailed'), message);
+      return { ok: false, message };
+    }
+  }
+
+  async function deleteQuotation(quotation) {
+    const confirmMessage = t('quotations.deleteConfirm', { number: quotation.quoteNumber });
+    const { confirmed, reason } = await confirm({
+      title: t('quotations.deleteTitle'),
+      description: interpolateConfirm(confirmMessage, { number: quotation.quoteNumber }),
+      confirmLabel: t('common.delete'),
+      tone: 'rose',
+      requireReason: true,
+      reasonLabel: t('common.deleteReasonLabel'),
+      reasonPlaceholder: t('common.deleteReasonPlaceholder'),
+    });
+    if (!confirmed) return { ok: false };
+    try {
+      await inventoryApi.deleteQuotation(quotation.id, reason);
+      pushToast('success', t('common.delete'), `${quotation.quoteNumber} ${t('alerts.deleted')}`);
+      return { ok: true };
+    } catch (error) {
+      const message = getFriendlyError(error, t);
+      pushToast('error', t('alerts.deleteFailed'), message);
+      return { ok: false, message };
+    }
+  }
+
+  async function convertQuotation(id, payload) {
+    try {
+      const result = await inventoryApi.convertQuotation(id, payload);
+      pushToast('success', t('quotations.convertTitle'), t('quotations.convertSuccess', { number: result.invoiceNumber }));
+      return { ok: true, ...result };
+    } catch (error) {
+      const message = getFriendlyError(error, t);
+      pushToast('error', t('quotations.convertFailed'), message);
+      return { ok: false, message };
+    }
+  }
+
   async function savePurchaseReceipt(purchaseReceipt) {
     try {
       const result = purchaseReceipt.id ? await inventoryApi.updatePurchaseReceipt(purchaseReceipt) : await inventoryApi.createPurchaseReceipt(purchaseReceipt);
@@ -1090,6 +1137,9 @@ export function InventoryAppProvider({ children }) {
       deleteWarrantyClaim,
       saveRepairJob,
       deleteRepairJob,
+      saveQuotation,
+      deleteQuotation,
+      convertQuotation,
       savePurchaseReceipt,
       deletePurchaseReceipt,
       restorePurchaseReceipt,

@@ -81,6 +81,7 @@ import ProductSerialsPage from '../features/product-serials/pages/ProductSerials
 import WarrantyClaimsPage from '../features/warranty-claims/pages/WarrantyClaimsPage';
 import RepairJobsPage from '../features/repair-jobs/pages/RepairJobsPage';
 import CashSessionsPage from '../features/retailer/cash-sessions/pages/CashSessionsPage';
+import QuotationsPage from '../features/quotations/pages/QuotationsPage';
 
 export const APP_ROUTES = [
   { id: 'dashboard', path: '/dashboard', labelKey: 'nav.dashboard', icon: BarChart3, component: DashboardPage, group: 'overview', permission: 'view_state', feature: 'dashboard' },
@@ -106,6 +107,7 @@ export const APP_ROUTES = [
   // Warranty
   { id: 'warranty-claims', path: '/warranty-claims', labelKey: 'nav.warrantyClaims', icon: Wrench, component: WarrantyClaimsPage, group: 'warranty', permission: 'view_warranty_claims', feature: 'warranty-claims' },
   { id: 'repair-jobs', path: '/repair-jobs', labelKey: 'nav.repairJobs', icon: Wrench, component: RepairJobsPage, group: 'warranty', permission: 'view_repair_jobs', feature: 'repair-jobs' },
+  { id: 'quotations', path: '/quotations', labelKey: 'nav.quotations', icon: FileText, component: QuotationsPage, group: 'sales', permission: 'view_quotations', feature: 'quotations' },
 
   // Dealer / DSR
   { id: 'dsrs', path: '/dsrs', labelKey: 'nav.dsrs', icon: Users, component: DsrPage, group: 'dealer', permission: 'view_state', feature: 'dsrs' },

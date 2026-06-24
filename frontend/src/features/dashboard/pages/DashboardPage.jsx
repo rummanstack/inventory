@@ -235,17 +235,6 @@ export default function DashboardPage() {
             })}
           </div>
 
-          {financeDashboard.monthlySalesAmount > 0 && (
-            <div className="flex items-center justify-between border-t border-slate-100 bg-slate-50/80 px-7 py-4">
-              <div className="flex items-center gap-2 text-slate-500">
-                <ShoppingCart size={13} />
-                <span className="text-xs font-bold">{t("dashboard.monthlySalesAmount")}</span>
-              </div>
-              <span className="text-sm font-black text-slate-950">
-                {formatCurrency(financeDashboard.monthlySalesAmount, language)}
-              </span>
-            </div>
-          )}
         </div>
       ) : (
         <div className="flex items-center gap-4 rounded-[28px] border border-slate-200/80 bg-white/80 px-6 py-5 shadow-[0_8px_30px_rgba(0,0,0,0.05)]">
@@ -490,7 +479,47 @@ export default function DashboardPage() {
         </ChartPanel>
       </div>
 
-      {/* ── 5. ACTIVITY HEATMAP ── */}
+      {/* ── 5. TOP SELLS + LEAST SELLS ── */}
+      <div className="grid gap-6 xl:grid-cols-2">
+        <ChartPanel
+          title="Top Selling Products"
+          description="Products with the highest pieces sold via DSR over the last 7 days."
+        >
+          {vm.topSellingProducts.length ? (
+            <HorizontalBarChart
+              data={vm.topSellingProducts}
+              valueFormatter={(v) => `${formatNumber(v, language)} pcs`}
+            />
+          ) : (
+            <EmptyState
+              title="No sales recorded yet"
+              description="Complete DSR settlements to see the top selling products."
+              icon={PackageCheck}
+            />
+          )}
+        </ChartPanel>
+
+        <ChartPanel
+          title="Least Selling Products"
+          description="In-stock products with the lowest DSR sales over the last 7 days."
+        >
+          {vm.leastSellingProducts.length ? (
+            <HorizontalBarChart
+              data={vm.leastSellingProducts}
+              valueFormatter={(v) => `${formatNumber(v, language)} pcs`}
+              trackClassName="bg-rose-50"
+            />
+          ) : (
+            <EmptyState
+              title="No products in stock"
+              description="Add products to see least selling insights."
+              icon={Boxes}
+            />
+          )}
+        </ChartPanel>
+      </div>
+
+      {/* ── 6. ACTIVITY HEATMAP ── */}
       <ChartPanel title={t("dashboard.activityHeatmap")} description={t("dashboard.activityHeatmapDescription")}>
         <ActivityHeatmap cells={vm.activityHeatmap} color={secondary} t={t} language={language} />
       </ChartPanel>

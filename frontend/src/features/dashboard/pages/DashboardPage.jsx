@@ -1,34 +1,80 @@
-import { AlertTriangle, Boxes, CalendarDays, CheckCircle2, CircleDollarSign, HandCoins, Landmark, PackageCheck, RotateCcw, ShoppingCart, Store, TrendingDown, TrendingUp, Truck, Trophy, UserCheck, Wallet } from 'lucide-react';
-import { ActivityHeatmap, Alert, ChartPanel, DonutChart, EmptyState, HorizontalBarChart, RadialProgressChart, SectionHeader, StackedBarChart, StatCard, TrendChart, cx } from '../../../components/ui.jsx';
-import { formatCurrency, formatDate, formatNumber } from '../../../utils/calculations.js';
-import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
-import InsightLine from '../components/InsightLine';
-import DashboardSkeleton from '../components/DashboardSkeleton';
-import { useDashboardViewModel } from '../viewmodels/useDashboardViewModel';
-import { getCssVar } from '../../../utils/theme.js';
+import {
+  AlertTriangle,
+  Boxes,
+  CircleDollarSign,
+  HandCoins,
+  Landmark,
+  Lock,
+  PackageCheck,
+  ShoppingCart,
+  Store,
+  TrendingDown,
+  TrendingUp,
+  Trophy,
+  Truck,
+  UserCheck,
+  Wallet,
+} from "lucide-react";
+import {
+  ActivityHeatmap,
+  Alert,
+  ChartPanel,
+  EmptyState,
+  HorizontalBarChart,
+  SectionHeader,
+  TrendChart,
+  cx,
+} from "../../../components/ui.jsx";
+import { formatCurrency, formatNumber } from "../../../utils/calculations.js";
+import { useInventoryApp } from "../../../app/useInventoryApp.jsx";
+import DashboardSkeleton from "../components/DashboardSkeleton";
+import { useDashboardViewModel } from "../viewmodels/useDashboardViewModel";
+import { getCssVar } from "../../../utils/theme.js";
 
-function DeltaBadge({ delta, language }) {
-  if (delta.pct === null) {
-    return <span className="text-xs font-medium text-slate-400">—</span>;
-  }
-  const Icon = delta.up ? TrendingUp : TrendingDown;
+/* ─── small reusable pieces ─── */
+
+function MetricPill({ label, value, sub, icon: Icon, iconClass = "bg-slate-100 text-slate-500" }) {
   return (
-    <span className={cx('inline-flex items-center gap-1 text-xs font-bold', delta.up ? 'text-emerald-600' : 'text-rose-600')}>
-      <Icon size={12} />
-      {delta.pct}% vs yesterday
-    </span>
+    <div className="flex flex-col gap-1.5 rounded-[22px] bg-white/60 px-5 py-4 shadow-[0_4px_20px_rgba(0,0,0,0.04)] ring-1 ring-slate-200/60">
+      <div className={cx("w-fit rounded-xl p-2", iconClass)}>
+        <Icon size={15} />
+      </div>
+      <p className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-400">{label}</p>
+      <p className="text-2xl font-black tracking-tight text-slate-950">{value}</p>
+      {sub && <p className="text-xs font-medium text-slate-400">{sub}</p>}
+    </div>
   );
 }
 
+function DueRow({ icon: Icon, iconClass, label, sub, value, valueClass = "text-slate-950" }) {
+  return (
+    <div className="flex items-center gap-4 rounded-[20px] bg-white/70 px-5 py-4 shadow-[0_2px_12px_rgba(0,0,0,0.04)] ring-1 ring-slate-200/50">
+      <div className={cx("shrink-0 rounded-xl p-2.5", iconClass)}>
+        <Icon size={17} />
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="text-xs font-black uppercase tracking-[0.13em] text-slate-500">{label}</p>
+        {sub && <p className="mt-0.5 text-xs font-medium text-slate-400">{sub}</p>}
+      </div>
+      <p className={cx("shrink-0 text-base font-black", valueClass)}>{value}</p>
+    </div>
+  );
+}
+
+/* ─── main page ─── */
+
 export default function DashboardPage() {
-  const { productDirectory, dsrDirectory, today, t, language, tenant } = useInventoryApp();
-  const isElectronics = (tenant?.businessType || 'ELECTRONICS') === 'ELECTRONICS';
+  const { productDirectory, dsrDirectory, today, t, language } = useInventoryApp();
   const vm = useDashboardViewModel({ products: productDirectory, dsrs: dsrDirectory, today, t, language });
 
   if (vm.loading) {
     return (
       <div>
-        <SectionHeader eyebrow={t('dashboard.eyebrow')} title={t('dashboard.title')} description={t('dashboard.description')} />
+        <SectionHeader
+          eyebrow={t("dashboard.eyebrow")}
+          title={t("dashboard.title")}
+          description={t("dashboard.description")}
+        />
         <DashboardSkeleton />
       </div>
     );
@@ -37,389 +83,361 @@ export default function DashboardPage() {
   if (vm.error) {
     return (
       <div>
-        <SectionHeader eyebrow={t('dashboard.eyebrow')} title={t('dashboard.title')} description={t('dashboard.description')} />
+        <SectionHeader
+          eyebrow={t("dashboard.eyebrow")}
+          title={t("dashboard.title")}
+          description={t("dashboard.description")}
+        />
         <Alert type="error">{vm.error}</Alert>
       </div>
     );
   }
 
-  const taskIcons = {
-    morningStarted: Truck,
-    morningPending: Truck,
-    returnPending: RotateCcw,
-    returnClear: RotateCcw,
-    stockAttention: AlertTriangle,
-    stockHealthy: AlertTriangle,
-    cashVisible: CircleDollarSign,
-    cashEmpty: CircleDollarSign,
-  };
+  const { financeDashboard, retailPos, retailCashSession, dsrLeaderboard } = vm;
+  const secondary = getCssVar("--secondary", "#5e5b8e");
 
-  const { yesterdayDeltas, retailPos, retailCashSession, financeDashboard, dsrLeaderboard } = vm;
+  const cashInHand = financeDashboard?.accounts?.filter((a) => a.type === "CASH").reduce((s, a) => s + a.balance, 0) ?? 0;
+  const cashInBank = financeDashboard?.accounts?.filter((a) => a.type === "BANK").reduce((s, a) => s + a.balance, 0) ?? 0;
 
   return (
-    <div>
-      <SectionHeader eyebrow={t('dashboard.eyebrow')} title={t('dashboard.title')} description={t('dashboard.description')} />
+    <div className="space-y-6">
+      <SectionHeader
+        eyebrow={t("dashboard.eyebrow")}
+        title={t("dashboard.title")}
+        description={t("dashboard.description")}
+      />
 
-      <div className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
-        <ChartPanel title={t('dashboard.tradingTrend')} description={t('dashboard.tradingTrendDescription')}>
+      {/* ── 1. FINANCIAL HEALTH ── */}
+      {financeDashboard ? (
+        <div className="overflow-hidden rounded-[32px] border border-slate-200/80 bg-white shadow-[0_24px_60px_rgba(var(--slate-900),0.07)] ring-1 ring-[color-mix(in_srgb,var(--brand)_8%,transparent)]">
+          <div className="px-7 pb-4 pt-6">
+            <div className="flex items-center gap-2">
+              <div className="rounded-lg bg-[var(--secondary-soft)] p-1.5">
+                <Landmark size={13} className="text-[var(--secondary-strong)]" />
+              </div>
+              <p className="text-[11px] font-black uppercase tracking-[0.22em] text-slate-400">
+                {t("dashboard.financialHealth")}
+              </p>
+            </div>
+          </div>
+
+          <div className="grid gap-px bg-slate-100/80 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              {
+                label: t("dashboard.cashInHand"),
+                value: formatCurrency(cashInHand, language),
+                sub: t("dashboard.cashInHandHelper"),
+                icon: Wallet,
+                iconClass: "bg-emerald-50 text-emerald-700",
+                valueClass: "text-slate-950",
+              },
+              {
+                label: t("dashboard.cashInBank"),
+                value: formatCurrency(cashInBank, language),
+                sub: t("dashboard.cashInBankHelper"),
+                icon: Landmark,
+                iconClass: "bg-[var(--secondary-soft)] text-[var(--secondary-strong)]",
+                valueClass: "text-slate-950",
+              },
+              {
+                label: t("dashboard.monthlyProfit"),
+                value: formatCurrency(financeDashboard.monthlyProfit, language),
+                sub: t("dashboard.monthlyProfitHelper"),
+                icon: financeDashboard.monthlyProfit >= 0 ? TrendingUp : TrendingDown,
+                iconClass:
+                  financeDashboard.monthlyProfit >= 0 ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-600",
+                valueClass: financeDashboard.monthlyProfit >= 0 ? "text-emerald-700" : "text-rose-600",
+              },
+              {
+                label: t("dashboard.netPosition"),
+                value: formatCurrency(financeDashboard.netPosition, language),
+                sub: t("dashboard.netPositionHelper"),
+                icon: CircleDollarSign,
+                iconClass:
+                  financeDashboard.netPosition >= 0 ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-600",
+                valueClass: financeDashboard.netPosition >= 0 ? "text-emerald-700" : "text-rose-600",
+              },
+            ].map((item) => {
+              const Icon = item.icon;
+              return (
+                <div key={item.label} className="bg-white px-7 py-6">
+                  <div className={cx("w-fit rounded-xl p-2.5", item.iconClass)}>
+                    <Icon size={16} />
+                  </div>
+                  <p className="mt-4 text-[11px] font-black uppercase tracking-[0.16em] text-slate-400">{item.label}</p>
+                  <p
+                    className={cx(
+                      "mt-2 text-[clamp(1.4rem,2.5vw,1.875rem)] font-black tracking-tight leading-none",
+                      item.valueClass,
+                    )}
+                  >
+                    {item.value}
+                  </p>
+                  <p className="mt-2 text-xs font-medium text-slate-400">{item.sub}</p>
+                </div>
+              );
+            })}
+          </div>
+
+          {financeDashboard.monthlySalesAmount > 0 && (
+            <div className="flex items-center justify-between border-t border-slate-100 bg-slate-50/80 px-7 py-4">
+              <div className="flex items-center gap-2 text-slate-500">
+                <ShoppingCart size={13} />
+                <span className="text-xs font-bold">{t("dashboard.monthlySalesAmount")}</span>
+              </div>
+              <span className="text-sm font-black text-slate-950">
+                {formatCurrency(financeDashboard.monthlySalesAmount, language)}
+              </span>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="flex items-center gap-4 rounded-[28px] border border-slate-200/80 bg-white/80 px-6 py-5 shadow-[0_8px_30px_rgba(0,0,0,0.05)]">
+          <div className="rounded-2xl bg-slate-100 p-3 text-slate-400">
+            <Lock size={18} />
+          </div>
+          <div>
+            <p className="text-sm font-black text-slate-700">{t("dashboard.financialHealth")}</p>
+            <p className="text-xs font-medium text-slate-400">
+              Finance dashboard permission required to view financial data.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* ── 4. INVENTORY BY CATEGORY + TOP PRODUCTS BY CASH ── */}
+      <div className="grid gap-6 xl:grid-cols-2">
+        <ChartPanel
+          title={t("dashboard.inventoryByCategory")}
+          description={t("dashboard.inventoryByCategoryDescription")}
+        >
+          {vm.inventoryByCategory.length ? (
+            <HorizontalBarChart
+              data={vm.inventoryByCategory.slice(0, 6)}
+              valueFormatter={(v) => formatCurrency(v, language)}
+            />
+          ) : (
+            <EmptyState
+              title={t("dashboard.noInventoryTitle")}
+              description={t("dashboard.noInventoryDescription")}
+              icon={Boxes}
+            />
+          )}
+        </ChartPanel>
+
+        <ChartPanel title={t("dashboard.topProductsByCash")} description={t("dashboard.topProductsByCashDescription")}>
+          {vm.topPayableProducts.length ? (
+            <HorizontalBarChart
+              data={vm.topPayableProducts}
+              valueFormatter={(v) => formatCurrency(v, language)}
+              trackClassName="bg-emerald-50"
+            />
+          ) : (
+            <EmptyState
+              title={t("dashboard.noSoldProductsTitle")}
+              description={t("dashboard.noSoldProductsDescription")}
+              icon={PackageCheck}
+            />
+          )}
+        </ChartPanel>
+      </div>
+
+      {/* ── 2. TRADING TREND + RECEIVABLES & PAYABLES ── */}
+      <div className="grid gap-6 xl:grid-cols-[2fr_1fr]">
+        <ChartPanel title={t("dashboard.tradingTrend")} description={t("dashboard.tradingTrendDescription")}>
           <TrendChart
             data={vm.tradingTrend}
-            valueFormatter={(value) => formatCurrency(value, language)}
+            valueFormatter={(v) => formatCurrency(v, language)}
             series={[
-              { key: 'paid', label: t('dashboard.payableToday'), color: getCssVar('--success', '#37a864'), fill: true },
-              { key: 'issued', label: t('reports.issued'), color: getCssVar('--secondary', '#5e5b8e') },
-              { key: 'sold', label: t('reports.sold'), color: getCssVar('--accent-orange', '#f5820f') },
+              { key: "paid", label: t("dashboard.payableToday"), color: getCssVar("--success", "#37a864"), fill: true },
+              { key: "issued", label: t("reports.issued"), color: secondary },
+              { key: "sold", label: t("reports.sold"), color: getCssVar("--accent-orange", "#f5820f") },
             ]}
           />
         </ChartPanel>
 
-        <ChartPanel title={t('dashboard.settlementMix')} description={t('dashboard.settlementMixDescription')}>
-          <DonutChart data={vm.settlementMix} centerLabel={t('dashboard.activeRoutes')} centerValue={formatNumber(vm.activeDsrs, language)} valueFormatter={(value) => `${formatNumber(value, language)} ${t('common.dsr')}`} />
-        </ChartPanel>
-      </div>
-
-      <div className="mt-6">
-        <ChartPanel title={t('dashboard.activityHeatmap')} description={t('dashboard.activityHeatmapDescription')}>
-          <ActivityHeatmap cells={vm.activityHeatmap} color={getCssVar('--secondary', '#5e5b8e')} t={t} language={language} />
-        </ChartPanel>
-      </div>
-
-      <div className="mt-6 grid gap-6 xl:grid-cols-3">
-        <ChartPanel title={t('dashboard.inventoryByCategory')} description={t('dashboard.inventoryByCategoryDescription')}>
-          {vm.inventoryByCategory.length ? <HorizontalBarChart data={vm.inventoryByCategory.slice(0, 6)} valueFormatter={(value) => formatCurrency(value, language)} /> : <EmptyState title={t('dashboard.noInventoryTitle')} description={t('dashboard.noInventoryDescription')} icon={Boxes} />}
-        </ChartPanel>
-
-        <ChartPanel title={t('dashboard.routePerformance')} description={t('dashboard.routePerformanceDescription')}>
-          {vm.routePerformance.length ? (
-            <StackedBarChart
-              data={vm.routePerformance}
-              segments={[
-                { key: 'issued', label: t('reports.issued'), color: getCssVar('--issued-soft', '#bfbdd2') },
-              { key: 'returned', label: t('reports.returned'), color: getCssVar('--returned', '#f8aa17') },
-              { key: 'sold', label: t('reports.sold'), color: getCssVar('--success', '#37a864') },
-              ]}
-              totalFormatter={(value) => `${formatNumber(value, language)} ${t('common.pcs')}`}
-            />
-          ) : (
-            <EmptyState title={t('dashboard.noRouteMovementTitle')} description={t('dashboard.noRouteMovementDescription')} icon={Truck} />
-          )}
-        </ChartPanel>
-
-        <ChartPanel title={t('dashboard.topProductsByCash')} description={t('dashboard.topProductsByCashDescription')}>
-          {vm.topPayableProducts.length ? <HorizontalBarChart data={vm.topPayableProducts} valueFormatter={(value) => formatCurrency(value, language)} trackClassName="bg-emerald-50" /> : <EmptyState title={t('dashboard.noSoldProductsTitle')} description={t('dashboard.noSoldProductsDescription')} icon={PackageCheck} />}
-        </ChartPanel>
-      </div>
-
-      <div className="mt-6 overflow-hidden rounded-[34px] border border-slate-200/80 bg-[linear-gradient(180deg,rgba(var(--white),0.98),rgba(244,247,251,0.96))] shadow-[0_24px_60px_rgba(var(--slate-900),0.08)]">
-        <div className="grid gap-8 p-5 text-slate-950 lg:grid-cols-[1.15fr_0.85fr] lg:p-8">
-          <div className="flex flex-col justify-between gap-7">
-            <div>
-              <div className="inline-flex items-center gap-2 rounded-full border border-[var(--secondary-soft)] bg-[var(--secondary-soft)] px-3 py-1 text-xs font-black uppercase tracking-[0.16em] text-[var(--secondary-strong)]">
-                <CheckCircle2 size={14} />
-                {t('dashboard.liveTrading')}
-              </div>
-              <h2 className="mt-4 text-3xl font-black tracking-tight sm:text-4xl">{t('dashboard.heroTitle')}</h2>
-              <p className="mt-3 max-w-2xl text-sm font-medium leading-7 text-slate-500">{t('dashboard.heroDescription')}</p>
+        {financeDashboard ? (
+          <div className="surface overflow-hidden p-5">
+            <p className="px-1 text-[11px] font-black uppercase tracking-[0.16em] text-slate-400">
+              {t("dashboard.receivablesPayables")}
+            </p>
+            <p className="mt-1 px-1 text-xs font-medium leading-5 text-slate-400">
+              {t("dashboard.receivablesPayablesDescription")}
+            </p>
+            <div className="mt-4 space-y-2.5">
+              <DueRow
+                icon={Truck}
+                iconClass="bg-[var(--secondary-soft)] text-[var(--secondary-strong)]"
+                label={t("dashboard.dsrDueTotal")}
+                sub={t("dashboard.dsrDueTotalHelper")}
+                value={formatCurrency(financeDashboard.totalDsrDue, language)}
+              />
+              <DueRow
+                icon={UserCheck}
+                iconClass="bg-emerald-50 text-emerald-700"
+                label={t("dashboard.customerDueTotal")}
+                sub={t("dashboard.customerDueTotalHelper")}
+                value={formatCurrency(financeDashboard.totalCustomerDue, language)}
+              />
+              <DueRow
+                icon={HandCoins}
+                iconClass="bg-rose-50 text-rose-600"
+                label={t("dashboard.supplierDueTotal")}
+                sub={t("dashboard.supplierDueTotalHelper")}
+                value={formatCurrency(financeDashboard.totalSupplierDue, language)}
+                valueClass="text-rose-600"
+              />
             </div>
-            <div className="grid gap-3 md:grid-cols-3">
-              <div className="flex flex-col items-center justify-center rounded-[26px] border border-slate-200 bg-white/85 px-4 py-4 text-center shadow-[0_12px_26px_rgba(var(--slate-900),0.05)]">
-                <RadialProgressChart value={vm.completionRate} label={t('dashboard.collectionFlow')} color={getCssVar('--secondary', '#5e5b8e')} size={132} />
-                <p className="mt-2 text-sm font-medium leading-6 text-slate-500">{t('dashboard.collectionFlowDesc')}</p>
+            <div className="mt-4 rounded-[18px] bg-slate-50 px-5 py-3">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-black uppercase tracking-[0.12em] text-slate-400">
+                  {t("dashboard.netPosition")}
+                </p>
+                <p
+                  className={cx(
+                    "text-sm font-black",
+                    financeDashboard.netPosition >= 0 ? "text-emerald-700" : "text-rose-600",
+                  )}
+                >
+                  {formatCurrency(financeDashboard.netPosition, language)}
+                </p>
               </div>
-              {vm.operationalPulse.slice(1).map((item) => (
-                <div key={item.title} className="rounded-[26px] border border-slate-200 bg-white/85 px-4 py-4 shadow-[0_12px_26px_rgba(var(--slate-900),0.05)]">
-                  <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-500">{item.title}</p>
-                  <p className="mt-2 text-3xl font-black tracking-tight text-slate-950">{item.value}</p>
-                  <p className="mt-2 text-sm font-medium leading-6 text-slate-500">{item.subtitle}</p>
-                </div>
-              ))}
-            </div>
-            <div className="flex flex-wrap gap-3 text-sm font-bold">
-              <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-slate-700 shadow-[0_1px_0_rgba(var(--slate-900),0.03)]">
-                <CalendarDays size={16} />
-                {formatDate(today, language)}
-              </span>
-              <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-slate-700 shadow-[0_1px_0_rgba(var(--slate-900),0.03)]">
-                <UserCheck size={16} />
-                {t('dashboard.activeDsrs', { count: formatNumber(vm.activeDsrs, language) })}
-              </span>
             </div>
           </div>
-          <div className="grid min-w-0 gap-3 sm:grid-cols-2">
-            <div className="rounded-[28px] border border-slate-200 bg-white/85 p-5 shadow-[0_12px_26px_rgba(var(--slate-900),0.05)]">
-              <p className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">{t('dashboard.payableToday')}</p>
-              <p className="mt-3 text-3xl font-black tracking-tight text-slate-950">{formatCurrency(vm.payableToday, language)}</p>
-              <p className="mt-2 text-sm font-medium text-slate-500">{t('dashboard.payableTodayDesc')}</p>
-            </div>
-            <div className="rounded-[28px] border border-slate-200 bg-white/85 p-5 shadow-[0_12px_26px_rgba(var(--slate-900),0.05)]">
-              <p className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">{t('dashboard.stockValue')}</p>
-              <p className="mt-3 text-3xl font-black tracking-tight text-slate-950">{formatCurrency(vm.stockValue, language)}</p>
-              <p className="mt-2 text-sm font-medium text-slate-500">{t('dashboard.stockValueDesc')}</p>
-            </div>
-            <div className="rounded-[28px] border border-slate-200 bg-white/85 p-5 shadow-[0_12px_26px_rgba(var(--slate-900),0.05)]">
-              <p className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">{t('dashboard.unitsInStock')}</p>
-              <p className="mt-3 text-3xl font-black tracking-tight text-slate-950">{formatNumber(vm.stockUnits, language)}</p>
-              <p className="mt-2 text-sm font-medium text-slate-500">{t('dashboard.unitsInStockDesc')}</p>
-            </div>
-            <div className="rounded-[28px] border border-slate-200 bg-white/85 p-5 shadow-[0_12px_26px_rgba(var(--slate-900),0.05)]">
-              <p className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">{t('dashboard.possibleProfit')}</p>
-              <p className="mt-3 text-3xl font-black tracking-tight text-slate-950">{formatCurrency(vm.expectedStockProfit, language)}</p>
-              <p className="mt-2 text-sm font-medium text-slate-500">{t('dashboard.possibleProfitDesc')}</p>
+        ) : (
+          <div className="surface overflow-hidden p-5">
+            <p className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-400">
+              {t("dashboard.receivablesPayables")}
+            </p>
+            <div className="mt-6 flex flex-col items-center justify-center gap-2 py-8 text-center">
+              <Lock size={20} className="text-slate-300" />
+              <p className="text-xs font-medium text-slate-400">Finance data unavailable</p>
             </div>
           </div>
-        </div>
+        )}
       </div>
 
-      <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard title={t('dashboard.products')} value={formatNumber(productDirectory.length, language)} helper={t('dashboard.productsHelper')} icon={Boxes} tone="blue" />
-        <StatCard title={t('dashboard.salesValueInStock')} value={formatCurrency(vm.stockSellingValue, language)} helper={t('dashboard.salesValueInStockHelper')} icon={CircleDollarSign} tone="emerald" />
-        <StatCard title={t('dashboard.issuedToday')} value={`${formatNumber(vm.totalIssuedToday, language)} ${t('common.pcs')}`} helper={t('dashboard.issuedTodayHelper')} icon={Truck} tone="amber" trend={vm.tradingTrend.map((day) => day.issued)} />
-        <StatCard title={t('dashboard.returnedToday')} value={`${formatNumber(vm.totalReturnedToday, language)} ${t('common.pcs')}`} helper={t('dashboard.returnedTodayHelper')} icon={RotateCcw} tone="slate" />
-        <StatCard title={t('dashboard.soldToday')} value={`${formatNumber(vm.totalSoldToday, language)} ${t('common.pcs')}`} helper={t('dashboard.soldTodayHelper')} icon={PackageCheck} tone="emerald" trend={vm.tradingTrend.map((day) => day.sold)} />
-        <StatCard title={t('dashboard.pendingReturn')} value={`${formatNumber(vm.pendingRows.length, language)} ${t('common.dsr')}`} helper={t('dashboard.pendingReturnHelper')} icon={AlertTriangle} tone={vm.pendingRows.length ? 'amber' : 'emerald'} />
-        <StatCard title={t('dashboard.completedSettlement')} value={`${formatNumber(vm.completedRows.length, language)} ${t('common.dsr')}`} helper={t('dashboard.completedSettlementHelper', { percent: vm.completionRate })} icon={CheckCircle2} tone="blue" />
-        <StatCard title={t('dashboard.lowStock')} value={formatNumber(vm.lowStockAll.length, language)} helper={t('dashboard.lowStockHelper', { count: vm.outOfStockCount })} icon={AlertTriangle} tone={vm.lowStockAll.length ? 'rose' : 'emerald'} />
-      </div>
-
-      <div className="mt-6 grid gap-4 xl:grid-cols-4">
-        {vm.ownerTasks.map((task) => {
-          const Icon = taskIcons[task.iconKey] || AlertTriangle;
-          return (
-            <div key={task.title} className="surface rounded-[28px] p-5">
-              <div className="flex items-start gap-3">
-                <div className={cx('rounded-2xl p-2.5', task.tone === 'emerald' && 'bg-emerald-50 text-emerald-700', task.tone === 'amber' && 'bg-amber-50 text-amber-700', task.tone === 'rose' && 'bg-rose-50 text-rose-700', task.tone === 'blue' && 'bg-[var(--secondary-soft)] text-[var(--secondary-strong)]', task.tone === 'slate' && 'bg-slate-100 text-slate-700')}>
-                  <Icon size={20} />
-                </div>
-                <div>
-                  <h3 className="text-sm font-black text-slate-950">{task.title}</h3>
-                  <p className="mt-1 text-sm font-medium leading-5 text-slate-500">{task.detail}</p>
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      <div className="mt-6 grid gap-6 xl:grid-cols-[1fr_1fr]">
-        <ChartPanel title={t('dashboard.friendlySummary')} description={t('dashboard.friendlySummaryDescription')}>
-          <div className="grid gap-3 md:grid-cols-2">
-            {vm.summaryLines.map((item) => (
-              <InsightLine key={item.label} label={item.label} value={item.value} />
-            ))}
-          </div>
-        </ChartPanel>
-
-        <ChartPanel title={t('dashboard.actionQueue')} description={t('dashboard.actionQueueDescription')}>
-          <div className="space-y-3">
-            {vm.actionQueue.pendingRows.length
-              ? vm.actionQueue.pendingRows.slice(0, 4).map((row) => <InsightLine key={row.dsrId} label={`${row.dsrName} - ${row.area}`} value={`${formatNumber(row.issuedPieces, language)} ${t('common.pcs')} ${t('dashboard.pending')}`} />)
-              : <div className="rounded-2xl bg-emerald-50 px-4 py-4 text-sm font-bold text-emerald-700">{t('dashboard.noPendingReturn')}</div>}
-            {vm.actionQueue.lowStockProducts.length
-              ? vm.actionQueue.lowStockProducts.slice(0, 3).map((product) => <InsightLine key={product.id} label={product.name} value={isElectronics ? `${formatNumber(product.stockPieces, language)} ${t('common.pcs')}` : vm.actionQueue.formatCasePiece(product.stockPieces, product.piecesPerCase)} />)
-              : <div className="rounded-2xl bg-sky-50 px-4 py-4 text-sm font-bold text-sky-700">{t('dashboard.stockHealthy')}</div>}
-          </div>
-        </ChartPanel>
-      </div>
-
-      {/* Day-over-day comparison */}
-      <div className="mt-6 grid gap-4 sm:grid-cols-3">
-        {[
-          {
-            title: t('dashboard.issuedVsYesterday'),
-            today: `${formatNumber(yesterdayDeltas.issuedToday, language)} ${t('common.pcs')}`,
-            yesterday: `${formatNumber(yesterdayDeltas.issuedYesterday, language)} ${t('common.pcs')} yesterday`,
-            delta: yesterdayDeltas.issued,
-            icon: Truck,
-            accent: 'bg-[var(--secondary-soft)] text-[var(--secondary-strong)]',
-          },
-          {
-            title: t('dashboard.soldVsYesterday'),
-            today: `${formatNumber(yesterdayDeltas.soldToday, language)} ${t('common.pcs')}`,
-            yesterday: `${formatNumber(yesterdayDeltas.soldYesterday, language)} ${t('common.pcs')} yesterday`,
-            delta: yesterdayDeltas.sold,
-            icon: PackageCheck,
-            accent: 'bg-emerald-50 text-emerald-700',
-          },
-          {
-            title: t('dashboard.collectedVsYesterday'),
-            today: formatCurrency(yesterdayDeltas.collectedToday, language),
-            yesterday: `${formatCurrency(yesterdayDeltas.collectedYesterday, language)} yesterday`,
-            delta: yesterdayDeltas.collected,
-            icon: HandCoins,
-            accent: 'bg-amber-50 text-amber-700',
-          },
-        ].map((item) => {
-          const Icon = item.icon;
-          return (
-            <div key={item.title} className="surface rounded-[28px] p-5">
-              <div className="flex items-center gap-3">
-                <div className={cx('rounded-2xl p-2.5', item.accent)}>
-                  <Icon size={20} />
-                </div>
-                <p className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">{item.title}</p>
-              </div>
-              <p className="mt-3 text-2xl font-black tracking-tight text-slate-950">{item.today}</p>
-              <div className="mt-2 flex items-center justify-between">
-                <p className="text-xs font-medium text-slate-400">{item.yesterday}</p>
-                <DeltaBadge delta={item.delta} language={language} />
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Retail POS Today + DSR Cash Leaderboard */}
-      <div className="mt-6 grid gap-6 xl:grid-cols-2">
-        <ChartPanel title={t('dashboard.retailPosToday')} description={t('dashboard.retailPosTodayDescription')}>
+      {/* ── 3. RETAIL POS TODAY + DSR CASH LEADERBOARD ── */}
+      <div className="grid gap-6 xl:grid-cols-2">
+        {/* Retail POS Today */}
+        <ChartPanel title={t("dashboard.retailPosToday")} description={t("dashboard.retailPosTodayDescription")}>
           <div className="grid gap-3 sm:grid-cols-3">
-            <div className="rounded-[22px] bg-slate-50 p-4">
-              <div className="mb-2 rounded-xl bg-white p-2 shadow-sm w-fit">
-                <Store size={18} className="text-[var(--secondary-strong)]" />
-              </div>
-              <p className="text-[11px] font-black uppercase tracking-[0.14em] text-slate-500">{t('dashboard.retailRevenue')}</p>
-              <p className="mt-1 text-xl font-black tracking-tight text-slate-950">{formatCurrency(retailPos.revenue, language)}</p>
-              <p className="mt-1 text-xs font-medium text-slate-400">{t('dashboard.retailRevenueHelper')}</p>
-            </div>
-            <div className="rounded-[22px] bg-slate-50 p-4">
-              <div className="mb-2 rounded-xl bg-white p-2 shadow-sm w-fit">
-                <ShoppingCart size={18} className="text-emerald-600" />
-              </div>
-              <p className="text-[11px] font-black uppercase tracking-[0.14em] text-slate-500">{t('dashboard.retailInvoices')}</p>
-              <p className="mt-1 text-xl font-black tracking-tight text-slate-950">{formatNumber(retailPos.invoiceCount, language)}</p>
-              <p className="mt-1 text-xs font-medium text-slate-400">{t('dashboard.retailInvoicesHelper')}</p>
-            </div>
-            <div className="rounded-[22px] bg-slate-50 p-4">
-              <div className="mb-2 rounded-xl bg-white p-2 shadow-sm w-fit">
-                <Wallet size={18} className="text-amber-600" />
-              </div>
-              <p className="text-[11px] font-black uppercase tracking-[0.14em] text-slate-500">{t('dashboard.retailAvgBasket')}</p>
-              <p className="mt-1 text-xl font-black tracking-tight text-slate-950">{formatCurrency(retailPos.avgBasket, language)}</p>
-              <p className="mt-1 text-xs font-medium text-slate-400">{t('dashboard.retailAvgBasketHelper')}</p>
-            </div>
+            <MetricPill
+              label={t("dashboard.retailRevenue")}
+              value={formatCurrency(retailPos.revenue, language)}
+              sub={t("dashboard.retailRevenueHelper")}
+              icon={Store}
+              iconClass="bg-[var(--secondary-soft)] text-[var(--secondary-strong)]"
+            />
+            <MetricPill
+              label={t("dashboard.retailInvoices")}
+              value={formatNumber(retailPos.invoiceCount, language)}
+              sub={t("dashboard.retailInvoicesHelper")}
+              icon={ShoppingCart}
+              iconClass="bg-emerald-50 text-emerald-700"
+            />
+            <MetricPill
+              label={t("dashboard.retailAvgBasket")}
+              value={formatCurrency(retailPos.avgBasket, language)}
+              sub={t("dashboard.retailAvgBasketHelper")}
+              icon={Wallet}
+              iconClass="bg-amber-50 text-amber-700"
+            />
           </div>
+
           {retailCashSession !== undefined && (
-            <div className={cx('mt-3 flex items-center gap-3 rounded-[22px] px-4 py-3', retailCashSession ? 'bg-emerald-50' : 'bg-slate-50')}>
-              <div className={cx('rounded-xl p-2', retailCashSession ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-500')}>
-                <Landmark size={16} />
+            <div
+              className={cx(
+                "mt-3 flex items-center gap-3 rounded-[20px] px-5 py-3.5 transition-colors",
+                retailCashSession ? "bg-emerald-50 ring-1 ring-emerald-200/60" : "bg-slate-50 ring-1 ring-slate-200/50",
+              )}
+            >
+              <div
+                className={cx(
+                  "rounded-xl p-2",
+                  retailCashSession ? "bg-emerald-100 text-emerald-700" : "bg-slate-200 text-slate-500",
+                )}
+              >
+                <Landmark size={15} />
               </div>
               <div>
-                <p className={cx('text-sm font-bold', retailCashSession ? 'text-emerald-800' : 'text-slate-700')}>
-                  {retailCashSession ? t('dashboard.cashSessionOpen') : t('dashboard.cashSessionClosed')}
+                <p className={cx("text-sm font-bold", retailCashSession ? "text-emerald-800" : "text-slate-700")}>
+                  {retailCashSession ? t("dashboard.cashSessionOpen") : t("dashboard.cashSessionClosed")}
                 </p>
-                <p className="text-xs font-medium text-slate-500">
-                  {retailCashSession ? t('dashboard.cashSessionOpenDetail') : t('dashboard.cashSessionClosedDetail')}
+                <p className="text-xs font-medium text-slate-400">
+                  {retailCashSession ? t("dashboard.cashSessionOpenDetail") : t("dashboard.cashSessionClosedDetail")}
                 </p>
               </div>
+              <div
+                className={cx(
+                  "ml-auto h-2 w-2 shrink-0 rounded-full",
+                  retailCashSession ? "bg-emerald-500 shadow-[0_0_8px_rgba(52,211,153,0.7)]" : "bg-slate-300",
+                )}
+              />
             </div>
           )}
         </ChartPanel>
 
-        <ChartPanel title={t('dashboard.dsrLeaderboard')} description={t('dashboard.dsrLeaderboardDescription')}>
+        {/* DSR Cash Leaderboard */}
+        <ChartPanel title={t("dashboard.dsrLeaderboard")} description={t("dashboard.dsrLeaderboardDescription")}>
           {dsrLeaderboard.length ? (
-            <div className="space-y-2">
-              {dsrLeaderboard.map((dsr, index) => (
-                <div key={dsr.label} className="flex items-center gap-3">
-                  <div className={cx('flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-black', index === 0 ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-500')}>
-                    {index === 0 ? <Trophy size={13} /> : index + 1}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center justify-between gap-2">
-                      <p className="truncate text-sm font-bold text-slate-800">{dsr.label}</p>
-                      <p className="shrink-0 text-sm font-black text-slate-950">{formatCurrency(dsr.value, language)}</p>
+            <div className="space-y-2.5">
+              {dsrLeaderboard.map((dsr, index) => {
+                const pct = dsrLeaderboard[0].value > 0 ? Math.round((dsr.value / dsrLeaderboard[0].value) * 100) : 0;
+                const isFirst = index === 0;
+                return (
+                  <div
+                    key={dsr.label}
+                    className={cx(
+                      "flex items-center gap-3 rounded-[20px] px-4 py-3.5 ring-1 transition-colors",
+                      isFirst ? "bg-amber-50 ring-amber-200/60" : "bg-white/60 ring-slate-200/50",
+                    )}
+                  >
+                    <div
+                      className={cx(
+                        "flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-xs font-black",
+                        isFirst ? "bg-amber-100 text-amber-700" : "bg-slate-100 text-slate-500",
+                      )}
+                    >
+                      {isFirst ? <Trophy size={14} /> : index + 1}
                     </div>
-                    <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
-                      <div
-                        className="h-full rounded-full bg-[var(--secondary)]"
-                        style={{ width: `${dsrLeaderboard[0].value > 0 ? Math.round((dsr.value / dsrLeaderboard[0].value) * 100) : 0}%` }}
-                      />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className={cx("truncate text-sm font-bold", isFirst ? "text-amber-900" : "text-slate-800")}>
+                          {dsr.label}
+                        </p>
+                        <p className={cx("shrink-0 text-sm font-black", isFirst ? "text-amber-800" : "text-slate-950")}>
+                          {formatCurrency(dsr.value, language)}
+                        </p>
+                      </div>
+                      <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+                        <div
+                          className={cx(
+                            "h-full rounded-full transition-all duration-500",
+                            isFirst ? "bg-amber-400" : "bg-[var(--secondary)]",
+                          )}
+                          style={{ width: `${pct}%` }}
+                        />
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
-            <EmptyState title={t('dashboard.noDsrCashToday')} description={t('dashboard.noDsrCashTodayDescription')} icon={HandCoins} />
+            <EmptyState
+              title={t("dashboard.noDsrCashToday")}
+              description={t("dashboard.noDsrCashTodayDescription")}
+              icon={HandCoins}
+            />
           )}
         </ChartPanel>
       </div>
 
-      {/* Financial Health + Receivables & Payables */}
-      {financeDashboard && (
-        <div className="mt-6 grid gap-6 xl:grid-cols-2">
-          <ChartPanel title={t('dashboard.financialHealth')} description={t('dashboard.financialHealthDescription')}>
-            <div className="grid gap-3 sm:grid-cols-3">
-              <div className="rounded-[22px] bg-slate-50 p-4">
-                <div className="mb-2 rounded-xl bg-white p-2 shadow-sm w-fit">
-                  <Landmark size={18} className="text-[var(--secondary-strong)]" />
-                </div>
-                <p className="text-[11px] font-black uppercase tracking-[0.14em] text-slate-500">{t('dashboard.totalCashBalance')}</p>
-                <p className="mt-1 text-xl font-black tracking-tight text-slate-950">{formatCurrency(financeDashboard.totalCashBalance, language)}</p>
-                <p className="mt-1 text-xs font-medium text-slate-400">{t('dashboard.totalCashBalanceHelper')}</p>
-              </div>
-              <div className="rounded-[22px] bg-slate-50 p-4">
-                <div className="mb-2 rounded-xl bg-white p-2 shadow-sm w-fit">
-                  <TrendingUp size={18} className={financeDashboard.monthlyProfit >= 0 ? 'text-emerald-600' : 'text-rose-600'} />
-                </div>
-                <p className="text-[11px] font-black uppercase tracking-[0.14em] text-slate-500">{t('dashboard.monthlyProfit')}</p>
-                <p className={cx('mt-1 text-xl font-black tracking-tight', financeDashboard.monthlyProfit >= 0 ? 'text-emerald-700' : 'text-rose-700')}>{formatCurrency(financeDashboard.monthlyProfit, language)}</p>
-                <p className="mt-1 text-xs font-medium text-slate-400">{t('dashboard.monthlyProfitHelper')}</p>
-              </div>
-              <div className="rounded-[22px] bg-slate-50 p-4">
-                <div className="mb-2 rounded-xl bg-white p-2 shadow-sm w-fit">
-                  <CircleDollarSign size={18} className={financeDashboard.netPosition >= 0 ? 'text-emerald-600' : 'text-rose-600'} />
-                </div>
-                <p className="text-[11px] font-black uppercase tracking-[0.14em] text-slate-500">{t('dashboard.netPosition')}</p>
-                <p className={cx('mt-1 text-xl font-black tracking-tight', financeDashboard.netPosition >= 0 ? 'text-emerald-700' : 'text-rose-700')}>{formatCurrency(financeDashboard.netPosition, language)}</p>
-                <p className="mt-1 text-xs font-medium text-slate-400">{t('dashboard.netPositionHelper')}</p>
-              </div>
-            </div>
-            {financeDashboard.monthlySalesAmount > 0 && (
-              <div className="mt-3 flex items-center justify-between rounded-[22px] bg-indigo-50 px-4 py-3">
-                <div className="flex items-center gap-2">
-                  <ShoppingCart size={15} className="text-indigo-600" />
-                  <p className="text-sm font-bold text-indigo-800">{t('dashboard.monthlySalesAmount')}</p>
-                </div>
-                <p className="text-sm font-black text-indigo-900">{formatCurrency(financeDashboard.monthlySalesAmount, language)}</p>
-              </div>
-            )}
-          </ChartPanel>
-
-          <ChartPanel title={t('dashboard.receivablesPayables')} description={t('dashboard.receivablesPayablesDescription')}>
-            <div className="space-y-3">
-              <div className="flex items-center gap-3 rounded-[22px] bg-slate-50 px-4 py-3">
-                <div className="rounded-xl bg-[var(--secondary-soft)] p-2 text-[var(--secondary-strong)]">
-                  <Truck size={16} />
-                </div>
-                <div className="flex-1">
-                  <p className="text-xs font-black uppercase tracking-[0.12em] text-slate-500">{t('dashboard.dsrDueTotal')}</p>
-                  <p className="text-sm font-medium text-slate-400">{t('dashboard.dsrDueTotalHelper')}</p>
-                </div>
-                <p className="text-base font-black text-slate-950">{formatCurrency(financeDashboard.totalDsrDue, language)}</p>
-              </div>
-              <div className="flex items-center gap-3 rounded-[22px] bg-slate-50 px-4 py-3">
-                <div className="rounded-xl bg-emerald-50 p-2 text-emerald-700">
-                  <UserCheck size={16} />
-                </div>
-                <div className="flex-1">
-                  <p className="text-xs font-black uppercase tracking-[0.12em] text-slate-500">{t('dashboard.customerDueTotal')}</p>
-                  <p className="text-sm font-medium text-slate-400">{t('dashboard.customerDueTotalHelper')}</p>
-                </div>
-                <p className="text-base font-black text-slate-950">{formatCurrency(financeDashboard.totalCustomerDue, language)}</p>
-              </div>
-              <div className="flex items-center gap-3 rounded-[22px] bg-slate-50 px-4 py-3">
-                <div className="rounded-xl bg-rose-50 p-2 text-rose-700">
-                  <HandCoins size={16} />
-                </div>
-                <div className="flex-1">
-                  <p className="text-xs font-black uppercase tracking-[0.12em] text-slate-500">{t('dashboard.supplierDueTotal')}</p>
-                  <p className="text-sm font-medium text-slate-400">{t('dashboard.supplierDueTotalHelper')}</p>
-                </div>
-                <p className="text-base font-black text-rose-700">{formatCurrency(financeDashboard.totalSupplierDue, language)}</p>
-              </div>
-            </div>
-          </ChartPanel>
-        </div>
-      )}
+      {/* ── 5. ACTIVITY HEATMAP ── */}
+      <ChartPanel title={t("dashboard.activityHeatmap")} description={t("dashboard.activityHeatmapDescription")}>
+        <ActivityHeatmap cells={vm.activityHeatmap} color={secondary} t={t} language={language} />
+      </ChartPanel>
     </div>
   );
 }

@@ -9,7 +9,7 @@ const en = {
     },
     auth: {
       login: 'Login',
-      loginTitle: 'Inventory Management',
+      loginTitle: 'Everything Your Business Needs',
       orgCode: 'Organization Code',
       orgCodePlaceholder: 'e.g. arinda',
       orgCodeHint: 'Leave blank if you are the platform administrator',

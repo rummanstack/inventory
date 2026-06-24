@@ -96,7 +96,7 @@ export default function QuotationViewModal({ quotation, onClose, onConverted }) 
         {/* Items */}
         <div className="rounded-xl border border-slate-200 overflow-hidden">
           <table className="w-full text-sm">
-            <thead className="bg-slate-50 text-left text-[11px] font-black uppercase tracking-[0.14em] text-slate-400">
+            <thead className="table-head">
               <tr>
                 <th className="px-3 py-2">{t('quotations.itemProductLabel')}</th>
                 <th className="px-3 py-2 text-right">{t('quotations.itemQtyLabel')}</th>

@@ -167,6 +167,10 @@
         manage_warranty_claims: 'ওয়ারেন্টি ক্লেইম পরিচালনা',
         view_repair_jobs: 'মেরামত কাজ দেখুন',
         manage_repair_jobs: 'মেরামত কাজ পরিচালনা',
+        view_quotations: 'কোটেশন দেখুন',
+        manage_quotations: 'কোটেশন পরিচালনা করুন',
+        view_trade_ins: 'ট্রেড-ইন দেখুন',
+        manage_trade_ins: 'ট্রেড-ইন পরিচালনা করুন',
       },
     },
     common: {
@@ -589,8 +593,6 @@
       noMatchTitle: 'কোনো কোটেশন পাওয়া যায়নি',
       noMatchDescription: 'শুরু করতে একটি নতুন কোটেশন তৈরি করুন।',
       sheetName: 'কোটেশন',
-      view_quotations: 'কোটেশন দেখুন',
-      manage_quotations: 'কোটেশন পরিচালনা করুন',
     },
     tradeIns: {
       eyebrow: 'বিক্রয়',
@@ -640,8 +642,6 @@
       noMatchTitle: 'কোনো ট্রেড-ইন পাওয়া যায়নি',
       noMatchDescription: 'প্রথম ট্রেড-ইন রেকর্ড করুন।',
       sheetName: 'ট্রেড-ইন',
-      view_trade_ins: 'ট্রেড-ইন দেখুন',
-      manage_trade_ins: 'ট্রেড-ইন পরিচালনা করুন',
     },
     repairJobs: {
       eyebrow: 'মেরামত',

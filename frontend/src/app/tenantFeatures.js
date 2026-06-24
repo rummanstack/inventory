@@ -46,4 +46,7 @@ export const TENANT_FEATURE_ROUTES = [
   { feature: 'low-stock-alerts', labelKey: 'nav.lowStockAlerts' },
   { feature: 'product-serials', labelKey: 'nav.productSerials' },
   { feature: 'warranty-claims', labelKey: 'nav.warrantyClaims' },
+  { feature: 'repair-jobs', labelKey: 'nav.repairJobs' },
+  { feature: 'quotations', labelKey: 'nav.quotations' },
+  { feature: 'trade-ins', labelKey: 'nav.tradeIns' },
 ];

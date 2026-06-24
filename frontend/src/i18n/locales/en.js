@@ -184,6 +184,10 @@ const en = {
         manage_warranty_claims: 'Manage Warranty Claims',
         view_repair_jobs: 'View Repair Jobs',
         manage_repair_jobs: 'Manage Repair Jobs',
+        view_quotations: 'View Quotations',
+        manage_quotations: 'Manage Quotations',
+        view_trade_ins: 'View Trade-Ins',
+        manage_trade_ins: 'Manage Trade-Ins',
       },
     },
     common: {
@@ -606,8 +610,6 @@ const en = {
       noMatchTitle: 'No quotations found',
       noMatchDescription: 'Create a new quotation to get started.',
       sheetName: 'Quotations',
-      view_quotations: 'View Quotations',
-      manage_quotations: 'Manage Quotations',
     },
     tradeIns: {
       eyebrow: 'Sales',
@@ -657,8 +659,6 @@ const en = {
       noMatchTitle: 'No trade-ins found',
       noMatchDescription: 'Record your first device trade-in or exchange to see it here.',
       sheetName: 'Trade-Ins',
-      view_trade_ins: 'View Trade-Ins',
-      manage_trade_ins: 'Manage Trade-Ins',
     },
     repairJobs: {
       eyebrow: 'Repair',

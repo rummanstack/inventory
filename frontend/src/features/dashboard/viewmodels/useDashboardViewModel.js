@@ -22,6 +22,12 @@ function subtractDays(dateISO, days) {
   return date.toISOString().slice(0, 10);
 }
 
+function computeDelta(today, yesterday) {
+  if (yesterday === 0) return { pct: null, up: today >= 0 };
+  const pct = Math.round(Math.abs(((today - yesterday) / yesterday) * 100));
+  return { pct, up: today >= yesterday };
+}
+
 export function useDashboardViewModel({ products, dsrs, today, t, language = 'en' }) {
   const [todayIssues, setTodayIssues] = useState([]);
   const [todaySettlements, setTodaySettlements] = useState([]);
@@ -29,6 +35,11 @@ export function useDashboardViewModel({ products, dsrs, today, t, language = 'en
   const [trendSettlements, setTrendSettlements] = useState([]);
   const [heatmapIssues, setHeatmapIssues] = useState([]);
   const [heatmapSettlements, setHeatmapSettlements] = useState([]);
+  const [yesterdayIssues, setYesterdayIssues] = useState([]);
+  const [yesterdaySettlements, setYesterdaySettlements] = useState([]);
+  const [todaySalesInvoices, setTodaySalesInvoices] = useState([]);
+  const [financeDashboard, setFinanceDashboard] = useState(null);
+  const [retailCashSession, setRetailCashSession] = useState(undefined);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -45,6 +56,7 @@ export function useDashboardViewModel({ products, dsrs, today, t, language = 'en
         setError('');
         const trendFrom = subtractDays(today, TREND_DAYS - 1);
         const heatmapFrom = subtractDays(today, HEATMAP_DAYS - 1);
+        const yesterday = subtractDays(today, 1);
         const [
           todayIssuesResult,
           todaySettlementsResult,
@@ -52,6 +64,11 @@ export function useDashboardViewModel({ products, dsrs, today, t, language = 'en
           trendSettlementsResult,
           heatmapIssuesResult,
           heatmapSettlementsResult,
+          yesterdayIssuesResult,
+          yesterdaySettlementsResult,
+          todaySalesResult,
+          financeDashboardResult,
+          cashSessionResult,
         ] = await Promise.all([
           inventoryApi.listIssues({ dateFrom: today, dateTo: today, pageSize: DAY_SCOPE_PAGE_SIZE }),
           inventoryApi.listSettlements({ dateFrom: today, dateTo: today, pageSize: DAY_SCOPE_PAGE_SIZE }),
@@ -59,6 +76,11 @@ export function useDashboardViewModel({ products, dsrs, today, t, language = 'en
           inventoryApi.listSettlements({ dateFrom: trendFrom, dateTo: today, pageSize: DAY_SCOPE_PAGE_SIZE }),
           inventoryApi.listIssues({ dateFrom: heatmapFrom, dateTo: today, pageSize: HEATMAP_PAGE_SIZE }),
           inventoryApi.listSettlements({ dateFrom: heatmapFrom, dateTo: today, pageSize: HEATMAP_PAGE_SIZE }),
+          inventoryApi.listIssues({ dateFrom: yesterday, dateTo: yesterday, pageSize: DAY_SCOPE_PAGE_SIZE }),
+          inventoryApi.listSettlements({ dateFrom: yesterday, dateTo: yesterday, pageSize: DAY_SCOPE_PAGE_SIZE }),
+          inventoryApi.listSalesInvoices({ dateFrom: today, dateTo: today, pageSize: 200 }).catch(() => ({ items: [] })),
+          inventoryApi.getFinanceDashboard().catch(() => null),
+          inventoryApi.getCurrentRetailCashSession().catch(() => null),
         ]);
 
         if (cancelled) {
@@ -71,6 +93,11 @@ export function useDashboardViewModel({ products, dsrs, today, t, language = 'en
         setTrendSettlements(trendSettlementsResult.items || []);
         setHeatmapIssues(heatmapIssuesResult.items || []);
         setHeatmapSettlements(heatmapSettlementsResult.items || []);
+        setYesterdayIssues(yesterdayIssuesResult.items || []);
+        setYesterdaySettlements(yesterdaySettlementsResult.items || []);
+        setTodaySalesInvoices(todaySalesResult?.items || []);
+        setFinanceDashboard(financeDashboardResult);
+        setRetailCashSession(cashSessionResult);
       } catch (requestError) {
         if (!cancelled) {
           setError(requestError.message);
@@ -80,6 +107,11 @@ export function useDashboardViewModel({ products, dsrs, today, t, language = 'en
           setTrendSettlements([]);
           setHeatmapIssues([]);
           setHeatmapSettlements([]);
+          setYesterdayIssues([]);
+          setYesterdaySettlements([]);
+          setTodaySalesInvoices([]);
+          setFinanceDashboard(null);
+          setRetailCashSession(null);
         }
       } finally {
         if (!cancelled) {
@@ -134,6 +166,31 @@ export function useDashboardViewModel({ products, dsrs, today, t, language = 'en
       .values(),
   )
     .sort((a, b) => b.payable - a.payable)
+    .slice(0, 5);
+
+  // Retail POS today
+  const retailInvoiceCount = todaySalesInvoices.length;
+  const retailRevenue = todaySalesInvoices.reduce((sum, inv) => sum + Number(inv.totalAmount || 0), 0);
+  const retailAvgBasket = retailInvoiceCount > 0 ? retailRevenue / retailInvoiceCount : 0;
+
+  // Yesterday comparison
+  const yesterdayIssuedPcs = yesterdayIssues.reduce((sum, issue) => sum + issue.items.reduce((s, i) => s + Number(i.issuedPieces || 0), 0), 0);
+  const yesterdaySoldPcs = yesterdaySettlements.reduce((sum, s) => sum + s.items.reduce((s2, i) => s2 + Number(i.soldPieces || 0), 0), 0);
+  const yesterdayPayable = yesterdaySettlements.reduce((sum, s) => sum + Number(s.amountPaid || 0), 0);
+
+  // DSR leaderboard (top 5 by total cash collected today, aggregated across settlements)
+  const dsrLeaderboard = Array.from(
+    todaySettlements.reduce((map, s) => {
+      const existing = map.get(s.dsrId) || {
+        label: dsrs.find((d) => d.id === s.dsrId)?.name || s.dsrName || s.dsrId,
+        value: 0,
+      };
+      existing.value += Number(s.amountPaid || 0);
+      map.set(s.dsrId, existing);
+      return map;
+    }, new Map()).values(),
+  )
+    .sort((a, b) => b.value - a.value)
     .slice(0, 5);
 
   return {
@@ -206,6 +263,26 @@ export function useDashboardViewModel({ products, dsrs, today, t, language = 'en
       pendingRows,
       lowStockProducts,
       formatCasePiece,
+    },
+    // New insights
+    retailPos: {
+      invoiceCount: retailInvoiceCount,
+      revenue: retailRevenue,
+      avgBasket: retailAvgBasket,
+    },
+    retailCashSession,
+    financeDashboard,
+    dsrLeaderboard,
+    yesterdayDeltas: {
+      issued: computeDelta(totalIssuedToday, yesterdayIssuedPcs),
+      sold: computeDelta(totalSoldToday, yesterdaySoldPcs),
+      collected: computeDelta(payableToday, yesterdayPayable),
+      issuedToday: totalIssuedToday,
+      soldToday: totalSoldToday,
+      collectedToday: payableToday,
+      issuedYesterday: yesterdayIssuedPcs,
+      soldYesterday: yesterdaySoldPcs,
+      collectedYesterday: yesterdayPayable,
     },
   };
 }

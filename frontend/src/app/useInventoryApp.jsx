@@ -1139,6 +1139,16 @@ export function InventoryAppProvider({ children }) {
 
   async function logout() {
     try {
+      const sessionResult = await inventoryApi.getCurrentRetailCashSession().catch(() => null);
+      const openSession = sessionResult?.session;
+      if (openSession?.id) {
+        const countedCash = openSession.expectedCash ?? openSession.openingCash ?? 0;
+        await inventoryApi.stopRetailCashSession(openSession.id, { countedCash }).catch(() => null);
+        try { window.localStorage.removeItem('retail.cashSessionSnapshot'); } catch { /* ignore */ }
+      }
+    } catch { /* ignore — proceed with logout regardless */ }
+
+    try {
       await inventoryApi.logout();
     } catch (error) {
       if (error.status !== 401) {

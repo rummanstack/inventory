@@ -4,6 +4,7 @@ import { Alert, Modal } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { useFormState } from '../../../hooks/useFormState';
+import { formatCurrency } from '../../../utils/calculations.js';
 
 const QUOTATION_STATUS_VALUES = ['DRAFT', 'SENT', 'ACCEPTED', 'REJECTED', 'EXPIRED'];
 
@@ -19,7 +20,7 @@ function itemTotal(item) {
 }
 
 export default function QuotationFormModal({ quotation, onClose, onSave }) {
-  const { t, productDirectory } = useInventoryApp();
+  const { t, productDirectory, language } = useInventoryApp();
   const isEdit = Boolean(quotation);
   const today = new Date().toISOString().slice(0, 10);
 
@@ -264,7 +265,7 @@ export default function QuotationFormModal({ quotation, onClose, onSave }) {
                       />
                     </td>
                     <td className="px-2 py-1.5 text-right text-slate-900 font-medium">
-                      {itemTotal(item).toLocaleString()}
+                      {formatCurrency(itemTotal(item), language)}
                     </td>
                     <td className="px-2 py-1.5 text-center">
                       {items.length > 1 && (
@@ -310,7 +311,7 @@ export default function QuotationFormModal({ quotation, onClose, onSave }) {
           </div>
           <div className="rounded-xl bg-slate-900 text-white px-4 py-3 text-right">
             <p className="text-[11px] font-black uppercase tracking-[0.14em] text-slate-400">{t('quotations.totalLabel')}</p>
-            <p className="text-xl font-bold">{totalAmount.toLocaleString()}</p>
+            <p className="text-xl font-bold">{formatCurrency(totalAmount, language)}</p>
           </div>
         </div>
 

@@ -202,7 +202,7 @@ export default function SalesInvoiceViewModal({ salesInvoice, onClose }) {
     </Modal>
 
     <div className="absolute -left-[10000px] top-0">
-      <SalesInvoicePrintSheet invoice={salesInvoice} businessName={businessName} printTarget targetId={printTargetId} t={t} language={language} />
+      <SalesInvoicePrintSheet invoice={salesInvoice} businessName={businessName} businessAddress={tenant?.address || ''} businessPhone={tenant?.phone || ''} businessEmail={tenant?.email || ''} printTarget targetId={printTargetId} t={t} language={language} />
     </div>
     </>
   );

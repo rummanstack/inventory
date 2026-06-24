@@ -83,9 +83,11 @@ import { createVisitorChatAdminRoutes } from "./visitorChatAdmin.routes.js";
 import { FinanceAccountController } from "../controllers/financeAccountController.js";
 import { FinanceDashboardController } from "../controllers/financeDashboardController.js";
 import { RetailCashSessionController } from "../controllers/retailCashSessionController.js";
+import { QuotationController } from "../controllers/quotationController.js";
 import { createFinanceAccountsRoutes } from "./financeAccounts.routes.js";
 import { createFinanceDashboardRoutes } from "./financeDashboard.routes.js";
 import { createRetailCashSessionsRoutes } from "./retailCashSessions.routes.js";
+import { createQuotationsRoutes } from "./quotations.routes.js";
 
 export function createApiRouter({
   authService,
@@ -129,6 +131,7 @@ export function createApiRouter({
   retailPromotionService,
   helpDeskService,
   visitorChatService,
+  quotationService,
 }) {
   const router = Router();
   const authController = new AuthController(authService, env, tenantService);
@@ -138,6 +141,7 @@ export function createApiRouter({
   const productSerialController = new ProductSerialController(productSerialService);
   const warrantyClaimController = new WarrantyClaimController(warrantyClaimService);
   const repairJobController = new RepairJobController(repairJobService);
+  const quotationController = new QuotationController(quotationService);
   const dsrDueLedgerController = new DsrDueLedgerController(dsrDueLedgerService);
   const dsrController = new DsrController(dsrService);
   const customerController = new CustomerController(customerService);
@@ -218,6 +222,7 @@ export function createApiRouter({
   router.use("/product-serials", createProductSerialsRoutes(productSerialController));
   router.use("/warranty-claims", createWarrantyClaimsRoutes(warrantyClaimController));
   router.use("/repair-jobs", createRepairJobsRoutes(repairJobController));
+  router.use("/quotations", createQuotationsRoutes(quotationController));
   router.use("/dsr-due-ledger", createDsrDueLedgerRoutes(dsrDueLedgerController));
   router.use("/dsrs", createDsrsRoutes(dsrController));
   router.use("/customers", createCustomersRoutes(customerController));

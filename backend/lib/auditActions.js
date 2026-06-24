@@ -120,3 +120,10 @@ export const REPAIR_JOB_ACTIONS = {
   UPDATE: "repair_job.update",
   DELETE: "repair_job.delete",
 };
+
+export const QUOTATION_ACTIONS = {
+  CREATE: "quotation.create",
+  UPDATE: "quotation.update",
+  DELETE: "quotation.delete",
+  CONVERT: "quotation.convert",
+};

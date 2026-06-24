@@ -248,6 +248,16 @@ export function repairJobApprovalTone(approvalStatus) {
   return 'amber';
 }
 
+export function quotationStatusTone(status) {
+  if (status === 'DRAFT') return 'slate';
+  if (status === 'SENT') return 'blue';
+  if (status === 'ACCEPTED') return 'emerald';
+  if (status === 'REJECTED') return 'rose';
+  if (status === 'EXPIRED') return 'amber';
+  if (status === 'CONVERTED') return 'indigo';
+  return 'slate';
+}
+
 export function shortDate(date, language = getPreferredLanguage()) {
   if (!date) return '-';
   return new Intl.DateTimeFormat(language === 'bn' ? 'bn-BD' : 'en-US', { month: 'short', day: 'numeric' }).format(new Date(`${date}T00:00:00`));

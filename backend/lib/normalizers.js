@@ -541,6 +541,22 @@ export function normalizeRepairJob(input) {
   };
 }
 
+export function normalizeQuotationItem(input) {
+  const quantity = Math.max(0.001, cleanMoney(input.quantity));
+  const unitPrice = Math.max(0, cleanMoney(input.unitPrice));
+  const discountAmount = Math.max(0, cleanMoney(input.discountAmount));
+  const lineTotal = Math.max(0, quantity * unitPrice - discountAmount);
+  return {
+    id: input.id || createId("quot-item"),
+    productId: String(input.productId || "").trim() || null,
+    productName: String(input.productName || "").trim(),
+    quantity,
+    unitPrice,
+    discountAmount,
+    lineTotal,
+  };
+}
+
 export function finalizeSettlementAmounts(base, previousDue) {
   const normalizedPreviousDue = Math.max(0, cleanMoney(previousDue));
   const receivableTotal = Math.max(0, base.totalPayable + normalizedPreviousDue - base.discount - base.extraReturnValue);

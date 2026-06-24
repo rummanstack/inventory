@@ -1358,4 +1358,59 @@ export async function createSchema(pool) {
     CREATE INDEX IF NOT EXISTS idx_repair_jobs_date ON repair_jobs(tenant_id, received_date DESC);
     CREATE INDEX IF NOT EXISTS idx_repair_jobs_deleted ON repair_jobs(tenant_id, deleted_at);
   `);
+
+  await client.query(`
+    CREATE TABLE IF NOT EXISTS quotation_counters (
+      tenant_id TEXT NOT NULL REFERENCES tenants(id),
+      year INTEGER NOT NULL,
+      last_value INTEGER NOT NULL DEFAULT 0,
+      PRIMARY KEY (tenant_id, year)
+    );
+
+    CREATE TABLE IF NOT EXISTS quotations (
+      id TEXT PRIMARY KEY,
+      tenant_id TEXT NOT NULL REFERENCES tenants(id),
+      quote_number TEXT NOT NULL,
+      customer_id TEXT REFERENCES retail_customers(id) ON DELETE SET NULL,
+      customer_name TEXT NOT NULL DEFAULT '',
+      customer_phone TEXT NOT NULL DEFAULT '',
+      customer_email TEXT NOT NULL DEFAULT '',
+      status TEXT NOT NULL DEFAULT 'DRAFT',
+      validity_days INTEGER NOT NULL DEFAULT 7,
+      valid_until DATE,
+      quote_date DATE NOT NULL DEFAULT CURRENT_DATE,
+      tax_rate NUMERIC NOT NULL DEFAULT 0,
+      subtotal NUMERIC NOT NULL DEFAULT 0,
+      discount_amount NUMERIC NOT NULL DEFAULT 0,
+      tax_amount NUMERIC NOT NULL DEFAULT 0,
+      total_amount NUMERIC NOT NULL DEFAULT 0,
+      notes TEXT NOT NULL DEFAULT '',
+      converted_invoice_id TEXT REFERENCES sales_invoices(id) ON DELETE SET NULL,
+      created_by TEXT REFERENCES users(id) ON DELETE SET NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      deleted_at TIMESTAMPTZ,
+      deleted_by_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+      delete_reason TEXT NOT NULL DEFAULT '',
+      UNIQUE (tenant_id, quote_number)
+    );
+
+    CREATE TABLE IF NOT EXISTS quotation_items (
+      id TEXT PRIMARY KEY,
+      quotation_id TEXT NOT NULL REFERENCES quotations(id) ON DELETE CASCADE,
+      tenant_id TEXT NOT NULL REFERENCES tenants(id),
+      product_id TEXT REFERENCES products(id) ON DELETE SET NULL,
+      product_name TEXT NOT NULL DEFAULT '',
+      quantity NUMERIC NOT NULL DEFAULT 1,
+      unit_price NUMERIC NOT NULL DEFAULT 0,
+      discount_amount NUMERIC NOT NULL DEFAULT 0,
+      line_total NUMERIC NOT NULL DEFAULT 0
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_quotations_tenant_status ON quotations(tenant_id, status);
+    CREATE INDEX IF NOT EXISTS idx_quotations_tenant_date ON quotations(tenant_id, quote_date DESC);
+    CREATE INDEX IF NOT EXISTS idx_quotations_tenant_customer ON quotations(tenant_id, customer_id);
+    CREATE INDEX IF NOT EXISTS idx_quotations_deleted ON quotations(tenant_id, deleted_at);
+    CREATE INDEX IF NOT EXISTS idx_quotation_items_quotation ON quotation_items(quotation_id);
+  `);
 }

@@ -90,6 +90,8 @@ import { createRetailCashSessionsRoutes } from "./retailCashSessions.routes.js";
 import { createQuotationsRoutes } from "./quotations.routes.js";
 import { TradeInController } from "../controllers/tradeInController.js";
 import { createTradeInsRoutes } from "./tradeIns.routes.js";
+import { BrandController } from "../controllers/BrandController.js";
+import { createBrandsRoutes } from "./brands.routes.js";
 
 export function createApiRouter({
   authService,
@@ -135,6 +137,7 @@ export function createApiRouter({
   visitorChatService,
   quotationService,
   tradeInService,
+  brandService,
 }) {
   const router = Router();
   const authController = new AuthController(authService, env, tenantService);
@@ -146,6 +149,7 @@ export function createApiRouter({
   const repairJobController = new RepairJobController(repairJobService);
   const quotationController = new QuotationController(quotationService);
   const tradeInController = new TradeInController(tradeInService);
+  const brandController = new BrandController(brandService);
   const dsrDueLedgerController = new DsrDueLedgerController(dsrDueLedgerService);
   const dsrController = new DsrController(dsrService);
   const customerController = new CustomerController(customerService);
@@ -222,6 +226,7 @@ export function createApiRouter({
   router.use("/database-backup", createDatabaseBackupRoutes(backupController));
   router.use("/products", createProductsRoutes(productController));
   router.use("/categories", createCategoriesRoutes(categoryController));
+  router.use("/brands", createBrandsRoutes(brandController));
   router.use("/stock-movements", createStockMovementsRoutes(stockMovementController));
   router.use("/product-serials", createProductSerialsRoutes(productSerialController));
   router.use("/warranty-claims", createWarrantyClaimsRoutes(warrantyClaimController));

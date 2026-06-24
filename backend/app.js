@@ -49,6 +49,7 @@ export function createApp({
   visitorChatService,
   quotationService,
   tradeInService,
+  brandService,
 }) {
   const app = express();
 
@@ -101,6 +102,7 @@ export function createApp({
       visitorChatService,
       quotationService,
       tradeInService,
+      brandService,
     }),
   );
 

@@ -1475,4 +1475,17 @@ export async function createSchema(pool) {
     CREATE INDEX IF NOT EXISTS idx_trade_in_received_trade_in ON trade_in_received_items(trade_in_id);
     CREATE INDEX IF NOT EXISTS idx_trade_in_sold_trade_in ON trade_in_sold_items(trade_in_id);
   `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS brands (
+      id          TEXT PRIMARY KEY,
+      tenant_id   TEXT NOT NULL REFERENCES tenants(id),
+      name        TEXT NOT NULL,
+      created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_brands_tenant_name ON brands(tenant_id, LOWER(name));
+    CREATE INDEX IF NOT EXISTS idx_brands_tenant_id ON brands(tenant_id);
+  `);
 }

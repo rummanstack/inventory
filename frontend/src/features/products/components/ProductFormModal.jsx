@@ -12,6 +12,7 @@ export default function ProductFormModal({ product, onClose, onSave }) {
   const isEdit = Boolean(product);
   const isElectronics = (tenant?.businessType || 'ELECTRONICS') === 'ELECTRONICS';
   const [categories, setCategories] = useState([]);
+  const [brands, setBrands] = useState([]);
   const { form, updateField, error, setError, saving, setSaving } = useFormState({
     name: product?.name || '',
     categoryId: product?.categoryId || '',
@@ -36,6 +37,7 @@ export default function ProductFormModal({ product, onClose, onSave }) {
 
   useEffect(() => {
     inventoryApi.listCategories().then((result) => setCategories(result.categories || [])).catch(() => setCategories([]));
+    inventoryApi.listBrands().then((result) => setBrands(result.brands || [])).catch(() => setBrands([]));
   }, []);
 
   async function submitForm(event) {
@@ -144,7 +146,15 @@ export default function ProductFormModal({ product, onClose, onSave }) {
             <>
               <div>
                 <label className="label">{t('products.brand')}</label>
-                <input className="input" value={form.brand} onChange={(event) => updateField('brand', event.target.value)} />
+                <select className="input" value={form.brand} onChange={(event) => updateField('brand', event.target.value)}>
+                  <option value="">{t('brands.selectBrand')}</option>
+                  {brands.map((brand) => (
+                    <option key={brand.id} value={brand.name}>{brand.name}</option>
+                  ))}
+                  {form.brand && !brands.some((b) => b.name.toLowerCase() === form.brand.toLowerCase()) ? (
+                    <option value={form.brand}>{form.brand}</option>
+                  ) : null}
+                </select>
               </div>
               <div>
                 <label className="label">{t('products.model')}</label>

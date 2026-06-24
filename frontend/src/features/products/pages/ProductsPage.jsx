@@ -8,6 +8,7 @@ import StockUpdateModal from '../components/StockUpdateModal';
 import StockLedgerPanel from '../components/StockLedgerPanel';
 import ProductsPrintSheet from '../components/ProductsPrintSheet';
 import CategoriesManagerModal from '../components/CategoriesManagerModal';
+import BrandsManagerModal from '../components/BrandsManagerModal';
 import { useProductsViewModel } from '../viewmodels/useProductsViewModel';
 import { downloadSheetPdf } from '../../../services/printService.js';
 import { inventoryApi } from '../../../services/inventoryApi.js';
@@ -22,6 +23,7 @@ export default function ProductsPage() {
   const [stockModalProduct, setStockModalProduct] = useState(null);
   const [stockModalMode, setStockModalMode] = useState('add');
   const [showCategoriesModal, setShowCategoriesModal] = useState(false);
+  const [showBrandsModal, setShowBrandsModal] = useState(false);
   const [ledgerRefreshKey, setLedgerRefreshKey] = useState(0);
   const [viewMode, setViewMode] = useState(() => {
     if (typeof window === 'undefined') return 'list';
@@ -86,6 +88,12 @@ export default function ProductsPage() {
         description={t('products.description', { count: productDirectory.length })}
         action={canManageProducts ? (
           <div className="flex gap-2">
+            {isElectronics ? (
+              <button type="button" className="btn-secondary" onClick={() => setShowBrandsModal(true)}>
+                <ListTree size={18} />
+                {t('brands.manage')}
+              </button>
+            ) : null}
             <button type="button" className="btn-secondary" onClick={() => setShowCategoriesModal(true)}>
               <ListTree size={18} />
               {t('categories.manage')}
@@ -349,6 +357,9 @@ export default function ProductsPage() {
       }} /> : null}
       {showCategoriesModal ? (
         <CategoriesManagerModal onClose={() => setShowCategoriesModal(false)} onChanged={() => vm.reload()} />
+      ) : null}
+      {showBrandsModal && isElectronics ? (
+        <BrandsManagerModal onClose={() => setShowBrandsModal(false)} onChanged={() => vm.reload()} />
       ) : null}
 
       <div className="absolute -left-[10000px] top-0">

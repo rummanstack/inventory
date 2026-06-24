@@ -156,23 +156,20 @@ export function useSalesInvoiceFormViewModel({
   }, [promotions, products, saleType, invoiceDate]);
 
   function addItem() {
-    const nextProduct = products.find((product) => !items.some((row) => row.productId === product.id)) || products[0];
-    if (!nextProduct) {
-      return;
-    }
+    if (!products.length) return;
 
     setItems((current) => [
       ...current,
       {
         rowId: createId('sales-item'),
-        productId: nextProduct.id,
-        productName: nextProduct.name,
+        productId: '',
+        productName: '',
         quantityPieces: '',
-        actualSalePrice: priceForProduct(nextProduct, saleType, invoiceDate, promotions, 1),
+        actualSalePrice: 0,
         lineDiscount: 0,
-        availableStock: Number(nextProduct.stockPieces || 0),
-        taxRate: taxRateForProduct(nextProduct, defaultTaxRate),
-        serialRequired: Boolean(nextProduct.serialRequired),
+        availableStock: 0,
+        taxRate: defaultTaxRate,
+        serialRequired: false,
         serialIds: [],
       },
     ]);

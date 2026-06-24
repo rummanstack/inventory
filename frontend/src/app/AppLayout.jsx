@@ -54,7 +54,7 @@ export default function AppLayout() {
       <div className={`flex h-screen min-h-0 flex-col transition-[padding-left] duration-300 ${sidebarCollapsed ? 'lg:pl-[68px]' : 'lg:pl-72'}`}>
         <TopHeader title={getRouteLabel(location.pathname, t)} today={today} user={user} tenant={tenant} tenantOptions={tenantOptions} onSwitchTenant={switchTenant} onLogout={logout} onOpenMenu={() => setMobileOpen(true)} language={language} onLanguageChange={setLanguage} t={t} products={productDirectory} />
         <div ref={scrollContainerRef} className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
-          <main key={location.pathname} className="page-enter mx-auto max-w-[1680px] px-3 py-6 pb-10 sm:px-6 lg:px-8">
+          <main className="mx-auto max-w-[1680px] px-3 py-6 pb-10 sm:px-6 lg:px-8">
             {loadError ? (
               <div className="mb-6">
                 <Alert type="error">{loadError}</Alert>

@@ -8,15 +8,26 @@ import MustChangePasswordModal from '../features/auth/pages/MustChangePasswordMo
 import { getRouteLabel } from './routes';
 import TopHeader from './TopHeader';
 
+const SIDEBAR_COLLAPSED_KEY = 'stockledger.sidebarCollapsed';
+
 export default function AppLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    try { return localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === 'true'; }
+    catch { return false; }
+  });
   const scrollContainerRef = useRef(null);
 
   useEffect(() => {
     scrollContainerRef.current?.scrollTo({ top: 0, behavior: 'instant' });
   }, [location.pathname]);
+
+  useEffect(() => {
+    localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(sidebarCollapsed));
+  }, [sidebarCollapsed]);
+
   const { today, user, tenant, tenantOptions, switchTenant, loading, loadError, toasts, dismissToast, logout, t, language, setLanguage, can, hasFeature, confirmation, closeConfirmation, productDirectory } = useInventoryApp();
 
   if (loading) {
@@ -26,8 +37,21 @@ export default function AppLayout() {
   return (
     <div className="page-shell">
       <ToastViewport toasts={toasts} onDismiss={dismissToast} />
-      <AppSidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} user={user} tenant={tenant} language={language} onLanguageChange={setLanguage} onLogout={logout} t={t} can={can} hasFeature={hasFeature} />
-      <div className="flex h-screen min-h-0 flex-col lg:pl-72">
+      <AppSidebar
+        mobileOpen={mobileOpen}
+        setMobileOpen={setMobileOpen}
+        user={user}
+        tenant={tenant}
+        language={language}
+        onLanguageChange={setLanguage}
+        onLogout={logout}
+        t={t}
+        can={can}
+        hasFeature={hasFeature}
+        collapsed={sidebarCollapsed}
+        onToggleCollapsed={() => setSidebarCollapsed((v) => !v)}
+      />
+      <div className={`flex h-screen min-h-0 flex-col transition-[padding-left] duration-300 ${sidebarCollapsed ? 'lg:pl-[68px]' : 'lg:pl-72'}`}>
         <TopHeader title={getRouteLabel(location.pathname, t)} today={today} user={user} tenant={tenant} tenantOptions={tenantOptions} onSwitchTenant={switchTenant} onLogout={logout} onOpenMenu={() => setMobileOpen(true)} language={language} onLanguageChange={setLanguage} t={t} products={productDirectory} />
         <div ref={scrollContainerRef} className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
           <main key={location.pathname} className="page-enter mx-auto max-w-[1680px] px-3 py-6 pb-10 sm:px-6 lg:px-8">

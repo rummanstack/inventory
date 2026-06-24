@@ -87,7 +87,7 @@ const en = {
       retailerQuickSale: 'Quick Sale',
       cashSessionHistory: 'Cash Session',
       quotations: 'Quotations',
-      tradeIns: 'Trade-In / Exchange',
+      tradeIns: 'Exchange',
       retailerSalesInvoices: 'Sales Invoices',
       retailerPromotions: 'Promotions',
       retailerCustomers: 'Customers',

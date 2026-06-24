@@ -115,7 +115,7 @@ export default function AppSidebar({ mobileOpen, setMobileOpen, user, tenant, la
                 ? collapsed
                   ? 'pl-4 lg:pl-0'
                   : 'bg-[linear-gradient(135deg,var(--secondary-strong),var(--brand-strong))] pl-4 text-white shadow-[0_10px_20px_var(--secondary-shadow)] before:absolute before:left-0 before:top-1/2 before:h-6 before:w-1 before:-translate-y-1/2 before:rounded-full before:bg-white'
-                : 'pl-3 text-slate-600 hover:bg-slate-100 hover:text-slate-950',
+                : 'pl-3 text-slate-700 hover:bg-white/80 hover:text-slate-950',
             )
           }
         >
@@ -128,7 +128,7 @@ export default function AppSidebar({ mobileOpen, setMobileOpen, user, tenant, la
                     ? collapsed
                       ? 'bg-[linear-gradient(135deg,var(--secondary-strong),var(--brand-strong))] text-white shadow-[0_6px_16px_var(--secondary-shadow)]'
                       : 'bg-white/20 text-white'
-                    : 'bg-slate-100 text-slate-500 group-hover/link:bg-slate-200 group-hover/link:text-slate-900',
+                    : 'bg-white/70 text-slate-500 group-hover/link:bg-white group-hover/link:text-slate-900',
                 )}
               >
                 <Icon size={17} />
@@ -145,7 +145,7 @@ export default function AppSidebar({ mobileOpen, setMobileOpen, user, tenant, la
     <>
       <div
         className={cx(
-          'fixed inset-y-0 left-0 z-40 flex flex-col overflow-hidden border-r border-slate-200 bg-white py-5 text-slate-950 shadow-[0_24px_60px_rgba(var(--slate-900),0.08)] transition-[width,transform] duration-300 lg:translate-x-0',
+          'fixed inset-y-0 left-0 z-40 flex flex-col overflow-hidden border-r border-[#e4e2f2] bg-[#f5f4fb] py-5 text-slate-950 shadow-[0_24px_60px_rgba(var(--slate-900),0.08)] transition-[width,transform] duration-300 lg:translate-x-0',
           'w-[min(18rem,85vw)] px-4',
           collapsed ? 'lg:w-[68px] lg:px-2' : 'lg:w-72',
           mobileOpen ? 'translate-x-0' : '-translate-x-full',
@@ -179,7 +179,7 @@ export default function AppSidebar({ mobileOpen, setMobileOpen, user, tenant, la
             {/* Mobile close */}
             <button
               type="button"
-              className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-600 transition hover:border-slate-300 hover:bg-slate-100 hover:text-slate-950 lg:hidden"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-[#dddaf0] bg-white/70 text-slate-600 transition hover:border-[#c8c4e6] hover:bg-white hover:text-slate-950 lg:hidden"
               title={t('common.closeMenu')}
               onClick={() => setMobileOpen(false)}
             >
@@ -188,7 +188,7 @@ export default function AppSidebar({ mobileOpen, setMobileOpen, user, tenant, la
             {/* Desktop collapse toggle */}
             <button
               type="button"
-              className="hidden h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-600 transition hover:border-slate-300 hover:bg-slate-100 hover:text-slate-950 lg:inline-flex"
+              className="hidden h-9 w-9 items-center justify-center rounded-xl border border-[#dddaf0] bg-white/70 text-slate-600 transition hover:border-[#c8c4e6] hover:bg-white hover:text-slate-950 lg:inline-flex"
               title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
               onClick={onToggleCollapsed}
             >
@@ -217,7 +217,7 @@ export default function AppSidebar({ mobileOpen, setMobileOpen, user, tenant, la
                   <div className={collapsed ? 'lg:hidden' : ''}>
                     <button
                       type="button"
-                      className="flex w-full items-center justify-between gap-2 rounded-xl px-2.5 py-2 text-left transition hover:bg-slate-100"
+                      className="flex w-full items-center justify-between gap-2 rounded-xl px-2.5 py-2 text-left transition hover:bg-white/70"
                       onClick={() => toggleGroup(section)}
                       aria-expanded={!isGroupCollapsed}
                     >
@@ -251,7 +251,7 @@ export default function AppSidebar({ mobileOpen, setMobileOpen, user, tenant, la
             onClick={() => setMobileOpen(false)}
             title={t('profile.online')}
             className={cx(
-              'mt-4 flex items-center rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-slate-950 transition hover:border-slate-300 hover:bg-slate-100',
+              'mt-4 flex items-center rounded-2xl border border-[#dddaf0] bg-white/70 px-3 py-2.5 text-slate-950 transition hover:border-[#c8c4e6] hover:bg-white',
               collapsed ? 'lg:justify-center' : 'gap-3',
             )}
           >
@@ -268,7 +268,7 @@ export default function AppSidebar({ mobileOpen, setMobileOpen, user, tenant, la
           <button
             type="button"
             className={cx(
-              'mt-2 inline-flex h-10 w-full items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-3 text-sm font-bold text-slate-950 transition hover:border-slate-300 hover:bg-slate-100',
+              'mt-2 inline-flex h-10 w-full items-center gap-2 rounded-2xl border border-[#dddaf0] bg-white/70 px-3 text-sm font-bold text-slate-950 transition hover:border-[#c8c4e6] hover:bg-white',
               collapsed ? 'lg:justify-center' : 'justify-center',
             )}
             onClick={onLogout}

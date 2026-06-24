@@ -38,6 +38,7 @@ export function ConfirmationDialog({
   requireReason = false,
   reasonLabel,
   reasonPlaceholder,
+  consequences = [],
 }) {
   const tones = {
     rose: 'border-rose-200 bg-rose-50 text-rose-700',
@@ -75,6 +76,19 @@ export function ConfirmationDialog({
   };
   const Icon = toneIcon[tone] || toneIcon.rose;
 
+  const consequenceTextColor = {
+    danger: 'text-rose-700',
+    warn:   'text-amber-700',
+    safe:   'text-emerald-700',
+    info:   'text-slate-600',
+  };
+  const consequenceDotColor = {
+    danger: 'bg-rose-500',
+    warn:   'bg-amber-400',
+    safe:   'bg-emerald-500',
+    info:   'bg-slate-400',
+  };
+
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/45 p-4 backdrop-blur-[10px] no-print">
       <div className="panel-strong w-full max-w-lg overflow-hidden">
@@ -90,6 +104,27 @@ export function ConfirmationDialog({
               <p className="mt-3 text-sm font-medium leading-6 text-slate-600">{description}</p>
             </div>
           </div>
+
+          {consequences.length > 0 ? (
+            <div className="mt-4 rounded-xl border border-slate-200 bg-white px-4 py-3">
+              <p className="mb-2 text-[10px] font-black uppercase tracking-[0.18em] text-slate-400">What happens</p>
+              <ul className="space-y-1.5">
+                {consequences.map((c, i) => (
+                  <li
+                    key={i}
+                    className={cx(
+                      'flex items-start gap-2 text-xs font-semibold leading-5',
+                      consequenceTextColor[c.variant] || consequenceTextColor.info,
+                    )}
+                  >
+                    <span className={cx('mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full', consequenceDotColor[c.variant] || consequenceDotColor.info)} />
+                    {c.text}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+
           {requireReason ? (
             <div className="mt-4">
               {reasonLabel ? <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-500">{reasonLabel}</label> : null}

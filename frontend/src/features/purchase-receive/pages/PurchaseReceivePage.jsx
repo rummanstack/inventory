@@ -207,6 +207,9 @@ export default function PurchaseReceivePage() {
             if (result.ok) {
               setFormModal(null);
               vm.reload();
+              if (!value.id && result.purchaseReceipt) {
+                setViewReceipt(result.purchaseReceipt);
+              }
             }
             return result;
           }}

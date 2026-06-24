@@ -45,6 +45,7 @@ export default function AppLayout() {
         requireReason={confirmation?.requireReason || false}
         reasonLabel={confirmation?.reasonLabel}
         reasonPlaceholder={confirmation?.reasonPlaceholder}
+        consequences={confirmation?.consequences || []}
         onConfirm={(reason) => closeConfirmation(true, reason)}
         onCancel={() => closeConfirmation(false)}
       />

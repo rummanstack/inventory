@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Loader2, Play, Printer, Save, Square } from 'lucide-react';
+import { Clock3, Loader2, Play, Printer, Save, Square } from 'lucide-react';
 import { Alert, Modal, SectionHeader } from '../../../../components/ui.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../../services/inventoryApi.js';
@@ -376,6 +376,23 @@ export default function QuickSalePage() {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [lastInvoice]);
 
+  const [now, setNow] = useState(() => new Date());
+
+  useEffect(() => {
+    if (!session) return;
+    const timer = window.setInterval(() => setNow(new Date()), 1000);
+    return () => window.clearInterval(timer);
+  }, [session?.id]);
+
+  function formatElapsed(startedAt) {
+    if (!startedAt) return '00:00:00';
+    const elapsed = Math.max(0, Math.floor((now - new Date(startedAt)) / 1000));
+    const h = Math.floor(elapsed / 3600);
+    const m = Math.floor((elapsed % 3600) / 60);
+    const s = elapsed % 60;
+    return [h, m, s].map((v) => String(v).padStart(2, '0')).join(':');
+  }
+
   const activeCashSales = session?.cashSalesAmount || 0;
   const expectedCash = session?.expectedCash || 0;
 
@@ -399,29 +416,37 @@ export default function QuickSalePage() {
               {t('retailer.cashSession.description')}
             </p>
           </div>
-          <button
-            type="button"
-            className="btn-primary"
-            onClick={() => {
-              if (session) {
-                setStopCashInput(String(session.expectedCash || 0));
-                setShowStopModal(true);
-              } else {
-                setStartCashInput('0');
-                setShowStartModal(true);
-              }
-            }}
-            disabled={savingSession}
-          >
-            {savingSession ? <Loader2 size={18} className="animate-spin" /> : session ? <Square size={18} /> : <Play size={18} />}
-            {savingSession
-              ? session
-                ? t('retailer.cashSession.stopping')
-                : t('retailer.cashSession.starting')
-              : session
-                ? t('retailer.cashSession.stop')
-                : t('retailer.cashSession.start')}
-          </button>
+          <div className="flex items-center gap-3">
+            {session ? (
+              <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3.5 py-2 text-sm font-bold tabular-nums text-slate-700">
+                <Clock3 size={15} className="text-slate-400" />
+                {formatElapsed(session.startedAt)}
+              </div>
+            ) : null}
+            <button
+              type="button"
+              className="btn-primary"
+              onClick={() => {
+                if (session) {
+                  setStopCashInput(String(session.expectedCash || 0));
+                  setShowStopModal(true);
+                } else {
+                  setStartCashInput('0');
+                  setShowStartModal(true);
+                }
+              }}
+              disabled={savingSession}
+            >
+              {savingSession ? <Loader2 size={18} className="animate-spin" /> : session ? <Square size={18} /> : <Play size={18} />}
+              {savingSession
+                ? session
+                  ? t('retailer.cashSession.stopping')
+                  : t('retailer.cashSession.starting')
+                : session
+                  ? t('retailer.cashSession.stop')
+                  : t('retailer.cashSession.start')}
+            </button>
+          </div>
         </div>
 
         {sessionError ? <Alert type="error" className="mt-4">{sessionError}</Alert> : null}

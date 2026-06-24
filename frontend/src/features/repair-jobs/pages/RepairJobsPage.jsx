@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { CheckCircle2, Clock, GripVertical, LayoutGrid, Package, Pencil, Plus, Search, ShieldAlert, Table2, Trash2, Wrench } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Clock, LayoutGrid, Package, Pencil, Plus, Search, ShieldAlert, Table2, Trash2, Wrench } from 'lucide-react';
 import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
@@ -13,19 +13,33 @@ import { useRepairJobsViewModel } from '../viewmodels/useRepairJobsViewModel';
 const JOB_STATUS_VALUES = ['RECEIVED', 'DIAGNOSING', 'AWAITING_PARTS', 'IN_REPAIR', 'READY', 'DELIVERED', 'CANCELLED'];
 
 const BOARD_COLUMNS = [
-  { status: 'RECEIVED',       icon: Package,      bg: 'bg-slate-50',    border: 'border-slate-200',  header: 'bg-slate-100 text-slate-700'   },
-  { status: 'DIAGNOSING',     icon: Search,       bg: 'bg-blue-50',     border: 'border-blue-200',   header: 'bg-blue-100 text-blue-700'     },
-  { status: 'AWAITING_PARTS', icon: Clock,        bg: 'bg-amber-50',    border: 'border-amber-200',  header: 'bg-amber-100 text-amber-700'   },
-  { status: 'IN_REPAIR',      icon: Wrench,       bg: 'bg-indigo-50',   border: 'border-indigo-200', header: 'bg-indigo-100 text-indigo-700' },
-  { status: 'READY',          icon: CheckCircle2, bg: 'bg-emerald-50',  border: 'border-emerald-200',header: 'bg-emerald-100 text-emerald-700'},
+  { status: 'RECEIVED',       icon: Package,      accent: '#94a3b8', bg: 'bg-slate-50/80',   border: 'border-slate-200'  },
+  { status: 'DIAGNOSING',     icon: Search,       accent: '#60a5fa', bg: 'bg-blue-50/60',    border: 'border-blue-200'   },
+  { status: 'AWAITING_PARTS', icon: Clock,        accent: '#fbbf24', bg: 'bg-amber-50/60',   border: 'border-amber-200'  },
+  { status: 'IN_REPAIR',      icon: Wrench,       accent: '#818cf8', bg: 'bg-indigo-50/60',  border: 'border-indigo-200' },
+  { status: 'READY',          icon: CheckCircle2, accent: '#34d399', bg: 'bg-emerald-50/60', border: 'border-emerald-200'},
 ];
+
+const APPROVAL_DOT = {
+  PENDING:  'bg-amber-400',
+  APPROVED: 'bg-emerald-500',
+  DECLINED: 'bg-rose-500',
+};
+
+function initials(name) {
+  if (!name) return '';
+  return name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase();
+}
 
 function isOverdue(job) {
   if (!job.promisedDate || job.status === 'DELIVERED' || job.status === 'CANCELLED') return false;
   return job.promisedDate < new Date().toISOString().slice(0, 10);
 }
 
-function JobCard({ job, canManage, t, onEdit, onDelete, onEscalate, onDragStart, isDragging }) {
+function JobCard({ job, canManage, accent, t, onEdit, onDelete, onEscalate, onDragStart, isDragging }) {
+  const overdue = isOverdue(job);
+  const tech = initials(job.technicianName);
+
   return (
     <div
       draggable={canManage}
@@ -34,79 +48,115 @@ function JobCard({ job, canManage, t, onEdit, onDelete, onEscalate, onDragStart,
         e.dataTransfer.setData('text/plain', job.id);
         onDragStart(job.id);
       }}
-      className={`rounded-xl border border-slate-200 bg-white p-3 shadow-sm space-y-2 transition-all
+      className={`group relative overflow-hidden rounded-2xl bg-white transition-all duration-200
         ${canManage ? 'cursor-grab active:cursor-grabbing' : ''}
-        ${isDragging ? 'opacity-40 scale-[0.97]' : 'hover:shadow-md'}`}
+        ${isDragging
+          ? 'opacity-40 scale-95 shadow-none'
+          : 'shadow-[0_1px_4px_rgba(0,0,0,0.07),0_0_0_1px_rgba(0,0,0,0.04)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.10),0_0_0_1px_rgba(0,0,0,0.05)] hover:-translate-y-0.5'}`}
     >
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex items-center gap-1.5 min-w-0">
-          {canManage ? <GripVertical size={13} className="shrink-0 text-slate-300" /> : null}
+      {/* Left accent bar */}
+      <div className="absolute inset-y-0 left-0 w-[3px]" style={{ backgroundColor: accent }} />
+
+      {/* Hover action tray */}
+      {canManage ? (
+        <div className="absolute right-2 top-2 z-10 flex items-center gap-0.5 rounded-lg border border-slate-100 bg-white p-0.5 shadow-sm opacity-0 transition-opacity group-hover:opacity-100">
           <button
             type="button"
-            className="text-xs font-bold text-indigo-600 hover:text-indigo-800 text-left truncate"
+            title={t('warrantyClaims.escalateFromRepairJob')}
+            onClick={(e) => { e.stopPropagation(); onEscalate(job); }}
+            className="flex h-6 w-6 items-center justify-center rounded-md text-amber-500 transition hover:bg-amber-50"
+          >
+            <ShieldAlert size={12} />
+          </button>
+          <button
+            type="button"
+            title={t('common.edit')}
+            onClick={(e) => { e.stopPropagation(); onEdit(job); }}
+            className="flex h-6 w-6 items-center justify-center rounded-md text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+          >
+            <Pencil size={12} />
+          </button>
+          <button
+            type="button"
+            title={t('common.delete')}
+            onClick={(e) => { e.stopPropagation(); onDelete(job); }}
+            className="flex h-6 w-6 items-center justify-center rounded-md text-slate-400 transition hover:bg-rose-50 hover:text-rose-600"
+          >
+            <Trash2 size={12} />
+          </button>
+        </div>
+      ) : null}
+
+      <div className="pl-4 pr-3 pt-3 pb-3 space-y-2.5">
+        {/* Row 1: job number + approval dot */}
+        <div className="flex items-center justify-between gap-2">
+          <button
+            type="button"
             onClick={() => onEdit(job)}
+            className="text-[10px] font-black tracking-widest text-slate-400 uppercase hover:text-indigo-600 transition-colors"
           >
             {job.jobNumber}
           </button>
+          <span
+            className={`h-2 w-2 shrink-0 rounded-full ${APPROVAL_DOT[job.approvalStatus] || 'bg-slate-300'}`}
+            title={t(`repairJobs.approvalStatuses.${job.approvalStatus}`)}
+          />
         </div>
-        <Badge tone={repairJobApprovalTone(job.approvalStatus)} className="shrink-0 text-[10px]">
-          {t(`repairJobs.approvalStatuses.${job.approvalStatus}`)}
-        </Badge>
-      </div>
 
-      <div>
-        <p className="text-sm font-semibold text-slate-900 leading-tight">{job.customerName || '—'}</p>
-        {job.customerPhone ? <p className="text-xs text-slate-400">{job.customerPhone}</p> : null}
-      </div>
+        {/* Row 2: customer name (main content) */}
+        <div>
+          <button
+            type="button"
+            onClick={() => onEdit(job)}
+            className="text-[13px] font-bold leading-snug text-slate-900 hover:text-indigo-700 text-left w-full transition-colors"
+          >
+            {job.customerName || '—'}
+          </button>
+          {job.customerPhone ? (
+            <p className="mt-0.5 text-[11px] text-slate-400">{job.customerPhone}</p>
+          ) : null}
+        </div>
 
-      {job.productName ? <p className="text-xs text-slate-600 font-medium">{job.productName}</p> : null}
-      {job.serialNumber ? <p className="text-xs text-slate-400 font-mono">{job.serialNumber}</p> : null}
-
-      <div className="flex flex-wrap items-center justify-between gap-1 pt-1 border-t border-slate-100">
-        {job.promisedDate ? (
-          <span className={`text-[11px] font-semibold ${isOverdue(job) ? 'text-rose-600' : 'text-slate-400'}`}>
-            {isOverdue(job) ? '⚠ ' : ''}Due {formatDate(job.promisedDate)}
-          </span>
-        ) : (
-          <span className="text-[11px] text-slate-300">{t('repairJobs.noDeadline')}</span>
-        )}
-        {job.estimatedCost > 0 ? (
-          <span className="text-[11px] font-semibold text-slate-500">{formatCurrency(job.estimatedCost)}</span>
+        {/* Row 3: device chip */}
+        {(job.productName || job.serialNumber) ? (
+          <div className="rounded-lg bg-slate-50 px-2.5 py-1.5">
+            {job.productName ? (
+              <p className="text-[11px] font-semibold text-slate-600 leading-tight">{job.productName}</p>
+            ) : null}
+            {job.serialNumber ? (
+              <p className="mt-0.5 text-[10px] font-mono text-slate-400 leading-tight">{job.serialNumber}</p>
+            ) : null}
+          </div>
         ) : null}
-      </div>
 
-      {job.technicianName ? (
-        <p className="text-[11px] text-slate-400">Tech: {job.technicianName}</p>
-      ) : null}
+        {/* Row 4: footer metadata */}
+        <div className="flex items-center justify-between gap-2 pt-0.5">
+          <div className="flex items-center gap-1.5 min-w-0">
+            {job.promisedDate ? (
+              <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold
+                ${overdue ? 'bg-rose-50 text-rose-600' : 'bg-slate-100 text-slate-500'}`}>
+                {overdue ? <AlertTriangle size={9} /> : <Clock size={9} />}
+                {formatDate(job.promisedDate)}
+              </span>
+            ) : (
+              <span className="text-[10px] text-slate-300">{t('repairJobs.noDeadline')}</span>
+            )}
+            {job.estimatedCost > 0 ? (
+              <span className="text-[10px] font-semibold text-slate-400">{formatCurrency(job.estimatedCost)}</span>
+            ) : null}
+          </div>
 
-      {canManage ? (
-        <div className="flex items-center gap-1 pt-1">
-          <button
-            type="button"
-            className="flex h-7 w-7 items-center justify-center rounded-lg text-amber-500 transition hover:bg-amber-50 hover:text-amber-700"
-            title={t('warrantyClaims.escalateFromRepairJob')}
-            onClick={(e) => { e.stopPropagation(); onEscalate(job); }}
-          >
-            <ShieldAlert size={13} />
-          </button>
-          <button
-            type="button"
-            className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
-            title={t('common.edit')}
-            onClick={(e) => { e.stopPropagation(); onEdit(job); }}
-          >
-            <Pencil size={13} />
-          </button>
-          <button
-            type="button"
-            className="flex h-7 w-7 items-center justify-center rounded-lg text-rose-400 transition hover:bg-rose-50 hover:text-rose-700"
-            title={t('common.delete')}
-            onClick={(e) => { e.stopPropagation(); onDelete(job); }}
-          >
-            <Trash2 size={13} />
-          </button>
+          {tech ? (
+            <div
+              className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[9px] font-black"
+              style={{ backgroundColor: `${accent}22`, color: accent }}
+              title={job.technicianName}
+            >
+              {tech}
+            </div>
+          ) : null}
         </div>
-      ) : null}
+      </div>
     </div>
   );
 }
@@ -177,12 +227,6 @@ export default function RepairJobsPage() {
     vm.reload();
   }
 
-  function handleDragEnd() {
-    setDragJobId(null);
-    setDragOverCol(null);
-    dragCounters.current = {};
-  }
-
   const boardByStatus = BOARD_COLUMNS.reduce((acc, col) => {
     acc[col.status] = boardJobs.filter((j) => j.status === col.status);
     return acc;
@@ -231,16 +275,16 @@ export default function RepairJobsPage() {
             <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
               {BOARD_COLUMNS.map((col) => (
                 <div key={col.status} className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
-                  <div className="mb-3 h-5 w-24 animate-pulse rounded-full bg-slate-200" />
-                  <div className="space-y-2">
-                    {[1, 2].map((i) => <div key={i} className="h-20 animate-pulse rounded-xl bg-slate-200" />)}
+                  <div className="mb-4 h-4 w-20 animate-pulse rounded-full bg-slate-200" />
+                  <div className="space-y-2.5">
+                    {[1, 2].map((i) => <div key={i} className="h-28 animate-pulse rounded-2xl bg-slate-200" />)}
                   </div>
                 </div>
               ))}
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
                 {BOARD_COLUMNS.map((col) => {
                   const jobs = boardByStatus[col.status] || [];
                   const ColIcon = col.icon;
@@ -251,11 +295,10 @@ export default function RepairJobsPage() {
                   return (
                     <div
                       key={col.status}
-                      className={`rounded-2xl border-2 p-3 min-h-[200px] transition-all
+                      className={`flex flex-col rounded-2xl border p-3 min-h-[240px] transition-all duration-200
                         ${isOver && !sameCol
-                          ? 'border-indigo-400 bg-indigo-50/80 scale-[1.01]'
-                          : `${col.border} ${col.bg}`
-                        }`}
+                          ? 'border-indigo-300 bg-indigo-50/60 scale-[1.01]'
+                          : `${col.border} ${col.bg}`}`}
                       onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }}
                       onDragEnter={(e) => {
                         e.preventDefault();
@@ -272,35 +315,43 @@ export default function RepairJobsPage() {
                         e.preventDefault();
                         const jobId = e.dataTransfer.getData('text/plain');
                         const job = boardJobs.find((j) => j.id === jobId);
-                        if (job && job.status !== col.status) {
-                          handleStatusChange(job, col.status);
-                        }
+                        if (job && job.status !== col.status) handleStatusChange(job, col.status);
                         setDragJobId(null);
                         setDragOverCol(null);
                         dragCounters.current = {};
                       }}
                     >
-                      <div className={`flex items-center justify-between rounded-xl px-3 py-2 mb-3 ${isOver && !sameCol ? 'bg-indigo-100 text-indigo-700' : col.header}`}>
+                      {/* Column header */}
+                      <div className="mb-3 flex items-center justify-between px-1">
                         <div className="flex items-center gap-2">
-                          <ColIcon size={14} />
-                          <span className="text-xs font-black uppercase tracking-wide">
+                          <ColIcon size={13} style={{ color: col.accent }} />
+                          <span className="text-[11px] font-black uppercase tracking-widest text-slate-600">
                             {t(`repairJobs.statuses.${col.status}`)}
                           </span>
                         </div>
-                        <span className="text-xs font-black">{jobs.length}</span>
+                        <span
+                          className="flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[10px] font-black text-white"
+                          style={{ backgroundColor: col.accent }}
+                        >
+                          {jobs.length}
+                        </span>
                       </div>
 
-                      <div className={`space-y-2 min-h-[60px] rounded-xl transition-all ${isOver && !sameCol ? 'ring-2 ring-dashed ring-indigo-300 p-1.5' : ''}`}>
+                      {/* Cards */}
+                      <div className={`flex flex-col gap-2 flex-1 rounded-xl transition-all ${isOver && !sameCol ? 'ring-2 ring-dashed ring-indigo-300/70 p-1' : ''}`}>
                         {jobs.length === 0 ? (
-                          <p className={`py-4 text-center text-xs ${isOver && !sameCol ? 'text-indigo-400 font-semibold' : 'text-slate-400'}`}>
-                            {isOver && !sameCol ? '↓ Drop here' : t('repairJobs.emptyColumn')}
-                          </p>
+                          <div className="flex flex-1 items-center justify-center py-6">
+                            <p className={`text-[11px] font-medium ${isOver && !sameCol ? 'text-indigo-400' : 'text-slate-300'}`}>
+                              {isOver && !sameCol ? '↓ Drop here' : t('repairJobs.emptyColumn')}
+                            </p>
+                          </div>
                         ) : (
                           jobs.map((job) => (
                             <JobCard
                               key={job.id}
                               job={job}
                               canManage={canManage}
+                              accent={col.accent}
                               t={t}
                               isDragging={dragJobId === job.id}
                               onDragStart={setDragJobId}
@@ -311,7 +362,7 @@ export default function RepairJobsPage() {
                           ))
                         )}
                         {isOver && !sameCol && jobs.length > 0 ? (
-                          <div className="h-1.5 rounded-full bg-indigo-300/60 mx-1" />
+                          <div className="mx-1 h-1 rounded-full bg-indigo-300/50" />
                         ) : null}
                       </div>
                     </div>
@@ -320,10 +371,10 @@ export default function RepairJobsPage() {
               </div>
 
               {(deliveredCount > 0 || cancelledCount > 0) ? (
-                <div className="mt-4 flex flex-wrap gap-3">
+                <div className="mt-4 flex flex-wrap items-center gap-3">
                   {deliveredCount > 0 ? (
                     <div className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2">
-                      <CheckCircle2 size={14} className="text-emerald-600" />
+                      <CheckCircle2 size={13} className="text-emerald-600" />
                       <span className="text-xs font-bold text-emerald-700">{deliveredCount} Delivered</span>
                     </div>
                   ) : null}
@@ -337,7 +388,7 @@ export default function RepairJobsPage() {
                     className="text-xs font-semibold text-indigo-600 hover:underline"
                     onClick={() => setViewMode('table')}
                   >
-                    View full history in table →
+                    View full history →
                   </button>
                 </div>
               ) : null}

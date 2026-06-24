@@ -127,3 +127,8 @@ export const QUOTATION_ACTIONS = {
   DELETE: "quotation.delete",
   CONVERT: "quotation.convert",
 };
+
+export const TRADE_IN_ACTIONS = {
+  CREATE: "trade_in.create",
+  DELETE: "trade_in.delete",
+};

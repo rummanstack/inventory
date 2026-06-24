@@ -1413,4 +1413,63 @@ export async function createSchema(pool) {
     CREATE INDEX IF NOT EXISTS idx_quotations_deleted ON quotations(tenant_id, deleted_at);
     CREATE INDEX IF NOT EXISTS idx_quotation_items_quotation ON quotation_items(quotation_id);
   `);
+
+  await client.query(`
+    CREATE TABLE IF NOT EXISTS trade_in_counters (
+      tenant_id TEXT NOT NULL REFERENCES tenants(id),
+      year      INTEGER NOT NULL,
+      last_value INTEGER NOT NULL DEFAULT 0,
+      PRIMARY KEY (tenant_id, year)
+    );
+
+    CREATE TABLE IF NOT EXISTS trade_ins (
+      id                    TEXT PRIMARY KEY,
+      tenant_id             TEXT NOT NULL REFERENCES tenants(id),
+      trade_in_number       TEXT NOT NULL,
+      trade_in_date         DATE NOT NULL DEFAULT CURRENT_DATE,
+      customer_name         TEXT NOT NULL DEFAULT '',
+      customer_phone        TEXT NOT NULL DEFAULT '',
+      total_trade_in_value  NUMERIC NOT NULL DEFAULT 0,
+      total_sale_amount     NUMERIC NOT NULL DEFAULT 0,
+      payment_amount        NUMERIC NOT NULL DEFAULT 0,
+      payment_method        TEXT NOT NULL DEFAULT 'CASH',
+      notes                 TEXT NOT NULL DEFAULT '',
+      created_by            TEXT REFERENCES users(id) ON DELETE SET NULL,
+      created_at            TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at            TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      deleted_at            TIMESTAMPTZ,
+      deleted_by_id         TEXT REFERENCES users(id) ON DELETE SET NULL,
+      delete_reason         TEXT NOT NULL DEFAULT '',
+      UNIQUE (tenant_id, trade_in_number)
+    );
+
+    CREATE TABLE IF NOT EXISTS trade_in_received_items (
+      id              TEXT PRIMARY KEY,
+      trade_in_id     TEXT NOT NULL REFERENCES trade_ins(id) ON DELETE CASCADE,
+      tenant_id       TEXT NOT NULL REFERENCES tenants(id),
+      product_id      TEXT REFERENCES products(id) ON DELETE SET NULL,
+      product_name    TEXT NOT NULL DEFAULT '',
+      serial_number   TEXT NOT NULL DEFAULT '',
+      condition       TEXT NOT NULL DEFAULT 'GOOD',
+      quantity        NUMERIC NOT NULL DEFAULT 1,
+      trade_in_value  NUMERIC NOT NULL DEFAULT 0
+    );
+
+    CREATE TABLE IF NOT EXISTS trade_in_sold_items (
+      id                   TEXT PRIMARY KEY,
+      trade_in_id          TEXT NOT NULL REFERENCES trade_ins(id) ON DELETE CASCADE,
+      tenant_id            TEXT NOT NULL REFERENCES tenants(id),
+      product_id           TEXT REFERENCES products(id) ON DELETE SET NULL,
+      product_name         TEXT NOT NULL DEFAULT '',
+      quantity             NUMERIC NOT NULL DEFAULT 1,
+      unit_price           NUMERIC NOT NULL DEFAULT 0,
+      cost_price_snapshot  NUMERIC NOT NULL DEFAULT 0,
+      line_total           NUMERIC NOT NULL DEFAULT 0
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_trade_ins_tenant_date ON trade_ins(tenant_id, trade_in_date DESC);
+    CREATE INDEX IF NOT EXISTS idx_trade_ins_tenant_deleted ON trade_ins(tenant_id, deleted_at);
+    CREATE INDEX IF NOT EXISTS idx_trade_in_received_trade_in ON trade_in_received_items(trade_in_id);
+    CREATE INDEX IF NOT EXISTS idx_trade_in_sold_trade_in ON trade_in_sold_items(trade_in_id);
+  `);
 }

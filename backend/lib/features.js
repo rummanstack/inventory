@@ -47,4 +47,5 @@ export const TENANT_FEATURES = [
   "warranty-claims",
   "repair-jobs",
   "quotations",
+  "trade-ins",
 ];

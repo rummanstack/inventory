@@ -559,6 +559,41 @@ export function InventoryAppProvider({ children }) {
     }
   }
 
+  async function saveTradeIn(tradeIn) {
+    try {
+      const result = await inventoryApi.createTradeIn(tradeIn);
+      pushToast('success', t('tradeIns.addTitle'), t('alerts.created'));
+      return { ok: true, tradeIn: result };
+    } catch (error) {
+      const message = getFriendlyError(error, t);
+      pushToast('error', t('alerts.requestFailed'), message);
+      return { ok: false, message };
+    }
+  }
+
+  async function deleteTradeIn(tradeIn) {
+    const confirmMessage = t('tradeIns.deleteConfirm', { number: tradeIn.tradeInNumber });
+    const { confirmed, reason } = await confirm({
+      title: t('tradeIns.deleteTitle'),
+      description: interpolateConfirm(confirmMessage, { number: tradeIn.tradeInNumber }),
+      confirmLabel: t('common.delete'),
+      tone: 'rose',
+      requireReason: true,
+      reasonLabel: t('common.deleteReasonLabel'),
+      reasonPlaceholder: t('common.deleteReasonPlaceholder'),
+    });
+    if (!confirmed) return { ok: false };
+    try {
+      await inventoryApi.deleteTradeIn(tradeIn.id, reason);
+      pushToast('success', t('common.delete'), `${tradeIn.tradeInNumber} ${t('alerts.deleted')}`);
+      return { ok: true };
+    } catch (error) {
+      const message = getFriendlyError(error, t);
+      pushToast('error', t('alerts.deleteFailed'), message);
+      return { ok: false, message };
+    }
+  }
+
   async function saveQuotation(quotation) {
     try {
       const result = quotation.id ? await inventoryApi.updateQuotation(quotation) : await inventoryApi.createQuotation(quotation);
@@ -1137,6 +1172,8 @@ export function InventoryAppProvider({ children }) {
       deleteWarrantyClaim,
       saveRepairJob,
       deleteRepairJob,
+      saveTradeIn,
+      deleteTradeIn,
       saveQuotation,
       deleteQuotation,
       convertQuotation,

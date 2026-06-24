@@ -248,6 +248,15 @@ export function repairJobApprovalTone(approvalStatus) {
   return 'amber';
 }
 
+export function tradeInConditionTone(condition) {
+  if (condition === 'EXCELLENT') return 'emerald';
+  if (condition === 'GOOD') return 'blue';
+  if (condition === 'FAIR') return 'amber';
+  if (condition === 'POOR') return 'orange';
+  if (condition === 'DAMAGED') return 'rose';
+  return 'slate';
+}
+
 export function quotationStatusTone(status) {
   if (status === 'DRAFT') return 'slate';
   if (status === 'SENT') return 'blue';

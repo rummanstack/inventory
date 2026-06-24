@@ -19,6 +19,7 @@ import { ProductSerialService } from './services/productSerialService.js';
 import { WarrantyClaimService } from './services/warrantyClaimService.js';
 import { RepairJobService } from './services/repairJobService.js';
 import { QuotationService } from './services/quotationService.js';
+import { TradeInService } from './services/tradeInService.js';
 import { DsrDueLedgerService } from './services/dsrDueLedgerService.js';
 import { CustomerService } from './services/customerService.js';
 import { RetailCustomerService } from './services/retailCustomerService.js';
@@ -73,6 +74,7 @@ export async function createBackendApp() {
   const warrantyClaimService = new WarrantyClaimService(databaseManager, { auditService });
   const repairJobService = new RepairJobService(databaseManager, { auditService });
   const quotationService = new QuotationService(databaseManager, { auditService });
+  const tradeInService = new TradeInService(databaseManager, { auditService });
   const dsrDueLedgerService = new DsrDueLedgerService(databaseManager, { auditService, financeAccountService });
   const customerService = new CustomerService(databaseManager, { auditService });
   const retailCustomerService = new RetailCustomerService(databaseManager, { auditService });
@@ -139,6 +141,7 @@ export async function createBackendApp() {
     helpDeskService,
     visitorChatService,
     quotationService,
+    tradeInService,
   });
 
   return { app, databaseManager, env };

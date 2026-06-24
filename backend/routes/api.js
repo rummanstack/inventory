@@ -88,6 +88,8 @@ import { createFinanceAccountsRoutes } from "./financeAccounts.routes.js";
 import { createFinanceDashboardRoutes } from "./financeDashboard.routes.js";
 import { createRetailCashSessionsRoutes } from "./retailCashSessions.routes.js";
 import { createQuotationsRoutes } from "./quotations.routes.js";
+import { TradeInController } from "../controllers/tradeInController.js";
+import { createTradeInsRoutes } from "./tradeIns.routes.js";
 
 export function createApiRouter({
   authService,
@@ -132,6 +134,7 @@ export function createApiRouter({
   helpDeskService,
   visitorChatService,
   quotationService,
+  tradeInService,
 }) {
   const router = Router();
   const authController = new AuthController(authService, env, tenantService);
@@ -142,6 +145,7 @@ export function createApiRouter({
   const warrantyClaimController = new WarrantyClaimController(warrantyClaimService);
   const repairJobController = new RepairJobController(repairJobService);
   const quotationController = new QuotationController(quotationService);
+  const tradeInController = new TradeInController(tradeInService);
   const dsrDueLedgerController = new DsrDueLedgerController(dsrDueLedgerService);
   const dsrController = new DsrController(dsrService);
   const customerController = new CustomerController(customerService);
@@ -223,6 +227,7 @@ export function createApiRouter({
   router.use("/warranty-claims", createWarrantyClaimsRoutes(warrantyClaimController));
   router.use("/repair-jobs", createRepairJobsRoutes(repairJobController));
   router.use("/quotations", createQuotationsRoutes(quotationController));
+  router.use("/trade-ins", createTradeInsRoutes(tradeInController));
   router.use("/dsr-due-ledger", createDsrDueLedgerRoutes(dsrDueLedgerController));
   router.use("/dsrs", createDsrsRoutes(dsrController));
   router.use("/customers", createCustomersRoutes(customerController));

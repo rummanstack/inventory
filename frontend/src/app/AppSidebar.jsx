@@ -1,9 +1,9 @@
+import { createPortal } from 'react-dom';
 import { useEffect, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
-import { ChevronDown, LogOut, X } from 'lucide-react';
+import { ChevronDown, LogOut, PanelLeftClose, PanelLeftOpen, X } from 'lucide-react';
 import { Avatar, cx } from '../components/ui';
 import { APP_ROUTES, SIDEBAR_SECTIONS } from './routes';
-import LanguageSwitcher from '../components/LanguageSwitcher';
 import logoMark from '../assets/stockledger-logo-mark.svg';
 
 const COLLAPSED_GROUPS_STORAGE_KEY = 'stockledger.sidebarCollapsedGroups';
@@ -17,7 +17,36 @@ function loadCollapsedGroups() {
   }
 }
 
-export default function AppSidebar({ mobileOpen, setMobileOpen, user, tenant, language, onLanguageChange, onLogout, t, can, hasFeature }) {
+function SidebarTooltip({ label, show, children }) {
+  const [pos, setPos] = useState(null);
+
+  if (!show) return children;
+
+  return (
+    <div
+      onMouseEnter={(e) => {
+        if (window.innerWidth < 1024) return;
+        const rect = e.currentTarget.getBoundingClientRect();
+        setPos({ top: rect.top + rect.height / 2 });
+      }}
+      onMouseLeave={() => setPos(null)}
+    >
+      {children}
+      {pos ? createPortal(
+        <div
+          style={{ top: pos.top, left: 76 }}
+          className="pointer-events-none fixed z-[9999] -translate-y-1/2 whitespace-nowrap rounded-lg bg-slate-900 px-2.5 py-1.5 text-xs font-semibold text-white shadow-lg"
+        >
+          <div className="absolute right-full top-1/2 -translate-y-1/2 border-[5px] border-transparent border-r-slate-900" />
+          {label}
+        </div>,
+        document.body,
+      ) : null}
+    </div>
+  );
+}
+
+export default function AppSidebar({ mobileOpen, setMobileOpen, user, tenant, language, onLanguageChange, onLogout, t, can, hasFeature, collapsed, onToggleCollapsed }) {
   const location = useLocation();
   const sections = SIDEBAR_SECTIONS;
   const [collapsedGroups, setCollapsedGroups] = useState(loadCollapsedGroups);
@@ -70,38 +99,46 @@ export default function AppSidebar({ mobileOpen, setMobileOpen, user, tenant, la
 
   function renderRouteLink(route) {
     const Icon = route.icon;
+    const label = t(route.labelKey);
 
     return (
-      <NavLink
-        key={route.id}
-        to={route.path}
-        end
-        onClick={() => setMobileOpen(false)}
-        className={({ isActive }) =>
+      <SidebarTooltip key={route.id} label={label} show={collapsed}>
+        <NavLink
+          to={route.path}
+          end
+          onClick={() => setMobileOpen(false)}
+          className={({ isActive }) =>
             cx(
-              'group relative flex w-full items-center gap-3 rounded-xl py-2.5 pr-3 text-left text-sm font-semibold transition',
+              'group/link relative flex w-full items-center gap-3 rounded-xl py-2.5 pr-3 text-sm font-semibold transition',
+              collapsed && 'lg:justify-center lg:gap-0 lg:px-0 lg:pr-0',
               isActive
-              ? 'bg-[linear-gradient(135deg,var(--secondary-strong),var(--brand-strong))] pl-4 text-white shadow-[0_10px_20px_var(--secondary-shadow)] before:absolute before:left-0 before:top-1/2 before:h-6 before:w-1 before:-translate-y-1/2 before:rounded-full before:bg-white'
-              : 'pl-3 text-slate-600 hover:bg-slate-100 hover:text-slate-950',
-          )
-        }
-      >
-        {({ isActive }) => (
-          <>
-            <span
-              className={cx(
-                'flex h-8 w-8 items-center justify-center rounded-md transition',
-                isActive
-                  ? 'bg-white/20 text-white'
-                  : 'bg-slate-100 text-slate-500 group-hover:bg-slate-200 group-hover:text-slate-900',
-              )}
-            >
-              <Icon size={17} />
-            </span>
-            <span className="flex-1">{t(route.labelKey)}</span>
-          </>
-        )}
-      </NavLink>
+                ? cx(
+                    'bg-[linear-gradient(135deg,var(--secondary-strong),var(--brand-strong))] pl-4 text-white shadow-[0_10px_20px_var(--secondary-shadow)]',
+                    collapsed
+                      ? 'lg:pl-0 lg:before:hidden'
+                      : 'before:absolute before:left-0 before:top-1/2 before:h-6 before:w-1 before:-translate-y-1/2 before:rounded-full before:bg-white',
+                  )
+                : 'pl-3 text-slate-600 hover:bg-slate-100 hover:text-slate-950',
+            )
+          }
+        >
+          {({ isActive }) => (
+            <>
+              <span
+                className={cx(
+                  'flex h-8 w-8 shrink-0 items-center justify-center rounded-md transition',
+                  isActive
+                    ? 'bg-white/20 text-white'
+                    : 'bg-slate-100 text-slate-500 group-hover/link:bg-slate-200 group-hover/link:text-slate-900',
+                )}
+              >
+                <Icon size={17} />
+              </span>
+              <span className={cx('flex-1 truncate', collapsed && 'lg:hidden')}>{label}</span>
+            </>
+          )}
+        </NavLink>
+      </SidebarTooltip>
     );
   }
 
@@ -109,17 +146,21 @@ export default function AppSidebar({ mobileOpen, setMobileOpen, user, tenant, la
     <>
       <div
         className={cx(
-          'fixed inset-y-0 left-0 z-40 flex w-[min(18rem,85vw)] flex-col overflow-hidden border-r border-slate-200 bg-white px-4 py-5 text-slate-950 shadow-[0_24px_60px_rgba(var(--slate-900),0.08)] transition-transform duration-300 lg:w-72 lg:translate-x-0',
+          'fixed inset-y-0 left-0 z-40 flex flex-col overflow-hidden border-r border-slate-200 bg-white py-5 text-slate-950 shadow-[0_24px_60px_rgba(var(--slate-900),0.08)] transition-[width,transform] duration-300 lg:translate-x-0',
+          'w-[min(18rem,85vw)] px-4',
+          collapsed ? 'lg:w-[68px] lg:px-2' : 'lg:w-72',
           mobileOpen ? 'translate-x-0' : '-translate-x-full',
         )}
       >
+        {/* Header */}
         <div className="relative flex items-center justify-between px-2">
-          <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 text-slate-950 shadow-[0_8px_18px_rgba(var(--slate-900),0.06)]">
+          {/* Full logo+name — hidden on desktop when collapsed */}
+          <div className={cx('flex min-w-0 flex-1 items-center gap-3', collapsed && 'lg:hidden')}>
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 shadow-[0_8px_18px_rgba(var(--slate-900),0.06)]">
               <img src={tenant?.logoUrl || logoMark} alt="" className="h-full w-full object-contain p-1.5" />
             </div>
-            <div>
-              <h2 className="mt-1 text-xl font-black tracking-normal text-slate-950">{tenant?.name || t('app.brand')}</h2>
+            <div className="min-w-0">
+              <h2 className="mt-1 truncate text-xl font-black tracking-normal text-slate-950">{tenant?.name || t('app.brand')}</h2>
               {tenant?.plan ? (
                 <p className="text-xs font-semibold capitalize text-slate-500">{tenant.plan}</p>
               ) : t('app.subtitle') ? (
@@ -127,16 +168,37 @@ export default function AppSidebar({ mobileOpen, setMobileOpen, user, tenant, la
               ) : null}
             </div>
           </div>
-          <button
-            type="button"
-            className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-600 transition hover:border-slate-300 hover:bg-slate-100 hover:text-slate-950 lg:hidden"
-            title={t('common.closeMenu')}
-            onClick={() => setMobileOpen(false)}
-          >
-            <X size={18} />
-          </button>
+
+          {/* Icon-only logo — visible on desktop when collapsed */}
+          <div className={cx('hidden', collapsed && 'lg:flex lg:flex-1 lg:justify-center')}>
+            <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
+              <img src={tenant?.logoUrl || logoMark} alt="" className="h-full w-full object-contain p-1" />
+            </div>
+          </div>
+
+          <div className="flex shrink-0 items-center gap-1">
+            {/* Mobile close */}
+            <button
+              type="button"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-600 transition hover:border-slate-300 hover:bg-slate-100 hover:text-slate-950 lg:hidden"
+              title={t('common.closeMenu')}
+              onClick={() => setMobileOpen(false)}
+            >
+              <X size={18} />
+            </button>
+            {/* Desktop collapse toggle */}
+            <button
+              type="button"
+              className="hidden h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-600 transition hover:border-slate-300 hover:bg-slate-100 hover:text-slate-950 lg:inline-flex"
+              title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+              onClick={onToggleCollapsed}
+            >
+              {collapsed ? <PanelLeftOpen size={17} /> : <PanelLeftClose size={17} />}
+            </button>
+          </div>
         </div>
 
+        {/* Nav */}
         <nav className="premium-scrollbar relative mt-8 min-h-0 flex-1 overflow-y-auto pb-6 pr-1">
           <div className="space-y-5">
             {groupedRoutes.map(({ section, label, routes }) => {
@@ -148,51 +210,74 @@ export default function AppSidebar({ mobileOpen, setMobileOpen, user, tenant, la
                 );
               }
 
-              const isCollapsed = Boolean(collapsedGroups[section]);
+              const isGroupCollapsed = Boolean(collapsedGroups[section]);
 
               return (
                 <div key={section} className="space-y-2">
-                  <button
-                    type="button"
-                    className="flex w-full items-center justify-between gap-2 rounded-xl px-2.5 py-2 text-left transition hover:bg-slate-100"
-                    onClick={() => toggleGroup(section)}
-                    aria-expanded={!isCollapsed}
-                  >
-                    <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-400">{label}</p>
-                    <ChevronDown size={16} className={cx('shrink-0 text-slate-400 transition-transform', isCollapsed && '-rotate-90')} />
-                  </button>
-                  {isCollapsed ? null : (
-                    <div className="space-y-1.5">
-                      {routes.map((route) => renderRouteLink(route))}
-                    </div>
-                  )}
+                  {/* Section label — hidden on desktop when sidebar is collapsed */}
+                  <div className={collapsed ? 'lg:hidden' : ''}>
+                    <button
+                      type="button"
+                      className="flex w-full items-center justify-between gap-2 rounded-xl px-2.5 py-2 text-left transition hover:bg-slate-100"
+                      onClick={() => toggleGroup(section)}
+                      aria-expanded={!isGroupCollapsed}
+                    >
+                      <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-400">{label}</p>
+                      <ChevronDown size={16} className={cx('shrink-0 text-slate-400 transition-transform', isGroupCollapsed && '-rotate-90')} />
+                    </button>
+                  </div>
+
+                  {/* Divider shown on desktop when sidebar is collapsed */}
+                  <div className={cx('hidden', collapsed && 'lg:block lg:px-1')}>
+                    <hr className="border-slate-100" />
+                  </div>
+
+                  {/* Routes: visible when group is open, OR always on desktop in collapsed mode */}
+                  <div className={cx(
+                    'space-y-1.5',
+                    isGroupCollapsed && (collapsed ? 'hidden lg:block' : 'hidden'),
+                  )}>
+                    {routes.map((route) => renderRouteLink(route))}
+                  </div>
                 </div>
               );
             })}
           </div>
         </nav>
 
-        <Link
-          to="/profile"
-          onClick={() => setMobileOpen(false)}
-          title={t('profile.online')}
-          className="mt-4 flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-slate-950 transition hover:border-slate-300 hover:bg-slate-100"
-        >
-          <Avatar name={user?.name} imageUrl={user?.avatarUrl} size={40} status="online" />
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-bold text-slate-950">{user?.name}</p>
-            <p className="truncate text-xs font-medium text-slate-500">{user?.email}</p>
-          </div>
-        </Link>
+        {/* Bottom: user profile */}
+        <SidebarTooltip label={user?.name} show={collapsed}>
+          <Link
+            to="/profile"
+            onClick={() => setMobileOpen(false)}
+            title={t('profile.online')}
+            className={cx(
+              'mt-4 flex items-center rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-slate-950 transition hover:border-slate-300 hover:bg-slate-100',
+              collapsed ? 'lg:justify-center' : 'gap-3',
+            )}
+          >
+            <Avatar name={user?.name} imageUrl={user?.avatarUrl} size={40} status="online" />
+            <div className={cx('min-w-0 flex-1', collapsed && 'lg:hidden')}>
+              <p className="truncate text-sm font-bold text-slate-950">{user?.name}</p>
+              <p className="truncate text-xs font-medium text-slate-500">{user?.email}</p>
+            </div>
+          </Link>
+        </SidebarTooltip>
 
-        <button
-          type="button"
-          className="mt-2 inline-flex h-10 w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-3 text-sm font-bold text-slate-950 transition hover:border-slate-300 hover:bg-slate-100"
-          onClick={onLogout}
-        >
-          <LogOut size={16} />
-          {t('auth.logout')}
-        </button>
+        {/* Logout */}
+        <SidebarTooltip label={t('auth.logout')} show={collapsed}>
+          <button
+            type="button"
+            className={cx(
+              'mt-2 inline-flex h-10 w-full items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-3 text-sm font-bold text-slate-950 transition hover:border-slate-300 hover:bg-slate-100',
+              collapsed ? 'lg:justify-center' : 'justify-center',
+            )}
+            onClick={onLogout}
+          >
+            <LogOut size={16} />
+            <span className={cx(collapsed && 'lg:hidden')}>{t('auth.logout')}</span>
+          </button>
+        </SidebarTooltip>
       </div>
 
       {mobileOpen ? <button type="button" aria-label="Close sidebar overlay" className="fixed inset-0 z-30 bg-slate-950/50 lg:hidden" onClick={() => setMobileOpen(false)} /> : null}

@@ -241,11 +241,12 @@ export async function listTrashedWarrantyClaims(client, { tenantId, limit, offse
 export async function findSoldSerialForClaim(client, { tenantId, search }) {
   const result = await client.query(
     `SELECT ps.*, p.name AS product_name, si.id AS sales_invoice_id, si.invoice_number,
-            si.customer_id, rc.name AS customer_name
+            si.customer_id, rc.name AS customer_name, pr.supplier_id
      FROM product_serials ps
      LEFT JOIN products p ON p.id = ps.product_id
      LEFT JOIN sales_invoices si ON si.id = ps.sales_invoice_id
      LEFT JOIN retail_customers rc ON rc.id = si.customer_id
+     LEFT JOIN purchase_receipts pr ON pr.id = ps.purchase_receipt_id
      WHERE ps.tenant_id = $1 AND ps.deleted_at IS NULL
        AND (ps.serial_number = $2 OR ps.imei1 = $2 OR ps.imei2 = $2)
      LIMIT 1`,

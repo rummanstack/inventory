@@ -54,6 +54,9 @@ export default function WarrantyClaimFormModal({ claim, onClose, onSave, prefill
       updateField('salesInvoiceId', result.serial.salesInvoiceId || '');
       updateField('salesInvoiceItemId', result.serial.salesInvoiceItemId || '');
       updateField('invoiceNumber', result.serial.invoiceNumber || '');
+      if (result.serial.supplierId) {
+        updateField('supplierId', result.serial.supplierId);
+      }
     } catch (requestError) {
       setSearchResult(null);
       setSearchError(requestError.message || t('warrantyClaims.serialNotFound'));

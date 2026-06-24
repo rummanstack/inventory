@@ -26,15 +26,23 @@ const PERMISSION_REQUIRED_FEATURES = {
   manage_product_serials: 'product-serials',
   view_warranty_claims: 'warranty-claims',
   manage_warranty_claims: 'warranty-claims',
+  view_repair_jobs: 'repair-jobs',
+  manage_repair_jobs: 'repair-jobs',
+  view_quotations: 'quotations',
+  manage_quotations: 'quotations',
+  view_trade_ins: 'trade-ins',
+  manage_trade_ins: 'trade-ins',
 };
 
 // Permissions that gate in-page actions rather than a sidebar route, so they
 // don't show up via APP_ROUTES — assign each to the menu group it belongs to.
 const EXTRA_GROUP_PERMISSIONS = {
+  pos: ['manage_quotations', 'manage_trade_ins', 'manage_retail_sales_invoices', 'manage_retail_sales_returns'],
+  customers: ['manage_retail_customers_write'],
   inventory: ['manage_products', 'manage_product_serials'],
   dealer: ['manage_dsrs', 'manage_customers', 'update_issues', 'update_settlements'],
+  warranty: ['manage_warranty_claims', 'manage_repair_jobs'],
   system: ['permanent_delete'],
-  warranty: ['manage_warranty_claims'],
 };
 
 export default function PermissionsPage() {

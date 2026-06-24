@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Eye, FileSpreadsheet, Pencil, Plus, Printer, Search, Trash2 } from 'lucide-react';
-import { Badge, EmptyState, Pagination, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
+import { Download, Eye, FileSpreadsheet, Pencil, Plus, Printer, Search, Tag, Trash2 } from 'lucide-react';
+import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
@@ -9,7 +9,7 @@ import { quotationStatusTone } from '../../../models/inventoryViewData.js';
 import QuotationFormModal from '../components/QuotationFormModal';
 import QuotationViewModal from '../components/QuotationViewModal';
 import { useQuotationsViewModel } from '../viewmodels/useQuotationsViewModel';
-import { formatCurrency, formatDateHuman } from '../../../utils/calculations.js';
+import { formatCurrency, formatNumber, formatDateHuman } from '../../../utils/calculations.js';
 
 const QUOTATION_STATUS_VALUES = ['DRAFT', 'SENT', 'ACCEPTED', 'REJECTED', 'EXPIRED', 'CONVERTED'];
 const QUOTATIONS_PRINT_ID = 'quotations-print';
@@ -62,47 +62,6 @@ export default function QuotationsPage() {
     writeFile(wb, `${t('quotations.sheetName')}.xlsx`);
   }
 
-  async function handleExportPdf() {
-    const result = await inventoryApi.listQuotations({
-      page: 1,
-      pageSize: 10000,
-      search: vm.search || undefined,
-      status: vm.status || undefined,
-      dateFrom: vm.dateFrom || undefined,
-      dateTo: vm.dateTo || undefined,
-    });
-    const all = result.items || [];
-    const header = [
-      t('quotations.quoteNumberLabel'),
-      t('quotations.customerLabel'),
-      t('quotations.quoteDateLabel'),
-      t('quotations.statusLabel'),
-      t('quotations.totalLabel'),
-    ];
-    const rows = all.map((q) => [
-      q.quoteNumber,
-      q.customerName || '—',
-      String(q.quoteDate || '').slice(0, 10),
-      q.status,
-      formatCurrency(q.totalAmount, language),
-    ]);
-    await downloadSheetPdf({
-      title: t('quotations.title'),
-      header,
-      rows,
-      filename: `${t('quotations.sheetName')}.pdf`,
-    });
-  }
-
-  function handlePrint() {
-    const el = document.getElementById(QUOTATIONS_PRINT_ID);
-    if (!el) return;
-    const w = window.open('', '_blank');
-    w.document.write(`<html><head><title>${t('quotations.title')}</title></head><body>${el.outerHTML}</body></html>`);
-    w.document.close();
-    w.print();
-  }
-
   async function handleSave(payload) {
     const result = await saveQuotation(payload);
     if (result.ok) {
@@ -131,143 +90,156 @@ export default function QuotationsPage() {
   const items = vm.items || [];
 
   return (
-    <div className="space-y-6">
+    <div>
       <SectionHeader
         eyebrow={t('quotations.eyebrow')}
         title={t('quotations.title')}
         description={t('quotations.description')}
-        actions={
-          canManage
-            ? (
-              <button className="btn btn-primary" onClick={() => setFormModal({ isNew: true })}>
-                <Plus className="h-4 w-4" />
-                {t('quotations.add')}
-              </button>
-            )
-            : null
-        }
+        action={canManage ? (
+          <button type="button" className="btn-primary" onClick={() => setFormModal({ isNew: true })}>
+            <Plus size={18} />
+            {t('quotations.add')}
+          </button>
+        ) : null}
       />
 
-      {/* Filters */}
-      <div className="flex flex-wrap items-end gap-3">
-        <div className="relative flex-1 min-w-[180px]">
-          <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-          <input
-            className="input pl-9"
-            placeholder={t('quotations.searchPlaceholder')}
-            value={vm.search}
-            onChange={(e) => vm.setSearch(e.target.value)}
-          />
-        </div>
-        <select
-          className="input w-auto min-w-[140px]"
-          value={vm.status}
-          onChange={(e) => vm.setStatus(e.target.value)}
-        >
-          <option value="">{t('quotations.allStatuses')}</option>
-          {QUOTATION_STATUS_VALUES.map((s) => (
-            <option key={s} value={s}>{t(`quotations.statuses.${s}`)}</option>
-          ))}
-        </select>
-        <DatePickerField label={t('common.dateFrom')} value={vm.dateFrom} onChange={vm.setDateFrom} />
-        <DatePickerField label={t('common.dateTo')} value={vm.dateTo} onChange={vm.setDateTo} />
-      </div>
+      <div id={QUOTATIONS_PRINT_ID} className="surface overflow-hidden print-target">
+        <div className="border-b border-slate-100 p-5">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="space-y-2">
+              <p className="text-[11px] font-black uppercase tracking-[0.22em] text-slate-400">{t('quotations.eyebrow')}</p>
+              <p className="text-sm font-medium text-slate-500">{t('quotations.description')}</p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2 text-sm font-bold">
+              <span className="muted-chip">{formatNumber(vm.total ?? 0)} {t('quotations.quoteCount')}</span>
+              <button
+                type="button"
+                className="btn-secondary no-print py-1.5 text-xs"
+                onClick={() => { inventoryApi.recordPrint({ entityType: 'quotations', entityId: null, label: 'pdf' }).catch(() => {}); downloadSheetPdf(QUOTATIONS_PRINT_ID, `${t('quotations.sheetName')}.pdf`); }}
+              >
+                <Download size={14} />
+                {t('purchaseReceive.downloadPdf')}
+              </button>
+              <button type="button" className="btn-secondary no-print py-1.5 text-xs" onClick={handleExportExcel}>
+                <FileSpreadsheet size={14} />
+                {t('common.exportExcel')}
+              </button>
+              <button
+                type="button"
+                className="btn-secondary no-print py-1.5 text-xs"
+                onClick={() => { inventoryApi.recordPrint({ entityType: 'quotations', entityId: null, label: 'print' }).catch(() => {}); window.print(); }}
+              >
+                <Printer size={14} />
+                {t('common.print')}
+              </button>
+            </div>
+          </div>
 
-      {/* Export row */}
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-slate-500">
-          {vm.total ?? 0} {t('quotations.quoteCount')}
-        </p>
-        <div className="flex gap-2">
-          <button className="btn btn-ghost text-sm" onClick={handleExportExcel}>
-            <FileSpreadsheet className="h-4 w-4" /> Excel
-          </button>
-          <button className="btn btn-ghost text-sm" onClick={handleExportPdf}>
-            <FileSpreadsheet className="h-4 w-4" /> PDF
-          </button>
-          <button className="btn btn-ghost text-sm" onClick={handlePrint}>
-            <Printer className="h-4 w-4" /> Print
-          </button>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+              <input
+                className="input pl-10"
+                placeholder={t('quotations.searchPlaceholder')}
+                value={vm.search}
+                onChange={(e) => vm.setSearch(e.target.value)}
+              />
+            </div>
+            <select
+              className="input"
+              value={vm.status}
+              onChange={(e) => vm.setStatus(e.target.value)}
+            >
+              <option value="">{t('quotations.allStatuses')}</option>
+              {QUOTATION_STATUS_VALUES.map((s) => (
+                <option key={s} value={s}>{t(`quotations.statuses.${s}`)}</option>
+              ))}
+            </select>
+            <DatePickerField value={vm.dateFrom} onChange={vm.setDateFrom} placeholder={t('purchaseReceive.dateFrom')} />
+            <DatePickerField value={vm.dateTo} onChange={vm.setDateTo} placeholder={t('purchaseReceive.dateTo')} />
+          </div>
         </div>
-      </div>
 
-      {/* Table */}
-      <div id={QUOTATIONS_PRINT_ID}>
         {vm.loading ? (
-          <TableSkeleton columns={7} rows={8} />
-        ) : items.length === 0 ? (
-          <EmptyState
-            title={t('quotations.noMatchTitle')}
-            description={t('quotations.noMatchDescription')}
-          />
+          <div className="p-5">
+            <TableSkeleton columns={7} showHeader={false} />
+          </div>
+        ) : vm.error ? (
+          <div className="p-5">
+            <Alert type="error">{vm.error}</Alert>
+          </div>
         ) : (
-          <div className="rounded-2xl border border-slate-200 overflow-hidden">
-            <table className="w-full text-sm">
-              <thead className="bg-slate-50 text-left text-[11px] font-black uppercase tracking-[0.14em] text-slate-400">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="table-head">
                 <tr>
                   <th className="px-4 py-3">{t('quotations.quoteNumberLabel')}</th>
                   <th className="px-4 py-3">{t('quotations.customerLabel')}</th>
-                  <th className="px-4 py-3">{t('quotations.quoteDateLabel')}</th>
-                  <th className="px-4 py-3">{t('quotations.validUntilLabel')}</th>
+                  <th className="hidden px-4 py-3 sm:table-cell">{t('quotations.quoteDateLabel')}</th>
+                  <th className="hidden px-4 py-3 md:table-cell">{t('quotations.validUntilLabel')}</th>
                   <th className="px-4 py-3">{t('quotations.statusLabel')}</th>
                   <th className="px-4 py-3 text-right">{t('quotations.totalLabel')}</th>
-                  <th className="px-4 py-3 text-right">{t('common.actions')}</th>
+                  <th className="px-4 py-3 text-right no-print">{t('common.actions')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {items.map((quotation) => (
-                  <tr key={quotation.id} className="hover:bg-slate-50 transition-colors">
-                    <td className="px-4 py-3">
+                  <tr key={quotation.id} className="hover:bg-slate-50">
+                    <td className="table-cell">
                       <button
-                        className="font-semibold text-slate-900 hover:text-indigo-600 transition-colors text-left"
+                        type="button"
+                        className="font-semibold text-slate-950 hover:text-[var(--secondary-strong)] transition-colors text-left"
                         onClick={() => openViewForId(quotation.id)}
                       >
                         {quotation.quoteNumber}
                       </button>
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="table-cell">
                       <p className="font-medium text-slate-900">{quotation.customerName || '—'}</p>
-                      {quotation.customerPhone && (
+                      {quotation.customerPhone ? (
                         <p className="text-xs text-slate-400">{quotation.customerPhone}</p>
-                      )}
+                      ) : null}
                     </td>
-                    <td className="px-4 py-3 text-slate-600">{formatDateHuman(quotation.quoteDate, language)}</td>
-                    <td className="px-4 py-3 text-slate-600">{formatDateHuman(quotation.validUntil, language)}</td>
-                    <td className="px-4 py-3">
+                    <td className="hidden table-cell text-slate-600 sm:table-cell">{formatDateHuman(quotation.quoteDate, language)}</td>
+                    <td className="hidden table-cell text-slate-600 md:table-cell">{formatDateHuman(quotation.validUntil, language)}</td>
+                    <td className="table-cell">
                       <Badge tone={quotationStatusTone(quotation.status)}>
                         {t(`quotations.statuses.${quotation.status}`)}
                       </Badge>
                     </td>
-                    <td className="px-4 py-3 text-right font-semibold text-slate-900">
+                    <td className="table-cell text-right font-bold text-slate-950">
                       {formatCurrency(quotation.totalAmount, language)}
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="table-cell no-print">
                       <div className="flex items-center justify-end gap-1">
                         <button
-                          className="icon-btn text-slate-400 hover:text-indigo-600"
+                          type="button"
+                          className="icon-btn"
                           title={t('quotations.viewTitle')}
                           onClick={() => openViewForId(quotation.id)}
                         >
-                          <Eye className="h-4 w-4" />
+                          <Eye size={16} />
                         </button>
-                        {canManage && quotation.status !== 'CONVERTED' && (
+                        {canManage && quotation.status !== 'CONVERTED' ? (
                           <button
-                            className="icon-btn text-slate-400 hover:text-indigo-600"
+                            type="button"
+                            className="icon-btn"
                             title={t('quotations.editTitle')}
                             onClick={() => setFormModal(quotation)}
                           >
-                            <Pencil className="h-4 w-4" />
+                            <Pencil size={16} />
                           </button>
-                        )}
-                        {canManage && (
+                        ) : null}
+                        {canManage ? (
                           <button
-                            className="icon-btn text-slate-400 hover:text-rose-500"
+                            type="button"
+                            className="icon-btn text-rose-600 hover:text-rose-700"
                             title={t('common.delete')}
                             onClick={() => handleDelete(quotation)}
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 size={16} />
                           </button>
-                        )}
+                        ) : null}
                       </div>
                     </td>
                   </tr>
@@ -276,29 +248,35 @@ export default function QuotationsPage() {
             </table>
           </div>
         )}
+
+        {!vm.loading && !vm.error && items.length === 0 ? (
+          <div className="p-5">
+            <EmptyState title={t('quotations.noMatchTitle')} description={t('quotations.noMatchDescription')} icon={Tag} />
+          </div>
+        ) : null}
+
+        {!vm.loading && !vm.error && items.length > 0 ? (
+          <div className="border-t border-slate-100 px-5 py-4">
+            <Pagination page={vm.page} totalPages={vm.totalPages} onPageChange={vm.setPage} />
+          </div>
+        ) : null}
       </div>
 
-      <Pagination
-        page={vm.page}
-        totalPages={vm.totalPages}
-        onPageChange={vm.setPage}
-      />
-
-      {formModal && (
+      {formModal ? (
         <QuotationFormModal
           quotation={formModal?.isNew ? null : formModal}
           onClose={() => setFormModal(null)}
           onSave={handleSave}
         />
-      )}
+      ) : null}
 
-      {viewModal && (
+      {viewModal ? (
         <QuotationViewModal
           quotation={viewModal}
           onClose={() => setViewModal(null)}
           onConverted={() => { vm.reload?.(); }}
         />
-      )}
+      ) : null}
     </div>
   );
 }

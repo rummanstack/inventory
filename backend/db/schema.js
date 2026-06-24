@@ -1310,6 +1310,13 @@ export async function createSchema(pool) {
   `);
 
   await client.query(`
+    ALTER TABLE warranty_claims ADD COLUMN IF NOT EXISTS rma_number TEXT NOT NULL DEFAULT '';
+    ALTER TABLE warranty_claims ADD COLUMN IF NOT EXISTS sent_to_supplier_date DATE;
+    ALTER TABLE warranty_claims ADD COLUMN IF NOT EXISTS received_from_supplier_date DATE;
+    ALTER TABLE warranty_claims ADD COLUMN IF NOT EXISTS repair_job_id TEXT REFERENCES repair_jobs(id) ON DELETE SET NULL;
+  `);
+
+  await client.query(`
     CREATE TABLE IF NOT EXISTS repair_job_counters (
       tenant_id  TEXT NOT NULL REFERENCES tenants(id),
       year       INTEGER NOT NULL,

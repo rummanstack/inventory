@@ -8,8 +8,9 @@ import { inventoryApi } from '../../../services/inventoryApi';
 import { formatDate } from '../../../utils/calculations.js';
 
 const STATUS_VALUES = ['RECEIVED', 'SENT_TO_SUPPLIER', 'REPAIRED', 'REPLACED', 'REJECTED', 'DELIVERED'];
+const SUPPLIER_STATUSES = new Set(['SENT_TO_SUPPLIER', 'REPAIRED', 'REPLACED', 'REJECTED', 'DELIVERED']);
 
-export default function WarrantyClaimFormModal({ claim, onClose, onSave }) {
+export default function WarrantyClaimFormModal({ claim, onClose, onSave, prefillRepairJobId, prefillRepairJobNumber }) {
   const { t, productDirectory, supplierDirectory } = useInventoryApp();
   const isEdit = Boolean(claim);
   const { form, updateField, error, setError, saving, setSaving } = useFormState({
@@ -24,6 +25,9 @@ export default function WarrantyClaimFormModal({ claim, onClose, onSave }) {
     status: claim?.status || 'RECEIVED',
     supplierId: claim?.supplierId || '',
     resolutionNote: claim?.resolutionNote || '',
+    rmaNumber: claim?.rmaNumber || '',
+    sentToSupplierDate: claim?.sentToSupplierDate || '',
+    receivedFromSupplierDate: claim?.receivedFromSupplierDate || '',
   });
   const [serialQuery, setSerialQuery] = useState('');
   const [searching, setSearching] = useState(false);
@@ -77,6 +81,9 @@ export default function WarrantyClaimFormModal({ claim, onClose, onSave }) {
           supplierId: form.supplierId || null,
           resolutionNote: form.resolutionNote.trim(),
           problemNote: form.problemNote.trim(),
+          rmaNumber: form.rmaNumber.trim(),
+          sentToSupplierDate: form.sentToSupplierDate || null,
+          receivedFromSupplierDate: form.receivedFromSupplierDate || null,
         }
       : {
           productId: form.productId,
@@ -87,6 +94,7 @@ export default function WarrantyClaimFormModal({ claim, onClose, onSave }) {
           problemNote: form.problemNote.trim(),
           receivedDate: form.receivedDate,
           supplierId: form.supplierId || null,
+          repairJobId: prefillRepairJobId || null,
         };
 
     setSaving(true);
@@ -98,6 +106,9 @@ export default function WarrantyClaimFormModal({ claim, onClose, onSave }) {
       setError(result?.message || t('warrantyClaims.saveFailed'));
     }
   }
+
+  const showRmaSection = isEdit && SUPPLIER_STATUSES.has(form.status);
+  const linkedRepairJob = isEdit ? (claim.repairJobNumber || null) : (prefillRepairJobNumber || null);
 
   return (
     <Modal title={isEdit ? t('warrantyClaims.editTitle') : t('warrantyClaims.addTitle')} description={t('warrantyClaims.modalDescription')} onClose={onClose} width="max-w-2xl">
@@ -122,42 +133,56 @@ export default function WarrantyClaimFormModal({ claim, onClose, onSave }) {
               <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">{t('retailer.shared.invoiceNumberLabel')}</p>
               <p className="mt-1 text-sm font-semibold text-slate-950">{claim.invoiceNumber || '-'}</p>
             </div>
-          </div>
-        ) : (
-          <div className="rounded-2xl border border-dashed border-indigo-300 bg-indigo-50/60 p-4">
-            <label className="label">{t('warrantyClaims.findSerialLabel')}</label>
-            <div className="flex gap-2">
-              <input
-                className="input"
-                value={serialQuery}
-                onChange={(event) => setSerialQuery(event.target.value)}
-                placeholder={t('warrantyClaims.findSerialPlaceholder')}
-                onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); runSerialSearch(); } }}
-              />
-              <button type="button" className="btn-secondary shrink-0" onClick={runSerialSearch} disabled={searching}>
-                <Search size={16} />
-                {searching ? t('common.loading') : t('common.search')}
-              </button>
-            </div>
-            {searchError ? <p className="mt-2 text-xs font-semibold text-rose-600">{searchError}</p> : null}
-            {searchResult ? (
-              <div className="mt-3 space-y-1 rounded-xl border border-slate-200 bg-white p-3 text-sm">
-                <p className="font-bold text-slate-950">{searchResult.productName}</p>
-                {searchResult.invoiceNumber ? <p className="text-slate-600">{t('retailer.shared.invoiceNumberLabel')}: {searchResult.invoiceNumber}</p> : null}
-                {searchResult.customerName ? <p className="text-slate-600">{t('retailer.shared.customerLabel')}: {searchResult.customerName}</p> : null}
-                {searchResult.warrantyEndDate ? (
-                  <p className="text-slate-600">{t('productSerials.warrantyEndLabel')}: {formatDate(searchResult.warrantyEndDate)}</p>
-                ) : null}
+            {linkedRepairJob ? (
+              <div className="sm:col-span-2">
+                <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">{t('warrantyClaims.linkedRepairJobLabel')}</p>
+                <p className="mt-1 text-sm font-semibold text-indigo-700">{linkedRepairJob}</p>
               </div>
             ) : null}
-            <p className="mt-2 text-xs font-medium text-slate-500">{t('warrantyClaims.manualProductHint')}</p>
-            <select className="input mt-2" value={form.productId} onChange={(event) => { updateField('productId', event.target.value); updateField('productSerialId', ''); }}>
-              <option value="">{t('warrantyClaims.selectProduct')}</option>
-              {productDirectory.filter((product) => !product.serialRequired).map((product) => (
-                <option key={product.id} value={product.id}>{product.name}</option>
-              ))}
-            </select>
           </div>
+        ) : (
+          <>
+            {prefillRepairJobId ? (
+              <div className="rounded-2xl border border-indigo-200 bg-indigo-50/60 px-4 py-3 flex items-center gap-3">
+                <span className="text-xs font-black uppercase tracking-widest text-indigo-500">{t('warrantyClaims.linkedRepairJobLabel')}</span>
+                <span className="text-sm font-bold text-indigo-900">{prefillRepairJobNumber}</span>
+              </div>
+            ) : null}
+            <div className="rounded-2xl border border-dashed border-indigo-300 bg-indigo-50/60 p-4">
+              <label className="label">{t('warrantyClaims.findSerialLabel')}</label>
+              <div className="flex gap-2">
+                <input
+                  className="input"
+                  value={serialQuery}
+                  onChange={(event) => setSerialQuery(event.target.value)}
+                  placeholder={t('warrantyClaims.findSerialPlaceholder')}
+                  onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); runSerialSearch(); } }}
+                />
+                <button type="button" className="btn-secondary shrink-0" onClick={runSerialSearch} disabled={searching}>
+                  <Search size={16} />
+                  {searching ? t('common.loading') : t('common.search')}
+                </button>
+              </div>
+              {searchError ? <p className="mt-2 text-xs font-semibold text-rose-600">{searchError}</p> : null}
+              {searchResult ? (
+                <div className="mt-3 space-y-1 rounded-xl border border-slate-200 bg-white p-3 text-sm">
+                  <p className="font-bold text-slate-950">{searchResult.productName}</p>
+                  {searchResult.invoiceNumber ? <p className="text-slate-600">{t('retailer.shared.invoiceNumberLabel')}: {searchResult.invoiceNumber}</p> : null}
+                  {searchResult.customerName ? <p className="text-slate-600">{t('retailer.shared.customerLabel')}: {searchResult.customerName}</p> : null}
+                  {searchResult.warrantyEndDate ? (
+                    <p className="text-slate-600">{t('productSerials.warrantyEndLabel')}: {formatDate(searchResult.warrantyEndDate)}</p>
+                  ) : null}
+                </div>
+              ) : null}
+              <p className="mt-2 text-xs font-medium text-slate-500">{t('warrantyClaims.manualProductHint')}</p>
+              <select className="input mt-2" value={form.productId} onChange={(event) => { updateField('productId', event.target.value); updateField('productSerialId', ''); }}>
+                <option value="">{t('warrantyClaims.selectProduct')}</option>
+                {productDirectory.filter((product) => !product.serialRequired).map((product) => (
+                  <option key={product.id} value={product.id}>{product.name}</option>
+                ))}
+              </select>
+            </div>
+          </>
         )}
 
         <div className="grid gap-4 sm:grid-cols-2">
@@ -196,6 +221,31 @@ export default function WarrantyClaimFormModal({ claim, onClose, onSave }) {
             </div>
           ) : null}
         </div>
+
+        {showRmaSection ? (
+          <div className="rounded-2xl border border-amber-200 bg-amber-50/60 p-4 space-y-4">
+            <p className="text-[11px] font-black uppercase tracking-[0.18em] text-amber-700">{t('warrantyClaims.rmaSection')}</p>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="sm:col-span-2">
+                <label className="label">{t('warrantyClaims.rmaNumberLabel')}</label>
+                <input
+                  className="input"
+                  value={form.rmaNumber}
+                  onChange={(event) => updateField('rmaNumber', event.target.value)}
+                  placeholder={t('warrantyClaims.rmaNumberPlaceholder')}
+                />
+              </div>
+              <div>
+                <label className="label">{t('warrantyClaims.sentToSupplierDateLabel')}</label>
+                <DatePickerField value={form.sentToSupplierDate} onChange={(value) => updateField('sentToSupplierDate', value)} />
+              </div>
+              <div>
+                <label className="label">{t('warrantyClaims.receivedFromSupplierDateLabel')}</label>
+                <DatePickerField value={form.receivedFromSupplierDate} onChange={(value) => updateField('receivedFromSupplierDate', value)} />
+              </div>
+            </div>
+          </div>
+        ) : null}
 
         <div className="flex justify-end gap-2 pt-2">
           <button type="button" className="btn-secondary" onClick={onClose} disabled={saving}>

@@ -509,6 +509,13 @@ const en = {
       deleteTitle: 'Delete Warranty Claim',
       deleteConfirm: 'Delete claim {number}? This cannot be undone.',
       sheetName: 'Warranty Claims',
+      rmaNumberLabel: 'RMA Number',
+      rmaNumberPlaceholder: 'Supplier RMA reference (e.g. RMA-12345)',
+      sentToSupplierDateLabel: 'Date Sent to Supplier',
+      receivedFromSupplierDateLabel: 'Date Received from Supplier',
+      linkedRepairJobLabel: 'Linked Repair Job',
+      escalateFromRepairJob: 'Escalate to Warranty',
+      rmaSection: 'RMA / Supplier Return',
     },
     repairJobs: {
       eyebrow: 'Repair',

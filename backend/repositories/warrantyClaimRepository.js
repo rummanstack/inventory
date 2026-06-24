@@ -19,6 +19,11 @@ export function mapWarrantyClaim(row) {
     supplierId: row.supplier_id || null,
     supplierName: row.supplier_name || null,
     resolutionNote: row.resolution_note || '',
+    rmaNumber: row.rma_number || '',
+    sentToSupplierDate: row.sent_to_supplier_date || null,
+    receivedFromSupplierDate: row.received_from_supplier_date || null,
+    repairJobId: row.repair_job_id || null,
+    repairJobNumber: row.repair_job_number || null,
     createdById: row.created_by,
     createdByName: row.created_by_name || null,
     createdAt: row.created_at,
@@ -42,6 +47,8 @@ const BASE_JOINS = `
   LEFT JOIN products p ON p.id = wc.product_id
   LEFT JOIN product_serials ps ON ps.id = wc.product_serial_id
   LEFT JOIN suppliers s ON s.id = wc.supplier_id
+  LEFT JOIN repair_jobs rj ON rj.id = wc.repair_job_id
+  LEFT JOIN users creator ON creator.id = wc.created_by
 `;
 
 const BASE_SELECT = `
@@ -52,7 +59,9 @@ const BASE_SELECT = `
   ps.serial_number,
   ps.imei1,
   ps.imei2,
-  s.name AS supplier_name
+  s.name AS supplier_name,
+  rj.job_number AS repair_job_number,
+  creator.name AS created_by_name
 `;
 
 function buildFilters({ status, supplierId, productId, search, dateFrom, dateTo, tenantId }) {
@@ -135,9 +144,9 @@ export function insertWarrantyClaim(client, claim) {
       INSERT INTO warranty_claims (
         id, tenant_id, claim_number, customer_id, sales_invoice_id, sales_invoice_item_id,
         product_id, product_serial_id, problem_note, received_date, status, supplier_id,
-        resolution_note, created_by
+        resolution_note, repair_job_id, created_by
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
       RETURNING *
     )
     SELECT ${BASE_SELECT} FROM inserted wc ${BASE_JOINS}`,
@@ -155,6 +164,7 @@ export function insertWarrantyClaim(client, claim) {
       claim.status,
       claim.supplierId,
       claim.resolutionNote,
+      claim.repairJobId || null,
       claim.createdById,
     ],
   );
@@ -164,12 +174,18 @@ export function updateWarrantyClaim(client, claim) {
   return client.query(
     `WITH updated AS (
        UPDATE warranty_claims
-       SET status = $3, supplier_id = $4, resolution_note = $5, problem_note = $6, updated_at = NOW()
+       SET status = $3, supplier_id = $4, resolution_note = $5, problem_note = $6,
+           rma_number = $7, sent_to_supplier_date = $8, received_from_supplier_date = $9,
+           updated_at = NOW()
        WHERE id = $1 AND tenant_id = $2
        RETURNING *
      )
      SELECT ${BASE_SELECT} FROM updated wc ${BASE_JOINS}`,
-    [claim.id, claim.tenantId, claim.status, claim.supplierId, claim.resolutionNote, claim.problemNote],
+    [
+      claim.id, claim.tenantId, claim.status, claim.supplierId,
+      claim.resolutionNote, claim.problemNote,
+      claim.rmaNumber, claim.sentToSupplierDate, claim.receivedFromSupplierDate,
+    ],
   );
 }
 

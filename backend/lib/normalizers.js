@@ -96,6 +96,10 @@ export function normalizeWarrantyClaim(input) {
     status,
     supplierId: String(input.supplierId || "").trim() || null,
     resolutionNote: String(input.resolutionNote || "").trim(),
+    repairJobId: String(input.repairJobId || "").trim() || null,
+    rmaNumber: String(input.rmaNumber || "").trim(),
+    sentToSupplierDate: String(input.sentToSupplierDate || "").trim() || null,
+    receivedFromSupplierDate: String(input.receivedFromSupplierDate || "").trim() || null,
   };
 }
 

@@ -492,6 +492,13 @@
       deleteTitle: 'ওয়ারেন্টি ক্লেইম মুছুন',
       deleteConfirm: 'ক্লেইম {number} মুছে ফেলবেন? এটি ফিরিয়ে আনা যাবে না।',
       sheetName: 'ওয়ারেন্টি ক্লেইম',
+      rmaNumberLabel: 'আরএমএ নম্বর',
+      rmaNumberPlaceholder: 'সাপ্লায়ারের আরএমএ রেফারেন্স (যেমন RMA-12345)',
+      sentToSupplierDateLabel: 'সাপ্লায়ারে পাঠানোর তারিখ',
+      receivedFromSupplierDateLabel: 'সাপ্লায়ার থেকে ফেরতের তারিখ',
+      linkedRepairJobLabel: 'সংযুক্ত মেরামত কাজ',
+      escalateFromRepairJob: 'ওয়ারেন্টিতে এস্কালেট করুন',
+      rmaSection: 'আরএমএ / সাপ্লায়ার রিটার্ন',
     },
     repairJobs: {
       eyebrow: 'মেরামত',

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { FileSpreadsheet, Download, Pencil, Plus, Printer, Search, Trash2, Wrench } from 'lucide-react';
+import { FileSpreadsheet, Download, Pencil, Plus, Printer, Search, ShieldAlert, Trash2, Wrench } from 'lucide-react';
 import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
@@ -8,15 +8,17 @@ import { downloadSheetPdf } from '../../../services/printService.js';
 import { formatDate, formatNumber } from '../../../utils/calculations.js';
 import { repairJobStatusTone, repairJobApprovalTone } from '../../../models/inventoryViewData.js';
 import RepairJobFormModal from '../components/RepairJobFormModal';
+import WarrantyClaimFormModal from '../../warranty-claims/components/WarrantyClaimFormModal';
 import { useRepairJobsViewModel } from '../viewmodels/useRepairJobsViewModel';
 
 const JOB_STATUS_VALUES = ['RECEIVED', 'DIAGNOSING', 'AWAITING_PARTS', 'IN_REPAIR', 'READY', 'DELIVERED', 'CANCELLED'];
 const REPAIR_JOBS_PRINT_ID = 'repair-jobs-print';
 
 export default function RepairJobsPage() {
-  const { saveRepairJob, deleteRepairJob, t, can } = useInventoryApp();
+  const { saveRepairJob, deleteRepairJob, saveWarrantyClaim, t, can } = useInventoryApp();
   const vm = useRepairJobsViewModel();
   const [formModal, setFormModal] = useState(null);
+  const [escalateModal, setEscalateModal] = useState(null);
   const [technicians, setTechnicians] = useState([]);
   const canManage = can('manage_repair_jobs');
 
@@ -193,6 +195,14 @@ export default function RepairJobsPage() {
                           <>
                             <button
                               type="button"
+                              className="icon-btn text-amber-600 hover:text-amber-700"
+                              title={t('warrantyClaims.escalateFromRepairJob')}
+                              onClick={() => setEscalateModal({ jobId: job.id, jobNumber: job.jobNumber, productId: job.productId })}
+                            >
+                              <ShieldAlert size={16} />
+                            </button>
+                            <button
+                              type="button"
                               className="icon-btn"
                               title={t('common.edit')}
                               onClick={() => setFormModal({ mode: 'edit', job })}
@@ -240,6 +250,22 @@ export default function RepairJobsPage() {
             if (result.ok) {
               setFormModal(null);
               vm.reload();
+            }
+            return result;
+          }}
+        />
+      ) : null}
+
+      {escalateModal ? (
+        <WarrantyClaimFormModal
+          claim={null}
+          prefillRepairJobId={escalateModal.jobId}
+          prefillRepairJobNumber={escalateModal.jobNumber}
+          onClose={() => setEscalateModal(null)}
+          onSave={async (value) => {
+            const result = await saveWarrantyClaim(value);
+            if (result.ok) {
+              setEscalateModal(null);
             }
             return result;
           }}

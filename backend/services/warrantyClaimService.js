@@ -2,7 +2,7 @@ import { assert } from "../lib/errors.js";
 import { normalizeIsoDate } from "../lib/dateRanges.js";
 import { parsePagination, buildPageResult } from "../lib/pagination.js";
 import { normalizeWarrantyClaim } from "../lib/normalizers.js";
-import { WARRANTY_CLAIM_STATUS_VALUES } from "../lib/warrantyClaims.js";
+import { WARRANTY_CLAIM_STATUS_VALUES, WARRANTY_CLAIM_STATUSES } from "../lib/warrantyClaims.js";
 import { PRODUCT_SERIAL_STATUSES } from "../lib/productSerials.js";
 import { WARRANTY_CLAIM_ACTIONS } from "../lib/auditActions.js";
 import { nextWarrantyClaimNumber } from "../lib/warrantyClaimNumber.js";
@@ -162,6 +162,23 @@ export class WarrantyClaimService {
         ? String(input.status).trim().toUpperCase()
         : existing.status;
 
+      const today = new Date().toISOString().slice(0, 10);
+
+      let sentToSupplierDate = input.sentToSupplierDate !== undefined
+        ? (String(input.sentToSupplierDate || "").trim() || null)
+        : (existing.sent_to_supplier_date || null);
+      if (status === WARRANTY_CLAIM_STATUSES.SENT_TO_SUPPLIER && !sentToSupplierDate) {
+        sentToSupplierDate = today;
+      }
+
+      let receivedFromSupplierDate = input.receivedFromSupplierDate !== undefined
+        ? (String(input.receivedFromSupplierDate || "").trim() || null)
+        : (existing.received_from_supplier_date || null);
+      const supplierReturnStatuses = [WARRANTY_CLAIM_STATUSES.REPAIRED, WARRANTY_CLAIM_STATUSES.REPLACED, WARRANTY_CLAIM_STATUSES.REJECTED];
+      if (supplierReturnStatuses.includes(status) && !receivedFromSupplierDate) {
+        receivedFromSupplierDate = today;
+      }
+
       const patch = {
         id: claimId,
         tenantId: actor.tenantId,
@@ -169,6 +186,9 @@ export class WarrantyClaimService {
         supplierId: input.supplierId !== undefined ? (String(input.supplierId || "").trim() || null) : existing.supplier_id,
         resolutionNote: input.resolutionNote !== undefined ? String(input.resolutionNote || "").trim() : existing.resolution_note,
         problemNote: input.problemNote !== undefined ? String(input.problemNote || "").trim() : existing.problem_note,
+        rmaNumber: input.rmaNumber !== undefined ? String(input.rmaNumber || "").trim() : (existing.rma_number || ""),
+        sentToSupplierDate,
+        receivedFromSupplierDate,
       };
 
       const result = await updateWarrantyClaim(client, patch);

@@ -4,12 +4,15 @@ import { cleanMoney } from "../lib/normalizers.js";
 import { RETAIL_CASH_SESSION_ACTIONS } from "../lib/auditActions.js";
 import {
   closeRetailCashSession,
+  countRetailCashSessions,
   findActiveRetailCashSession,
   findRetailCashSessionById,
   getRetailCashSessionSalesSummary,
   insertRetailCashSession,
+  listRetailCashSessionsPage,
   mapRetailCashSession,
 } from "../repositories/retailCashSessionRepository.js";
+import { parsePagination, buildPageResult } from "../lib/pagination.js";
 import { findTenantById } from "../repositories/tenantRepository.js";
 import { logActivity } from "./shared/inventoryHelpers.js";
 
@@ -141,6 +144,23 @@ export class RetailCashSessionService {
       });
 
       return { session: toSessionResult(closed.rows[0]) };
+    });
+  }
+
+  async listSessions(query, actor) {
+    const { page, pageSize, limit, offset } = parsePagination(query);
+    const filters = {
+      tenantId: actor.tenantId,
+      dateFrom: String(query.dateFrom || "").trim() || null,
+      dateTo: String(query.dateTo || "").trim() || null,
+    };
+
+    return this.databaseManager.withClient(async (client) => {
+      const [total, items] = await Promise.all([
+        countRetailCashSessions(client, filters),
+        listRetailCashSessionsPage(client, { ...filters, limit, offset }),
+      ]);
+      return buildPageResult({ items, total, page, pageSize });
     });
   }
 }

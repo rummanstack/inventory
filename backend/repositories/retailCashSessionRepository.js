@@ -3,7 +3,9 @@ export function mapRetailCashSession(row) {
     id: row.id,
     tenantId: row.tenant_id,
     openedById: row.opened_by,
+    openedByName: row.opened_by_name || null,
     closedById: row.closed_by,
+    closedByName: row.closed_by_name || null,
     startedAt: row.started_at,
     closedAt: row.closed_at,
     openingCash: Number(row.opening_cash || 0),
@@ -17,6 +19,55 @@ export function mapRetailCashSession(row) {
     updatedAt: row.updated_at,
     isOpen: row.closed_at === null || row.closed_at === undefined,
   };
+}
+
+export async function countRetailCashSessions(client, { tenantId, dateFrom, dateTo }) {
+  const params = [tenantId];
+  const conditions = ['rcs.tenant_id = $1'];
+
+  if (dateFrom) {
+    params.push(dateFrom);
+    conditions.push(`rcs.started_at >= $${params.length}::date`);
+  }
+  if (dateTo) {
+    params.push(dateTo);
+    conditions.push(`rcs.started_at < ($${params.length}::date + INTERVAL '1 day')`);
+  }
+
+  const result = await client.query(
+    `SELECT COUNT(*)::INTEGER AS count FROM retail_cash_sessions rcs WHERE ${conditions.join(' AND ')}`,
+    params,
+  );
+  return result.rows[0].count;
+}
+
+export async function listRetailCashSessionsPage(client, { tenantId, dateFrom, dateTo, limit, offset }) {
+  const params = [tenantId];
+  const conditions = ['rcs.tenant_id = $1'];
+
+  if (dateFrom) {
+    params.push(dateFrom);
+    conditions.push(`rcs.started_at >= $${params.length}::date`);
+  }
+  if (dateTo) {
+    params.push(dateTo);
+    conditions.push(`rcs.started_at < ($${params.length}::date + INTERVAL '1 day')`);
+  }
+
+  params.push(limit, offset);
+  const result = await client.query(
+    `SELECT rcs.*,
+            uo.name AS opened_by_name,
+            uc.name AS closed_by_name
+     FROM retail_cash_sessions rcs
+     LEFT JOIN users uo ON uo.id = rcs.opened_by
+     LEFT JOIN users uc ON uc.id = rcs.closed_by
+     WHERE ${conditions.join(' AND ')}
+     ORDER BY rcs.started_at DESC
+     LIMIT $${params.length - 1} OFFSET $${params.length}`,
+    params,
+  );
+  return result.rows.map(mapRetailCashSession);
 }
 
 export async function findActiveRetailCashSession(client, tenantId) {

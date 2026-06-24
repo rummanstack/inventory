@@ -1,8 +1,12 @@
-import { apiRequest } from './client.js';
+import { apiRequest, buildQueryString } from './client.js';
 
 export const retailCashSessionsApi = {
   getCurrentRetailCashSession() {
     return apiRequest('/retail-cash-sessions/current');
+  },
+
+  listRetailCashSessions({ page, pageSize, dateFrom, dateTo } = {}) {
+    return apiRequest(`/retail-cash-sessions${buildQueryString({ page, pageSize, dateFrom, dateTo })}`);
   },
 
   startRetailCashSession(payload) {

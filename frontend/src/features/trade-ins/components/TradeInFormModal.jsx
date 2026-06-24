@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { CheckCircle2, Plus, Save, Trash2 } from 'lucide-react';
+import { CheckCircle2, Loader2, Plus, Save, Trash2 } from 'lucide-react';
 import { Alert, Modal } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
@@ -17,6 +17,27 @@ function emptySold() {
   return { _key: Math.random(), productId: '', productName: '', quantity: 1, unitPrice: 0 };
 }
 
+function SummaryCard({ label, value, tone }) {
+  const styles = {
+    emerald: 'bg-emerald-50 border-emerald-200',
+    indigo: 'bg-indigo-50 border-indigo-200',
+    slate: 'bg-slate-50 border-slate-200',
+    amber: 'bg-amber-50 border-amber-200',
+  };
+  const textStyles = {
+    emerald: { label: 'text-emerald-500', value: 'text-emerald-700' },
+    indigo: { label: 'text-indigo-500', value: 'text-indigo-700' },
+    slate: { label: 'text-slate-500', value: 'text-slate-950' },
+    amber: { label: 'text-amber-500', value: 'text-amber-700' },
+  };
+  return (
+    <div className={`rounded-xl border px-4 py-3 text-center ${styles[tone]}`}>
+      <p className={`text-[11px] font-black uppercase tracking-[0.14em] ${textStyles[tone].label}`}>{label}</p>
+      <p className={`mt-1 text-lg font-black ${textStyles[tone].value}`}>{value}</p>
+    </div>
+  );
+}
+
 function TradeInReceipt({ receipt, onClose }) {
   const totalTradeIn = receipt.receivedItems.reduce((s, i) => s + Number(i.tradeInValue || 0), 0);
   const totalSale = receipt.soldItems.reduce((s, i) => s + (Number(i.quantity) || 1) * (Number(i.unitPrice) || 0), 0);
@@ -24,7 +45,6 @@ function TradeInReceipt({ receipt, onClose }) {
 
   return (
     <div className="space-y-5">
-      {/* Header */}
       <div className="flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-4">
         <CheckCircle2 className="mt-0.5 shrink-0 text-emerald-600" size={22} />
         <div>
@@ -38,13 +58,12 @@ function TradeInReceipt({ receipt, onClose }) {
         </div>
       </div>
 
-      {/* Devices taken in */}
       <div>
         <p className="mb-2 text-xs font-black uppercase tracking-[0.14em] text-slate-400">Devices Taken In</p>
-        <div className="rounded-xl border border-emerald-200 overflow-hidden">
+        <div className="overflow-hidden rounded-xl border border-emerald-200">
           <table className="w-full text-sm">
             <thead className="bg-emerald-50">
-              <tr className="text-[11px] font-black uppercase tracking-[0.12em] text-emerald-600 text-left">
+              <tr className="text-left text-[11px] font-black uppercase tracking-[0.12em] text-emerald-600">
                 <th className="px-3 py-2">Device</th>
                 <th className="px-3 py-2">Serial</th>
                 <th className="px-3 py-2">Condition</th>
@@ -67,13 +86,12 @@ function TradeInReceipt({ receipt, onClose }) {
         </div>
       </div>
 
-      {/* Devices sold */}
       <div>
         <p className="mb-2 text-xs font-black uppercase tracking-[0.14em] text-slate-400">Devices Sold</p>
-        <div className="rounded-xl border border-indigo-200 overflow-hidden">
+        <div className="overflow-hidden rounded-xl border border-indigo-200">
           <table className="w-full text-sm">
             <thead className="bg-indigo-50">
-              <tr className="text-[11px] font-black uppercase tracking-[0.12em] text-indigo-600 text-left">
+              <tr className="text-left text-[11px] font-black uppercase tracking-[0.12em] text-indigo-600">
                 <th className="px-3 py-2">Device</th>
                 <th className="px-3 py-2 text-right">Qty</th>
                 <th className="px-3 py-2 text-right">Unit Price</th>
@@ -97,22 +115,10 @@ function TradeInReceipt({ receipt, onClose }) {
         </div>
       </div>
 
-      {/* Summary */}
       <div className="grid grid-cols-3 gap-3">
-        <div className="rounded-xl bg-emerald-50 border border-emerald-200 px-4 py-3 text-center">
-          <p className="text-[10px] font-black uppercase tracking-[0.14em] text-emerald-500">Trade-In Credit</p>
-          <p className="mt-1 text-lg font-black text-emerald-700">{formatCurrency(totalTradeIn)}</p>
-        </div>
-        <div className="rounded-xl bg-indigo-50 border border-indigo-200 px-4 py-3 text-center">
-          <p className="text-[10px] font-black uppercase tracking-[0.14em] text-indigo-500">Sale Total</p>
-          <p className="mt-1 text-lg font-black text-indigo-700">{formatCurrency(totalSale)}</p>
-        </div>
-        <div className={`rounded-xl border px-4 py-3 text-center ${net >= 0 ? 'bg-slate-900 border-slate-900' : 'bg-amber-50 border-amber-200'}`}>
-          <p className={`text-[10px] font-black uppercase tracking-[0.14em] ${net >= 0 ? 'text-slate-400' : 'text-amber-500'}`}>
-            {net >= 0 ? 'Customer Pays' : 'Shop Pays'}
-          </p>
-          <p className={`mt-1 text-lg font-black ${net >= 0 ? 'text-white' : 'text-amber-700'}`}>{formatCurrency(Math.abs(net))}</p>
-        </div>
+        <SummaryCard label="Trade-In Credit" value={formatCurrency(totalTradeIn)} tone="emerald" />
+        <SummaryCard label="Sale Total" value={formatCurrency(totalSale)} tone="indigo" />
+        <SummaryCard label={net >= 0 ? 'Customer Pays' : 'Shop Pays'} value={formatCurrency(Math.abs(net))} tone={net >= 0 ? 'slate' : 'amber'} />
       </div>
 
       <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
@@ -271,25 +277,28 @@ export default function TradeInFormModal({ onClose, onSave }) {
                 placeholder="+880..."
               />
             </div>
-            <DatePickerField
-              label={t('tradeIns.tradeInDateLabel')}
-              value={form.tradeInDate}
-              onChange={(v) => updateField('tradeInDate', v)}
-            />
+            <div>
+              <label className="label">{t('tradeIns.tradeInDateLabel')}</label>
+              <DatePickerField
+                value={form.tradeInDate}
+                onChange={(v) => updateField('tradeInDate', v)}
+              />
+            </div>
           </div>
 
           {/* Received items */}
           <div>
-            <div className="flex items-center justify-between mb-2">
+            <div className="mb-2 flex items-center justify-between">
               <div>
                 <p className="text-sm font-semibold text-slate-900">{t('tradeIns.receivedSectionLabel')}</p>
                 <p className="text-xs text-slate-400">Devices the shop is taking in — adds to stock if product selected</p>
               </div>
-              <button type="button" className="btn btn-ghost text-xs" onClick={() => setReceivedItems((p) => [...p, emptyReceived()])}>
-                <Plus className="h-3.5 w-3.5" /> {t('tradeIns.addReceivedItem')}
+              <button type="button" className="btn-secondary py-1 text-xs" onClick={() => setReceivedItems((p) => [...p, emptyReceived()])}>
+                <Plus size={14} />
+                {t('tradeIns.addReceivedItem')}
               </button>
             </div>
-            <div className="rounded-xl border border-emerald-200 bg-emerald-50/40 overflow-hidden">
+            <div className="overflow-hidden rounded-xl border border-emerald-200 bg-emerald-50/40">
               <table className="w-full text-sm">
                 <thead className="bg-emerald-50 text-left text-[11px] font-black uppercase tracking-[0.14em] text-emerald-600">
                   <tr>
@@ -315,14 +324,14 @@ export default function TradeInFormModal({ onClose, onSave }) {
                             <option key={p.id} value={p.id}>{p.name}</option>
                           ))}
                         </select>
-                        {!item.productId && (
+                        {!item.productId ? (
                           <input
                             className="input py-1 text-sm mt-1"
                             placeholder="Device name / model"
                             value={item.productName}
                             onChange={(e) => updateReceived(i, 'productName', e.target.value)}
                           />
-                        )}
+                        ) : null}
                       </td>
                       <td className="px-2 py-1.5">
                         <input
@@ -364,15 +373,15 @@ export default function TradeInFormModal({ onClose, onSave }) {
                         />
                       </td>
                       <td className="px-2 py-1.5 text-center">
-                        {receivedItems.length > 1 && (
+                        {receivedItems.length > 1 ? (
                           <button
                             type="button"
                             className="text-slate-300 hover:text-rose-500 transition-colors"
                             onClick={() => setReceivedItems((p) => p.filter((_, idx) => idx !== i))}
                           >
-                            <Trash2 className="h-3.5 w-3.5" />
+                            <Trash2 size={14} />
                           </button>
-                        )}
+                        ) : null}
                       </td>
                     </tr>
                   ))}
@@ -383,16 +392,17 @@ export default function TradeInFormModal({ onClose, onSave }) {
 
           {/* Sold items */}
           <div>
-            <div className="flex items-center justify-between mb-2">
+            <div className="mb-2 flex items-center justify-between">
               <div>
                 <p className="text-sm font-semibold text-slate-900">{t('tradeIns.soldSectionLabel')}</p>
                 <p className="text-xs text-slate-400">Devices the shop is selling — deducts from stock if product selected</p>
               </div>
-              <button type="button" className="btn btn-ghost text-xs" onClick={() => setSoldItems((p) => [...p, emptySold()])}>
-                <Plus className="h-3.5 w-3.5" /> {t('tradeIns.addSoldItem')}
+              <button type="button" className="btn-secondary py-1 text-xs" onClick={() => setSoldItems((p) => [...p, emptySold()])}>
+                <Plus size={14} />
+                {t('tradeIns.addSoldItem')}
               </button>
             </div>
-            <div className="rounded-xl border border-indigo-200 bg-indigo-50/40 overflow-hidden">
+            <div className="overflow-hidden rounded-xl border border-indigo-200 bg-indigo-50/40">
               <table className="w-full text-sm">
                 <thead className="bg-indigo-50 text-left text-[11px] font-black uppercase tracking-[0.14em] text-indigo-600">
                   <tr>
@@ -419,14 +429,14 @@ export default function TradeInFormModal({ onClose, onSave }) {
                               <option key={p.id} value={p.id}>{p.name}</option>
                             ))}
                           </select>
-                          {!item.productId && (
+                          {!item.productId ? (
                             <input
                               className="input py-1 text-sm mt-1"
                               placeholder="Device name / model"
                               value={item.productName}
                               onChange={(e) => updateSold(i, 'productName', e.target.value)}
                             />
-                          )}
+                          ) : null}
                         </td>
                         <td className="px-2 py-1.5">
                           <input
@@ -448,19 +458,19 @@ export default function TradeInFormModal({ onClose, onSave }) {
                             onChange={(e) => updateSold(i, 'unitPrice', e.target.value)}
                           />
                         </td>
-                        <td className="px-2 py-1.5 text-right font-medium text-slate-900">
+                        <td className="px-2 py-1.5 text-right font-semibold text-slate-900">
                           {formatCurrency(lineTotal, language)}
                         </td>
                         <td className="px-2 py-1.5 text-center">
-                          {soldItems.length > 1 && (
+                          {soldItems.length > 1 ? (
                             <button
                               type="button"
                               className="text-slate-300 hover:text-rose-500 transition-colors"
                               onClick={() => setSoldItems((p) => p.filter((_, idx) => idx !== i))}
                             >
-                              <Trash2 className="h-3.5 w-3.5" />
+                              <Trash2 size={14} />
                             </button>
-                          )}
+                          ) : null}
                         </td>
                       </tr>
                     );
@@ -472,18 +482,13 @@ export default function TradeInFormModal({ onClose, onSave }) {
 
           {/* Summary strip */}
           <div className="grid grid-cols-3 gap-3">
-            <div className="rounded-xl bg-emerald-50 border border-emerald-200 px-4 py-3 text-center">
-              <p className="text-[11px] font-black uppercase tracking-[0.14em] text-emerald-500">{t('tradeIns.totalTradeInValueLabel')}</p>
-              <p className="text-lg font-bold text-emerald-700">{formatCurrency(totalTradeInValue, language)}</p>
-            </div>
-            <div className="rounded-xl bg-indigo-50 border border-indigo-200 px-4 py-3 text-center">
-              <p className="text-[11px] font-black uppercase tracking-[0.14em] text-indigo-500">{t('tradeIns.totalSaleAmountLabel')}</p>
-              <p className="text-lg font-bold text-indigo-700">{formatCurrency(totalSaleAmount, language)}</p>
-            </div>
-            <div className={`rounded-xl border px-4 py-3 text-center ${paymentAmount >= 0 ? 'bg-slate-900 border-slate-900' : 'bg-amber-50 border-amber-200'}`}>
-              <p className={`text-[11px] font-black uppercase tracking-[0.14em] ${paymentAmount >= 0 ? 'text-slate-400' : 'text-amber-500'}`}>{t('tradeIns.paymentAmountLabel')}</p>
-              <p className={`text-lg font-bold ${paymentAmount >= 0 ? 'text-white' : 'text-amber-700'}`}>{formatCurrency(Math.abs(paymentAmount), language)}{paymentAmount < 0 ? ' ← shop pays' : ''}</p>
-            </div>
+            <SummaryCard label={t('tradeIns.totalTradeInValueLabel')} value={formatCurrency(totalTradeInValue, language)} tone="emerald" />
+            <SummaryCard label={t('tradeIns.totalSaleAmountLabel')} value={formatCurrency(totalSaleAmount, language)} tone="indigo" />
+            <SummaryCard
+              label={`${t('tradeIns.paymentAmountLabel')}${paymentAmount < 0 ? ' (shop pays)' : ''}`}
+              value={formatCurrency(Math.abs(paymentAmount), language)}
+              tone={paymentAmount < 0 ? 'amber' : 'slate'}
+            />
           </div>
 
           {/* Payment method + notes */}
@@ -492,7 +497,7 @@ export default function TradeInFormModal({ onClose, onSave }) {
               <label className="label">{t('tradeIns.paymentMethodLabel')}</label>
               <select className="input" value={form.paymentMethod} onChange={(e) => updateField('paymentMethod', e.target.value)}>
                 {PAYMENT_METHODS.map((m) => (
-                  <option key={m} value={m}>{m.replace('_', ' ')}</option>
+                  <option key={m} value={m}>{m.replace(/_/g, ' ')}</option>
                 ))}
               </select>
             </div>
@@ -508,11 +513,11 @@ export default function TradeInFormModal({ onClose, onSave }) {
           </div>
 
           <div className="flex justify-end gap-3 pt-2">
-            <button type="button" className="btn btn-ghost" onClick={onClose} disabled={saving}>
+            <button type="button" className="btn-secondary" onClick={onClose} disabled={saving}>
               {t('common.cancel')}
             </button>
-            <button type="submit" className="btn btn-primary" disabled={saving}>
-              <Save className="h-4 w-4" />
+            <button type="submit" className="btn-primary" disabled={saving}>
+              {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
               {saving ? t('common.saving') : t('tradeIns.save')}
             </button>
           </div>

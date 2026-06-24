@@ -164,11 +164,13 @@ export default function QuotationFormModal({ quotation, onClose, onSave }) {
 
         {/* Date + validity + status */}
         <div className="grid gap-4 sm:grid-cols-3">
-          <DatePickerField
-            label={t('quotations.quoteDateLabel')}
-            value={form.quoteDate}
-            onChange={(v) => updateField('quoteDate', v)}
-          />
+          <div>
+            <label className="label">{t('quotations.quoteDateLabel')}</label>
+            <DatePickerField
+              value={form.quoteDate}
+              onChange={(v) => updateField('quoteDate', v)}
+            />
+          </div>
           <div>
             <label className="label">{t('quotations.validityDaysLabel')}</label>
             <input

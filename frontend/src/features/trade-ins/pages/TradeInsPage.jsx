@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Eye, FileSpreadsheet, Plus, Printer, Search, Trash2 } from 'lucide-react';
-import { EmptyState, Pagination, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
+import { ArrowLeftRight, Download, Eye, FileSpreadsheet, Plus, Printer, Search, Trash2 } from 'lucide-react';
+import { Alert, EmptyState, Pagination, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
@@ -8,7 +8,7 @@ import { downloadSheetPdf } from '../../../services/printService.js';
 import TradeInFormModal from '../components/TradeInFormModal';
 import TradeInViewModal from '../components/TradeInViewModal';
 import { useTradeInsViewModel } from '../viewmodels/useTradeInsViewModel';
-import { formatCurrency, formatDateHuman } from '../../../utils/calculations.js';
+import { formatCurrency, formatDateHuman, formatNumber } from '../../../utils/calculations.js';
 
 const TRADEIN_PRINT_ID = 'trade-ins-print';
 
@@ -55,51 +55,10 @@ export default function TradeInsPage() {
     writeFile(wb, `${t('tradeIns.sheetName')}.xlsx`);
   }
 
-  async function handleExportPdf() {
-    const result = await inventoryApi.listTradeIns({
-      page: 1,
-      pageSize: 10000,
-      search: vm.search || undefined,
-      dateFrom: vm.dateFrom || undefined,
-      dateTo: vm.dateTo || undefined,
-    });
-    const all = result.items || [];
-    await downloadSheetPdf({
-      title: t('tradeIns.title'),
-      header: [
-        t('tradeIns.tradeInNumberLabel'),
-        t('tradeIns.customerLabel'),
-        t('tradeIns.tradeInDateLabel'),
-        t('tradeIns.totalTradeInValueLabel'),
-        t('tradeIns.totalSaleAmountLabel'),
-        t('tradeIns.paymentAmountLabel'),
-      ],
-      rows: all.map((tr) => [
-        tr.tradeInNumber,
-        tr.customerName || '—',
-        String(tr.tradeInDate || '').slice(0, 10),
-        formatCurrency(tr.totalTradeInValue, language),
-        formatCurrency(tr.totalSaleAmount, language),
-        formatCurrency(tr.paymentAmount, language),
-      ]),
-      filename: `${t('tradeIns.sheetName')}.pdf`,
-    });
-  }
-
-  function handlePrint() {
-    const el = document.getElementById(TRADEIN_PRINT_ID);
-    if (!el) return;
-    const w = window.open('', '_blank');
-    w.document.write(`<html><head><title>${t('tradeIns.title')}</title></head><body>${el.outerHTML}</body></html>`);
-    w.document.close();
-    w.print();
-  }
-
   async function handleSave(payload) {
     const result = await saveTradeIn(payload);
     if (result.ok) {
       vm.reload?.();
-      // Modal shows receipt internally; user clicks Done to close
     }
     return result;
   }
@@ -121,126 +80,140 @@ export default function TradeInsPage() {
   const items = vm.items || [];
 
   return (
-    <div className="space-y-6">
+    <div>
       <SectionHeader
         eyebrow={t('tradeIns.eyebrow')}
         title={t('tradeIns.title')}
         description={t('tradeIns.description')}
-        actions={
-          canManage
-            ? (
-              <button className="btn btn-primary" onClick={() => setShowForm(true)}>
-                <Plus className="h-4 w-4" />
-                {t('tradeIns.add')}
-              </button>
-            )
-            : null
-        }
+        action={canManage ? (
+          <button type="button" className="btn-primary" onClick={() => setShowForm(true)}>
+            <Plus size={18} />
+            {t('tradeIns.add')}
+          </button>
+        ) : null}
       />
 
-      {/* Filters */}
-      <div className="flex flex-wrap items-end gap-3">
-        <div className="relative flex-1 min-w-[180px]">
-          <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-          <input
-            className="input pl-9"
-            placeholder={t('tradeIns.searchPlaceholder')}
-            value={vm.search}
-            onChange={(e) => vm.setSearch(e.target.value)}
-          />
-        </div>
-        <DatePickerField label={t('common.dateFrom')} value={vm.dateFrom} onChange={vm.setDateFrom} />
-        <DatePickerField label={t('common.dateTo')} value={vm.dateTo} onChange={vm.setDateTo} />
-      </div>
+      <div id={TRADEIN_PRINT_ID} className="surface overflow-hidden print-target">
+        <div className="border-b border-slate-100 p-5">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="space-y-2">
+              <p className="text-[11px] font-black uppercase tracking-[0.22em] text-slate-400">{t('tradeIns.eyebrow')}</p>
+              <p className="text-xs font-medium text-slate-400">{t('tradeIns.description')}</p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2 text-sm font-bold">
+              <span className="muted-chip">{formatNumber(vm.total ?? 0)} {t('tradeIns.tradeInCount')}</span>
+              <button
+                type="button"
+                className="btn-secondary no-print py-1.5 text-xs"
+                onClick={() => { inventoryApi.recordPrint({ entityType: 'trade_ins', entityId: null, label: 'pdf' }).catch(() => {}); downloadSheetPdf(TRADEIN_PRINT_ID, `${t('tradeIns.sheetName')}.pdf`); }}
+              >
+                <Download size={14} />
+                {t('purchaseReceive.downloadPdf')}
+              </button>
+              <button type="button" className="btn-secondary no-print py-1.5 text-xs" onClick={handleExportExcel}>
+                <FileSpreadsheet size={14} />
+                {t('common.exportExcel')}
+              </button>
+              <button
+                type="button"
+                className="btn-secondary no-print py-1.5 text-xs"
+                onClick={() => { inventoryApi.recordPrint({ entityType: 'trade_ins', entityId: null, label: 'print' }).catch(() => {}); window.print(); }}
+              >
+                <Printer size={14} />
+                {t('common.print')}
+              </button>
+            </div>
+          </div>
 
-      {/* Export row */}
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-slate-500">{vm.total ?? 0} {t('tradeIns.tradeInCount')}</p>
-        <div className="flex gap-2">
-          <button className="btn btn-ghost text-sm" onClick={handleExportExcel}>
-            <FileSpreadsheet className="h-4 w-4" /> Excel
-          </button>
-          <button className="btn btn-ghost text-sm" onClick={handleExportPdf}>
-            <FileSpreadsheet className="h-4 w-4" /> PDF
-          </button>
-          <button className="btn btn-ghost text-sm" onClick={handlePrint}>
-            <Printer className="h-4 w-4" /> Print
-          </button>
+          <div className="mt-4 grid gap-3 sm:grid-cols-3">
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+              <input
+                className="input pl-10"
+                placeholder={t('tradeIns.searchPlaceholder')}
+                value={vm.search}
+                onChange={(e) => vm.setSearch(e.target.value)}
+              />
+            </div>
+            <DatePickerField value={vm.dateFrom} onChange={vm.setDateFrom} placeholder={t('purchaseReceive.dateFrom')} />
+            <DatePickerField value={vm.dateTo} onChange={vm.setDateTo} placeholder={t('purchaseReceive.dateTo')} />
+          </div>
         </div>
-      </div>
 
-      {/* Table */}
-      <div id={TRADEIN_PRINT_ID}>
         {vm.loading ? (
-          <TableSkeleton columns={7} rows={8} />
-        ) : items.length === 0 ? (
-          <EmptyState
-            title={t('tradeIns.noMatchTitle')}
-            description={t('tradeIns.noMatchDescription')}
-          />
+          <div className="p-5">
+            <TableSkeleton columns={7} showHeader={false} />
+          </div>
+        ) : vm.error ? (
+          <div className="p-5">
+            <Alert type="error">{vm.error}</Alert>
+          </div>
         ) : (
-          <div className="rounded-2xl border border-slate-200 overflow-hidden">
-            <table className="w-full text-sm">
-              <thead className="bg-slate-50 text-left text-[11px] font-black uppercase tracking-[0.14em] text-slate-400">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="table-head">
                 <tr>
                   <th className="px-4 py-3">{t('tradeIns.tradeInNumberLabel')}</th>
                   <th className="px-4 py-3">{t('tradeIns.customerLabel')}</th>
-                  <th className="px-4 py-3">{t('tradeIns.tradeInDateLabel')}</th>
+                  <th className="hidden px-4 py-3 sm:table-cell">{t('tradeIns.tradeInDateLabel')}</th>
                   <th className="px-4 py-3 text-right">{t('tradeIns.totalTradeInValueLabel')}</th>
-                  <th className="px-4 py-3 text-right">{t('tradeIns.totalSaleAmountLabel')}</th>
+                  <th className="hidden px-4 py-3 text-right md:table-cell">{t('tradeIns.totalSaleAmountLabel')}</th>
                   <th className="px-4 py-3 text-right">{t('tradeIns.paymentAmountLabel')}</th>
-                  <th className="px-4 py-3 text-right">{t('common.actions')}</th>
+                  <th className="px-4 py-3 text-right no-print">{t('common.actions')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {items.map((tradeIn) => {
                   const payment = Number(tradeIn.paymentAmount);
                   return (
-                    <tr key={tradeIn.id} className="hover:bg-slate-50 transition-colors">
-                      <td className="px-4 py-3">
+                    <tr key={tradeIn.id} className="hover:bg-slate-50">
+                      <td className="table-cell">
                         <button
-                          className="font-semibold text-slate-900 hover:text-indigo-600 transition-colors text-left"
+                          type="button"
+                          className="font-semibold text-slate-950 hover:text-[var(--secondary-strong)] transition-colors text-left"
                           onClick={() => openView(tradeIn.id)}
                         >
                           {tradeIn.tradeInNumber}
                         </button>
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="table-cell">
                         <p className="font-medium text-slate-900">{tradeIn.customerName || '—'}</p>
-                        {tradeIn.customerPhone && (
+                        {tradeIn.customerPhone ? (
                           <p className="text-xs text-slate-400">{tradeIn.customerPhone}</p>
-                        )}
+                        ) : null}
                       </td>
-                      <td className="px-4 py-3 text-slate-600">{formatDateHuman(tradeIn.tradeInDate, language)}</td>
-                      <td className="px-4 py-3 text-right text-emerald-700 font-medium">
+                      <td className="hidden table-cell text-slate-600 sm:table-cell">{formatDateHuman(tradeIn.tradeInDate, language)}</td>
+                      <td className="table-cell text-right font-semibold text-emerald-700">
                         {formatCurrency(tradeIn.totalTradeInValue, language)}
                       </td>
-                      <td className="px-4 py-3 text-right text-indigo-700 font-medium">
+                      <td className="hidden table-cell text-right font-semibold text-slate-700 md:table-cell">
                         {formatCurrency(tradeIn.totalSaleAmount, language)}
                       </td>
-                      <td className="px-4 py-3 text-right">
-                        <span className={`font-semibold ${payment < 0 ? 'text-amber-600' : 'text-slate-900'}`}>
+                      <td className="table-cell text-right">
+                        <span className={`font-bold ${payment < 0 ? 'text-amber-600' : 'text-slate-950'}`}>
                           {payment < 0 ? '← ' : ''}{formatCurrency(Math.abs(payment), language)}
                         </span>
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="table-cell no-print">
                         <div className="flex items-center justify-end gap-1">
                           <button
-                            className="icon-btn text-slate-400 hover:text-indigo-600"
+                            type="button"
+                            className="icon-btn"
                             title={t('common.view')}
                             onClick={() => openView(tradeIn.id)}
                           >
-                            <Eye className="h-4 w-4" />
+                            <Eye size={16} />
                           </button>
-                          {canManage && (
+                          {canManage ? (
                             <button
-                              className="icon-btn text-slate-400 hover:text-rose-500"
+                              type="button"
+                              className="icon-btn text-rose-600 hover:text-rose-700"
                               title={t('common.delete')}
                               onClick={() => handleDelete(tradeIn)}
                             >
-                              <Trash2 className="h-4 w-4" />
+                              <Trash2 size={16} />
                             </button>
-                          )}
+                          ) : null}
                         </div>
                       </td>
                     </tr>
@@ -250,23 +223,33 @@ export default function TradeInsPage() {
             </table>
           </div>
         )}
+
+        {!vm.loading && !vm.error && items.length === 0 ? (
+          <div className="p-5">
+            <EmptyState title={t('tradeIns.noMatchTitle')} description={t('tradeIns.noMatchDescription')} icon={ArrowLeftRight} />
+          </div>
+        ) : null}
+
+        {!vm.loading && !vm.error && items.length > 0 ? (
+          <div className="border-t border-slate-100 px-5 py-4">
+            <Pagination page={vm.page} totalPages={vm.totalPages} onPageChange={vm.setPage} />
+          </div>
+        ) : null}
       </div>
 
-      <Pagination page={vm.page} totalPages={vm.totalPages} onPageChange={vm.setPage} />
-
-      {showForm && (
+      {showForm ? (
         <TradeInFormModal
           onClose={() => setShowForm(false)}
           onSave={handleSave}
         />
-      )}
+      ) : null}
 
-      {viewModal && (
+      {viewModal ? (
         <TradeInViewModal
           tradeIn={viewModal}
           onClose={() => setViewModal(null)}
         />
-      )}
+      ) : null}
     </div>
   );
 }

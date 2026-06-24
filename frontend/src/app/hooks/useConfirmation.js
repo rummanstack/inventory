@@ -29,6 +29,7 @@ export function useConfirmation(t) {
         requireReason: options.requireReason || false,
         reasonLabel: options.reasonLabel,
         reasonPlaceholder: options.reasonPlaceholder,
+        consequences: options.consequences || [],
       });
     });
   }

@@ -245,6 +245,11 @@ export function InventoryAppProvider({ children }) {
       requireReason: true,
       reasonLabel: t('common.deleteReasonLabel'),
       reasonPlaceholder: t('common.deleteReasonPlaceholder'),
+      consequences: [
+        { variant: 'safe',   text: 'Product is moved to Trash and can be restored later.' },
+        { variant: 'info',   text: 'Stock movement history is preserved — stock levels are unchanged.' },
+        { variant: 'warn',   text: 'Product cannot be sold or purchased until restored.' },
+      ],
     });
     if (!confirmed) {
       return { ok: false };
@@ -324,6 +329,11 @@ export function InventoryAppProvider({ children }) {
       requireReason: true,
       reasonLabel: t('common.deleteReasonLabel'),
       reasonPlaceholder: t('common.deleteReasonPlaceholder'),
+      consequences: [
+        { variant: 'safe', text: 'DSR record is moved to Trash and can be restored.' },
+        { variant: 'info', text: 'All past morning issues and settlements remain intact.' },
+        { variant: 'warn', text: 'Any outstanding due balance for this DSR is NOT cleared.' },
+      ],
     });
     if (!confirmed) {
       return { ok: false };
@@ -385,6 +395,11 @@ export function InventoryAppProvider({ children }) {
       requireReason: true,
       reasonLabel: t('common.deleteReasonLabel'),
       reasonPlaceholder: t('common.deleteReasonPlaceholder'),
+      consequences: [
+        { variant: 'safe', text: 'Customer record is moved to Trash and can be restored.' },
+        { variant: 'info', text: 'All previous orders and due ledger entries are preserved.' },
+        { variant: 'warn', text: 'Outstanding balance owed by this customer is NOT cleared.' },
+      ],
     });
     if (!confirmed) {
       return { ok: false };
@@ -429,6 +444,11 @@ export function InventoryAppProvider({ children }) {
       requireReason: true,
       reasonLabel: t('common.deleteReasonLabel'),
       reasonPlaceholder: t('common.deleteReasonPlaceholder'),
+      consequences: [
+        { variant: 'safe', text: 'Supplier record is moved to Trash and can be restored.' },
+        { variant: 'info', text: 'All purchase history and payment records are preserved.' },
+        { variant: 'warn', text: 'Any balance owed to this supplier is NOT cleared.' },
+      ],
     });
     if (!confirmed) {
       return { ok: false };
@@ -467,6 +487,11 @@ export function InventoryAppProvider({ children }) {
       requireReason: true,
       reasonLabel: t('common.deleteReasonLabel'),
       reasonPlaceholder: t('common.deleteReasonPlaceholder'),
+      consequences: [
+        { variant: 'danger', text: 'Serial number registration is permanently removed.' },
+        { variant: 'info',   text: 'No stock quantity changes — only the serial record is deleted.' },
+        { variant: 'warn',   text: 'Warranty lookups tied to this serial will no longer find it.' },
+      ],
     });
     if (!confirmed) {
       return { ok: false };
@@ -505,6 +530,11 @@ export function InventoryAppProvider({ children }) {
       requireReason: true,
       reasonLabel: t('common.deleteReasonLabel'),
       reasonPlaceholder: t('common.deleteReasonPlaceholder'),
+      consequences: [
+        { variant: 'safe',   text: 'Claim is moved to Trash and can be restored.' },
+        { variant: 'danger', text: 'Any replacement stock already issued is NOT automatically reversed.' },
+        { variant: 'warn',   text: 'Check stock levels manually if a replacement was dispatched.' },
+      ],
     });
     if (!confirmed) {
       return { ok: false };
@@ -543,6 +573,10 @@ export function InventoryAppProvider({ children }) {
       requireReason: true,
       reasonLabel: t('common.deleteReasonLabel'),
       reasonPlaceholder: t('common.deleteReasonPlaceholder'),
+      consequences: [
+        { variant: 'safe', text: 'Repair job is moved to Trash and can be restored.' },
+        { variant: 'info', text: 'No stock changes or financial records are affected.' },
+      ],
     });
     if (!confirmed) {
       return { ok: false };
@@ -581,6 +615,11 @@ export function InventoryAppProvider({ children }) {
       requireReason: true,
       reasonLabel: t('common.deleteReasonLabel'),
       reasonPlaceholder: t('common.deleteReasonPlaceholder'),
+      consequences: [
+        { variant: 'safe',   text: 'Trade-in record is moved to Trash and can be restored.' },
+        { variant: 'danger', text: 'Stock changes from devices received/sold are NOT automatically reversed.' },
+        { variant: 'warn',   text: 'Adjust stock levels manually if items were physically exchanged.' },
+      ],
     });
     if (!confirmed) return { ok: false };
     try {
@@ -616,6 +655,10 @@ export function InventoryAppProvider({ children }) {
       requireReason: true,
       reasonLabel: t('common.deleteReasonLabel'),
       reasonPlaceholder: t('common.deleteReasonPlaceholder'),
+      consequences: [
+        { variant: 'safe', text: 'Quotation is moved to Trash and can be restored.' },
+        { variant: 'info', text: 'No stock or financial impact — quotations do not affect inventory.' },
+      ],
     });
     if (!confirmed) return { ok: false };
     try {
@@ -664,6 +707,12 @@ export function InventoryAppProvider({ children }) {
       requireReason: true,
       reasonLabel: t('common.deleteReasonLabel'),
       reasonPlaceholder: t('common.deleteReasonPlaceholder'),
+      consequences: [
+        { variant: 'safe',   text: 'Purchase record is moved to Trash and can be restored.' },
+        { variant: 'danger', text: 'Stock received from this purchase is REVERSED immediately.' },
+        { variant: 'danger', text: 'Supplier balance is reduced by the full purchase amount.' },
+        { variant: 'warn',   text: 'Payments already made are NOT refunded — adjust supplier payments separately.' },
+      ],
     });
     if (!confirmed) {
       return { ok: false };
@@ -702,6 +751,11 @@ export function InventoryAppProvider({ children }) {
       requireReason: true,
       reasonLabel: t('common.deleteReasonLabel'),
       reasonPlaceholder: t('common.deleteReasonPlaceholder'),
+      consequences: [
+        { variant: 'danger', text: 'Payment amount is added back to the supplier\'s outstanding balance.' },
+        { variant: 'danger', text: 'Finance account balance is adjusted to reflect the reversal.' },
+        { variant: 'warn',   text: 'This cannot be undone — verify the amount before confirming.' },
+      ],
     });
     if (!confirmed) {
       return { ok: false };
@@ -741,6 +795,12 @@ export function InventoryAppProvider({ children }) {
       requireReason: true,
       reasonLabel: t('common.deleteReasonLabel'),
       reasonPlaceholder: t('common.deleteReasonPlaceholder'),
+      consequences: [
+        { variant: 'safe',   text: 'Invoice is moved to Trash and can be restored.' },
+        { variant: 'danger', text: 'Sold items are RETURNED to stock immediately.' },
+        { variant: 'danger', text: 'Customer due balance is reduced by the invoice amount.' },
+        { variant: 'warn',   text: 'Cash received is NOT automatically refunded — handle separately.' },
+      ],
     });
     if (!confirmed) {
       return { ok: false };
@@ -779,6 +839,11 @@ export function InventoryAppProvider({ children }) {
       requireReason: true,
       reasonLabel: t('common.deleteReasonLabel'),
       reasonPlaceholder: t('common.deleteReasonPlaceholder'),
+      consequences: [
+        { variant: 'danger', text: 'Payment amount is added back to the customer\'s outstanding due.' },
+        { variant: 'danger', text: 'Finance account balance is adjusted for the reversal.' },
+        { variant: 'warn',   text: 'This cannot be undone — verify the amount before confirming.' },
+      ],
     });
     if (!confirmed) {
       return { ok: false };
@@ -832,6 +897,10 @@ export function InventoryAppProvider({ children }) {
       confirmLabel: t('common.delete'),
       tone: 'rose',
       requireReason: false,
+      consequences: [
+        { variant: 'danger', text: 'Promotion is permanently removed and cannot be restored.' },
+        { variant: 'info',   text: 'Past sales that used this promotion are not affected.' },
+      ],
     });
     if (!confirmed) {
       return { ok: false };
@@ -878,6 +947,11 @@ export function InventoryAppProvider({ children }) {
       description: interpolateConfirm(t('trash.permanentDeleteConfirm'), { name }),
       confirmLabel: t('trash.permanentDelete'),
       tone: 'rose',
+      consequences: [
+        { variant: 'danger', text: 'Record is PERMANENTLY deleted — cannot be recovered by any means.' },
+        { variant: 'danger', text: 'No backup exists within the system after this action.' },
+        { variant: 'warn',   text: 'Associated audit log entries remain but the record itself is gone.' },
+      ],
     });
     if (!confirmed) {
       return { ok: false };

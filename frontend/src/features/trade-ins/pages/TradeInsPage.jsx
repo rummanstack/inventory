@@ -98,7 +98,7 @@ export default function TradeInsPage() {
     const result = await saveTradeIn(payload);
     if (result.ok) {
       vm.reload?.();
-      setShowForm(false);
+      // Modal shows receipt internally; user clicks Done to close
     }
     return result;
   }

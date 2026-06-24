@@ -85,7 +85,7 @@ const en = {
       supplierPayments: 'Supplier Payments',
       supplierStatement: 'Supplier Statement',
       retailerQuickSale: 'Quick Sale',
-      cashSessionHistory: 'Cash Session History',
+      cashSessionHistory: 'Cash Session',
       quotations: 'Quotations',
       tradeIns: 'Trade-In / Exchange',
       retailerSalesInvoices: 'Sales Invoices',
@@ -525,7 +525,7 @@ const en = {
     },
     cashSessions: {
       eyebrow: 'Retail Counter',
-      title: 'Cash Session History',
+      title: 'Cash Session',
       description: 'Review all past cash sessions — opening cash, total sales, expected vs counted, and variance.',
       sessionCount: 'Sessions',
       salesCountLabel: 'sales',

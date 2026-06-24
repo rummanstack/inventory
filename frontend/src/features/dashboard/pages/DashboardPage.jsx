@@ -99,6 +99,11 @@ export default function DashboardPage() {
   const cashInHand = financeDashboard?.accounts?.filter((a) => a.type === "CASH").reduce((s, a) => s + a.balance, 0) ?? 0;
   const cashInBank = financeDashboard?.accounts?.filter((a) => a.type === "BANK").reduce((s, a) => s + a.balance, 0) ?? 0;
 
+  const inventoryValue = productDirectory.reduce((s, p) => s + p.stockPieces * Number(p.purchasePrice || 0), 0);
+  const damagedValue = productDirectory.reduce((s, p) => s + Number(p.damagedPieces || 0) * Number(p.purchasePrice || 0), 0);
+  const totalDue = (financeDashboard?.totalDsrDue ?? 0) + (financeDashboard?.totalCustomerDue ?? 0);
+  const totalOwe = financeDashboard?.totalSupplierDue ?? 0;
+
   return (
     <div className="space-y-6">
       <SectionHeader
@@ -171,6 +176,57 @@ export default function DashboardPage() {
                       item.valueClass,
                     )}
                   >
+                    {item.value}
+                  </p>
+                  <p className="mt-2 text-xs font-medium text-slate-400">{item.sub}</p>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="grid gap-px bg-slate-100/80 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              {
+                label: "Value in Inventory",
+                value: formatCurrency(inventoryValue, language),
+                sub: "Healthy stock at purchase cost",
+                icon: Boxes,
+                iconClass: "bg-indigo-50 text-indigo-700",
+                valueClass: "text-slate-950",
+              },
+              {
+                label: "Value in Damaged",
+                value: formatCurrency(damagedValue, language),
+                sub: "Damaged stock at purchase cost",
+                icon: AlertTriangle,
+                iconClass: "bg-amber-50 text-amber-700",
+                valueClass: damagedValue > 0 ? "text-amber-700" : "text-slate-950",
+              },
+              {
+                label: "Total Due",
+                value: formatCurrency(totalDue, language),
+                sub: "DSR + customer receivables",
+                icon: TrendingUp,
+                iconClass: "bg-emerald-50 text-emerald-700",
+                valueClass: "text-emerald-700",
+              },
+              {
+                label: "Total Owe",
+                value: formatCurrency(totalOwe, language),
+                sub: "Outstanding to suppliers",
+                icon: TrendingDown,
+                iconClass: "bg-rose-50 text-rose-600",
+                valueClass: totalOwe > 0 ? "text-rose-600" : "text-slate-950",
+              },
+            ].map((item) => {
+              const Icon = item.icon;
+              return (
+                <div key={item.label} className="bg-slate-50/60 px-7 py-5">
+                  <div className={cx("w-fit rounded-xl p-2.5", item.iconClass)}>
+                    <Icon size={16} />
+                  </div>
+                  <p className="mt-4 text-[11px] font-black uppercase tracking-[0.16em] text-slate-400">{item.label}</p>
+                  <p className={cx("mt-2 text-[clamp(1.4rem,2.5vw,1.875rem)] font-black tracking-tight leading-none", item.valueClass)}>
                     {item.value}
                   </p>
                   <p className="mt-2 text-xs font-medium text-slate-400">{item.sub}</p>

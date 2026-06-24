@@ -1,20 +1,36 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { Package } from 'lucide-react';
 import AppLayout from './AppLayout';
 import LoginPage from '../features/auth/pages/LoginPage';
 import LandingPage from '../features/landing/pages/LandingPage';
 import { APP_ROUTES } from './routes';
 import { ErrorBoundary } from './ErrorBoundary.jsx';
 import { InventoryAppProvider, useInventoryApp } from './useInventoryApp.jsx';
-import { LoadingState } from '../components/ui.jsx';
 
 function SessionLoadingScreen() {
-  const { t } = useInventoryApp();
-
   return (
-    <div className="page-shell">
-      <div className="mx-auto flex min-h-screen max-w-2xl items-center justify-center px-6">
-        <div className="w-full">
-          <LoadingState title={t('status.checkingSession')} description={t('app.subtitle')} />
+    <div className="fixed inset-0 flex flex-col items-center justify-center overflow-hidden bg-[#f4f3f8]">
+      {/* Ambient glow */}
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute left-1/2 top-1/2 h-[520px] w-[520px] -translate-x-1/2 -translate-y-2/3 rounded-full bg-[#373373]/10 blur-[120px]" />
+      </div>
+
+      <div className="relative z-10 flex flex-col items-center">
+        {/* Logo mark */}
+        <div className="relative">
+          <div className="absolute inset-0 -m-2 animate-ping rounded-2xl bg-[#5e5b8e]/15" style={{ animationDuration: '2.2s' }} />
+          <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-[#5e5b8e] to-[#373373] shadow-[0_8px_40px_rgba(55,51,115,0.35)]">
+            <Package size={26} className="text-white" strokeWidth={1.8} />
+          </div>
+        </div>
+
+        {/* Brand */}
+        <h1 className="mt-7 text-[22px] font-black tracking-tight text-[#0e0c25]">Stock Ledger</h1>
+        <p className="mt-1.5 text-[13px] font-medium tracking-widest text-slate-400 uppercase">Checking session</p>
+
+        {/* Indeterminate progress bar */}
+        <div className="relative mt-10 h-px w-48 overflow-hidden rounded-full bg-[#373373]/10">
+          <div className="session-loader-bar absolute inset-y-0 w-1/2 rounded-full bg-gradient-to-r from-transparent via-[#5e5b8e] to-transparent" />
         </div>
       </div>
     </div>

@@ -132,3 +132,9 @@ export const TRADE_IN_ACTIONS = {
   CREATE: "trade_in.create",
   DELETE: "trade_in.delete",
 };
+
+export const BRAND_ACTIONS = {
+  CREATE: "brand.create",
+  UPDATE: "brand.update",
+  DELETE: "brand.delete",
+};

@@ -1491,5 +1491,28 @@ export async function createSchema(pool) {
 
     CREATE UNIQUE INDEX IF NOT EXISTS idx_brands_tenant_name ON brands(tenant_id, LOWER(name));
     CREATE INDEX IF NOT EXISTS idx_brands_tenant_id ON brands(tenant_id);
+
+    CREATE TABLE IF NOT EXISTS shop_due_ledger (
+      id              TEXT PRIMARY KEY,
+      tenant_id       TEXT NOT NULL REFERENCES tenants(id),
+      shop_id         TEXT NOT NULL REFERENCES customers(id),
+      type            TEXT NOT NULL,
+      debit           NUMERIC(14,2) NOT NULL DEFAULT 0,
+      credit          NUMERIC(14,2) NOT NULL DEFAULT 0,
+      balance_after   NUMERIC(14,2) NOT NULL DEFAULT 0,
+      reference_type  TEXT,
+      reference_id    TEXT,
+      note            TEXT NOT NULL DEFAULT '',
+      created_by      TEXT REFERENCES users(id),
+      business_date   DATE,
+      created_at      TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp()
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_shop_due_ledger_tenant_shop_created_at
+      ON shop_due_ledger(tenant_id, shop_id, created_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_shop_due_ledger_reference
+      ON shop_due_ledger(reference_type, reference_id);
+    CREATE INDEX IF NOT EXISTS idx_shop_due_ledger_tenant_business_date
+      ON shop_due_ledger(tenant_id, business_date);
   `);
 }

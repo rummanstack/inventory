@@ -1,10 +1,6 @@
 export async function listSettlementsInRange(client, dateFrom, dateTo, tenantId) {
   const result = await client.query(
-    `SELECT settlement_date, items, discount, extra_return_value,
-            COALESCE((
-              SELECT SUM((item->>'damagedPieces')::numeric * (item->>'rate')::numeric)
-              FROM jsonb_array_elements(extra_returns) AS item
-            ), 0) AS extra_damaged_value
+    `SELECT settlement_date, items, extra_returns, discount, extra_return_value
      FROM settlements
      WHERE tenant_id = $1 AND settlement_date >= $2 AND settlement_date <= $3`,
     [tenantId, dateFrom, dateTo],
@@ -13,17 +9,23 @@ export async function listSettlementsInRange(client, dateFrom, dateTo, tenantId)
   return result.rows.map((row) => ({
     date: row.settlement_date,
     items: row.items || [],
+    extraReturns: row.extra_returns || [],
     discount: Number(row.discount || 0),
     extraReturnValue: Number(row.extra_return_value || 0),
-    extraDamagedValue: Number(row.extra_damaged_value || 0),
   }));
 }
 
 export async function listProductCostMap(client, tenantId) {
-  const result = await client.query("SELECT id, purchase_price FROM products WHERE tenant_id = $1", [tenantId]);
+  const result = await client.query(
+    "SELECT id, purchase_price, wholesale_price FROM products WHERE tenant_id = $1",
+    [tenantId],
+  );
   const map = new Map();
   for (const row of result.rows) {
-    map.set(row.id, Number(row.purchase_price || 0));
+    map.set(row.id, {
+      cost: Number(row.purchase_price || 0),
+      price: Number(row.wholesale_price || 0),
+    });
   }
   return map;
 }
@@ -32,11 +34,7 @@ export async function listProductCostMap(client, tenantId) {
 // product-wise (DSR channel) profit breakdowns.
 export async function listSettlementsWithDsrInRange(client, dateFrom, dateTo, tenantId) {
   const result = await client.query(
-    `SELECT dsr_id, dsr_name, settlement_date, items, discount, extra_return_value,
-            COALESCE((
-              SELECT SUM((item->>'damagedPieces')::numeric * (item->>'rate')::numeric)
-              FROM jsonb_array_elements(extra_returns) AS item
-            ), 0) AS extra_damaged_value
+    `SELECT dsr_id, dsr_name, settlement_date, items, extra_returns, discount, extra_return_value
      FROM settlements
      WHERE tenant_id = $1 AND settlement_date >= $2 AND settlement_date <= $3`,
     [tenantId, dateFrom, dateTo],
@@ -47,9 +45,9 @@ export async function listSettlementsWithDsrInRange(client, dateFrom, dateTo, te
     dsrName: row.dsr_name,
     date: row.settlement_date,
     items: row.items || [],
+    extraReturns: row.extra_returns || [],
     discount: Number(row.discount || 0),
     extraReturnValue: Number(row.extra_return_value || 0),
-    extraDamagedValue: Number(row.extra_damaged_value || 0),
   }));
 }
 

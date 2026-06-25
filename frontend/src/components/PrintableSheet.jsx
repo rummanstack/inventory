@@ -138,23 +138,18 @@ export default function PrintableSheet({ sheet, printTarget = false, targetId, t
 
       <div className="mt-6 flex flex-nowrap items-end justify-between gap-x-2 border-b border-slate-200 pb-3 text-sm">
         <div className="text-center">
-          <p className="whitespace-nowrap text-[9px] font-bold uppercase text-slate-500">{t('settlement.discount')}</p>
-          <p className="whitespace-nowrap font-bold text-slate-950">- {formatCurrency(sheet.discount || 0, language)}</p>
-        </div>
-        <span className="text-slate-300">|</span>
-        <div className="text-center">
           <p className="whitespace-nowrap text-[9px] font-bold uppercase text-slate-500">{t('settlement.todaySales')}</p>
           <p className="whitespace-nowrap font-bold text-slate-950">{saleTotal < 0 ? `- ${formatCurrency(Math.abs(saleTotal), language)}` : formatCurrency(saleTotal, language)}</p>
         </div>
         <span className="text-slate-300">|</span>
         <div className="text-center">
-          <p className="whitespace-nowrap text-[9px] font-bold uppercase text-slate-500">{t('settlement.amountPaid')}</p>
-          <p className="whitespace-nowrap text-base font-black text-slate-950">- {formatCurrency(sheet.amountPaid || 0, language)}</p>
+          <p className="whitespace-nowrap text-[9px] font-bold uppercase text-slate-500">{t('settlement.discount')}</p>
+          <p className="whitespace-nowrap font-bold text-slate-950">- {formatCurrency(sheet.discount || 0, language)}</p>
         </div>
         <span className="text-slate-300">|</span>
         <div className="text-center">
-          <p className="whitespace-nowrap text-[9px] font-bold uppercase text-slate-500">{t('settlement.todayDue')}</p>
-          <p className="whitespace-nowrap font-bold text-slate-950">{formatCurrency(sheet.todayDue || 0, language)}</p>
+          <p className="whitespace-nowrap text-[9px] font-bold uppercase text-slate-500">Today Payable</p>
+          <p className="whitespace-nowrap font-bold text-slate-950">{formatCurrency(Math.max(0, saleTotal - (sheet.discount || 0)), language)}</p>
         </div>
         <span className="text-slate-300">|</span>
         <div className="text-center">
@@ -165,6 +160,11 @@ export default function PrintableSheet({ sheet, printTarget = false, targetId, t
         <div className="text-center">
           <p className="whitespace-nowrap text-[9px] font-bold uppercase text-slate-500">{t('settlement.totalReceivable')}</p>
           <p className="whitespace-nowrap font-bold text-slate-950">{formatCurrency(sheet.totalReceivable || 0, language)}</p>
+        </div>
+        <span className="text-slate-300">|</span>
+        <div className="text-center">
+          <p className="whitespace-nowrap text-[9px] font-bold uppercase text-slate-500">{t('settlement.amountPaid')}</p>
+          <p className="whitespace-nowrap text-base font-black text-slate-950">- {formatCurrency(sheet.amountPaid || 0, language)}</p>
         </div>
       </div>
 

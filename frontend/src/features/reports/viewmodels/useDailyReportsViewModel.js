@@ -58,11 +58,14 @@ export function useDailyReportsViewModel({ products, dsrs, today, t, tenantName 
   const totals = rows.reduce(
     (sum, row) => ({
       issuedPieces: sum.issuedPieces + row.issuedPieces,
+      issuedValue: sum.issuedValue + (row.issuedValue || 0),
       returnedPieces: sum.returnedPieces + row.returnedPieces,
+      returnValue: sum.returnValue + (row.returnValue || 0),
       soldPieces: sum.soldPieces + row.soldPieces,
       totalPayable: sum.totalPayable + row.totalPayable,
+      amountPaid: sum.amountPaid + (row.amountPaid || 0),
     }),
-    { issuedPieces: 0, returnedPieces: 0, soldPieces: 0, totalPayable: 0 },
+    { issuedPieces: 0, issuedValue: 0, returnedPieces: 0, returnValue: 0, soldPieces: 0, totalPayable: 0, amountPaid: 0 },
   );
   const chartRows = rows
     .filter((row) => row.status !== 'No Issue')
@@ -71,9 +74,9 @@ export function useDailyReportsViewModel({ products, dsrs, today, t, tenantName 
     .map((row) => ({
       label: row.dsrName,
       meta: row.area,
-      issued: row.issuedPieces,
-      returned: row.returnedPieces,
-      sold: row.soldPieces,
+      issued: row.issuedValue || 0,
+      returned: row.returnValue || 0,
+      sold: row.totalPayable,
       totalPayable: row.totalPayable,
     }));
   const reportMix = [

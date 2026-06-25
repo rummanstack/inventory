@@ -1052,6 +1052,7 @@ const en = {
         office: 'Office',
         rent: 'Rent',
         vehicle: 'Vehicle',
+        loadUnload: 'Load/Unload',
         other: 'Other',
       },
     },

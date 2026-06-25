@@ -167,12 +167,17 @@ export function buildDailyRows({ date, dsrs, issues, settlements, products, lang
     const amountPaid = settlement ? Number(settlement.amountPaid || 0) : 0;
     const dueAmount = settlement ? Number(settlement.dueAmount || 0) : 0;
     const status = settlement ? 'Completed' : aggregate.issueIds.length > 0 ? 'Pending' : 'No Issue';
+    const returnValue = settlement
+      ? settlement.items.reduce((sum, item) => sum + (Number(item.returnedPieces || 0) + Number(item.damagedPieces || 0)) * Number(item.rate || 0), 0)
+      : 0;
 
     return {
       dsrId,
       ...dsr,
       issuedPieces: aggregate.totalIssuedPieces,
+      issuedValue: aggregate.totalIssuedValue,
       returnedPieces,
+      returnValue,
       soldPieces,
       totalPayable,
       previousDue,

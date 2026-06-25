@@ -84,10 +84,10 @@ export default function DailyReportsPage() {
           <p className="mt-3 text-sm text-slate-500">{t('reports.description')}</p>
         </div>
         <div className="grid gap-4 sm:grid-cols-4">
-          <StatCard title={t('reports.issued')} value={`${formatNumber(vm.totals.issuedPieces)} ${t('common.pcs')}`} icon={Truck} tone="amber" />
-          <StatCard title={t('reports.returned')} value={`${formatNumber(vm.totals.returnedPieces)} ${t('common.pcs')}`} icon={RotateCcw} tone="slate" />
-          <StatCard title={t('reports.sold')} value={`${formatNumber(vm.totals.soldPieces)} ${t('common.pcs')}`} icon={PackageCheck} tone="emerald" />
-          <StatCard title={t('reports.payable')} value={formatCurrency(vm.totals.totalPayable)} icon={CircleDollarSign} tone="blue" />
+          <StatCard title={t('reports.issued')} value={formatCurrency(vm.totals.issuedValue)} helper={`${formatNumber(vm.totals.issuedPieces, language)} ${t('common.pcs')}`} icon={Truck} tone="amber" />
+          <StatCard title={t('reports.returned')} value={formatCurrency(vm.totals.returnValue)} helper={`${formatNumber(vm.totals.returnedPieces, language)} ${t('common.pcs')}`} icon={RotateCcw} tone="slate" />
+          <StatCard title={t('reports.sold')} value={formatCurrency(vm.totals.totalPayable)} helper={`${formatNumber(vm.totals.soldPieces, language)} ${t('common.pcs')}`} icon={PackageCheck} tone="emerald" />
+          <StatCard title={t('reports.paid')} value={formatCurrency(vm.totals.amountPaid)} helper={`${formatNumber(vm.rows.filter((r) => r.status === 'Completed').length)} ${t('common.dsr')}`} icon={CircleDollarSign} tone="blue" />
         </div>
       </div>
 
@@ -105,7 +105,7 @@ export default function DailyReportsPage() {
                     { key: 'returned', label: t('reports.returned'), color: getCssVar('--returned', '#f8aa17') },
                     { key: 'sold', label: t('reports.sold'), color: getCssVar('--success', '#37a864') },
                   ]}
-                  totalFormatter={(value) => `${formatNumber(value)} pcs`}
+                  totalFormatter={(value) => formatCurrency(value)}
                 />
               ) : (
                 <EmptyState title={t('reports.noRouteTitle')} description={t('reports.noRouteDescription')} icon={FileText} />
@@ -132,7 +132,6 @@ export default function DailyReportsPage() {
                     <th className="px-4 py-3">{t('reports.issued')}</th>
                     <th className="px-4 py-3 hidden sm:table-cell">{t('reports.returned')}</th>
                     <th className="px-4 py-3">{t('reports.sold')}</th>
-                    <th className="px-4 py-3">{t('reports.payable')}</th>
                     <th className="px-4 py-3 hidden md:table-cell">{t('reports.paid')}</th>
                     <th className="px-4 py-3 hidden lg:table-cell">{t('reports.due')}</th>
                     <th className="px-4 py-3 hidden md:table-cell">{t('dsr.status')}</th>
@@ -146,10 +145,18 @@ export default function DailyReportsPage() {
                         <p className="font-semibold text-slate-950">{row.dsrName}</p>
                         <p className="text-xs text-slate-500">{row.area}</p>
                       </td>
-                      <td className="table-cell">{formatNumber(row.issuedPieces)} pcs</td>
-                      <td className="table-cell hidden sm:table-cell">{formatNumber(row.returnedPieces)} pcs</td>
-                      <td className="table-cell font-semibold">{formatNumber(row.soldPieces)} pcs</td>
-                      <td className="table-cell font-bold">{formatCurrency(row.totalPayable)}</td>
+                      <td className="table-cell">
+                        <span className="font-semibold text-slate-950">{formatCurrency(row.issuedValue || 0)}</span>
+                        <span className="ml-1 text-xs text-slate-400">{formatNumber(row.issuedPieces)} {t('common.pcs')}</span>
+                      </td>
+                      <td className="table-cell hidden sm:table-cell">
+                        <span className="font-semibold text-slate-950">{formatCurrency(row.returnValue || 0)}</span>
+                        <span className="ml-1 text-xs text-slate-400">{formatNumber(row.returnedPieces)} {t('common.pcs')}</span>
+                      </td>
+                      <td className="table-cell font-semibold">
+                        <span className="font-semibold text-slate-950">{formatCurrency(row.totalPayable)}</span>
+                        <span className="ml-1 text-xs text-slate-400">{formatNumber(row.soldPieces)} {t('common.pcs')}</span>
+                      </td>
                       <td className="table-cell hidden md:table-cell">{formatCurrency(row.amountPaid || 0)}</td>
                       <td className="table-cell hidden lg:table-cell">{formatCurrency(row.dueAmount || 0)}</td>
                       <td className="table-cell hidden md:table-cell">

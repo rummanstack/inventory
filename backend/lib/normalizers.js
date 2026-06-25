@@ -216,6 +216,16 @@ export function normalizeSettlementBase(input) {
   const discount = Math.max(0, cleanMoney(input.discount));
   const extraReturnValue = Math.max(0, cleanMoney(input.extraReturnValue));
 
+  const shopCollections = Array.isArray(input.shopCollections)
+    ? input.shopCollections
+        .map((sc) => ({
+          shopId: String(sc.shopId || "").trim(),
+          amount: cleanMoney(sc.amount),
+          note: String(sc.note || "").trim(),
+        }))
+        .filter((sc) => sc.shopId && sc.amount > 0)
+    : [];
+
   return {
     id: input.id || createId("settlement"),
     date: String(input.date || "").trim(),
@@ -229,6 +239,7 @@ export function normalizeSettlementBase(input) {
     totalPayable,
     discount,
     extraReturnValue,
+    shopCollections,
     amountPaidInput: cleanMoney(input.amountPaid),
     status: "Completed",
   };

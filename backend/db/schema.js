@@ -204,6 +204,7 @@ export async function createSchema(pool) {
     ALTER TABLE settlements ADD COLUMN IF NOT EXISTS extra_returns JSONB NOT NULL DEFAULT '[]';
     ALTER TABLE settlements ADD COLUMN IF NOT EXISTS discount NUMERIC NOT NULL DEFAULT 0;
     ALTER TABLE settlements ADD COLUMN IF NOT EXISTS extra_return_value NUMERIC NOT NULL DEFAULT 0;
+    ALTER TABLE settlements ADD COLUMN IF NOT EXISTS shop_collections JSONB NOT NULL DEFAULT '[]';
     ALTER TABLE tenants ADD COLUMN IF NOT EXISTS tax_rate NUMERIC NOT NULL DEFAULT 0;
     ALTER TABLE tenants ADD COLUMN IF NOT EXISTS loyalty_enabled BOOLEAN NOT NULL DEFAULT false;
     ALTER TABLE tenants ADD COLUMN IF NOT EXISTS loyalty_points_per_100 NUMERIC NOT NULL DEFAULT 1;

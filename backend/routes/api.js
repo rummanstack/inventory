@@ -16,6 +16,7 @@ import { ProductSerialController } from "../controllers/productSerialController.
 import { WarrantyClaimController } from "../controllers/warrantyClaimController.js";
 import { RepairJobController } from "../controllers/repairJobController.js";
 import { DsrDueLedgerController } from "../controllers/dsrDueLedgerController.js";
+import { ShopDueLedgerController } from "../controllers/ShopDueLedgerController.js";
 import { CustomerController } from "../controllers/customerController.js";
 import { RetailCustomerController } from "../controllers/retailCustomerController.js";
 import { RetailPromotionController } from "../controllers/retailPromotionController.js";
@@ -51,6 +52,7 @@ import { createProductSerialsRoutes } from "./productSerials.routes.js";
 import { createWarrantyClaimsRoutes } from "./warrantyClaims.routes.js";
 import { createRepairJobsRoutes } from "./repairJobs.routes.js";
 import { createDsrDueLedgerRoutes } from "./dsrDueLedger.routes.js";
+import { createShopDueLedgerRoutes } from "./shopDueLedger.routes.js";
 import { createDsrsRoutes } from "./dsrs.routes.js";
 import { createCustomersRoutes } from "./customers.routes.js";
 import { createRetailCustomersRoutes } from "./retailCustomers.routes.js";
@@ -112,6 +114,7 @@ export function createApiRouter({
   warrantyClaimService,
   repairJobService,
   dsrDueLedgerService,
+  shopDueLedgerService,
   customerService,
   databaseManager,
   tenantService,
@@ -151,6 +154,7 @@ export function createApiRouter({
   const tradeInController = new TradeInController(tradeInService);
   const brandController = new BrandController(brandService);
   const dsrDueLedgerController = new DsrDueLedgerController(dsrDueLedgerService);
+  const shopDueLedgerController = new ShopDueLedgerController(shopDueLedgerService);
   const dsrController = new DsrController(dsrService);
   const customerController = new CustomerController(customerService);
   const retailCustomerController = new RetailCustomerController(retailCustomerService);
@@ -234,6 +238,7 @@ export function createApiRouter({
   router.use("/quotations", createQuotationsRoutes(quotationController));
   router.use("/trade-ins", createTradeInsRoutes(tradeInController));
   router.use("/dsr-due-ledger", createDsrDueLedgerRoutes(dsrDueLedgerController));
+  router.use("/shop-due-ledger", createShopDueLedgerRoutes(shopDueLedgerController));
   router.use("/dsrs", createDsrsRoutes(dsrController));
   router.use("/customers", createCustomersRoutes(customerController));
   router.use("/retail-customers", createRetailCustomersRoutes(retailCustomerController));

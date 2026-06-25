@@ -2319,7 +2319,7 @@ const en = {
       topSellingEmpty: 'No sales recorded yet',
       topSellingEmptyDesc: 'Complete DSR settlements to see the top selling products.',
       leastSellingTitle: 'Least Selling Products',
-      leastSellingDesc: 'In-stock products with the lowest DSR sales over the last 7 days.',
+      leastSellingDesc: 'Products with the lowest DSR sales over the last 7 days.',
       noProductsInStock: 'No products in stock',
       noProductsInStockDesc: 'Add products to see least selling insights.',
     },

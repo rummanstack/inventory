@@ -511,8 +511,8 @@ export default function DashboardPage() {
             />
           ) : (
             <EmptyState
-              title={t('dashboard.noProductsInStock')}
-              description={t('dashboard.noProductsInStockDesc')}
+              title={t('dashboard.topSellingEmpty')}
+              description={t('dashboard.topSellingEmptyDesc')}
               icon={Boxes}
             />
           )}

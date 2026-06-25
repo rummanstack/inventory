@@ -60,12 +60,20 @@ export class ProfitService {
         for (const item of settlement.items) {
           const soldPieces = Number(item.soldPieces || 0);
           const rate = Number(item.rate || 0);
-          const cost = Number(productCostMap.get(item.productId) || 0);
+          const { cost = 0 } = productCostMap.get(item.productId) || {};
           day.revenue += soldPieces * rate;
           day.cost += soldPieces * cost;
         }
 
-        day.revenue -= settlement.discount + (settlement.extraReturnValue - settlement.extraDamagedValue);
+        // Extra returns reduce revenue; returned goods also reduce COGS.
+        // Discount is excluded — it is a supplier pass-through (company receives the
+        // same discount from the supplier), so it does not affect company profit.
+        day.revenue -= settlement.extraReturnValue;
+        for (const extraItem of settlement.extraReturns) {
+          const pieces = Number(extraItem.returnedPieces || 0) + Number(extraItem.damagedPieces || 0);
+          const { cost = 0 } = productCostMap.get(extraItem.productId) || {};
+          day.cost -= pieces * cost;
+        }
       }
 
       for (const expense of expenses) {
@@ -153,12 +161,17 @@ export class ProfitService {
         for (const item of settlement.items) {
           const soldPieces = Number(item.soldPieces || 0);
           const rate = Number(item.rate || 0);
-          const cost = Number(productCostMap.get(item.productId) || 0);
+          const { cost = 0 } = productCostMap.get(item.productId) || {};
           row.revenue += soldPieces * rate;
           row.cost += soldPieces * cost;
         }
 
-        row.revenue -= settlement.discount + (settlement.extraReturnValue - settlement.extraDamagedValue);
+        row.revenue -= settlement.extraReturnValue;
+        for (const extraItem of settlement.extraReturns) {
+          const pieces = Number(extraItem.returnedPieces || 0) + Number(extraItem.damagedPieces || 0);
+          const { cost = 0 } = productCostMap.get(extraItem.productId) || {};
+          row.cost -= pieces * cost;
+        }
         dsrMap.set(settlement.dsrId, row);
       }
 
@@ -196,10 +209,19 @@ export class ProfitService {
           const row = ensureRow(item.productId);
           const soldPieces = Number(item.soldPieces || 0);
           const rate = Number(item.rate || 0);
-          const cost = Number(productCostMap.get(item.productId) || 0);
+          const { cost = 0 } = productCostMap.get(item.productId) || {};
           row.revenue += soldPieces * rate;
           row.cost += soldPieces * cost;
           row.quantity += soldPieces;
+        }
+
+        for (const extraItem of settlement.extraReturns) {
+          const row = ensureRow(extraItem.productId);
+          const pieces = Number(extraItem.returnedPieces || 0) + Number(extraItem.damagedPieces || 0);
+          const { cost = 0, price = 0 } = productCostMap.get(extraItem.productId) || {};
+          row.revenue -= pieces * price;
+          row.cost -= pieces * cost;
+          row.quantity -= pieces;
         }
       }
 

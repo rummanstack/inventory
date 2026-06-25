@@ -10,7 +10,7 @@ import { formatCasePiece, formatCurrency, formatNumber } from '../../../utils/ca
 import { useSettlementViewModel } from '../viewmodels/useSettlementViewModel';
 
 export default function EveningSettlementPage() {
-  const { productDirectory, dsrDirectory, today, saveSettlement, t, can, tenant, language } = useInventoryApp();
+  const { productDirectory, dsrDirectory, shopDirectory, today, saveSettlement, t, can, tenant, language } = useInventoryApp();
   const vm = useSettlementViewModel({ products: productDirectory, dsrs: dsrDirectory, today, saveSettlementAction: saveSettlement, t, tenantName: tenant?.name });
   const canCreateSettlement = can('create_settlements');
   const canUpdateSettlement = can('update_settlements');
@@ -203,6 +203,50 @@ export default function EveningSettlementPage() {
                 </div>
               )}
             </div>
+            <div className="border-t border-slate-100 p-4">
+              <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <h3 className="text-sm font-black uppercase tracking-[0.14em] text-slate-700">{t('settlement.shopDueCollectionsTitle')}</h3>
+                <button type="button" className="btn-secondary" onClick={vm.addShopCollection}>
+                  <Plus size={18} />
+                  {t('settlement.addShopCollection')}
+                </button>
+              </div>
+              {vm.shopCollections.length ? (
+                <div className="mb-4 space-y-3">
+                  {vm.shopCollections.map((sc) => (
+                    <div key={sc.id} className="grid gap-3 rounded-[22px] border border-slate-200 bg-slate-50 p-4 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1.5fr)_auto]">
+                      <div>
+                        <label className="label">{t('settlement.shopDueShop')}</label>
+                        <select className="input" value={sc.shopId} onChange={(e) => vm.updateShopCollection(sc.id, 'shopId', e.target.value)} disabled={vm.saving}>
+                          <option value="">{t('settlement.shopDueSelectShop')}</option>
+                          {shopDirectory.map((shop) => (
+                            <option key={shop.id} value={shop.id}>{shop.shopName || shop.name}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="label">{t('settlement.shopDueAmount')}</label>
+                        <input className="input" type="number" min="0" step="0.01" value={sc.amount} onChange={(e) => vm.updateShopCollection(sc.id, 'amount', e.target.value)} disabled={vm.saving} />
+                      </div>
+                      <div>
+                        <label className="label">{t('settlement.shopDueNote')}</label>
+                        <input className="input" type="text" value={sc.note} onChange={(e) => vm.updateShopCollection(sc.id, 'note', e.target.value)} placeholder={t('settlement.shopDueNotePlaceholder')} disabled={vm.saving} />
+                      </div>
+                      <div className="flex items-end">
+                        <button type="button" className="btn-secondary text-rose-600 hover:bg-rose-50 hover:text-rose-700" onClick={() => vm.removeShopCollection(sc.id)} disabled={vm.saving}>
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="mb-4 rounded-[22px] border border-dashed border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-500">
+                  {t('settlement.noShopDueCollections')}
+                </div>
+              )}
+            </div>
+
             <div className="border-t border-slate-100 p-4">
               {vm.hasInvalidReturns ? (
                 <div className="mb-4 inline-flex items-center gap-2 text-sm font-semibold text-rose-700">

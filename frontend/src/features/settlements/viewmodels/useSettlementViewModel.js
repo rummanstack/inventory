@@ -28,6 +28,7 @@ export function useSettlementViewModel({ products, dsrs, today, saveSettlementAc
   const [returns, setReturns] = useState({});
   const [extraReturns, setExtraReturns] = useState([]);
   const [previousDue, setPreviousDue] = useState(0);
+  const [shopCollections, setShopCollections] = useState([]);
   const [discountInput, setDiscountInput] = useState('');
   const [amountPaidInput, setAmountPaidInput] = useState('');
   const [reasonInput, setReasonInput] = useState('');
@@ -93,6 +94,7 @@ export function useSettlementViewModel({ products, dsrs, today, saveSettlementAc
     if (!completedSettlement) {
       setReturns({});
       setExtraReturns([]);
+      setShopCollections([]);
       setDiscountInput('');
       setAmountPaidInput('');
       setReasonInput('');
@@ -117,6 +119,14 @@ export function useSettlementViewModel({ products, dsrs, today, saveSettlementAc
     setDiscountInput(String(Number(completedSettlement.discount || 0)));
     setAmountPaidInput(String(Number(completedSettlement.amountPaid || 0)));
     setExtraReturns((completedSettlement.extraReturns || []).map(toExtraReturnRow));
+    setShopCollections(
+      (completedSettlement.shopCollections || []).map((sc) => ({
+        id: createId('sc'),
+        shopId: sc.shopId || '',
+        amount: String(Number(sc.amount || 0)),
+        note: sc.note || '',
+      })),
+    );
     setReasonInput('');
     setMessage(null);
   }, [date, dsrId, issueKey, completedSettlement?.id]);
@@ -270,6 +280,18 @@ export function useSettlementViewModel({ products, dsrs, today, saveSettlementAc
     setExtraReturns((current) => current.filter((row) => row.id !== rowId));
   }
 
+  function addShopCollection() {
+    setShopCollections((current) => [...current, { id: createId('sc'), shopId: '', amount: '', note: '' }]);
+  }
+
+  function updateShopCollection(id, field, value) {
+    setShopCollections((current) => current.map((sc) => (sc.id === id ? { ...sc, [field]: value } : sc)));
+  }
+
+  function removeShopCollection(id) {
+    setShopCollections((current) => current.filter((sc) => sc.id !== id));
+  }
+
   async function completeSettlement() {
     const dsr = dsrs.find((candidate) => candidate.id === dsrId);
     if (!dsr) {
@@ -335,6 +357,9 @@ export function useSettlementViewModel({ products, dsrs, today, saveSettlementAc
         returnedPieces: toPieces(row.caseQty, row.pieceQty, row.piecesPerCase),
         damagedPieces: toPieces(row.damagedCaseQty, row.damagedPieceQty, row.piecesPerCase),
       })),
+      shopCollections: shopCollections
+        .filter((sc) => sc.shopId && Number(sc.amount) > 0)
+        .map(({ shopId, amount, note }) => ({ shopId, amount: Number(amount), note })),
       ...(completedSettlement ? { reason: reasonInput.trim() } : {}),
     };
 
@@ -387,6 +412,10 @@ export function useSettlementViewModel({ products, dsrs, today, saveSettlementAc
     addExtraReturn,
     updateExtraReturn,
     removeExtraReturn,
+    shopCollections,
+    addShopCollection,
+    updateShopCollection,
+    removeShopCollection,
     completeSettlement,
   };
 }

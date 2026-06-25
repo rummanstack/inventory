@@ -1,4 +1,5 @@
 import { assert } from "../lib/errors.js";
+import { createId } from "../lib/ids.js";
 import { diffFields } from "../lib/auditDiff.js";
 import { parsePagination, buildPageResult } from "../lib/pagination.js";
 import { STOCK_MOVEMENT_TYPES } from "../lib/stockMovements.js";
@@ -7,6 +8,8 @@ import { DSR_DUE_LEDGER_TYPES } from "../lib/dsrDueLedger.js";
 import { SETTLEMENT_ACTIONS } from "../lib/auditActions.js";
 import { getLatestDueLedgerEntry, getFirstDueLedgerEntryForReference } from "../repositories/dsrDueLedgerRepository.js";
 import { findDsrForUpdate } from "../repositories/dsrRepository.js";
+import { insertShopDueLedgerEntry, getLatestShopDueLedgerEntry } from "../repositories/shopDueLedgerRepository.js";
+import { updateCustomerCurrentDue } from "../repositories/customerRepository.js";
 import { findIssueByDateAndDsr } from "../repositories/issueRepository.js";
 import {
   countSettlements,
@@ -256,6 +259,74 @@ async function getSettlementPreviousDueBaseline(client, previousSettlement, tena
   return Math.max(0, cleanMoney(firstEntry.balanceAfter) - getDueLedgerChange(firstEntry));
 }
 
+async function applyShopDueCollections(client, shopCollections, settlementId, settlementDate, tenantId, actor) {
+  for (const sc of shopCollections) {
+    const shopResult = await client.query(
+      `SELECT * FROM customers WHERE id = $1 AND tenant_id = $2 AND deleted_at IS NULL LIMIT 1`,
+      [sc.shopId, tenantId],
+    );
+    if (!shopResult.rowCount) continue;
+    const shop = shopResult.rows[0];
+    const latestEntry = await getLatestShopDueLedgerEntry(client, sc.shopId, tenantId);
+    const currentBalance = latestEntry ? latestEntry.balanceAfter : Number(shop.opening_due || 0);
+    const balanceAfter = currentBalance - sc.amount;
+    await insertShopDueLedgerEntry(client, {
+      id: createId("sdl"),
+      organizationId: tenantId,
+      shopId: sc.shopId,
+      type: "COLLECTION",
+      debit: 0,
+      credit: sc.amount,
+      balanceAfter,
+      referenceType: "settlement",
+      referenceId: settlementId,
+      note: sc.note || `Due collected via settlement`,
+      createdById: actor.id,
+      businessDate: settlementDate,
+    });
+    await updateCustomerCurrentDue(client, sc.shopId, tenantId, balanceAfter);
+  }
+}
+
+async function applyShopDueCollectionDeltas(client, oldCollections, newCollections, settlementId, settlementDate, tenantId, actor) {
+  const oldByShop = new Map((oldCollections || []).map((sc) => [sc.shopId, Number(sc.amount || 0)]));
+  const newByShop = new Map((newCollections || []).map((sc) => [sc.shopId, sc]));
+  const allShopIds = new Set([...oldByShop.keys(), ...newByShop.keys()]);
+
+  for (const shopId of allShopIds) {
+    const oldAmount = oldByShop.get(shopId) || 0;
+    const newSc = newByShop.get(shopId);
+    const newAmount = newSc ? Number(newSc.amount || 0) : 0;
+    const delta = newAmount - oldAmount;
+    if (delta === 0) continue;
+
+    const shopResult = await client.query(
+      `SELECT * FROM customers WHERE id = $1 AND tenant_id = $2 AND deleted_at IS NULL LIMIT 1`,
+      [shopId, tenantId],
+    );
+    if (!shopResult.rowCount) continue;
+    const shop = shopResult.rows[0];
+    const latestEntry = await getLatestShopDueLedgerEntry(client, shopId, tenantId);
+    const currentBalance = latestEntry ? latestEntry.balanceAfter : Number(shop.opening_due || 0);
+    const balanceAfter = currentBalance - delta;
+    await insertShopDueLedgerEntry(client, {
+      id: createId("sdl"),
+      organizationId: tenantId,
+      shopId,
+      type: "MANUAL_ADJUSTMENT",
+      debit: Math.max(0, -delta),
+      credit: Math.max(0, delta),
+      balanceAfter,
+      referenceType: "settlement",
+      referenceId: settlementId,
+      note: newSc?.note || `Settlement shop due adjusted`,
+      createdById: actor.id,
+      businessDate: settlementDate,
+    });
+    await updateCustomerCurrentDue(client, shopId, tenantId, balanceAfter);
+  }
+}
+
 async function recordSettlementDueLedgerChanges(client, settlement, tenantId, actor, startingBalance, { saleDueAmount, collectionAmount, verb }) {
   let currentBalance = startingBalance;
 
@@ -403,6 +474,10 @@ export class SettlementService {
       );
     }
 
+    if (settlement.shopCollections && settlement.shopCollections.length > 0) {
+      await applyShopDueCollections(client, settlement.shopCollections, settlement.id, settlement.date, tenantId, actor);
+    }
+
     await this.recordActivity(client, actor, {
       actionType: SETTLEMENT_ACTIONS.CREATE,
       entityType: "settlement",
@@ -499,6 +574,12 @@ export class SettlementService {
         },
         actor,
       );
+    }
+
+    const oldShopCollections = Array.isArray(previousSettlement.shop_collections) ? previousSettlement.shop_collections : [];
+    const newShopCollections = settlement.shopCollections || [];
+    if (oldShopCollections.length > 0 || newShopCollections.length > 0) {
+      await applyShopDueCollectionDeltas(client, oldShopCollections, newShopCollections, settlement.id, settlement.date, tenantId, actor);
     }
 
     const { before: settlementBefore, after: settlementAfter } = diffFields(

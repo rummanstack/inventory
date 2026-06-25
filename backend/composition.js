@@ -69,7 +69,8 @@ export async function createBackendApp() {
   const dsrService = new DsrService(databaseManager, { auditService });
   const issueService = new IssueService(databaseManager, { auditService });
   const financeAccountService = new FinanceAccountService(databaseManager, { auditService });
-  const settlementService = new SettlementService(databaseManager, { auditService, financeAccountService });
+  const supplierDiscountService = new SupplierDiscountService(databaseManager, { auditService, financeAccountService });
+  const settlementService = new SettlementService(databaseManager, { auditService, financeAccountService, supplierDiscountService });
   const userService = new UserService(databaseManager, { auditService });
   const expenseService = new ExpenseService(databaseManager, { auditService, financeAccountService });
   const dsrFinanceService = new DsrFinanceService(databaseManager, { auditService, financeAccountService });
@@ -108,7 +109,6 @@ export async function createBackendApp() {
   const visitorChatService = new VisitorChatService(databaseManager, { auditService });
   const srService = new SrService(databaseManager, { auditService });
   const srDueLedgerService = new SrDueLedgerService(databaseManager, { auditService, financeAccountService });
-  const supplierDiscountService = new SupplierDiscountService(databaseManager, { auditService, financeAccountService });
 
   const app = createApp({
     authService,

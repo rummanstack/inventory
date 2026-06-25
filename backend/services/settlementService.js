@@ -454,10 +454,11 @@ async function recordSettlementDueLedgerChanges(client, settlement, tenantId, ac
 }
 
 export class SettlementService {
-  constructor(databaseManager, { auditService, financeAccountService }) {
+  constructor(databaseManager, { auditService, financeAccountService, supplierDiscountService }) {
     this.databaseManager = databaseManager;
     this.auditService = auditService;
     this.financeAccountService = financeAccountService;
+    this.supplierDiscountService = supplierDiscountService;
   }
 
   recordActivity(client, actor, payload) {
@@ -561,6 +562,17 @@ export class SettlementService {
         },
         actor,
       );
+    }
+
+    if (this.supplierDiscountService && settlement.discount > 0) {
+      await this.supplierDiscountService.recordFromSettlement(client, {
+        tenantId,
+        settlementId: settlement.id,
+        dsrName: settlement.dsrName,
+        discountDate: settlement.date,
+        amount: settlement.discount,
+        supplierId: settlement.discountSupplierId || null,
+      }, actor);
     }
 
     if (settlement.srHandovers && settlement.srHandovers.length > 0) {
@@ -679,6 +691,19 @@ export class SettlementService {
         },
         actor,
       );
+    }
+
+    if (this.supplierDiscountService) {
+      await this.supplierDiscountService.recordFromSettlement(client, {
+        tenantId,
+        settlementId: settlement.id,
+        dsrName: settlement.dsrName,
+        discountDate: settlement.date,
+        amount: settlement.discount,
+        previousAmount: Number(previousSettlement.discount || 0),
+        supplierId: settlement.discountSupplierId || null,
+        previousSupplierId: previousSettlement.discount_supplier_id || null,
+      }, actor);
     }
 
     const newSrHandovers = settlement.srHandovers || [];

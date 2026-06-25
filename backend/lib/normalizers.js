@@ -263,6 +263,7 @@ export function normalizeSettlementBase(input) {
     shopCollections,
     srHandovers,
     amountPaidInput: cleanMoney(input.amountPaid),
+    discountSupplierId: String(input.discountSupplierId || "").trim() || null,
     status: "Completed",
   };
 }

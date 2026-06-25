@@ -3,7 +3,9 @@ import { createId } from "../lib/ids.js";
 import { diffFields } from "../lib/auditDiff.js";
 import { summarizeByAmount } from "../lib/aggregation.js";
 import { normalizeIsoDate, normalizeIsoMonth, startOfMonth, startOfNextMonth } from "../lib/dateRanges.js";
+import { DSR_DUE_LEDGER_TYPES } from "../lib/dsrDueLedger.js";
 import { findDsrById } from "../repositories/dsrRepository.js";
+import { getLatestDueLedgerEntry } from "../repositories/dsrDueLedgerRepository.js";
 import {
   deleteRecord,
   findRecordById,
@@ -11,6 +13,7 @@ import {
   listRecordsInRange,
   updateRecord,
 } from "../repositories/dsrFinanceRepository.js";
+import { recordDueLedgerEntry } from "./shared/inventoryHelpers.js";
 
 const MODULES = {
   advance: {
@@ -123,18 +126,36 @@ export class DsrFinanceService {
         await updateRecord(client, config, record, actor.tenantId);
 
         const amountDelta = record.amount - existingRecord.amount;
-        if (this.financeAccountService && kind === "advance" && amountDelta !== 0) {
-          await this.financeAccountService.recordTransactionInClient(
-            client,
-            {
-              accountType: "CASH",
-              type: amountDelta > 0 ? "WITHDRAWAL" : "DEPOSIT",
-              amount: Math.abs(amountDelta),
-              date: record.date,
-              note: `Advance adjusted — ${dsrResult.rows[0].name}`,
-            },
-            actor,
-          );
+        if (kind === "advance" && amountDelta !== 0) {
+          if (this.financeAccountService) {
+            await this.financeAccountService.recordTransactionInClient(
+              client,
+              {
+                accountType: "CASH",
+                type: amountDelta > 0 ? "WITHDRAWAL" : "DEPOSIT",
+                amount: Math.abs(amountDelta),
+                date: record.date,
+                note: `Advance adjusted — ${dsrResult.rows[0].name}`,
+              },
+              actor,
+            );
+          }
+
+          const latestEntry = await getLatestDueLedgerEntry(client, record.dsrId, actor.tenantId);
+          const latestBalance = latestEntry ? latestEntry.balanceAfter : 0;
+          await recordDueLedgerEntry(client, {
+            tenantId: actor.tenantId,
+            dsrId: record.dsrId,
+            type: DSR_DUE_LEDGER_TYPES.ADVANCE_ADJUSTMENT,
+            debit: Math.max(0, amountDelta),
+            credit: Math.max(0, -amountDelta),
+            balanceAfter: latestBalance + amountDelta,
+            referenceType: "dsr_advance",
+            referenceId: record.id,
+            note: record.note,
+            createdById: actor.id,
+            businessDate: record.date,
+          });
         }
 
         const { before, after } = diffFields(existingRecord, record, ["date", "dsrId", "amount", "note"]);
@@ -154,18 +175,36 @@ export class DsrFinanceService {
         record.tenantId = actor.tenantId;
         await insertRecord(client, config, record);
 
-        if (this.financeAccountService && kind === "advance") {
-          await this.financeAccountService.recordTransactionInClient(
-            client,
-            {
-              accountType: "CASH",
-              type: "WITHDRAWAL",
-              amount: record.amount,
-              date: record.date,
-              note: `Advance — ${dsrResult.rows[0].name}: ${record.note}`,
-            },
-            actor,
-          );
+        if (kind === "advance") {
+          if (this.financeAccountService) {
+            await this.financeAccountService.recordTransactionInClient(
+              client,
+              {
+                accountType: "CASH",
+                type: "WITHDRAWAL",
+                amount: record.amount,
+                date: record.date,
+                note: `Advance — ${dsrResult.rows[0].name}: ${record.note}`,
+              },
+              actor,
+            );
+          }
+
+          const latestEntry = await getLatestDueLedgerEntry(client, record.dsrId, actor.tenantId);
+          const latestBalance = latestEntry ? latestEntry.balanceAfter : 0;
+          await recordDueLedgerEntry(client, {
+            tenantId: actor.tenantId,
+            dsrId: record.dsrId,
+            type: DSR_DUE_LEDGER_TYPES.ADVANCE_ADJUSTMENT,
+            debit: record.amount,
+            credit: 0,
+            balanceAfter: latestBalance + record.amount,
+            referenceType: "dsr_advance",
+            referenceId: record.id,
+            note: record.note,
+            createdById: actor.id,
+            businessDate: record.date,
+          });
         }
 
         await this.recordActivity(client, actor, {
@@ -192,6 +231,24 @@ export class DsrFinanceService {
 
       const result = await deleteRecord(client, config, recordId, actor.tenantId);
       assert(result.rowCount > 0, `${config.label} not found.`, 404);
+
+      if (kind === "advance") {
+        const latestEntry = await getLatestDueLedgerEntry(client, existingRecord.dsrId, actor.tenantId);
+        const latestBalance = latestEntry ? latestEntry.balanceAfter : 0;
+        await recordDueLedgerEntry(client, {
+          tenantId: actor.tenantId,
+          dsrId: existingRecord.dsrId,
+          type: DSR_DUE_LEDGER_TYPES.ADVANCE_ADJUSTMENT,
+          debit: 0,
+          credit: existingRecord.amount,
+          balanceAfter: latestBalance - existingRecord.amount,
+          referenceType: "dsr_advance",
+          referenceId: recordId,
+          note: `Advance deleted: ${existingRecord.note}`,
+          createdById: actor.id,
+          businessDate: existingRecord.date,
+        });
+      }
 
       await this.recordActivity(client, actor, {
         actionType: `${config.actionBase}.delete`,

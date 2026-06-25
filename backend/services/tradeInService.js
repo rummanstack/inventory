@@ -60,10 +60,16 @@ function normalizeSoldItem(input) {
   };
 }
 
+const PAYMENT_METHOD_TO_ACCOUNT = {
+  CASH: 'CASH',
+  BANK: 'BANK',
+};
+
 export class TradeInService {
-  constructor(databaseManager, { auditService }) {
+  constructor(databaseManager, { auditService, financeAccountService }) {
     this.databaseManager = databaseManager;
     this.auditService = auditService;
+    this.financeAccountService = financeAccountService;
   }
 
   recordActivity(client, actor, payload) {
@@ -222,6 +228,24 @@ export class TradeInService {
         description: `${actor.name} created trade-in ${tradeInNumber} — received ${receivedItems.length} device(s), sold ${soldItems.length} device(s)`,
         metadata: { tradeInNumber, totalTradeInValue, totalSaleAmount, paymentAmount },
       });
+
+      // Record finance account entry for the net payment (skip CREDIT — deferred)
+      const accountType = PAYMENT_METHOD_TO_ACCOUNT[paymentMethod];
+      if (accountType && paymentAmount !== 0 && this.financeAccountService) {
+        const absAmount = Math.abs(paymentAmount);
+        const txnType = paymentAmount > 0 ? 'DEPOSIT' : 'WITHDRAWAL';
+        await this.financeAccountService.recordTransactionInClient(
+          client,
+          {
+            accountType,
+            type: txnType,
+            amount: absAmount,
+            date: tradeInDate,
+            note: `Trade-in ${tradeInNumber}${paymentAmount < 0 ? ' (refund to customer)' : ''}`,
+          },
+          actor,
+        );
+      }
 
       const result = await findTradeInById(client, tradeInId, actor.tenantId);
       return mapTradeIn(result.rows[0]);

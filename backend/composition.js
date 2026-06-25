@@ -75,7 +75,7 @@ export async function createBackendApp() {
   const warrantyClaimService = new WarrantyClaimService(databaseManager, { auditService });
   const repairJobService = new RepairJobService(databaseManager, { auditService });
   const quotationService = new QuotationService(databaseManager, { auditService });
-  const tradeInService = new TradeInService(databaseManager, { auditService });
+  const tradeInService = new TradeInService(databaseManager, { auditService, financeAccountService });
   const brandService = new BrandService(databaseManager, { auditService });
   const dsrDueLedgerService = new DsrDueLedgerService(databaseManager, { auditService, financeAccountService });
   const customerService = new CustomerService(databaseManager, { auditService });

@@ -5,7 +5,7 @@ import { statusTone } from '../../../models/inventoryViewData.js';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../services/printService.js';
 import { inventoryApi } from '../../../services/inventoryApi.js';
-import { formatNumber } from '../../../utils/calculations.js';
+import { formatCurrency, formatNumber } from '../../../utils/calculations.js';
 import DsrFormModal from '../components/DsrFormModal';
 import { useDsrViewModel } from '../viewmodels/useDsrViewModel';
 
@@ -21,10 +21,10 @@ export default function DsrPage() {
     const result = await inventoryApi.listDsrs({ search: vm.search || undefined, page: 1, pageSize: 10000 });
     const all = result.items || [];
     const { utils, writeFile } = await import('xlsx');
-    const header = ['#', t('dsr.name'), t('dsr.phone'), t('dsr.area'), t('dsr.status')];
-    const data = all.map((dsr, i) => [i + 1, dsr.name, dsr.phone || '', dsr.area || '', dsr.status]);
+    const header = [t('dsr.name'), t('dsr.phone'), t('dsr.area'), t('dsr.status'), t('dsr.currentDue')];
+    const data = all.map((dsr) => [dsr.name, dsr.phone || '', dsr.area || '', dsr.status, Number(dsr.currentDue || 0)]);
     const ws = utils.aoa_to_sheet([header, ...data]);
-    ws['!cols'] = [{ wch: 6 }, { wch: 22 }, { wch: 16 }, { wch: 18 }, { wch: 12 }];
+    ws['!cols'] = [{ wch: 22 }, { wch: 16 }, { wch: 18 }, { wch: 12 }, { wch: 14 }];
     const wb = utils.book_new();
     utils.book_append_sheet(wb, ws, t('dsr.sheetName'));
     writeFile(wb, 'dsr-directory.xlsx');
@@ -99,6 +99,7 @@ export default function DsrPage() {
                 <th className="hidden px-4 py-3 sm:table-cell">{t('dsr.phone')}</th>
                 <th className="hidden px-4 py-3 md:table-cell">{t('dsr.area')}</th>
                 <th className="px-4 py-3">{t('dsr.status')}</th>
+                <th className="px-4 py-3 text-right">{t('dsr.currentDue')}</th>
                 <th className="px-4 py-3 text-right no-print">{t('common.actions')}</th>
               </tr>
             </thead>
@@ -129,6 +130,11 @@ export default function DsrPage() {
                       <Badge tone={statusTone(dsr.status)}>{dsr.status}</Badge>
                       {vm.inProgressDsrIds.has(dsr.id) ? <Badge tone="amber">{t('dsr.outside')}</Badge> : null}
                     </div>
+                  </td>
+                  <td className="table-cell text-right">
+                    <span className={`font-bold ${dsr.currentDue > 0 ? 'text-rose-700' : 'text-slate-500'}`}>
+                      {formatCurrency(dsr.currentDue || 0)}
+                    </span>
                   </td>
                   <td className="table-cell no-print">
                     <div className="flex justify-end gap-2">

@@ -6,6 +6,7 @@ export function mapDsr(row) {
     area: row.area,
     status: row.status,
     openingDue: Number(row.opening_due || 0),
+    currentDue: row.current_due != null ? Number(row.current_due) : Number(row.opening_due || 0),
   };
 }
 
@@ -35,17 +36,25 @@ export async function countDsrs(client, { search, tenantId } = {}) {
 
 export async function listDsrsPage(client, { search, tenantId, limit, offset }) {
   const params = [tenantId];
-  const conditions = ["tenant_id = $1", "deleted_at IS NULL"];
+  const conditions = ["d.tenant_id = $1", "d.deleted_at IS NULL"];
 
   if (search) {
     params.push(`%${search}%`);
-    conditions.push(`(name ILIKE $${params.length} OR area ILIKE $${params.length} OR phone ILIKE $${params.length})`);
+    conditions.push(`(d.name ILIKE $${params.length} OR d.area ILIKE $${params.length} OR d.phone ILIKE $${params.length})`);
   }
 
   const where = `WHERE ${conditions.join(" AND ")}`;
   params.push(limit, offset);
   const result = await client.query(
-    `SELECT * FROM dsrs ${where} ORDER BY created_at DESC LIMIT $${params.length - 1} OFFSET $${params.length}`,
+    `SELECT d.*, COALESCE(latest_due.balance_after, d.opening_due) AS current_due
+     FROM dsrs d
+     LEFT JOIN LATERAL (
+       SELECT balance_after FROM dsr_due_ledger
+       WHERE dsr_id = d.id AND tenant_id = d.tenant_id
+       ORDER BY created_at DESC, id DESC LIMIT 1
+     ) latest_due ON true
+     ${where}
+     ORDER BY d.created_at DESC LIMIT $${params.length - 1} OFFSET $${params.length}`,
     params,
   );
   return result.rows.map(mapDsr);

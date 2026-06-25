@@ -195,7 +195,6 @@ export function useDashboardViewModel({ products, dsrs, today, t, language = 'en
     .map((p) => ({ label: p.productName, value: p.soldPieces }));
 
   const leastSellingProducts = products
-    .filter((p) => p.stockPieces > 0)
     .map((p) => ({
       label: p.name,
       value: trendSalesByProduct.get(p.id)?.soldPieces || 0,

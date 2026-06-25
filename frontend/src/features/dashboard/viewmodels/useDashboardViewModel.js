@@ -40,6 +40,7 @@ export function useDashboardViewModel({ products, dsrs, today, t, language = 'en
   const [todaySalesInvoices, setTodaySalesInvoices] = useState([]);
   const [financeDashboard, setFinanceDashboard] = useState(null);
   const [retailCashSession, setRetailCashSession] = useState(undefined);
+  const [todayExpenseReport, setTodayExpenseReport] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -69,6 +70,7 @@ export function useDashboardViewModel({ products, dsrs, today, t, language = 'en
           todaySalesResult,
           financeDashboardResult,
           cashSessionResult,
+          expenseReportResult,
         ] = await Promise.all([
           inventoryApi.listIssues({ dateFrom: today, dateTo: today, pageSize: DAY_SCOPE_PAGE_SIZE }),
           inventoryApi.listSettlements({ dateFrom: today, dateTo: today, pageSize: DAY_SCOPE_PAGE_SIZE }),
@@ -81,6 +83,7 @@ export function useDashboardViewModel({ products, dsrs, today, t, language = 'en
           inventoryApi.listSalesInvoices({ dateFrom: today, dateTo: today, pageSize: 200 }).catch(() => ({ items: [] })),
           inventoryApi.getFinanceDashboard().catch(() => null),
           inventoryApi.getCurrentRetailCashSession().catch(() => null),
+          inventoryApi.getExpenseReport({ date: today }).catch(() => null),
         ]);
 
         if (cancelled) {
@@ -98,6 +101,7 @@ export function useDashboardViewModel({ products, dsrs, today, t, language = 'en
         setTodaySalesInvoices(todaySalesResult?.items || []);
         setFinanceDashboard(financeDashboardResult);
         setRetailCashSession(cashSessionResult);
+        setTodayExpenseReport(expenseReportResult);
       } catch (requestError) {
         if (!cancelled) {
           setError(requestError.message);
@@ -202,6 +206,51 @@ export function useDashboardViewModel({ products, dsrs, today, t, language = 'en
     .sort((a, b) => a.value - b.value)
     .slice(0, 7);
 
+  // ── Today's P&L ──
+  const productMap = new Map(products.map((p) => [p.id, p]));
+
+  const dsrProfitRows = Array.from(
+    todaySettlements.reduce((map, settlement) => {
+      const existing = map.get(settlement.dsrId) || {
+        dsrId: settlement.dsrId,
+        dsrName: settlement.dsrName || '',
+        area: settlement.area || '',
+        revenue: 0,
+        cogs: 0,
+        amountPaid: 0,
+      };
+      for (const item of settlement.items) {
+        existing.revenue += Number(item.soldPieces || 0) * Number(item.rate || 0);
+        existing.cogs += Number(item.soldPieces || 0) * Number(productMap.get(item.productId)?.purchasePrice || 0);
+      }
+      existing.amountPaid += Number(settlement.amountPaid || 0);
+      map.set(settlement.dsrId, existing);
+      return map;
+    }, new Map()).values(),
+  ).sort((a, b) => (b.revenue - b.cogs) - (a.revenue - a.cogs));
+
+  const productProfitRows = Array.from(
+    todaySettlements.flatMap((s) => s.items).reduce((map, item) => {
+      const existing = map.get(item.productId) || { productId: item.productId, productName: item.productName || '', soldPieces: 0, revenue: 0, cogs: 0 };
+      existing.soldPieces += Number(item.soldPieces || 0);
+      existing.revenue += Number(item.soldPieces || 0) * Number(item.rate || 0);
+      existing.cogs += Number(item.soldPieces || 0) * Number(productMap.get(item.productId)?.purchasePrice || 0);
+      map.set(item.productId, existing);
+      return map;
+    }, new Map()).values(),
+  ).sort((a, b) => (b.revenue - b.cogs) - (a.revenue - a.cogs));
+
+  const todayDailyExpenses = todayExpenseReport?.dailyExpenses || [];
+  const expenseTotal = todayDailyExpenses.reduce((sum, e) => sum + Number(e.amount || 0), 0);
+  const expensesByCategory = Object.entries(
+    todayDailyExpenses.reduce((map, e) => { const cat = e.category || 'Other'; map[cat] = (map[cat] || 0) + Number(e.amount || 0); return map; }, {}),
+  ).sort((a, b) => b[1] - a[1]);
+
+  const grossRevenue = dsrProfitRows.reduce((sum, r) => sum + r.revenue, 0);
+  const grossCogs = dsrProfitRows.reduce((sum, r) => sum + r.cogs, 0);
+  const grossProfit = grossRevenue - grossCogs;
+  const netProfit = grossProfit - expenseTotal;
+
   // DSR leaderboard (top 5 by total cash collected today, aggregated across settlements)
   const dsrLeaderboard = Array.from(
     todaySettlements.reduce((map, s) => {
@@ -299,6 +348,7 @@ export function useDashboardViewModel({ products, dsrs, today, t, language = 'en
     retailCashSession,
     financeDashboard,
     dsrLeaderboard,
+    todayPnl: { grossRevenue, grossCogs, grossProfit, expenseTotal, netProfit, dsrProfitRows, productProfitRows, expensesByCategory },
     yesterdayDeltas: {
       issued: computeDelta(totalIssuedToday, yesterdayIssuedPcs),
       sold: computeDelta(totalSoldToday, yesterdaySoldPcs),

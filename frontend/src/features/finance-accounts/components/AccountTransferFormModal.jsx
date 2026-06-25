@@ -3,9 +3,9 @@ import { Alert, Modal } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { useFormState } from '../../../hooks/useFormState';
-import { todayISO } from '../../../utils/calculations';
+import { formatCurrency, todayISO } from '../../../utils/calculations';
 
-export default function AccountTransferFormModal({ onClose, onSave }) {
+export default function AccountTransferFormModal({ accounts = [], onClose, onSave }) {
   const { t } = useInventoryApp();
   const { form, updateField, error, setError, saving, setSaving } = useFormState({
     date: todayISO(),
@@ -14,6 +14,9 @@ export default function AccountTransferFormModal({ onClose, onSave }) {
     amount: '',
     note: '',
   });
+
+  const fromAccount = accounts.find((a) => a.type === form.fromAccountType);
+  const fromBalance = Number(fromAccount?.balance || 0);
 
   function handleFromChange(value) {
     updateField('fromAccountType', value);
@@ -36,6 +39,11 @@ export default function AccountTransferFormModal({ onClose, onSave }) {
     const amount = Number(form.amount);
     if (!(amount > 0)) {
       setError(t('financeAccounts.requiredAmount'));
+      return;
+    }
+
+    if (amount > fromBalance) {
+      setError(`Insufficient balance. Available: ${formatCurrency(fromBalance)}`);
       return;
     }
 
@@ -74,6 +82,11 @@ export default function AccountTransferFormModal({ onClose, onSave }) {
               <option value="CASH">{t('financeAccounts.cashInHand')}</option>
               <option value="BANK">{t('financeAccounts.bank')}</option>
             </select>
+            {fromAccount ? (
+              <p className="mt-1 text-xs font-semibold text-slate-500">
+                Available: <span className={fromBalance > 0 ? 'text-emerald-600' : 'text-rose-600'}>{formatCurrency(fromBalance)}</span>
+              </p>
+            ) : null}
           </div>
           <div>
             <label className="label">{t('financeAccounts.toAccount')}</label>

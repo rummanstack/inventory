@@ -244,6 +244,7 @@ export default function FinanceAccountsPage() {
 
       {modal?.type === 'transfer' ? (
         <AccountTransferFormModal
+          accounts={vm.accounts}
           onClose={() => setModal(null)}
           onSave={async (value) => {
             const result = await vm.saveTransfer(value);

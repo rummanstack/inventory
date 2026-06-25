@@ -5,8 +5,13 @@ const { Pool, types } = pg;
 types.setTypeParser(1082, (val) => val);
 
 function createPool(connectionString) {
+  // On Lambda each concurrent instance has its own pool. Keep it small so
+  // 100 concurrent Lambdas don't open 1000 connections to Postgres.
+  // Override with DB_MAX_CONNECTIONS env var; default stays 10 on long-running servers.
+  const max = process.env.DB_MAX_CONNECTIONS ? Number(process.env.DB_MAX_CONNECTIONS) : 10;
   return new Pool({
     connectionString,
+    max,
     ssl: connectionString.includes("sslmode=no-verify") ? { rejectUnauthorized: false } : undefined,
   });
 }

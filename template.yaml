@@ -1,0 +1,115 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: StockLedger (Arinda) — API Lambda + API Gateway HTTP API
+
+# ─── Deploy ────────────────────────────────────────────────────────────────
+# 1. sam build
+# 2. sam deploy --guided          (first time — saves samconfig.toml)
+#    sam deploy                   (subsequent deploys)
+#
+# Frontend static files are NOT served by Lambda.
+# Build the frontend separately and upload to S3 + CloudFront:
+#   npm --prefix frontend run build
+#   aws s3 sync frontend/dist s3://<your-bucket> --delete
+#
+# Recommended CloudFront setup:
+#   - Behaviour /api/*  → origin: this API Gateway HttpApiUrl
+#   - Behaviour /*      → origin: S3 bucket (static SPA)
+# ──────────────────────────────────────────────────────────────────────────
+
+Globals:
+  Function:
+    Runtime: nodejs22.x
+    Architectures: [arm64]       # Graviton2 — same performance, ~20% cheaper
+    Timeout: 30                  # seconds; increase if you see timeouts on heavy queries
+    MemorySize: 512              # MB; raise to 1024 if cold starts are slow
+    Environment:
+      Variables:
+        NODE_ENV: production
+        DB_MAX_CONNECTIONS: '3'  # per Lambda instance — prevents connection exhaustion
+
+Parameters:
+  DatabaseUrl:
+    Type: String
+    NoEcho: true
+    Description: PostgreSQL connection string (e.g. postgresql://user:pass@host:5432/db)
+
+  SessionCookieName:
+    Type: String
+    Default: arinda_session
+
+  SessionDays:
+    Type: Number
+    Default: 7
+
+Resources:
+
+  # ── Lambda function ────────────────────────────────────────────────────────
+  StockLedgerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: stockledger-api
+      CodeUri: backend/
+      Handler: lambda.handler
+      Description: StockLedger Express API
+      Environment:
+        Variables:
+          DATABASE_URL: !Ref DatabaseUrl
+          SESSION_COOKIE_NAME: !Ref SessionCookieName
+          SESSION_DAYS: !Ref SessionDays
+      Events:
+        # Catch-all: every method, every path
+        ApiRoot:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref StockLedgerHttpApi
+            Path: /
+            Method: ANY
+        ApiProxy:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref StockLedgerHttpApi
+            Path: /{proxy+}
+            Method: ANY
+
+  # ── API Gateway HTTP API (v2) ─────────────────────────────────────────────
+  StockLedgerHttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      StageName: $default
+      # Allow cookies + JSON from your CloudFront domain (update Origin before go-live)
+      CorsConfiguration:
+        AllowOrigins:
+          - '*'
+        AllowHeaders:
+          - Content-Type
+          - Authorization
+          - X-Active-Tenant-Id
+          - Cookie
+        AllowMethods:
+          - GET
+          - POST
+          - PUT
+          - PATCH
+          - DELETE
+          - OPTIONS
+        AllowCredentials: false   # set true and restrict AllowOrigins when you have a domain
+        MaxAge: 300
+
+  # ── Lambda permission (already wired by SAM, but explicit for clarity) ────
+  LambdaInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt StockLedgerFunction.Arn
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${StockLedgerHttpApi}/*/*'
+
+Outputs:
+  HttpApiUrl:
+    Description: API Gateway base URL — use this as CloudFront /api/* origin
+    Value: !Sub 'https://${StockLedgerHttpApi}.execute-api.${AWS::Region}.amazonaws.com'
+
+  FunctionArn:
+    Description: Lambda function ARN
+    Value: !GetAtt StockLedgerFunction.Arn

@@ -31,6 +31,7 @@ export function useSettlementViewModel({ products, dsrs, today, saveSettlementAc
   const [shopCollections, setShopCollections] = useState([]);
   const [srHandovers, setSrHandovers] = useState([]);
   const [discountInput, setDiscountInput] = useState('');
+  const [discountSupplierId, setDiscountSupplierId] = useState('');
   const [amountPaidInput, setAmountPaidInput] = useState('');
   const [reasonInput, setReasonInput] = useState('');
   const [message, setMessage] = useState(null);
@@ -119,6 +120,7 @@ export function useSettlementViewModel({ products, dsrs, today, saveSettlementAc
     );
     setPreviousDue(Number(completedSettlement.previousDue || 0));
     setDiscountInput(String(Number(completedSettlement.discount || 0)));
+    setDiscountSupplierId(completedSettlement.discountSupplierId || '');
     setAmountPaidInput(String(Number(completedSettlement.amountPaid || 0)));
     setExtraReturns((completedSettlement.extraReturns || []).map(toExtraReturnRow));
     setShopCollections(
@@ -369,6 +371,7 @@ export function useSettlementViewModel({ products, dsrs, today, saveSettlementAc
       totalPayable: items.reduce((sum, item) => sum + item.payable, 0),
       previousDue,
       discount,
+      discountSupplierId: discount > 0 ? (discountSupplierId || null) : null,
       extraReturnValue,
       amountPaid,
       dueAmount,
@@ -411,6 +414,8 @@ export function useSettlementViewModel({ products, dsrs, today, saveSettlementAc
     previousDue,
     discountInput,
     setDiscountInput,
+    discountSupplierId,
+    setDiscountSupplierId,
     amountPaidInput,
     setAmountPaidInput,
     reasonInput,

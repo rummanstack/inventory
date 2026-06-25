@@ -1557,6 +1557,7 @@ export async function createSchema(pool) {
       ON sr_due_ledger(reference_type, reference_id);
 
     ALTER TABLE settlements ADD COLUMN IF NOT EXISTS sr_handovers JSONB NOT NULL DEFAULT '[]';
+    ALTER TABLE settlements ADD COLUMN IF NOT EXISTS discount_supplier_id TEXT;
 
     CREATE TABLE IF NOT EXISTS supplier_discounts (
       id              TEXT PRIMARY KEY,

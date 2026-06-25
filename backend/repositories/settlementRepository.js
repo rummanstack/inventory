@@ -12,6 +12,7 @@ export function mapSettlement(row) {
     totalPayable: Number(row.total_payable),
     previousDue: Number(row.previous_due || 0),
     discount: Number(row.discount || 0),
+    discountSupplierId: row.discount_supplier_id || null,
     extraReturnValue: Number(row.extra_return_value || 0),
     amountPaid: Number(row.amount_paid || 0),
     dueAmount: Number(row.due_amount || 0),
@@ -65,8 +66,8 @@ export async function listSettlementsPage(client, { tenantId, dsrId, dateFrom, d
 
 export function insertSettlement(client, settlement) {
   return client.query(
-    `INSERT INTO settlements (id, tenant_id, settlement_date, dsr_id, dsr_name, area, phone, issue_ids, items, extra_returns, total_payable, previous_due, discount, extra_return_value, amount_paid, due_amount, shop_collections, sr_handovers, status)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, $9::jsonb, $10::jsonb, $11, $12, $13, $14, $15, $16, $17::jsonb, $18::jsonb, $19)
+    `INSERT INTO settlements (id, tenant_id, settlement_date, dsr_id, dsr_name, area, phone, issue_ids, items, extra_returns, total_payable, previous_due, discount, discount_supplier_id, extra_return_value, amount_paid, due_amount, shop_collections, sr_handovers, status)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, $9::jsonb, $10::jsonb, $11, $12, $13, $14, $15, $16, $17, $18::jsonb, $19::jsonb, $20)
      RETURNING *`,
     [
       settlement.id,
@@ -82,6 +83,7 @@ export function insertSettlement(client, settlement) {
       settlement.totalPayable,
       settlement.previousDue,
       settlement.discount,
+      settlement.discountSupplierId || null,
       settlement.extraReturnValue,
       settlement.amountPaid,
       settlement.dueAmount,
@@ -95,7 +97,7 @@ export function insertSettlement(client, settlement) {
 export function updateSettlement(client, settlement) {
   return client.query(
     `UPDATE settlements
-     SET settlement_date = $3, dsr_id = $4, dsr_name = $5, area = $6, phone = $7, issue_ids = $8::jsonb, items = $9::jsonb, extra_returns = $10::jsonb, total_payable = $11, previous_due = $12, discount = $13, extra_return_value = $14, amount_paid = $15, due_amount = $16, shop_collections = $17::jsonb, sr_handovers = $18::jsonb, status = $19
+     SET settlement_date = $3, dsr_id = $4, dsr_name = $5, area = $6, phone = $7, issue_ids = $8::jsonb, items = $9::jsonb, extra_returns = $10::jsonb, total_payable = $11, previous_due = $12, discount = $13, discount_supplier_id = $14, extra_return_value = $15, amount_paid = $16, due_amount = $17, shop_collections = $18::jsonb, sr_handovers = $19::jsonb, status = $20
      WHERE id = $1 AND tenant_id = $2
      RETURNING *`,
     [
@@ -112,6 +114,7 @@ export function updateSettlement(client, settlement) {
       settlement.totalPayable,
       settlement.previousDue,
       settlement.discount,
+      settlement.discountSupplierId || null,
       settlement.extraReturnValue,
       settlement.amountPaid,
       settlement.dueAmount,

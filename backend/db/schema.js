@@ -219,17 +219,6 @@ export async function createSchema(pool) {
     ALTER TABLE sales_invoices ADD COLUMN IF NOT EXISTS loyalty_redeem_amount NUMERIC NOT NULL DEFAULT 0;
     ALTER TABLE sales_returns ADD COLUMN IF NOT EXISTS refund_method TEXT NOT NULL DEFAULT 'DUE_ADJUSTMENT';
     ALTER TABLE sales_returns ADD COLUMN IF NOT EXISTS loyalty_points_adjustment INTEGER NOT NULL DEFAULT 0;
-    ALTER TABLE retail_cash_sessions ADD COLUMN IF NOT EXISTS opened_by TEXT REFERENCES users(id) ON DELETE SET NULL;
-    ALTER TABLE retail_cash_sessions ADD COLUMN IF NOT EXISTS closed_by TEXT REFERENCES users(id) ON DELETE SET NULL;
-    ALTER TABLE retail_cash_sessions ADD COLUMN IF NOT EXISTS started_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
-    ALTER TABLE retail_cash_sessions ADD COLUMN IF NOT EXISTS closed_at TIMESTAMPTZ;
-    ALTER TABLE retail_cash_sessions ADD COLUMN IF NOT EXISTS opening_cash NUMERIC NOT NULL DEFAULT 0;
-    ALTER TABLE retail_cash_sessions ADD COLUMN IF NOT EXISTS counted_cash NUMERIC;
-    ALTER TABLE retail_cash_sessions ADD COLUMN IF NOT EXISTS cash_sales_count INTEGER NOT NULL DEFAULT 0;
-    ALTER TABLE retail_cash_sessions ADD COLUMN IF NOT EXISTS cash_sales_amount NUMERIC NOT NULL DEFAULT 0;
-    ALTER TABLE retail_cash_sessions ADD COLUMN IF NOT EXISTS expected_cash NUMERIC NOT NULL DEFAULT 0;
-    ALTER TABLE retail_cash_sessions ADD COLUMN IF NOT EXISTS variance NUMERIC NOT NULL DEFAULT 0;
-    ALTER TABLE retail_cash_sessions ADD COLUMN IF NOT EXISTS note TEXT NOT NULL DEFAULT '';
     ALTER TABLE purchase_receipt_items ADD COLUMN IF NOT EXISTS tax_rate NUMERIC NOT NULL DEFAULT 0;
     ALTER TABLE purchase_receipt_items ADD COLUMN IF NOT EXISTS tax_amount NUMERIC NOT NULL DEFAULT 0;
     ALTER TABLE sales_invoice_items ADD COLUMN IF NOT EXISTS tax_rate NUMERIC NOT NULL DEFAULT 0;
@@ -619,6 +608,18 @@ export async function createSchema(pool) {
       WHERE closed_at IS NULL;
     CREATE INDEX IF NOT EXISTS idx_retail_cash_sessions_tenant_started
       ON retail_cash_sessions(tenant_id, started_at DESC);
+
+    ALTER TABLE retail_cash_sessions ADD COLUMN IF NOT EXISTS opened_by TEXT REFERENCES users(id) ON DELETE SET NULL;
+    ALTER TABLE retail_cash_sessions ADD COLUMN IF NOT EXISTS closed_by TEXT REFERENCES users(id) ON DELETE SET NULL;
+    ALTER TABLE retail_cash_sessions ADD COLUMN IF NOT EXISTS started_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
+    ALTER TABLE retail_cash_sessions ADD COLUMN IF NOT EXISTS closed_at TIMESTAMPTZ;
+    ALTER TABLE retail_cash_sessions ADD COLUMN IF NOT EXISTS opening_cash NUMERIC NOT NULL DEFAULT 0;
+    ALTER TABLE retail_cash_sessions ADD COLUMN IF NOT EXISTS counted_cash NUMERIC;
+    ALTER TABLE retail_cash_sessions ADD COLUMN IF NOT EXISTS cash_sales_count INTEGER NOT NULL DEFAULT 0;
+    ALTER TABLE retail_cash_sessions ADD COLUMN IF NOT EXISTS cash_sales_amount NUMERIC NOT NULL DEFAULT 0;
+    ALTER TABLE retail_cash_sessions ADD COLUMN IF NOT EXISTS expected_cash NUMERIC NOT NULL DEFAULT 0;
+    ALTER TABLE retail_cash_sessions ADD COLUMN IF NOT EXISTS variance NUMERIC NOT NULL DEFAULT 0;
+    ALTER TABLE retail_cash_sessions ADD COLUMN IF NOT EXISTS note TEXT NOT NULL DEFAULT '';
 
     CREATE TABLE IF NOT EXISTS sales_invoice_items (
       id                  TEXT PRIMARY KEY,
@@ -1515,5 +1516,46 @@ export async function createSchema(pool) {
       ON shop_due_ledger(reference_type, reference_id);
     CREATE INDEX IF NOT EXISTS idx_shop_due_ledger_tenant_business_date
       ON shop_due_ledger(tenant_id, business_date);
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS srs (
+      id             TEXT PRIMARY KEY,
+      tenant_id      TEXT NOT NULL REFERENCES tenants(id),
+      name           TEXT NOT NULL,
+      phone          TEXT NOT NULL,
+      status         TEXT NOT NULL DEFAULT 'Active',
+      opening_due    NUMERIC NOT NULL DEFAULT 0,
+      created_at     TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      deleted_at     TIMESTAMPTZ,
+      deleted_by_id  TEXT REFERENCES users(id) ON DELETE SET NULL,
+      delete_reason  TEXT NOT NULL DEFAULT ''
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_srs_tenant_id ON srs(tenant_id);
+    CREATE INDEX IF NOT EXISTS idx_srs_deleted_at ON srs(tenant_id, deleted_at);
+
+    CREATE TABLE IF NOT EXISTS sr_due_ledger (
+      id             TEXT PRIMARY KEY,
+      tenant_id      TEXT NOT NULL REFERENCES tenants(id),
+      sr_id          TEXT NOT NULL,
+      type           TEXT NOT NULL,
+      debit          NUMERIC NOT NULL DEFAULT 0,
+      credit         NUMERIC NOT NULL DEFAULT 0,
+      balance_after  NUMERIC NOT NULL DEFAULT 0,
+      reference_type TEXT NOT NULL,
+      reference_id   TEXT,
+      note           TEXT NOT NULL DEFAULT '',
+      business_date  DATE,
+      created_by     TEXT REFERENCES users(id) ON DELETE SET NULL,
+      created_at     TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp()
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_sr_due_ledger_tenant_sr_created_at
+      ON sr_due_ledger(tenant_id, sr_id, created_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_sr_due_ledger_reference
+      ON sr_due_ledger(reference_type, reference_id);
+
+    ALTER TABLE settlements ADD COLUMN IF NOT EXISTS sr_handovers JSONB NOT NULL DEFAULT '[]';
   `);
 }

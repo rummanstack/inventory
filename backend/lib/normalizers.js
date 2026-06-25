@@ -114,6 +114,16 @@ export function normalizeDsr(input) {
   };
 }
 
+export function normalizeSr(input) {
+  return {
+    id: input.id || createId("sr"),
+    name: String(input.name || "").trim(),
+    phone: String(input.phone || "").trim(),
+    status: input.status === "Inactive" ? "Inactive" : "Active",
+    openingDue: Math.max(0, cleanMoney(input.openingDue)),
+  };
+}
+
 export function normalizeCustomer(input) {
   const openingDue = Math.max(0, cleanMoney(input.openingDue));
   const hasCurrentDue = input.currentDue !== undefined && input.currentDue !== null && String(input.currentDue).trim() !== "";
@@ -226,6 +236,17 @@ export function normalizeSettlementBase(input) {
         .filter((sc) => sc.shopId && sc.amount > 0)
     : [];
 
+  const srHandovers = Array.isArray(input.srHandovers)
+    ? input.srHandovers
+        .map((h) => ({
+          srId: String(h.srId || "").trim(),
+          srName: String(h.srName || "").trim(),
+          amount: cleanMoney(h.amount),
+          note: String(h.note || "").trim(),
+        }))
+        .filter((h) => h.srId && h.amount > 0)
+    : [];
+
   return {
     id: input.id || createId("settlement"),
     date: String(input.date || "").trim(),
@@ -240,6 +261,7 @@ export function normalizeSettlementBase(input) {
     discount,
     extraReturnValue,
     shopCollections,
+    srHandovers,
     amountPaidInput: cleanMoney(input.amountPaid),
     status: "Completed",
   };
@@ -571,12 +593,14 @@ export function normalizeQuotationItem(input) {
 
 export function finalizeSettlementAmounts(base, previousDue) {
   const normalizedPreviousDue = Math.max(0, cleanMoney(previousDue));
-  const receivableTotal = Math.max(0, base.totalPayable + normalizedPreviousDue - base.discount - base.extraReturnValue);
+  const totalSrHandovers = (base.srHandovers || []).reduce((sum, h) => sum + Number(h.amount || 0), 0);
+  const receivableTotal = Math.max(0, base.totalPayable + normalizedPreviousDue - base.discount - base.extraReturnValue - totalSrHandovers);
   const amountPaid = Math.min(Math.max(0, base.amountPaidInput), receivableTotal);
 
   return {
     ...base,
     previousDue: normalizedPreviousDue,
+    totalSrHandovers,
     amountPaid,
     dueAmount: receivableTotal - amountPaid,
   };

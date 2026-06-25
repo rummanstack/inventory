@@ -2,6 +2,7 @@ import { assert } from "../../lib/errors.js";
 import { createId } from "../../lib/ids.js";
 import { cleanInteger, cleanMoney } from "../../lib/normalizers.js";
 import { insertDueLedgerEntry } from "../../repositories/dsrDueLedgerRepository.js";
+import { insertSrDueLedgerEntry } from "../../repositories/srDueLedgerRepository.js";
 import { insertSupplierDueLedgerEntry } from "../../repositories/supplierDueLedgerRepository.js";
 import { insertCustomerDueLedgerEntry } from "../../repositories/customerDueLedgerRepository.js";
 import { insertTransaction as insertFinanceAccountTransaction } from "../../repositories/financeAccountRepository.js";

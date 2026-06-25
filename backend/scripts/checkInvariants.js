@@ -28,6 +28,8 @@ async function main() {
     ["Supplier ledger balance == current payable", report.supplierLedger],
     ["Finance account balance == ledger balance", report.financeAccountBalance],
     ["Finance transfer pairing", report.financeTransferPairing],
+    ["Shop due ledger == customers.current_due", report.shopDueLedger],
+    ["DSR due ledger running balance chain", report.dsrLedgerChain],
   ];
 
   for (const [label, section] of sections) {

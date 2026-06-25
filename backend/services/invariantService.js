@@ -173,6 +173,95 @@ export class InvariantService {
     };
   }
 
+  async checkShopDueLedger(tenantId = null) {
+    const result = await this.databaseManager.withClient((client) =>
+      client.query(
+        `WITH latest AS (
+           SELECT DISTINCT ON (shop_id) shop_id, balance_after
+           FROM shop_due_ledger
+           WHERE ($1::text IS NULL OR tenant_id = $1)
+           ORDER BY shop_id, created_at DESC, id DESC
+         )
+         SELECT c.id, c.tenant_id, c.shop_name,
+                c.current_due,
+                COALESCE(l.balance_after, c.opening_due) AS expected_due
+         FROM customers c
+         LEFT JOIN latest l ON l.shop_id = c.id
+         WHERE c.deleted_at IS NULL
+           AND ($1::text IS NULL OR c.tenant_id = $1)
+           AND ABS(c.current_due - COALESCE(l.balance_after, c.opening_due)) > 0.01`,
+        [tenantId],
+      ),
+    );
+
+    const totalResult = await this.databaseManager.withClient((client) =>
+      client.query(
+        `SELECT COUNT(*)::INTEGER AS count FROM customers WHERE deleted_at IS NULL AND ($1::text IS NULL OR tenant_id = $1)`,
+        [tenantId],
+      ),
+    );
+
+    return {
+      checked: totalResult.rows[0].count,
+      violations: result.rows.map((row) => ({
+        shopId: row.id,
+        tenantId: row.tenant_id,
+        shopName: row.shop_name,
+        storedCurrentDue: Number(row.current_due),
+        expectedFromLedger: Number(row.expected_due),
+      })),
+    };
+  }
+
+  async checkDsrLedgerChain(tenantId = null) {
+    // Verify every dsr_due_ledger entry's balance_after equals the previous
+    // entry's balance_after + debit - credit, using the same insertion ordering
+    // used by getLatestDueLedgerEntry (created_at, type priority, id).
+    const result = await this.databaseManager.withClient((client) =>
+      client.query(
+        `WITH ordered AS (
+           SELECT
+             id, dsr_id, tenant_id, type, debit, credit, balance_after,
+             LAG(balance_after) OVER (
+               PARTITION BY dsr_id, tenant_id
+               ORDER BY created_at,
+                        CASE type WHEN 'SALE_DUE' THEN 10 WHEN 'COLLECTION' THEN 20 ELSE 30 END,
+                        id
+             ) AS prev_balance
+           FROM dsr_due_ledger
+           WHERE ($1::text IS NULL OR tenant_id = $1)
+         )
+         SELECT id, dsr_id, tenant_id, type, debit, credit, balance_after,
+                COALESCE(prev_balance, 0) + debit - credit AS expected_balance
+         FROM ordered
+         WHERE ABS(balance_after - (COALESCE(prev_balance, 0) + debit - credit)) > 0.01
+         ORDER BY dsr_id, id`,
+        [tenantId],
+      ),
+    );
+
+    const totalResult = await this.databaseManager.withClient((client) =>
+      client.query(
+        `SELECT COUNT(*)::INTEGER AS count FROM dsr_due_ledger WHERE ($1::text IS NULL OR tenant_id = $1)`,
+        [tenantId],
+      ),
+    );
+
+    return {
+      checked: totalResult.rows[0].count,
+      violations: result.rows.map((row) => ({
+        entryId: row.id,
+        dsrId: row.dsr_id,
+        tenantId: row.tenant_id,
+        type: row.type,
+        debit: Number(row.debit),
+        credit: Number(row.credit),
+        storedBalanceAfter: Number(row.balance_after),
+        expectedBalanceAfter: Number(row.expected_balance),
+      })),
+    };
+  }
+
   async checkFinanceTransferPairing(tenantId = null) {
     const result = await this.databaseManager.withClient((client) =>
       client.query(
@@ -213,12 +302,14 @@ export class InvariantService {
   }
 
   async checkAll(tenantId = null) {
-    const [stock, customerLedger, supplierLedger, financeAccountBalance, financeTransferPairing] = await Promise.all([
+    const [stock, customerLedger, supplierLedger, financeAccountBalance, financeTransferPairing, shopDueLedger, dsrLedgerChain] = await Promise.all([
       this.checkStock(tenantId),
       this.checkCustomerLedger(tenantId),
       this.checkSupplierLedger(tenantId),
       this.checkFinanceAccountBalance(tenantId),
       this.checkFinanceTransferPairing(tenantId),
+      this.checkShopDueLedger(tenantId),
+      this.checkDsrLedgerChain(tenantId),
     ]);
 
     const violationCount =
@@ -226,7 +317,9 @@ export class InvariantService {
       customerLedger.violations.length +
       supplierLedger.violations.length +
       financeAccountBalance.violations.length +
-      financeTransferPairing.violations.length;
+      financeTransferPairing.violations.length +
+      shopDueLedger.violations.length +
+      dsrLedgerChain.violations.length;
 
     return {
       scope: tenantId || "all-tenants",
@@ -238,6 +331,8 @@ export class InvariantService {
       supplierLedger,
       financeAccountBalance,
       financeTransferPairing,
+      shopDueLedger,
+      dsrLedgerChain,
       limitations: [
         "finance_account_transactions has no reference_type/reference_id column, so individual " +
           "postings cannot be matched 1:1 back to the sales invoice/payment/purchase that created " +

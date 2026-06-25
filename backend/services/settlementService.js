@@ -231,6 +231,7 @@ async function buildTrustedSettlementBase(client, base, issueItems, tenantId) {
 
 function finalizeSettlementAmountsStrict(base, previousDue) {
   const normalizedPreviousDue = Math.max(0, cleanMoney(previousDue));
+  assert(base.discount <= base.totalPayable + 0.004, "Discount cannot exceed today's total payable amount.");
   const receivableBeforePayment = base.totalPayable + normalizedPreviousDue - base.discount - base.extraReturnValue;
   assert(receivableBeforePayment >= -0.004, "Discount and extra returns cannot be greater than the total receivable amount.");
   assert(
@@ -495,6 +496,14 @@ export class SettlementService {
 
     const previousSettlement = existingSettlement.rows[0];
     const previousItems = Array.isArray(previousSettlement.items) ? previousSettlement.items : [];
+
+    const latestSettlement = await findLatestSettlementForDsr(client, previousSettlement.dsr_id, tenantId);
+    assert(
+      latestSettlement.rowCount === 0 || latestSettlement.rows[0].id === base.id,
+      "Cannot edit this settlement — later settlements exist for this DSR. Apply a manual due adjustment in the DSR Due Ledger instead.",
+      400,
+    );
+
     assert(
       String(previousSettlement.settlement_date) === base.date && String(previousSettlement.dsr_id) === base.dsrId,
       "Settlement date and DSR cannot be changed after settlement is completed.",

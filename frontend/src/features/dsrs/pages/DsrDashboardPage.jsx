@@ -1,4 +1,4 @@
-import { HandCoins, RotateCcw, Store, Truck, TrendingUp, Wallet } from 'lucide-react';
+import { HandCoins, PackageX, RotateCcw, Store, Truck, TrendingUp, Wallet } from 'lucide-react';
 import { Alert, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { formatCurrency, formatDate, formatNumber } from '../../../utils/calculations.js';
@@ -22,6 +22,10 @@ function StatusBadge({ status, t }) {
   return <span className="inline-flex items-center rounded-full border border-amber-100 bg-amber-50 px-2.5 py-0.5 text-xs font-semibold text-amber-700">{t('dsrDashboard.pending')}</span>;
 }
 
+function SectionTitle({ children }) {
+  return <h2 className="mb-4 text-base font-bold text-slate-950">{children}</h2>;
+}
+
 export default function DsrDashboardPage() {
   const { t, language } = useInventoryApp();
   const { data, loading, error } = useDsrDashboardViewModel();
@@ -39,16 +43,18 @@ export default function DsrDashboardPage() {
         <Alert type="error">{error}</Alert>
       ) : loading ? (
         <div className="space-y-10">
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {Array.from({ length: 6 }).map((_, i) => <StatCardSkeleton key={i} />)}
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {Array.from({ length: 8 }).map((_, i) => <StatCardSkeleton key={i} />)}
           </div>
-          <TableSkeleton rows={6} columns={3} />
+          <TableSkeleton rows={6} columns={4} />
+          <TableSkeleton rows={4} columns={3} />
+          <TableSkeleton rows={4} columns={3} />
           <TableSkeleton rows={6} columns={5} />
         </div>
       ) : data ? (
         <>
           {/* KPI cards */}
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <StatCard
               title={t('dsrDashboard.monthlyIssues')}
               value={formatNumber(data.monthlyIssueCount, language)}
@@ -91,11 +97,76 @@ export default function DsrDashboardPage() {
               icon={Store}
               tone="indigo"
             />
+            <StatCard
+              title={t('dsrDashboard.monthlyDamaged')}
+              value={`${formatNumber(data.monthlyDamagedTotal, language)} ${t('dsrDashboard.pieces')}`}
+              helper={t('dsrDashboard.monthlyDamagedHelper')}
+              icon={PackageX}
+              tone={data.monthlyDamagedTotal > 0 ? 'rose' : 'slate'}
+            />
+          </div>
+
+          {/* Damaged stock by DSR */}
+          <div>
+            <SectionTitle>{t('dsrDashboard.damageReportTitle')}</SectionTitle>
+            {data.dsrDamageTotals.length === 0 ? (
+              <p className="text-sm text-slate-500">{t('dsrDashboard.damageReportEmpty')}</p>
+            ) : (
+              <div className="surface overflow-hidden">
+                <table className="w-full text-sm">
+                  <thead className="table-head">
+                    <tr>
+                      <th className="px-4 py-3 text-left">{t('dsrDashboard.dsr')}</th>
+                      <th className="hidden px-4 py-3 text-left sm:table-cell">{t('dsrDashboard.area')}</th>
+                      <th className="px-4 py-3 text-right">{t('dsrDashboard.pieces')}</th>
+                      <th className="hidden px-4 py-3 text-right sm:table-cell">{t('dsrDashboard.settlements')}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {data.dsrDamageTotals.map((row) => (
+                      <tr key={row.dsrId} className="hover:bg-slate-50">
+                        <td className="px-4 py-3 font-medium text-slate-800">{row.dsrName}</td>
+                        <td className="hidden px-4 py-3 text-slate-500 sm:table-cell">{row.area || '—'}</td>
+                        <td className="px-4 py-3 text-right font-semibold text-rose-600">{formatNumber(row.totalDamaged, language)}</td>
+                        <td className="hidden px-4 py-3 text-right text-slate-500 sm:table-cell">{row.settlementCount}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          {/* Damaged stock by product */}
+          <div>
+            <SectionTitle>{t('dsrDashboard.damageByProductTitle')}</SectionTitle>
+            {data.productDamageTotals.length === 0 ? (
+              <p className="text-sm text-slate-500">{t('dsrDashboard.damageByProductEmpty')}</p>
+            ) : (
+              <div className="surface overflow-hidden">
+                <table className="w-full text-sm">
+                  <thead className="table-head">
+                    <tr>
+                      <th className="px-4 py-3 text-left">{t('dsrDashboard.product')}</th>
+                      <th className="px-4 py-3 text-right">{t('dsrDashboard.pieces')}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {data.productDamageTotals.map((row) => (
+                      <tr key={row.productId} className="hover:bg-slate-50">
+                        <td className="px-4 py-3 font-medium text-slate-800">{row.productName}</td>
+                        <td className="px-4 py-3 text-right font-semibold text-rose-600">{formatNumber(row.totalDamaged, language)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
 
           {/* Per-DSR outstanding due */}
           <div>
-            <h2 className="mb-4 text-base font-bold text-slate-950">{t('dsrDashboard.dsrBalancesTitle')}</h2>
+            <SectionTitle>{t('dsrDashboard.dsrBalancesTitle')}</SectionTitle>
             {data.dsrBalances.length === 0 ? (
               <p className="text-sm text-slate-500">{t('dsrDashboard.dsrBalancesEmpty')}</p>
             ) : (
@@ -126,7 +197,7 @@ export default function DsrDashboardPage() {
 
           {/* Recent settlements */}
           <div>
-            <h2 className="mb-4 text-base font-bold text-slate-950">{t('dsrDashboard.recentSettlementsTitle')}</h2>
+            <SectionTitle>{t('dsrDashboard.recentSettlementsTitle')}</SectionTitle>
             {data.recentSettlements.length === 0 ? (
               <p className="text-sm text-slate-500">{t('dsrDashboard.recentSettlementsEmpty')}</p>
             ) : (

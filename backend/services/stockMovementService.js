@@ -20,6 +20,7 @@ export class StockMovementService {
     const { page, pageSize, limit, offset } = parsePagination(query);
     const productId = String(query.productId || "").trim();
     const type = String(query.type || "").trim();
+    const referenceType = String(query.referenceType || "").trim();
     const dateFrom = normalizeOptionalDate(query.dateFrom);
     const dateTo = normalizeOptionalDate(query.dateTo);
 
@@ -35,6 +36,7 @@ export class StockMovementService {
       tenantId: actor.tenantId,
       productId: productId || undefined,
       type: type || undefined,
+      referenceType: referenceType || undefined,
       dateFrom: dateFrom || undefined,
       dateTo: dateTo || undefined,
     };

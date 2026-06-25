@@ -5,6 +5,7 @@ import { downloadSheetPdf } from '../../../services/printService.js';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import { formatCasePiece, formatNumber } from '../../../utils/calculations.js';
 import ClearDamageModal from '../components/ClearDamageModal';
+import DamageFromSettlementsPanel from '../components/DamageFromSettlementsPanel';
 import DamageClearHistoryPanel from '../components/DamageClearHistoryPanel';
 import { useDamagedStockViewModel } from '../viewmodels/useDamagedStockViewModel';
 
@@ -109,6 +110,7 @@ export default function DamagedStockPage() {
         )}
       </div>
 
+      <DamageFromSettlementsPanel products={productDirectory} />
       <DamageClearHistoryPanel products={productDirectory} refreshKey={vm.refreshKey} />
 
       {vm.selectedProduct ? (

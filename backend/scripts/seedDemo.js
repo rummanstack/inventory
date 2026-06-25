@@ -400,6 +400,55 @@ const RETAIL_CUSTOMERS = [
   { id: "demo-rcust-ret-005", name: "Roshni Khatun",   phone: "01751-400005", address: "Hazaribag, Dhaka", note: "Loyal customer since 2022" },
 ];
 
+// ─── Product image URLs ────────────────────────────────────────────────────
+// Confirmed-working CDN links.  Add remaining product IDs here when you have
+// the URLs — re-run the seed and they will be applied via the DO UPDATE below.
+const PRODUCT_IMAGES = {
+  // ── Electronics: Walton (waltonbd.com CDN) ───────────────────────────────
+  "demo-p-elec-001": "https://waltonbd.com/image/catalog/refrigerator-and-freezer/direct-cool-refrigerator/wfa-2b0-gdxx-xx/wfa-2b0-gdxx-xx.jpg",
+  "demo-p-elec-002": "https://waltonbd.com/image/catalog/refrigerator-and-freezer/direct-cool-refrigerator/wfc-3d8-gdeh-dd-inverter/wfc-3d8-gdeh-dd-inverter-v7-id-1.jpg",
+  "demo-p-elec-005": "https://waltonbd.com/image/catalog/air-conditioner/split-ac/12000-btu/wsi-riverine-12a/wsi-riverine-12a-new-front-id-image.jpg",
+  "demo-p-elec-006": "https://waltonbd.com/image/catalog/air-conditioner/split-ac/18000-btu/wsi-riverine-18c-smart/wsi-riverine-18c-smart-new-id-image.jpg",
+  "demo-p-elec-007": "https://waltonbd.com/image/catalog/air-conditioner/split-ac/24000-btu/wsi-inverna-supersaver-24h-plasma/wsi-inverna-supersaver-24h-plasma-front-id-img-new.jpg",
+  "demo-p-elec-011": "https://waltonbd.com/image/catalog/tv/w32d210cs/w32d210cs%20revised.jpg",
+  "demo-p-elec-012": "https://waltonbd.com/image/catalog/tv/w43s2fg/02.jpg",
+  "demo-p-elec-013": "https://waltonbd.com/image/catalog/tv/w55s3bg/W55S3BG.jpg",
+  "demo-p-elec-018": "https://waltonbd.com/image/catalog/washing-machine/automatic-top-load/wwm-q70/WWM-Q70.jpg",
+  "demo-p-elec-019": "https://waltonbd.com/image/catalog/washing-machine/automatic-front-load/wmm-afi70t/01.jpg",
+  "demo-p-elec-020": "https://waltonbd.com/image/catalog/fan/ceiling-fan-60/new/update/update/wcf5605-popular.jpg",
+  // ── Electronics: LG (lg.com/bd CDN) ─────────────────────────────────────
+  "demo-p-elec-003": "https://www.lg.com/bd/images/refrigerators/md07533043/gallery/D01.jpg",
+  // ── Electronics: Samsung — TODO: add image URLs ──────────────────────────
+  // "demo-p-elec-004": "",   // Samsung Fridge 420L
+  // "demo-p-elec-016": "",   // Samsung TV 32" T4500
+  // "demo-p-elec-017": "",   // Samsung QLED 55" Q70A
+  // ── Electronics: Hitachi — TODO: add image URLs ──────────────────────────
+  // "demo-p-elec-008": "",   // Hitachi AC 1T
+  // "demo-p-elec-009": "",   // Hitachi AC 1.5T
+  // ── Electronics: LG AC — TODO: add image URL ────────────────────────────
+  // "demo-p-elec-010": "",   // LG Dual Cool AC 1T
+  // ── Electronics: Sony — TODO: add image URLs ────────────────────────────
+  // "demo-p-elec-014": "",   // Sony Bravia 32"
+  // "demo-p-elec-015": "",   // Sony Bravia 43"
+  // ── Grocery Wholesale — TODO: add image URLs ─────────────────────────────
+  // "demo-p-groc-001": "",  "demo-p-groc-002": "",  "demo-p-groc-003": "",
+  // "demo-p-groc-004": "",  "demo-p-groc-005": "",  "demo-p-groc-006": "",
+  // "demo-p-groc-007": "",  "demo-p-groc-008": "",  "demo-p-groc-009": "",
+  // "demo-p-groc-010": "",  "demo-p-groc-011": "",  "demo-p-groc-012": "",
+  // "demo-p-groc-013": "",  "demo-p-groc-014": "",  "demo-p-groc-015": "",
+  // "demo-p-groc-016": "",  "demo-p-groc-017": "",  "demo-p-groc-018": "",
+  // "demo-p-groc-019": "",  "demo-p-groc-020": "",  "demo-p-groc-021": "",
+  // "demo-p-groc-022": "",  "demo-p-groc-023": "",  "demo-p-groc-024": "",
+  // ── Grocery Retail — TODO: add image URLs ────────────────────────────────
+  // "demo-p-ret-001": "",  "demo-p-ret-002": "",  "demo-p-ret-003": "",
+  // "demo-p-ret-004": "",  "demo-p-ret-005": "",  "demo-p-ret-006": "",
+  // "demo-p-ret-007": "",  "demo-p-ret-008": "",  "demo-p-ret-009": "",
+  // "demo-p-ret-010": "",  "demo-p-ret-011": "",  "demo-p-ret-012": "",
+  // "demo-p-ret-013": "",  "demo-p-ret-014": "",  "demo-p-ret-015": "",
+  // "demo-p-ret-016": "",  "demo-p-ret-017": "",  "demo-p-ret-018": "",
+  // "demo-p-ret-019": "",  "demo-p-ret-020": "",
+};
+
 // ─── Serial number prefix map ──────────────────────────────────────────────
 // Returns a realistic-looking serial prefix for each serial-required product.
 const SERIAL_PREFIXES = {
@@ -498,19 +547,19 @@ async function main() {
            id, tenant_id, name, category_id,
            pieces_per_case, purchase_price, wholesale_price, retail_price,
            stock_pieces, brand, model, sku, description,
-           serial_required, warranty_months, status, order_index
+           serial_required, warranty_months, image_url, status, order_index
          ) VALUES (
            $1,$2,$3,$4,
            $5,$6,$7,$8,
            $9,$10,$11,$12,$13,
-           $14,$15,'ACTIVE',9999
+           $14,$15,$16,'ACTIVE',9999
          )
-         ON CONFLICT (id) DO NOTHING`,
+         ON CONFLICT (id) DO UPDATE SET image_url = EXCLUDED.image_url`,
         [
           p.id, p.tid, p.name, p.catId,
           p.ppc, p.pp, p.wp, p.rp,
           p.stock, p.brand, p.model || "", p.sku, p.desc,
-          p.serial, p.warranty,
+          p.serial, p.warranty, PRODUCT_IMAGES[p.id] || null,
         ],
       );
 

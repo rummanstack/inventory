@@ -1,16 +1,72 @@
 import { useState } from 'react';
-import { Pencil, Phone, Plus, Search, Trash2, Users } from 'lucide-react';
-import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
+import { HandCoins, Pencil, Phone, Plus, Search, Trash2, Users } from 'lucide-react';
+import { Alert, Badge, EmptyState, Modal, Pagination, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
+import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { statusTone } from '../../../models/inventoryViewData.js';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { formatCurrency } from '../../../utils/calculations.js';
+import { inventoryApi } from '../../../services/inventoryApi.js';
 import SrFormModal from '../components/SrFormModal';
 import { useSrViewModel } from '../viewmodels/useSrViewModel';
+
+function CollectDueModal({ sr, onClose, onSave }) {
+  const [amount, setAmount] = useState('');
+  const [note, setNote] = useState('');
+  const [businessDate, setBusinessDate] = useState(new Date().toISOString().slice(0, 10));
+  const [error, setError] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  async function handleSubmit(event) {
+    event.preventDefault();
+    const amountValue = Number(amount);
+    if (!(amountValue > 0)) {
+      setError('Amount must be greater than zero.');
+      return;
+    }
+    setSaving(true);
+    setError('');
+    const result = await onSave({ amount: amountValue, note: note.trim(), businessDate });
+    setSaving(false);
+    if (!result?.ok) setError(result?.error || 'Failed to record collection.');
+  }
+
+  return (
+    <Modal title="Collect SR Due" description={sr.name} onClose={onClose} width="max-w-lg">
+      <form className="space-y-4" onSubmit={handleSubmit}>
+        {error ? <Alert type="error">{error}</Alert> : null}
+        <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+          <p className="text-xs font-bold uppercase text-slate-500">Current Balance</p>
+          <p className="mt-1 text-lg font-bold text-slate-950">{formatCurrency(sr.currentDue || 0)}</p>
+        </div>
+        <div>
+          <label className="label">Date</label>
+          <DatePickerField value={businessDate} onChange={setBusinessDate} max={new Date().toISOString().slice(0, 10)} />
+        </div>
+        <div>
+          <label className="label">Amount Collected</label>
+          <input className="input" type="number" min="0" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} />
+        </div>
+        <div>
+          <label className="label">Note</label>
+          <textarea className="input min-h-20" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Optional note about this collection" />
+        </div>
+        <div className="flex justify-end gap-2 pt-2">
+          <button type="button" className="btn-secondary" onClick={onClose} disabled={saving}>Cancel</button>
+          <button type="submit" className="btn-primary" disabled={saving}>
+            <HandCoins size={18} />
+            {saving ? 'Saving...' : 'Collect'}
+          </button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
 
 export default function SrPage() {
   const { saveSr, deleteSr, can } = useInventoryApp();
   const vm = useSrViewModel();
   const [srModal, setSrModal] = useState(null);
+  const [collectModal, setCollectModal] = useState(null);
   const canManageSrs = can('manage_srs');
 
   return (
@@ -84,6 +140,12 @@ export default function SrPage() {
                       <div className="flex justify-end gap-2">
                         {canManageSrs ? (
                           <>
+                            {Number(sr.currentDue) > 0 ? (
+                              <button type="button" className="btn-secondary h-8 px-3 text-xs" title="Collect Due" onClick={() => setCollectModal(sr)}>
+                                <HandCoins size={15} />
+                                Collect
+                              </button>
+                            ) : null}
                             <button type="button" className="icon-btn" title="Edit" onClick={() => setSrModal({ mode: 'edit', sr })}>
                               <Pencil size={16} />
                             </button>
@@ -135,6 +197,23 @@ export default function SrPage() {
               vm.reload();
             }
             return result;
+          }}
+        />
+      ) : null}
+
+      {collectModal ? (
+        <CollectDueModal
+          sr={collectModal}
+          onClose={() => setCollectModal(null)}
+          onSave={async (payload) => {
+            try {
+              await inventoryApi.collectSrDue({ srId: collectModal.id, ...payload });
+              setCollectModal(null);
+              vm.reload();
+              return { ok: true };
+            } catch (err) {
+              return { ok: false, error: err.message };
+            }
           }}
         />
       ) : null}

@@ -7,7 +7,7 @@ import { useFormState } from '../../../hooks/useFormState';
 import { formatCurrency, formatDate } from '../../../utils/calculations.js';
 
 const CONDITIONS = ['EXCELLENT', 'GOOD', 'FAIR', 'POOR', 'DAMAGED'];
-const PAYMENT_METHODS = ['CASH', 'CARD', 'MOBILE_BANKING', 'BANK_TRANSFER', 'CREDIT'];
+const PAYMENT_METHODS = ['CASH', 'BANK'];
 
 function emptyReceived() {
   return { _key: Math.random(), productId: '', productName: '', serialNumber: '', condition: 'GOOD', quantity: 1, tradeInValue: 0 };

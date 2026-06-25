@@ -6,6 +6,7 @@ import { statusTone } from '../../../models/inventoryViewData.js';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../services/printService.js';
 import { inventoryApi } from '../../../services/inventoryApi.js';
+import { formatCurrency } from '../../../utils/calculations.js';
 import RetailCustomerFormModal from '../components/RetailCustomerFormModal.jsx';
 import { useRetailCustomersViewModel } from '../viewmodels/useRetailCustomersViewModel';
 
@@ -22,17 +23,18 @@ export default function RetailCustomersPage() {
     const result = await inventoryApi.listRetailCustomers({ search: vm.search || undefined, status: vm.status || undefined, page: 1, pageSize: 10000 });
     const all = result.items || [];
     const { utils, writeFile } = await import('xlsx');
-    const header = ['#', t('retailCustomers.name'), t('retailCustomers.phone'), t('retailCustomers.address'), t('retailCustomers.loyaltyPoints'), t('retailCustomers.status')];
+    const header = ['#', t('retailCustomers.name'), t('retailCustomers.phone'), t('retailCustomers.address'), t('retailCustomers.currentDue'), t('retailCustomers.loyaltyPoints'), t('retailCustomers.status')];
     const data = all.map((customer, i) => [
       i + 1,
       customer.name,
       customer.phone || '',
       customer.address || '',
+      Number(customer.currentDue || 0),
       Number(customer.loyaltyPointsBalance || 0),
       customer.status === 'ACTIVE' ? t('retailCustomers.statusActive') : t('retailCustomers.statusInactive'),
     ]);
     const ws = utils.aoa_to_sheet([header, ...data]);
-    ws['!cols'] = [{ wch: 6 }, { wch: 24 }, { wch: 16 }, { wch: 28 }, { wch: 14 }, { wch: 12 }];
+    ws['!cols'] = [{ wch: 6 }, { wch: 24 }, { wch: 16 }, { wch: 28 }, { wch: 14 }, { wch: 14 }, { wch: 12 }];
     const wb = utils.book_new();
     utils.book_append_sheet(wb, ws, t('retailCustomers.sheetName'));
     writeFile(wb, 'retail-customers.xlsx');
@@ -140,7 +142,7 @@ export default function RetailCustomersPage() {
 
         {vm.loading ? (
           <div className="p-5">
-            <TableSkeleton columns={5} showHeader={false} />
+            <TableSkeleton columns={6} showHeader={false} />
           </div>
         ) : vm.error ? (
           <div className="p-5">
@@ -155,6 +157,7 @@ export default function RetailCustomersPage() {
                   <th className="px-4 py-3">{t('retailCustomers.name')}</th>
                   <th className="hidden px-4 py-3 sm:table-cell">{t('retailCustomers.phone')}</th>
                   <th className="hidden px-4 py-3 md:table-cell">{t('retailCustomers.address')}</th>
+                  <th className="px-4 py-3 text-right">{t('retailCustomers.currentDue')}</th>
                   <th className="hidden px-4 py-3 lg:table-cell">{t('retailCustomers.loyaltyPoints')}</th>
                   <th className="px-4 py-3">{t('retailCustomers.status')}</th>
                   {canManage ? <th className="px-4 py-3 text-right no-print">{t('common.actions')}</th> : null}
@@ -172,6 +175,11 @@ export default function RetailCustomersPage() {
                       </span>
                     </td>
                     <td className="hidden table-cell md:table-cell">{customer.address || '-'}</td>
+                    <td className="table-cell text-right">
+                      <span className={`font-bold ${customer.currentDue > 0 ? 'text-rose-700' : 'text-slate-500'}`}>
+                        {formatCurrency(customer.currentDue || 0)}
+                      </span>
+                    </td>
                     <td className="hidden table-cell lg:table-cell font-bold text-slate-950">{Number(customer.loyaltyPointsBalance || 0)}</td>
                     <td className="table-cell">
                       <Badge tone={statusTone(customer.status === 'ACTIVE' ? 'Active' : 'Inactive')}>

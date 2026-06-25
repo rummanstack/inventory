@@ -1308,6 +1308,7 @@ const en = {
       name: 'Name',
       phone: 'Phone',
       address: 'Address',
+      currentDue: 'Current Due',
       loyaltyPoints: 'Loyalty Points',
       status: 'Status',
       noMatchTitle: 'No customers matched',

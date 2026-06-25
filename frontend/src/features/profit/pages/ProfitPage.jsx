@@ -187,7 +187,7 @@ export default function ProfitPage() {
         </div>
         <div>
           <label className="label">{t('profit.dateTo')}</label>
-          <DatePickerField value={vm.dateTo} onChange={vm.setDateTo} />
+          <DatePickerField value={vm.dateTo} onChange={vm.setDateTo} min={vm.dateFrom} />
         </div>
       </div>
 

@@ -87,7 +87,7 @@ export default function DueCollectionPage() {
               ))}
             </select>
             <DatePickerField value={vm.dateFrom} onChange={vm.setDateFrom} placeholder={t('supplierPayments.dateFrom')} />
-            <DatePickerField value={vm.dateTo} onChange={vm.setDateTo} placeholder={t('supplierPayments.dateTo')} />
+            <DatePickerField value={vm.dateTo} onChange={vm.setDateTo} placeholder={t('supplierPayments.dateTo')} min={vm.dateFrom} />
           </div>
         </div>
         {vm.loading ? (

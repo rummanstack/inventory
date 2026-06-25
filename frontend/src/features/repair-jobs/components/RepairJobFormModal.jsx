@@ -211,7 +211,7 @@ export default function RepairJobFormModal({ job, onClose, onSave }) {
               </div>
               <div>
                 <label className="label">{t('repairJobs.receivedDateLabel')}</label>
-                <DatePickerField value={form.receivedDate} onChange={(value) => updateField('receivedDate', value)} />
+                <DatePickerField value={form.receivedDate} onChange={(value) => updateField('receivedDate', value)} max={new Date().toISOString().slice(0, 10)} />
               </div>
             </>
           ) : (
@@ -251,13 +251,13 @@ export default function RepairJobFormModal({ job, onClose, onSave }) {
 
           <div>
             <label className="label">{t('repairJobs.promisedDateLabel')}</label>
-            <DatePickerField value={form.promisedDate} onChange={(value) => updateField('promisedDate', value)} />
+            <DatePickerField value={form.promisedDate} onChange={(value) => updateField('promisedDate', value)} min={form.receivedDate} />
           </div>
 
           {isEdit ? (
             <div>
               <label className="label">{t('repairJobs.deliveredDateLabel')}</label>
-              <DatePickerField value={form.deliveredDate} onChange={(value) => updateField('deliveredDate', value)} />
+              <DatePickerField value={form.deliveredDate} onChange={(value) => updateField('deliveredDate', value)} min={form.receivedDate} max={new Date().toISOString().slice(0, 10)} />
             </div>
           ) : null}
 

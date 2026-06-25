@@ -89,7 +89,7 @@ export default function DsrFinanceFormModal({ kind, record, dsrs, defaultDate, d
         <div className="grid gap-4 md:grid-cols-2">
           <div>
             <label className="label">{t('dsrFinance.date')}</label>
-            <DatePickerField value={form.date} onChange={(value) => updateField('date', value)} />
+            <DatePickerField value={form.date} onChange={(value) => updateField('date', value)} max={new Date().toISOString().slice(0, 10)} />
           </div>
           <div>
             <label className="label">{t('dsrFinance.dsr')}</label>

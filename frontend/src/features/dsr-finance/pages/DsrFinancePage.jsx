@@ -200,7 +200,7 @@ export default function DsrFinancePage() {
               </div>
               <div>
                 <label className="label">{t('dsrDueLedger.dateTo')}</label>
-                <DatePickerField value={dueVm.dateTo} onChange={dueVm.setDateTo} />
+                <DatePickerField value={dueVm.dateTo} onChange={dueVm.setDateTo} min={dueVm.dateFrom} />
               </div>
               <div className="flex items-end gap-2">
                 <button type="button" className="btn-secondary" onClick={dueVm.refresh}>
@@ -333,7 +333,7 @@ export default function DsrFinancePage() {
             <div className="grid gap-4 md:grid-cols-3">
               <div>
                 <label className="label">{t('dsrFinance.reportDate')}</label>
-                <DatePickerField value={activeVm.date} onChange={activeVm.setDate} />
+                <DatePickerField value={activeVm.date} onChange={activeVm.setDate} max={new Date().toISOString().slice(0, 10)} />
               </div>
               <div>
                 <label className="label">{t('dsrFinance.reportMonth')}</label>

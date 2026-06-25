@@ -52,7 +52,7 @@ export default function AccountTransactionFormModal({ onClose, onSave }) {
         <div className="grid gap-4 md:grid-cols-2">
           <div>
             <label className="label">{t('financeAccounts.date')}</label>
-            <DatePickerField value={form.date} onChange={(value) => updateField('date', value)} />
+            <DatePickerField value={form.date} onChange={(value) => updateField('date', value)} max={new Date().toISOString().slice(0, 10)} />
           </div>
           <div>
             <label className="label">{t('financeAccounts.account')}</label>

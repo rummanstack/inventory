@@ -175,7 +175,7 @@ export default function StockLedgerPanel({ products, t, refreshKey = 0, fixedTyp
           </div>
           <div>
             <label className="label">{t('stockLedger.dateTo')}</label>
-            <DatePickerField value={dateTo} onChange={setDateTo} />
+            <DatePickerField value={dateTo} onChange={setDateTo} min={dateFrom} />
           </div>
         </div>
       </div>

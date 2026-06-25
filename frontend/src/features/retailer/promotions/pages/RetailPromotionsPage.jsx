@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Tag, Pencil, Plus, Search, Trash2 } from 'lucide-react';
 import { Alert, Badge, EmptyState, Modal, Pagination, SectionHeader, TableSkeleton } from '../../../../components/ui.jsx';
+import { DatePickerField } from '../../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../../services/inventoryApi.js';
 import { formatCurrency, formatDate } from '../../../../utils/calculations.js';
@@ -183,11 +184,11 @@ function PromotionFormModal({ promotion, products, categories, onClose, onSave }
           </div>
           <div>
             <label className="label">{t('retailer.promotions.startDate')}</label>
-            <input className="input" type="date" value={form.startDate} onChange={(event) => updateField('startDate', event.target.value)} />
+            <DatePickerField value={form.startDate} onChange={(value) => updateField('startDate', value)} />
           </div>
           <div>
             <label className="label">{t('retailer.promotions.endDate')}</label>
-            <input className="input" type="date" value={form.endDate} onChange={(event) => updateField('endDate', event.target.value)} />
+            <DatePickerField value={form.endDate} onChange={(value) => updateField('endDate', value)} min={form.startDate} />
           </div>
           <div className="sm:col-span-2">
             <label className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">

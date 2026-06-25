@@ -169,7 +169,7 @@ export default function FinanceDashboardPage() {
           </div>
           <div>
             <label className="label">{t('financeDashboard.to')}</label>
-            <DatePickerField value={rr.dateTo} onChange={rr.setDateTo} />
+            <DatePickerField value={rr.dateTo} onChange={rr.setDateTo} min={rr.dateFrom} />
           </div>
           <button type="button" className="btn-primary" onClick={rr.applyRange} disabled={rr.loading}>
             {rr.loading ? <span className="inline-block h-4 w-28 animate-pulse rounded-full bg-white/60" /> : t('financeDashboard.generateReport')}

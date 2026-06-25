@@ -283,6 +283,7 @@ export default function TradeInFormModal({ onClose, onSave }) {
               <DatePickerField
                 value={form.tradeInDate}
                 onChange={(v) => updateField('tradeInDate', v)}
+                max={new Date().toISOString().slice(0, 10)}
               />
             </div>
           </div>

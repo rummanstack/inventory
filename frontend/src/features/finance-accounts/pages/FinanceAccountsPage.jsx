@@ -135,7 +135,7 @@ export default function FinanceAccountsPage() {
               ))}
             </select>
             <DatePickerField value={vm.dateFrom} onChange={vm.setDateFrom} placeholder={t('financeAccounts.dateFrom')} />
-            <DatePickerField value={vm.dateTo} onChange={vm.setDateTo} placeholder={t('financeAccounts.dateTo')} />
+            <DatePickerField value={vm.dateTo} onChange={vm.setDateTo} placeholder={t('financeAccounts.dateTo')} min={vm.dateFrom} />
           </div>
           <div className="mt-3 flex flex-wrap gap-2">
             <button

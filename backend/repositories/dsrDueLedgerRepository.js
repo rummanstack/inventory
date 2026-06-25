@@ -214,4 +214,33 @@ export async function sumLatestDueBalances(client, tenantId) {
   return Number(result.rows[0].total || 0);
 }
 
+export async function listDsrDueBalances(client, tenantId) {
+  const result = await client.query(
+    `SELECT
+       dsrs.id,
+       dsrs.name AS dsr_name,
+       dsrs.area,
+       COALESCE(latest.balance_after, 0)::NUMERIC AS balance
+     FROM dsrs
+     LEFT JOIN LATERAL (
+       SELECT balance_after
+       FROM dsr_due_ledger
+       WHERE dsr_id = dsrs.id AND tenant_id = dsrs.tenant_id
+       ORDER BY ${orderByInsertion("DESC")}
+       LIMIT 1
+     ) latest ON true
+     WHERE dsrs.tenant_id = $1
+       AND dsrs.deleted_at IS NULL
+       AND dsrs.status = 'ACTIVE'
+     ORDER BY balance DESC`,
+    [tenantId],
+  );
+  return result.rows.map((row) => ({
+    id: row.id,
+    dsrName: row.dsr_name,
+    area: row.area,
+    balance: Number(row.balance || 0),
+  }));
+}
+
 export { mapDueLedgerEntry };

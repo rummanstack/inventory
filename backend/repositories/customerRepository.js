@@ -57,6 +57,14 @@ export async function countCustomers(client, filters = {}) {
   return result.rows[0].count;
 }
 
+export async function countActiveShops(client, tenantId) {
+  const result = await client.query(
+    `SELECT COUNT(*)::INTEGER AS count FROM customers WHERE tenant_id = $1 AND deleted_at IS NULL AND status = 'ACTIVE'`,
+    [tenantId],
+  );
+  return result.rows[0].count;
+}
+
 export async function listCustomersPage(client, { limit, offset, ...filters }) {
   const { params, where } = buildFilters(filters);
   params.push(limit, offset);

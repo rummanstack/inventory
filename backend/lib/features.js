@@ -51,4 +51,5 @@ export const TENANT_FEATURES = [
   "shop-due-ledger",
   "srs",
   "sr-due-ledger",
+  "retailer-profit-report",
 ];

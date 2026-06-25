@@ -43,6 +43,7 @@ import { SalesReturnService } from './services/salesReturnService.js';
 import { ContactMessageService } from './services/contactMessageService.js';
 import { FinanceAccountService } from './services/financeAccountService.js';
 import { FinanceDashboardService } from './services/financeDashboardService.js';
+import { DsrDashboardService } from './services/dsrDashboardService.js';
 import { RetailCashSessionService } from './services/retailCashSessionService.js';
 import { VisitorChatService } from './services/visitorChatService.js';
 import { createApp } from './app.js';
@@ -99,6 +100,7 @@ export async function createBackendApp() {
   const salesReturnService = new SalesReturnService(databaseManager, { auditService, financeAccountService });
   const contactMessageService = new ContactMessageService(databaseManager);
   const financeDashboardService = new FinanceDashboardService(databaseManager, { financeAccountService, profitService });
+  const dsrDashboardService = new DsrDashboardService(databaseManager);
   const retailCashSessionService = new RetailCashSessionService(databaseManager, { auditService });
   const visitorChatService = new VisitorChatService(databaseManager, { auditService });
 
@@ -140,6 +142,7 @@ export async function createBackendApp() {
     contactMessageService,
     financeAccountService,
     financeDashboardService,
+    dsrDashboardService,
     retailCustomerService,
     retailCashSessionService,
     retailPromotionService,

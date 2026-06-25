@@ -32,4 +32,8 @@ export const dsrsApi = {
   permanentlyDeleteDsr(dsrId) {
     return apiRequest(`/dsrs/${dsrId}/permanent`, { method: "DELETE" });
   },
+
+  getDsrDashboard() {
+    return apiRequest('/dsr-dashboard');
+  },
 };

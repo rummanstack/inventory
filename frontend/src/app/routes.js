@@ -38,6 +38,7 @@ import DashboardPage from '../features/dashboard/pages/DashboardPage';
 import ActivityLogsPage from '../features/activity-logs/pages/ActivityLogsPage';
 import IssueCenterPage from '../features/issue-center/pages/IssueCenterPage';
 import DsrPage from '../features/dsrs/pages/DsrPage';
+import DsrDashboardPage from '../features/dsrs/pages/DsrDashboardPage';
 import HistoryPage from '../features/history/pages/HistoryPage';
 import ExpensesPage from '../features/expenses/pages/ExpensesPage';
 import DsrFinancePage from '../features/dsr-finance/pages/DsrFinancePage';
@@ -118,6 +119,7 @@ export const APP_ROUTES = [
   { id: 'supplier-statement', path: '/supplier-statement', labelKey: 'nav.supplierStatement', icon: FileText, component: SupplierStatementPage, group: 'purchases', permission: 'view_supplier_statement', feature: 'supplier-statement' },
 
   // 6. Dealer / DSR
+  { id: 'dsr-dashboard', path: '/dsr-dashboard', labelKey: 'nav.dsrDashboard', icon: LayoutDashboard, component: DsrDashboardPage, group: 'dealer', permission: 'view_state', feature: 'dsrs' },
   { id: 'dsrs', path: '/dsrs', labelKey: 'nav.dsrs', icon: Users, component: DsrPage, group: 'dealer', permission: 'view_state', feature: 'dsrs' },
   { id: 'customers', path: '/customers', labelKey: 'nav.shops', icon: Store, component: ShopsPage, group: 'dealer', permission: 'view_state', feature: 'customers' },
   { id: 'morning-issue', path: '/morning-issue', labelKey: 'nav.morningIssue', icon: Truck, component: MorningIssuePage, group: 'dealer', permission: 'create_issues', feature: 'morning-issue' },

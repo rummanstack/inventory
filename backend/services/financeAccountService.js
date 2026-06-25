@@ -166,6 +166,8 @@ export class FinanceAccountService {
       const fromAccount = fromSummary.id === firstAccount.id ? firstAccount : secondAccount;
       const toAccount = toSummary.id === firstAccount.id ? firstAccount : secondAccount;
 
+      assert(amount <= fromAccount.balance, `Insufficient balance in ${fromAccount.name}. Available: ${fromAccount.balance}, required: ${amount}.`, 400);
+
       const transferId = createId("finance-transfer");
       const fromBalanceAfter = fromAccount.balance - amount;
       const toBalanceAfter = toAccount.balance + amount;

@@ -17,6 +17,7 @@ export const TENANT_FEATURE_ROUTES = [
   { feature: 'suppliers', labelKey: 'nav.suppliers' },
   { feature: 'purchase-receive', labelKey: 'nav.purchaseReceive' },
   { feature: 'supplier-payments', labelKey: 'nav.supplierPayments' },
+  { feature: 'supplier-discounts', labelKey: 'nav.supplierDiscounts' },
   { feature: 'supplier-statement', labelKey: 'nav.supplierStatement' },
   { feature: 'retailer-quick-sale', labelKey: 'nav.retailerQuickSale' },
   { feature: 'retailer-sales-invoices', labelKey: 'nav.retailerSalesInvoices' },

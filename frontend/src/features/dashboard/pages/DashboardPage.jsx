@@ -6,6 +6,7 @@ import {
   Landmark,
   Lock,
   PackageCheck,
+  Receipt,
   ShoppingCart,
   Store,
   TrendingDown,
@@ -93,7 +94,7 @@ export default function DashboardPage() {
     );
   }
 
-  const { financeDashboard, retailPos, retailCashSession, dsrLeaderboard } = vm;
+  const { financeDashboard, retailPos, retailCashSession, dsrLeaderboard, todayPnl } = vm;
   const secondary = getCssVar("--secondary", "#5e5b8e");
 
   const cashInHand = financeDashboard?.accounts?.filter((a) => a.type === "CASH").reduce((s, a) => s + a.balance, 0) ?? 0;
@@ -519,7 +520,139 @@ export default function DashboardPage() {
         </ChartPanel>
       </div>
 
-      {/* ── 6. ACTIVITY HEATMAP ── */}
+      {/* ── 6. TODAY'S P&L ── */}
+      <div className="overflow-hidden rounded-[32px] border border-slate-200/80 bg-white shadow-[0_24px_60px_rgba(0,0,0,0.06)]">
+        <div className="px-7 pb-4 pt-6">
+          <div className="flex items-center gap-2">
+            <div className="rounded-lg bg-emerald-50 p-1.5">
+              <Receipt size={13} className="text-emerald-700" />
+            </div>
+            <p className="text-[11px] font-black uppercase tracking-[0.22em] text-slate-400">Today's Profit & Loss</p>
+          </div>
+        </div>
+
+        {/* P&L summary cards */}
+        <div className="grid gap-px bg-slate-100/80 sm:grid-cols-3 lg:grid-cols-5">
+          {[
+            { label: 'Revenue', value: formatCurrency(todayPnl.grossRevenue, language), iconClass: 'bg-blue-50 text-blue-700', icon: TrendingUp },
+            { label: 'Cost of Goods', value: formatCurrency(todayPnl.grossCogs, language), iconClass: 'bg-slate-100 text-slate-500', icon: Truck },
+            { label: 'Gross Profit', value: formatCurrency(todayPnl.grossProfit, language), iconClass: todayPnl.grossProfit >= 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700', icon: todayPnl.grossProfit >= 0 ? TrendingUp : TrendingDown },
+            { label: 'Expenses', value: formatCurrency(todayPnl.expenseTotal, language), iconClass: 'bg-amber-50 text-amber-700', icon: Receipt },
+            { label: 'Net Profit', value: formatCurrency(todayPnl.netProfit, language), iconClass: todayPnl.netProfit >= 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700', icon: CircleDollarSign },
+          ].map(({ label, value, iconClass, icon: Icon }) => (
+            <div key={label} className="bg-white px-6 py-5">
+              <div className={cx('mb-3 w-fit rounded-xl p-2', iconClass)}><Icon size={15} /></div>
+              <p className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-400">{label}</p>
+              <p className="mt-1 text-xl font-black tracking-tight text-slate-950">{value}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="grid gap-px bg-slate-100/80 lg:grid-cols-2">
+          {/* DSR breakdown */}
+          <div className="bg-white p-6">
+            <p className="mb-3 text-xs font-black uppercase tracking-[0.14em] text-slate-500">By DSR</p>
+            {todayPnl.dsrProfitRows.length ? (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-slate-100">
+                      <th className="pb-2 text-left text-xs font-black uppercase tracking-wide text-slate-400">DSR</th>
+                      <th className="pb-2 text-right text-xs font-black uppercase tracking-wide text-slate-400">Revenue</th>
+                      <th className="pb-2 text-right text-xs font-black uppercase tracking-wide text-slate-400">COGS</th>
+                      <th className="pb-2 text-right text-xs font-black uppercase tracking-wide text-slate-400">Profit</th>
+                      <th className="pb-2 text-right text-xs font-black uppercase tracking-wide text-slate-400">Collected</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-50">
+                    {todayPnl.dsrProfitRows.map((row) => {
+                      const profit = row.revenue - row.cogs;
+                      return (
+                        <tr key={row.dsrId}>
+                          <td className="py-2.5 pr-3">
+                            <p className="font-semibold text-slate-900">{row.dsrName}</p>
+                            {row.area ? <p className="text-xs text-slate-400">{row.area}</p> : null}
+                          </td>
+                          <td className="py-2.5 text-right font-semibold text-slate-700">{formatCurrency(row.revenue, language)}</td>
+                          <td className="py-2.5 text-right text-slate-500">{formatCurrency(row.cogs, language)}</td>
+                          <td className={cx('py-2.5 text-right font-black', profit >= 0 ? 'text-emerald-700' : 'text-rose-700')}>{formatCurrency(profit, language)}</td>
+                          <td className="py-2.5 text-right font-semibold text-slate-700">{formatCurrency(row.amountPaid, language)}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <EmptyState title="No settlements today" description="Complete DSR settlements to see profit breakdown." icon={HandCoins} />
+            )}
+          </div>
+
+          {/* Product breakdown + expenses */}
+          <div className="space-y-px">
+            <div className="bg-white p-6">
+              <p className="mb-3 text-xs font-black uppercase tracking-[0.14em] text-slate-500">By Product</p>
+              {todayPnl.productProfitRows.length ? (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-slate-100">
+                        <th className="pb-2 text-left text-xs font-black uppercase tracking-wide text-slate-400">Product</th>
+                        <th className="pb-2 text-right text-xs font-black uppercase tracking-wide text-slate-400">Qty</th>
+                        <th className="pb-2 text-right text-xs font-black uppercase tracking-wide text-slate-400">Revenue</th>
+                        <th className="pb-2 text-right text-xs font-black uppercase tracking-wide text-slate-400">Profit</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-50">
+                      {todayPnl.productProfitRows.slice(0, 8).map((row) => {
+                        const profit = row.revenue - row.cogs;
+                        return (
+                          <tr key={row.productId}>
+                            <td className="py-2 pr-3 font-semibold text-slate-900">{row.productName}</td>
+                            <td className="py-2 text-right text-slate-500">{formatNumber(row.soldPieces, language)}</td>
+                            <td className="py-2 text-right font-semibold text-slate-700">{formatCurrency(row.revenue, language)}</td>
+                            <td className={cx('py-2 text-right font-black', profit >= 0 ? 'text-emerald-700' : 'text-rose-700')}>{formatCurrency(profit, language)}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <EmptyState title="No sales today" description="No product sales recorded yet." icon={PackageCheck} />
+              )}
+            </div>
+
+            <div className="bg-white p-6">
+              <p className="mb-3 text-xs font-black uppercase tracking-[0.14em] text-slate-500">Today's Expenses</p>
+              {todayPnl.expensesByCategory.length ? (
+                <div className="space-y-2">
+                  {todayPnl.expensesByCategory.map(([category, amount]) => {
+                    const pct = todayPnl.expenseTotal > 0 ? Math.round((amount / todayPnl.expenseTotal) * 100) : 0;
+                    return (
+                      <div key={category} className="flex items-center gap-3">
+                        <p className="w-24 shrink-0 text-sm font-semibold text-slate-700">{category}</p>
+                        <div className="flex-1 overflow-hidden rounded-full bg-slate-100 h-2">
+                          <div className="h-full rounded-full bg-amber-400" style={{ width: `${pct}%` }} />
+                        </div>
+                        <p className="w-24 shrink-0 text-right text-sm font-black text-slate-950">{formatCurrency(amount, language)}</p>
+                      </div>
+                    );
+                  })}
+                  <div className="mt-2 flex justify-between border-t border-slate-100 pt-2">
+                    <p className="text-xs font-black uppercase tracking-wide text-slate-400">Total</p>
+                    <p className="text-sm font-black text-rose-700">{formatCurrency(todayPnl.expenseTotal, language)}</p>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-sm text-slate-400">No expenses recorded today.</p>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── 7. ACTIVITY HEATMAP ── */}
       <ChartPanel title={t("dashboard.activityHeatmap")} description={t("dashboard.activityHeatmapDescription")}>
         <ActivityHeatmap cells={vm.activityHeatmap} color={secondary} t={t} language={language} />
       </ChartPanel>

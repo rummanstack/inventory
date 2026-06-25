@@ -369,6 +369,8 @@ export function useSettlementViewModel({ products, dsrs, today, saveSettlementAc
     if (result.ok) {
       setMessage(null);
       setRefreshKey((key) => key + 1);
+    } else if (result.message) {
+      setMessage({ type: 'error', text: result.message });
     }
   }
 

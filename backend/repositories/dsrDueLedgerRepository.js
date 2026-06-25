@@ -185,7 +185,19 @@ export async function listDueLedgerInRange(client, { tenantId, dsrId, dateFrom, 
 
 export async function getBalanceBefore(client, { tenantId, dsrId, dateFrom }) {
   if (!dateFrom) {
-    return 0;
+    // Full-history view: if any ledger entries exist, opening balance is 0 —
+    // the OPENING entry in the ledger already captures dsrs.opening_due.
+    // If no entries exist at all (e.g. DSR imported before the ledger feature),
+    // fall back to dsrs.opening_due so the statement isn't misleadingly zero.
+    const result = await client.query(
+      `SELECT
+         (SELECT COUNT(*) FROM dsr_due_ledger WHERE dsr_id = $1 AND tenant_id = $2)::INTEGER AS entry_count,
+         COALESCE(opening_due, 0) AS opening_due
+       FROM dsrs WHERE id = $1 AND tenant_id = $2`,
+      [dsrId, tenantId],
+    );
+    if (!result.rowCount) return 0;
+    return result.rows[0].entry_count > 0 ? 0 : Number(result.rows[0].opening_due || 0);
   }
 
   const result = await client.query(

@@ -1209,6 +1209,7 @@
       statusActive: 'সক্রিয়',
       statusInactive: 'নিষ্ক্রিয়',
       openingDue: 'শুরুর বকেয়া',
+      currentDue: 'বর্তমান বকেয়া',
       saveDsr: 'ডিএসআর সংরক্ষণ',
       required: 'নাম, ফোন, এবং এলাকা আবশ্যক।',
       saveFailed: 'ডিএসআর সংরক্ষণ করা যায়নি।',

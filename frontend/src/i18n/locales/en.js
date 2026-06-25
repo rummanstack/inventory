@@ -1249,6 +1249,7 @@ const en = {
       statusActive: 'Active',
       statusInactive: 'Inactive',
       openingDue: 'Opening Due',
+      currentDue: 'Current Due',
       saveDsr: 'Save DSR',
       required: 'Name, phone, and area are required.',
       saveFailed: 'Unable to save DSR.',

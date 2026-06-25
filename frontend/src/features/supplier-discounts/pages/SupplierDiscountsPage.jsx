@@ -45,7 +45,7 @@ export default function SupplierDiscountsPage() {
         </div>
 
         {vm.loading ? (
-          <div className="p-5"><TableSkeleton columns={5} showHeader={false} /></div>
+          <div className="p-5"><TableSkeleton columns={6} showHeader={false} /></div>
         ) : vm.error ? (
           <div className="p-5"><Alert type="error">{vm.error}</Alert></div>
         ) : (
@@ -55,7 +55,8 @@ export default function SupplierDiscountsPage() {
                 <tr>
                   <th className="px-4 py-3">#</th>
                   <th className="px-4 py-3">Date</th>
-                  <th className="px-4 py-3">DSR / Source</th>
+                  <th className="px-4 py-3">DSR</th>
+                  <th className="px-4 py-3">Supplier</th>
                   <th className="px-4 py-3 text-right">Amount</th>
                   <th className="hidden px-4 py-3 lg:table-cell">Note</th>
                   {canManage ? <th className="px-4 py-3 text-right">Actions</th> : null}
@@ -67,6 +68,7 @@ export default function SupplierDiscountsPage() {
                     <td className="table-cell font-black text-slate-400">{(vm.page - 1) * vm.pageSize + index + 1}</td>
                     <td className="table-cell">{formatDate(discount.discountDate)}</td>
                     <td className="table-cell font-semibold text-slate-950">{discount.dsrName || '-'}</td>
+                    <td className="table-cell text-slate-700">{discount.supplierName || <span className="text-slate-300">—</span>}</td>
                     <td className="table-cell text-right font-bold text-emerald-700">{formatCurrency(discount.amount)}</td>
                     <td className="hidden table-cell lg:table-cell">{discount.note || '-'}</td>
                     {canManage ? (

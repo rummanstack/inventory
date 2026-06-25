@@ -10,7 +10,7 @@ import { formatCasePiece, formatCurrency, formatNumber } from '../../../utils/ca
 import { useSettlementViewModel } from '../viewmodels/useSettlementViewModel';
 
 export default function EveningSettlementPage() {
-  const { productDirectory, dsrDirectory, srDirectory, shopDirectory, today, saveSettlement, t, can, tenant, language } = useInventoryApp();
+  const { productDirectory, dsrDirectory, srDirectory, shopDirectory, supplierDirectory, today, saveSettlement, t, can, tenant, language } = useInventoryApp();
   const vm = useSettlementViewModel({ products: productDirectory, dsrs: dsrDirectory, today, saveSettlementAction: saveSettlement, t, tenantName: tenant?.name });
   const canCreateSettlement = can('create_settlements');
   const canUpdateSettlement = can('update_settlements');
@@ -343,6 +343,24 @@ export default function EveningSettlementPage() {
                         <input className="input h-9 w-28 text-right" type="number" min="0" step="0.01" value={vm.discountInput} onChange={(event) => vm.setDiscountInput(event.target.value)} disabled={vm.saving} />
                       </dd>
                     </div>
+                    {vm.discount > 0 ? (
+                      <div className="flex items-center justify-between gap-3 py-1.5">
+                        <dt className="text-sm font-medium text-slate-400">Supplier (discount from)</dt>
+                        <dd>
+                          <select
+                            className="input h-9 text-sm"
+                            value={vm.discountSupplierId}
+                            onChange={(e) => vm.setDiscountSupplierId(e.target.value)}
+                            disabled={vm.saving}
+                          >
+                            <option value="">— select supplier —</option>
+                            {supplierDirectory.map((s) => (
+                              <option key={s.id} value={s.id}>{s.name}</option>
+                            ))}
+                          </select>
+                        </dd>
+                      </div>
+                    ) : null}
                     {vm.totalSrHandovers > 0 ? (
                       <div className="flex items-center justify-between py-1.5">
                         <dt className="font-semibold text-slate-500">SR Handover</dt>

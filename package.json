@@ -13,7 +13,8 @@
     "watch": "concurrently \"npm run client\" \"npm run server\"",
     "deploy": "npm run build --prefix frontend && npm start --prefix backend",
     "deploy-cluster": "npm run build --prefix frontend && npm run cluster --prefix backend",
-    "deploy-watch": "npm run build --prefix frontend && npm run watch --prefix backend"
+    "deploy-watch": "npm run build --prefix frontend && npm run watch --prefix backend",
+    "render-build": "node scripts/render-build.mjs"
   },
   "dependencies": {
     "dotenv": "^16.6.1",

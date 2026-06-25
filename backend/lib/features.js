@@ -49,4 +49,6 @@ export const TENANT_FEATURES = [
   "quotations",
   "trade-ins",
   "shop-due-ledger",
+  "srs",
+  "sr-due-ledger",
 ];

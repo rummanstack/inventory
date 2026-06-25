@@ -39,6 +39,7 @@ function SummaryCard({ label, value, tone }) {
 }
 
 function TradeInReceipt({ receipt, onClose }) {
+  const { t } = useInventoryApp();
   const totalTradeIn = receipt.receivedItems.reduce((s, i) => s + Number(i.tradeInValue || 0), 0);
   const totalSale = receipt.soldItems.reduce((s, i) => s + (Number(i.quantity) || 1) * (Number(i.unitPrice) || 0), 0);
   const net = totalSale - totalTradeIn;

@@ -49,8 +49,8 @@ export const productsApi = {
     return apiRequest(`/products/${productId}/clear-damage`, { method: "POST", body: JSON.stringify({ quantity, note }) });
   },
 
-  listStockMovements({ page, pageSize, productId, type, dateFrom, dateTo } = {}) {
-    return apiRequest(`/stock-movements${buildQueryString({ page, pageSize, productId, type, dateFrom, dateTo })}`);
+  listStockMovements({ page, pageSize, productId, type, referenceType, dateFrom, dateTo } = {}) {
+    return apiRequest(`/stock-movements${buildQueryString({ page, pageSize, productId, type, referenceType, dateFrom, dateTo })}`);
   },
 
   listAvailableProductSerials(productId) {

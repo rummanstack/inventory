@@ -3,6 +3,7 @@ import { countIssues } from "../repositories/issueRepository.js";
 import { sumSettlementsInRange, listRecentSettlements } from "../repositories/settlementRepository.js";
 import { sumLatestDueBalances, listDsrDueBalances } from "../repositories/dsrDueLedgerRepository.js";
 import { countActiveShops } from "../repositories/customerRepository.js";
+import { listDsrDamageTotals, listProductDamageTotals } from "../repositories/stockMovementRepository.js";
 
 export class DsrDashboardService {
   constructor(databaseManager) {
@@ -16,14 +17,27 @@ export class DsrDashboardService {
     const nextMonthStart = startOfNextMonth(month);
 
     return this.databaseManager.withClient(async (client) => {
-      const [issueCount, settlements, outstandingDue, activeShops, dsrBalances, recentSettlements] = await Promise.all([
+      const [
+        issueCount,
+        settlements,
+        outstandingDue,
+        activeShops,
+        dsrBalances,
+        recentSettlements,
+        dsrDamageTotals,
+        productDamageTotals,
+      ] = await Promise.all([
         countIssues(client, { tenantId: actor.tenantId, dateFrom: monthStart, dateTo: today }),
         sumSettlementsInRange(client, actor.tenantId, monthStart, nextMonthStart),
         sumLatestDueBalances(client, actor.tenantId),
         countActiveShops(client, actor.tenantId),
         listDsrDueBalances(client, actor.tenantId),
         listRecentSettlements(client, actor.tenantId, 10),
+        listDsrDamageTotals(client, actor.tenantId, monthStart, nextMonthStart),
+        listProductDamageTotals(client, actor.tenantId, monthStart, nextMonthStart),
       ]);
+
+      const monthlyDamagedTotal = dsrDamageTotals.reduce((sum, r) => sum + r.totalDamaged, 0);
 
       return {
         month,
@@ -35,6 +49,9 @@ export class DsrDashboardService {
         activeShopCount: activeShops,
         dsrBalances,
         recentSettlements,
+        monthlyDamagedTotal,
+        dsrDamageTotals,
+        productDamageTotals,
       };
     });
   }

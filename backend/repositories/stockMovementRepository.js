@@ -21,7 +21,7 @@ function mapStockMovement(row) {
   };
 }
 
-function buildFilterClause({ tenantId, productId, type, dateFrom, dateTo }, params) {
+function buildFilterClause({ tenantId, productId, type, referenceType, dateFrom, dateTo }, params) {
   params.push(tenantId);
   const conditions = [`stock_movements.tenant_id = $${params.length}`];
 
@@ -33,6 +33,11 @@ function buildFilterClause({ tenantId, productId, type, dateFrom, dateTo }, para
   if (type) {
     params.push(type);
     conditions.push(`stock_movements.type = $${params.length}`);
+  }
+
+  if (referenceType) {
+    params.push(referenceType);
+    conditions.push(`stock_movements.reference_type = $${params.length}`);
   }
 
   if (dateFrom) {
@@ -108,9 +113,67 @@ export async function countStockMovements(client, filters = {}) {
   return result.rows[0].count;
 }
 
-export async function listStockMovementsPage(client, { tenantId, productId, type, dateFrom, dateTo, limit, offset }) {
+// Per-DSR damage totals for a date range — joins settlement reference to recover DSR identity.
+export async function listDsrDamageTotals(client, tenantId, dateFrom, dateTo) {
+  const result = await client.query(
+    `SELECT
+       s.dsr_id,
+       s.dsr_name,
+       s.area,
+       SUM(sm.quantity_out)::INTEGER AS total_damaged,
+       COUNT(DISTINCT sm.reference_id)::INTEGER AS settlement_count
+     FROM stock_movements sm
+     JOIN settlements s
+       ON s.id = sm.reference_id
+       AND s.tenant_id = sm.tenant_id
+     WHERE sm.tenant_id = $1
+       AND sm.type = 'DAMAGE'
+       AND sm.reference_type = 'settlement'
+       AND COALESCE(sm.business_date, sm.created_at::date) >= $2::date
+       AND COALESCE(sm.business_date, sm.created_at::date) < $3::date
+     GROUP BY s.dsr_id, s.dsr_name, s.area
+     ORDER BY total_damaged DESC`,
+    [tenantId, dateFrom, dateTo],
+  );
+  return result.rows.map((row) => ({
+    dsrId: row.dsr_id,
+    dsrName: row.dsr_name,
+    area: row.area,
+    totalDamaged: Number(row.total_damaged || 0),
+    settlementCount: Number(row.settlement_count || 0),
+  }));
+}
+
+// Per-product damage totals from settlements for a date range.
+export async function listProductDamageTotals(client, tenantId, dateFrom, dateTo) {
+  const result = await client.query(
+    `SELECT
+       p.id AS product_id,
+       p.name AS product_name,
+       SUM(sm.quantity_out)::INTEGER AS total_damaged
+     FROM stock_movements sm
+     JOIN products p
+       ON p.id = sm.product_id
+       AND p.tenant_id = sm.tenant_id
+     WHERE sm.tenant_id = $1
+       AND sm.type = 'DAMAGE'
+       AND sm.reference_type = 'settlement'
+       AND COALESCE(sm.business_date, sm.created_at::date) >= $2::date
+       AND COALESCE(sm.business_date, sm.created_at::date) < $3::date
+     GROUP BY p.id, p.name
+     ORDER BY total_damaged DESC`,
+    [tenantId, dateFrom, dateTo],
+  );
+  return result.rows.map((row) => ({
+    productId: row.product_id,
+    productName: row.product_name,
+    totalDamaged: Number(row.total_damaged || 0),
+  }));
+}
+
+export async function listStockMovementsPage(client, { tenantId, productId, type, referenceType, dateFrom, dateTo, limit, offset }) {
   const params = [];
-  const where = buildFilterClause({ tenantId, productId, type, dateFrom, dateTo }, params);
+  const where = buildFilterClause({ tenantId, productId, type, referenceType, dateFrom, dateTo }, params);
   params.push(limit, offset);
   const result = await client.query(
     `${buildSelect()}

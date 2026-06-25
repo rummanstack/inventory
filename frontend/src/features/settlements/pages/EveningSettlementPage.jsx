@@ -10,7 +10,7 @@ import { formatCasePiece, formatCurrency, formatNumber } from '../../../utils/ca
 import { useSettlementViewModel } from '../viewmodels/useSettlementViewModel';
 
 export default function EveningSettlementPage() {
-  const { productDirectory, dsrDirectory, shopDirectory, today, saveSettlement, t, can, tenant, language } = useInventoryApp();
+  const { productDirectory, dsrDirectory, srDirectory, shopDirectory, today, saveSettlement, t, can, tenant, language } = useInventoryApp();
   const vm = useSettlementViewModel({ products: productDirectory, dsrs: dsrDirectory, today, saveSettlementAction: saveSettlement, t, tenantName: tenant?.name });
   const canCreateSettlement = can('create_settlements');
   const canUpdateSettlement = can('update_settlements');
@@ -248,6 +248,59 @@ export default function EveningSettlementPage() {
             </div>
 
             <div className="border-t border-slate-100 p-4">
+              <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <h3 className="text-sm font-black uppercase tracking-[0.14em] text-slate-700">SR Handover</h3>
+                <button type="button" className="btn-secondary" onClick={vm.addSrHandover}>
+                  <Plus size={18} />
+                  Add SR Handover
+                </button>
+              </div>
+              {vm.srHandovers.length ? (
+                <div className="mb-4 space-y-3">
+                  {vm.srHandovers.map((h) => (
+                    <div key={h.id} className="grid gap-3 rounded-[22px] border border-slate-200 bg-slate-50 p-4 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1.5fr)_auto]">
+                      <div>
+                        <label className="label">SR</label>
+                        <select
+                          className="input"
+                          value={h.srId}
+                          onChange={(e) => {
+                            const selected = srDirectory.find((s) => s.id === e.target.value);
+                            vm.updateSrHandover(h.id, 'srId', e.target.value);
+                            vm.updateSrHandover(h.id, 'srName', selected?.name || '');
+                          }}
+                          disabled={vm.saving}
+                        >
+                          <option value="">Select SR...</option>
+                          {srDirectory.map((sr) => (
+                            <option key={sr.id} value={sr.id}>{sr.name}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="label">Amount</label>
+                        <input className="input" type="number" min="0" step="0.01" value={h.amount} onChange={(e) => vm.updateSrHandover(h.id, 'amount', e.target.value)} disabled={vm.saving} />
+                      </div>
+                      <div>
+                        <label className="label">Note</label>
+                        <input className="input" type="text" value={h.note} onChange={(e) => vm.updateSrHandover(h.id, 'note', e.target.value)} placeholder="Optional note" disabled={vm.saving} />
+                      </div>
+                      <div className="flex items-end">
+                        <button type="button" className="btn-secondary text-rose-600 hover:bg-rose-50 hover:text-rose-700" onClick={() => vm.removeSrHandover(h.id)} disabled={vm.saving}>
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="mb-4 rounded-[22px] border border-dashed border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-500">
+                  No SR handovers — add one if DSR handed memo to an SR.
+                </div>
+              )}
+            </div>
+
+            <div className="border-t border-slate-100 p-4">
               {vm.hasInvalidReturns ? (
                 <div className="mb-4 inline-flex items-center gap-2 text-sm font-semibold text-rose-700">
                   <AlertTriangle size={17} />
@@ -284,6 +337,12 @@ export default function EveningSettlementPage() {
                         <input className="input h-9 w-28 text-right" type="number" min="0" step="0.01" value={vm.discountInput} onChange={(event) => vm.setDiscountInput(event.target.value)} disabled={vm.saving} />
                       </dd>
                     </div>
+                    {vm.totalSrHandovers > 0 ? (
+                      <div className="flex items-center justify-between">
+                        <dt className="font-semibold text-slate-600">SR Handover</dt>
+                        <dd className="font-black text-rose-700">- {formatCurrency(vm.totalSrHandovers, language)}</dd>
+                      </div>
+                    ) : null}
                     <div className="flex items-center justify-between border-t border-slate-200 pt-2">
                       <dt className="font-black uppercase tracking-[0.1em] text-slate-700">{t('settlement.totalReceivable')}</dt>
                       <dd className="font-black text-slate-950">{formatCurrency(vm.receivableTotal, language)}</dd>

@@ -81,6 +81,30 @@ export async function recordDueLedgerEntry(client, entry) {
   });
 }
 
+export async function recordSrDueLedgerEntry(client, entry) {
+  const debit = cleanMoney(entry.debit);
+  const credit = cleanMoney(entry.credit);
+
+  if (debit <= 0 && credit <= 0) {
+    return;
+  }
+
+  await insertSrDueLedgerEntry(client, {
+    id: createId("sr-ledger"),
+    tenantId: entry.tenantId,
+    srId: entry.srId,
+    type: entry.type,
+    debit,
+    credit,
+    balanceAfter: entry.balanceAfter,
+    referenceType: entry.referenceType,
+    referenceId: entry.referenceId,
+    note: entry.note || "",
+    createdById: entry.createdById,
+    businessDate: entry.businessDate,
+  });
+}
+
 export async function recordSupplierDueLedgerEntry(client, entry) {
   const debit = cleanMoney(entry.debit);
   const credit = cleanMoney(entry.credit);

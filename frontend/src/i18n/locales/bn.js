@@ -106,6 +106,8 @@
       quotations: 'কোটেশন',
       tradeIns: 'ট্রেড-ইন / বিনিময়',
       shopDueLedger: 'দোকান বকেয়া লেজার',
+      srs: 'SR',
+      srDueLedger: 'SR বকেয়া লেজার',
     },
     navGroups: {
       overview: 'ওভারভিউ',

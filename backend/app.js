@@ -52,6 +52,8 @@ export function createApp({
   quotationService,
   tradeInService,
   brandService,
+  srService,
+  srDueLedgerService,
 }) {
   const app = express();
 
@@ -107,6 +109,8 @@ export function createApp({
       quotationService,
       tradeInService,
       brandService,
+      srService,
+      srDueLedgerService,
     }),
   );
 

@@ -1,0 +1,304 @@
+import { useState } from 'react';
+import { Download, FileSpreadsheet, HandCoins, Printer, RefreshCw, Wallet } from 'lucide-react';
+import { Alert, Badge, EmptyState, Modal, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton } from '../../../components/ui.jsx';
+import { DatePickerField } from '../../../components/DatePicker.jsx';
+import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
+import { downloadSheetPdf } from '../../../services/printService.js';
+import { inventoryApi } from '../../../services/inventoryApi.js';
+import { formatCurrency, formatDate, formatDateTime, reverseEntries } from '../../../utils/calculations.js';
+import { useSrDueStatementViewModel } from '../viewmodels/useSrDueStatementViewModel.js';
+
+const PRINT_ID = 'sr-due-statement-print';
+
+function ledgerTone(type) {
+  if (type === 'COLLECTION') return 'emerald';
+  if (type === 'HANDOVER') return 'rose';
+  if (type === 'OPENING') return 'blue';
+  if (type === 'MANUAL_ADJUSTMENT') return 'amber';
+  return 'slate';
+}
+
+function ledgerLabel(type) {
+  const labels = {
+    COLLECTION: 'Collection',
+    HANDOVER: 'SR Handover',
+    OPENING: 'Opening',
+    MANUAL_ADJUSTMENT: 'Adjustment',
+  };
+  return labels[type] || type;
+}
+
+function CollectModal({ balance, srName, onClose, onSave }) {
+  const [amount, setAmount] = useState('');
+  const [note, setNote] = useState('');
+  const [businessDate, setBusinessDate] = useState(new Date().toISOString().slice(0, 10));
+  const [error, setError] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  async function submitForm(event) {
+    event.preventDefault();
+    const amountValue = Number(amount);
+    if (!(amountValue > 0)) {
+      setError('Amount must be greater than zero.');
+      return;
+    }
+    setSaving(true);
+    setError('');
+    const result = await onSave({ amount: amountValue, note: note.trim(), businessDate });
+    setSaving(false);
+    if (!result?.ok) {
+      setError(result?.error || 'Failed to record collection.');
+    }
+  }
+
+  return (
+    <Modal title="Collect SR Due" description={srName} onClose={onClose} width="max-w-lg">
+      <form className="space-y-4" onSubmit={submitForm}>
+        {error ? <Alert type="error">{error}</Alert> : null}
+        <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+          <p className="text-xs font-bold uppercase text-slate-500">Current Balance</p>
+          <p className="mt-1 text-lg font-bold text-slate-950">{formatCurrency(balance || 0)}</p>
+        </div>
+        <div>
+          <label className="label">Date</label>
+          <DatePickerField value={businessDate} onChange={setBusinessDate} max={new Date().toISOString().slice(0, 10)} />
+        </div>
+        <div>
+          <label className="label">Amount Collected</label>
+          <input className="input" type="number" min="0" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} />
+        </div>
+        <div>
+          <label className="label">Note</label>
+          <textarea className="input min-h-20" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Optional note about this collection" />
+        </div>
+        <div className="flex justify-end gap-2 pt-2">
+          <button type="button" className="btn-secondary" onClick={onClose} disabled={saving}>Cancel</button>
+          <button type="submit" className="btn-primary" disabled={saving}>
+            <HandCoins size={18} />
+            {saving ? 'Saving...' : 'Collect'}
+          </button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+export default function SrDueLedgerPage() {
+  const { srDirectory, language, can } = useInventoryApp();
+  const vm = useSrDueStatementViewModel({ srs: srDirectory });
+  const entries = reverseEntries(vm.statement?.entries);
+  const [showCollect, setShowCollect] = useState(false);
+
+  const selectedSr = srDirectory.find((s) => s.id === vm.srId);
+  const canManage = can('manage_srs');
+
+  async function handleExportExcel() {
+    const { utils, writeFile } = await import('xlsx');
+    const header = ['Date', 'Type', 'Debit', 'Credit', 'Balance', 'Note', 'Created By'];
+    const data = (entries || []).map((e) => [
+      e.businessDate || String(e.createdAt || '').slice(0, 10),
+      e.type,
+      Number(e.debit || 0),
+      Number(e.credit || 0),
+      Number(e.balanceAfter),
+      e.note || '',
+      e.createdByName || '',
+    ]);
+    const ws = utils.aoa_to_sheet([header, ...data]);
+    ws['!cols'] = [{ wch: 14 }, { wch: 20 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 28 }, { wch: 18 }];
+    const wb = utils.book_new();
+    utils.book_append_sheet(wb, ws, 'SR Due Ledger');
+    writeFile(wb, `sr-due-${selectedSr?.name || vm.srId}.xlsx`);
+  }
+
+  async function handleCollect(payload) {
+    const result = await vm.collectDue(payload);
+    if (result.ok) setShowCollect(false);
+    return result;
+  }
+
+  return (
+    <div>
+      <SectionHeader
+        eyebrow="SR Due Ledger"
+        title="SR Due Statement"
+        description="View and collect SR due balances"
+        action={canManage && vm.srId && vm.statement ? (
+          <button type="button" className="btn-primary" onClick={() => setShowCollect(true)}>
+            <HandCoins size={18} />
+            Collect Due
+          </button>
+        ) : null}
+      />
+
+      <div className="surface p-5">
+        <div className="grid gap-3 sm:grid-cols-4">
+          <select
+            className="input sm:col-span-2"
+            value={vm.srId}
+            onChange={(e) => vm.setSrId(e.target.value)}
+          >
+            <option value="">Select SR...</option>
+            {srDirectory.map((sr) => (
+              <option key={sr.id} value={sr.id}>{sr.name}</option>
+            ))}
+          </select>
+          <DatePickerField value={vm.dateFrom} onChange={vm.setDateFrom} placeholder="Date From" />
+          <DatePickerField value={vm.dateTo} onChange={vm.setDateTo} placeholder="Date To" min={vm.dateFrom} />
+        </div>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <button type="button" className="btn-secondary" onClick={vm.refresh}>
+            <RefreshCw size={18} />
+            Refresh
+          </button>
+          {vm.statement ? (
+            <>
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={() => {
+                  inventoryApi.recordPrint({ entityType: 'sr_due_statement', entityId: vm.srId, label: 'pdf' }).catch(() => {});
+                  downloadSheetPdf(PRINT_ID, `sr-due-${selectedSr?.name || vm.srId}.pdf`);
+                }}
+              >
+                <Download size={18} />
+                Download PDF
+              </button>
+              <button type="button" className="btn-secondary" onClick={handleExportExcel}>
+                <FileSpreadsheet size={18} />
+                Export Excel
+              </button>
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={() => {
+                  inventoryApi.recordPrint({ entityType: 'sr_due_statement', entityId: vm.srId, label: 'print' }).catch(() => {});
+                  window.print();
+                }}
+              >
+                <Printer size={18} />
+                Print
+              </button>
+            </>
+          ) : null}
+        </div>
+      </div>
+
+      {vm.loading ? (
+        <>
+          <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, i) => <StatCardSkeleton key={i} />)}
+          </div>
+          <div className="surface mt-6 overflow-hidden">
+            <div className="border-b border-slate-100 px-5 py-4">
+              <div className="h-4 w-40 animate-pulse rounded-full bg-slate-200" />
+            </div>
+            <TableSkeleton rows={6} columns={7} />
+          </div>
+        </>
+      ) : vm.error ? (
+        <div className="surface mt-6 p-5">
+          <EmptyState title="Error" description={vm.error} icon={Wallet} />
+        </div>
+      ) : !vm.statement ? (
+        <div className="surface mt-6 p-5">
+          <EmptyState title="No SR Selected" description="Select an SR to view their due statement." icon={Wallet} />
+        </div>
+      ) : (
+        <>
+          <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <StatCard title="Opening Balance" value={formatCurrency(vm.statement.openingBalance, language)} icon={Wallet} tone="slate" />
+            <StatCard title="Total Debit (Handovers)" value={formatCurrency(vm.statement.totalDebit, language)} icon={Wallet} tone="rose" />
+            <StatCard title="Total Credit (Collections)" value={formatCurrency(vm.statement.totalCredit, language)} icon={Wallet} tone="emerald" />
+            <StatCard title="Closing Balance" value={formatCurrency(vm.statement.closingBalance, language)} icon={Wallet} tone="blue" />
+          </div>
+
+          {vm.statement.sr ? (
+            <div className="surface mt-4 px-5 py-4">
+              <div className="grid gap-3 sm:grid-cols-3">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-wide text-slate-400">SR Name</p>
+                  <p className="mt-1 font-bold text-slate-950">{vm.statement.sr.name}</p>
+                  <p className="text-sm text-slate-600">{vm.statement.sr.phone}</p>
+                </div>
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-wide text-slate-400">Status</p>
+                  <p className="mt-1 font-semibold text-slate-700">{vm.statement.sr.status}</p>
+                </div>
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-wide text-slate-400">Current Due</p>
+                  <p className={`mt-1 text-lg font-black ${Number(vm.statement.sr.currentDue) > 0 ? 'text-rose-700' : 'text-emerald-700'}`}>
+                    {formatCurrency(vm.statement.sr.currentDue, language)}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : null}
+
+          <div id={PRINT_ID} className="surface mt-6 overflow-hidden print-target">
+            <div className="border-b border-slate-100 px-5 py-4">
+              <h2 className="text-base font-bold text-slate-950">Ledger Entries</h2>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="table-head">
+                  <tr>
+                    <th className="px-4 py-3">Date</th>
+                    <th className="px-4 py-3">Type</th>
+                    <th className="px-4 py-3 text-right">Debit</th>
+                    <th className="px-4 py-3 text-right">Credit</th>
+                    <th className="px-4 py-3 text-right">Balance</th>
+                    <th className="hidden px-4 py-3 lg:table-cell">Note</th>
+                    <th className="hidden px-4 py-3 xl:table-cell">Created By</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {(entries || []).map((entry) => (
+                    <tr key={entry.id} className="hover:bg-slate-50">
+                      <td className="table-cell whitespace-nowrap text-sm font-semibold text-slate-700">
+                        {entry.businessDate ? formatDate(entry.businessDate) : formatDateTime(entry.createdAt, language)}
+                      </td>
+                      <td className="table-cell">
+                        <Badge tone={ledgerTone(entry.type)}>{ledgerLabel(entry.type)}</Badge>
+                      </td>
+                      <td className="table-cell text-right font-black text-rose-700">
+                        {entry.debit ? formatCurrency(entry.debit, language) : '-'}
+                      </td>
+                      <td className="table-cell text-right font-black text-emerald-700">
+                        {entry.credit ? formatCurrency(entry.credit, language) : '-'}
+                      </td>
+                      <td className="table-cell text-right font-black text-slate-950">
+                        {formatCurrency(entry.balanceAfter, language)}
+                      </td>
+                      <td className="hidden table-cell lg:table-cell max-w-52">
+                        <p className="truncate text-sm text-slate-600">{entry.note || '-'}</p>
+                      </td>
+                      <td className="hidden table-cell xl:table-cell">
+                        <p className="font-semibold text-slate-950">{entry.createdByName || '-'}</p>
+                        <p className="text-xs text-slate-500">{entry.createdByRole || ''}</p>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {!entries?.length ? (
+              <div className="p-5">
+                <EmptyState title="No Entries" description="No ledger entries found for the selected period." icon={Wallet} />
+              </div>
+            ) : null}
+          </div>
+        </>
+      )}
+
+      {showCollect && vm.statement ? (
+        <CollectModal
+          balance={vm.statement.closingBalance}
+          srName={selectedSr?.name || ''}
+          onClose={() => setShowCollect(false)}
+          onSave={handleCollect}
+        />
+      ) : null}
+    </div>
+  );
+}

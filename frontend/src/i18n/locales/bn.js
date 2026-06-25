@@ -1268,6 +1268,7 @@
       name: 'নাম',
       phone: 'ফোন',
       address: 'ঠিকানা',
+      currentDue: 'বর্তমান বকেয়া',
       loyaltyPoints: 'লয়্যালটি পয়েন্ট',
       status: 'অবস্থা',
       noMatchTitle: 'কোনো গ্রাহক মেলেনি',

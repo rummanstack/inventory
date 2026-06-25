@@ -7,6 +7,8 @@ export function mapRetailCustomer(row) {
     address: row.address,
     note: row.note,
     status: row.status,
+    openingDue: Number(row.opening_due || 0),
+    currentDue: row.current_due != null ? Number(row.current_due) : Number(row.opening_due || 0),
     loyaltyPointsBalance: Number(row.loyalty_points_balance || 0),
     purchaseCount: Number(row.purchase_count || 0),
     firstPurchaseAt: row.first_purchase_at || null,
@@ -57,7 +59,8 @@ export async function listRetailCustomersPage(client, { limit, offset, ...filter
   const { params, where } = buildFilters(filters, 'rc');
   params.push(limit, offset);
   const result = await client.query(
-    `SELECT rc.*, stats.purchase_count, stats.first_purchase_at, stats.last_purchase_at, stats.total_spent, stats.total_paid
+    `SELECT rc.*, stats.purchase_count, stats.first_purchase_at, stats.last_purchase_at, stats.total_spent, stats.total_paid,
+            COALESCE(latest_due.balance_after, rc.opening_due) AS current_due
      FROM retail_customers rc
      LEFT JOIN (
        SELECT customer_id,
@@ -70,6 +73,11 @@ export async function listRetailCustomersPage(client, { limit, offset, ...filter
        WHERE tenant_id = $1 AND deleted_at IS NULL AND customer_id IS NOT NULL
        GROUP BY customer_id
      ) stats ON stats.customer_id = rc.id
+     LEFT JOIN LATERAL (
+       SELECT balance_after FROM customer_due_ledger
+       WHERE customer_id = rc.id AND tenant_id = rc.tenant_id
+       ORDER BY created_at DESC, id DESC LIMIT 1
+     ) latest_due ON true
      ${where}
      ORDER BY rc.created_at DESC
      LIMIT $${params.length - 1} OFFSET $${params.length}`,

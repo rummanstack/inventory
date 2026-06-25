@@ -61,9 +61,15 @@ export async function listCustomersPage(client, { limit, offset, ...filters }) {
   const { params, where } = buildFilters(filters);
   params.push(limit, offset);
   const result = await client.query(
-    `SELECT c.*, d.name AS assigned_dsr_name
+    `SELECT c.*, d.name AS assigned_dsr_name,
+            COALESCE(latest_due.balance_after, c.opening_due) AS current_due
      FROM customers c
      LEFT JOIN dsrs d ON d.id = c.assigned_dsr_id
+     LEFT JOIN LATERAL (
+       SELECT balance_after FROM shop_due_ledger
+       WHERE shop_id = c.id AND tenant_id = c.tenant_id
+       ORDER BY created_at DESC, id DESC LIMIT 1
+     ) latest_due ON true
      ${where}
      ORDER BY c.created_at DESC
      LIMIT $${params.length - 1} OFFSET $${params.length}`,

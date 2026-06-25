@@ -64,10 +64,12 @@ import { SupplierController } from "../controllers/supplierController.js";
 import { SupplierDueLedgerController } from "../controllers/supplierDueLedgerController.js";
 import { PurchaseReceiveController } from "../controllers/purchaseReceiveController.js";
 import { SupplierPaymentController } from "../controllers/supplierPaymentController.js";
+import { SupplierDiscountController } from "../controllers/supplierDiscountController.js";
 import { createSuppliersRoutes } from "./suppliers.routes.js";
 import { createSupplierDueLedgerRoutes } from "./supplierDueLedger.routes.js";
 import { createPurchaseReceiveRoutes } from "./purchaseReceive.routes.js";
 import { createSupplierPaymentsRoutes } from "./supplierPayments.routes.js";
+import { createSupplierDiscountsRoutes } from "./supplierDiscounts.routes.js";
 import { SalesInvoiceController } from "../controllers/salesInvoiceController.js";
 import { CustomerDueLedgerController } from "../controllers/customerDueLedgerController.js";
 import { CustomerPaymentController } from "../controllers/customerPaymentController.js";
@@ -132,6 +134,7 @@ export function createApiRouter({
   supplierDueLedgerService,
   purchaseReceiveService,
   supplierPaymentService,
+  supplierDiscountService,
   salesInvoiceService,
   customerDueLedgerService,
   customerPaymentService,
@@ -189,6 +192,7 @@ export function createApiRouter({
   const supplierDueLedgerController = new SupplierDueLedgerController(supplierDueLedgerService);
   const purchaseReceiveController = new PurchaseReceiveController(purchaseReceiveService);
   const supplierPaymentController = new SupplierPaymentController(supplierPaymentService);
+  const supplierDiscountController = new SupplierDiscountController(supplierDiscountService);
   const salesInvoiceController = new SalesInvoiceController(salesInvoiceService);
   const customerDueLedgerController = new CustomerDueLedgerController(customerDueLedgerService);
   const customerPaymentController = new CustomerPaymentController(customerPaymentService);
@@ -261,6 +265,7 @@ export function createApiRouter({
   router.use("/supplier-due-ledger", createSupplierDueLedgerRoutes(supplierDueLedgerController));
   router.use("/purchase-receive", createPurchaseReceiveRoutes(purchaseReceiveController));
   router.use("/supplier-payments", createSupplierPaymentsRoutes(supplierPaymentController));
+  router.use("/supplier-discounts", createSupplierDiscountsRoutes(supplierDiscountController));
   router.use("/sales-invoices", createSalesInvoicesRoutes(salesInvoiceController));
   router.use("/retail-promotions", createRetailPromotionsRoutes(retailPromotionController));
   router.use("/customer-due-ledger", createCustomerDueLedgerRoutes(customerDueLedgerController));

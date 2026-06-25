@@ -48,6 +48,7 @@ import { RetailCashSessionService } from './services/retailCashSessionService.js
 import { VisitorChatService } from './services/visitorChatService.js';
 import { SrService } from './services/srService.js';
 import { SrDueLedgerService } from './services/srDueLedgerService.js';
+import { SupplierDiscountService } from './services/supplierDiscountService.js';
 import { createApp } from './app.js';
 
 dotenv.config({ path: `${backendRoot}/.env` });
@@ -107,6 +108,7 @@ export async function createBackendApp() {
   const visitorChatService = new VisitorChatService(databaseManager, { auditService });
   const srService = new SrService(databaseManager, { auditService });
   const srDueLedgerService = new SrDueLedgerService(databaseManager, { auditService, financeAccountService });
+  const supplierDiscountService = new SupplierDiscountService(databaseManager, { auditService, financeAccountService });
 
   const app = createApp({
     authService,
@@ -157,6 +159,7 @@ export async function createBackendApp() {
     brandService,
     srService,
     srDueLedgerService,
+    supplierDiscountService,
   });
 
   return { app, databaseManager, env };

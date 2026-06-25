@@ -351,6 +351,16 @@ export function normalizeSupplierPayment(input) {
   };
 }
 
+export function normalizeSupplierDiscount(input) {
+  return {
+    id: input.id || createId("supplier-discount"),
+    supplierId: String(input.supplierId || "").trim(),
+    discountDate: String(input.discountDate || "").trim(),
+    amount: Math.max(0, cleanMoney(input.amount)),
+    note: String(input.note || "").trim(),
+  };
+}
+
 const SALE_TYPES = ["WHOLESALE", "RETAIL", "QUICK_SALE"];
 const CUSTOMER_TYPES = ["REGISTERED", "WALK_IN"];
 

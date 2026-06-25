@@ -54,6 +54,7 @@ export function createApp({
   brandService,
   srService,
   srDueLedgerService,
+  supplierDiscountService,
 }) {
   const app = express();
 
@@ -111,6 +112,7 @@ export function createApp({
       brandService,
       srService,
       srDueLedgerService,
+      supplierDiscountService,
     }),
   );
 

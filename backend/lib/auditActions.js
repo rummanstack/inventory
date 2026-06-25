@@ -55,6 +55,11 @@ export const SUPPLIER_PAYMENT_ACTIONS = {
   RESTORE: "supplier_payment.restore",
 };
 
+export const SUPPLIER_DISCOUNT_ACTIONS = {
+  CREATE: "supplier_discount.create",
+  DELETE: "supplier_discount.delete",
+};
+
 export const SALES_INVOICE_ACTIONS = {
   CREATE: "sales_invoice.create",
   UPDATE: "sales_invoice.update",

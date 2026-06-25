@@ -84,6 +84,7 @@ const en = {
       suppliers: 'Suppliers',
       purchaseReceive: 'Purchase Receive',
       supplierPayments: 'Supplier Payments',
+      supplierDiscounts: 'Supplier Discounts',
       supplierStatement: 'Supplier Statement',
       retailerQuickSale: 'Quick Sale',
       cashSessionHistory: 'Cash Session',

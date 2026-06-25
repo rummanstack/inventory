@@ -23,6 +23,7 @@ import { settingsApi } from './api/settingsApi.js';
 import { settlementsApi } from './api/settlementsApi.js';
 import { supplierDueLedgerApi } from './api/supplierDueLedgerApi.js';
 import { supplierPaymentsApi } from './api/supplierPaymentsApi.js';
+import { supplierDiscountsApi } from './api/supplierDiscountsApi.js';
 import { suppliersApi } from './api/suppliersApi.js';
 import { salesInvoicesApi } from './api/salesInvoicesApi.js';
 import { customerDueLedgerApi } from './api/customerDueLedgerApi.js';
@@ -71,6 +72,7 @@ export const inventoryApi = {
   ...purchaseReceiveApi,
   ...supplierDueLedgerApi,
   ...supplierPaymentsApi,
+  ...supplierDiscountsApi,
   ...salesInvoicesApi,
   ...customerDueLedgerApi,
   ...customerPaymentsApi,

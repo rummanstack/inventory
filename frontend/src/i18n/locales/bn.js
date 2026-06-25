@@ -89,6 +89,7 @@
       suppliers: 'সাপ্লায়ার',
       purchaseReceive: 'পারচেজ রিসিভ',
       supplierPayments: 'সাপ্লায়ার পেমেন্ট',
+      supplierDiscounts: 'সাপ্লায়ার ডিসকাউন্ট',
       supplierStatement: 'সাপ্লায়ার বিবরণী',
       retailerQuickSale: 'কুইক সেল',
       cashSessionHistory: 'ক্যাশ সেশনের ইতিহাস',

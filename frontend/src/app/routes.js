@@ -69,6 +69,7 @@ import DamagedStockPage from '../features/damaged-stock/pages/DamagedStockPage';
 import SuppliersPage from '../features/suppliers/pages/SuppliersPage';
 import PurchaseReceivePage from '../features/purchase-receive/pages/PurchaseReceivePage';
 import SupplierPaymentsPage from '../features/supplier-payments/pages/SupplierPaymentsPage';
+import SupplierDiscountsPage from '../features/supplier-discounts/pages/SupplierDiscountsPage';
 import SupplierStatementPage from '../features/supplier-statement/pages/SupplierStatementPage';
 import QuickSalePage from '../features/retailer/quick-sale/pages/QuickSalePage';
 import SalesInvoicesPage from '../features/retailer/sales-invoices/pages/SalesInvoicesPage';
@@ -118,6 +119,7 @@ export const APP_ROUTES = [
   { id: 'suppliers', path: '/suppliers', labelKey: 'nav.suppliers', icon: Building2, component: SuppliersPage, group: 'purchases', permission: 'manage_suppliers', feature: 'suppliers' },
   { id: 'purchase-receive', path: '/purchase-receive', labelKey: 'nav.purchaseReceive', icon: ShoppingCart, component: PurchaseReceivePage, group: 'purchases', permission: 'manage_purchases', feature: 'purchase-receive' },
   { id: 'supplier-payments', path: '/supplier-payments', labelKey: 'nav.supplierPayments', icon: Wallet, component: SupplierPaymentsPage, group: 'purchases', permission: 'manage_supplier_payments', feature: 'supplier-payments' },
+  { id: 'supplier-discounts', path: '/supplier-discounts', labelKey: 'nav.supplierDiscounts', icon: Tag, component: SupplierDiscountsPage, group: 'purchases', permission: 'manage_supplier_payments', feature: 'supplier-discounts' },
   { id: 'supplier-statement', path: '/supplier-statement', labelKey: 'nav.supplierStatement', icon: FileText, component: SupplierStatementPage, group: 'purchases', permission: 'view_supplier_statement', feature: 'supplier-statement' },
 
   // 6. Dealer / DSR

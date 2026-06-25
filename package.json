@@ -11,9 +11,9 @@
     "client": "npm run dev --prefix frontend",
     "server": "npm run dev --prefix backend",
     "watch": "concurrently \"npm run client\" \"npm run server\"",
-    "deploy": "npm run build --prefix frontend && npm start --prefix backend",
-    "deploy-cluster": "npm run build --prefix frontend && npm run cluster --prefix backend",
-    "deploy-watch": "npm run build --prefix frontend && npm run watch --prefix backend",
+    "deploy": "npm run backend-build --prefix frontend && npm start --prefix backend",
+    "deploy-cluster": "npm run backend-build --prefix frontend && npm run cluster --prefix backend",
+    "deploy-watch": "npm run backend-build --prefix frontend && npm run watch --prefix backend",
     "render-build": "node scripts/render-build.mjs",
     "start": "npm run start --prefix backend"
   },

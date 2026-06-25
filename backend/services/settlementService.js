@@ -5,12 +5,14 @@ import { parsePagination, buildPageResult } from "../lib/pagination.js";
 import { STOCK_MOVEMENT_TYPES } from "../lib/stockMovements.js";
 import { cleanInteger, cleanMoney, normalizeSettlementBase, finalizeSettlementAmounts } from "../lib/normalizers.js";
 import { DSR_DUE_LEDGER_TYPES } from "../lib/dsrDueLedger.js";
+import { SR_DUE_LEDGER_TYPES } from "../lib/srDueLedger.js";
 import { SETTLEMENT_ACTIONS } from "../lib/auditActions.js";
 import { getLatestDueLedgerEntry, getFirstDueLedgerEntryForReference } from "../repositories/dsrDueLedgerRepository.js";
 import { findDsrForUpdate } from "../repositories/dsrRepository.js";
 import { insertShopDueLedgerEntry, getLatestShopDueLedgerEntry } from "../repositories/shopDueLedgerRepository.js";
 import { updateCustomerCurrentDue } from "../repositories/customerRepository.js";
 import { findIssueByDateAndDsr } from "../repositories/issueRepository.js";
+import { getLatestSrDueLedgerEntry } from "../repositories/srDueLedgerRepository.js";
 import {
   countSettlements,
   findDuplicateSettlement,
@@ -27,6 +29,7 @@ import {
   lockProducts,
   recordStockMovement,
   recordDueLedgerEntry,
+  recordSrDueLedgerEntry,
   applyStockDelta,
   sumPiecesByProduct,
 } from "./shared/inventoryHelpers.js";
@@ -231,14 +234,79 @@ async function buildTrustedSettlementBase(client, base, issueItems, tenantId) {
 
 function finalizeSettlementAmountsStrict(base, previousDue) {
   const normalizedPreviousDue = Math.max(0, cleanMoney(previousDue));
+  const totalSrHandovers = (base.srHandovers || []).reduce((sum, h) => sum + Number(h.amount || 0), 0);
   assert(base.discount <= base.totalPayable + 0.004, "Discount cannot exceed today's total payable amount.");
-  const receivableBeforePayment = base.totalPayable + normalizedPreviousDue - base.discount - base.extraReturnValue;
-  assert(receivableBeforePayment >= -0.004, "Discount and extra returns cannot be greater than the total receivable amount.");
+  const receivableBeforePayment = base.totalPayable + normalizedPreviousDue - base.discount - base.extraReturnValue - totalSrHandovers;
+  assert(receivableBeforePayment >= -0.004, "SR handovers, discount and extra returns cannot be greater than the total receivable amount.");
   assert(
     Math.max(0, base.amountPaidInput) <= Math.max(0, receivableBeforePayment) + 0.004,
     "Cash received cannot be greater than the total receivable amount.",
   );
   return finalizeSettlementAmounts(base, normalizedPreviousDue);
+}
+
+async function applySrHandovers(client, srHandovers, settlementId, settlementDate, tenantId, actor) {
+  for (const handover of srHandovers) {
+    const srResult = await client.query(
+      "SELECT * FROM srs WHERE id = $1 AND tenant_id = $2 AND deleted_at IS NULL LIMIT 1",
+      [handover.srId, tenantId],
+    );
+    if (!srResult.rowCount) continue;
+    const sr = srResult.rows[0];
+    const latestEntry = await getLatestSrDueLedgerEntry(client, handover.srId, tenantId);
+    const currentBalance = latestEntry ? latestEntry.balanceAfter : Number(sr.opening_due || 0);
+    const balanceAfter = currentBalance + handover.amount;
+    await recordSrDueLedgerEntry(client, {
+      tenantId,
+      srId: handover.srId,
+      type: SR_DUE_LEDGER_TYPES.HANDOVER,
+      debit: handover.amount,
+      credit: 0,
+      balanceAfter,
+      referenceType: "settlement",
+      referenceId: settlementId,
+      note: handover.note || `SR handover from DSR settlement`,
+      createdById: actor.id,
+      businessDate: settlementDate,
+    });
+  }
+}
+
+async function applySrHandoverDeltas(client, oldHandovers, newHandovers, settlementId, settlementDate, tenantId, actor) {
+  const oldBySr = new Map((oldHandovers || []).map((h) => [h.srId, Number(h.amount || 0)]));
+  const newBySr = new Map((newHandovers || []).map((h) => [h.srId, h]));
+  const allSrIds = new Set([...oldBySr.keys(), ...newBySr.keys()]);
+
+  for (const srId of allSrIds) {
+    const oldAmount = oldBySr.get(srId) || 0;
+    const newH = newBySr.get(srId);
+    const newAmount = newH ? Number(newH.amount || 0) : 0;
+    const delta = newAmount - oldAmount;
+    if (delta === 0) continue;
+
+    const srResult = await client.query(
+      "SELECT * FROM srs WHERE id = $1 AND tenant_id = $2 AND deleted_at IS NULL LIMIT 1",
+      [srId, tenantId],
+    );
+    if (!srResult.rowCount) continue;
+    const latestEntry = await getLatestSrDueLedgerEntry(client, srId, tenantId);
+    const sr = srResult.rows[0];
+    const currentBalance = latestEntry ? latestEntry.balanceAfter : Number(sr.opening_due || 0);
+    const balanceAfter = currentBalance + delta;
+    await recordSrDueLedgerEntry(client, {
+      tenantId,
+      srId,
+      type: SR_DUE_LEDGER_TYPES.HANDOVER,
+      debit: Math.max(0, delta),
+      credit: Math.max(0, -delta),
+      balanceAfter,
+      referenceType: "settlement",
+      referenceId: settlementId,
+      note: newH?.note || `SR handover adjusted via settlement`,
+      createdById: actor.id,
+      businessDate: settlementDate,
+    });
+  }
 }
 
 function getDueLedgerChange(entry) {
@@ -328,7 +396,7 @@ async function applyShopDueCollectionDeltas(client, oldCollections, newCollectio
   }
 }
 
-async function recordSettlementDueLedgerChanges(client, settlement, tenantId, actor, startingBalance, { saleDueAmount, collectionAmount, verb }) {
+async function recordSettlementDueLedgerChanges(client, settlement, tenantId, actor, startingBalance, { saleDueAmount, collectionAmount, srHandoverAmount, verb }) {
   let currentBalance = startingBalance;
 
   if (saleDueAmount !== 0) {
@@ -343,6 +411,23 @@ async function recordSettlementDueLedgerChanges(client, settlement, tenantId, ac
       referenceType: "settlement",
       referenceId: settlement.id,
       note: `Sale due ${verb} for ${settlement.dsrName} on ${settlement.date}`,
+      createdById: actor.id,
+      businessDate: settlement.date,
+    });
+  }
+
+  if (srHandoverAmount !== 0) {
+    currentBalance -= srHandoverAmount;
+    await recordDueLedgerEntry(client, {
+      tenantId,
+      dsrId: settlement.dsrId,
+      type: DSR_DUE_LEDGER_TYPES.COLLECTION,
+      debit: Math.max(0, -srHandoverAmount),
+      credit: Math.max(0, srHandoverAmount),
+      balanceAfter: currentBalance,
+      referenceType: "settlement",
+      referenceId: settlement.id,
+      note: `SR handover ${verb} for ${settlement.dsrName} on ${settlement.date}`,
       createdById: actor.id,
       businessDate: settlement.date,
     });
@@ -455,9 +540,12 @@ export class SettlementService {
     const settlement = finalizeSettlementAmountsStrict(trustedBase, latestBalance);
     const insertResult = await insertSettlement(client, settlement);
 
+    const totalSrHandovers = (settlement.srHandovers || []).reduce((sum, h) => sum + Number(h.amount || 0), 0);
+
     await recordSettlementDueLedgerChanges(client, settlement, tenantId, actor, latestBalance, {
       saleDueAmount: settlement.totalPayable - settlement.discount - settlement.extraReturnValue,
       collectionAmount: settlement.amountPaid,
+      srHandoverAmount: totalSrHandovers,
       verb: "recorded",
     });
 
@@ -473,6 +561,10 @@ export class SettlementService {
         },
         actor,
       );
+    }
+
+    if (settlement.srHandovers && settlement.srHandovers.length > 0) {
+      await applySrHandovers(client, settlement.srHandovers, settlement.id, settlement.date, tenantId, actor);
     }
 
     if (settlement.shopCollections && settlement.shopCollections.length > 0) {
@@ -542,12 +634,14 @@ export class SettlementService {
       },
     );
 
+    const oldSrHandovers = Array.isArray(previousSettlement.sr_handovers) ? previousSettlement.sr_handovers : [];
+    const oldTotalSrHandovers = oldSrHandovers.reduce((sum, h) => sum + Number(h.amount || 0), 0);
     const oldSaleDue =
       Number(previousSettlement.total_payable || 0) -
       Number(previousSettlement.discount || 0) -
       Number(previousSettlement.extra_return_value || 0);
     const oldCollection = Number(previousSettlement.amount_paid || 0);
-    const oldNet = oldSaleDue - oldCollection;
+    const oldNet = oldSaleDue - oldCollection - oldTotalSrHandovers;
 
     const dsrLock = await findDsrForUpdate(client, base.dsrId, tenantId);
     assert(dsrLock.rowCount > 0, "Select a valid DSR.");
@@ -561,10 +655,12 @@ export class SettlementService {
 
     const newSaleDue = settlement.totalPayable - settlement.discount - settlement.extraReturnValue;
     const newCollection = settlement.amountPaid;
+    const newTotalSrHandovers = (settlement.srHandovers || []).reduce((sum, h) => sum + Number(h.amount || 0), 0);
 
     await recordSettlementDueLedgerChanges(client, settlement, tenantId, actor, latestBalance, {
       saleDueAmount: newSaleDue - oldSaleDue,
       collectionAmount: newCollection - oldCollection,
+      srHandoverAmount: newTotalSrHandovers - oldTotalSrHandovers,
       verb: "adjusted",
     });
 
@@ -583,6 +679,11 @@ export class SettlementService {
         },
         actor,
       );
+    }
+
+    const newSrHandovers = settlement.srHandovers || [];
+    if (oldSrHandovers.length > 0 || newSrHandovers.length > 0) {
+      await applySrHandoverDeltas(client, oldSrHandovers, newSrHandovers, settlement.id, settlement.date, tenantId, actor);
     }
 
     const oldShopCollections = Array.isArray(previousSettlement.shop_collections) ? previousSettlement.shop_collections : [];

@@ -101,6 +101,8 @@ const en = {
       warrantyClaims: 'Warranty Claims',
       repairJobs: 'Repair Jobs',
       shopDueLedger: 'Shop Due Ledger',
+      srs: 'SRs',
+      srDueLedger: 'SR Due Ledger',
     },
     backup: {
       title: 'Database Backup',

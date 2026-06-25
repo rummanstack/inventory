@@ -96,6 +96,10 @@ import { TradeInController } from "../controllers/tradeInController.js";
 import { createTradeInsRoutes } from "./tradeIns.routes.js";
 import { BrandController } from "../controllers/BrandController.js";
 import { createBrandsRoutes } from "./brands.routes.js";
+import { SrController } from "../controllers/srController.js";
+import { SrDueLedgerController } from "../controllers/srDueLedgerController.js";
+import { createSrsRoutes } from "./srs.routes.js";
+import { createSrDueLedgerRoutes } from "./srDueLedger.routes.js";
 
 export function createApiRouter({
   authService,
@@ -144,6 +148,8 @@ export function createApiRouter({
   quotationService,
   tradeInService,
   brandService,
+  srService,
+  srDueLedgerService,
 }) {
   const router = Router();
   const authController = new AuthController(authService, env, tenantService);
@@ -156,6 +162,8 @@ export function createApiRouter({
   const quotationController = new QuotationController(quotationService);
   const tradeInController = new TradeInController(tradeInService);
   const brandController = new BrandController(brandService);
+  const srController = new SrController(srService);
+  const srDueLedgerController = new SrDueLedgerController(srDueLedgerService);
   const dsrDueLedgerController = new DsrDueLedgerController(dsrDueLedgerService);
   const shopDueLedgerController = new ShopDueLedgerController(shopDueLedgerService);
   const dsrController = new DsrController(dsrService);
@@ -262,6 +270,8 @@ export function createApiRouter({
   router.use("/finance-dashboard", createFinanceDashboardRoutes(financeDashboardController));
   router.use("/dsr-dashboard", createDsrDashboardRoutes(dsrDashboardController));
   router.use("/retail-cash-sessions", createRetailCashSessionsRoutes(retailCashSessionController));
+  router.use("/srs", createSrsRoutes(srController));
+  router.use("/sr-due-ledger", createSrDueLedgerRoutes(srDueLedgerController));
 
   return router;
 }

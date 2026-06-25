@@ -46,6 +46,8 @@ import { FinanceDashboardService } from './services/financeDashboardService.js';
 import { DsrDashboardService } from './services/dsrDashboardService.js';
 import { RetailCashSessionService } from './services/retailCashSessionService.js';
 import { VisitorChatService } from './services/visitorChatService.js';
+import { SrService } from './services/srService.js';
+import { SrDueLedgerService } from './services/srDueLedgerService.js';
 import { createApp } from './app.js';
 
 dotenv.config({ path: `${backendRoot}/.env` });
@@ -103,6 +105,8 @@ export async function createBackendApp() {
   const dsrDashboardService = new DsrDashboardService(databaseManager);
   const retailCashSessionService = new RetailCashSessionService(databaseManager, { auditService });
   const visitorChatService = new VisitorChatService(databaseManager, { auditService });
+  const srService = new SrService(databaseManager, { auditService });
+  const srDueLedgerService = new SrDueLedgerService(databaseManager, { auditService, financeAccountService });
 
   const app = createApp({
     authService,
@@ -151,6 +155,8 @@ export async function createBackendApp() {
     quotationService,
     tradeInService,
     brandService,
+    srService,
+    srDueLedgerService,
   });
 
   return { app, databaseManager, env };

@@ -59,6 +59,8 @@ import SystemHealthPage from '../features/system/pages/SystemHealthPage';
 import ErrorLogsPage from '../features/system/pages/ErrorLogsPage';
 import ShopsPage from '../features/shops/pages/ShopsPage';
 import ShopDueLedgerPage from '../features/shops/pages/ShopDueLedgerPage';
+import SrPage from '../features/srs/pages/SrPage';
+import SrDueLedgerPage from '../features/sr-due-ledger/pages/SrDueLedgerPage';
 import RetailCustomersPage from '../features/retail-customers/pages/RetailCustomersPage';
 import RetailCustomerRetentionPage from '../features/retail-customers/pages/RetailCustomerRetentionPage';
 import HelpDeskPage from '../features/help-desk/pages/HelpDeskPage';
@@ -126,6 +128,8 @@ export const APP_ROUTES = [
   { id: 'settlements', path: '/settlements', labelKey: 'nav.eveningSettlement', icon: RotateCcw, component: EveningSettlementPage, group: 'dealer', permission: 'create_settlements', feature: 'settlements' },
   { id: 'dsr-finance', path: '/dsr-finance', labelKey: 'nav.dsrFinance', icon: HandCoins, component: DsrFinancePage, group: 'dealer', permission: 'manage_dsr_finance', feature: 'dsr-finance' },
   { id: 'shop-due-ledger', path: '/shop-due-ledger', labelKey: 'nav.shopDueLedger', icon: Wallet, component: ShopDueLedgerPage, group: 'dealer', permission: 'view_state', feature: 'shop-due-ledger' },
+  { id: 'srs', path: '/srs', labelKey: 'nav.srs', icon: Users, component: SrPage, group: 'dealer', permission: 'manage_srs', feature: 'srs' },
+  { id: 'sr-due-ledger', path: '/sr-due-ledger', labelKey: 'nav.srDueLedger', icon: Wallet, component: SrDueLedgerPage, group: 'dealer', permission: 'manage_srs', feature: 'sr-due-ledger' },
 
   // 7. Warranty & Repair
   { id: 'warranty-claims', path: '/warranty-claims', labelKey: 'nav.warrantyClaims', icon: Wrench, component: WarrantyClaimsPage, group: 'warranty', permission: 'view_warranty_claims', feature: 'warranty-claims' },

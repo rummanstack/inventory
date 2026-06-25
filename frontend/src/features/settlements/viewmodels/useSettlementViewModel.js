@@ -29,6 +29,7 @@ export function useSettlementViewModel({ products, dsrs, today, saveSettlementAc
   const [extraReturns, setExtraReturns] = useState([]);
   const [previousDue, setPreviousDue] = useState(0);
   const [shopCollections, setShopCollections] = useState([]);
+  const [srHandovers, setSrHandovers] = useState([]);
   const [discountInput, setDiscountInput] = useState('');
   const [amountPaidInput, setAmountPaidInput] = useState('');
   const [reasonInput, setReasonInput] = useState('');
@@ -95,6 +96,7 @@ export function useSettlementViewModel({ products, dsrs, today, saveSettlementAc
       setReturns({});
       setExtraReturns([]);
       setShopCollections([]);
+      setSrHandovers([]);
       setDiscountInput('');
       setAmountPaidInput('');
       setReasonInput('');
@@ -125,6 +127,15 @@ export function useSettlementViewModel({ products, dsrs, today, saveSettlementAc
         shopId: sc.shopId || '',
         amount: String(Number(sc.amount || 0)),
         note: sc.note || '',
+      })),
+    );
+    setSrHandovers(
+      (completedSettlement.srHandovers || []).map((h) => ({
+        id: createId('srh'),
+        srId: h.srId || '',
+        srName: h.srName || '',
+        amount: String(Number(h.amount || 0)),
+        note: h.note || '',
       })),
     );
     setReasonInput('');
@@ -201,10 +212,11 @@ export function useSettlementViewModel({ products, dsrs, today, saveSettlementAc
   const discount = Number.isFinite(discountRaw) ? Math.max(0, discountRaw) : 0;
   const amountPaidRaw = Number(amountPaidInput || 0);
   const amountPaid = Number.isFinite(amountPaidRaw) ? Math.max(0, amountPaidRaw) : 0;
-  const receivableBeforePayment = totalPayable + previousDue - discount - extraReturnValue;
+  const totalSrHandovers = srHandovers.reduce((sum, h) => sum + Math.max(0, Number(h.amount) || 0), 0);
+  const receivableBeforePayment = totalPayable + previousDue - discount - extraReturnValue - totalSrHandovers;
   const receivableTotal = Math.max(0, receivableBeforePayment);
   const dueAmount = receivableTotal - amountPaid;
-  const todayDue = totalPayable - discount - extraReturnValue - amountPaid;
+  const todayDue = totalPayable - discount - extraReturnValue - amountPaid - totalSrHandovers;
   const hasInvalidReturns = displayRows.some((row) => row.invalid);
   const hasInvalidExtraReturns = extraReturns.some(
     (row) =>
@@ -292,6 +304,18 @@ export function useSettlementViewModel({ products, dsrs, today, saveSettlementAc
     setShopCollections((current) => current.filter((sc) => sc.id !== id));
   }
 
+  function addSrHandover() {
+    setSrHandovers((current) => [...current, { id: createId('srh'), srId: '', srName: '', amount: '', note: '' }]);
+  }
+
+  function updateSrHandover(id, field, value) {
+    setSrHandovers((current) => current.map((h) => (h.id === id ? { ...h, [field]: value } : h)));
+  }
+
+  function removeSrHandover(id) {
+    setSrHandovers((current) => current.filter((h) => h.id !== id));
+  }
+
   async function completeSettlement() {
     const dsr = dsrs.find((candidate) => candidate.id === dsrId);
     if (!dsr) {
@@ -360,6 +384,9 @@ export function useSettlementViewModel({ products, dsrs, today, saveSettlementAc
       shopCollections: shopCollections
         .filter((sc) => sc.shopId && Number(sc.amount) > 0)
         .map(({ shopId, amount, note }) => ({ shopId, amount: Number(amount), note })),
+      srHandovers: srHandovers
+        .filter((h) => h.srId && Number(h.amount) > 0)
+        .map(({ srId, srName, amount, note }) => ({ srId, srName, amount: Number(amount), note })),
       ...(completedSettlement ? { reason: reasonInput.trim() } : {}),
     };
 
@@ -418,6 +445,11 @@ export function useSettlementViewModel({ products, dsrs, today, saveSettlementAc
     addShopCollection,
     updateShopCollection,
     removeShopCollection,
+    srHandovers,
+    totalSrHandovers,
+    addSrHandover,
+    updateSrHandover,
+    removeSrHandover,
     completeSettlement,
   };
 }

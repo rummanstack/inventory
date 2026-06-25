@@ -4,6 +4,7 @@ import { inventoryApi } from '../../services/inventoryApi';
 export function useDirectories() {
   const [productDirectory, setProductDirectory] = useState([]);
   const [dsrDirectory, setDsrDirectory] = useState([]);
+  const [srDirectory, setSrDirectory] = useState([]);
   const [supplierDirectory, setSupplierDirectory] = useState([]);
   const [shopDirectory, setShopDirectory] = useState([]);
   const [retailCustomerDirectory, setRetailCustomerDirectory] = useState([]);
@@ -38,6 +39,28 @@ export function useDirectories() {
 
   function removeFromDsrDirectory(dsrId) {
     setDsrDirectory((current) => current.filter((item) => item.id !== dsrId));
+  }
+
+  function upsertSrDirectory(sr) {
+    setSrDirectory((current) => {
+      const next = current.some((item) => item.id === sr.id)
+        ? current.map((item) => (item.id === sr.id ? sr : item))
+        : [...current, sr];
+      return next.sort((a, b) => a.name.localeCompare(b.name));
+    });
+  }
+
+  function removeFromSrDirectory(srId) {
+    setSrDirectory((current) => current.filter((item) => item.id !== srId));
+  }
+
+  async function refreshSrDirectory() {
+    try {
+      const result = await inventoryApi.getSrsDirectory();
+      setSrDirectory(result.srs || []);
+    } catch {
+      // Best effort - the directory will catch up on the next full refresh.
+    }
   }
 
   function upsertSupplierDirectory(supplier) {
@@ -153,6 +176,7 @@ export function useDirectories() {
   function resetDirectories() {
     setProductDirectory([]);
     setDsrDirectory([]);
+    setSrDirectory([]);
     setSupplierDirectory([]);
     setShopDirectory([]);
     setRetailCustomerDirectory([]);
@@ -162,12 +186,14 @@ export function useDirectories() {
   return {
     productDirectory,
     dsrDirectory,
+    srDirectory,
     supplierDirectory,
     shopDirectory,
     retailCustomerDirectory,
     promotionDirectory,
     setProductDirectory,
     setDsrDirectory,
+    setSrDirectory,
     setSupplierDirectory,
     setShopDirectory,
     setRetailCustomerDirectory,
@@ -176,6 +202,8 @@ export function useDirectories() {
     removeFromProductDirectory,
     upsertDsrDirectory,
     removeFromDsrDirectory,
+    upsertSrDirectory,
+    removeFromSrDirectory,
     upsertSupplierDirectory,
     removeFromSupplierDirectory,
     upsertShopDirectory,
@@ -186,6 +214,7 @@ export function useDirectories() {
     removeFromPromotionDirectory,
     refreshProductDirectory,
     refreshDsrDirectory,
+    refreshSrDirectory,
     refreshSupplierDirectory,
     refreshShopDirectory,
     refreshRetailCustomerDirectory,

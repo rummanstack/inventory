@@ -39,6 +39,7 @@ import { retailPromotionsApi } from './api/retailPromotionsApi.js';
 import { helpDeskApi } from './api/helpDeskApi.js';
 import { visitorChatAdminApi } from './api/visitorChatAdminApi.js';
 import { shopDueLedgerApi } from './api/shopDueLedgerApi.js';
+import { srsApi } from './api/srsApi.js';
 
 export const inventoryApi = {
   ...authApi,
@@ -82,4 +83,5 @@ export const inventoryApi = {
   ...helpDeskApi,
   ...visitorChatAdminApi,
   ...shopDueLedgerApi,
+  ...srsApi,
 };

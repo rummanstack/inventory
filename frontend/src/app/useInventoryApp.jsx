@@ -32,12 +32,14 @@ export function InventoryAppProvider({ children }) {
   const {
     productDirectory,
     dsrDirectory,
+    srDirectory,
     supplierDirectory,
     shopDirectory,
     retailCustomerDirectory,
     promotionDirectory,
     setProductDirectory,
     setDsrDirectory,
+    setSrDirectory,
     setSupplierDirectory,
     setShopDirectory,
     setRetailCustomerDirectory,
@@ -46,6 +48,8 @@ export function InventoryAppProvider({ children }) {
     removeFromProductDirectory,
     upsertDsrDirectory,
     removeFromDsrDirectory,
+    upsertSrDirectory,
+    removeFromSrDirectory,
     upsertSupplierDirectory,
     removeFromSupplierDirectory,
     upsertShopDirectory,
@@ -56,6 +60,7 @@ export function InventoryAppProvider({ children }) {
     removeFromPromotionDirectory,
     refreshProductDirectory,
     refreshDsrDirectory,
+    refreshSrDirectory,
     refreshSupplierDirectory,
     refreshShopDirectory,
     refreshRetailCustomerDirectory,
@@ -101,9 +106,10 @@ export function InventoryAppProvider({ children }) {
     try {
       setLoading(true);
       setLoadError('');
-      const [productsResult, dsrsResult, suppliersResult, customersResult, retailCustomersResult, promotionsResult] = await Promise.all([
+      const [productsResult, dsrsResult, srsResult, suppliersResult, customersResult, retailCustomersResult, promotionsResult] = await Promise.all([
         inventoryApi.getProductsDirectory(),
         inventoryApi.getDsrsDirectory(),
+        inventoryApi.getSrsDirectory(),
         inventoryApi.getActiveSuppliers(),
         inventoryApi.getActiveCustomers(),
         inventoryApi.getActiveRetailCustomers(),
@@ -111,6 +117,7 @@ export function InventoryAppProvider({ children }) {
       ]);
       setProductDirectory(productsResult.products || []);
       setDsrDirectory(dsrsResult.dsrs || []);
+      setSrDirectory(srsResult.srs || []);
       setSupplierDirectory(suppliersResult.items || []);
       setShopDirectory(customersResult.items || []);
       setRetailCustomerDirectory(retailCustomersResult.items || []);
@@ -343,6 +350,45 @@ export function InventoryAppProvider({ children }) {
       await inventoryApi.deleteDsr(dsr.id, reason);
       removeFromDsrDirectory(dsr.id);
       pushToast('success', t('common.delete'), `${dsr.name} ${t('alerts.deleted')}`);
+      return { ok: true };
+    } catch (error) {
+      const message = getFriendlyError(error, t);
+      pushToast('error', t('alerts.deleteFailed'), message);
+      return { ok: false, message };
+    }
+  }
+
+  async function saveSr(sr) {
+    try {
+      const result = sr.id ? await inventoryApi.updateSr(sr) : await inventoryApi.createSr(sr);
+      upsertSrDirectory(result.sr);
+      pushToast('success', sr.id ? 'SR Updated' : 'SR Added', `${sr.name} ${sr.id ? t('alerts.updated') : t('alerts.created')}`);
+      return { ok: true };
+    } catch (error) {
+      const message = getFriendlyError(error, t);
+      pushToast('error', t('alerts.requestFailed'), message);
+      return { ok: false, message };
+    }
+  }
+
+  async function deleteSr(sr) {
+    const { confirmed, reason } = await confirm({
+      title: 'Delete SR',
+      description: `Are you sure you want to delete SR "${sr.name}"?`,
+      confirmLabel: t('common.delete'),
+      tone: 'rose',
+      requireReason: true,
+      reasonLabel: t('common.deleteReasonLabel'),
+      reasonPlaceholder: t('common.deleteReasonPlaceholder'),
+    });
+    if (!confirmed) {
+      return { ok: false };
+    }
+
+    try {
+      await inventoryApi.deleteSr(sr.id, reason);
+      removeFromSrDirectory(sr.id);
+      pushToast('success', t('common.delete'), `${sr.name} ${t('alerts.deleted')}`);
       return { ok: true };
     } catch (error) {
       const message = getFriendlyError(error, t);
@@ -1210,6 +1256,7 @@ export function InventoryAppProvider({ children }) {
       authLoading,
       productDirectory,
       dsrDirectory,
+      srDirectory,
       supplierDirectory,
       shopDirectory,
       retailCustomerDirectory,
@@ -1239,6 +1286,9 @@ export function InventoryAppProvider({ children }) {
       deleteDsr,
       restoreDsr,
       permanentlyDeleteDsr,
+      saveSr,
+      deleteSr,
+      refreshSrDirectory,
       saveShop,
       deleteShop,
       saveRetailCustomer,
@@ -1283,7 +1333,7 @@ export function InventoryAppProvider({ children }) {
       refreshPromotionDirectory,
       updateProfile,
     }),
-    [today, language, t, user, tenant, tenantOptions, permissions, authLoading, productDirectory, dsrDirectory, supplierDirectory, shopDirectory, retailCustomerDirectory, promotionDirectory, loading, loadError, toasts, confirmation],
+    [today, language, t, user, tenant, tenantOptions, permissions, authLoading, productDirectory, dsrDirectory, srDirectory, supplierDirectory, shopDirectory, retailCustomerDirectory, promotionDirectory, loading, loadError, toasts, confirmation],
   );
 
   return <InventoryAppContext.Provider value={value}>{children}</InventoryAppContext.Provider>;

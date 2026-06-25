@@ -10,6 +10,7 @@ const EXPENSE_CATEGORY_KEYS = [
   ['Office', 'expenses.categories.office'],
   ['Rent', 'expenses.categories.rent'],
   ['Vehicle', 'expenses.categories.vehicle'],
+  ['Load/Unload', 'expenses.categories.loadUnload'],
   ['Other', 'expenses.categories.other'],
 ];
 

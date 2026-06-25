@@ -1559,17 +1559,26 @@ export async function createSchema(pool) {
     ALTER TABLE settlements ADD COLUMN IF NOT EXISTS sr_handovers JSONB NOT NULL DEFAULT '[]';
 
     CREATE TABLE IF NOT EXISTS supplier_discounts (
-      id             TEXT PRIMARY KEY,
-      tenant_id      TEXT NOT NULL REFERENCES tenants(id),
-      supplier_id    TEXT NOT NULL,
-      discount_date  DATE NOT NULL,
-      amount         NUMERIC NOT NULL DEFAULT 0,
-      note           TEXT NOT NULL DEFAULT '',
-      created_by     TEXT REFERENCES users(id) ON DELETE SET NULL,
-      created_at     TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      id              TEXT PRIMARY KEY,
+      tenant_id       TEXT NOT NULL REFERENCES tenants(id),
+      supplier_id     TEXT,
+      discount_date   DATE NOT NULL,
+      amount          NUMERIC NOT NULL DEFAULT 0,
+      dsr_name        TEXT NOT NULL DEFAULT '',
+      reference_type  TEXT NOT NULL DEFAULT 'settlement',
+      reference_id    TEXT,
+      note            TEXT NOT NULL DEFAULT '',
+      created_by      TEXT REFERENCES users(id) ON DELETE SET NULL,
+      created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
+
+    ALTER TABLE supplier_discounts ADD COLUMN IF NOT EXISTS supplier_id TEXT;
+    ALTER TABLE supplier_discounts ADD COLUMN IF NOT EXISTS dsr_name TEXT NOT NULL DEFAULT '';
+    ALTER TABLE supplier_discounts ADD COLUMN IF NOT EXISTS reference_type TEXT NOT NULL DEFAULT 'settlement';
+    ALTER TABLE supplier_discounts ADD COLUMN IF NOT EXISTS reference_id TEXT;
 
     CREATE INDEX IF NOT EXISTS idx_supplier_discounts_tenant_id ON supplier_discounts(tenant_id);
     CREATE INDEX IF NOT EXISTS idx_supplier_discounts_supplier_id ON supplier_discounts(supplier_id);
+    CREATE INDEX IF NOT EXISTS idx_supplier_discounts_reference ON supplier_discounts(reference_type, reference_id);
   `);
 }

@@ -100,7 +100,7 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, retail
         </div>
         <div>
           <label className="label">{t('retailer.shared.invoiceDateLabel')}</label>
-          <DatePickerField value={vm.invoiceDate} onChange={vm.setInvoiceDate} />
+          <DatePickerField value={vm.invoiceDate} onChange={vm.setInvoiceDate} max={new Date().toISOString().slice(0, 10)} />
         </div>
         <div>
           <label className="label">{t('retailer.shared.customerTypeLabel')}</label>

@@ -50,7 +50,7 @@ export default function SalesReturnFormModal({ onClose, onSave }) {
           </div>
           <div>
             <label className="label">{t('retailer.shared.invoiceDateLabel')}</label>
-            <DatePickerField value={vm.returnDate} onChange={vm.setReturnDate} />
+            <DatePickerField value={vm.returnDate} onChange={vm.setReturnDate} max={new Date().toISOString().slice(0, 10)} />
           </div>
         </div>
 

@@ -169,6 +169,7 @@ export default function QuotationFormModal({ quotation, onClose, onSave }) {
             <DatePickerField
               value={form.quoteDate}
               onChange={(v) => updateField('quoteDate', v)}
+              max={new Date().toISOString().slice(0, 10)}
             />
           </div>
           <div>

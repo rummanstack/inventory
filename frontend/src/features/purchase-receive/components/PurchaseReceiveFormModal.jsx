@@ -74,7 +74,7 @@ export default function PurchaseReceiveFormModal({ purchaseReceipt, onClose, onS
           </div>
           <div>
             <label className="label">{t('purchaseReceive.purchaseDateLabel')}</label>
-            <DatePickerField value={vm.purchaseDate} onChange={vm.setPurchaseDate} />
+            <DatePickerField value={vm.purchaseDate} onChange={vm.setPurchaseDate} max={new Date().toISOString().slice(0, 10)} />
           </div>
           <div>
             <label className="label">{t('purchaseReceive.supplierInvoiceNoLabel')}</label>

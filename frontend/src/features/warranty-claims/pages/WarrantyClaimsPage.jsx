@@ -125,7 +125,7 @@ export default function WarrantyClaimsPage() {
             </select>
             <div className="grid grid-cols-2 gap-2">
               <DatePickerField value={vm.dateFrom} onChange={vm.setDateFrom} placeholder={t('purchaseReceive.dateFrom')} />
-              <DatePickerField value={vm.dateTo} onChange={vm.setDateTo} placeholder={t('purchaseReceive.dateTo')} />
+              <DatePickerField value={vm.dateTo} onChange={vm.setDateTo} placeholder={t('purchaseReceive.dateTo')} min={vm.dateFrom} />
             </div>
           </div>
         </div>

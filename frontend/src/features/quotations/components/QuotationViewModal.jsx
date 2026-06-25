@@ -187,6 +187,7 @@ export default function QuotationViewModal({ quotation, onClose, onConverted }) 
                 label={t('quotations.invoiceDateLabel')}
                 value={invoiceDate}
                 onChange={setInvoiceDate}
+                max={new Date().toISOString().slice(0, 10)}
               />
               <div>
                 <label className="label">{t('quotations.paymentMethodLabel')}</label>

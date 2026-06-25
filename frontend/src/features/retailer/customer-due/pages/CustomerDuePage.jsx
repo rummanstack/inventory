@@ -69,7 +69,7 @@ export default function CustomerDuePage() {
             </div>
           ) : null}
           <DatePickerField value={vm.dateFrom} onChange={vm.setDateFrom} placeholder={t('supplierStatement.dateFrom')} />
-          <DatePickerField value={vm.dateTo} onChange={vm.setDateTo} placeholder={t('supplierStatement.dateTo')} />
+          <DatePickerField value={vm.dateTo} onChange={vm.setDateTo} placeholder={t('supplierStatement.dateTo')} min={vm.dateFrom} />
         </div>
         <div className="mt-4 flex flex-wrap gap-2">
           <button type="button" className="btn-secondary" onClick={vm.refresh}>

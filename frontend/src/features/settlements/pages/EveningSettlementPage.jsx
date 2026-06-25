@@ -40,7 +40,7 @@ export default function EveningSettlementPage() {
         <div className="grid gap-4 md:grid-cols-3">
           <div>
             <label className="label">{t('common.date')}</label>
-            <DatePickerField value={vm.date} onChange={vm.setDate} />
+            <DatePickerField value={vm.date} onChange={vm.setDate} max={new Date().toISOString().slice(0, 10)} />
           </div>
           <div>
             <label className="label">{t('dsr.title')}</label>

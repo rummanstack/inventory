@@ -88,7 +88,7 @@ export default function ExpensesPage() {
         <div className="grid gap-4 md:grid-cols-2">
           <div>
             <label className="label mt-3">{t('expenses.reportDate')}</label>
-            <DatePickerField value={vm.date} onChange={vm.setDate} />
+            <DatePickerField value={vm.date} onChange={vm.setDate} max={new Date().toISOString().slice(0, 10)} />
           </div>
           <div>
             <label className="label mt-3">{t('expenses.reportMonth')}</label>

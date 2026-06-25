@@ -118,7 +118,7 @@ export default function DamageClearHistoryPanel({ products, refreshKey = 0 }) {
           </div>
           <div>
             <label className="label">{t('stockLedger.dateTo')}</label>
-            <DatePickerField value={dateTo} onChange={setDateTo} />
+            <DatePickerField value={dateTo} onChange={setDateTo} min={dateFrom} />
           </div>
         </div>
       </div>

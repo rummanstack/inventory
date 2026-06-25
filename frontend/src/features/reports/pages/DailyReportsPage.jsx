@@ -1,6 +1,7 @@
 import { CircleDollarSign, Download, Eye, FileSpreadsheet, FileText, PackageCheck, Printer, RotateCcw, Truck } from 'lucide-react';
 import PrintableSheet from '../../../components/PrintableSheet.jsx';
 import { Alert, Badge, ChartPanel, ChartPanelSkeleton, DonutChart, EmptyState, SectionHeader, StackedBarChart, StatCard, StatCardSkeleton, TableSkeleton } from '../../../components/ui.jsx';
+import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { statusTone } from '../../../models/inventoryViewData.js';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { buildPdfFileName, downloadSheetPdf } from '../../../services/printService.js';
@@ -79,7 +80,7 @@ export default function DailyReportsPage() {
       <div className="mb-6 grid gap-4 lg:grid-cols-[320px_1fr]">
         <div className="surface rounded-[28px] p-5">
           <label className="label mt-3">{t('reports.reportDate')}</label>
-          <input className="input" type="date" value={vm.date} onChange={(event) => vm.setDate(event.target.value)} />
+          <DatePickerField value={vm.date} onChange={vm.setDate} max={new Date().toISOString().slice(0, 10)} />
           <p className="mt-3 text-sm text-slate-500">{t('reports.description')}</p>
         </div>
         <div className="grid gap-4 sm:grid-cols-4">

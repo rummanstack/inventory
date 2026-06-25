@@ -423,7 +423,7 @@ export default function RepairJobsPage() {
               </select>
               <div className="grid grid-cols-2 gap-2 lg:col-span-2">
                 <DatePickerField value={vm.dateFrom} onChange={vm.setDateFrom} />
-                <DatePickerField value={vm.dateTo} onChange={vm.setDateTo} />
+                <DatePickerField value={vm.dateTo} onChange={vm.setDateTo} min={vm.dateFrom} />
               </div>
             </div>
           </div>

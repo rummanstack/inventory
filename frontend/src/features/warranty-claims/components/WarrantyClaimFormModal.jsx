@@ -192,7 +192,7 @@ export default function WarrantyClaimFormModal({ claim, onClose, onSave, prefill
           {!isEdit ? (
             <div>
               <label className="label">{t('warrantyClaims.receivedDateLabel')}</label>
-              <DatePickerField value={form.receivedDate} onChange={(value) => updateField('receivedDate', value)} />
+              <DatePickerField value={form.receivedDate} onChange={(value) => updateField('receivedDate', value)} max={new Date().toISOString().slice(0, 10)} />
             </div>
           ) : (
             <div>
@@ -240,11 +240,11 @@ export default function WarrantyClaimFormModal({ claim, onClose, onSave, prefill
               </div>
               <div>
                 <label className="label">{t('warrantyClaims.sentToSupplierDateLabel')}</label>
-                <DatePickerField value={form.sentToSupplierDate} onChange={(value) => updateField('sentToSupplierDate', value)} />
+                <DatePickerField value={form.sentToSupplierDate} onChange={(value) => updateField('sentToSupplierDate', value)} min={form.receivedDate} max={new Date().toISOString().slice(0, 10)} />
               </div>
               <div>
                 <label className="label">{t('warrantyClaims.receivedFromSupplierDateLabel')}</label>
-                <DatePickerField value={form.receivedFromSupplierDate} onChange={(value) => updateField('receivedFromSupplierDate', value)} />
+                <DatePickerField value={form.receivedFromSupplierDate} onChange={(value) => updateField('receivedFromSupplierDate', value)} min={form.sentToSupplierDate} max={new Date().toISOString().slice(0, 10)} />
               </div>
             </div>
           </div>

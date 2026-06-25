@@ -34,7 +34,7 @@ export default function MorningIssuePage() {
         <div className="grid gap-4 lg:grid-cols-[180px_minmax(220px,1fr)_repeat(3,minmax(130px,160px))]">
           <div>
             <label className="label">{t('common.date')}</label>
-            <DatePickerField value={vm.date} onChange={vm.setDate} />
+            <DatePickerField value={vm.date} onChange={vm.setDate} max={new Date().toISOString().slice(0, 10)} />
           </div>
           <div>
             <label className="label">{t('dsr.title')}</label>

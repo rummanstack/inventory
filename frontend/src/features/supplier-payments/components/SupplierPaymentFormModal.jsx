@@ -105,7 +105,7 @@ export default function SupplierPaymentFormModal({ payment, onClose, onSave }) {
           ) : null}
           <div>
             <label className="label">{t('supplierPayments.paymentDateLabel')}</label>
-            <DatePickerField value={form.paymentDate} onChange={(value) => updateField('paymentDate', value)} />
+            <DatePickerField value={form.paymentDate} onChange={(value) => updateField('paymentDate', value)} max={new Date().toISOString().slice(0, 10)} />
           </div>
           <div>
             <label className="label">{t('supplierPayments.amountLabel')}</label>

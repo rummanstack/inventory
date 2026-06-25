@@ -146,13 +146,15 @@ function PickerFrame({ open, anchorRef, panelRef, children, className = '', pane
   );
 }
 
-export function DatePickerField({ value, onChange, placeholder = 'Select date', className = '', disabled = false }) {
+export function DatePickerField({ value, onChange, placeholder = 'Select date', className = '', disabled = false, min = null, max = null }) {
   const wrapperRef = useRef(null);
   const panelRef = useRef(null);
   const [open, setOpen] = useState(false);
   const [viewMonth, setViewMonth] = useState(() => startOfMonth(toDateValue(value) || new Date()));
 
   const selectedDate = useMemo(() => toDateValue(value), [value]);
+  const minDate = useMemo(() => toDateValue(min), [min]);
+  const maxDate = useMemo(() => toDateValue(max), [max]);
 
   useEffect(() => {
     if (open) {
@@ -199,6 +201,9 @@ export function DatePickerField({ value, onChange, placeholder = 'Select date', 
     days.push(new Date(year, month, day));
   }
 
+  const prevMonthDisabled = minDate ? addMonths(viewMonth, -1) < startOfMonth(minDate) : false;
+  const nextMonthDisabled = maxDate ? addMonths(viewMonth, 1) > startOfMonth(maxDate) : false;
+
   const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   const displayValue = selectedDate ? formatDate(selectedDate) : '';
 
@@ -218,13 +223,23 @@ export function DatePickerField({ value, onChange, placeholder = 'Select date', 
 
       <PickerFrame open={open} anchorRef={wrapperRef} panelRef={panelRef} panelWidth={304} panelHeight={392}>
         <div className="flex items-center justify-between gap-2 px-1 pt-1">
-          <button type="button" className="icon-btn h-9 w-9" onClick={() => setViewMonth((current) => addMonths(current, -1))}>
+          <button
+            type="button"
+            className="icon-btn h-9 w-9 disabled:cursor-not-allowed disabled:opacity-30"
+            disabled={prevMonthDisabled}
+            onClick={() => !prevMonthDisabled && setViewMonth((current) => addMonths(current, -1))}
+          >
             <ChevronLeft size={16} />
           </button>
           <div className="text-sm font-black text-slate-950">
             {formatMonth(viewMonth)}
           </div>
-          <button type="button" className="icon-btn h-9 w-9" onClick={() => setViewMonth((current) => addMonths(current, 1))}>
+          <button
+            type="button"
+            className="icon-btn h-9 w-9 disabled:cursor-not-allowed disabled:opacity-30"
+            disabled={nextMonthDisabled}
+            onClick={() => !nextMonthDisabled && setViewMonth((current) => addMonths(current, 1))}
+          >
             <ChevronRight size={16} />
           </button>
         </div>
@@ -243,19 +258,26 @@ export function DatePickerField({ value, onChange, placeholder = 'Select date', 
               return <div key={`blank-${index}`} className="h-9" />;
             }
 
+            const isDisabled = Boolean((minDate && day < minDate) || (maxDate && day > maxDate));
             const selected = isSameDay(day, selectedDate);
-            const today = isSameDay(day, new Date());
+            const isToday = isSameDay(day, new Date());
 
             return (
               <button
                 key={day.toISOString()}
                 type="button"
+                disabled={isDisabled}
                 className={cx(
                   'h-9 rounded-xl text-sm font-bold transition',
-                  selected ? 'bg-[var(--secondary)] text-white shadow-[0_12px_20px_var(--secondary-shadow)]' : 'text-slate-700 hover:bg-slate-100',
-                  today && !selected ? 'ring-1 ring-[var(--secondary-soft)]' : '',
+                  isDisabled
+                    ? 'cursor-not-allowed opacity-25'
+                    : selected
+                      ? 'bg-[var(--secondary)] text-white shadow-[0_12px_20px_var(--secondary-shadow)]'
+                      : 'text-slate-700 hover:bg-slate-100',
+                  isToday && !selected && !isDisabled ? 'ring-1 ring-[var(--secondary-soft)]' : '',
                 )}
                 onClick={() => {
+                  if (isDisabled) return;
                   onChange(toISODate(day));
                   setOpen(false);
                 }}

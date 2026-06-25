@@ -17,10 +17,6 @@ function interpolateConfirm(template, values) {
 }
 
 function getFriendlyError(error, t) {
-  if (error?.status === 403) {
-    return t('alerts.forbidden');
-  }
-
   return error?.message || t('alerts.requestFailed');
 }
 
@@ -107,13 +103,13 @@ export function InventoryAppProvider({ children }) {
       setLoading(true);
       setLoadError('');
       const [productsResult, dsrsResult, srsResult, suppliersResult, customersResult, retailCustomersResult, promotionsResult] = await Promise.all([
-        inventoryApi.getProductsDirectory(),
-        inventoryApi.getDsrsDirectory(),
-        inventoryApi.getSrsDirectory(),
-        inventoryApi.getActiveSuppliers(),
-        inventoryApi.getActiveCustomers(),
-        inventoryApi.getActiveRetailCustomers(),
-        inventoryApi.listRetailPromotions(),
+        inventoryApi.getProductsDirectory().catch(() => ({ products: [] })),
+        inventoryApi.getDsrsDirectory().catch(() => ({ dsrs: [] })),
+        inventoryApi.getSrsDirectory().catch(() => ({ srs: [] })),
+        inventoryApi.getActiveSuppliers().catch(() => ({ items: [] })),
+        inventoryApi.getActiveCustomers().catch(() => ({ items: [] })),
+        inventoryApi.getActiveRetailCustomers().catch(() => ({ items: [] })),
+        inventoryApi.listRetailPromotions().catch(() => ({ promotions: [] })),
       ]);
       setProductDirectory(productsResult.products || []);
       setDsrDirectory(dsrsResult.dsrs || []);
@@ -128,9 +124,11 @@ export function InventoryAppProvider({ children }) {
         return;
       }
 
-      const message = getFriendlyError(error, t);
-      setLoadError(message);
-      pushToast('error', t('alerts.unableToLoad'), message);
+      if (error.status !== 403) {
+        const message = getFriendlyError(error, t);
+        setLoadError(message);
+        pushToast('error', t('alerts.unableToLoad'), message);
+      }
     } finally {
       setLoading(false);
     }

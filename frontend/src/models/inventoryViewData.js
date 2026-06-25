@@ -143,6 +143,7 @@ export function buildSheetData({ date, dsrId, dsrs, issues, settlements, product
     extraReturnValue,
     totalReturnValue: issuedReturnValue + extraReturnValue,
     amountPaid: settlement ? settlement.amountPaid || 0 : 0,
+    srHandovers: settlement ? (settlement.srHandovers || []) : [],
     todayDue: settlement ? Math.max(0, (settlement.totalPayable || 0) - (settlement.discount || 0) - extraReturnValue - (settlement.amountPaid || 0)) : 0,
     totalReceivable: settlement
       ? Math.max(0, (settlement.totalPayable || 0) + (settlement.previousDue || 0) - (settlement.discount || 0) - extraReturnValue)

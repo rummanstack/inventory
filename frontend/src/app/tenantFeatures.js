@@ -49,4 +49,7 @@ export const TENANT_FEATURE_ROUTES = [
   { feature: 'repair-jobs', labelKey: 'nav.repairJobs' },
   { feature: 'quotations', labelKey: 'nav.quotations' },
   { feature: 'trade-ins', labelKey: 'nav.tradeIns' },
+  { feature: 'shop-due-ledger', labelKey: 'nav.shopDueLedger' },
+  { feature: 'srs', labelKey: 'nav.srs' },
+  { feature: 'sr-due-ledger', labelKey: 'nav.srDueLedger' },
 ];

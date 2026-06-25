@@ -166,6 +166,15 @@ export default function PrintableSheet({ sheet, printTarget = false, targetId, t
           <p className="whitespace-nowrap text-[9px] font-bold uppercase text-slate-500">{t('settlement.amountPaid')}</p>
           <p className="whitespace-nowrap text-base font-black text-slate-950">- {formatCurrency(sheet.amountPaid || 0, language)}</p>
         </div>
+        {sheet.srHandovers && sheet.srHandovers.length > 0 ? (
+          <>
+            <span className="text-slate-300">|</span>
+            <div className="text-center">
+              <p className="whitespace-nowrap text-[9px] font-bold uppercase text-slate-500">SR Handover</p>
+              <p className="whitespace-nowrap font-bold text-slate-950">- {formatCurrency(sheet.srHandovers.reduce((sum, h) => sum + Number(h.amount || 0), 0), language)}</p>
+            </div>
+          </>
+        ) : null}
       </div>
 
       <div className="mt-3 flex items-center justify-center">

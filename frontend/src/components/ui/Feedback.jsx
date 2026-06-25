@@ -161,24 +161,28 @@ export function ToastViewport({ toasts, onDismiss }) {
 
   const tones = {
     success: {
-      shell: 'border-success-line bg-[linear-gradient(135deg,rgba(var(--white),0.98),var(--success-soft))] text-success-strong',
-      icon: 'bg-success text-white shadow-[0_10px_24px_var(--success-line)]',
-      bar: 'bg-success',
+      shell: 'border-emerald-200 bg-white text-emerald-900',
+      icon: 'bg-emerald-500 text-white',
+      bar: 'bg-emerald-500',
+      msg: 'text-emerald-700',
     },
     error: {
-      shell: 'border-danger-line bg-[linear-gradient(135deg,rgba(var(--white),0.98),var(--danger-soft))] text-danger-strong',
-      icon: 'bg-danger text-white shadow-[0_10px_24px_var(--danger-line)]',
-      bar: 'bg-danger',
+      shell: 'border-rose-200 bg-white text-rose-900',
+      icon: 'bg-rose-500 text-white',
+      bar: 'bg-rose-500',
+      msg: 'text-rose-700',
     },
     warning: {
-      shell: 'border-warning-line bg-[linear-gradient(135deg,rgba(var(--white),0.98),var(--warning-soft))] text-warning-strong',
-      icon: 'bg-warning text-white shadow-[0_10px_24px_var(--warning-line)]',
-      bar: 'bg-warning',
+      shell: 'border-amber-200 bg-white text-amber-900',
+      icon: 'bg-amber-500 text-white',
+      bar: 'bg-amber-500',
+      msg: 'text-amber-800',
     },
     info: {
-      shell: 'border-brand-soft bg-[linear-gradient(135deg,rgba(var(--white),0.98),var(--brand-soft))] text-slate-950',
-      icon: 'bg-brand text-white shadow-[0_10px_24px_var(--brand-soft)]',
-      bar: 'bg-brand',
+      shell: 'border-indigo-200 bg-white text-slate-900',
+      icon: 'bg-[#373373] text-white',
+      bar: 'bg-[#373373]',
+      msg: 'text-slate-600',
     },
   };
 
@@ -188,20 +192,19 @@ export function ToastViewport({ toasts, onDismiss }) {
         const Icon = icons[toast.type] || Info;
         const tone = tones[toast.type] || tones.info;
         return (
-          <div key={toast.id} className={cx('pointer-events-auto overflow-hidden rounded-[28px] border shadow-[0_24px_50px_rgba(var(--slate-900),0.14)] backdrop-blur', tone.shell)}>
+          <div key={toast.id} className={cx('pointer-events-auto overflow-hidden rounded-[28px] border shadow-[0_8px_30px_rgba(0,0,0,0.12)]', tone.shell)}>
             <div className={cx('h-1.5 w-full', tone.bar)} />
-            <div className="relative flex items-start gap-3 px-4 py-4">
-              <div className="pointer-events-none absolute right-0 top-0 h-24 w-24 rounded-full bg-white/50 blur-2xl" />
-              <div className={cx('relative mt-0.5 rounded-2xl p-2.5', tone.icon)}>
+            <div className="flex items-start gap-3 px-4 py-4">
+              <div className={cx('mt-0.5 shrink-0 rounded-2xl p-2.5', tone.icon)}>
                 <Icon size={18} strokeWidth={2.4} />
               </div>
-              <div className="relative min-w-0 flex-1">
+              <div className="min-w-0 flex-1">
                 <p className="text-sm font-black tracking-tight">{toast.title}</p>
-                {toast.message ? <p className="mt-1 text-sm font-medium leading-6 text-slate-600">{toast.message}</p> : null}
+                {toast.message ? <p className={cx('mt-1 text-sm font-medium leading-6', tone.msg)}>{toast.message}</p> : null}
               </div>
               <button
                 type="button"
-                className="relative inline-flex h-8 w-8 items-center justify-center rounded-2xl border border-white/70 bg-white/70 text-slate-500 shadow-sm transition hover:bg-white hover:text-slate-900"
+                className="inline-flex h-8 w-8 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
                 onClick={() => onDismiss(toast.id)}
                 aria-label={t('common.close')}
               >

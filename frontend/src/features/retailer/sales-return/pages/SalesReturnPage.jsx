@@ -5,7 +5,7 @@ import { DatePickerField } from '../../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../../services/printService.js';
 import { inventoryApi } from '../../../../services/inventoryApi.js';
-import { formatCurrency, formatDate, formatNumber } from '../../../../utils/calculations.js';
+import { formatCurrency, formatDate, formatDateTime, formatNumber } from '../../../../utils/calculations.js';
 import SalesReturnFormModal from '../components/SalesReturnFormModal';
 import { useSalesReturnsViewModel } from '../viewmodels/useSalesReturnsViewModel';
 
@@ -113,7 +113,7 @@ export default function SalesReturnPage() {
                 <tr key={salesReturn.id} className="hover:bg-slate-50">
                   <td className="table-cell font-black text-slate-400">{formatNumber((vm.page - 1) * vm.pageSize + index + 1, language)}</td>
                   <td className="table-cell font-semibold text-slate-950">{salesReturn.returnNumber}</td>
-                  <td className="table-cell">{formatDate(salesReturn.returnDate, language)}</td>
+                  <td className="table-cell">{formatDateTime(salesReturn.returnDate, language)}</td>
                   <td className="table-cell">{salesReturn.invoiceNumber || '-'}</td>
                   <td className="table-cell">{salesReturn.customerName || t('retailer.shared.customerTypes.WALK_IN')}</td>
                   <td className="table-cell text-right font-bold">{formatCurrency(salesReturn.totalAmount, language)}</td>

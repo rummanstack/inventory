@@ -5,7 +5,7 @@ import { DatePickerField } from '../../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../../services/printService.js';
 import { inventoryApi } from '../../../../services/inventoryApi.js';
-import { formatCurrency, formatDate, formatNumber } from '../../../../utils/calculations.js';
+import { formatCurrency, formatDate, formatDateTime, formatNumber } from '../../../../utils/calculations.js';
 import CustomerPaymentFormModal from '../components/CustomerPaymentFormModal';
 import { useDueCollectionViewModel } from '../viewmodels/useDueCollectionViewModel';
 
@@ -113,7 +113,7 @@ export default function DueCollectionPage() {
               {vm.items.map((payment, index) => (
                 <tr key={payment.id} className="hover:bg-slate-50">
                   <td className="table-cell font-black text-slate-400">{(vm.page - 1) * vm.pageSize + index + 1}</td>
-                  <td className="table-cell">{formatDate(payment.paymentDate, language)}</td>
+                  <td className="table-cell">{formatDateTime(payment.paymentDate, language)}</td>
                   <td className="table-cell font-semibold text-slate-950">{payment.customerName || '-'}</td>
                   <td className="table-cell text-right font-bold text-emerald-700">{formatCurrency(payment.amount, language)}</td>
                   <td className="table-cell">{t(`purchaseReceive.paymentMethods.${payment.paymentMethod}`)}</td>

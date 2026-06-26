@@ -4,7 +4,7 @@ import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton } fr
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
-import { formatCurrency, formatDate } from '../../../utils/calculations.js';
+import { formatCurrency, formatDate, formatDateTime } from '../../../utils/calculations.js';
 import { repairJobStatusTone, repairJobApprovalTone } from '../../../models/inventoryViewData.js';
 import RepairJobFormModal from '../components/RepairJobFormModal';
 import WarrantyClaimFormModal from '../../warranty-claims/components/WarrantyClaimFormModal';
@@ -466,7 +466,7 @@ export default function RepairJobsPage() {
                           <Badge tone={repairJobApprovalTone(job.approvalStatus)}>{t(`repairJobs.approvalStatuses.${job.approvalStatus}`)}</Badge>
                         </td>
                         <td className="hidden table-cell lg:table-cell">{job.technicianName || '-'}</td>
-                        <td className="hidden table-cell lg:table-cell">{formatDate(job.receivedDate)}</td>
+                        <td className="hidden table-cell lg:table-cell">{formatDateTime(job.receivedDate)}</td>
                         <td className="table-cell">
                           <div className="flex justify-end gap-2">
                             {canManage ? (

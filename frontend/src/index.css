@@ -35,7 +35,7 @@
     --bg-grad-end: color-mix(in srgb, var(--brand) 7%, white);
     --chart-tooltip-title: #f8f8f9;
     --chart-tooltip-body: #f6f6f6;
-    --chart-grid: rgba(var(--slate-400), 0.16);
+    --chart-grid: rgba(148, 163, 184, 0.1);
     --tick-color: #2f3347;
     --success: #37a864;
     --success-strong: color-mix(in srgb, var(--success) 75%, black);

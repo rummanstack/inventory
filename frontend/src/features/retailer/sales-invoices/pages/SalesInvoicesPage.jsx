@@ -5,7 +5,7 @@ import { DatePickerField } from '../../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../../services/printService.js';
 import { inventoryApi } from '../../../../services/inventoryApi.js';
-import { formatCurrency, formatDate, formatNumber } from '../../../../utils/calculations.js';
+import { formatCurrency, formatDate, formatDateTime, formatNumber } from '../../../../utils/calculations.js';
 import SalesInvoiceFormModal from '../components/SalesInvoiceFormModal';
 import SalesInvoiceViewModal from '../components/SalesInvoiceViewModal';
 import { useSalesInvoicesViewModel } from '../viewmodels/useSalesInvoicesViewModel';
@@ -151,7 +151,7 @@ export default function SalesInvoicesPage() {
                 <tr key={invoice.id} className="hover:bg-slate-50">
                   <td className="table-cell font-black text-slate-400">{(vm.page - 1) * vm.pageSize + index + 1}</td>
                   <td className="table-cell font-semibold text-slate-950">{invoice.invoiceNumber}</td>
-                  <td className="table-cell">{formatDate(invoice.invoiceDate)}</td>
+                  <td className="table-cell">{formatDateTime(invoice.invoiceDate)}</td>
                   <td className="table-cell">{invoice.customerName || t('retailer.shared.customerTypes.WALK_IN')}</td>
                   <td className="hidden table-cell lg:table-cell">{t(`retailer.shared.saleTypes.${invoice.saleType}`)}</td>
                   <td className="table-cell text-right font-bold">{formatCurrency(invoice.totalAmount)}</td>

@@ -115,9 +115,10 @@ export function formatTime(date, language = getPreferredLanguage()) {
     return '';
   }
 
-  return new Intl.DateTimeFormat(getLocale(language), {
-    hour: '2-digit',
+  return new Intl.DateTimeFormat('en', {
+    hour: 'numeric',
     minute: '2-digit',
+    hour12: true,
   }).format(value);
 }
 
@@ -129,13 +130,19 @@ export function formatDateTime(date, language = getPreferredLanguage()) {
     return '';
   }
 
-  return new Intl.DateTimeFormat(getLocale(language), {
+  const datePart = new Intl.DateTimeFormat(getLocale(language), {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
   }).format(value);
+
+  const timePart = new Intl.DateTimeFormat('en', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  }).format(value);
+
+  return `${datePart}, ${timePart}`;
 }
 
 export function formatMonth(month, language = getPreferredLanguage()) {

@@ -676,40 +676,28 @@ export default function DashboardPage() {
           {/* By Product + Expenses */}
           <div className="flex flex-col gap-4">
             <div className="surface overflow-hidden">
-              <div className="border-b border-slate-100/80 px-5 py-3">
-                <p className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">By Product</p>
+              <div className="border-b border-slate-100/80 px-5 py-4">
+                <h2 className="text-base font-black text-slate-950">By Product</h2>
+                <p className="mt-0.5 text-sm font-medium text-slate-500">{todayPnl.productProfitRows.length} product{todayPnl.productProfitRows.length === 1 ? '' : 's'} sold today.</p>
               </div>
-              {todayPnl.productProfitRows.length ? (
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="table-head">
-                      <tr>
-                        <th className="px-4 py-3">Product</th>
-                        <th className="px-4 py-3 text-right">Qty</th>
-                        <th className="px-4 py-3 text-right">Revenue</th>
-                        <th className="px-4 py-3 text-right">Profit</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {todayPnl.productProfitRows.slice(0, 8).map((row) => {
-                        const profit = row.revenue - row.cogs;
-                        return (
-                          <tr key={row.productId} className="hover:bg-slate-50">
-                            <td className="table-cell font-semibold text-slate-900">{row.productName}</td>
-                            <td className="table-cell text-right text-slate-500">{formatNumber(row.soldPieces, language)}</td>
-                            <td className="table-cell text-right font-semibold">{formatCurrency(row.revenue, language)}</td>
-                            <td className={cx('table-cell text-right font-black', profit >= 0 ? 'text-emerald-700' : 'text-rose-700')}>{formatCurrency(profit, language)}</td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <div className="p-5">
+              <div className="p-5">
+                {todayPnl.productProfitRows.length ? (
+                  <div className="space-y-1.5">
+                    {todayPnl.productProfitRows.slice(0, 8).map((row) => {
+                      const profit = row.revenue - row.cogs;
+                      return (
+                        <div key={row.productId} className="flex items-center gap-2.5 rounded-[16px] bg-slate-50/70 px-3.5 py-2.5 ring-1 ring-slate-200/40">
+                          <p className="min-w-0 flex-1 truncate text-xs font-semibold text-slate-800">{row.productName}</p>
+                          <span className="shrink-0 text-xs text-slate-400">{formatNumber(row.soldPieces, language)} pcs</span>
+                          <span className={cx('shrink-0 text-xs font-black', profit >= 0 ? 'text-emerald-700' : 'text-rose-700')}>{formatCurrency(profit, language)}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
                   <EmptyState title="No sales today" description="No product sales recorded yet." icon={PackageCheck} />
-                </div>
-              )}
+                )}
+              </div>
             </div>
 
             <div className="surface p-5">

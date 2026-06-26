@@ -12,7 +12,6 @@ import {
   Receipt,
   ShoppingCart,
   Store,
-  Target,
   TrendingDown,
   TrendingUp,
   Trophy,
@@ -101,7 +100,7 @@ export default function DashboardPage() {
     );
   }
 
-  const { financeDashboard, retailPos, retailCashSession, dsrLeaderboard, dsrTargetSummary, noSaleToday, todayPnl } = vm;
+  const { financeDashboard, retailPos, retailCashSession, dsrLeaderboard, noSaleToday, todayPnl } = vm;
   const secondary = getCssVar("--secondary", "#5e5b8e");
 
   const cashInHand = financeDashboard?.accounts?.filter((a) => a.type === "CASH").reduce((s, a) => s + a.balance, 0) ?? 0;
@@ -487,8 +486,8 @@ export default function DashboardPage() {
         </ChartPanel>
       </div>
 
-      {/* ── 4b. CASH FLOW FORECAST + NO SALE TODAY + DSR MONTHLY TARGETS ── */}
-      <div className="grid gap-6 xl:grid-cols-3">
+      {/* ── 4b. CASH FLOW FORECAST + IDLE TODAY ── */}
+      <div className="grid gap-6 xl:grid-cols-2">
         {/* Cash Flow Forecast */}
         {financeDashboard ? (
           <ChartPanel title="Cash Flow Forecast" description="Available cash vs expected inflows and outflows this month.">
@@ -576,40 +575,6 @@ export default function DashboardPage() {
           );
         })()}
 
-        {/* DSR Monthly Targets */}
-        {dsrTargetSummary.length > 0 ? (
-          <ChartPanel title="DSR Monthly Targets" description={`Collection progress for ${new Date().toLocaleString('en', { month: 'long', year: 'numeric' })}.`}>
-            <div className="space-y-2.5">
-              {dsrTargetSummary.map((row) => {
-                const pct = row.targetAmount > 0 ? Math.min(100, Math.round((row.actualAmount / row.targetAmount) * 100)) : 0;
-                const over = row.actualAmount > row.targetAmount && row.targetAmount > 0;
-                return (
-                  <div key={row.dsrId} className="rounded-[18px] bg-slate-50/60 px-4 py-3 ring-1 ring-slate-200/40">
-                    <div className="flex items-center gap-2">
-                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[var(--secondary-soft)]">
-                        <Target size={13} className="text-[var(--secondary-strong)]" />
-                      </div>
-                      <p className="min-w-0 flex-1 truncate text-sm font-bold text-slate-800">{row.dsrName}</p>
-                      <p className={cx('shrink-0 text-xs font-black', over ? 'text-emerald-600' : pct >= 70 ? 'text-amber-600' : 'text-rose-500')}>
-                        {pct}%
-                      </p>
-                    </div>
-                    <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-slate-200">
-                      <div
-                        className={cx('h-full rounded-full transition-all duration-500', over ? 'bg-emerald-500' : pct >= 70 ? 'bg-amber-400' : 'bg-rose-400')}
-                        style={{ width: `${pct}%` }}
-                      />
-                    </div>
-                    <div className="mt-1.5 flex justify-between text-[11px] font-medium text-slate-500">
-                      <span>{formatCurrency(row.actualAmount, language)} collected</span>
-                      <span>Target: {formatCurrency(row.targetAmount, language)}</span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </ChartPanel>
-        ) : null}
       </div>
 
       {/* ── 5. TOP SELLS + LEAST SELLS ── */}

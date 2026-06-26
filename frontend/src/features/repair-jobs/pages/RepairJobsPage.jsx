@@ -442,11 +442,11 @@ export default function RepairJobsPage() {
                     <tr>
                       <th className="px-4 py-3">{t('repairJobs.jobNumberLabel')}</th>
                       <th className="px-4 py-3">{t('repairJobs.customerLabel')}</th>
-                      <th className="hidden px-4 py-3 sm:table-cell">{t('repairJobs.serialLabel')}</th>
+                      <th className="px-4 py-3">{t('repairJobs.serialLabel')}</th>
                       <th className="px-4 py-3">{t('repairJobs.statusLabel')}</th>
-                      <th className="hidden px-4 py-3 md:table-cell">{t('repairJobs.approvalStatusLabel')}</th>
-                      <th className="hidden px-4 py-3 lg:table-cell">{t('repairJobs.technicianLabel')}</th>
-                      <th className="hidden px-4 py-3 lg:table-cell">{t('repairJobs.receivedDateLabel')}</th>
+                      <th className="px-4 py-3">{t('repairJobs.approvalStatusLabel')}</th>
+                      <th className="px-4 py-3">{t('repairJobs.technicianLabel')}</th>
+                      <th className="px-4 py-3">{t('repairJobs.receivedDateLabel')}</th>
                       <th className="px-4 py-3 text-right">{t('common.actions')}</th>
                     </tr>
                   </thead>

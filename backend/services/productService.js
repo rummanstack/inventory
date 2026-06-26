@@ -219,7 +219,13 @@ export class ProductService {
   async applyStockAddition(client, productId, pieces, actor, { type, note, description, metadata, reason }) {
     const existingResult = await findProductForUpdate(client, productId, actor.tenantId);
     assert(existingResult.rowCount > 0, "Product not found.", 404);
-    const previousStock = Number(existingResult.rows[0].stock_pieces || 0);
+    const row = existingResult.rows[0];
+    assert(
+      row.serial_required !== true && row.serial_required !== "t",
+      "Serial/IMEI products cannot be stocked directly. Receive them through a purchase order instead.",
+      400,
+    );
+    const previousStock = Number(row.stock_pieces || 0);
 
     const result = await addProductStock(client, productId, pieces, actor.tenantId);
     assert(result.rowCount > 0, "Product not found.", 404);

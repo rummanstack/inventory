@@ -179,8 +179,8 @@ export default function FinanceAccountsPage() {
                   <th className="px-4 py-3">{t('financeAccounts.type')}</th>
                   <th className="px-4 py-3 text-right">{t('financeAccounts.amount')}</th>
                   <th className="px-4 py-3 text-right">{t('financeAccounts.balanceAfter')}</th>
-                  <th className="hidden px-4 py-3 lg:table-cell">{t('financeAccounts.note')}</th>
-                  <th className="hidden px-4 py-3 md:table-cell">{t('financeAccounts.createdBy')}</th>
+                  <th className="px-4 py-3">{t('financeAccounts.note')}</th>
+                  <th className="px-4 py-3">{t('financeAccounts.createdBy')}</th>
                   {canManage ? <th className="px-4 py-3 text-right no-print">{t('common.actions')}</th> : null}
                 </tr>
               </thead>

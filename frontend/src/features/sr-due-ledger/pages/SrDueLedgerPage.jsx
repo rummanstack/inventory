@@ -248,8 +248,8 @@ export default function SrDueLedgerPage() {
                     <th className="px-4 py-3 text-right">Debit</th>
                     <th className="px-4 py-3 text-right">Credit</th>
                     <th className="px-4 py-3 text-right">Balance</th>
-                    <th className="hidden px-4 py-3 lg:table-cell">Note</th>
-                    <th className="hidden px-4 py-3 xl:table-cell">Created By</th>
+                    <th className="px-4 py-3">Note</th>
+                    <th className="px-4 py-3">Created By</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">

@@ -68,10 +68,7 @@ export default function SalesInvoicesPage() {
       <div id={SALES_INVOICES_PRINT_ID} className="surface overflow-hidden print-target">
         <div className="border-b border-slate-100 p-5">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div className="space-y-2">
-              <p className="text-[11px] font-black uppercase tracking-[0.22em] text-slate-400">{t('retailer.salesInvoices.eyebrow')}</p>
-              <p className="text-sm font-medium text-slate-500">{t('retailer.salesInvoices.description')}</p>
-            </div>
+            <p className="text-[11px] font-black uppercase tracking-[0.22em] text-slate-400">{t('retailer.salesInvoices.eyebrow')}</p>
             <div className="flex flex-wrap items-center gap-2 text-sm font-bold">
               <span className="muted-chip">{formatNumber(vm.total)} {t('retailer.salesInvoices.invoiceCount')}</span>
               <button
@@ -142,7 +139,7 @@ export default function SalesInvoicesPage() {
                 <th className="px-4 py-3">{t('retailer.shared.invoiceNumberLabel')}</th>
                 <th className="px-4 py-3">{t('retailer.shared.invoiceDateLabel')}</th>
                 <th className="px-4 py-3">{t('retailer.shared.customerLabel')}</th>
-                <th className="hidden px-4 py-3 lg:table-cell">{t('retailer.shared.saleTypeLabel')}</th>
+                <th className="px-4 py-3">{t('retailer.shared.saleTypeLabel')}</th>
                 <th className="px-4 py-3 text-right">{t('retailer.shared.totalAmount')}</th>
                 <th className="hidden px-4 py-3 text-right sm:table-cell">{t('retailer.shared.dueAmount')}</th>
                 <th className="px-4 py-3">{t('purchaseReceive.paymentStatus')}</th>

@@ -155,7 +155,7 @@ export default function TradeInsPage() {
                 <tr>
                   <th className="px-4 py-3">{t('tradeIns.tradeInNumberLabel')}</th>
                   <th className="px-4 py-3">{t('tradeIns.customerLabel')}</th>
-                  <th className="hidden px-4 py-3 sm:table-cell">{t('tradeIns.tradeInDateLabel')}</th>
+                  <th className="px-4 py-3">{t('tradeIns.tradeInDateLabel')}</th>
                   <th className="px-4 py-3 text-right">{t('tradeIns.totalTradeInValueLabel')}</th>
                   <th className="hidden px-4 py-3 text-right md:table-cell">{t('tradeIns.totalSaleAmountLabel')}</th>
                   <th className="px-4 py-3 text-right">{t('tradeIns.paymentAmountLabel')}</th>

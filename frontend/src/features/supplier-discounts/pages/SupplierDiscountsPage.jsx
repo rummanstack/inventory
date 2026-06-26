@@ -58,7 +58,7 @@ export default function SupplierDiscountsPage() {
                   <th className="px-4 py-3">DSR</th>
                   <th className="px-4 py-3">Supplier</th>
                   <th className="px-4 py-3 text-right">Amount</th>
-                  <th className="hidden px-4 py-3 lg:table-cell">Note</th>
+                  <th className="px-4 py-3">Note</th>
                   {canManage ? <th className="px-4 py-3 text-right">Actions</th> : null}
                 </tr>
               </thead>

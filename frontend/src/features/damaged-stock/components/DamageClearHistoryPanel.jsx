@@ -135,8 +135,8 @@ export default function DamageClearHistoryPanel({ products, refreshKey = 0 }) {
               <th className="px-4 py-3">{t('damagedStock.product')}</th>
               <th className="px-4 py-3">{t('damagedStock.category')}</th>
               <th className="px-4 py-3 text-right">{t('damagedStock.qtyCleared')}</th>
-              <th className="hidden px-4 py-3 md:table-cell">{t('damagedStock.clearNoteLabel')}</th>
-              <th className="hidden px-4 py-3 lg:table-cell">{t('damagedStock.clearedBy')}</th>
+              <th className="px-4 py-3">{t('damagedStock.clearNoteLabel')}</th>
+              <th className="px-4 py-3">{t('damagedStock.clearedBy')}</th>
             </tr>
           </thead>
           {loading ? null : (

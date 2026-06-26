@@ -450,7 +450,7 @@ export default function FinanceDashboardPage() {
                       <th className="px-4 py-3">{t('financeAccounts.account')}</th>
                       <th className="px-4 py-3">{t('financeAccounts.type')}</th>
                       <th className="px-4 py-3 text-right">{t('financeAccounts.amount')}</th>
-                      <th className="hidden px-4 py-3 sm:table-cell">{t('financeAccounts.note')}</th>
+                      <th className="px-4 py-3">{t('financeAccounts.note')}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">

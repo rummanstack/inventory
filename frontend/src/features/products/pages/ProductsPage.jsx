@@ -214,10 +214,16 @@ export default function ProductsPage() {
                 </div>
                 {canManageProducts ? (
                   <div className="mt-1 flex items-center gap-2">
-                    <button type="button" className="btn-secondary h-8 flex-1 px-2 text-xs" onClick={() => { setStockModalMode('add'); setStockModalProduct(product); }}>
-                      <PackagePlus size={14} />
-                      {t('products.stockActions')}
-                    </button>
+                    {product.serialRequired ? (
+                      <span className="flex h-8 flex-1 items-center justify-center rounded-lg bg-slate-100 px-2 text-xs font-semibold text-slate-400" title="Serial products must be received via a purchase order">
+                        Via purchase only
+                      </span>
+                    ) : (
+                      <button type="button" className="btn-secondary h-8 flex-1 px-2 text-xs" onClick={() => { setStockModalMode('add'); setStockModalProduct(product); }}>
+                        <PackagePlus size={14} />
+                        {t('products.stockActions')}
+                      </button>
+                    )}
                     <button type="button" className="icon-btn" title={t('common.edit')} onClick={() => setProductModal({ mode: 'edit', product })}>
                       <Pencil size={14} />
                     </button>
@@ -237,10 +243,10 @@ export default function ProductsPage() {
               <tr>
                 <th className="px-4 py-3">#</th>
                 <th className="px-4 py-3">{t('products.product')}</th>
-                {!isElectronics ? <th className="hidden px-4 py-3 sm:table-cell">{t('products.caseSize')}</th> : null}
-                <th className="hidden px-4 py-3 md:table-cell">{t('products.purchase')}</th>
-                <th className="hidden px-4 py-3 md:table-cell">{t('products.wholesalePrice')}</th>
-                <th className="hidden px-4 py-3 md:table-cell">{t('products.retailPrice')}</th>
+                {!isElectronics ? <th className="px-4 py-3">{t('products.caseSize')}</th> : null}
+                <th className="px-4 py-3">{t('products.purchase')}</th>
+                <th className="px-4 py-3">{t('products.wholesalePrice')}</th>
+                <th className="px-4 py-3">{t('products.retailPrice')}</th>
                 <th className="px-4 py-3">{t('products.stock')}</th>
                 <th className="px-4 py-3 text-right">{t('common.actions')}</th>
               </tr>
@@ -292,10 +298,12 @@ export default function ProductsPage() {
                     <div className="flex justify-end gap-2">
                       {canManageProducts ? (
                         <>
-                          <button type="button" className="btn-secondary h-9 px-3" onClick={() => { setStockModalMode('add'); setStockModalProduct(product); }}>
-                            <PackagePlus size={16} />
-                            {t('products.stockActions')}
-                          </button>
+                          {!product.serialRequired && (
+                            <button type="button" className="btn-secondary h-9 px-3" onClick={() => { setStockModalMode('add'); setStockModalProduct(product); }}>
+                              <PackagePlus size={16} />
+                              {t('products.stockActions')}
+                            </button>
+                          )}
                           <button type="button" className="icon-btn" title={t('common.edit')} onClick={() => setProductModal({ mode: 'edit', product })}>
                             <Pencil size={16} />
                           </button>

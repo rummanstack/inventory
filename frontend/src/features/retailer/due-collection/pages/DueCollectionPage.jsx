@@ -51,10 +51,7 @@ export default function DueCollectionPage() {
       <div id="due-collection-print" className="surface overflow-hidden print-target">
         <div className="border-b border-slate-100 p-5">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div className="space-y-2">
-              <p className="text-[11px] font-black uppercase tracking-[0.22em] text-slate-400">{t('retailer.dueCollection.eyebrow')}</p>
-              <p className="text-sm font-medium text-slate-500">{t('retailer.dueCollection.description')}</p>
-            </div>
+            <p className="text-[11px] font-black uppercase tracking-[0.22em] text-slate-400">{t('retailer.dueCollection.eyebrow')}</p>
             <div className="flex flex-wrap items-center gap-2 text-sm font-bold">
               <span className="muted-chip">{formatNumber(vm.total, language)} {t('retailer.dueCollection.paymentCount')}</span>
               <button
@@ -108,7 +105,7 @@ export default function DueCollectionPage() {
                 <th className="px-4 py-3">{t('retailer.shared.customerLabel')}</th>
                 <th className="px-4 py-3 text-right">{t('supplierPayments.amount')}</th>
                 <th className="px-4 py-3">{t('supplierPayments.method')}</th>
-                <th className="hidden px-4 py-3 lg:table-cell">{t('supplierPayments.note')}</th>
+                <th className="px-4 py-3">{t('supplierPayments.note')}</th>
                 <th className="px-4 py-3 text-right">{t('common.actions')}</th>
               </tr>
             </thead>

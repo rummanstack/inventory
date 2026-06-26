@@ -73,7 +73,6 @@ export default function DsrPage() {
             <p className="text-[11px] font-black uppercase tracking-[0.22em] text-slate-400">{t('dsr.eyebrow')}</p>
             <div className="flex flex-wrap items-center gap-2 text-sm font-bold">
               <span className="muted-chip">{formatNumber(vm.total)} {t('common.dsr')}</span>
-              <span className="muted-chip">{formatNumber(vm.inProgressDsrIds.size)} {t('dsr.inProgress')}</span>
               <button
                 type="button"
                 className="btn-secondary no-print py-1.5 text-xs"
@@ -133,7 +132,6 @@ export default function DsrPage() {
                   <td className="table-cell font-semibold text-slate-950">
                     <div className="flex items-center gap-2">
                       <span>{dsr.name}</span>
-                      {vm.inProgressDsrIds.has(dsr.id) ? <Badge tone="amber">{t('dsr.inProgress')}</Badge> : null}
                     </div>
                   </td>
                   <td className="hidden table-cell sm:table-cell">

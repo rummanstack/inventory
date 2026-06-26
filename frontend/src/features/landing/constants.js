@@ -62,9 +62,12 @@ export const heroMobileImage = mobileDashboardImage;
 export const contactUsImage = supportCallImage;
 
 export const featureStoryImages = [
-  businessOwnerImage,
+  retailCounterImage,
   eveningSettlementImage,
   warehouseStockImage,
+  supplierPurchaseImage,
+  ownerLaptopImage,
+  dueCollectionImage,
 ];
 
 export const featureHighlightImages = [
@@ -122,4 +125,9 @@ export const showcaseImages = [
   { src: contactSupportImage, key: 'contactUs', fit: 'cover' },
   { src: retailCounter2Image, key: 'retailCounter', fit: 'cover', position: 'top' },
   { src: dueCollectionImage, key: 'dueCollection', fit: 'cover' },
+  { src: eveningSettlementImage, key: 'eveningSettlement', fit: 'cover' },
+  { src: purchaseReceiveImage, key: 'purchaseReceive', fit: 'cover' },
+  { src: dsrRouteImage, key: 'dsrRoute', fit: 'cover' },
+  { src: supplierPurchaseImage, key: 'supplierPurchase', fit: 'cover' },
+  { src: shopCounter2Image, key: 'shopCounter2', fit: 'cover', position: 'top' },
 ];

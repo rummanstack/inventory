@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Download, FileSpreadsheet, MapPin, Pencil, Phone, Plus, Printer, Search, Target, Trash2, Users } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { CheckCircle2, Download, FileSpreadsheet, MapPin, Pencil, Phone, Plus, Printer, Search, Target, Trash2, Users } from 'lucide-react';
 import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
 import { statusTone } from '../../../models/inventoryViewData.js';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
@@ -17,7 +17,18 @@ export default function DsrPage() {
   const vm = useDsrViewModel({ today });
   const [dsrModal, setDsrModal] = useState(null);
   const [targetModal, setTargetModal] = useState(false);
+  const [targetSummary, setTargetSummary] = useState([]);
   const canManageDsrs = can('manage_dsrs');
+
+  const currentMonth = today ? today.slice(0, 7) : new Date().toISOString().slice(0, 7);
+
+  useEffect(() => {
+    inventoryApi.getDsrTargetSummary(currentMonth)
+      .then((res) => setTargetSummary(res.summary || []))
+      .catch(() => {});
+  }, [currentMonth]);
+
+  const targetMap = new Map(targetSummary.map((r) => [r.dsrId, r]));
 
   async function handleExportExcel() {
     const result = await inventoryApi.listDsrs({ search: vm.search || undefined, page: 1, pageSize: 10000 });
@@ -105,6 +116,9 @@ export default function DsrPage() {
                 <th className="px-4 py-3">{t('dsr.area')}</th>
                 <th className="px-4 py-3">{t('dsr.status')}</th>
                 <th className="px-4 py-3 text-right">{t('dsr.currentDue')}</th>
+                <th className="px-4 py-3 text-right">Target</th>
+                <th className="px-4 py-3 text-right">Achieved</th>
+                <th className="px-4 py-3 text-center"></th>
                 <th className="px-4 py-3 text-right no-print">{t('common.actions')}</th>
               </tr>
             </thead>
@@ -141,6 +155,27 @@ export default function DsrPage() {
                       {formatCurrency(dsr.currentDue || 0)}
                     </span>
                   </td>
+                  {(() => {
+                    const t2 = targetMap.get(dsr.id);
+                    const target = t2?.targetAmount ?? 0;
+                    const achieved = t2?.actualAmount ?? 0;
+                    const hit = target > 0 && achieved >= target;
+                    return (
+                      <>
+                        <td className="table-cell text-right text-sm text-slate-500">
+                          {target > 0 ? formatCurrency(target) : <span className="text-slate-300">—</span>}
+                        </td>
+                        <td className="table-cell text-right text-sm font-semibold">
+                          {achieved > 0 ? (
+                            <span className={hit ? 'text-emerald-600' : 'text-slate-700'}>{formatCurrency(achieved)}</span>
+                          ) : <span className="text-slate-300">—</span>}
+                        </td>
+                        <td className="table-cell text-center">
+                          {hit ? <CheckCircle2 size={16} className="mx-auto text-emerald-500" /> : null}
+                        </td>
+                      </>
+                    );
+                  })()}
                   <td className="table-cell no-print">
                     <div className="flex justify-end gap-2">
                       {canManageDsrs ? (

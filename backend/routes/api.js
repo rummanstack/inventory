@@ -102,6 +102,8 @@ import { SrController } from "../controllers/srController.js";
 import { SrDueLedgerController } from "../controllers/srDueLedgerController.js";
 import { createSrsRoutes } from "./srs.routes.js";
 import { createSrDueLedgerRoutes } from "./srDueLedger.routes.js";
+import { DsrTargetController } from "../controllers/DsrTargetController.js";
+import { createDsrTargetsRoutes } from "./dsrTargets.routes.js";
 import { EmployeeController } from "../controllers/EmployeeController.js";
 import { SalaryStructureController } from "../controllers/SalaryStructureController.js";
 import { PayrollController } from "../controllers/PayrollController.js";
@@ -159,6 +161,7 @@ export function createApiRouter({
   brandService,
   srService,
   srDueLedgerService,
+  dsrTargetService,
   employeeService,
   salaryStructureService,
   payrollService,
@@ -290,6 +293,8 @@ export function createApiRouter({
   router.use("/retail-cash-sessions", createRetailCashSessionsRoutes(retailCashSessionController));
   router.use("/srs", createSrsRoutes(srController));
   router.use("/sr-due-ledger", createSrDueLedgerRoutes(srDueLedgerController));
+  const dsrTargetController = new DsrTargetController(dsrTargetService);
+  router.use("/dsr-targets", createDsrTargetsRoutes(dsrTargetController));
   router.use("/employees", createEmployeesRoutes(employeeController));
   router.use("/salary-structure", createSalaryStructureRoutes(salaryStructureController));
   router.use("/payroll", createPayrollRoutes(payrollController));

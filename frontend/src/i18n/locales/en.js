@@ -2713,8 +2713,8 @@ const en = {
           {
             name: 'Free',
             label: 'Get started',
-            price: 'Free',
-            cadence: '',
+            price: 'BDT 0',
+            cadence: '/month',
             description: 'Basic tools to manage daily stock and DSR operations.',
             included: [true, true, true, true, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false],
           },

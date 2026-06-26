@@ -181,7 +181,11 @@ export class AuthService {
         tenant = await findTenantById(client, user.tenantId);
       }
 
-      await touchSession(client, tokenHash, { ipAddress: requestMeta.ip, userAgent: requestMeta.userAgent });
+      await touchSession(client, tokenHash, {
+        ipAddress: requestMeta.ip,
+        userAgent: requestMeta.userAgent,
+        newExpiresAt: new Date(Date.now() + this.getSessionMaxAgeMs()),
+      });
 
       return { user, tenant };
     } finally {

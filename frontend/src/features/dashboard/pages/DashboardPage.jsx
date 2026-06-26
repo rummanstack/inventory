@@ -40,9 +40,9 @@ function MetricPill({ label, value, sub, icon: Icon, iconClass = "bg-slate-100 t
       <div className={cx("w-fit rounded-xl p-2", iconClass)}>
         <Icon size={15} />
       </div>
-      <p className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-400">{label}</p>
+      <p className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-600">{label}</p>
       <p className="text-2xl font-black tracking-tight text-slate-950">{value}</p>
-      {sub && <p className="text-xs font-medium text-slate-400">{sub}</p>}
+      {sub && <p className="text-xs font-medium text-slate-500">{sub}</p>}
     </div>
   );
 }
@@ -54,8 +54,8 @@ function DueRow({ icon: Icon, iconClass, label, sub, value, valueClass = "text-s
         <Icon size={17} />
       </div>
       <div className="min-w-0 flex-1">
-        <p className="text-xs font-black uppercase tracking-[0.13em] text-slate-500">{label}</p>
-        {sub && <p className="mt-0.5 text-xs font-medium text-slate-400">{sub}</p>}
+        <p className="text-xs font-black uppercase tracking-[0.13em] text-slate-600">{label}</p>
+        {sub && <p className="mt-0.5 text-xs font-medium text-slate-500">{sub}</p>}
       </div>
       <p className={cx("shrink-0 text-base font-black", valueClass)}>{value}</p>
     </div>
@@ -121,7 +121,7 @@ export default function DashboardPage() {
               <div className="rounded-lg bg-[var(--secondary-soft)] p-1.5">
                 <Landmark size={13} className="text-[var(--secondary-strong)]" />
               </div>
-              <p className="text-[11px] font-black uppercase tracking-[0.22em] text-slate-400">
+              <p className="text-[11px] font-black uppercase tracking-[0.22em] text-slate-600">
                 {t("dashboard.financialHealth")}
               </p>
             </div>
@@ -170,7 +170,7 @@ export default function DashboardPage() {
                   <div className={cx("w-fit rounded-xl p-2.5", item.iconClass)}>
                     <Icon size={16} />
                   </div>
-                  <p className="mt-4 text-[11px] font-black uppercase tracking-[0.16em] text-slate-400">{item.label}</p>
+                  <p className="mt-4 text-[11px] font-black uppercase tracking-[0.16em] text-slate-600">{item.label}</p>
                   <p
                     className={cx(
                       "mt-2 text-[clamp(1.4rem,2.5vw,1.875rem)] font-black tracking-tight leading-none",
@@ -179,7 +179,7 @@ export default function DashboardPage() {
                   >
                     {item.value}
                   </p>
-                  <p className="mt-2 text-xs font-medium text-slate-400">{item.sub}</p>
+                  <p className="mt-2 text-xs font-medium text-slate-500">{item.sub}</p>
                 </div>
               );
             })}
@@ -226,11 +226,11 @@ export default function DashboardPage() {
                   <div className={cx("w-fit rounded-xl p-2.5", item.iconClass)}>
                     <Icon size={16} />
                   </div>
-                  <p className="mt-4 text-[11px] font-black uppercase tracking-[0.16em] text-slate-400">{item.label}</p>
+                  <p className="mt-4 text-[11px] font-black uppercase tracking-[0.16em] text-slate-600">{item.label}</p>
                   <p className={cx("mt-2 text-[clamp(1.4rem,2.5vw,1.875rem)] font-black tracking-tight leading-none", item.valueClass)}>
                     {item.value}
                   </p>
-                  <p className="mt-2 text-xs font-medium text-slate-400">{item.sub}</p>
+                  <p className="mt-2 text-xs font-medium text-slate-500">{item.sub}</p>
                 </div>
               );
             })}
@@ -244,7 +244,7 @@ export default function DashboardPage() {
           </div>
           <div>
             <p className="text-sm font-black text-slate-700">{t("dashboard.financialHealth")}</p>
-            <p className="text-xs font-medium text-slate-400">
+            <p className="text-xs font-medium text-slate-500">
               Finance dashboard permission required to view financial data.
             </p>
           </div>
@@ -304,10 +304,10 @@ export default function DashboardPage() {
 
         {financeDashboard ? (
           <div className="surface overflow-hidden p-5">
-            <p className="px-1 text-[11px] font-black uppercase tracking-[0.16em] text-slate-400">
+            <p className="px-1 text-[11px] font-black uppercase tracking-[0.16em] text-slate-600">
               {t("dashboard.receivablesPayables")}
             </p>
-            <p className="mt-1 px-1 text-xs font-medium leading-5 text-slate-400">
+            <p className="mt-1 px-1 text-xs font-medium leading-5 text-slate-500">
               {t("dashboard.receivablesPayablesDescription")}
             </p>
             <div className="mt-4 space-y-2.5">
@@ -336,7 +336,7 @@ export default function DashboardPage() {
             </div>
             <div className="mt-4 rounded-[18px] bg-slate-50 px-5 py-3">
               <div className="flex items-center justify-between">
-                <p className="text-xs font-black uppercase tracking-[0.12em] text-slate-400">
+                <p className="text-xs font-black uppercase tracking-[0.12em] text-slate-600">
                   {t("dashboard.netPosition")}
                 </p>
                 <p
@@ -352,12 +352,12 @@ export default function DashboardPage() {
           </div>
         ) : (
           <div className="surface overflow-hidden p-5">
-            <p className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-400">
+            <p className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-600">
               {t("dashboard.receivablesPayables")}
             </p>
             <div className="mt-6 flex flex-col items-center justify-center gap-2 py-8 text-center">
               <Lock size={20} className="text-slate-300" />
-              <p className="text-xs font-medium text-slate-400">{t('dashboard.financeUnavailable')}</p>
+              <p className="text-xs font-medium text-slate-500">{t('dashboard.financeUnavailable')}</p>
             </div>
           </div>
         )}
@@ -410,7 +410,7 @@ export default function DashboardPage() {
                 <p className={cx("text-sm font-bold", retailCashSession ? "text-emerald-800" : "text-slate-700")}>
                   {retailCashSession ? t("dashboard.cashSessionOpen") : t("dashboard.cashSessionClosed")}
                 </p>
-                <p className="text-xs font-medium text-slate-400">
+                <p className="text-xs font-medium text-slate-500">
                   {retailCashSession ? t("dashboard.cashSessionOpenDetail") : t("dashboard.cashSessionClosedDetail")}
                 </p>
               </div>
@@ -527,7 +527,7 @@ export default function DashboardPage() {
             <div className="rounded-lg bg-emerald-50 p-1.5">
               <Receipt size={13} className="text-emerald-700" />
             </div>
-            <p className="text-[11px] font-black uppercase tracking-[0.22em] text-slate-400">Today's Profit & Loss</p>
+            <p className="text-[11px] font-black uppercase tracking-[0.22em] text-slate-600">Today's Profit & Loss</p>
           </div>
         </div>
 
@@ -542,7 +542,7 @@ export default function DashboardPage() {
           ].map(({ label, value, iconClass, icon: Icon }) => (
             <div key={label} className="bg-white px-6 py-5">
               <div className={cx('mb-3 w-fit rounded-xl p-2', iconClass)}><Icon size={15} /></div>
-              <p className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-400">{label}</p>
+              <p className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-600">{label}</p>
               <p className="mt-1 text-xl font-black tracking-tight text-slate-950">{value}</p>
             </div>
           ))}
@@ -557,11 +557,11 @@ export default function DashboardPage() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-slate-100">
-                      <th className="pb-2 text-left text-xs font-black uppercase tracking-wide text-slate-400">DSR</th>
-                      <th className="pb-2 text-right text-xs font-black uppercase tracking-wide text-slate-400">Revenue</th>
-                      <th className="pb-2 text-right text-xs font-black uppercase tracking-wide text-slate-400">COGS</th>
-                      <th className="pb-2 text-right text-xs font-black uppercase tracking-wide text-slate-400">Profit</th>
-                      <th className="pb-2 text-right text-xs font-black uppercase tracking-wide text-slate-400">Collected</th>
+                      <th className="pb-2 text-left text-xs font-black uppercase tracking-wide text-slate-500">DSR</th>
+                      <th className="pb-2 text-right text-xs font-black uppercase tracking-wide text-slate-500">Revenue</th>
+                      <th className="pb-2 text-right text-xs font-black uppercase tracking-wide text-slate-500">COGS</th>
+                      <th className="pb-2 text-right text-xs font-black uppercase tracking-wide text-slate-500">Profit</th>
+                      <th className="pb-2 text-right text-xs font-black uppercase tracking-wide text-slate-500">Collected</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-50">
@@ -597,10 +597,10 @@ export default function DashboardPage() {
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b border-slate-100">
-                        <th className="pb-2 text-left text-xs font-black uppercase tracking-wide text-slate-400">Product</th>
-                        <th className="pb-2 text-right text-xs font-black uppercase tracking-wide text-slate-400">Qty</th>
-                        <th className="pb-2 text-right text-xs font-black uppercase tracking-wide text-slate-400">Revenue</th>
-                        <th className="pb-2 text-right text-xs font-black uppercase tracking-wide text-slate-400">Profit</th>
+                        <th className="pb-2 text-left text-xs font-black uppercase tracking-wide text-slate-500">Product</th>
+                        <th className="pb-2 text-right text-xs font-black uppercase tracking-wide text-slate-500">Qty</th>
+                        <th className="pb-2 text-right text-xs font-black uppercase tracking-wide text-slate-500">Revenue</th>
+                        <th className="pb-2 text-right text-xs font-black uppercase tracking-wide text-slate-500">Profit</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-50">
@@ -640,12 +640,12 @@ export default function DashboardPage() {
                     );
                   })}
                   <div className="mt-2 flex justify-between border-t border-slate-100 pt-2">
-                    <p className="text-xs font-black uppercase tracking-wide text-slate-400">Total</p>
+                    <p className="text-xs font-black uppercase tracking-wide text-slate-600">Total</p>
                     <p className="text-sm font-black text-rose-700">{formatCurrency(todayPnl.expenseTotal, language)}</p>
                   </div>
                 </div>
               ) : (
-                <p className="text-sm text-slate-400">No expenses recorded today.</p>
+                <p className="text-sm text-slate-500">No expenses recorded today.</p>
               )}
             </div>
           </div>

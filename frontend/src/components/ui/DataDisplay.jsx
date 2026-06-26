@@ -167,13 +167,18 @@ export function Pagination({ page, totalPages, onPageChange, className = '' }) {
     return null;
   }
 
+  function changePage(next) {
+    onPageChange(next);
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }
+
   return (
     <div className={cx('flex items-center justify-center gap-1.5', className)}>
       <button
         type="button"
         className="icon-btn"
         disabled={page <= 1}
-        onClick={() => onPageChange(page - 1)}
+        onClick={() => changePage(page - 1)}
         aria-label="Previous page"
       >
         <ChevronLeft className="h-4 w-4" />
@@ -191,7 +196,7 @@ export function Pagination({ page, totalPages, onPageChange, className = '' }) {
               'h-9 min-w-[2.25rem] rounded-full px-3 text-sm font-semibold transition',
               entry === page ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100',
             )}
-            onClick={() => onPageChange(entry)}
+            onClick={() => changePage(entry)}
           >
             {entry}
           </button>
@@ -201,7 +206,7 @@ export function Pagination({ page, totalPages, onPageChange, className = '' }) {
         type="button"
         className="icon-btn"
         disabled={page >= totalPages}
-        onClick={() => onPageChange(page + 1)}
+        onClick={() => changePage(page + 1)}
         aria-label="Next page"
       >
         <ChevronRight className="h-4 w-4" />

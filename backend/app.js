@@ -55,6 +55,9 @@ export function createApp({
   srService,
   srDueLedgerService,
   supplierDiscountService,
+  employeeService,
+  salaryStructureService,
+  payrollService,
 }) {
   const app = express();
 
@@ -113,6 +116,9 @@ export function createApp({
       srService,
       srDueLedgerService,
       supplierDiscountService,
+      employeeService,
+      salaryStructureService,
+      payrollService,
     }),
   );
 

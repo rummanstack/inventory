@@ -143,3 +143,21 @@ export const BRAND_ACTIONS = {
   UPDATE: "brand.update",
   DELETE: "brand.delete",
 };
+
+export const EMPLOYEE_ACTIONS = {
+  CREATE: "employee.create",
+  UPDATE: "employee.update",
+  DELETE: "employee.delete",
+  RESTORE: "employee.restore",
+};
+
+export const SALARY_STRUCTURE_ACTIONS = {
+  SAVE: "salary_structure.save",
+};
+
+export const PAYROLL_ACTIONS = {
+  GENERATE: "payroll.generate",
+  APPROVE: "payroll.approve",
+  PAY: "payroll.pay",
+  DELETE: "payroll.delete",
+};

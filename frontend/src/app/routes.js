@@ -1,9 +1,11 @@
 import {
   CircleDollarSign,
   BarChart3,
+  Banknote,
   Boxes,
   Building2,
   ClipboardList,
+  CreditCard,
   FileText,
   HandCoins,
   KeyRound,
@@ -88,6 +90,11 @@ import RepairJobsPage from '../features/repair-jobs/pages/RepairJobsPage';
 import CashSessionsPage from '../features/retailer/cash-sessions/pages/CashSessionsPage';
 import QuotationsPage from '../features/quotations/pages/QuotationsPage';
 import TradeInsPage from '../features/trade-ins/pages/TradeInsPage';
+import EmployeesPage from '../features/hr/employees/pages/EmployeesPage';
+import SalaryStructurePage from '../features/hr/salary-structure/pages/SalaryStructurePage';
+import PayrollPage from '../features/hr/payroll/pages/PayrollPage';
+import PayslipsPage from '../features/hr/payslips/pages/PayslipsPage';
+import SalaryReportsPage from '../features/hr/salary-reports/pages/SalaryReportsPage';
 
 export const APP_ROUTES = [
   // 1. Dashboard
@@ -161,6 +168,13 @@ export const APP_ROUTES = [
   // removed from sidebar — will be floating button
   { id: 'help-desk', path: '/help-desk', labelKey: 'nav.helpDesk', icon: ShieldCheck, component: HelpDeskPage, group: 'hidden', feature: 'help-desk' },
 
+  // 9.5 HR / Payroll
+  { id: 'employees', path: '/hr/employees', labelKey: 'nav.employees', icon: Users, component: EmployeesPage, group: 'hr', permission: 'view_employees', feature: 'employees' },
+  { id: 'salary-structure', path: '/hr/salary-structure', labelKey: 'nav.salaryStructure', icon: Banknote, component: SalaryStructurePage, group: 'hr', permission: 'view_employees', feature: 'salary-structure' },
+  { id: 'payroll', path: '/hr/payroll', labelKey: 'nav.payroll', icon: CreditCard, component: PayrollPage, group: 'hr', permission: 'manage_payroll', feature: 'payroll' },
+  { id: 'payslips', path: '/hr/payslips', labelKey: 'nav.payslips', icon: FileText, component: PayslipsPage, group: 'hr', permission: 'manage_payroll', feature: 'payslips' },
+  { id: 'salary-reports', path: '/hr/salary-reports', labelKey: 'nav.salaryReports', icon: BarChart3, component: SalaryReportsPage, group: 'hr', permission: 'manage_payroll', feature: 'salary-reports' },
+
   // 11. Developer
   { id: 'platform', path: '/platform', labelKey: 'nav.platform', icon: ShieldCheck, component: PlatformAdminPage, group: 'developer', role: 'system_developer', feature: 'platform' },
   { id: 'system-health', path: '/system-health', labelKey: 'nav.systemHealth', icon: Activity, component: SystemHealthPage, group: 'developer', role: 'system_developer', feature: 'system-health' },
@@ -169,7 +183,7 @@ export const APP_ROUTES = [
   { id: 'visitor-chats', path: '/platform/visitor-chats', labelKey: 'nav.visitorChats', icon: MessageCircle, component: VisitorChatsPage, group: 'developer', role: 'system_developer', feature: 'visitor-chats' },
 ];
 
-export const SIDEBAR_SECTIONS = ['overview', 'pos', 'customers', 'inventory', 'purchases', 'dealer', 'warranty', 'finance', 'reports', 'system', 'developer'];
+export const SIDEBAR_SECTIONS = ['overview', 'pos', 'customers', 'inventory', 'purchases', 'dealer', 'warranty', 'finance', 'reports', 'hr', 'system', 'developer'];
 
 export function getRouteLabel(pathname, t = (key) => key) {
   const matchedRoute = [...APP_ROUTES]

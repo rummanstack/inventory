@@ -22,10 +22,14 @@ export default function DsrPage() {
 
   const currentMonth = today ? today.slice(0, 7) : new Date().toISOString().slice(0, 7);
 
-  useEffect(() => {
+  function loadTargetSummary() {
     inventoryApi.getDsrTargetSummary(currentMonth)
       .then((res) => setTargetSummary(res.summary || []))
       .catch(() => {});
+  }
+
+  useEffect(() => {
+    loadTargetSummary();
   }, [currentMonth]);
 
   const targetMap = new Map(targetSummary.map((r) => [r.dsrId, r]));
@@ -118,7 +122,7 @@ export default function DsrPage() {
                 <th className="px-4 py-3 text-right">{t('dsr.currentDue')}</th>
                 <th className="px-4 py-3 text-right">Target</th>
                 <th className="px-4 py-3 text-right">Achieved</th>
-                <th className="px-4 py-3 text-center"></th>
+                <th className="px-4 py-3 text-right">%</th>
                 <th className="px-4 py-3 text-right no-print">{t('common.actions')}</th>
               </tr>
             </thead>
@@ -159,19 +163,23 @@ export default function DsrPage() {
                     const t2 = targetMap.get(dsr.id);
                     const target = t2?.targetAmount ?? 0;
                     const achieved = t2?.actualAmount ?? 0;
-                    const hit = target > 0 && achieved >= target;
+                    const pct = target > 0 ? Math.min(Math.round((achieved / target) * 100), 999) : null;
+                    const pctColor = pct === null ? '' : pct >= 100 ? 'text-emerald-600' : pct >= 75 ? 'text-amber-600' : 'text-rose-600';
                     return (
                       <>
                         <td className="table-cell text-right text-sm text-slate-500">
                           {target > 0 ? formatCurrency(target) : <span className="text-slate-300">—</span>}
                         </td>
                         <td className="table-cell text-right text-sm font-semibold">
-                          {achieved > 0 ? (
-                            <span className={hit ? 'text-emerald-600' : 'text-slate-700'}>{formatCurrency(achieved)}</span>
-                          ) : <span className="text-slate-300">—</span>}
+                          <div className="flex items-center justify-end gap-1.5">
+                            {achieved > 0 ? (
+                              <span className={pct !== null && pct >= 100 ? 'text-emerald-600' : 'text-slate-700'}>{formatCurrency(achieved)}</span>
+                            ) : <span className="text-slate-300">—</span>}
+                            {pct !== null && pct >= 100 ? <CheckCircle2 size={14} className="shrink-0 text-emerald-500" /> : null}
+                          </div>
                         </td>
-                        <td className="table-cell text-center">
-                          {hit ? <CheckCircle2 size={16} className="mx-auto text-emerald-500" /> : null}
+                        <td className="table-cell text-right text-sm font-bold">
+                          {pct !== null ? <span className={pctColor}>{pct}%</span> : <span className="text-slate-300">—</span>}
                         </td>
                       </>
                     );
@@ -218,7 +226,7 @@ export default function DsrPage() {
         }
         return result;
       }} /> : null}
-      {targetModal ? <DsrTargetModal onClose={() => setTargetModal(false)} onSaved={() => setTargetModal(false)} /> : null}
+      {targetModal ? <DsrTargetModal onClose={() => setTargetModal(false)} onSaved={() => { setTargetModal(false); loadTargetSummary(); }} /> : null}
     </div>
   );
 }

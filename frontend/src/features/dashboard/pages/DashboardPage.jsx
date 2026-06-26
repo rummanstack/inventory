@@ -516,9 +516,9 @@ export default function DashboardPage() {
                       </p>
                     </div>
                   ))}
-                  <div className="mt-2 flex items-center justify-between rounded-[18px] bg-slate-900 px-5 py-3">
-                    <p className="text-xs font-black uppercase tracking-[0.14em] text-slate-300">Net Cash Position</p>
-                    <p className={cx('text-sm font-black', net >= 0 ? 'text-emerald-400' : 'text-rose-400')}>
+                  <div className="mt-2 flex items-center justify-between rounded-[18px] bg-slate-100 px-5 py-3">
+                    <p className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">Net Cash Position</p>
+                    <p className={cx('text-sm font-black', net >= 0 ? 'text-emerald-600' : 'text-rose-500')}>
                       {formatCurrency(net, language)}
                     </p>
                   </div>
@@ -528,27 +528,24 @@ export default function DashboardPage() {
           </ChartPanel>
         ) : null}
 
-        {/* No Sale Today */}
+        {/* Idle Today */}
         {(() => {
           const totalPages = Math.max(1, Math.ceil(noSaleToday.length / NO_SALE_PAGE_SIZE));
           const safePage = Math.min(noSalePage, totalPages);
           const pageItems = noSaleToday.slice((safePage - 1) * NO_SALE_PAGE_SIZE, safePage * NO_SALE_PAGE_SIZE);
           return (
-            <ChartPanel title="Not Issued Today" description={`${noSaleToday.length} products with stock not moved today.`}>
+            <ChartPanel title="Idle Today" description={`${noSaleToday.length} in-stock product${noSaleToday.length === 1 ? '' : 's'} with no movement today.`}>
               {noSaleToday.length === 0 ? (
-                <EmptyState title="All clear!" description="Every in-stock product was issued today." icon={PackageCheck} />
+                <EmptyState title="All clear!" description="Every in-stock product moved today." icon={PackageCheck} />
               ) : (
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-3">
                   <div className="space-y-1.5">
                     {pageItems.map((p) => (
-                      <div key={p.id} className="flex items-center gap-2.5 rounded-[16px] bg-slate-50/70 px-3.5 py-2 ring-1 ring-slate-200/40">
+                      <div key={p.id} className="flex items-center gap-2.5 rounded-[16px] bg-slate-50/70 px-3.5 py-2.5 ring-1 ring-slate-200/40">
                         <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-rose-50">
-                          <PackageX size={13} className="text-rose-500" />
+                          <PackageX size={13} className="text-rose-400" />
                         </div>
                         <p className="min-w-0 flex-1 truncate text-xs font-semibold text-slate-800">{p.name}</p>
-                        <span className="shrink-0 rounded-lg bg-slate-100 px-2 py-0.5 text-[11px] font-black text-slate-600">
-                          {p.stockPieces} pcs
-                        </span>
                       </div>
                     ))}
                   </div>

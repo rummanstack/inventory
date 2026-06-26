@@ -5,11 +5,6 @@ import { featureStoryImages } from '../constants.js';
 
 export default function FeatureStorySection({ t }) {
   const groups = t('landing.featureStory.groups');
-  const badges = [
-    t('landing.featureStory.badges.retail'),
-    t('landing.featureStory.badges.operations'),
-    t('landing.featureStory.badges.stock'),
-  ];
 
   return (
     <section id="features" className="landing-section landing-section-brand">
@@ -27,7 +22,7 @@ export default function FeatureStorySection({ t }) {
                 <ImagePlaceholder data={{ src: featureStoryImages[index], alt: group.title }} heightClass="aspect-[3/2]" fit="cover" />
               </div>
               <div className="feature-story-content">
-                <p className="brand-chip inline-flex">{badges[index]}</p>
+                <p className="brand-chip inline-flex">{group.badge}</p>
                 <h3 className="text-2xl font-black text-slate-950">{group.title}</h3>
                 <div className="mt-5 space-y-3">
                   {group.items.map((item) => (

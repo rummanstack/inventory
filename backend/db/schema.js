@@ -1685,6 +1685,21 @@ export async function createSchema(pool) {
     CREATE INDEX IF NOT EXISTS idx_payroll_items_tenant_employee ON payroll_items(tenant_id, employee_id);
   `);
 
+  // ── DSR Monthly Targets ────────────────────────────────────────────────────
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS dsr_targets (
+      id          TEXT PRIMARY KEY,
+      tenant_id   TEXT NOT NULL REFERENCES tenants(id),
+      dsr_id      TEXT NOT NULL,
+      month       VARCHAR(7) NOT NULL,
+      target_amount NUMERIC NOT NULL DEFAULT 0,
+      created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE(tenant_id, dsr_id, month)
+    );
+    CREATE INDEX IF NOT EXISTS idx_dsr_targets_tenant_month ON dsr_targets(tenant_id, month);
+  `);
+
   // Backfill HR features onto all tenants that already have explicit feature rows
   // (tenants with zero rows are untouched — "no rows" already means "all enabled").
   await pool.query(`

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Download, FileSpreadsheet, MapPin, Pencil, Phone, Plus, Printer, Search, Trash2, Users } from 'lucide-react';
+import { Download, FileSpreadsheet, MapPin, Pencil, Phone, Plus, Printer, Search, Target, Trash2, Users } from 'lucide-react';
 import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
 import { statusTone } from '../../../models/inventoryViewData.js';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
@@ -7,6 +7,7 @@ import { downloadSheetPdf } from '../../../services/printService.js';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import { formatCurrency, formatNumber } from '../../../utils/calculations.js';
 import DsrFormModal from '../components/DsrFormModal';
+import DsrTargetModal from '../components/DsrTargetModal';
 import { useDsrViewModel } from '../viewmodels/useDsrViewModel';
 
 const DSR_PRINT_ID = 'dsr-print';
@@ -15,6 +16,7 @@ export default function DsrPage() {
   const { today, saveDsr, deleteDsr, t, can } = useInventoryApp();
   const vm = useDsrViewModel({ today });
   const [dsrModal, setDsrModal] = useState(null);
+  const [targetModal, setTargetModal] = useState(false);
   const canManageDsrs = can('manage_dsrs');
 
   async function handleExportExcel() {
@@ -37,10 +39,16 @@ export default function DsrPage() {
         title={t('dsr.title')}
         description={t('dsr.description')}
         action={canManageDsrs ? (
-          <button type="button" className="btn-primary" onClick={() => setDsrModal({ mode: 'add' })}>
-            <Plus size={18} />
-            {t('dsr.add')}
-          </button>
+          <div className="flex gap-2">
+            <button type="button" className="btn-secondary" onClick={() => setTargetModal(true)}>
+              <Target size={16} />
+              Set Targets
+            </button>
+            <button type="button" className="btn-primary" onClick={() => setDsrModal({ mode: 'add' })}>
+              <Plus size={18} />
+              {t('dsr.add')}
+            </button>
+          </div>
         ) : null}
       />
 
@@ -175,6 +183,7 @@ export default function DsrPage() {
         }
         return result;
       }} /> : null}
+      {targetModal ? <DsrTargetModal onClose={() => setTargetModal(false)} onSaved={() => setTargetModal(false)} /> : null}
     </div>
   );
 }

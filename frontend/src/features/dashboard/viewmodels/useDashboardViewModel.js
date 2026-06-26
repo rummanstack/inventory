@@ -41,6 +41,7 @@ export function useDashboardViewModel({ products, dsrs, today, t, language = 'en
   const [financeDashboard, setFinanceDashboard] = useState(null);
   const [retailCashSession, setRetailCashSession] = useState(undefined);
   const [todayExpenseReport, setTodayExpenseReport] = useState(null);
+  const [dsrTargetSummary, setDsrTargetSummary] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -71,6 +72,7 @@ export function useDashboardViewModel({ products, dsrs, today, t, language = 'en
           financeDashboardResult,
           cashSessionResult,
           expenseReportResult,
+          dsrTargetSummaryResult,
         ] = await Promise.all([
           inventoryApi.listIssues({ dateFrom: today, dateTo: today, pageSize: DAY_SCOPE_PAGE_SIZE }),
           inventoryApi.listSettlements({ dateFrom: today, dateTo: today, pageSize: DAY_SCOPE_PAGE_SIZE }),
@@ -84,6 +86,7 @@ export function useDashboardViewModel({ products, dsrs, today, t, language = 'en
           inventoryApi.getFinanceDashboard().catch(() => null),
           inventoryApi.getCurrentRetailCashSession().catch(() => null),
           inventoryApi.getExpenseReport({ date: today }).catch(() => null),
+          inventoryApi.getDsrTargetSummary(today.slice(0, 7)).catch(() => ({ summary: [] })),
         ]);
 
         if (cancelled) {
@@ -102,6 +105,7 @@ export function useDashboardViewModel({ products, dsrs, today, t, language = 'en
         setFinanceDashboard(financeDashboardResult);
         setRetailCashSession(cashSessionResult);
         setTodayExpenseReport(expenseReportResult);
+        setDsrTargetSummary(dsrTargetSummaryResult?.summary || []);
       } catch (requestError) {
         if (!cancelled) {
           setError(requestError.message);
@@ -347,6 +351,7 @@ export function useDashboardViewModel({ products, dsrs, today, t, language = 'en
     },
     retailCashSession,
     financeDashboard,
+    dsrTargetSummary,
     dsrLeaderboard,
     todayPnl: { grossRevenue, grossCogs, grossProfit, expenseTotal, netProfit, dsrProfitRows, productProfitRows, expensesByCategory },
     yesterdayDeltas: {

@@ -50,6 +50,7 @@ import { SrService } from './services/srService.js';
 import { SrDueLedgerService } from './services/srDueLedgerService.js';
 import { SupplierDiscountService } from './services/supplierDiscountService.js';
 import { EmployeeService } from './services/employeeService.js';
+import { DsrTargetService } from './services/dsrTargetService.js';
 import { SalaryStructureService } from './services/salaryStructureService.js';
 import { PayrollService } from './services/payrollService.js';
 import { createApp } from './app.js';
@@ -112,6 +113,7 @@ export async function createBackendApp() {
   const visitorChatService = new VisitorChatService(databaseManager, { auditService });
   const srService = new SrService(databaseManager, { auditService });
   const srDueLedgerService = new SrDueLedgerService(databaseManager, { auditService, financeAccountService });
+  const dsrTargetService = new DsrTargetService(databaseManager);
   const employeeService = new EmployeeService(databaseManager, { auditService });
   const salaryStructureService = new SalaryStructureService(databaseManager, { auditService });
   const payrollService = new PayrollService(databaseManager, { auditService });
@@ -166,6 +168,7 @@ export async function createBackendApp() {
     srService,
     srDueLedgerService,
     supplierDiscountService,
+    dsrTargetService,
     employeeService,
     salaryStructureService,
     payrollService,

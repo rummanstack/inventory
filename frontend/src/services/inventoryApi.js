@@ -41,6 +41,7 @@ import { helpDeskApi } from './api/helpDeskApi.js';
 import { visitorChatAdminApi } from './api/visitorChatAdminApi.js';
 import { shopDueLedgerApi } from './api/shopDueLedgerApi.js';
 import { srsApi } from './api/srsApi.js';
+import { dsrTargetsApi } from './api/dsrTargetsApi.js';
 import { employeesApi } from './api/employeesApi.js';
 import { salaryStructureApi } from './api/salaryStructureApi.js';
 import { payrollApi } from './api/payrollApi.js';
@@ -89,6 +90,7 @@ export const inventoryApi = {
   ...visitorChatAdminApi,
   ...shopDueLedgerApi,
   ...srsApi,
+  ...dsrTargetsApi,
   ...employeesApi,
   ...salaryStructureApi,
   ...payrollApi,

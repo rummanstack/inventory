@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react';
-import { CircleDollarSign, Download, FileSpreadsheet, Pencil, Plus, Printer, Trash2 } from 'lucide-react';
-import { Alert, Badge, ChartPanel, ChartPanelSkeleton, EmptyState, SectionHeader, HorizontalBarChart, StatCard, TableSkeleton } from '../../../components/ui.jsx';
+import { useEffect, useMemo, useState } from 'react';
+import { CircleDollarSign, Download, FileSpreadsheet, Pencil, Plus, Trash2 } from 'lucide-react';
+import { Alert, Badge, ChartPanel, ChartPanelSkeleton, EmptyState, Pagination, SectionHeader, HorizontalBarChart, StatCard, TableSkeleton } from '../../../components/ui.jsx';
 import { DatePickerField, MonthPickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../services/printService.js';
@@ -11,15 +11,47 @@ import { useExpenseViewModel } from '../viewmodels/useExpenseViewModel';
 import ExpenseFormModal from '../components/ExpenseFormModal';
 
 const CATEGORY_CHART_FIELDS = { labelField: 'category', valueField: 'totalAmount' };
+const PAGE_SIZE = 20;
+
+const CATEGORY_I18N_KEYS = {
+  Bank: 'expenses.categories.bank',
+  Salary: 'expenses.categories.salary',
+  Office: 'expenses.categories.office',
+  Rent: 'expenses.categories.rent',
+  Vehicle: 'expenses.categories.vehicle',
+  'Load/Unload': 'expenses.categories.loadUnload',
+  Other: 'expenses.categories.other',
+};
 
 export default function ExpensesPage() {
   const { t, can, confirm } = useInventoryApp();
+  const tCategory = (category) => { const key = CATEGORY_I18N_KEYS[category]; return key ? t(key) : category; };
   const vm = useExpenseViewModel({ confirm });
   const [modal, setModal] = useState(null);
+  const [dailyPage, setDailyPage] = useState(1);
+  const [monthlyPage, setMonthlyPage] = useState(1);
   const canManageExpenses = can('manage_expenses');
+
+  useEffect(() => { setDailyPage(1); }, [vm.date]);
+  useEffect(() => { setMonthlyPage(1); }, [vm.month]);
 
   const dailyCategories = useMemo(() => toBarChartData(vm.report?.dailySummary?.byCategory || [], CATEGORY_CHART_FIELDS), [vm.report?.dailySummary?.byCategory]);
   const monthlyCategories = useMemo(() => toBarChartData(vm.report?.monthlySummary?.byCategory || [], CATEGORY_CHART_FIELDS), [vm.report?.monthlySummary?.byCategory]);
+
+  const dailyAll = vm.report?.dailyExpenses || [];
+  const monthlyAll = vm.report?.monthlyExpenses || [];
+
+  const dailyTotalPages = Math.ceil(dailyAll.length / PAGE_SIZE);
+  const monthlyTotalPages = Math.ceil(monthlyAll.length / PAGE_SIZE);
+
+  const dailyPaged = useMemo(
+    () => dailyAll.slice((dailyPage - 1) * PAGE_SIZE, dailyPage * PAGE_SIZE),
+    [dailyAll, dailyPage],
+  );
+  const monthlyPaged = useMemo(
+    () => monthlyAll.slice((monthlyPage - 1) * PAGE_SIZE, monthlyPage * PAGE_SIZE),
+    [monthlyAll, monthlyPage],
+  );
 
   async function handleSave(expense) {
     const result = await vm.saveExpense(expense);
@@ -32,7 +64,7 @@ export default function ExpensesPage() {
   async function handleExportDailyExcel() {
     const { utils, writeFile } = await import('xlsx');
     const header = ['Date', 'Category', 'Amount', 'Note', 'Created By', 'Role'];
-    const data = (vm.report?.dailyExpenses || []).map((e) => [e.date, e.category, Number(e.amount), e.note || '', e.createdByName || '', e.createdByRole || '']);
+    const data = dailyAll.map((e) => [e.date, e.category, Number(e.amount), e.note || '', e.createdByName || '', e.createdByRole || '']);
     const ws = utils.aoa_to_sheet([header, ...data]);
     ws['!cols'] = [{ wch: 14 }, { wch: 16 }, { wch: 14 }, { wch: 28 }, { wch: 18 }, { wch: 14 }];
     const wb = utils.book_new();
@@ -42,17 +74,17 @@ export default function ExpensesPage() {
 
   async function handleExportMonthlyExcel() {
     const { utils, writeFile } = await import('xlsx');
-    const header = ['Date', 'Category', 'Amount', 'Note'];
-    const data = (vm.report?.monthlyExpenses || []).map((e) => [e.date, e.category, Number(e.amount), e.note || '']);
+    const header = ['Date', 'Category', 'Amount', 'Note', 'Created By', 'Role'];
+    const data = monthlyAll.map((e) => [e.date, e.category, Number(e.amount), e.note || '', e.createdByName || '', e.createdByRole || '']);
     const ws = utils.aoa_to_sheet([header, ...data]);
-    ws['!cols'] = [{ wch: 14 }, { wch: 16 }, { wch: 14 }, { wch: 28 }];
+    ws['!cols'] = [{ wch: 14 }, { wch: 16 }, { wch: 14 }, { wch: 28 }, { wch: 18 }, { wch: 14 }];
     const wb = utils.book_new();
     utils.book_append_sheet(wb, ws, t('expenses.monthlySheetName'));
     writeFile(wb, `expenses-monthly-${vm.month}.xlsx`);
   }
 
   async function handleDelete(expenseId) {
-    const expense = vm.report?.monthlyExpenses?.find((item) => item.id === expenseId);
+    const expense = monthlyAll.find((item) => item.id === expenseId);
     await vm.deleteExpense(expenseId, {
       title: t('common.delete'),
       description: t('expenses.deleteConfirm', { category: expense?.category || t('expenses.expense') }),
@@ -111,7 +143,7 @@ export default function ExpensesPage() {
             <ChartPanelSkeleton height="h-72" />
           </div>
           <TableSkeleton rows={6} columns={6} />
-          <TableSkeleton rows={6} columns={4} />
+          <TableSkeleton rows={6} columns={5} />
         </div>
       ) : (
         <>
@@ -133,13 +165,14 @@ export default function ExpensesPage() {
             </ChartPanel>
           </div>
 
-          <div className="mt-6 grid gap-6 xl:grid-cols-2">
+          <div className="mt-6 flex flex-col gap-6">
+            {/* Daily list */}
             <div id="expenses-daily-print" className="surface overflow-hidden">
               <div className="border-b border-slate-100 px-5 py-4">
                 <div className="flex items-center justify-between gap-3">
                   <h2 className="text-base font-bold text-slate-950">{t('expenses.dailyExpenseList', { date: formatDate(vm.date) })}</h2>
                   <div className="flex items-center gap-2">
-                    <span className="muted-chip">{formatNumber(vm.report?.dailyExpenses?.length || 0)} {t('common.records')}</span>
+                    <span className="muted-chip">{formatNumber(dailyAll.length)} {t('common.records')}</span>
                     <button
                       type="button"
                       className="btn-secondary no-print py-1.5 text-xs"
@@ -168,10 +201,10 @@ export default function ExpensesPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {(vm.report?.dailyExpenses || []).map((expense) => (
+                    {dailyPaged.map((expense) => (
                       <tr key={expense.id} className="hover:bg-slate-50">
                         <td className="table-cell">{formatDate(expense.date)}</td>
-                        <td className="table-cell"><Badge tone="slate">{t(`expenses.categories.${expense.category.toLowerCase()}`)}</Badge></td>
+                        <td className="table-cell"><Badge tone="slate">{tCategory(expense.category)}</Badge></td>
                         <td className="table-cell font-semibold">{formatCurrency(expense.amount)}</td>
                         <td className="table-cell hidden sm:table-cell max-w-64">
                           <p className="truncate">{expense.note}</p>
@@ -197,19 +230,25 @@ export default function ExpensesPage() {
                   </tbody>
                 </table>
               </div>
-              {!vm.report?.dailyExpenses?.length ? (
+              {!dailyAll.length ? (
                 <div className="p-5">
                   <EmptyState title={t('expenses.noDailyTitle')} description={t('expenses.noDailyDescription')} icon={CircleDollarSign} />
                 </div>
               ) : null}
+              {dailyTotalPages > 1 ? (
+                <div className="border-t border-slate-100 px-5 py-4">
+                  <Pagination page={dailyPage} totalPages={dailyTotalPages} onPageChange={setDailyPage} />
+                </div>
+              ) : null}
             </div>
 
+            {/* Monthly list */}
             <div id="expenses-monthly-print" className="surface overflow-hidden">
               <div className="border-b border-slate-100 px-5 py-4">
                 <div className="flex items-center justify-between gap-3">
                   <h2 className="text-base font-bold text-slate-950">{t('expenses.monthlyExpenseList', { month: vm.month })}</h2>
                   <div className="flex items-center gap-2">
-                    <span className="muted-chip">{formatNumber(vm.report?.monthlyExpenses?.length || 0)} {t('common.records')}</span>
+                    <span className="muted-chip">{formatNumber(monthlyAll.length)} {t('common.records')}</span>
                     <button
                       type="button"
                       className="btn-secondary no-print py-1.5 text-xs"
@@ -233,25 +272,35 @@ export default function ExpensesPage() {
                       <th className="px-4 py-3">{t('expenses.category')}</th>
                       <th className="px-4 py-3">{t('expenses.amount')}</th>
                       <th className="px-4 py-3 hidden sm:table-cell">{t('expenses.note')}</th>
+                      <th className="px-4 py-3 hidden md:table-cell">{t('expenses.createdBy')}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {(vm.report?.monthlyExpenses || []).map((expense) => (
+                    {monthlyPaged.map((expense) => (
                       <tr key={expense.id} className="hover:bg-slate-50">
                         <td className="table-cell">{formatDate(expense.date)}</td>
-                        <td className="table-cell"><Badge tone="slate">{t(`expenses.categories.${expense.category.toLowerCase()}`)}</Badge></td>
+                        <td className="table-cell"><Badge tone="slate">{tCategory(expense.category)}</Badge></td>
                         <td className="table-cell font-semibold">{formatCurrency(expense.amount)}</td>
                         <td className="table-cell hidden sm:table-cell max-w-64">
                           <p className="truncate">{expense.note}</p>
+                        </td>
+                        <td className="table-cell hidden md:table-cell">
+                          <p className="font-semibold text-slate-950">{expense.createdByName || '-'}</p>
+                          <p className="text-xs text-slate-500">{expense.createdByRole || ''}</p>
                         </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
-              {!vm.report?.monthlyExpenses?.length ? (
+              {!monthlyAll.length ? (
                 <div className="p-5">
                   <EmptyState title={t('expenses.noMonthlyTitle')} description={t('expenses.noMonthlyDescription')} icon={CircleDollarSign} />
+                </div>
+              ) : null}
+              {monthlyTotalPages > 1 ? (
+                <div className="border-t border-slate-100 px-5 py-4">
+                  <Pagination page={monthlyPage} totalPages={monthlyTotalPages} onPageChange={setMonthlyPage} />
                 </div>
               ) : null}
             </div>

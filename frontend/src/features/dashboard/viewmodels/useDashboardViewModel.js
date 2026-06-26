@@ -202,6 +202,15 @@ export function useDashboardViewModel({ products, dsrs, today, t, language = 'en
     .slice(0, 7)
     .map((p) => ({ label: p.productName, value: p.soldPieces }));
 
+  const todayActiveProductIds = new Set([
+    ...todayIssues.flatMap((issue) => (issue.items || []).map((i) => i.productId)),
+    ...todaySettlements.flatMap((s) => (s.items || []).filter((i) => Number(i.soldPieces) > 0).map((i) => i.productId)),
+  ]);
+
+  const noSaleToday = products
+    .filter((p) => p.stockPieces > 0 && !todayActiveProductIds.has(p.id))
+    .sort((a, b) => b.stockPieces - a.stockPieces);
+
   const leastSellingProducts = products
     .map((p) => ({
       label: p.name,
@@ -352,6 +361,7 @@ export function useDashboardViewModel({ products, dsrs, today, t, language = 'en
     retailCashSession,
     financeDashboard,
     dsrTargetSummary,
+    noSaleToday,
     dsrLeaderboard,
     todayPnl: { grossRevenue, grossCogs, grossProfit, expenseTotal, netProfit, dsrProfitRows, productProfitRows, expensesByCategory },
     yesterdayDeltas: {

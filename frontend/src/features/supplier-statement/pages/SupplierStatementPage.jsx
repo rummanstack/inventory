@@ -11,6 +11,7 @@ import { useSupplierStatementViewModel } from '../viewmodels/useSupplierStatemen
 function ledgerTone(type) {
   if (type === 'PAYMENT') return 'emerald';
   if (type === 'PURCHASE_DUE') return 'rose';
+  if (type === 'DISCOUNT') return 'emerald';
   if (type === 'MANUAL_ADJUSTMENT') return 'amber';
   return 'blue';
 }

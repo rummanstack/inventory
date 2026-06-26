@@ -1760,6 +1760,7 @@ const en = {
         OPENING: 'Opening',
         PURCHASE_DUE: 'Purchase Due',
         PAYMENT: 'Payment',
+        DISCOUNT: 'Supplier Discount',
         MANUAL_ADJUSTMENT: 'Manual Adjustment',
       },
       printSheet: 'Print Sheet',

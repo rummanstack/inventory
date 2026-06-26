@@ -208,10 +208,10 @@ export function deleteAllSessionsForUser(client, userId) {
   return client.query("DELETE FROM user_sessions WHERE user_id = $1", [userId]);
 }
 
-export function touchSession(client, tokenHash, { ipAddress, userAgent }) {
+export function touchSession(client, tokenHash, { ipAddress, userAgent, newExpiresAt }) {
   return client.query(
-    "UPDATE user_sessions SET last_seen_at = NOW(), ip_address = $2, user_agent = $3 WHERE token_hash = $1",
-    [tokenHash, ipAddress || "", userAgent || ""],
+    "UPDATE user_sessions SET last_seen_at = NOW(), expires_at = $2, ip_address = $3, user_agent = $4 WHERE token_hash = $1",
+    [tokenHash, newExpiresAt, ipAddress || "", userAgent || ""],
   );
 }
 

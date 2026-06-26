@@ -118,7 +118,9 @@ export default function DsrFinancePage() {
 
   const dailyRecords = activeVm.report?.dailyRecords || [];
   const monthlyRecords = activeVm.report?.monthlyRecords || [];
-  const dueEntries = isDueTab ? [...(dueVm.statement?.entries || [])].reverse() : [];
+  const dueEntries = isDueTab
+    ? [...(dueVm.statement?.entries || [])].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    : [];
 
   async function handleExportAdvanceDailyExcel() {
     const { utils, writeFile } = await import('xlsx');
@@ -243,7 +245,7 @@ export default function DsrFinancePage() {
                 <StatCard title={t('dsrDueLedger.openingBalance')} value={formatCurrency(dueVm.statement?.openingBalance || 0)} icon={Wallet} tone="slate" />
                 <StatCard title={t('dsrDueLedger.totalDebit')} value={formatCurrency(dueVm.statement?.totalDebit || 0)} icon={Wallet} tone="rose" />
                 <StatCard title={t('dsrDueLedger.totalCredit')} value={formatCurrency(dueVm.statement?.totalCredit || 0)} icon={Wallet} tone="emerald" />
-                <StatCard title={t('dsrDueLedger.closingBalance')} value={formatCurrency(dueVm.statement?.closingBalance || 0)} icon={Wallet} tone="blue" />
+                <StatCard title={t('dsrDueLedger.closingBalance')} value={formatCurrency(dueVm.currentBalance ?? dueVm.statement?.closingBalance ?? 0)} icon={Wallet} tone="blue" />
               </div>
 
               <div id="dsr-due-statement-print" className="surface mt-6 overflow-hidden print-target">
@@ -298,7 +300,7 @@ export default function DsrFinancePage() {
           {showSettleModal ? (
             <SettleDueModal
               dsr={dueVm.statement?.dsr}
-              balance={dueVm.statement?.closingBalance}
+              balance={dueVm.currentBalance}
               onClose={() => setShowSettleModal(false)}
               onSave={handleSettleDue}
             />

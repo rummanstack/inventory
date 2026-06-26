@@ -14,6 +14,7 @@ export function useDsrDueStatementViewModel({ dsrs }) {
   const [dateFrom, setDateFrom] = useState(subtractDays(today, 29));
   const [dateTo, setDateTo] = useState(today);
   const [statement, setStatement] = useState(null);
+  const [currentBalance, setCurrentBalance] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [version, setVersion] = useState(0);
@@ -29,6 +30,7 @@ export function useDsrDueStatementViewModel({ dsrs }) {
 
     if (!dsrId) {
       setStatement(null);
+      setCurrentBalance(null);
       setLoading(false);
       return undefined;
     }
@@ -36,17 +38,21 @@ export function useDsrDueStatementViewModel({ dsrs }) {
     setLoading(true);
     setError('');
 
-    inventoryApi
-      .getDsrDueStatement({ dsrId, dateFrom, dateTo })
-      .then((result) => {
+    Promise.all([
+      inventoryApi.getDsrDueStatement({ dsrId, dateFrom, dateTo }),
+      inventoryApi.getDsrDueBalance(dsrId),
+    ])
+      .then(([statementResult, balanceResult]) => {
         if (!cancelled) {
-          setStatement(result);
+          setStatement(statementResult);
+          setCurrentBalance(balanceResult?.balance ?? null);
         }
       })
       .catch((requestError) => {
         if (!cancelled) {
           setError(requestError.message);
           setStatement(null);
+          setCurrentBalance(null);
         }
       })
       .finally(() => {
@@ -78,6 +84,7 @@ export function useDsrDueStatementViewModel({ dsrs }) {
     dateTo,
     setDateTo,
     statement,
+    currentBalance,
     loading,
     error,
     refresh: () => setVersion((value) => value + 1),

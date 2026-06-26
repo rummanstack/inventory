@@ -618,62 +618,48 @@ export default function DashboardPage() {
       </div>
 
       {/* ── 6. TODAY'S P&L ── */}
-      <div className="overflow-hidden rounded-[32px] border border-slate-200/80 bg-white shadow-[0_24px_60px_rgba(0,0,0,0.06)]">
-        <div className="px-7 pb-4 pt-6">
-          <div className="flex items-center gap-2">
-            <div className="rounded-lg bg-emerald-50 p-1.5">
-              <Receipt size={13} className="text-emerald-700" />
-            </div>
-            <p className="text-[11px] font-black uppercase tracking-[0.22em] text-slate-600">Today's Profit & Loss</p>
-          </div>
+      <ChartPanel title="Today's Profit & Loss" description="Revenue, cost, and expenses for today.">
+        {/* Summary metrics */}
+        <div className="mb-5 grid gap-3 sm:grid-cols-3 lg:grid-cols-5">
+          <MetricPill label="Revenue" value={formatCurrency(todayPnl.grossRevenue, language)} icon={TrendingUp} iconClass="bg-blue-50 text-blue-700" />
+          <MetricPill label="Cost of Goods" value={formatCurrency(todayPnl.grossCogs, language)} icon={Truck} iconClass="bg-slate-100 text-slate-500" />
+          <MetricPill label="Gross Profit" value={formatCurrency(todayPnl.grossProfit, language)} icon={todayPnl.grossProfit >= 0 ? TrendingUp : TrendingDown} iconClass={todayPnl.grossProfit >= 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'} />
+          <MetricPill label="Expenses" value={formatCurrency(todayPnl.expenseTotal, language)} icon={Receipt} iconClass="bg-amber-50 text-amber-700" />
+          <MetricPill label="Net Profit" value={formatCurrency(todayPnl.netProfit, language)} icon={CircleDollarSign} iconClass={todayPnl.netProfit >= 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'} />
         </div>
 
-        {/* P&L summary cards */}
-        <div className="grid gap-px bg-slate-100/80 sm:grid-cols-3 lg:grid-cols-5">
-          {[
-            { label: 'Revenue', value: formatCurrency(todayPnl.grossRevenue, language), iconClass: 'bg-blue-50 text-blue-700', icon: TrendingUp },
-            { label: 'Cost of Goods', value: formatCurrency(todayPnl.grossCogs, language), iconClass: 'bg-slate-100 text-slate-500', icon: Truck },
-            { label: 'Gross Profit', value: formatCurrency(todayPnl.grossProfit, language), iconClass: todayPnl.grossProfit >= 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700', icon: todayPnl.grossProfit >= 0 ? TrendingUp : TrendingDown },
-            { label: 'Expenses', value: formatCurrency(todayPnl.expenseTotal, language), iconClass: 'bg-amber-50 text-amber-700', icon: Receipt },
-            { label: 'Net Profit', value: formatCurrency(todayPnl.netProfit, language), iconClass: todayPnl.netProfit >= 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700', icon: CircleDollarSign },
-          ].map(({ label, value, iconClass, icon: Icon }) => (
-            <div key={label} className="bg-white px-6 py-5">
-              <div className={cx('mb-3 w-fit rounded-xl p-2', iconClass)}><Icon size={15} /></div>
-              <p className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-600">{label}</p>
-              <p className="mt-1 text-xl font-black tracking-tight text-slate-950">{value}</p>
+        {/* Breakdown tables */}
+        <div className="grid gap-4 lg:grid-cols-2">
+          {/* By DSR */}
+          <div className="surface overflow-hidden">
+            <div className="border-b border-slate-100/80 px-5 py-3">
+              <p className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">By DSR</p>
             </div>
-          ))}
-        </div>
-
-        <div className="grid gap-px bg-slate-100/80 lg:grid-cols-2">
-          {/* DSR breakdown */}
-          <div className="bg-white p-6">
-            <p className="mb-3 text-xs font-black uppercase tracking-[0.14em] text-slate-500">By DSR</p>
             {todayPnl.dsrProfitRows.length ? (
               <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-slate-100">
-                      <th className="pb-2 text-left text-xs font-black uppercase tracking-wide text-slate-500">DSR</th>
-                      <th className="pb-2 text-right text-xs font-black uppercase tracking-wide text-slate-500">Revenue</th>
-                      <th className="pb-2 text-right text-xs font-black uppercase tracking-wide text-slate-500">COGS</th>
-                      <th className="pb-2 text-right text-xs font-black uppercase tracking-wide text-slate-500">Profit</th>
-                      <th className="pb-2 text-right text-xs font-black uppercase tracking-wide text-slate-500">Collected</th>
+                <table className="w-full">
+                  <thead className="table-head">
+                    <tr>
+                      <th className="px-4 py-3">DSR</th>
+                      <th className="px-4 py-3 text-right">Revenue</th>
+                      <th className="px-4 py-3 text-right">COGS</th>
+                      <th className="px-4 py-3 text-right">Profit</th>
+                      <th className="px-4 py-3 text-right">Collected</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-50">
+                  <tbody className="divide-y divide-slate-100">
                     {todayPnl.dsrProfitRows.map((row) => {
                       const profit = row.revenue - row.cogs;
                       return (
-                        <tr key={row.dsrId}>
-                          <td className="py-2.5 pr-3">
+                        <tr key={row.dsrId} className="hover:bg-slate-50">
+                          <td className="table-cell">
                             <p className="font-semibold text-slate-900">{row.dsrName}</p>
                             {row.area ? <p className="text-xs text-slate-400">{row.area}</p> : null}
                           </td>
-                          <td className="py-2.5 text-right font-semibold text-slate-700">{formatCurrency(row.revenue, language)}</td>
-                          <td className="py-2.5 text-right text-slate-500">{formatCurrency(row.cogs, language)}</td>
-                          <td className={cx('py-2.5 text-right font-black', profit >= 0 ? 'text-emerald-700' : 'text-rose-700')}>{formatCurrency(profit, language)}</td>
-                          <td className="py-2.5 text-right font-semibold text-slate-700">{formatCurrency(row.amountPaid, language)}</td>
+                          <td className="table-cell text-right font-semibold">{formatCurrency(row.revenue, language)}</td>
+                          <td className="table-cell text-right text-slate-500">{formatCurrency(row.cogs, language)}</td>
+                          <td className={cx('table-cell text-right font-black', profit >= 0 ? 'text-emerald-700' : 'text-rose-700')}>{formatCurrency(profit, language)}</td>
+                          <td className="table-cell text-right font-semibold">{formatCurrency(row.amountPaid, language)}</td>
                         </tr>
                       );
                     })}
@@ -681,34 +667,38 @@ export default function DashboardPage() {
                 </table>
               </div>
             ) : (
-              <EmptyState title="No settlements today" description="Complete DSR settlements to see profit breakdown." icon={HandCoins} />
+              <div className="p-5">
+                <EmptyState title="No settlements today" description="Complete DSR settlements to see profit breakdown." icon={HandCoins} />
+              </div>
             )}
           </div>
 
-          {/* Product breakdown + expenses */}
-          <div className="space-y-px">
-            <div className="bg-white p-6">
-              <p className="mb-3 text-xs font-black uppercase tracking-[0.14em] text-slate-500">By Product</p>
+          {/* By Product + Expenses */}
+          <div className="flex flex-col gap-4">
+            <div className="surface overflow-hidden">
+              <div className="border-b border-slate-100/80 px-5 py-3">
+                <p className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">By Product</p>
+              </div>
               {todayPnl.productProfitRows.length ? (
                 <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b border-slate-100">
-                        <th className="pb-2 text-left text-xs font-black uppercase tracking-wide text-slate-500">Product</th>
-                        <th className="pb-2 text-right text-xs font-black uppercase tracking-wide text-slate-500">Qty</th>
-                        <th className="pb-2 text-right text-xs font-black uppercase tracking-wide text-slate-500">Revenue</th>
-                        <th className="pb-2 text-right text-xs font-black uppercase tracking-wide text-slate-500">Profit</th>
+                  <table className="w-full">
+                    <thead className="table-head">
+                      <tr>
+                        <th className="px-4 py-3">Product</th>
+                        <th className="px-4 py-3 text-right">Qty</th>
+                        <th className="px-4 py-3 text-right">Revenue</th>
+                        <th className="px-4 py-3 text-right">Profit</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-50">
+                    <tbody className="divide-y divide-slate-100">
                       {todayPnl.productProfitRows.slice(0, 8).map((row) => {
                         const profit = row.revenue - row.cogs;
                         return (
-                          <tr key={row.productId}>
-                            <td className="py-2 pr-3 font-semibold text-slate-900">{row.productName}</td>
-                            <td className="py-2 text-right text-slate-500">{formatNumber(row.soldPieces, language)}</td>
-                            <td className="py-2 text-right font-semibold text-slate-700">{formatCurrency(row.revenue, language)}</td>
-                            <td className={cx('py-2 text-right font-black', profit >= 0 ? 'text-emerald-700' : 'text-rose-700')}>{formatCurrency(profit, language)}</td>
+                          <tr key={row.productId} className="hover:bg-slate-50">
+                            <td className="table-cell font-semibold text-slate-900">{row.productName}</td>
+                            <td className="table-cell text-right text-slate-500">{formatNumber(row.soldPieces, language)}</td>
+                            <td className="table-cell text-right font-semibold">{formatCurrency(row.revenue, language)}</td>
+                            <td className={cx('table-cell text-right font-black', profit >= 0 ? 'text-emerald-700' : 'text-rose-700')}>{formatCurrency(profit, language)}</td>
                           </tr>
                         );
                       })}
@@ -716,27 +706,29 @@ export default function DashboardPage() {
                   </table>
                 </div>
               ) : (
-                <EmptyState title="No sales today" description="No product sales recorded yet." icon={PackageCheck} />
+                <div className="p-5">
+                  <EmptyState title="No sales today" description="No product sales recorded yet." icon={PackageCheck} />
+                </div>
               )}
             </div>
 
-            <div className="bg-white p-6">
+            <div className="surface p-5">
               <p className="mb-3 text-xs font-black uppercase tracking-[0.14em] text-slate-500">Today's Expenses</p>
               {todayPnl.expensesByCategory.length ? (
-                <div className="space-y-2">
+                <div className="space-y-2.5">
                   {todayPnl.expensesByCategory.map(([category, amount]) => {
                     const pct = todayPnl.expenseTotal > 0 ? Math.round((amount / todayPnl.expenseTotal) * 100) : 0;
                     return (
                       <div key={category} className="flex items-center gap-3">
                         <p className="w-24 shrink-0 text-sm font-semibold text-slate-700">{category}</p>
-                        <div className="flex-1 overflow-hidden rounded-full bg-slate-100 h-2">
+                        <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100">
                           <div className="h-full rounded-full bg-amber-400" style={{ width: `${pct}%` }} />
                         </div>
                         <p className="w-24 shrink-0 text-right text-sm font-black text-slate-950">{formatCurrency(amount, language)}</p>
                       </div>
                     );
                   })}
-                  <div className="mt-2 flex justify-between border-t border-slate-100 pt-2">
+                  <div className="mt-1 flex justify-between border-t border-slate-100 pt-2.5">
                     <p className="text-xs font-black uppercase tracking-wide text-slate-600">Total</p>
                     <p className="text-sm font-black text-rose-700">{formatCurrency(todayPnl.expenseTotal, language)}</p>
                   </div>
@@ -747,7 +739,7 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
-      </div>
+      </ChartPanel>
 
       {/* ── 7. ACTIVITY HEATMAP ── */}
       <ChartPanel title={t("dashboard.activityHeatmap")} description={t("dashboard.activityHeatmapDescription")}>

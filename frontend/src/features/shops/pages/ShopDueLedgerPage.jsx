@@ -272,7 +272,7 @@ export default function ShopDueLedgerPage() {
                     <th className="px-4 py-3 text-right">{t('shopDueLedger.debit')}</th>
                     <th className="px-4 py-3 text-right">{t('shopDueLedger.credit')}</th>
                     <th className="px-4 py-3 text-right">{t('shopDueLedger.balance')}</th>
-                    <th className="hidden px-4 py-3 lg:table-cell">{t('shopDueLedger.note')}</th>
+                    <th className="px-4 py-3">{t('shopDueLedger.note')}</th>
                     <th className="hidden px-4 py-3 xl:table-cell">{t('shopDueLedger.createdBy')}</th>
                   </tr>
                 </thead>

@@ -83,10 +83,7 @@ export default function SuppliersPage() {
         </div>
         <div className="border-b border-slate-100 p-5 no-print">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div className="space-y-2">
-              <p className="text-[11px] font-black uppercase tracking-[0.22em] text-slate-400">{t('suppliers.eyebrow')}</p>
-              <p className="text-sm font-medium text-slate-500">{t('suppliers.description')}</p>
-            </div>
+            <p className="text-[11px] font-black uppercase tracking-[0.22em] text-slate-400">{t('suppliers.eyebrow')}</p>
             <div className="flex flex-wrap gap-2 text-sm font-bold">
               <span className="muted-chip">{formatNumber(vm.total)} {t('suppliers.supplierCount')}</span>
             </div>
@@ -118,8 +115,8 @@ export default function SuppliersPage() {
               <tr>
                 <th className="px-4 py-3">#</th>
                 <th className="px-4 py-3">{t('suppliers.nameLabel')}</th>
-                <th className="hidden px-4 py-3 sm:table-cell">{t('suppliers.phoneLabel')}</th>
-                <th className="hidden px-4 py-3 md:table-cell">{t('suppliers.addressLabel')}</th>
+                <th className="px-4 py-3">{t('suppliers.phoneLabel')}</th>
+                <th className="px-4 py-3">{t('suppliers.addressLabel')}</th>
                 <th className="px-4 py-3 text-right">{t('suppliers.openingDueLabel')}</th>
                 <th className="px-4 py-3 text-right">{t('suppliers.currentDueLabel')}</th>
                 <th className="px-4 py-3">{t('suppliers.status')}</th>

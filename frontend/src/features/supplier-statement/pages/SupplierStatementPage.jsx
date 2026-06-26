@@ -128,7 +128,7 @@ export default function SupplierStatementPage() {
                     <th className="px-4 py-3 text-right">{t('supplierStatement.debit')}</th>
                     <th className="px-4 py-3 text-right">{t('supplierStatement.credit')}</th>
                     <th className="px-4 py-3 text-right">{t('supplierStatement.balanceAfter')}</th>
-                    <th className="hidden px-4 py-3 lg:table-cell">{t('supplierStatement.reference')}</th>
+                    <th className="px-4 py-3">{t('supplierStatement.reference')}</th>
                     <th className="hidden px-4 py-3 xl:table-cell">{t('supplierStatement.createdBy')}</th>
                   </tr>
                 </thead>

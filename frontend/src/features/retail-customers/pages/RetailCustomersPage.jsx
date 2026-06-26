@@ -99,10 +99,7 @@ export default function RetailCustomersPage() {
       <div id={RETAIL_CUSTOMERS_PRINT_ID} className="surface overflow-hidden print-target">
         <div className="border-b border-slate-100 p-5">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div className="space-y-2">
-              <p className="text-[11px] font-black uppercase tracking-[0.22em] text-slate-400">{t('retailCustomers.eyebrow')}</p>
-              <p className="text-sm font-medium text-slate-500">{t('retailCustomers.description')}</p>
-            </div>
+            <p className="text-[11px] font-black uppercase tracking-[0.22em] text-slate-400">{t('retailCustomers.eyebrow')}</p>
             <div className="flex flex-wrap items-center gap-2 text-sm font-bold">
               <span className="muted-chip">{vm.total} {t('retailCustomers.count')}</span>
               <button
@@ -155,10 +152,10 @@ export default function RetailCustomersPage() {
                 <tr>
                   <th className="px-4 py-3">#</th>
                   <th className="px-4 py-3">{t('retailCustomers.name')}</th>
-                  <th className="hidden px-4 py-3 sm:table-cell">{t('retailCustomers.phone')}</th>
-                  <th className="hidden px-4 py-3 md:table-cell">{t('retailCustomers.address')}</th>
+                  <th className="px-4 py-3">{t('retailCustomers.phone')}</th>
+                  <th className="px-4 py-3">{t('retailCustomers.address')}</th>
                   <th className="px-4 py-3 text-right">{t('retailCustomers.currentDue')}</th>
-                  <th className="hidden px-4 py-3 lg:table-cell">{t('retailCustomers.loyaltyPoints')}</th>
+                  <th className="px-4 py-3">{t('retailCustomers.loyaltyPoints')}</th>
                   <th className="px-4 py-3">{t('retailCustomers.status')}</th>
                   {canManage ? <th className="px-4 py-3 text-right no-print">{t('common.actions')}</th> : null}
                 </tr>

@@ -111,7 +111,7 @@ export default function SrPage() {
                 <tr>
                   <th className="px-4 py-3">#</th>
                   <th className="px-4 py-3">Name</th>
-                  <th className="hidden px-4 py-3 sm:table-cell">Phone</th>
+                  <th className="px-4 py-3">Phone</th>
                   <th className="px-4 py-3">Status</th>
                   <th className="px-4 py-3 text-right">Current Due</th>
                   <th className="px-4 py-3 text-right">Actions</th>

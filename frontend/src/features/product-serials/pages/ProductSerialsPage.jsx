@@ -88,10 +88,7 @@ export default function ProductSerialsPage() {
         </div>
         <div className="border-b border-slate-100 p-5 no-print">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div className="space-y-2">
-              <p className="text-[11px] font-black uppercase tracking-[0.22em] text-slate-400">{t('productSerials.eyebrow')}</p>
-              <p className="text-sm font-medium text-slate-500">{t('productSerials.description')}</p>
-            </div>
+            <p className="text-[11px] font-black uppercase tracking-[0.22em] text-slate-400">{t('productSerials.eyebrow')}</p>
             <div className="flex flex-wrap gap-2 text-sm font-bold">
               <span className="muted-chip">{formatNumber(vm.total)} {t('productSerials.serialCount')}</span>
             </div>
@@ -131,9 +128,9 @@ export default function ProductSerialsPage() {
                 <th className="px-4 py-3">#</th>
                 <th className="px-4 py-3">{t('products.product')}</th>
                 <th className="px-4 py-3">{t('productSerials.serialNumberLabel')}</th>
-                <th className="hidden px-4 py-3 sm:table-cell">{t('productSerials.imei1Label')}</th>
+                <th className="px-4 py-3">{t('productSerials.imei1Label')}</th>
                 <th className="px-4 py-3">{t('productSerials.statusLabel')}</th>
-                <th className="hidden px-4 py-3 md:table-cell">{t('productSerials.linkedInvoiceLabel')}</th>
+                <th className="px-4 py-3">{t('productSerials.linkedInvoiceLabel')}</th>
                 <th className="px-4 py-3 text-right no-print">{t('common.actions')}</th>
               </tr>
             </thead>

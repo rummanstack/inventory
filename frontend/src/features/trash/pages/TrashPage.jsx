@@ -247,9 +247,9 @@ export default function TrashPage() {
               <thead className="table-head">
                 <tr>
                   <th className="px-4 py-3">{t('trash.name')}</th>
-                  <th className="hidden px-4 py-3 sm:table-cell">{t('trash.deletedAt')}</th>
-                  <th className="hidden px-4 py-3 md:table-cell">{t('trash.deletedBy')}</th>
-                  <th className="hidden px-4 py-3 lg:table-cell">{t('trash.reason')}</th>
+                  <th className="px-4 py-3">{t('trash.deletedAt')}</th>
+                  <th className="px-4 py-3">{t('trash.deletedBy')}</th>
+                  <th className="px-4 py-3">{t('trash.reason')}</th>
                   <th className="px-4 py-3 text-right">{t('common.actions')}</th>
                 </tr>
               </thead>

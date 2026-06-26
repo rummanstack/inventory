@@ -196,8 +196,8 @@ export default function StockLedgerPanel({ products, t, refreshKey = 0, fixedTyp
               <th className="px-4 py-3 text-right">{t('stockLedger.quantityIn')}</th>
               <th className="px-4 py-3 text-right">{t('stockLedger.quantityOut')}</th>
               <th className="px-4 py-3 text-right">{t('stockLedger.balanceAfter')}</th>
-              <th className="hidden px-4 py-3 lg:table-cell">{t('stockLedger.reference')}</th>
-              <th className="hidden px-4 py-3 xl:table-cell">{t('stockLedger.createdBy')}</th>
+              <th className="px-4 py-3">{t('stockLedger.reference')}</th>
+              <th className="px-4 py-3">{t('stockLedger.createdBy')}</th>
             </tr>
           </thead>
           {loading ? null : (

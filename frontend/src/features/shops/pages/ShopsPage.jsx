@@ -57,10 +57,7 @@ export default function ShopsPage() {
       <div id={SHOPS_PRINT_ID} className="surface overflow-hidden print-target">
         <div className="border-b border-slate-100 p-5">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div className="space-y-2">
-              <p className="text-[11px] font-black uppercase tracking-[0.22em] text-slate-400">{t('shops.eyebrow')}</p>
-              <p className="text-sm font-medium text-slate-500">{t('shops.description')}</p>
-            </div>
+            <p className="text-[11px] font-black uppercase tracking-[0.22em] text-slate-400">{t('shops.eyebrow')}</p>
             <div className="flex flex-wrap items-center gap-2 text-sm font-bold">
               <span className="muted-chip">{formatNumber(vm.total)} {t('shops.shopCount')}</span>
               <button
@@ -112,9 +109,9 @@ export default function ShopsPage() {
               <tr>
                 <th className="px-4 py-3">#</th>
                 <th className="px-4 py-3">{t('shops.shopName')}</th>
-                <th className="hidden px-4 py-3 sm:table-cell">{t('shops.phone')}</th>
-                <th className="hidden px-4 py-3 md:table-cell">{t('shops.market')}</th>
-                <th className="hidden px-4 py-3 md:table-cell">{t('shops.assignedDsr')}</th>
+                <th className="px-4 py-3">{t('shops.phone')}</th>
+                <th className="px-4 py-3">{t('shops.market')}</th>
+                <th className="px-4 py-3">{t('shops.assignedDsr')}</th>
                 <th className="px-4 py-3 text-right">{t('shops.currentDue')}</th>
                 <th className="px-4 py-3">{t('shops.status')}</th>
                 <th className="px-4 py-3 text-right no-print">{t('common.actions')}</th>

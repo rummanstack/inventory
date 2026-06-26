@@ -223,8 +223,7 @@ export async function listRecentTransactions(client, tenantId, limit) {
     `${buildSelect()}
      WHERE finance_account_transactions.tenant_id = $1
        AND finance_account_transactions.deleted_at IS NULL
-     ORDER BY finance_account_transactions.transaction_date DESC,
-              finance_account_transactions.created_at DESC,
+     ORDER BY finance_account_transactions.created_at DESC,
               finance_account_transactions.id DESC
      LIMIT $2`,
     [tenantId, limit],
@@ -239,7 +238,7 @@ export async function listTransactionsPage(client, { tenantId, accountType, date
   const result = await client.query(
     `${buildSelect()}
      ${where}
-     ORDER BY finance_account_transactions.transaction_date DESC, finance_account_transactions.created_at DESC, finance_account_transactions.id DESC
+     ORDER BY finance_account_transactions.created_at DESC, finance_account_transactions.id DESC
      LIMIT $${params.length - 1} OFFSET $${params.length}`,
     params,
   );

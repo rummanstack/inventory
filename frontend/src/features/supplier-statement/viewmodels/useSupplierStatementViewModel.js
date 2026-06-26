@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { inventoryApi } from '../../../services/inventoryApi';
 import { todayISO } from '../../../utils/calculations.js';
+import { useRefetchOnVisible } from '../../../app/hooks/useRefetchOnVisible.js';
 
 function subtractDays(dateISO, days) {
   const date = new Date(`${dateISO}T00:00:00`);
@@ -65,6 +66,9 @@ export function useSupplierStatementViewModel({ suppliers }) {
     };
   }, [supplierId, dateFrom, dateTo, version]);
 
+  const refresh = () => setVersion((value) => value + 1);
+  useRefetchOnVisible(refresh);
+
   return {
     supplierId,
     setSupplierId,
@@ -75,6 +79,6 @@ export function useSupplierStatementViewModel({ suppliers }) {
     statement,
     loading,
     error,
-    refresh: () => setVersion((value) => value + 1),
+    refresh,
   };
 }

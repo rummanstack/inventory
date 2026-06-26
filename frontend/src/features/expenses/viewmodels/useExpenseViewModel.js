@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi';
 import { todayISO } from '../../../utils/calculations';
+import { useRefetchOnVisible } from '../../../app/hooks/useRefetchOnVisible.js';
 
 export function useExpenseViewModel({ confirm }) {
   const { t, pushToast } = useInventoryApp();
@@ -32,6 +33,8 @@ export function useExpenseViewModel({ confirm }) {
   async function refreshReport() {
     await loadReport(date, month);
   }
+
+  useRefetchOnVisible(refreshReport);
 
   async function saveExpense(expense) {
     try {

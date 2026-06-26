@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { inventoryApi } from '../../../services/inventoryApi';
+import { useRefetchOnVisible } from '../../../app/hooks/useRefetchOnVisible.js';
 
 export function useFinanceDashboardViewModel() {
   const [data, setData] = useState(null);
@@ -23,6 +24,8 @@ export function useFinanceDashboardViewModel() {
   useEffect(() => {
     load();
   }, [load]);
+
+  useRefetchOnVisible(load);
 
   return { data, loading, error, refresh: load };
 }

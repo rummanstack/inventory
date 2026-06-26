@@ -731,7 +731,7 @@ export function InventoryAppProvider({ children }) {
   async function savePurchaseReceipt(purchaseReceipt) {
     try {
       const result = purchaseReceipt.id ? await inventoryApi.updatePurchaseReceipt(purchaseReceipt) : await inventoryApi.createPurchaseReceipt(purchaseReceipt);
-      await refreshProductDirectory();
+      await Promise.all([refreshProductDirectory(), refreshSupplierDirectory()]);
       pushToast('success', purchaseReceipt.id ? t('purchaseReceive.editTitle') : t('purchaseReceive.addTitle'), `${result.purchaseReceipt.purchaseNumber} ${purchaseReceipt.id ? t('alerts.updated') : t('alerts.created')}`);
       return { ok: true, purchaseReceipt: result.purchaseReceipt };
     } catch (error) {
@@ -764,7 +764,7 @@ export function InventoryAppProvider({ children }) {
 
     try {
       await inventoryApi.deletePurchaseReceipt(purchaseReceipt.id, reason);
-      await refreshProductDirectory();
+      await Promise.all([refreshProductDirectory(), refreshSupplierDirectory()]);
       pushToast('success', t('common.delete'), `${purchaseReceipt.purchaseNumber} ${t('alerts.deleted')}`);
       return { ok: true };
     } catch (error) {
@@ -777,6 +777,7 @@ export function InventoryAppProvider({ children }) {
   async function saveSupplierPayment(payment) {
     try {
       const result = payment.id ? await inventoryApi.updateSupplierPayment(payment) : await inventoryApi.createSupplierPayment(payment);
+      await refreshSupplierDirectory();
       pushToast('success', payment.id ? t('supplierPayments.editTitle') : t('supplierPayments.addTitle'), payment.id ? t('alerts.updated') : t('alerts.created'));
       return { ok: true, payment: result.payment };
     } catch (error) {
@@ -807,6 +808,7 @@ export function InventoryAppProvider({ children }) {
 
     try {
       await inventoryApi.deleteSupplierPayment(payment.id, reason);
+      await refreshSupplierDirectory();
       pushToast('success', t('common.delete'), t('alerts.deleted'));
       return { ok: true };
     } catch (error) {

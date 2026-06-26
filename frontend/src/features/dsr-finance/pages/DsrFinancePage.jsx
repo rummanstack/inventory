@@ -259,7 +259,7 @@ export default function DsrFinancePage() {
                         <th className="px-4 py-3 text-right">{t('dsrDueLedger.debit')}</th>
                         <th className="px-4 py-3 text-right">{t('dsrDueLedger.credit')}</th>
                         <th className="px-4 py-3 text-right">{t('dsrDueLedger.balanceAfter')}</th>
-                        <th className="hidden px-4 py-3 lg:table-cell">{t('dsrDueLedger.reference')}</th>
+                        <th className="px-4 py-3">{t('dsrDueLedger.reference')}</th>
                         <th className="hidden px-4 py-3 xl:table-cell">{t('dsrDueLedger.createdBy')}</th>
                       </tr>
                     </thead>

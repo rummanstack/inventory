@@ -4,7 +4,7 @@ import { Alert, EmptyState, Pagination, TableSkeleton } from '../../../component
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
-import { formatDate, formatNumber, todayISO } from '../../../utils/calculations.js';
+import { formatDate, formatDateTime, formatNumber, todayISO } from '../../../utils/calculations.js';
 import { usePagination } from '../../../hooks/usePagination.js';
 
 const PAGE_SIZE = 15;
@@ -125,7 +125,7 @@ export default function DamageFromSettlementsPanel({ products }) {
               {records.map((record) => (
                 <tr key={record.id} className="hover:bg-slate-50">
                   <td className="whitespace-nowrap px-4 py-3 font-medium text-slate-700">
-                    {formatDate(record.businessDate || record.createdAt, language)}
+                    {record.businessDate ? formatDate(record.businessDate, language) : formatDateTime(record.createdAt, language)}
                   </td>
                   <td className="px-4 py-3 font-semibold text-slate-950">{record.productName}</td>
                   <td className="px-4 py-3 text-right font-semibold text-rose-600">

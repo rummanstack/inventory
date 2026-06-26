@@ -3,7 +3,7 @@ import { Alert, EmptyState, Pagination, SectionHeader, TableSkeleton } from '../
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
-import { formatCurrency, formatDate } from '../../../utils/calculations.js';
+import { formatCurrency, formatDate, formatDateTime } from '../../../utils/calculations.js';
 import { useSupplierDiscountsViewModel } from '../viewmodels/useSupplierDiscountsViewModel.js';
 
 export default function SupplierDiscountsPage() {
@@ -14,7 +14,7 @@ export default function SupplierDiscountsPage() {
   async function handleClear(discount) {
     const ok = await confirm({
       title: 'Clear Discount',
-      description: `Remove the ${formatCurrency(discount.amount)} discount from ${discount.dsrName} settlement (${formatDate(discount.discountDate)})? This will reverse the cash addition.`,
+      description: `Remove the ${formatCurrency(discount.amount)} discount from ${discount.dsrName} settlement (${formatDateTime(discount.discountDate)})? This will reverse the cash addition.`,
       confirmLabel: 'Clear',
       danger: true,
     });
@@ -66,7 +66,7 @@ export default function SupplierDiscountsPage() {
                 {vm.items.map((discount, index) => (
                   <tr key={discount.id} className="hover:bg-slate-50">
                     <td className="table-cell font-black text-slate-400">{(vm.page - 1) * vm.pageSize + index + 1}</td>
-                    <td className="table-cell">{formatDate(discount.discountDate)}</td>
+                    <td className="table-cell">{formatDateTime(discount.discountDate)}</td>
                     <td className="table-cell font-semibold text-slate-950">{discount.dsrName || '-'}</td>
                     <td className="table-cell text-slate-700">{discount.supplierName || <span className="text-slate-300">—</span>}</td>
                     <td className="table-cell text-right font-bold text-emerald-700">{formatCurrency(discount.amount)}</td>

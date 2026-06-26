@@ -6,7 +6,7 @@ import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import { downloadSheetPdf } from '../../../services/printService.js';
-import { formatDate, formatNumber } from '../../../utils/calculations.js';
+import { formatDate, formatDateTime, formatNumber } from '../../../utils/calculations.js';
 import { warrantyClaimStatusTone } from '../../../models/inventoryViewData.js';
 import WarrantyClaimFormModal from '../components/WarrantyClaimFormModal';
 import { useWarrantyClaimsViewModel } from '../viewmodels/useWarrantyClaimsViewModel';
@@ -158,7 +158,7 @@ export default function WarrantyClaimsPage() {
                   <td className="table-cell">{claim.productName || '-'}</td>
                   <td className="hidden table-cell sm:table-cell">{claim.serialNumber || claim.imei1 || claim.imei2 || '-'}</td>
                   <td className="hidden table-cell md:table-cell">{claim.customerName || '-'}</td>
-                  <td className="table-cell">{formatDate(claim.receivedDate)}</td>
+                  <td className="table-cell">{formatDateTime(claim.receivedDate)}</td>
                   <td className="table-cell">
                     <Badge tone={warrantyClaimStatusTone(claim.status)}>{t(`warrantyClaims.statuses.${claim.status}`)}</Badge>
                   </td>

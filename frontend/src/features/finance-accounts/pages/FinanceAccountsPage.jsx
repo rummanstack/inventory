@@ -5,7 +5,7 @@ import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../services/printService.js';
 import { inventoryApi } from '../../../services/inventoryApi.js';
-import { formatCurrency, formatDate } from '../../../utils/calculations.js';
+import { formatCurrency, formatDate, formatDateTime } from '../../../utils/calculations.js';
 import { useFinanceAccountsViewModel } from '../viewmodels/useFinanceAccountsViewModel';
 import AccountTransactionFormModal from '../components/AccountTransactionFormModal';
 import AccountTransferFormModal from '../components/AccountTransferFormModal';
@@ -36,7 +36,7 @@ export default function FinanceAccountsPage() {
     const { utils, writeFile } = await import('xlsx');
     const header = [t('financeAccounts.date'), t('financeAccounts.account'), t('financeAccounts.type'), t('financeAccounts.amount'), t('financeAccounts.balanceAfter'), t('financeAccounts.note'), t('financeAccounts.createdBy')];
     const data = vm.items.map((transaction) => [
-      formatDate(transaction.transactionDate),
+      formatDateTime(transaction.transactionDate),
       transaction.accountName,
       t(`financeAccounts.${transaction.type === 'DEPOSIT' ? 'deposit' : transaction.type === 'WITHDRAWAL' ? 'withdrawal' : transaction.type === 'TRANSFER_IN' ? 'transferIn' : 'transferOut'}`),
       transaction.debit > 0 ? Number(transaction.debit) : -Number(transaction.credit),
@@ -187,7 +187,7 @@ export default function FinanceAccountsPage() {
               <tbody className="divide-y divide-slate-100">
                 {vm.items.map((transaction) => (
                   <tr key={transaction.id} className="hover:bg-slate-50">
-                    <td className="table-cell">{formatDate(transaction.transactionDate)}</td>
+                    <td className="table-cell">{formatDateTime(transaction.transactionDate)}</td>
                     <td className="table-cell font-semibold text-slate-950">
                       {transaction.accountName}
                     </td>

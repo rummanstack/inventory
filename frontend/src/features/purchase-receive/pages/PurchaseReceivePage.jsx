@@ -5,7 +5,7 @@ import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi';
 import { downloadSheetPdf } from '../../../services/printService.js';
-import { formatCurrency, formatDate, formatNumber } from '../../../utils/calculations.js';
+import { formatCurrency, formatDate, formatDateTime, formatNumber } from '../../../utils/calculations.js';
 import PurchaseReceiveFormModal from '../components/PurchaseReceiveFormModal';
 import PurchaseReceiptViewModal from '../components/PurchaseReceiptViewModal';
 import { usePurchaseReceiveViewModel } from '../viewmodels/usePurchaseReceiveViewModel';
@@ -151,7 +151,7 @@ export default function PurchaseReceivePage() {
                   <td className="table-cell font-black text-slate-400">{(vm.page - 1) * vm.pageSize + index + 1}</td>
                   <td className="table-cell font-semibold text-slate-950">{receipt.purchaseNumber}</td>
                   <td className="table-cell">{receipt.supplierName || '-'}</td>
-                  <td className="table-cell">{formatDate(receipt.purchaseDate)}</td>
+                  <td className="table-cell">{formatDateTime(receipt.purchaseDate)}</td>
                   <td className="hidden table-cell lg:table-cell">{receipt.supplierInvoiceNo || '-'}</td>
                   <td className="table-cell text-right font-bold">{formatCurrency(receipt.totalAmount)}</td>
                   <td className="hidden table-cell text-right font-bold text-rose-700 sm:table-cell">{formatCurrency(receipt.dueAmount)}</td>

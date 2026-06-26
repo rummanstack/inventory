@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi';
 import { todayISO } from '../../../utils/calculations.js';
+import { useRefetchOnVisible } from '../../../app/hooks/useRefetchOnVisible.js';
 
 const RECORD_APIS = {
   advance: { create: 'createAdvance', update: 'updateAdvance', remove: 'deleteAdvance' },
@@ -38,6 +39,8 @@ export function useDsrFinanceViewModel(kind, { confirm }) {
   async function refreshReport() {
     await loadReport(date, month, dsrId);
   }
+
+  useRefetchOnVisible(refreshReport);
 
   async function saveRecord(record) {
     try {

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { inventoryApi } from '../../../services/inventoryApi';
 import { todayISO } from '../../../utils/calculations.js';
+import { useRefetchOnVisible } from '../../../app/hooks/useRefetchOnVisible.js';
 
 function subtractDays(dateISO, days) {
   const date = new Date(`${dateISO}T00:00:00`);
@@ -76,6 +77,9 @@ export function useDsrDueStatementViewModel({ dsrs }) {
     }
   }
 
+  const refresh = () => setVersion((value) => value + 1);
+  useRefetchOnVisible(refresh);
+
   return {
     dsrId,
     setDsrId,
@@ -87,7 +91,7 @@ export function useDsrDueStatementViewModel({ dsrs }) {
     currentBalance,
     loading,
     error,
-    refresh: () => setVersion((value) => value + 1),
+    refresh,
     settleDue,
   };
 }

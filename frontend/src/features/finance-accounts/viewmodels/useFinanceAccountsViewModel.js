@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi';
 import { usePagedList } from '../../../hooks/usePagedList';
+import { useRefetchOnVisible } from '../../../app/hooks/useRefetchOnVisible.js';
 
 export function useFinanceAccountsViewModel({ confirm }) {
   const { t, pushToast } = useInventoryApp();
@@ -64,6 +65,8 @@ export function useFinanceAccountsViewModel({ confirm }) {
   async function refreshAll() {
     await Promise.all([loadAccounts(), list.reload()]);
   }
+
+  useRefetchOnVisible(loadAccounts);
 
   async function saveTransaction(payload) {
     try {

@@ -53,4 +53,9 @@ export const TENANT_FEATURE_ROUTES = [
   { feature: 'shop-due-ledger', labelKey: 'nav.shopDueLedger' },
   { feature: 'srs', labelKey: 'nav.srs' },
   { feature: 'sr-due-ledger', labelKey: 'nav.srDueLedger' },
+  { feature: 'employees', labelKey: 'nav.employees' },
+  { feature: 'salary-structure', labelKey: 'nav.salaryStructure' },
+  { feature: 'payroll', labelKey: 'nav.payroll' },
+  { feature: 'payslips', labelKey: 'nav.payslips' },
+  { feature: 'salary-reports', labelKey: 'nav.salaryReports' },
 ];

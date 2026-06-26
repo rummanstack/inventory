@@ -6,7 +6,7 @@ import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import AuditHistory from '../../../components/AuditHistory.jsx';
 import { buildPdfFileName, downloadSheetPdf } from '../../../services/printService.js';
 import { inventoryApi } from '../../../services/inventoryApi';
-import { formatCasePiece, formatCurrency, formatNumber } from '../../../utils/calculations.js';
+import { formatCasePiece, formatCurrency, formatNumber, toPieces } from '../../../utils/calculations.js';
 import { useSettlementViewModel } from '../viewmodels/useSettlementViewModel';
 
 export default function EveningSettlementPage() {
@@ -138,15 +138,13 @@ export default function EveningSettlementPage() {
                 </tbody>
               </table>
             </div>
-            <div className="border-t border-slate-100 px-5 py-5">
+            <div className="border-t border-slate-100 px-5 py-4">
               <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <h3 className="text-sm font-black uppercase tracking-[0.14em] text-slate-700">{t('settlement.extraReturnsTitle')}</h3>
-                </div>
+                <h3 className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-500">{t('settlement.extraReturnsTitle')}</h3>
                 <div className="flex items-center gap-3">
                   <Badge tone="amber">{t('settlement.extraReturnTotal', { pieces: vm.totalExtraReturnedPieces })}</Badge>
-                  <button type="button" className="btn-secondary" onClick={vm.addExtraReturn} disabled={!productDirectory.length}>
-                    <Plus size={18} />
+                  <button type="button" className="btn-secondary h-8 gap-1.5 px-3 py-1.5 text-xs" onClick={vm.addExtraReturn} disabled={!productDirectory.length}>
+                    <Plus size={14} />
                     {t('settlement.addExtraReturn')}
                   </button>
                 </div>
@@ -156,8 +154,11 @@ export default function EveningSettlementPage() {
                 <div className="space-y-3">
                   {vm.extraReturns.map((row) => {
                     const availableProducts = getExtraReturnOptions(row.id);
+                    const product = productDirectory.find((p) => p.id === row.productId);
+                    const rate = Number(product?.wholesalePrice || 0);
+                    const rowValue = (toPieces(row.caseQty, row.pieceQty, row.piecesPerCase) + toPieces(row.damagedCaseQty, row.damagedPieceQty, row.piecesPerCase)) * rate;
                     return (
-                      <div key={row.id} className="grid gap-3 rounded-[22px] border border-slate-200 bg-slate-50 p-4 lg:grid-cols-[minmax(0,1.8fr)_minmax(120px,0.5fr)_minmax(120px,0.5fr)_minmax(120px,0.5fr)_minmax(120px,0.5fr)_auto]">
+                      <div key={row.id} className="grid gap-3 rounded-[22px] border border-slate-200 bg-slate-50 p-4 lg:grid-cols-[minmax(0,1.8fr)_minmax(120px,0.5fr)_minmax(120px,0.5fr)_minmax(120px,0.5fr)_minmax(120px,0.5fr)_minmax(120px,0.5fr)_auto]">
                         <div>
                           <label className="label">{t('settlement.extraReturnProduct')}</label>
                           <select
@@ -188,6 +189,10 @@ export default function EveningSettlementPage() {
                           <label className="label">{t('settlement.damagedPiece')}</label>
                           <input className="input" type="number" min="0" value={row.damagedPieceQty} onChange={(event) => vm.updateExtraReturn(row.id, 'damagedPieceQty', event.target.value)} />
                         </div>
+                        <div>
+                          <label className="label">{t('settlement.extraReturnRowValue')}</label>
+                          <div className="input flex cursor-default select-none items-center bg-slate-100/80 font-semibold text-slate-700">{formatCurrency(rowValue, language)}</div>
+                        </div>
                         <div className="flex items-end justify-start lg:justify-end">
                           <button type="button" className="icon-btn text-rose-600 hover:text-rose-700" title={t('common.delete')} onClick={() => vm.removeExtraReturn(row.id)}>
                             <Trash2 size={16} />
@@ -203,11 +208,11 @@ export default function EveningSettlementPage() {
                 </div>
               )}
             </div>
-            <div className="border-t border-slate-100 p-4">
+            <div className="border-t border-slate-100 px-5 py-4">
               <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                <h3 className="text-sm font-black uppercase tracking-[0.14em] text-slate-700">{t('settlement.shopDueCollectionsTitle')}</h3>
-                <button type="button" className="btn-secondary" onClick={vm.addShopCollection}>
-                  <Plus size={18} />
+                <h3 className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-500">{t('settlement.shopDueCollectionsTitle')}</h3>
+                <button type="button" className="btn-secondary h-8 gap-1.5 px-3 py-1.5 text-xs" onClick={vm.addShopCollection}>
+                  <Plus size={14} />
                   {t('settlement.addShopCollection')}
                 </button>
               </div>
@@ -247,11 +252,11 @@ export default function EveningSettlementPage() {
               )}
             </div>
 
-            <div className="border-t border-slate-100 p-4">
+            <div className="border-t border-slate-100 px-5 py-4">
               <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                <h3 className="text-sm font-black uppercase tracking-[0.14em] text-slate-700">SR Handover</h3>
-                <button type="button" className="btn-secondary" onClick={vm.addSrHandover}>
-                  <Plus size={18} />
+                <h3 className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-500">SR Handover</h3>
+                <button type="button" className="btn-secondary h-8 gap-1.5 px-3 py-1.5 text-xs" onClick={vm.addSrHandover}>
+                  <Plus size={14} />
                   Add SR Handover
                 </button>
               </div>

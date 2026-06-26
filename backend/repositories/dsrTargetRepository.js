@@ -31,6 +31,8 @@ export async function getTargetsByMonth(client, tenantId, month) {
 }
 
 // Returns one row per DSR that has either a target or a settlement in the month.
+// actual_amount = sum of fresh settlement value (total_payable - previous_due) for the month,
+// excluding cancelled settlements. settlement_date is TEXT 'YYYY-MM-DD' so LEFT(…,7) is used.
 export async function getMonthlySummary(client, tenantId, month) {
   const result = await client.query(
     `SELECT
@@ -42,14 +44,16 @@ export async function getMonthlySummary(client, tenantId, month) {
        (SELECT dsr_id, target_amount FROM dsr_targets
         WHERE tenant_id=$1 AND month=$2) t
      FULL OUTER JOIN
-       (SELECT dsr_id, SUM(amount_paid) AS actual_amount
+       (SELECT dsr_id,
+               SUM(total_payable - COALESCE(previous_due, 0)) AS actual_amount
         FROM settlements
         WHERE tenant_id=$1
-          AND TO_CHAR(settlement_date, 'YYYY-MM') = $2
+          AND LEFT(settlement_date, 7) = $2
           AND status != 'CANCELLED'
         GROUP BY dsr_id) s
      ON t.dsr_id = s.dsr_id
-     LEFT JOIN dsrs d ON d.id = COALESCE(t.dsr_id, s.dsr_id)`,
+     LEFT JOIN dsrs d ON d.id = COALESCE(t.dsr_id, s.dsr_id)
+                      AND d.tenant_id = $1`,
     [tenantId, month],
   );
   return result.rows.map((row) => ({

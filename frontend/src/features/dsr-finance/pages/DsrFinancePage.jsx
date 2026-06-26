@@ -118,9 +118,7 @@ export default function DsrFinancePage() {
 
   const dailyRecords = activeVm.report?.dailyRecords || [];
   const monthlyRecords = activeVm.report?.monthlyRecords || [];
-  const dueEntries = isDueTab
-    ? [...(dueVm.statement?.entries || [])].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-    : [];
+  const dueEntries = isDueTab ? (dueVm.statement?.entries || []) : [];
 
   async function handleExportAdvanceDailyExcel() {
     const { utils, writeFile } = await import('xlsx');

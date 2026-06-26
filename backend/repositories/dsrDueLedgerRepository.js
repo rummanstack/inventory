@@ -162,7 +162,7 @@ export async function listDueLedgerPage(client, { tenantId, dsrId, dateFrom, dat
   const result = await client.query(
     `${buildSelect()}
      ${where}
-     ORDER BY ${orderByBusinessDate("DESC")}
+     ORDER BY ${orderByInsertion("DESC")}
      LIMIT $${params.length - 1} OFFSET $${params.length}`,
     params,
   );
@@ -176,7 +176,7 @@ export async function listDueLedgerInRange(client, { tenantId, dsrId, dateFrom, 
   const result = await client.query(
     `${buildSelect()}
      ${where}
-     ORDER BY ${orderByBusinessDate("ASC")}`,
+     ORDER BY ${orderByInsertion("DESC")}`,
     params,
   );
 

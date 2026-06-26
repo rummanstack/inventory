@@ -135,7 +135,7 @@ export async function listShopDueLedgerPage(client, { tenantId, shopId, dateFrom
   const result = await client.query(
     `${buildSelect()}
      ${where}
-     ORDER BY ${orderByBusinessDate("DESC")}
+     ORDER BY ${orderByInsertion("DESC")}
      LIMIT $${params.length - 1} OFFSET $${params.length}`,
     params,
   );
@@ -148,7 +148,7 @@ export async function listShopDueLedgerInRange(client, { tenantId, shopId, dateF
   const result = await client.query(
     `${buildSelect()}
      ${where}
-     ORDER BY ${orderByBusinessDate("ASC")}`,
+     ORDER BY ${orderByInsertion("DESC")}`,
     params,
   );
   return result.rows.map(mapShopDueLedgerEntry);

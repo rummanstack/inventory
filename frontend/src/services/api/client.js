@@ -25,6 +25,7 @@ export async function apiRequest(path, options = {}) {
   const activeTenantId = getActiveTenantId();
   const response = await fetch(`/api${path}`, {
     credentials: "include",
+    cache: "no-store",
     headers: {
       "Content-Type": "application/json",
       ...(activeTenantId ? { "X-Active-Tenant-Id": activeTenantId } : {}),

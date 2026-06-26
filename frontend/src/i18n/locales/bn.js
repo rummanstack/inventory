@@ -1720,6 +1720,7 @@
         OPENING: 'শুরুর বকেয়া',
         PURCHASE_DUE: 'পারচেজ বকেয়া',
         PAYMENT: 'পেমেন্ট',
+        DISCOUNT: 'সাপ্লায়ার ছাড়',
         MANUAL_ADJUSTMENT: 'ম্যানুয়াল সমন্বয়',
       },
       printSheet: 'প্রিন্ট শিট',

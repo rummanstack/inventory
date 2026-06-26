@@ -77,7 +77,7 @@ export class SupplierDiscountService {
     // Only touches the due ledger if the supplier is specified.
     if (previousSupplierId && previousAmount > 0) {
       const latestOld = await getLatestSupplierDueLedgerEntry(client, previousSupplierId, tenantId);
-      const oldBalance = latestOld ? latestOld.balance_after : 0;
+      const oldBalance = latestOld ? latestOld.balanceAfter : 0;
       await recordSupplierDueLedgerEntry(client, {
         tenantId,
         supplierId: previousSupplierId,
@@ -95,7 +95,7 @@ export class SupplierDiscountService {
 
     if (supplierId && amount > 0) {
       const latestNew = await getLatestSupplierDueLedgerEntry(client, supplierId, tenantId);
-      const newBalance = latestNew ? latestNew.balance_after : 0;
+      const newBalance = latestNew ? latestNew.balanceAfter : 0;
       await recordSupplierDueLedgerEntry(client, {
         tenantId,
         supplierId,
@@ -142,7 +142,7 @@ export class SupplierDiscountService {
       // Reverse supplier due ledger if linked to a supplier.
       if (supplierId && amount > 0) {
         const latest = await getLatestSupplierDueLedgerEntry(client, supplierId, actor.tenantId);
-        const balance = latest ? latest.balance_after : 0;
+        const balance = latest ? latest.balanceAfter : 0;
         await recordSupplierDueLedgerEntry(client, {
           tenantId: actor.tenantId,
           supplierId,

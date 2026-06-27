@@ -385,12 +385,229 @@ export function buildReceiptHtml(invoice, {
 </html>`;
 }
 
+function hasSerialItems(invoice) {
+  return (invoice?.items || []).some((item) => (item?.serials || []).length > 0);
+}
+
+export function buildInvoiceHtml(invoice, {
+  businessName = '',
+  businessAddress = '',
+  businessPhone = '',
+  businessEmail = '',
+  title = 'Invoice',
+  language = 'en',
+} = {}) {
+  const t = createTranslator(language);
+  const items = Array.isArray(invoice?.items) ? invoice.items : [];
+  const invoiceLabel = labelFor(t, 'retailer.shared.invoiceNumberLabel', 'Invoice No');
+  const dateLabel = labelFor(t, 'retailer.shared.invoiceDateLabel', 'Date');
+  const customerLabel = labelFor(t, 'retailer.shared.customerLabel', 'Customer');
+  const subtotalLabel = labelFor(t, 'retailer.shared.subtotal', 'Subtotal');
+  const discountLabel = labelFor(t, 'retailer.shared.discountLabel', 'Discount');
+  const taxLabel = labelFor(t, 'retailer.shared.taxAmountLabel', 'Tax');
+  const totalLabel = labelFor(t, 'retailer.shared.totalAmount', 'Grand Total');
+  const paidLabel = labelFor(t, 'retailer.shared.paidAmountLabel', 'Paid');
+  const dueLabel = labelFor(t, 'retailer.shared.dueAmount', 'Due');
+  const serialLabel = labelFor(t, 'retailer.salesInvoices.serialPrintLabel', 'Serial / IMEI');
+  const receiptThankYou = labelFor(t, 'retailer.shared.receiptThankYou', 'Thank you for your purchase.');
+
+  const businessLines = [businessAddress, businessPhone, businessEmail].filter(Boolean);
+  const invoiceDate = invoice?.invoiceDate || invoice?.createdAt;
+
+  const itemRows = items.map((item, index) => {
+    const name = escapeHtml(item?.productName || 'Item');
+    const brandModel = [item?.brandSnapshot, item?.modelSnapshot].filter(Boolean).join(' / ');
+    const serials = (item?.serials || []).map((s) => s?.serialNumber || s?.imei1 || s?.imei2).filter(Boolean);
+    const warrantyMonths = Number(item?.warrantyMonthsSnapshot || 0);
+    const warrantyEndDate = warrantyMonths > 0 ? addMonthsToDate(invoiceDate, warrantyMonths) : null;
+    const warrantyText = warrantyMonths > 0
+      ? t('retailer.salesInvoices.warrantyPrintLabel', { months: warrantyMonths, endDate: formatDate(warrantyEndDate, language) })
+      : '';
+    const price = formatLocalizedCurrency(item?.actualSalePrice, language);
+    const qty = formatQuantity(item?.quantityPieces, language);
+    const lineTotal = lineTotalText(item, language);
+    const discount = Number(item?.lineDiscount || 0);
+
+    return `
+      <tr>
+        <td class="sl">${index + 1}</td>
+        <td class="desc">
+          <div class="name">${name}</div>
+          ${brandModel ? `<div class="meta">${escapeHtml(brandModel)}</div>` : ''}
+          ${serials.length ? `<div class="meta serial">${escapeHtml(serialLabel)}: <strong>${escapeHtml(serials.join(', '))}</strong></div>` : ''}
+          ${discount > 0 ? `<div class="meta">${escapeHtml(labelFor(t, 'retailer.shared.discountLabel', 'Discount'))}: ${formatLocalizedCurrency(discount, language)}</div>` : ''}
+          ${warrantyText ? `<div class="meta">${escapeHtml(warrantyText)}</div>` : ''}
+        </td>
+        <td class="price">${price}</td>
+        <td class="qty">${qty}</td>
+        <td class="total">${lineTotal}</td>
+      </tr>`;
+  }).join('');
+
+  return `<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>${escapeHtml(title)}</title>
+  <style>
+    :root { color-scheme: light; }
+    @page { size: A4; margin: 12mm 14mm; }
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body {
+      margin: 0; padding: 0;
+      background: #fff; color: #111827;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 12px; line-height: 1.4;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding-bottom: 14px;
+      border-bottom: 2px solid #111827;
+    }
+    .biz-name { font-size: 22px; font-weight: 900; color: #111827; }
+    .biz-meta { margin-top: 4px; font-size: 11px; color: #4b5563; }
+    .invoice-title { text-align: right; }
+    .invoice-title h1 { margin: 0; font-size: 32px; font-weight: 900; letter-spacing: 0.05em; color: #111827; }
+    .invoice-title .inv-num { font-size: 12px; font-weight: 700; color: #4b5563; margin-top: 2px; }
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 14px 0;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .info-row .to-label { font-size: 10px; font-weight: 700; text-transform: uppercase; color: #6b7280; }
+    .info-row .customer-name { font-size: 16px; font-weight: 800; color: #111827; margin-top: 2px; }
+    .info-row .cashier { font-size: 11px; color: #4b5563; margin-top: 2px; }
+    .info-right { text-align: right; }
+    .info-right .due-label { font-size: 10px; font-weight: 700; text-transform: uppercase; color: #6b7280; }
+    .info-right .due-amount { font-size: 22px; font-weight: 900; color: #111827; }
+    .info-right .inv-date { font-size: 12px; font-weight: 700; color: #4b5563; margin-top: 4px; }
+    table.items {
+      width: 100%; border-collapse: collapse; margin-top: 16px;
+    }
+    table.items thead tr {
+      background: #111827; color: #fff;
+    }
+    table.items thead th {
+      padding: 7px 10px; font-size: 11px; font-weight: 700; text-align: left;
+    }
+    table.items thead th.price,
+    table.items thead th.qty,
+    table.items thead th.total { text-align: right; }
+    table.items tbody td {
+      padding: 8px 10px; border-bottom: 1px solid #e5e7eb; vertical-align: top;
+    }
+    table.items tbody td.sl { width: 28px; color: #6b7280; font-weight: 700; }
+    table.items tbody td.desc .name { font-weight: 700; }
+    table.items tbody td.desc .meta { font-size: 10px; color: #6b7280; margin-top: 2px; }
+    table.items tbody td.desc .serial { color: #374151; }
+    table.items tbody td.price,
+    table.items tbody td.qty,
+    table.items tbody td.total { text-align: right; white-space: nowrap; }
+    table.items tbody td.total { font-weight: 700; }
+    .totals-wrap { display: flex; justify-content: flex-end; margin-top: 12px; }
+    table.totals { width: 240px; border-collapse: collapse; }
+    table.totals td { padding: 4px 8px; font-size: 12px; }
+    table.totals td:last-child { text-align: right; font-weight: 700; }
+    table.totals .grand td {
+      font-size: 14px; font-weight: 900;
+      border-top: 2px solid #111827; padding-top: 7px;
+    }
+    table.totals .due td { font-size: 13px; font-weight: 900; color: #dc2626; }
+    .note { margin-top: 14px; font-size: 11px; color: #4b5563; }
+    .footer-row {
+      display: flex; justify-content: space-between; align-items: flex-end;
+      margin-top: 48px;
+    }
+    .thank-you { font-size: 13px; font-weight: 700; color: #111827; }
+    .thank-you .small { font-size: 10px; font-weight: 400; color: #6b7280; margin-top: 2px; }
+    .signature-box { text-align: center; width: 160px; }
+    .signature-line { border-top: 1px solid #111827; padding-top: 6px; font-size: 11px; font-weight: 600; color: #374151; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <div class="biz-name">${escapeHtml(businessName || 'Business')}</div>
+      ${businessLines.length ? `<div class="biz-meta">${businessLines.map(compactText).join(' &nbsp;|&nbsp; ')}</div>` : ''}
+    </div>
+    <div class="invoice-title">
+      <h1>INVOICE</h1>
+      ${invoice?.invoiceNumber ? `<div class="inv-num">${escapeHtml(invoiceLabel)}: #${escapeHtml(String(invoice.invoiceNumber))}</div>` : ''}
+    </div>
+  </div>
+
+  <div class="info-row">
+    <div>
+      <div class="to-label">${escapeHtml(customerLabel)}</div>
+      <div class="customer-name">${escapeHtml(invoice?.customerName || '-')}</div>
+      ${invoice?.createdByName ? `<div class="cashier">${escapeHtml(labelFor(t, 'retailer.shared.cashierLabel', 'Cashier'))}: ${escapeHtml(invoice.createdByName)}</div>` : ''}
+    </div>
+    <div class="info-right">
+      <div class="due-label">${escapeHtml(dueLabel)}</div>
+      <div class="due-amount">${escapeHtml(formatLocalizedCurrency(invoice?.dueAmount, language))}</div>
+      <div class="inv-date">${escapeHtml(dateLabel)}: ${escapeHtml(formatDate(invoiceDate, language))}</div>
+    </div>
+  </div>
+
+  <table class="items">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Product Description</th>
+        <th class="price">Price</th>
+        <th class="qty">Qty</th>
+        <th class="total">Total</th>
+      </tr>
+    </thead>
+    <tbody>${itemRows}</tbody>
+  </table>
+
+  <div class="totals-wrap">
+    <table class="totals">
+      <tbody>
+        <tr><td>${escapeHtml(subtotalLabel)}</td><td>${escapeHtml(formatLocalizedCurrency(invoice?.subtotal, language))}</td></tr>
+        ${Number(invoice?.discount || 0) > 0 ? `<tr><td>${escapeHtml(discountLabel)}</td><td>- ${escapeHtml(formatLocalizedCurrency(invoice?.discount, language))}</td></tr>` : ''}
+        ${Number(invoice?.taxRate || 0) > 0 ? `<tr><td>${escapeHtml(taxLabel)} (${formatPercent(invoice?.taxRate, language)}%)</td><td>${escapeHtml(formatLocalizedCurrency(invoice?.taxAmount, language))}</td></tr>` : ''}
+        <tr class="grand">
+          <td>${escapeHtml(totalLabel)}</td>
+          <td>${escapeHtml(formatLocalizedCurrency(invoice?.totalAmount, language))}</td>
+        </tr>
+        <tr><td>${escapeHtml(paidLabel)}</td><td>${escapeHtml(formatLocalizedCurrency(invoice?.paidAmount, language))}</td></tr>
+        ${Number(invoice?.dueAmount || 0) > 0 ? `<tr class="due"><td>${escapeHtml(dueLabel)}</td><td>${escapeHtml(formatLocalizedCurrency(invoice?.dueAmount, language))}</td></tr>` : ''}
+      </tbody>
+    </table>
+  </div>
+
+  ${invoice?.note ? `<div class="note"><strong>${escapeHtml(labelFor(t, 'purchaseReceive.noteLabel', 'Note'))}:</strong> ${compactText(invoice.note)}</div>` : ''}
+
+  <div class="footer-row">
+    <div class="thank-you">
+      <div>${escapeHtml(receiptThankYou)}</div>
+      <div class="small">${escapeHtml(labelFor(t, 'retailer.shared.receiptKeepForRecords', 'Please keep this receipt for records.'))}</div>
+    </div>
+    <div class="signature-box">
+      <div class="signature-line">Authorised Signature</div>
+    </div>
+  </div>
+</body>
+</html>`;
+}
+
 export async function printRetailReceipt(invoice, options = {}) {
   const {
     receiptWindow: providedWindow = null,
     ...receiptOptions
   } = options;
-  const receiptHtml = buildReceiptHtml(invoice, receiptOptions);
+  const useInvoiceFormat = hasSerialItems(invoice);
+  const receiptHtml = useInvoiceFormat
+    ? buildInvoiceHtml(invoice, receiptOptions)
+    : buildReceiptHtml(invoice, receiptOptions);
   const receiptWindow = providedWindow || window.open('', '_blank', 'width=420,height=760');
 
   if (!receiptWindow) {

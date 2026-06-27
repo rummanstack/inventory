@@ -122,23 +122,19 @@ export class SupplierDiscountService {
 
       await deleteSupplierDiscount(client, discountId, actor.tenantId);
 
-      // Reverse supplier due ledger if linked to a supplier.
-      if (supplierId && amount > 0) {
-        const latest = await getLatestSupplierDueLedgerEntry(client, supplierId, actor.tenantId);
-        const balance = latest ? latest.balanceAfter : 0;
-        await recordSupplierDueLedgerEntry(client, {
-          tenantId: actor.tenantId,
-          supplierId,
-          type: SUPPLIER_DUE_LEDGER_TYPES.DISCOUNT,
-          debit: amount,
-          credit: 0,
-          balanceAfter: Number(balance) + amount,
-          referenceType: "supplier_discount",
-          referenceId: discountId,
-          note: `Discount cleared — ${discount.dsr_name}`,
-          createdById: actor.id,
-          businessDate: String(discount.discount_date).slice(0, 10),
-        });
+      // Clearing a discount means cash has been received from the supplier.
+      if (this.financeAccountService && amount > 0) {
+        await this.financeAccountService.recordTransactionInClient(
+          client,
+          {
+            accountType: "CASH",
+            type: "DEPOSIT",
+            amount,
+            date: String(discount.discount_date).slice(0, 10),
+            note: `Supplier discount cleared — ${discount.dsr_name}`,
+          },
+          actor,
+        );
       }
 
       await this.recordActivity(client, actor, {

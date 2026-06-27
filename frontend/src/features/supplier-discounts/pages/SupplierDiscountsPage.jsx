@@ -1,4 +1,4 @@
-import { Tag, Trash2 } from 'lucide-react';
+import { HandCoins, Tag } from 'lucide-react';
 import { Alert, EmptyState, Pagination, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
@@ -7,18 +7,17 @@ import { formatCurrency, formatDate, formatDateTime } from '../../../utils/calcu
 import { useSupplierDiscountsViewModel } from '../viewmodels/useSupplierDiscountsViewModel.js';
 
 export default function SupplierDiscountsPage() {
-  const { can, confirm, pushToast } = useInventoryApp();
+  const { confirm, pushToast } = useInventoryApp();
   const vm = useSupplierDiscountsViewModel();
-  const canManage = can('manage_supplier_payments');
 
   async function handleClear(discount) {
-    const ok = await confirm({
+    const { confirmed } = await confirm({
       title: 'Clear Discount',
-      description: `Remove the ${formatCurrency(discount.amount)} discount from ${discount.dsrName} settlement (${formatDateTime(discount.discountDate)})? This will reverse the cash addition.`,
-      confirmLabel: 'Clear',
-      danger: true,
+      description: `Mark the ${formatCurrency(discount.amount)} discount from ${discount.dsrName} (${formatDateTime(discount.discountDate)}) as cleared? This will add the amount to cash in hand.`,
+      confirmLabel: 'Clear & Receive Cash',
+      danger: false,
     });
-    if (!ok) return;
+    if (!confirmed) return;
     try {
       await inventoryApi.deleteSupplierDiscount(discount.id);
       pushToast('success', 'Discount cleared');
@@ -33,7 +32,7 @@ export default function SupplierDiscountsPage() {
       <SectionHeader
         eyebrow="Purchases"
         title="Supplier Discounts"
-        description="Discounts received from suppliers via DSR settlements — automatically added to cash when a settlement discount is recorded."
+        description="Discounts from suppliers via DSR settlements. Clear a discount once the cash is received from the supplier."
       />
 
       <div className="surface overflow-hidden">
@@ -59,7 +58,7 @@ export default function SupplierDiscountsPage() {
                   <th className="px-4 py-3">Supplier</th>
                   <th className="px-4 py-3 text-right">Amount</th>
                   <th className="px-4 py-3">Note</th>
-                  {canManage ? <th className="px-4 py-3 text-right">Actions</th> : null}
+                  <th className="px-4 py-3 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -71,20 +70,18 @@ export default function SupplierDiscountsPage() {
                     <td className="table-cell text-slate-700">{discount.supplierName || <span className="text-slate-300">—</span>}</td>
                     <td className="table-cell text-right font-bold text-emerald-700">{formatCurrency(discount.amount)}</td>
                     <td className="hidden table-cell lg:table-cell">{discount.note || '-'}</td>
-                    {canManage ? (
-                      <td className="table-cell">
-                        <div className="flex justify-end">
-                          <button
-                            type="button"
-                            className="icon-btn text-rose-600 hover:text-rose-700"
-                            title="Clear Discount"
-                            onClick={() => handleClear(discount)}
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      </td>
-                    ) : null}
+                    <td className="table-cell">
+                      <div className="flex justify-end">
+                        <button
+                          type="button"
+                          className="icon-btn text-emerald-600 hover:text-emerald-700"
+                          title="Clear Discount (Receive Cash)"
+                          onClick={() => handleClear(discount)}
+                        >
+                          <HandCoins size={16} />
+                        </button>
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>

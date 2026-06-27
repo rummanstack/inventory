@@ -58,12 +58,10 @@ export default function PrintableSheet({ sheet, printTarget = false, targetId, t
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <h2 className="text-2xl font-black tracking-normal text-slate-950">{sheet.businessName}</h2>
-            <p className="mt-1 text-sm font-semibold text-slate-600">{t('settlement.printableTitle')}</p>
-            <p className="mt-1 text-xs text-slate-500">{t('settlement.printableSubtitle')}</p>
           </div>
           <div className="rounded-lg border border-slate-300 px-4 py-3 text-sm">
             <p className="font-bold text-slate-950">{t('common.date')}: {formatDate(sheet.date, language)}</p>
-            <p className="mt-1 text-slate-600">{t('settlement.printableStatus')}: {statusLabel}</p>
+            <p className="mt-1 font-semibold text-slate-600">{t('settlement.printableStatus')}: {statusLabel}</p>
           </div>
         </div>
       </div>
@@ -105,11 +103,11 @@ export default function PrintableSheet({ sheet, printTarget = false, targetId, t
                 <td className="border border-slate-300 px-1.5 py-1 align-middle font-semibold text-slate-950">
                   {item.productName}
                 </td>
-                <td className="border border-slate-300 px-1.5 py-1 align-middle">{formatCasePieceLocalized(item.issuedPieces, item.piecesPerCase, language, t)}</td>
-                <td className="border border-slate-300 px-1.5 py-1 align-middle">{formatCasePieceLocalized(item.returnedPieces, item.piecesPerCase, language, t)}</td>
-                <td className="border border-slate-300 px-1.5 py-1 align-middle">{formatCasePieceLocalized(item.damagedPieces, item.piecesPerCase, language, t)}</td>
-                <td className="border border-slate-300 px-1.5 py-1 align-middle">{formatCasePieceLocalized(item.soldPieces, item.piecesPerCase, language, t)}</td>
-                <td className="border border-slate-300 px-1.5 py-1 align-middle">{formatCurrency(item.rate, language)}</td>
+                <td className="border border-slate-300 px-1.5 py-1 align-middle font-semibold">{formatCasePieceLocalized(item.issuedPieces, item.piecesPerCase, language, t)}</td>
+                <td className="border border-slate-300 px-1.5 py-1 align-middle font-semibold">{formatCasePieceLocalized(item.returnedPieces, item.piecesPerCase, language, t)}</td>
+                <td className="border border-slate-300 px-1.5 py-1 align-middle font-semibold">{formatCasePieceLocalized(item.damagedPieces, item.piecesPerCase, language, t)}</td>
+                <td className="border border-slate-300 px-1.5 py-1 align-middle font-semibold">{formatCasePieceLocalized(item.soldPieces, item.piecesPerCase, language, t)}</td>
+                <td className="border border-slate-300 px-1.5 py-1 align-middle font-semibold">{formatCurrency(item.rate, language)}</td>
                 <td className="border border-slate-300 px-1.5 py-1 align-middle font-bold">{formatCurrency(item.payable, language)}</td>
                 <td className="border border-slate-300 px-1.5 py-1 align-middle font-bold text-rose-700">
                   {item.returnValue > 0 ? `- ${formatCurrency(item.returnValue, language)}` : formatCurrency(0, language)}
@@ -122,10 +120,10 @@ export default function PrintableSheet({ sheet, printTarget = false, targetId, t
               <td className="border border-slate-300 px-1.5 py-1 align-middle" colSpan="2">
                 {t('common.total')}
               </td>
-              <td className="border border-slate-300 px-1.5 py-1 align-middle">{formatNumber(totalIssued, language)} {t('common.pcs')}</td>
-              <td className="border border-slate-300 px-1.5 py-1 align-middle">{formatNumber(totalReturned, language)} {t('common.pcs')}</td>
-              <td className="border border-slate-300 px-1.5 py-1 align-middle">{formatNumber(totalDamaged, language)} {t('common.pcs')}</td>
-              <td className="border border-slate-300 px-1.5 py-1 align-middle">{formatNumber(totalSold, language)} {t('common.pcs')}</td>
+              <td className="border border-slate-300 px-1.5 py-1 align-middle font-bold">{formatNumber(totalIssued, language)} {t('common.pcs')}</td>
+              <td className="border border-slate-300 px-1.5 py-1 align-middle font-bold">{formatNumber(totalReturned, language)} {t('common.pcs')}</td>
+              <td className="border border-slate-300 px-1.5 py-1 align-middle font-bold">{formatNumber(totalDamaged, language)} {t('common.pcs')}</td>
+              <td className="border border-slate-300 px-1.5 py-1 align-middle font-bold">{formatNumber(totalSold, language)} {t('common.pcs')}</td>
               <td className="border border-slate-300 px-1.5 py-1 align-middle">{t('common.grandTotal')}</td>
               <td className="border border-slate-300 px-1.5 py-1 align-middle">
                 {saleTotal < 0 ? `- ${formatCurrency(Math.abs(saleTotal), language)}` : formatCurrency(saleTotal, language)}
@@ -164,7 +162,7 @@ export default function PrintableSheet({ sheet, printTarget = false, targetId, t
         <span className="text-slate-300">|</span>
         <div className="text-center">
           <p className="whitespace-nowrap text-[9px] font-bold uppercase text-slate-500">{t('settlement.amountPaid')}</p>
-          <p className="whitespace-nowrap text-base font-black text-slate-950">- {formatCurrency(sheet.amountPaid || 0, language)}</p>
+          <p className="whitespace-nowrap font-black text-slate-950">- {formatCurrency(sheet.amountPaid || 0, language)}</p>
         </div>
         <span className="text-slate-300">|</span>
         <div className="text-center">

@@ -780,7 +780,15 @@
   }
 
   .table-head {
-    @apply bg-slate-50/90 text-left text-[11px] font-black uppercase tracking-[0.14em] text-slate-500;
+    @apply text-left text-[11px] font-black uppercase tracking-[0.14em] text-slate-500;
+  }
+
+  .table-head th {
+    @apply bg-slate-50;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    box-shadow: 0 1px 0 0 rgb(226 232 240);
   }
 
   .table-cell {

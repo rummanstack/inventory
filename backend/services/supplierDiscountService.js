@@ -110,23 +110,6 @@ export class SupplierDiscountService {
         businessDate: discountDate,
       });
     }
-
-    const cashDelta = amount - previousAmount;
-    if (this.financeAccountService && cashDelta !== 0) {
-      await this.financeAccountService.recordTransactionInClient(
-        client,
-        {
-          accountType: "CASH",
-          type: cashDelta > 0 ? "DEPOSIT" : "WITHDRAWAL",
-          amount: Math.abs(cashDelta),
-          date: discountDate,
-          note: cashDelta > 0
-            ? `Supplier discount — ${dsrName} (${discountDate})`
-            : `Supplier discount adjusted — ${dsrName} (${discountDate})`,
-        },
-        actor,
-      );
-    }
   }
 
   async removeSupplierDiscount(discountId, actor) {
@@ -156,20 +139,6 @@ export class SupplierDiscountService {
           createdById: actor.id,
           businessDate: String(discount.discount_date).slice(0, 10),
         });
-      }
-
-      if (this.financeAccountService && amount > 0) {
-        await this.financeAccountService.recordTransactionInClient(
-          client,
-          {
-            accountType: "CASH",
-            type: "WITHDRAWAL",
-            amount,
-            date: String(discount.discount_date).slice(0, 10),
-            note: `Supplier discount cleared — ${discount.dsr_name}`,
-          },
-          actor,
-        );
       }
 
       await this.recordActivity(client, actor, {

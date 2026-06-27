@@ -179,7 +179,7 @@ function QuickSaleForm({ onSaved }) {
       return;
     }
 
-    const receiptWindow = window.open('', '_blank', 'width=420,height=760');
+    const receiptWindow = window.open('', '_blank', 'width=840,height=1060');
     if (receiptWindow) {
       receiptWindow.document.open();
       receiptWindow.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${t('retailer.shared.receiptTitle')}</title><style>body{font-family:Arial,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#fff;color:#111827;font-size:14px;}</style></head><body>${t('retailer.shared.preparingReceipt')}</body></html>`);

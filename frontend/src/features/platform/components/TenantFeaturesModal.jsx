@@ -3,7 +3,6 @@ import { Save } from 'lucide-react';
 import { Alert, Modal } from '../../../components/ui.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
-import { TENANT_FEATURE_ROUTES } from '../../../app/tenantFeatures.js';
 import { APP_ROUTES, SIDEBAR_SECTIONS } from '../../../app/routes.js';
 
 export default function TenantFeaturesModal({ tenant, onClose, onSave }) {
@@ -20,41 +19,48 @@ export default function TenantFeaturesModal({ tenant, onClose, onSave }) {
       setError('');
       try {
         const result = await inventoryApi.getTenantFeatures(tenant.id);
-        if (!cancelled) {
-          setSelected(result.features || []);
-        }
+        if (!cancelled) setSelected(result.features || []);
       } catch (err) {
-        if (!cancelled) {
-          setError(err?.message || t('organizations.featuresSaveFailed'));
-        }
+        if (!cancelled) setError(err?.message || t('organizations.featuresSaveFailed'));
       } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
+        if (!cancelled) setLoading(false);
       }
     }
     loadFeatures();
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [tenant.id]);
 
-  const labelKeyByFeature = useMemo(
-    () => Object.fromEntries(TENANT_FEATURE_ROUTES.map((route) => [route.feature, route.labelKey])),
-    [],
-  );
+  // Build { labelKey, icon } per feature directly from APP_ROUTES.
+  // First matching non-developer, non-hidden route per feature wins.
+  const featureMeta = useMemo(() => {
+    const meta = {};
+    for (const route of APP_ROUTES) {
+      if (route.feature && !meta[route.feature] && route.group !== 'developer' && route.group !== 'hidden') {
+        meta[route.feature] = { labelKey: route.labelKey, icon: route.icon };
+      }
+    }
+    return meta;
+  }, []);
 
+  // Mirror the sidebar: same section order (minus developer), same feature order within each section.
+  // Features that appear in multiple sections are shown only on their first occurrence.
   const featureGroups = useMemo(() => {
-    return SIDEBAR_SECTIONS.map((section) => {
-      const sectionFeatures = APP_ROUTES.filter((route) => route.group === section && route.feature).map((route) => route.feature);
-      const features = [...new Set(sectionFeatures)].filter((feature) => labelKeyByFeature[feature]);
+    const seen = new Set();
+    return SIDEBAR_SECTIONS.filter((s) => s !== 'developer').map((section) => {
+      const features = [];
+      for (const route of APP_ROUTES) {
+        if (route.group !== section || !route.feature || !featureMeta[route.feature]) continue;
+        if (seen.has(route.feature)) continue;
+        seen.add(route.feature);
+        features.push(route.feature);
+      }
       return { section, features };
-    }).filter((group) => group.features.length > 0);
-  }, [labelKeyByFeature]);
+    }).filter((g) => g.features.length > 0);
+  }, [featureMeta]);
 
   function toggleFeature(feature) {
-    setSelected((current) =>
-      current.includes(feature) ? current.filter((entry) => entry !== feature) : [...current, feature],
+    setSelected((cur) =>
+      cur.includes(feature) ? cur.filter((f) => f !== feature) : [...cur, feature],
     );
   }
 
@@ -80,9 +86,10 @@ export default function TenantFeaturesModal({ tenant, onClose, onSave }) {
             <div className="h-3 w-64 animate-pulse rounded-full bg-slate-100" />
           </div>
           <div className="grid gap-2 sm:grid-cols-2">
-            {Array.from({ length: 8 }).map((_, index) => (
-              <div key={index} className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2">
+            {Array.from({ length: 10 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2">
                 <div className="h-4 w-4 animate-pulse rounded bg-slate-200" />
+                <div className="h-4 w-4 animate-pulse rounded bg-slate-100" />
                 <div className="h-3.5 flex-1 animate-pulse rounded-full bg-slate-100" />
               </div>
             ))}
@@ -97,25 +104,32 @@ export default function TenantFeaturesModal({ tenant, onClose, onSave }) {
           {error ? <Alert type="error">{error}</Alert> : null}
           <p className="text-sm text-slate-500">{t('organizations.featuresDescription')}</p>
 
-          <div className="max-h-[60vh] space-y-4 overflow-y-auto pr-1">
+          <div className="max-h-[60vh] space-y-5 overflow-y-auto pr-1">
             {featureGroups.map(({ section, features }) => (
               <div key={section}>
-                <p className="mb-2 text-xs font-black uppercase tracking-[0.12em] text-slate-400">{t(`navGroups.${section}`)}</p>
+                <p className="mb-2 text-xs font-black uppercase tracking-[0.12em] text-slate-400">
+                  {t(`navGroups.${section}`)}
+                </p>
                 <div className="grid gap-2 sm:grid-cols-2">
-                  {features.map((feature) => (
-                    <label
-                      key={feature}
-                      className="flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
-                    >
-                      <input
-                        type="checkbox"
-                        className="h-4 w-4 rounded border-slate-300"
-                        checked={selected.includes(feature)}
-                        onChange={() => toggleFeature(feature)}
-                      />
-                      {t(labelKeyByFeature[feature])}
-                    </label>
-                  ))}
+                  {features.map((feature) => {
+                    const meta = featureMeta[feature];
+                    const Icon = meta?.icon;
+                    return (
+                      <label
+                        key={feature}
+                        className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                      >
+                        <input
+                          type="checkbox"
+                          className="h-4 w-4 shrink-0 rounded border-slate-300"
+                          checked={selected.includes(feature)}
+                          onChange={() => toggleFeature(feature)}
+                        />
+                        {Icon ? <Icon size={14} className="shrink-0 text-slate-400" /> : null}
+                        {t(meta?.labelKey || feature)}
+                      </label>
+                    );
+                  })}
                 </div>
               </div>
             ))}

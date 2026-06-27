@@ -5,7 +5,7 @@ import { PERMISSIONS } from "../lib/permissions.js";
 
 export function createRetailCashSessionsRoutes(retailCashSessionController) {
   const router = Router();
-  router.use(requireFeature("retailer-quick-sale"));
+  router.use(requireFeature("retailer-cash-sessions"));
 
   router.get("/current", requirePermission(PERMISSIONS.MANAGE_RETAIL_QUICK_SALE), retailCashSessionController.getCurrentSession);
   router.get("/", requirePermission(PERMISSIONS.MANAGE_RETAIL_QUICK_SALE), retailCashSessionController.listSessions);

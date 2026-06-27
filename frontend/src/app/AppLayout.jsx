@@ -4,6 +4,7 @@ import { HelpCircle } from 'lucide-react';
 import { Alert, ConfirmationDialog, PageLoadingState, ToastViewport } from '../components/ui';
 import { useInventoryApp } from './useInventoryApp.jsx';
 import AppSidebar from './AppSidebar';
+import CommandPalette from './CommandPalette.jsx';
 import MustChangePasswordModal from '../features/auth/pages/MustChangePasswordModal.jsx';
 import { getRouteLabel } from './routes';
 import TopHeader from './TopHeader';
@@ -14,6 +15,7 @@ export default function AppLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     try { return localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === 'true'; }
     catch { return false; }
@@ -27,6 +29,17 @@ export default function AppLayout() {
   useEffect(() => {
     localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(sidebarCollapsed));
   }, [sidebarCollapsed]);
+
+  useEffect(() => {
+    function handleKeyDown(e) {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        setPaletteOpen((v) => !v);
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const { today, user, tenant, tenantOptions, switchTenant, loading, loadError, toasts, dismissToast, logout, t, language, setLanguage, can, hasFeature, confirmation, closeConfirmation, productDirectory } = useInventoryApp();
 
@@ -78,6 +91,7 @@ export default function AppLayout() {
         onConfirm={(reason) => closeConfirmation(true, reason)}
         onCancel={() => closeConfirmation(false)}
       />
+      <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
       {user?.mustChangePassword ? <MustChangePasswordModal /> : null}
       {location.pathname !== '/help-desk' && (
         <button

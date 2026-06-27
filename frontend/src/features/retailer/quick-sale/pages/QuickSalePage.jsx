@@ -240,12 +240,13 @@ function QuickSaleForm({ onSaved }) {
 }
 
 export default function QuickSalePage() {
-  const { t, tenant, pushToast, language } = useInventoryApp();
+  const { t, tenant, pushToast, language, hasFeature } = useInventoryApp();
+  const cashSessionEnabled = hasFeature('retailer-cash-sessions');
   const [formKey, setFormKey] = useState(0);
   const [lastInvoice, setLastInvoice] = useState(null);
   const [session, setSession] = useState(null);
   const [lastClosedSession, setLastClosedSession] = useState(null);
-  const [sessionLoading, setSessionLoading] = useState(true);
+  const [sessionLoading, setSessionLoading] = useState(cashSessionEnabled);
   const [sessionLoaded, setSessionLoaded] = useState(false);
   const [sessionError, setSessionError] = useState('');
   const [savingSession, setSavingSession] = useState(false);
@@ -270,6 +271,7 @@ export default function QuickSalePage() {
   }, [session, sessionLoaded]);
 
   async function loadSession() {
+    if (!cashSessionEnabled) return;
     try {
       setSessionLoading(true);
       setSessionError('');
@@ -403,7 +405,7 @@ export default function QuickSalePage() {
         description={t('retailer.quickSale.description')}
       />
 
-      <div className="surface mt-4 p-5">
+      {cashSessionEnabled && <div className="surface mt-4 p-5">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-2xl">
             <p className="text-[11px] font-black uppercase tracking-[0.24em] text-slate-400">
@@ -512,7 +514,7 @@ export default function QuickSalePage() {
             </div>
           </Alert>
         ) : null}
-      </div>
+      </div>}
 
       {lastInvoice ? (
         <Alert type="success" className="mt-8 md:mt-12">

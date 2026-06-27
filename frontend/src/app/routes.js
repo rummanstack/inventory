@@ -101,7 +101,7 @@ export const APP_ROUTES = [
 
   // 2. Point of Sale
   { id: 'retailer-quick-sale', path: '/retailer/quick-sale', labelKey: 'nav.retailerQuickSale', icon: ShoppingBag, component: QuickSalePage, group: 'pos', permission: 'manage_retail_quick_sale', feature: 'retailer-quick-sale' },
-  { id: 'cash-session-history', path: '/retailer/cash-sessions', labelKey: 'nav.cashSessionHistory', icon: Vault, component: CashSessionsPage, group: 'pos', permission: 'manage_retail_quick_sale', feature: 'retailer-quick-sale' },
+  { id: 'cash-session-history', path: '/retailer/cash-sessions', labelKey: 'nav.cashSessionHistory', icon: Vault, component: CashSessionsPage, group: 'pos', permission: 'manage_retail_quick_sale', feature: 'retailer-cash-sessions' },
   { id: 'quotations', path: '/quotations', labelKey: 'nav.quotations', icon: FileText, component: QuotationsPage, group: 'pos', permission: 'view_quotations', feature: 'quotations' },
   { id: 'retailer-promotions', path: '/retailer/promotions', labelKey: 'nav.retailerPromotions', icon: Tag, component: RetailPromotionsPage, group: 'pos', permission: 'manage_retail_promotions', feature: 'retailer-promotions' },
   { id: 'trade-ins', path: '/trade-ins', labelKey: 'nav.tradeIns', icon: ArrowLeftRight, component: TradeInsPage, group: 'pos', permission: 'view_trade_ins', feature: 'trade-ins' },

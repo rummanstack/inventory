@@ -3,7 +3,7 @@ import { Loader2, Save } from 'lucide-react';
 import { Alert, SectionHeader } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
-import { APP_ROUTES, SIDEBAR_SECTIONS } from '../../../app/routes.js';
+import { APP_ROUTES } from '../../../app/routes.js';
 
 // Maps a permission to the tenant feature that must be enabled before it can
 // be granted — mirrors PERMISSION_REQUIRED_FEATURES in backend/services/permissionService.js.
@@ -32,18 +32,68 @@ const PERMISSION_REQUIRED_FEATURES = {
   manage_quotations: 'quotations',
   view_trade_ins: 'trade-ins',
   manage_trade_ins: 'trade-ins',
+  manage_srs: 'srs',
+  view_employees: 'employees',
+  manage_employees: 'employees',
+  manage_payroll: 'payroll',
 };
 
-// Permissions that gate in-page actions rather than a sidebar route, so they
-// don't show up via APP_ROUTES — assign each to the menu group it belongs to.
-const EXTRA_GROUP_PERMISSIONS = {
-  pos: ['manage_quotations', 'manage_trade_ins', 'manage_retail_sales_invoices', 'manage_retail_sales_returns'],
-  customers: ['manage_retail_customers_write'],
-  inventory: ['manage_products', 'manage_product_serials'],
-  dealer: ['manage_dsrs', 'manage_customers', 'update_issues', 'update_settlements'],
-  warranty: ['manage_warranty_claims', 'manage_repair_jobs'],
-  system: ['permanent_delete'],
-};
+// Curated mapping of permissions → sidebar section, in sidebar order.
+// Each permission appears exactly once. Mirrors the sidebar groups (no developer items).
+const PERMISSION_GROUPS = [
+  { section: 'overview', permissions: ['view_state'] },
+  {
+    section: 'pos',
+    permissions: [
+      'manage_retail_quick_sale',
+      'manage_retail_sales_invoices',
+      'manage_retail_sales_returns',
+      'manage_retail_promotions',
+      'manage_retail_daily_sales_report',
+      'view_quotations',
+      'manage_quotations',
+      'view_trade_ins',
+      'manage_trade_ins',
+    ],
+  },
+  {
+    section: 'customers',
+    permissions: [
+      'manage_retail_customer_due',
+      'manage_retail_due_collection',
+      'manage_retail_customers_write',
+      'view_retail_customer_retention',
+    ],
+  },
+  { section: 'inventory', permissions: ['manage_products', 'view_product_serials', 'manage_product_serials'] },
+  {
+    section: 'purchases',
+    permissions: ['manage_suppliers', 'manage_purchases', 'manage_supplier_payments', 'view_supplier_statement'],
+  },
+  {
+    section: 'dsr',
+    permissions: [
+      'manage_dsrs',
+      'create_issues',
+      'update_issues',
+      'create_settlements',
+      'update_settlements',
+      'manage_dsr_finance',
+    ],
+  },
+  { section: 'shops', permissions: ['manage_customers', 'manage_srs'] },
+  {
+    section: 'warranty',
+    permissions: ['view_warranty_claims', 'manage_warranty_claims', 'view_repair_jobs', 'manage_repair_jobs'],
+  },
+  {
+    section: 'finance',
+    permissions: ['view_finance_dashboard', 'manage_finance_accounts', 'manage_expenses', 'manage_profit_report'],
+  },
+  { section: 'reports', permissions: ['view_activity_logs'] },
+  { section: 'hr', permissions: ['view_employees', 'manage_employees', 'manage_payroll'] },
+  { section: 'system', permissions: ['manage_users', 'manage_org', 'permanent_delete', 'manage_backups'] },
+];
 
 export default function PermissionsPage() {
   const { t, pushToast, hasFeature } = useInventoryApp();
@@ -75,9 +125,7 @@ export default function PermissionsPage() {
     }
 
     load();
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, []);
 
   function togglePermission(role, permission) {
@@ -121,18 +169,34 @@ export default function PermissionsPage() {
     }
   }
 
-  const visiblePermissions = allPermissions.filter((permission) => {
-    const requiredFeature = PERMISSION_REQUIRED_FEATURES[permission];
-    return !requiredFeature || hasFeature(requiredFeature);
-  });
+  // Icon for each permission — first route in APP_ROUTES that uses the permission, in sidebar order.
+  const iconByPermission = useMemo(() => {
+    const map = {};
+    for (const route of APP_ROUTES) {
+      if (route.permission && !map[route.permission] && route.group !== 'developer' && route.group !== 'hidden') {
+        map[route.permission] = route.icon;
+      }
+    }
+    return map;
+  }, []);
 
-  const permissionGroups = useMemo(() => {
-    return SIDEBAR_SECTIONS.map((section) => {
-      const routePermissions = APP_ROUTES.filter((route) => route.group === section && route.permission).map((route) => route.permission);
-      const sectionPermissions = [...new Set([...routePermissions, ...(EXTRA_GROUP_PERMISSIONS[section] || [])])];
-      return { section, permissions: sectionPermissions.filter((permission) => visiblePermissions.includes(permission)) };
-    }).filter((group) => group.permissions.length > 0);
-  }, [visiblePermissions]);
+  const visiblePermissions = useMemo(
+    () =>
+      allPermissions.filter((permission) => {
+        const requiredFeature = PERMISSION_REQUIRED_FEATURES[permission];
+        return !requiredFeature || hasFeature(requiredFeature);
+      }),
+    [allPermissions, hasFeature],
+  );
+
+  const permissionGroups = useMemo(
+    () =>
+      PERMISSION_GROUPS.map(({ section, permissions }) => ({
+        section,
+        permissions: permissions.filter((p) => visiblePermissions.includes(p)),
+      })).filter((g) => g.permissions.length > 0),
+    [visiblePermissions],
+  );
 
   if (loading) {
     return (
@@ -179,17 +243,24 @@ export default function PermissionsPage() {
                 <div key={section}>
                   <p className="mb-2 text-xs font-black uppercase tracking-[0.12em] text-slate-400">{t(`navGroups.${section}`)}</p>
                   <div className="grid gap-2 sm:grid-cols-2">
-                    {permissions.map((permission) => (
-                      <label key={permission} className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700">
-                        <input
-                          type="checkbox"
-                          className="h-4 w-4 rounded border-slate-300"
-                          checked={entry.permissions.includes(permission)}
-                          onChange={() => togglePermission(entry.role, permission)}
-                        />
-                        {t(`permissions.items.${permission}`)}
-                      </label>
-                    ))}
+                    {permissions.map((permission) => {
+                      const Icon = iconByPermission[permission];
+                      return (
+                        <label
+                          key={permission}
+                          className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                        >
+                          <input
+                            type="checkbox"
+                            className="h-4 w-4 shrink-0 rounded border-slate-300"
+                            checked={entry.permissions.includes(permission)}
+                            onChange={() => togglePermission(entry.role, permission)}
+                          />
+                          {Icon ? <Icon size={14} className="shrink-0 text-slate-400" /> : null}
+                          {t(`permissions.items.${permission}`)}
+                        </label>
+                      );
+                    })}
                   </div>
                 </div>
               ))}

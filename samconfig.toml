@@ -1,0 +1,15 @@
+[default.deploy.parameters]
+stack_name   = "stockledger-api"
+region       = "ap-south-1"          # Mumbai — closest to Bangladesh
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM"
+resolve_s3   = true
+
+# These will be prompted on first deploy if left blank.
+# You can hardcode them here or pass via --parameter-overrides on the CLI.
+# DO NOT commit real secrets — use AWS Secrets Manager or SSM Parameter Store in production.
+parameter_overrides = [
+  "DatabaseUrl=postgresql://user:pass@host:5432/dbname",
+  "SessionCookieName=arinda_session",
+  "SessionDays=7",
+]

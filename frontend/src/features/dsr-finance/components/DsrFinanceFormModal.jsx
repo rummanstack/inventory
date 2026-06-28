@@ -8,12 +8,6 @@ import { todayISO } from '../../../utils/calculations.js';
 import { useFormState } from '../../../hooks/useFormState';
 
 const MODULE_CONFIG = {
-  cash: {
-    titleAddKey: 'dsrFinance.addCashTitle',
-    titleEditKey: 'dsrFinance.editCashTitle',
-    descriptionKey: 'dsrFinance.cashModalDescription',
-    saveLabelKey: 'dsrFinance.saveCash',
-  },
   advance: {
     titleAddKey: 'dsrFinance.addAdvanceTitle',
     titleEditKey: 'dsrFinance.editAdvanceTitle',
@@ -117,7 +111,7 @@ export default function DsrFinanceFormModal({ kind, record, dsrs, defaultDate, d
             </div>
           ) : null}
         </div>
-        {isEdit ? <AuditHistory entityType={kind === 'cash' ? 'dsr_cash_receipt' : 'dsr_advance'} entityId={record.id} /> : null}
+        {isEdit ? <AuditHistory entityType="dsr_advance" entityId={record.id} /> : null}
         <div className="flex justify-end gap-2 pt-2">
           <button type="button" className="btn-secondary" onClick={onClose} disabled={saving}>
             {t('common.cancel')}

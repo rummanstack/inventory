@@ -23,7 +23,6 @@ const ENTITY_TYPE_MODULES = {
   expense: "expenses",
   issue: "morning-issue",
   settlement: "settlements",
-  dsr_cash_receipt: "dsr-finance",
   dsr_advance: "dsr-finance",
   due_ledger: "due-ledger",
   user: "users",

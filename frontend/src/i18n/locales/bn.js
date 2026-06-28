@@ -63,7 +63,7 @@
       financeDashboard: 'ফাইন্যান্স ড্যাশবোর্ড',
       financeAccounts: 'হিসাব',
       expenses: 'খরচ',
-      dsrFinance: 'ডিএসআর ফাইন্যান্স',
+      dsrFinance: 'ডিউ সেটেলমেন্ট',
       profit: 'মুনাফা / ক্ষতি',
       dsrDueStatement: 'ডিএসআর বকেয়া বিবরণী',
       activityLogs: 'কার্যকলাপ লগ',
@@ -996,8 +996,8 @@
       },
     },
     dsrFinance: {
-      title: 'ডিএসআর ফাইন্যান্স',
-      description: 'সেটেলমেন্ট থেকে আলাদা করে ডিএসআরদের অগ্রিম ট্র্যাক করুন।',
+      title: 'ডিউ সেটেলমেন্ট',
+      description: 'ডিএসআর বকেয়া বিবরণী দেখুন এবং সেটেলমেন্ট করুন।',
       advanceTab: 'অগ্রিম',
       addAdvance: 'অগ্রিম যোগ',
       addAdvanceTitle: 'অগ্রিম যোগ',
@@ -2402,7 +2402,7 @@
       morningIssue: 'সকালের ইস্যু',
       eveningSettlement: 'সন্ধ্যার সেটেলমেন্ট',
       expenses: 'খরচ',
-      dsrFinance: 'ডিএসআর ফাইন্যান্স',
+      dsrFinance: 'ডিউ সেটেলমেন্ট',
       reports: 'দৈনিক রিপোর্ট',
       activityLogs: 'কার্যকলাপ লগ',
 

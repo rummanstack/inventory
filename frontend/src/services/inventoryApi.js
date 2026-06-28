@@ -46,6 +46,7 @@ import { employeesApi } from './api/employeesApi.js';
 import { salaryStructureApi } from './api/salaryStructureApi.js';
 import { payrollApi } from './api/payrollApi.js';
 import { stockMovementsApi } from './api/stockMovementsApi.js';
+import { contactApi } from './api/contactApi.js';
 
 export const inventoryApi = {
   ...authApi,
@@ -96,4 +97,5 @@ export const inventoryApi = {
   ...salaryStructureApi,
   ...payrollApi,
   ...stockMovementsApi,
+  ...contactApi,
 };

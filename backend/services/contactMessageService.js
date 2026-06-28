@@ -1,6 +1,6 @@
 import { assert } from "../lib/errors.js";
 import { createId } from "../lib/ids.js";
-import { insertContactMessage, mapContactMessage } from "../repositories/contactMessageRepository.js";
+import { insertContactMessage, listContactMessages, mapContactMessage } from "../repositories/contactMessageRepository.js";
 
 export class ContactMessageService {
   constructor(databaseManager) {
@@ -30,5 +30,12 @@ export class ContactMessageService {
     } finally {
       client.release();
     }
+  }
+
+  async listContactMessages() {
+    return this.databaseManager.withClient(async (client) => {
+      const result = await listContactMessages(client);
+      return result.rows.map(mapContactMessage);
+    });
   }
 }

@@ -76,6 +76,7 @@
       users: 'ইউজার ম্যানেজমেন্ট',
       platform: 'প্রতিষ্ঠানসমূহ',
       visitorChats: 'ভিজিটর চ্যাট',
+      contactMessages: 'যোগাযোগ বার্তা',
       reports: 'দৈনিক রিপোর্ট',
       history: 'হিস্ট্রি',
       profile: 'আমার প্রোফাইল',

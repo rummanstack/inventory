@@ -9,6 +9,7 @@ import {
   FileText,
   HandCoins,
   KeyRound,
+  Inbox,
   Receipt,
   RotateCcw,
   Settings,
@@ -54,6 +55,7 @@ import PermissionsPage from '../features/permissions/pages/PermissionsPage';
 import UsersPage from '../features/users/pages/UsersPage';
 import PlatformAdminPage from '../features/platform/pages/PlatformAdminPage';
 import VisitorChatsPage from '../features/platform/pages/VisitorChatsPage';
+import ContactMessagesPage from '../features/platform/pages/ContactMessagesPage';
 import ProfilePage from '../features/profile/pages/ProfilePage';
 import SecurityPage from '../features/security/pages/SecurityPage';
 import SystemHealthPage from '../features/system/pages/SystemHealthPage';
@@ -197,6 +199,7 @@ export const APP_ROUTES = [
   { id: 'error-logs', path: '/error-logs', labelKey: 'nav.errorLogs', icon: Bug, component: ErrorLogsPage, group: 'developer', role: 'system_developer', feature: 'error-logs' },
   { id: 'database-backup', path: '/database-backup', labelKey: 'nav.databaseBackup', icon: Database, component: DatabaseBackupPage, group: 'developer', permission: 'manage_backups', feature: 'database-backup' },
   { id: 'visitor-chats', path: '/platform/visitor-chats', labelKey: 'nav.visitorChats', icon: MessageCircle, component: VisitorChatsPage, group: 'developer', role: 'system_developer', feature: 'visitor-chats' },
+  { id: 'contact-messages', path: '/platform/contact-messages', labelKey: 'nav.contactMessages', icon: Inbox, component: ContactMessagesPage, group: 'developer', role: 'system_developer', feature: 'contact-messages' },
 ];
 
 export const SIDEBAR_SECTIONS = ['overview', 'pos', 'customers', 'inventory', 'purchases', 'dsr', 'shops', 'warranty', 'finance', 'reports', 'hr', 'system', 'developer'];

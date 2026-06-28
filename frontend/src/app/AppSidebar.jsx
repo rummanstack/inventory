@@ -105,7 +105,7 @@ export default function AppSidebar({ mobileOpen, setMobileOpen, user, tenant, la
           onClick={() => { setMobileOpen(false); onClick?.(); }}
           className={({ isActive }) =>
             cx(
-              'group/link relative flex w-full items-center gap-3 rounded-xl py-2.5 pr-3 text-sm font-semibold transition',
+              'group/link relative flex w-full items-center gap-3 rounded-xl py-2.5 pr-3 text-sm font-bold transition',
               collapsed && 'lg:justify-center lg:gap-0 lg:px-0 lg:pr-0',
               isActive
                 ? collapsed

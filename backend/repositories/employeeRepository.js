@@ -12,6 +12,8 @@ export function mapEmployee(row) {
     joinDate: row.join_date ? String(row.join_date).slice(0, 10) : null,
     status: row.status,
     note: row.note,
+    salaryAmount: Number(row.salary_amount || 0),
+    payType: row.pay_type || 'MONTHLY',
     createdBy: row.created_by,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -23,12 +25,12 @@ export async function insertEmployee(client, emp) {
   await client.query(
     `INSERT INTO employees
       (id, tenant_id, employee_number, name, phone, email, address, department, designation,
-       join_date, status, note, created_by, created_at, updated_at)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,NOW(),NOW())`,
+       join_date, status, note, salary_amount, pay_type, created_by, created_at, updated_at)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,NOW(),NOW())`,
     [
       emp.id, emp.tenantId, emp.employeeNumber, emp.name, emp.phone, emp.email,
       emp.address, emp.department, emp.designation, emp.joinDate, emp.status,
-      emp.note, emp.createdBy,
+      emp.note, emp.salaryAmount ?? 0, emp.payType ?? 'MONTHLY', emp.createdBy,
     ],
   );
 }
@@ -37,11 +39,12 @@ export async function updateEmployee(client, emp) {
   await client.query(
     `UPDATE employees SET
       name=$3, phone=$4, email=$5, address=$6, department=$7, designation=$8,
-      join_date=$9, status=$10, note=$11, updated_at=NOW()
+      join_date=$9, status=$10, note=$11, salary_amount=$12, pay_type=$13, updated_at=NOW()
      WHERE id=$1 AND tenant_id=$2 AND deleted_at IS NULL`,
     [
       emp.id, emp.tenantId, emp.name, emp.phone, emp.email, emp.address,
       emp.department, emp.designation, emp.joinDate, emp.status, emp.note,
+      emp.salaryAmount ?? 0, emp.payType ?? 'MONTHLY',
     ],
   );
 }

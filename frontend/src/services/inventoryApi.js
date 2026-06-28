@@ -45,6 +45,7 @@ import { dsrTargetsApi } from './api/dsrTargetsApi.js';
 import { employeesApi } from './api/employeesApi.js';
 import { salaryStructureApi } from './api/salaryStructureApi.js';
 import { payrollApi } from './api/payrollApi.js';
+import { salaryPaymentsApi } from './api/salaryPaymentsApi.js';
 import { stockMovementsApi } from './api/stockMovementsApi.js';
 import { contactApi } from './api/contactApi.js';
 
@@ -96,6 +97,7 @@ export const inventoryApi = {
   ...employeesApi,
   ...salaryStructureApi,
   ...payrollApi,
+  ...salaryPaymentsApi,
   ...stockMovementsApi,
   ...contactApi,
 };

@@ -58,6 +58,7 @@ export function createApp({
   employeeService,
   salaryStructureService,
   payrollService,
+  salaryPaymentService,
 }) {
   const app = express();
 
@@ -119,6 +120,7 @@ export function createApp({
       employeeService,
       salaryStructureService,
       payrollService,
+      salaryPaymentService,
     }),
   );
 

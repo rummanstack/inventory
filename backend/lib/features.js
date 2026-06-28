@@ -56,6 +56,7 @@ export const TENANT_FEATURES = [
   "sr-due-ledger",
   "retailer-profit-report",
   "employees",
+  "salary-payments",
   "salary-structure",
   "payroll",
   "payslips",

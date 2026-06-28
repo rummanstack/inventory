@@ -52,6 +52,7 @@ import { EmployeeService } from './services/employeeService.js';
 import { DsrTargetService } from './services/dsrTargetService.js';
 import { SalaryStructureService } from './services/salaryStructureService.js';
 import { PayrollService } from './services/payrollService.js';
+import { SalaryPaymentService } from './services/salaryPaymentService.js';
 import { createApp } from './app.js';
 
 dotenv.config({ path: `${backendRoot}/.env` });
@@ -115,6 +116,7 @@ export async function createBackendApp() {
   const employeeService = new EmployeeService(databaseManager, { auditService });
   const salaryStructureService = new SalaryStructureService(databaseManager, { auditService });
   const payrollService = new PayrollService(databaseManager, { auditService });
+  const salaryPaymentService = new SalaryPaymentService(databaseManager, { auditService, financeAccountService });
 
   const app = createApp({
     authService,
@@ -169,6 +171,7 @@ export async function createBackendApp() {
     employeeService,
     salaryStructureService,
     payrollService,
+    salaryPaymentService,
   });
 
   return { app, databaseManager, env };

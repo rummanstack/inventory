@@ -15,6 +15,7 @@ import {
 } from "../repositories/employeeRepository.js";
 
 const VALID_STATUSES = ["ACTIVE", "INACTIVE"];
+const VALID_PAY_TYPES = ["MONTHLY", "DAILY"];
 
 function normalizeEmployee(input) {
   return {
@@ -29,6 +30,10 @@ function normalizeEmployee(input) {
       ? String(input.status).toUpperCase()
       : "ACTIVE",
     note: String(input.note || "").trim(),
+    salaryAmount: Math.max(0, Number(input.salaryAmount) || 0),
+    payType: VALID_PAY_TYPES.includes(String(input.payType || "").toUpperCase())
+      ? String(input.payType).toUpperCase()
+      : "MONTHLY",
   };
 }
 

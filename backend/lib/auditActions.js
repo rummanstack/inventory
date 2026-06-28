@@ -161,3 +161,8 @@ export const PAYROLL_ACTIONS = {
   PAY: "payroll.pay",
   DELETE: "payroll.delete",
 };
+
+export const SALARY_PAYMENT_ACTIONS = {
+  CREATE: "salary_payment.create",
+  DELETE: "salary_payment.delete",
+};

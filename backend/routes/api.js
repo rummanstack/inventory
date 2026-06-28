@@ -106,9 +106,11 @@ import { createDsrTargetsRoutes } from "./dsrTargets.routes.js";
 import { EmployeeController } from "../controllers/EmployeeController.js";
 import { SalaryStructureController } from "../controllers/SalaryStructureController.js";
 import { PayrollController } from "../controllers/PayrollController.js";
+import { SalaryPaymentController } from "../controllers/SalaryPaymentController.js";
 import { createEmployeesRoutes } from "./employees.routes.js";
 import { createSalaryStructureRoutes } from "./salaryStructure.routes.js";
 import { createPayrollRoutes } from "./payroll.routes.js";
+import { createSalaryPaymentsRoutes } from "./salaryPayments.routes.js";
 
 export function createApiRouter({
   authService,
@@ -163,6 +165,7 @@ export function createApiRouter({
   employeeService,
   salaryStructureService,
   payrollService,
+  salaryPaymentService,
 }) {
   const router = Router();
   const authController = new AuthController(authService, env, tenantService);
@@ -295,6 +298,8 @@ export function createApiRouter({
   router.use("/employees", createEmployeesRoutes(employeeController));
   router.use("/salary-structure", createSalaryStructureRoutes(salaryStructureController));
   router.use("/payroll", createPayrollRoutes(payrollController));
+  const salaryPaymentController = new SalaryPaymentController(salaryPaymentService);
+  router.use("/salary-payments", createSalaryPaymentsRoutes(salaryPaymentController));
 
   return router;
 }

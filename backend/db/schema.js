@@ -1710,4 +1710,31 @@ export async function createSchema(pool) {
     WHERE role IN ('admin','manager','super_admin') AND permission = 'view_state'
     ON CONFLICT (role, tenant_id, permission) DO NOTHING;
   `);
+
+  // ── Trade-in conversion tracking ──────────────────────────────────────────
+  await pool.query(`
+    ALTER TABLE trade_ins ADD COLUMN IF NOT EXISTS converted_invoice_id TEXT REFERENCES sales_invoices(id);
+  `);
+
+  // ── Simple Salary Payments ─────────────────────────────────────────────────
+  await pool.query(`
+    ALTER TABLE employees ADD COLUMN IF NOT EXISTS salary_amount NUMERIC NOT NULL DEFAULT 0;
+    ALTER TABLE employees ADD COLUMN IF NOT EXISTS pay_type TEXT NOT NULL DEFAULT 'MONTHLY';
+
+    CREATE TABLE IF NOT EXISTS salary_payments (
+      id              TEXT PRIMARY KEY,
+      tenant_id       TEXT NOT NULL REFERENCES tenants(id),
+      employee_id     TEXT NOT NULL REFERENCES employees(id) ON DELETE RESTRICT,
+      employee_name   TEXT NOT NULL DEFAULT '',
+      payment_date    DATE NOT NULL DEFAULT CURRENT_DATE,
+      payment_month   TEXT NOT NULL,
+      amount          NUMERIC NOT NULL DEFAULT 0,
+      payment_method  TEXT NOT NULL DEFAULT 'CASH',
+      note            TEXT NOT NULL DEFAULT '',
+      created_by      TEXT REFERENCES users(id) ON DELETE SET NULL,
+      created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+    CREATE INDEX IF NOT EXISTS idx_salary_payments_tenant_month ON salary_payments(tenant_id, payment_month DESC);
+    CREATE INDEX IF NOT EXISTS idx_salary_payments_employee ON salary_payments(employee_id);
+  `);
 }

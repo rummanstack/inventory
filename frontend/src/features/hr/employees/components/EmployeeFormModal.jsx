@@ -16,6 +16,8 @@ export default function EmployeeFormModal({ employee, onClose, onSave }) {
     joinDate: employee?.joinDate || new Date().toISOString().slice(0, 10),
     status: employee?.status || 'ACTIVE',
     note: employee?.note || '',
+    salaryAmount: employee?.salaryAmount ?? 0,
+    payType: employee?.payType || 'MONTHLY',
   });
 
   async function submitForm(e) {
@@ -35,6 +37,8 @@ export default function EmployeeFormModal({ employee, onClose, onSave }) {
       joinDate: form.joinDate,
       status: form.status,
       note: form.note.trim(),
+      salaryAmount: Number(form.salaryAmount) || 0,
+      payType: form.payType,
     });
     setSaving(false);
     if (result?.error) setError(result.error);
@@ -79,6 +83,17 @@ export default function EmployeeFormModal({ employee, onClose, onSave }) {
             <select className="input" value={form.status} onChange={(e) => updateField('status', e.target.value)}>
               <option value="ACTIVE">{t('employees.active')}</option>
               <option value="INACTIVE">{t('employees.inactive')}</option>
+            </select>
+          </div>
+          <div>
+            <label className="label">{t('employees.salaryAmount')}</label>
+            <input className="input" type="number" min="0" step="0.01" value={form.salaryAmount} onChange={(e) => updateField('salaryAmount', e.target.value)} placeholder="0" />
+          </div>
+          <div>
+            <label className="label">{t('employees.payType')}</label>
+            <select className="input" value={form.payType} onChange={(e) => updateField('payType', e.target.value)}>
+              <option value="MONTHLY">{t('employees.payTypeMonthly')}</option>
+              <option value="DAILY">{t('employees.payTypeDaily')}</option>
             </select>
           </div>
           <div className="sm:col-span-2">

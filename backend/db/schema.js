@@ -1737,4 +1737,39 @@ export async function createSchema(pool) {
     CREATE INDEX IF NOT EXISTS idx_salary_payments_tenant_month ON salary_payments(tenant_id, payment_month DESC);
     CREATE INDEX IF NOT EXISTS idx_salary_payments_employee ON salary_payments(employee_id);
   `);
+
+  // ── NOT NULL enforcement for tables created after the original enforcement block ──
+  // retail_cash_sessions, help_desk_tickets, help_desk_ticket_notes, and
+  // retail_loyalty_ledger were added with nullable tenant_id and were not covered
+  // by the earlier backfill+enforce block. Backfill any NULL rows, then lock down.
+  await pool.query(`
+    UPDATE retail_cash_sessions
+      SET tenant_id = (SELECT id FROM tenants ORDER BY created_at ASC LIMIT 1)
+      WHERE tenant_id IS NULL;
+
+    UPDATE help_desk_tickets
+      SET tenant_id = (SELECT id FROM tenants ORDER BY created_at ASC LIMIT 1)
+      WHERE tenant_id IS NULL;
+
+    UPDATE help_desk_ticket_notes hdn
+      SET tenant_id = hdt.tenant_id
+      FROM help_desk_tickets hdt
+      WHERE hdt.id = hdn.ticket_id AND hdn.tenant_id IS NULL AND hdt.tenant_id IS NOT NULL;
+    UPDATE help_desk_ticket_notes
+      SET tenant_id = (SELECT id FROM tenants ORDER BY created_at ASC LIMIT 1)
+      WHERE tenant_id IS NULL;
+
+    UPDATE retail_loyalty_ledger rll
+      SET tenant_id = rc.tenant_id
+      FROM retail_customers rc
+      WHERE rc.id = rll.customer_id AND rll.tenant_id IS NULL AND rc.tenant_id IS NOT NULL;
+    UPDATE retail_loyalty_ledger
+      SET tenant_id = (SELECT id FROM tenants ORDER BY created_at ASC LIMIT 1)
+      WHERE tenant_id IS NULL;
+
+    ALTER TABLE retail_cash_sessions  ALTER COLUMN tenant_id SET NOT NULL;
+    ALTER TABLE help_desk_tickets      ALTER COLUMN tenant_id SET NOT NULL;
+    ALTER TABLE help_desk_ticket_notes ALTER COLUMN tenant_id SET NOT NULL;
+    ALTER TABLE retail_loyalty_ledger  ALTER COLUMN tenant_id SET NOT NULL;
+  `);
 }

@@ -35,4 +35,12 @@ export class RetailCashSessionController {
       next(error);
     }
   };
+
+  cashSessionReport = async (req, res, next) => {
+    try {
+      res.json(await this.retailCashSessionService.getCashSessionReport(req.query, req.currentUser));
+    } catch (error) {
+      next(error);
+    }
+  };
 }

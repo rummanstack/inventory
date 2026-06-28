@@ -7,6 +7,7 @@ import {
   countRetailCashSessions,
   findActiveRetailCashSession,
   findRetailCashSessionById,
+  getCashSessionReport,
   getRetailCashSessionSalesSummary,
   insertRetailCashSession,
   listRetailCashSessionsPage,
@@ -161,6 +162,15 @@ export class RetailCashSessionService {
         listRetailCashSessionsPage(client, { ...filters, limit, offset }),
       ]);
       return buildPageResult({ items, total, page, pageSize });
+    });
+  }
+
+  async getCashSessionReport(query = {}, actor) {
+    const dateFrom = String(query.dateFrom || "").trim() || undefined;
+    const dateTo = String(query.dateTo || "").trim() || undefined;
+    return this.databaseManager.withClient(async (client) => {
+      const rows = await getCashSessionReport(client, { tenantId: actor.tenantId, dateFrom, dateTo });
+      return { rows, dateFrom: dateFrom || null, dateTo: dateTo || null };
     });
   }
 }

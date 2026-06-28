@@ -28,4 +28,12 @@ export class SalesReturnController {
       next(error);
     }
   };
+
+  salesReturnReport = async (req, res, next) => {
+    try {
+      res.json(await this.salesReturnService.getSalesReturnReport(req.query, req.currentUser));
+    } catch (error) {
+      next(error);
+    }
+  };
 }

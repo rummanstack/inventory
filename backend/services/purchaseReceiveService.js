@@ -18,6 +18,7 @@ import {
   countPurchaseReceipts,
   countTrashedPurchaseReceipts,
   deletePurchaseReceiptItemsByIds,
+  getPurchaseReport,
   findPurchaseReceiptById,
   findPurchaseReceiptForUpdate,
   getPurchaseReceiptItems,
@@ -921,6 +922,16 @@ export class PurchaseReceiveService {
       });
 
       return { ok: true };
+    });
+  }
+
+  async getPurchaseReport(query = {}, actor) {
+    const dateFrom = String(query.dateFrom || "").trim() || undefined;
+    const dateTo = String(query.dateTo || "").trim() || undefined;
+    const supplierId = String(query.supplierId || "").trim() || undefined;
+    return this.databaseManager.withClient(async (client) => {
+      const rows = await getPurchaseReport(client, { tenantId: actor.tenantId, dateFrom, dateTo, supplierId });
+      return { rows, dateFrom: dateFrom || null, dateTo: dateTo || null };
     });
   }
 

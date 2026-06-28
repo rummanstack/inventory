@@ -54,6 +54,14 @@ export class PurchaseReceiveController {
     }
   };
 
+  purchaseReport = async (req, res, next) => {
+    try {
+      res.json(await this.purchaseReceiveService.getPurchaseReport(req.query, req.currentUser));
+    } catch (error) {
+      next(error);
+    }
+  };
+
   restore = async (req, res, next) => {
     try {
       res.json(await this.purchaseReceiveService.restorePurchaseReceipt(req.params.id, req.currentUser));

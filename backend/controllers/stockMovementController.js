@@ -10,4 +10,20 @@ export class StockMovementController {
       next(error);
     }
   };
+
+  stockMovementReport = async (req, res, next) => {
+    try {
+      res.json(await this.stockMovementService.getStockMovementReport(req.query, req.currentUser));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  damagedStockReport = async (req, res, next) => {
+    try {
+      res.json(await this.stockMovementService.getDamagedStockReport(req.query, req.currentUser));
+    } catch (error) {
+      next(error);
+    }
+  };
 }

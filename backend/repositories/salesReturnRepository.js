@@ -164,6 +164,30 @@ export async function sumReturnedQuantitiesByInvoiceItem(client, salesInvoiceIte
   return new Map(result.rows.map((row) => [row.sales_invoice_item_id, Number(row.returned_quantity || 0)]));
 }
 
+export async function getSalesReturnReport(client, { tenantId, dateFrom, dateTo }) {
+  const params = [tenantId];
+  const conditions = ["sr.tenant_id = $1", "sr.deleted_at IS NULL"];
+  if (dateFrom) { params.push(dateFrom); conditions.push(`sr.return_date >= $${params.length}::date`); }
+  if (dateTo) { params.push(dateTo); conditions.push(`sr.return_date <= $${params.length}::date`); }
+  const result = await client.query(
+    `SELECT sr.return_date AS date,
+            COUNT(*)::INTEGER AS return_count,
+            COALESCE(SUM(sr.total_amount), 0)::NUMERIC AS total_amount,
+            COALESCE(SUM(sr.total_profit_adjustment), 0)::NUMERIC AS profit_adjustment
+     FROM sales_returns sr
+     WHERE ${conditions.join(" AND ")}
+     GROUP BY sr.return_date
+     ORDER BY sr.return_date DESC`,
+    params,
+  );
+  return result.rows.map((r) => ({
+    date: r.date,
+    returnCount: Number(r.return_count),
+    totalAmount: Number(r.total_amount),
+    profitAdjustment: Number(r.profit_adjustment),
+  }));
+}
+
 export async function getProfitAdjustmentsByDate(client, { tenantId, dateFrom, dateTo }) {
   const params = [tenantId];
   const conditions = ["sr.tenant_id = $1", "sr.deleted_at IS NULL"];

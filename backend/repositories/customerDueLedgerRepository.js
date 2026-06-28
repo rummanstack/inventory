@@ -199,4 +199,23 @@ export async function sumLatestCustomerDueBalances(client, tenantId) {
   return Number(result.rows[0].total || 0);
 }
 
+export async function getCustomerDueReport(client, tenantId) {
+  const result = await client.query(
+    `SELECT rc.id AS customer_id,
+            rc.name AS customer_name,
+            rc.phone,
+            rc.current_due
+     FROM retail_customers rc
+     WHERE rc.tenant_id = $1 AND rc.deleted_at IS NULL AND rc.current_due > 0
+     ORDER BY rc.current_due DESC`,
+    [tenantId],
+  );
+  return result.rows.map((r) => ({
+    customerId: r.customer_id,
+    customerName: r.customer_name,
+    phone: r.phone || '',
+    currentDue: Number(r.current_due || 0),
+  }));
+}
+
 export { mapCustomerDueLedgerEntry };

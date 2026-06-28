@@ -13,6 +13,7 @@ import { findSalesInvoiceById, mapSalesInvoice } from "../repositories/salesInvo
 import {
   countSalesReturns,
   findSalesReturnById,
+  getSalesReturnReport,
   insertSalesReturn,
   insertSalesReturnItem,
   listSalesReturnsPage,
@@ -406,6 +407,15 @@ export class SalesReturnService {
 
       const fullResult = await findSalesReturnById(client, base.id, actor.tenantId);
       return mapSalesReturn(fullResult.rows[0]);
+    });
+  }
+
+  async getSalesReturnReport(query = {}, actor) {
+    const dateFrom = String(query.dateFrom || "").trim() || undefined;
+    const dateTo = String(query.dateTo || "").trim() || undefined;
+    return this.databaseManager.withClient(async (client) => {
+      const rows = await getSalesReturnReport(client, { tenantId: actor.tenantId, dateFrom, dateTo });
+      return { rows, dateFrom: dateFrom || null, dateTo: dateTo || null };
     });
   }
 }

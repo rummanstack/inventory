@@ -12,4 +12,8 @@ export const customerDueLedgerApi = {
   getCustomerDueBalance(customerId) {
     return apiRequest(`/customer-due-ledger/balance${buildQueryString({ customerId })}`);
   },
+
+  getCustomerDueReport() {
+    return apiRequest(`/customer-due-ledger/due-report`);
+  },
 };

@@ -1,11 +1,13 @@
 import { Router } from "express";
 import { requirePermission } from "../middleware/requireRole.js";
+import { requireFeature } from "../middleware/requireFeature.js";
 import { PERMISSIONS } from "../lib/permissions.js";
 
 export function createSupplierPaymentsRoutes(supplierPaymentController) {
   const router = Router();
 
   router.get("/trash", requirePermission(PERMISSIONS.MANAGE_SUPPLIER_PAYMENTS), supplierPaymentController.listTrash);
+  router.get("/reports", requireFeature("supplier-payment-report"), requirePermission(PERMISSIONS.MANAGE_SUPPLIER_PAYMENTS), supplierPaymentController.supplierPaymentReport);
   router.get("/", requirePermission(PERMISSIONS.VIEW_STATE), supplierPaymentController.list);
   router.get("/:id", requirePermission(PERMISSIONS.VIEW_STATE), supplierPaymentController.get);
   router.post("/", requirePermission(PERMISSIONS.MANAGE_SUPPLIER_PAYMENTS), supplierPaymentController.create);

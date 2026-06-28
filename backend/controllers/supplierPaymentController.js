@@ -61,4 +61,12 @@ export class SupplierPaymentController {
       next(error);
     }
   };
+
+  supplierPaymentReport = async (req, res, next) => {
+    try {
+      res.json(await this.supplierPaymentService.getSupplierPaymentReport(req.query, req.currentUser));
+    } catch (error) {
+      next(error);
+    }
+  };
 }

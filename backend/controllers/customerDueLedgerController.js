@@ -26,4 +26,12 @@ export class CustomerDueLedgerController {
       next(error);
     }
   };
+
+  customerDueReport = async (req, res, next) => {
+    try {
+      res.json(await this.customerDueLedgerService.getCustomerDueReport(req.currentUser));
+    } catch (error) {
+      next(error);
+    }
+  };
 }

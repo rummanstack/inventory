@@ -5,7 +5,7 @@ import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../services/printService.js';
 import { inventoryApi } from '../../../services/inventoryApi.js';
-import { formatCurrency, formatDate, formatDateTime, reverseEntries } from '../../../utils/calculations.js';
+import { formatCurrency, formatDate, formatDateTime } from '../../../utils/calculations.js';
 import { useSrDueStatementViewModel } from '../viewmodels/useSrDueStatementViewModel.js';
 
 const PRINT_ID = 'sr-due-statement-print';
@@ -86,7 +86,7 @@ function CollectModal({ balance, srName, onClose, onSave }) {
 export default function SrDueLedgerPage() {
   const { srDirectory, language, can } = useInventoryApp();
   const vm = useSrDueStatementViewModel({ srs: srDirectory });
-  const entries = reverseEntries(vm.statement?.entries);
+  const entries = vm.statement?.entries || [];
   const [showCollect, setShowCollect] = useState(false);
 
   const selectedSr = srDirectory.find((s) => s.id === vm.srId);

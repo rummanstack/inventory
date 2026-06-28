@@ -37,7 +37,7 @@ export default function MorningIssuePage() {
             <DatePickerField value={vm.date} onChange={vm.setDate} max={new Date().toISOString().slice(0, 10)} />
           </div>
           <div>
-            <label className="label">{t('dsr.title')}</label>
+            <label className="label">{t('common.dsr')}</label>
             <select className="input" value={vm.dsrId} onChange={(event) => vm.setDsrId(event.target.value)}>
               {vm.activeDsrs.map((dsr) => (
                 <option key={dsr.id} value={dsr.id}>
@@ -46,17 +46,17 @@ export default function MorningIssuePage() {
               ))}
             </select>
           </div>
-          <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
-            <p className="text-xs font-bold uppercase text-slate-500">{t('morningIssue.lines')}</p>
-            <p className="mt-1 text-xl font-black text-slate-950">{formatNumber(vm.selectedRows.length)}</p>
+          <div>
+            <label className="label">{t('morningIssue.lines')}</label>
+            <input className="input" disabled readOnly value={formatNumber(vm.selectedRows.length)} />
           </div>
-          <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
-            <p className="text-xs font-bold uppercase text-slate-500">{t('morningIssue.totalQty')}</p>
-            <p className="mt-1 text-xl font-black text-slate-950">{formatNumber(vm.totalIssuedPieces)} pcs</p>
+          <div>
+            <label className="label">{t('morningIssue.totalQty')}</label>
+            <input className="input" disabled readOnly value={`${formatNumber(vm.totalIssuedPieces)} pcs`} />
           </div>
-          <div className="rounded-lg border border-[var(--secondary-soft)] bg-[var(--secondary-soft)] px-4 py-3">
-            <p className="text-xs font-bold uppercase text-[var(--secondary-strong)]">{vm.existingIssue ? t('morningIssue.updatedValue') : t('morningIssue.issueValue')}</p>
-            <p className="mt-1 text-xl font-black text-[var(--secondary-strong)]">{formatCurrency(vm.totalIssueValue)}</p>
+          <div>
+            <label className="label">{vm.existingIssue ? t('morningIssue.updatedValue') : t('morningIssue.issueValue')}</label>
+            <input className="input" disabled readOnly value={formatCurrency(vm.totalIssueValue)} />
           </div>
         </div>
         {vm.message ? (

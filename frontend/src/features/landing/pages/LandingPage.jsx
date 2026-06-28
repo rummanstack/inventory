@@ -8,6 +8,7 @@ import FeatureGridSection from '../components/FeatureGridSection.jsx';
 import SolutionsSection from '../components/SolutionsSection.jsx';
 import WorkflowSection from '../components/WorkflowSection.jsx';
 import ImageShowcaseSection from '../components/ImageShowcaseSection.jsx';
+import TestimonialsSection from '../components/TestimonialsSection.jsx';
 import CtaSection from '../components/CtaSection.jsx';
 import PricingSection from '../components/PricingSection.jsx';
 import ContactSection from '../components/ContactSection.jsx';
@@ -36,6 +37,7 @@ export default function LandingPage() {
       <SolutionsSection t={t} />
       <WorkflowSection t={t} />
       <ImageShowcaseSection t={t} />
+      <TestimonialsSection t={t} />
       <CtaSection t={t} />
       <PricingSection t={t} />
       <ContactSection t={t} />

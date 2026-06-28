@@ -186,11 +186,14 @@ export async function getSupplierBalanceBefore(client, { tenantId, supplierId, d
     return 0;
   }
 
+  // Use insertion order: balance_after is stamped at posting time, so the last
+  // inserted pre-period entry holds the correct opening balance even when some
+  // entries were backdated. Business-date order would pick the wrong row here.
   const result = await client.query(
     `SELECT balance_after FROM supplier_due_ledger
      WHERE supplier_id = $1 AND tenant_id = $2
        AND COALESCE(business_date, created_at::date) < $3::date
-     ORDER BY ${orderByBusinessDate("DESC")}
+     ORDER BY ${orderByInsertion("DESC")}
      LIMIT 1`,
     [supplierId, tenantId, dateFrom],
   );

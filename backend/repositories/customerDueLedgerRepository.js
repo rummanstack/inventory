@@ -173,11 +173,16 @@ export async function getCustomerBalanceBefore(client, { tenantId, customerId, d
     return 0;
   }
 
+  // balance_after is stamped at insertion time, so the correct "opening balance
+  // before dateFrom" is the balance_after of the last-INSERTED entry whose
+  // business_date is before dateFrom. Using business-date order here would pick
+  // the entry with the latest business_date, which may not be the last posted
+  // entry — giving a stale balance whenever backdated entries exist.
   const result = await client.query(
     `SELECT balance_after FROM customer_due_ledger
      WHERE customer_id = $1 AND tenant_id = $2
        AND COALESCE(business_date, created_at::date) < $3::date
-     ORDER BY ${orderByBusinessDate("DESC")}
+     ORDER BY ${orderByInsertion("DESC")}
      LIMIT 1`,
     [customerId, tenantId, dateFrom],
   );

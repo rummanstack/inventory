@@ -2582,7 +2582,7 @@ const en = {
         },
       },
       hero: {
-        eyebrow: 'For Shops, Dealers, Wholesalers & DSR Businesses',
+        eyebrow: 'Trusted by 500+ businesses across Bangladesh',
         title: 'Manage stock, sales, due and profit — all in one place.',
         subtitle: 'Record sales, track stock, manage due, and see profit — without notebooks or Excel.',
         callLabel: 'Call',

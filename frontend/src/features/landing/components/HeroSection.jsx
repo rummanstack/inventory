@@ -18,14 +18,19 @@ export default function HeroSection({ t }) {
           <p className="landing-hero-subtitle">{t('landing.hero.subtitle')}</p>
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <Link to="/login" className="landing-primary-btn">
-              {t('landing.login')}
-              <ArrowRight size={18} />
-            </Link>
-            <a href={whatsappUrl} target="_blank" rel="noreferrer" className="landing-secondary-btn">
+            <a
+              href={whatsappUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="landing-primary-btn !bg-[#25D366] !shadow-[0_18px_34px_rgba(37,211,102,0.32)] hover:!bg-[#1ebe5d]"
+            >
               <MessageCircle size={18} />
               {t('landing.whatsappUs')}
             </a>
+            <Link to="/login" className="landing-secondary-btn">
+              {t('landing.login')}
+              <ArrowRight size={18} />
+            </Link>
           </div>
         </div>
 

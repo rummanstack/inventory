@@ -2584,7 +2584,7 @@ const en = {
       hero: {
         eyebrow: 'Trusted by 500+ businesses across Bangladesh',
         title: 'Manage stock, sales, due and profit — all in one place.',
-        subtitle: 'Record sales, track stock, manage due, and see profit — without notebooks or Excel.',
+        subtitle: 'Stop using notebooks and scattered Excel sheets. One system for all your sales, stock, dues and profit — always accurate, always ready.',
         callLabel: 'Call',
         liveView: 'Live view',
         liveViewText: 'One simple dashboard for your sales, stock, due and profit.',
@@ -2686,7 +2686,7 @@ const en = {
       ],
       solutions: {
         label: 'Who is it for?',
-        title: 'Made for shops, wholesalers, traders, grocery stores and pharmacies',
+        title: 'One system that fits your business — whatever you sell',
         description: 'Every business gets a simple workflow that fits how they already work.',
         items: [
           { title: 'Retail Shops', description: 'Quick sale, receipts, customer due, stock and profit — all in one place.' },
@@ -2789,7 +2789,7 @@ const en = {
         ],
       },
       contact: {
-        label: 'Support',
+        label: 'Get in Touch',
         title: 'We are 24/7 online to help',
         description: 'Send your message and our team will reply quickly.',
         nameLabel: 'Your Name',

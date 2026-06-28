@@ -71,6 +71,7 @@ const en = {
       users: 'User Management',
       platform: 'Organizations',
       visitorChats: 'Visitor Chats',
+      contactMessages: 'Contact Messages',
       reports: 'Daily Reports',
       history: 'History',
       profile: 'My Profile',

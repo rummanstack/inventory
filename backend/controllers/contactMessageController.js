@@ -11,4 +11,13 @@ export class ContactMessageController {
       next(error);
     }
   };
+
+  list = async (req, res, next) => {
+    try {
+      const items = await this.contactMessageService.listContactMessages();
+      res.json({ items });
+    } catch (error) {
+      next(error);
+    }
+  };
 }

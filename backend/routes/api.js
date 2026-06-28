@@ -84,6 +84,7 @@ import { VisitorChatController } from "../controllers/visitorChatController.js";
 import { VisitorChatAdminController } from "../controllers/visitorChatAdminController.js";
 import { createVisitorChatRoutes } from "./visitorChat.routes.js";
 import { createVisitorChatAdminRoutes } from "./visitorChatAdmin.routes.js";
+import { createContactMessagesRoutes } from "./contactMessages.routes.js";
 import { FinanceAccountController } from "../controllers/financeAccountController.js";
 import { FinanceDashboardController } from "../controllers/financeDashboardController.js";
 import { DsrDashboardController } from "../controllers/DsrDashboardController.js";
@@ -244,6 +245,7 @@ export function createApiRouter({
   router.use("/platform/tenants", createPlatformTenantsRoutes(tenantController));
   router.use("/platform/backup", createPlatformBackupRoutes(backupController));
   router.use("/platform/visitor-chats", createVisitorChatAdminRoutes(visitorChatAdminController));
+  router.use("/platform/contact-messages", createContactMessagesRoutes(contactMessageController));
 
   // System developer routes — no tenant required, system_developer only
   router.use("/system", createSystemRoutes(systemController));

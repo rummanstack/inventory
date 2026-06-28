@@ -40,6 +40,7 @@ export const TENANT_FEATURES = [
   "database-backup",
   "platform",
   "visitor-chats",
+  "contact-messages",
   "system-health",
   "error-logs",
   "damaged-stock",

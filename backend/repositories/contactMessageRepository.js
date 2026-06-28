@@ -17,3 +17,9 @@ export function insertContactMessage(client, contactMessage) {
     [contactMessage.id, contactMessage.name, contactMessage.phone, contactMessage.message],
   );
 }
+
+export function listContactMessages(client) {
+  return client.query(
+    `SELECT * FROM contact_messages ORDER BY created_at DESC LIMIT 200`,
+  );
+}

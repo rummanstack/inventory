@@ -87,12 +87,10 @@ import { createVisitorChatAdminRoutes } from "./visitorChatAdmin.routes.js";
 import { createContactMessagesRoutes } from "./contactMessages.routes.js";
 import { FinanceAccountController } from "../controllers/financeAccountController.js";
 import { FinanceDashboardController } from "../controllers/financeDashboardController.js";
-import { DsrDashboardController } from "../controllers/DsrDashboardController.js";
 import { RetailCashSessionController } from "../controllers/retailCashSessionController.js";
 import { QuotationController } from "../controllers/quotationController.js";
 import { createFinanceAccountsRoutes } from "./financeAccounts.routes.js";
 import { createFinanceDashboardRoutes } from "./financeDashboard.routes.js";
-import { createDsrDashboardRoutes } from "./dsrDashboard.routes.js";
 import { createRetailCashSessionsRoutes } from "./retailCashSessions.routes.js";
 import { createQuotationsRoutes } from "./quotations.routes.js";
 import { TradeInController } from "../controllers/tradeInController.js";
@@ -151,7 +149,6 @@ export function createApiRouter({
   contactMessageService,
   financeAccountService,
   financeDashboardService,
-  dsrDashboardService,
   retailCustomerService,
   retailCashSessionService,
   retailPromotionService,
@@ -215,7 +212,6 @@ export function createApiRouter({
   const visitorChatAdminController = new VisitorChatAdminController(visitorChatService);
   const financeAccountController = new FinanceAccountController(financeAccountService);
   const financeDashboardController = new FinanceDashboardController(financeDashboardService);
-  const dsrDashboardController = new DsrDashboardController(dsrDashboardService);
   const retailCashSessionController = new RetailCashSessionController(retailCashSessionService);
 
   const employeeController = new EmployeeController(employeeService);
@@ -291,7 +287,6 @@ export function createApiRouter({
   router.use("/sales-returns", createSalesReturnsRoutes(salesReturnController));
   router.use("/finance-accounts", createFinanceAccountsRoutes(financeAccountController));
   router.use("/finance-dashboard", createFinanceDashboardRoutes(financeDashboardController));
-  router.use("/dsr-dashboard", createDsrDashboardRoutes(dsrDashboardController));
   router.use("/retail-cash-sessions", createRetailCashSessionsRoutes(retailCashSessionController));
   router.use("/srs", createSrsRoutes(srController));
   router.use("/sr-due-ledger", createSrDueLedgerRoutes(srDueLedgerController));

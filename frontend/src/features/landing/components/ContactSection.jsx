@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { CheckCircle2, Loader2, Send } from 'lucide-react';
+import { CheckCircle2, Loader2, Lock, Send, Server, ShieldCheck } from 'lucide-react';
 import ImagePlaceholder from './shared/ImagePlaceholder.jsx';
 import SectionHeader from './shared/SectionHeader.jsx';
 import { contactApi } from '../../../services/api/contactApi.js';
@@ -83,7 +83,19 @@ export default function ContactSection({ t }) {
               />
             </div>
 
-            <button type="submit" className="btn-primary mt-5 rounded-2xl" disabled={status === 'sending'}>
+            <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2">
+              <span className="flex items-center gap-1.5 text-[11px] font-bold text-slate-400">
+                <Lock size={12} className="text-[var(--success)]" /> SSL Secured
+              </span>
+              <span className="flex items-center gap-1.5 text-[11px] font-bold text-slate-400">
+                <Server size={12} className="text-[var(--success)]" /> Bangladesh-hosted data
+              </span>
+              <span className="flex items-center gap-1.5 text-[11px] font-bold text-slate-400">
+                <ShieldCheck size={12} className="text-[var(--success)]" /> Daily backups
+              </span>
+            </div>
+
+            <button type="submit" className="btn-primary mt-4 rounded-2xl" disabled={status === 'sending'}>
               {status === 'sending' ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
               {status === 'sending' ? t('landing.contact.sending') : t('landing.contact.submit')}
             </button>

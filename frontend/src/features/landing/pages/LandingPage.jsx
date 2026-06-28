@@ -11,6 +11,9 @@ import ImageShowcaseSection from '../components/ImageShowcaseSection.jsx';
 import TestimonialsSection from '../components/TestimonialsSection.jsx';
 import CtaSection from '../components/CtaSection.jsx';
 import PricingSection from '../components/PricingSection.jsx';
+import FaqSection from '../components/FaqSection.jsx';
+import TrustBarSection from '../components/TrustBarSection.jsx';
+import WhoIsItForSection from '../components/WhoIsItForSection.jsx';
 import ContactSection from '../components/ContactSection.jsx';
 import LandingFooter from '../components/LandingFooter.jsx';
 import LandingChatWidget from '../components/LandingChatWidget.jsx';
@@ -31,15 +34,18 @@ export default function LandingPage() {
     <main className="landing-page">
       <LandingHeader language={language} setLanguage={setLanguage} t={t} />
       <HeroSection t={t} />
+      <TrustBarSection />
+      <WhoIsItForSection />
       <ProblemSection t={t} />
       <FeatureStorySection t={t} />
       <FeatureGridSection t={t} />
       <SolutionsSection t={t} />
       <WorkflowSection t={t} />
       <ImageShowcaseSection t={t} />
-      <TestimonialsSection t={t} />
       <CtaSection t={t} />
+      <TestimonialsSection t={t} />
       <PricingSection t={t} />
+      <FaqSection />
       <ContactSection t={t} />
       <LandingFooter t={t} />
       <LandingChatWidget t={t} />

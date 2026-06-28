@@ -200,11 +200,14 @@ export async function getBalanceBefore(client, { tenantId, dsrId, dateFrom }) {
     return result.rows[0].entry_count > 0 ? 0 : Number(result.rows[0].opening_due || 0);
   }
 
+  // Use insertion order: balance_after is stamped at posting time, so the last
+  // inserted pre-period entry holds the correct opening balance even when some
+  // entries were backdated. Business-date order would pick the wrong row here.
   const result = await client.query(
     `SELECT balance_after FROM dsr_due_ledger
      WHERE dsr_id = $1 AND tenant_id = $2
        AND COALESCE(business_date, created_at::date) < $3::date
-     ORDER BY ${orderByBusinessDate("DESC")}
+     ORDER BY ${orderByInsertion("DESC")}
      LIMIT 1`,
     [dsrId, tenantId, dateFrom],
   );

@@ -156,11 +156,14 @@ export async function listShopDueLedgerInRange(client, { tenantId, shopId, dateF
 
 export async function getShopBalanceBefore(client, { tenantId, shopId, dateFrom }) {
   if (!dateFrom) return 0;
+  // Use insertion order: balance_after is stamped at posting time, so the last
+  // inserted pre-period entry holds the correct opening balance even when some
+  // entries were backdated. Business-date order would pick the wrong row here.
   const result = await client.query(
     `SELECT balance_after FROM shop_due_ledger
      WHERE shop_id = $1 AND tenant_id = $2
        AND COALESCE(business_date, created_at::date) < $3::date
-     ORDER BY ${orderByBusinessDate("DESC")}
+     ORDER BY ${orderByInsertion("DESC")}
      LIMIT 1`,
     [shopId, tenantId, dateFrom],
   );

@@ -5,7 +5,7 @@ import { sumLatestCustomerDueBalances } from "../repositories/customerDueLedgerR
 import { sumLatestSupplierDueBalances } from "../repositories/supplierDueLedgerRepository.js";
 import { getMonthlyCashFlow, listRecentTransactions } from "../repositories/financeAccountRepository.js";
 import { sumSettlementsInRange, listRecentSettlements } from "../repositories/settlementRepository.js";
-import { sumSalesInvoicesInRange } from "../repositories/salesInvoiceRepository.js";
+import { getMonthlyTrend, sumSalesInvoicesInRange } from "../repositories/salesInvoiceRepository.js";
 
 export class FinanceDashboardService {
   constructor(databaseManager, { financeAccountService, profitService }) {
@@ -126,5 +126,12 @@ export class FinanceDashboardService {
         averageInvoice: rangeData.sales.count > 0 ? rangeData.sales.totalAmount / rangeData.sales.count : 0,
       },
     };
+  }
+
+  async getMonthlyTrend(actor) {
+    return this.databaseManager.withClient(async (client) => {
+      const rows = await getMonthlyTrend(client, actor.tenantId);
+      return { rows };
+    });
   }
 }

@@ -18,4 +18,12 @@ export class FinanceDashboardController {
       next(error);
     }
   };
+
+  getMonthlyTrend = async (req, res, next) => {
+    try {
+      res.json(await this.financeDashboardService.getMonthlyTrend(req.currentUser));
+    } catch (error) {
+      next(error);
+    }
+  };
 }

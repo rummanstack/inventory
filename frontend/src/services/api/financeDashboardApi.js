@@ -7,4 +7,7 @@ export const financeDashboardApi = {
   getFinanceDashboardRange({ dateFrom, dateTo } = {}) {
     return apiRequest(`/finance-dashboard/range-report${buildQueryString({ dateFrom, dateTo })}`);
   },
+  getMonthlyTrend() {
+    return apiRequest('/finance-dashboard/monthly-trend');
+  },
 };

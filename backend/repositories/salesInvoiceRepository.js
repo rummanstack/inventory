@@ -385,3 +385,44 @@ export async function getProfitReport(client, { tenantId, dateFrom, dateTo, sale
     totalProfit: Number(row.total_profit || 0),
   }));
 }
+
+export async function getMonthlyTrend(client, tenantId) {
+  const result = await client.query(
+    `WITH monthly_invoices AS (
+       SELECT TO_CHAR(invoice_date::date, 'YYYY-MM') AS month,
+              COALESCE(SUM(total_amount), 0) AS invoice_sales,
+              COALESCE(SUM(total_profit), 0) AS invoice_profit
+       FROM sales_invoices
+       WHERE tenant_id = $1 AND deleted_at IS NULL
+       GROUP BY TO_CHAR(invoice_date::date, 'YYYY-MM')
+     ),
+     monthly_settlements AS (
+       SELECT TO_CHAR(settlement_date::date, 'YYYY-MM') AS month,
+              COALESCE(SUM(amount_paid), 0) AS dsr_collected
+       FROM settlements
+       WHERE tenant_id = $1
+       GROUP BY TO_CHAR(settlement_date::date, 'YYYY-MM')
+     ),
+     months AS (
+       SELECT generate_series(
+         date_trunc('month', NOW() - INTERVAL '11 months'),
+         date_trunc('month', NOW()),
+         '1 month'::interval
+       )::date AS month_start
+     )
+     SELECT TO_CHAR(m.month_start, 'YYYY-MM') AS month,
+            COALESCE(i.invoice_sales, 0) + COALESCE(s.dsr_collected, 0) AS total_sales,
+            COALESCE(i.invoice_profit, 0) AS total_profit
+     FROM months m
+     LEFT JOIN monthly_invoices i ON i.month = TO_CHAR(m.month_start, 'YYYY-MM')
+     LEFT JOIN monthly_settlements s ON s.month = TO_CHAR(m.month_start, 'YYYY-MM')
+     ORDER BY m.month_start`,
+    [tenantId],
+  );
+
+  return result.rows.map((row) => ({
+    month: row.month,
+    totalSales: Number(row.total_sales || 0),
+    totalProfit: Number(row.total_profit || 0),
+  }));
+}

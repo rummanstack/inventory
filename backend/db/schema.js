@@ -139,21 +139,6 @@ export async function createSchema(pool) {
     CREATE INDEX IF NOT EXISTS idx_dsr_due_ledger_reference
       ON dsr_due_ledger(reference_type, reference_id);
 
-    CREATE TABLE IF NOT EXISTS dsr_cash_receipts (
-      id TEXT PRIMARY KEY,
-      receipt_date DATE NOT NULL,
-      dsr_id TEXT NOT NULL REFERENCES dsrs(id) ON DELETE CASCADE,
-      amount NUMERIC NOT NULL,
-      note TEXT NOT NULL,
-      received_by TEXT REFERENCES users(id) ON DELETE SET NULL,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
-
-    CREATE INDEX IF NOT EXISTS idx_dsr_cash_receipts_receipt_date ON dsr_cash_receipts(receipt_date DESC);
-    CREATE INDEX IF NOT EXISTS idx_dsr_cash_receipts_dsr_id ON dsr_cash_receipts(dsr_id);
-    CREATE INDEX IF NOT EXISTS idx_dsr_cash_receipts_received_by ON dsr_cash_receipts(received_by);
-
     CREATE TABLE IF NOT EXISTS dsr_advances (
       id TEXT PRIMARY KEY,
       advance_date DATE NOT NULL,
@@ -246,13 +231,6 @@ export async function createSchema(pool) {
     ALTER TABLE expenses ADD COLUMN IF NOT EXISTS created_by TEXT REFERENCES users(id) ON DELETE SET NULL;
     ALTER TABLE expenses ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
 
-    ALTER TABLE dsr_cash_receipts ADD COLUMN IF NOT EXISTS receipt_date DATE NOT NULL DEFAULT CURRENT_DATE;
-    ALTER TABLE dsr_cash_receipts ADD COLUMN IF NOT EXISTS dsr_id TEXT REFERENCES dsrs(id) ON DELETE CASCADE;
-    ALTER TABLE dsr_cash_receipts ADD COLUMN IF NOT EXISTS amount NUMERIC NOT NULL DEFAULT 0;
-    ALTER TABLE dsr_cash_receipts ADD COLUMN IF NOT EXISTS note TEXT NOT NULL DEFAULT '';
-    ALTER TABLE dsr_cash_receipts ADD COLUMN IF NOT EXISTS received_by TEXT REFERENCES users(id) ON DELETE SET NULL;
-    ALTER TABLE dsr_cash_receipts ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
-
     ALTER TABLE dsr_advances ADD COLUMN IF NOT EXISTS advance_date DATE NOT NULL DEFAULT CURRENT_DATE;
     ALTER TABLE dsr_advances ADD COLUMN IF NOT EXISTS dsr_id TEXT REFERENCES dsrs(id) ON DELETE CASCADE;
     ALTER TABLE dsr_advances ADD COLUMN IF NOT EXISTS amount NUMERIC NOT NULL DEFAULT 0;
@@ -266,7 +244,6 @@ export async function createSchema(pool) {
     ALTER TABLE issues        ADD COLUMN IF NOT EXISTS tenant_id TEXT REFERENCES tenants(id);
     ALTER TABLE settlements   ADD COLUMN IF NOT EXISTS tenant_id TEXT REFERENCES tenants(id);
     ALTER TABLE expenses      ADD COLUMN IF NOT EXISTS tenant_id TEXT REFERENCES tenants(id);
-    ALTER TABLE dsr_cash_receipts ADD COLUMN IF NOT EXISTS tenant_id TEXT REFERENCES tenants(id);
     ALTER TABLE dsr_advances  ADD COLUMN IF NOT EXISTS tenant_id TEXT REFERENCES tenants(id);
     ALTER TABLE activity_logs ADD COLUMN IF NOT EXISTS tenant_id TEXT REFERENCES tenants(id);
 
@@ -276,7 +253,6 @@ export async function createSchema(pool) {
     CREATE INDEX IF NOT EXISTS idx_issues_tenant_id ON issues(tenant_id);
     CREATE INDEX IF NOT EXISTS idx_settlements_tenant_id ON settlements(tenant_id);
     CREATE INDEX IF NOT EXISTS idx_expenses_tenant_id ON expenses(tenant_id);
-    CREATE INDEX IF NOT EXISTS idx_dsr_cash_receipts_tenant_id ON dsr_cash_receipts(tenant_id);
     CREATE INDEX IF NOT EXISTS idx_dsr_advances_tenant_id ON dsr_advances(tenant_id);
     CREATE INDEX IF NOT EXISTS idx_activity_logs_tenant_id ON activity_logs(tenant_id);
 
@@ -917,7 +893,6 @@ export async function createSchema(pool) {
     UPDATE issues SET tenant_id = (SELECT id FROM tenants ORDER BY created_at ASC LIMIT 1) WHERE tenant_id IS NULL;
     UPDATE settlements SET tenant_id = (SELECT id FROM tenants ORDER BY created_at ASC LIMIT 1) WHERE tenant_id IS NULL;
     UPDATE expenses SET tenant_id = (SELECT id FROM tenants ORDER BY created_at ASC LIMIT 1) WHERE tenant_id IS NULL;
-    UPDATE dsr_cash_receipts SET tenant_id = (SELECT id FROM tenants ORDER BY created_at ASC LIMIT 1) WHERE tenant_id IS NULL;
     UPDATE dsr_advances SET tenant_id = (SELECT id FROM tenants ORDER BY created_at ASC LIMIT 1) WHERE tenant_id IS NULL;
     UPDATE customers SET tenant_id = (SELECT id FROM tenants ORDER BY created_at ASC LIMIT 1) WHERE tenant_id IS NULL;
     UPDATE suppliers SET tenant_id = (SELECT id FROM tenants ORDER BY created_at ASC LIMIT 1) WHERE tenant_id IS NULL;
@@ -989,7 +964,6 @@ export async function createSchema(pool) {
     ALTER TABLE issues ALTER COLUMN tenant_id SET NOT NULL;
     ALTER TABLE settlements ALTER COLUMN tenant_id SET NOT NULL;
     ALTER TABLE expenses ALTER COLUMN tenant_id SET NOT NULL;
-    ALTER TABLE dsr_cash_receipts ALTER COLUMN tenant_id SET NOT NULL;
     ALTER TABLE dsr_advances ALTER COLUMN tenant_id SET NOT NULL;
     ALTER TABLE customers ALTER COLUMN tenant_id SET NOT NULL;
     ALTER TABLE suppliers ALTER COLUMN tenant_id SET NOT NULL;

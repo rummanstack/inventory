@@ -13,7 +13,6 @@ const FIRST_TENANT_TABLES = [
   "issues",
   "settlements",
   "expenses",
-  "dsr_cash_receipts",
   "dsr_advances",
   "activity_logs",
 ];

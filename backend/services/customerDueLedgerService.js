@@ -96,7 +96,7 @@ export class CustomerDueLedgerService {
         { debit: 0, credit: 0 },
       );
 
-      const closingBalance = entries.length ? entries[entries.length - 1].balanceAfter : openingBalance;
+      const closingBalance = entries.length ? entries[0].balanceAfter : openingBalance;
 
       return {
         customer: {

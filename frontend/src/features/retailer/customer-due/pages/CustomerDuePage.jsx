@@ -4,7 +4,7 @@ import { DatePickerField } from '../../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../../services/printService.js';
 import { inventoryApi } from '../../../../services/inventoryApi.js';
-import { formatCurrency, formatDateTime, formatNumber, reverseEntries } from '../../../../utils/calculations.js';
+import { formatCurrency, formatDateTime, formatNumber } from '../../../../utils/calculations.js';
 import { useCustomerStatementViewModel } from '../viewmodels/useCustomerStatementViewModel';
 import CustomerDuePrintSheet from '../components/CustomerDuePrintSheet.jsx';
 
@@ -19,7 +19,7 @@ function ledgerTone(type) {
 export default function CustomerDuePage() {
   const { t, tenant, retailCustomerDirectory, language } = useInventoryApp();
   const vm = useCustomerStatementViewModel({ customers: retailCustomerDirectory });
-  const entries = reverseEntries(vm.statement?.entries);
+  const entries = vm.statement?.entries || [];
   const printTargetId = 'customer-due-statement-print';
   const businessName = tenant?.name || '';
   const selectedCustomer = retailCustomerDirectory.find((c) => c.id === vm.customerId);

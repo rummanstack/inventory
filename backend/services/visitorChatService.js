@@ -1,3 +1,4 @@
+import { randomBytes } from "node:crypto";
 import { createId } from "../lib/ids.js";
 import { assert } from "../lib/errors.js";
 import { VISITOR_CHAT_ACTIONS } from "../lib/auditActions.js";
@@ -39,14 +40,25 @@ export class VisitorChatService {
   // --- Visitor-facing (public, token-authenticated) ---
 
   async postVisitorMessage(visitorToken, body) {
-    const token = trim(visitorToken);
+    const incomingToken = trim(visitorToken);
     const message = trim(body);
-    assert(token, "Visitor token is required.");
     assert(message, "Message is required.");
     assert(message.length <= MAX_MESSAGE_LENGTH, "Message is too long.");
 
     return this.databaseManager.withTransaction(async (client) => {
-      const chat = await insertVisitorChatIfMissing(client, { id: createId("visitor-chat"), visitorToken: token });
+      // Resolve the canonical token: accept an existing token only if it's already
+      // in the database. Any unknown token (client-generated UUID, forged value, or
+      // stale entry after a DB reset) gets replaced with a server-generated one so
+      // the visitor gets a fresh, cryptographically-strong identity.
+      let resolvedToken;
+      if (incomingToken) {
+        const existing = await findVisitorChatByToken(client, incomingToken);
+        resolvedToken = existing.rowCount > 0 ? incomingToken : randomBytes(32).toString("hex");
+      } else {
+        resolvedToken = randomBytes(32).toString("hex");
+      }
+
+      const chat = await insertVisitorChatIfMissing(client, { id: createId("visitor-chat"), visitorToken: resolvedToken });
 
       const insertResult = await insertVisitorChatMessage(client, {
         visitorChatId: chat.id,
@@ -60,7 +72,10 @@ export class VisitorChatService {
         unreadForAdmin: true,
       });
 
-      return { message: insertResult.rows[0] && { id: insertResult.rows[0].id, body: message } };
+      return {
+        token: resolvedToken,
+        message: insertResult.rows[0] && { id: insertResult.rows[0].id, body: message },
+      };
     });
   }
 

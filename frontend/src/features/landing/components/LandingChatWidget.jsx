@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { MessageCircle, Phone, Send, X } from 'lucide-react';
 import logoMark from '../../../assets/stockledger-logo-mark.svg';
 import { contactPhone, whatsappUrl } from '../constants.js';
-import { getOrCreateVisitorToken, getVisitorToken } from '../lib/visitorIdentity.js';
+import { getVisitorToken, setVisitorToken } from '../lib/visitorIdentity.js';
 import { visitorChatApi } from '../../../services/api/visitorChatApi.js';
 import { usePolling } from '../../../hooks/usePolling.js';
 import { formatTime } from '../../../utils/calculations.js';
@@ -76,9 +76,12 @@ export default function LandingChatWidget({ t }) {
     setSending(true);
     setError('');
     try {
-      const token = getOrCreateVisitorToken();
-      visitorTokenRef.current = token;
-      await visitorChatApi.sendVisitorMessage({ visitorToken: token, body: trimmed });
+      const result = await visitorChatApi.sendVisitorMessage({ visitorToken: visitorTokenRef.current, body: trimmed });
+      // Server is the source of truth for the token — persist and use whatever it returns.
+      if (result?.token && result.token !== visitorTokenRef.current) {
+        visitorTokenRef.current = result.token;
+        setVisitorToken(result.token);
+      }
       setMessage('');
       await fetchMessages();
     } catch {

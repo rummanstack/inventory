@@ -279,7 +279,7 @@ export default function DashboardPage() {
             {
               label: "Today's Sales",
               value: formatCurrency(todaySales, language),
-              sub: "DSR + retail revenue",
+              sub: "DSR + retail + wholesale + dealer",
               icon: ShoppingCart,
               iconClass: "bg-blue-50 text-blue-700",
               valueClass: "text-slate-950",
@@ -287,7 +287,7 @@ export default function DashboardPage() {
             {
               label: "Today's Due",
               value: formatCurrency(todayDue, language),
-              sub: "Uncollected from DSR sales",
+              sub: "Uncollected from all today's sales",
               icon: HandCoins,
               iconClass: todayDue > 0 ? "bg-amber-50 text-amber-700" : "bg-emerald-50 text-emerald-700",
               valueClass: todayDue > 0 ? "text-amber-700" : "text-slate-950",
@@ -303,7 +303,7 @@ export default function DashboardPage() {
             {
               label: "Today's Profit",
               value: formatCurrency(todayProfit, language),
-              sub: "DSR + retail profit minus expenses",
+              sub: "All channels minus expenses",
               icon: todayProfit >= 0 ? TrendingUp : TrendingDown,
               iconClass: todayProfit >= 0 ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-600",
               valueClass: todayProfit >= 0 ? "text-emerald-700" : "text-rose-600",

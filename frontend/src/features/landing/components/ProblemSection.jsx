@@ -13,7 +13,7 @@ export default function ProblemSection({ t }) {
             <p className="landing-section-text">{t('landing.problem.text')}</p>
           </div>
 
-          <div className="grid gap-3">
+          <div className="grid gap-3 sm:grid-cols-2">
             {problems.map((item) => (
               <div key={item} className="problem-item">
                 <span className="problem-item-icon">

@@ -2596,8 +2596,12 @@ const en = {
         items: [
           'Stock numbers don\'t match after sales and purchases',
           'Customer due is hard to track and collect',
-          'Evening settlement takes too long',
+          'Evening settlement takes too long and numbers are wrong',
           'You can\'t see today\'s profit at a glance',
+          'Cash at end of day doesn\'t match the sales record',
+          'No idea which products are selling and which are sitting idle',
+          'Supplier payments written in notebooks — easy to forget and lose',
+          'You can\'t check your business when you\'re away from the shop',
         ],
       },
       featureStory: {

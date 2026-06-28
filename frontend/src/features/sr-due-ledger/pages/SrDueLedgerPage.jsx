@@ -56,7 +56,7 @@ function CollectModal({ balance, srName, onClose, onSave }) {
       <form className="space-y-4" onSubmit={submitForm}>
         {error ? <Alert type="error">{error}</Alert> : null}
         <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-          <p className="text-xs font-bold uppercase text-slate-500">Current Balance</p>
+          <p className="text-xs font-bold uppercase text-slate-500">Due Amount</p>
           <p className="mt-1 text-lg font-bold text-slate-950">{formatCurrency(balance || 0)}</p>
         </div>
         <div>
@@ -293,7 +293,7 @@ export default function SrDueLedgerPage() {
 
       {showCollect && vm.statement ? (
         <CollectModal
-          balance={vm.statement.closingBalance}
+          balance={vm.statement.sr?.currentDue}
           srName={selectedSr?.name || ''}
           onClose={() => setShowCollect(false)}
           onSave={handleCollect}

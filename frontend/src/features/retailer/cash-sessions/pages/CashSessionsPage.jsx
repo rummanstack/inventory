@@ -148,9 +148,9 @@ export default function CashSessionsPage() {
                   <th className="px-4 py-3">{t('cashSessions.closedAt')}</th>
                   <th className="px-4 py-3">{t('cashSessions.openedBy')}</th>
                   <th className="px-4 py-3 text-right">{t('cashSessions.openingCash')}</th>
-                  <th className="hidden px-4 py-3 text-right lg:table-cell">{t('cashSessions.cashSalesAmount')}</th>
-                  <th className="hidden px-4 py-3 text-right lg:table-cell">{t('cashSessions.expectedCash')}</th>
-                  <th className="hidden px-4 py-3 text-right xl:table-cell">{t('cashSessions.countedCash')}</th>
+                  <th className="px-4 py-3 text-right">{t('cashSessions.cashSalesAmount')}</th>
+                  <th className="px-4 py-3 text-right">{t('cashSessions.expectedCash')}</th>
+                  <th className="px-4 py-3 text-right">{t('cashSessions.countedCash')}</th>
                   <th className="px-4 py-3 text-right">{t('cashSessions.variance')}</th>
                   <th className="px-4 py-3">{t('cashSessions.statusLabel')}</th>
                 </tr>

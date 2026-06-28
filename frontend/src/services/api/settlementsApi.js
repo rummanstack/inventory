@@ -8,4 +8,8 @@ export const settlementsApi = {
   saveSettlement(settlement) {
     return apiRequest("/settlements", { method: "POST", body: JSON.stringify(settlement) });
   },
+
+  getSettlementReport({ dateFrom, dateTo, dsrId } = {}) {
+    return apiRequest(`/settlements/reports${buildQueryString({ dateFrom, dateTo, dsrId })}`);
+  },
 };

@@ -136,6 +136,25 @@ export async function closeRetailCashSession(client, session) {
   );
 }
 
+export async function getCashSessionReport(client, { tenantId, dateFrom, dateTo }) {
+  const params = [tenantId];
+  const conditions = ['rcs.tenant_id = $1'];
+  if (dateFrom) { params.push(dateFrom); conditions.push(`rcs.started_at >= $${params.length}::date`); }
+  if (dateTo) { params.push(dateTo); conditions.push(`rcs.started_at < ($${params.length}::date + INTERVAL '1 day')`); }
+  const result = await client.query(
+    `SELECT rcs.*,
+            uo.name AS opened_by_name,
+            uc.name AS closed_by_name
+     FROM retail_cash_sessions rcs
+     LEFT JOIN users uo ON uo.id = rcs.opened_by
+     LEFT JOIN users uc ON uc.id = rcs.closed_by
+     WHERE ${conditions.join(' AND ')}
+     ORDER BY rcs.started_at DESC`,
+    params,
+  );
+  return result.rows.map(mapRetailCashSession);
+}
+
 export async function getRetailCashSessionSalesSummary(client, { tenantId, startedAt, endedAt }) {
   const result = await client.query(
     `SELECT

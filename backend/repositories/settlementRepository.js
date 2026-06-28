@@ -150,6 +150,35 @@ export function findDuplicateSettlement(client, date, dsrId, settlementId, tenan
   );
 }
 
+export async function getSettlementReport(client, { tenantId, dateFrom, dateTo, dsrId }) {
+  const params = [tenantId];
+  const conditions = ["tenant_id = $1"];
+  if (dsrId) { params.push(dsrId); conditions.push(`dsr_id = $${params.length}`); }
+  if (dateFrom) { params.push(dateFrom); conditions.push(`settlement_date >= $${params.length}`); }
+  if (dateTo) { params.push(dateTo); conditions.push(`settlement_date <= $${params.length}`); }
+  const result = await client.query(
+    `SELECT settlement_date AS date,
+            COUNT(*)::INTEGER AS settlement_count,
+            COALESCE(SUM(total_payable), 0)::NUMERIC AS total_payable,
+            COALESCE(SUM(amount_paid), 0)::NUMERIC AS amount_paid,
+            COALESCE(SUM(due_amount), 0)::NUMERIC AS due_amount,
+            COALESCE(SUM(discount), 0)::NUMERIC AS discount
+     FROM settlements
+     WHERE ${conditions.join(" AND ")}
+     GROUP BY settlement_date
+     ORDER BY settlement_date DESC`,
+    params,
+  );
+  return result.rows.map((r) => ({
+    date: r.date,
+    settlementCount: Number(r.settlement_count),
+    totalPayable: Number(r.total_payable),
+    amountPaid: Number(r.amount_paid),
+    dueAmount: Number(r.due_amount),
+    discount: Number(r.discount),
+  }));
+}
+
 export async function sumSettlementsInRange(client, tenantId, dateFrom, dateTo) {
   const result = await client.query(
     `SELECT

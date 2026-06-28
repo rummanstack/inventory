@@ -126,6 +126,29 @@ export function restoreSupplierPayment(client, paymentId, tenantId) {
   );
 }
 
+export async function getSupplierPaymentReport(client, { tenantId, dateFrom, dateTo, supplierId }) {
+  const params = [tenantId];
+  const conditions = ["sp.tenant_id = $1", "sp.deleted_at IS NULL"];
+  if (supplierId) { params.push(supplierId); conditions.push(`sp.supplier_id = $${params.length}`); }
+  if (dateFrom) { params.push(dateFrom); conditions.push(`sp.payment_date >= $${params.length}::date`); }
+  if (dateTo) { params.push(dateTo); conditions.push(`sp.payment_date <= $${params.length}::date`); }
+  const result = await client.query(
+    `SELECT sp.payment_date AS date,
+            COUNT(*)::INTEGER AS payment_count,
+            COALESCE(SUM(sp.amount), 0)::NUMERIC AS total_amount
+     FROM supplier_payments sp
+     WHERE ${conditions.join(" AND ")}
+     GROUP BY sp.payment_date
+     ORDER BY sp.payment_date DESC`,
+    params,
+  );
+  return result.rows.map((r) => ({
+    date: r.date,
+    paymentCount: Number(r.payment_count),
+    totalAmount: Number(r.total_amount),
+  }));
+}
+
 export async function countTrashedSupplierPayments(client, tenantId) {
   const result = await client.query(
     "SELECT COUNT(*)::INTEGER AS count FROM supplier_payments WHERE tenant_id = $1 AND deleted_at IS NOT NULL",

@@ -19,6 +19,7 @@ import {
   findLatestSettlementForDsr,
   findSettlementByDateAndDsr,
   findSettlementById,
+  getSettlementReport,
   insertSettlement,
   listSettlementsPage,
   mapSettlement,
@@ -751,5 +752,15 @@ export class SettlementService {
 
   async updateSettlement(settlementId, input, actor) {
     return this.saveSettlement({ ...input, id: settlementId }, actor);
+  }
+
+  async getSettlementReport(query = {}, actor) {
+    const dateFrom = String(query.dateFrom || "").trim() || undefined;
+    const dateTo = String(query.dateTo || "").trim() || undefined;
+    const dsrId = String(query.dsrId || "").trim() || undefined;
+    return this.databaseManager.withClient(async (client) => {
+      const rows = await getSettlementReport(client, { tenantId: actor.tenantId, dateFrom, dateTo, dsrId });
+      return { rows, dateFrom: dateFrom || null, dateTo: dateTo || null };
+    });
   }
 }

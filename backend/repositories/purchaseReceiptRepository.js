@@ -261,6 +261,35 @@ export async function countTrashedPurchaseReceipts(client, tenantId) {
   return result.rows[0].count;
 }
 
+export async function getPurchaseReport(client, { tenantId, dateFrom, dateTo, supplierId }) {
+  const params = [tenantId];
+  const conditions = ["pr.tenant_id = $1", "pr.deleted_at IS NULL"];
+  if (supplierId) { params.push(supplierId); conditions.push(`pr.supplier_id = $${params.length}`); }
+  if (dateFrom) { params.push(dateFrom); conditions.push(`pr.purchase_date >= $${params.length}::date`); }
+  if (dateTo) { params.push(dateTo); conditions.push(`pr.purchase_date <= $${params.length}::date`); }
+  const result = await client.query(
+    `SELECT pr.purchase_date AS date,
+            COUNT(*)::INTEGER AS purchase_count,
+            COALESCE(SUM(pr.total_amount), 0)::NUMERIC AS total_amount,
+            COALESCE(SUM(pr.paid_amount), 0)::NUMERIC AS paid_amount,
+            COALESCE(SUM(pr.due_amount), 0)::NUMERIC AS due_amount,
+            COALESCE(SUM(pr.tax_amount), 0)::NUMERIC AS tax_amount
+     FROM purchase_receipts pr
+     WHERE ${conditions.join(" AND ")}
+     GROUP BY pr.purchase_date
+     ORDER BY pr.purchase_date DESC`,
+    params,
+  );
+  return result.rows.map((r) => ({
+    date: r.date,
+    purchaseCount: Number(r.purchase_count),
+    totalAmount: Number(r.total_amount),
+    paidAmount: Number(r.paid_amount),
+    dueAmount: Number(r.due_amount),
+    taxAmount: Number(r.tax_amount),
+  }));
+}
+
 export async function listTrashedPurchaseReceipts(client, { tenantId, limit, offset }) {
   const result = await client.query(
     `SELECT pr.*, s.name AS supplier_name, u.name AS deleted_by_name, ${itemsSubquery()} AS items

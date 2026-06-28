@@ -28,4 +28,8 @@ export const supplierPaymentsApi = {
   restoreSupplierPayment(paymentId) {
     return apiRequest(`/supplier-payments/${paymentId}/restore`, { method: "POST" });
   },
+
+  getSupplierPaymentReport({ dateFrom, dateTo, supplierId } = {}) {
+    return apiRequest(`/supplier-payments/reports${buildQueryString({ dateFrom, dateTo, supplierId })}`);
+  },
 };

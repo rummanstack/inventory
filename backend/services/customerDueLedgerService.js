@@ -8,6 +8,7 @@ import {
   listCustomerDueLedgerInRange,
   getLatestCustomerDueLedgerEntry,
   getCustomerBalanceBefore,
+  getCustomerDueReport,
 } from "../repositories/customerDueLedgerRepository.js";
 
 const DATE_ERROR = "Ledger date must be in YYYY-MM-DD format.";
@@ -135,5 +136,12 @@ export class CustomerDueLedgerService {
     } finally {
       client.release();
     }
+  }
+
+  async getCustomerDueReport(actor) {
+    return this.databaseManager.withClient(async (client) => {
+      const rows = await getCustomerDueReport(client, actor.tenantId);
+      return { rows };
+    });
   }
 }

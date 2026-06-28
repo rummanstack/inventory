@@ -94,6 +94,14 @@ import SalaryStructurePage from '../features/hr/salary-structure/pages/SalaryStr
 import PayrollPage from '../features/hr/payroll/pages/PayrollPage';
 import PayslipsPage from '../features/hr/payslips/pages/PayslipsPage';
 import SalaryReportsPage from '../features/hr/salary-reports/pages/SalaryReportsPage';
+import PurchaseReportPage from '../features/reports/pages/PurchaseReportPage';
+import StockMovementReportPage from '../features/reports/pages/StockMovementReportPage';
+import SettlementReportPage from '../features/reports/pages/SettlementReportPage';
+import SupplierPaymentReportPage from '../features/reports/pages/SupplierPaymentReportPage';
+import SalesReturnReportPage from '../features/reports/pages/SalesReturnReportPage';
+import CustomerDueReportPage from '../features/reports/pages/CustomerDueReportPage';
+import CashSessionReportPage from '../features/reports/pages/CashSessionReportPage';
+import DamagedStockReportPage from '../features/reports/pages/DamagedStockReportPage';
 
 export const APP_ROUTES = [
   // 1. Dashboard
@@ -153,6 +161,14 @@ export const APP_ROUTES = [
   // 9. Reports
   { id: 'retailer-daily-sales-report', path: '/retailer/daily-sales-report', labelKey: 'nav.retailerDailySalesReport', icon: FileText, component: DailySalesReportPage, group: 'reports', permission: 'manage_retail_daily_sales_report', feature: 'retailer-daily-sales-report' },
   { id: 'reports', path: '/reports', labelKey: 'nav.reports', icon: FileText, component: DailyReportsPage, group: 'reports', permission: 'view_state', feature: 'reports' },
+  { id: 'purchase-report', path: '/reports/purchase', labelKey: 'nav.purchaseReport', icon: ShoppingBag, component: PurchaseReportPage, group: 'reports', permission: 'manage_purchases', feature: 'purchase-report' },
+  { id: 'stock-movement-report', path: '/reports/stock-movement', labelKey: 'nav.stockMovementReport', icon: ArrowLeftRight, component: StockMovementReportPage, group: 'reports', permission: 'view_state', feature: 'stock-movement-report' },
+  { id: 'settlement-report', path: '/reports/settlement', labelKey: 'nav.settlementReport', icon: RotateCcw, component: SettlementReportPage, group: 'reports', permission: 'create_settlements', feature: 'settlement-report' },
+  { id: 'supplier-payment-report', path: '/reports/supplier-payment', labelKey: 'nav.supplierPaymentReport', icon: CreditCard, component: SupplierPaymentReportPage, group: 'reports', permission: 'manage_supplier_payments', feature: 'supplier-payment-report' },
+  { id: 'sales-return-report', path: '/reports/sales-return', labelKey: 'nav.salesReturnReport', icon: RotateCcw, component: SalesReturnReportPage, group: 'reports', permission: 'manage_retail_sales_returns', feature: 'sales-return-report' },
+  { id: 'customer-due-report', path: '/reports/customer-due', labelKey: 'nav.customerDueReport', icon: HandCoins, component: CustomerDueReportPage, group: 'reports', permission: 'manage_retail_customer_due', feature: 'customer-due-report' },
+  { id: 'cash-session-report', path: '/reports/cash-session', labelKey: 'nav.cashSessionReport', icon: Vault, component: CashSessionReportPage, group: 'reports', permission: 'manage_retail_quick_sale', feature: 'cash-session-report' },
+  { id: 'damaged-stock-report', path: '/reports/damaged-stock', labelKey: 'nav.damagedStockReport', icon: PackageX, component: DamagedStockReportPage, group: 'reports', permission: 'view_state', feature: 'damaged-stock-report' },
   { id: 'history', path: '/history', labelKey: 'nav.history', icon: ClipboardList, component: HistoryPage, group: 'reports', permission: 'view_state', feature: 'history' },
   { id: 'activity-logs', path: '/activity-logs', labelKey: 'nav.activityLogs', icon: ClipboardList, component: ActivityLogsPage, group: 'reports', permission: 'view_activity_logs', feature: 'activity-logs' },
 

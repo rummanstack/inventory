@@ -171,6 +171,63 @@ export async function listProductDamageTotals(client, tenantId, dateFrom, dateTo
   }));
 }
 
+export async function getStockMovementReport(client, { tenantId, dateFrom, dateTo, type }) {
+  const params = [tenantId];
+  const conditions = [`stock_movements.tenant_id = $${params.length}`];
+  if (type) { params.push(type); conditions.push(`stock_movements.type = $${params.length}`); }
+  if (dateFrom) { params.push(dateFrom); conditions.push(`COALESCE(stock_movements.business_date, stock_movements.created_at::date) >= $${params.length}::date`); }
+  if (dateTo) { params.push(dateTo); conditions.push(`COALESCE(stock_movements.business_date, stock_movements.created_at::date) <= $${params.length}::date`); }
+  const result = await client.query(
+    `SELECT COALESCE(stock_movements.business_date, stock_movements.created_at::date) AS date,
+            stock_movements.type,
+            COUNT(*)::INTEGER AS movement_count,
+            COALESCE(SUM(stock_movements.quantity_in), 0)::INTEGER AS total_in,
+            COALESCE(SUM(stock_movements.quantity_out), 0)::INTEGER AS total_out
+     FROM stock_movements
+     WHERE ${conditions.join(" AND ")}
+     GROUP BY date, stock_movements.type
+     ORDER BY date DESC, stock_movements.type`,
+    params,
+  );
+  return result.rows.map((r) => ({
+    date: r.date,
+    type: r.type,
+    movementCount: Number(r.movement_count),
+    totalIn: Number(r.total_in),
+    totalOut: Number(r.total_out),
+  }));
+}
+
+export async function getDamagedStockReport(client, { tenantId, dateFrom, dateTo }) {
+  const params = [tenantId];
+  const conditions = ["sm.tenant_id = $1", "sm.type = 'DAMAGE'"];
+  if (dateFrom) { params.push(dateFrom); conditions.push(`COALESCE(sm.business_date, sm.created_at::date) >= $${params.length}::date`); }
+  if (dateTo) { params.push(dateTo); conditions.push(`COALESCE(sm.business_date, sm.created_at::date) <= $${params.length}::date`); }
+  const result = await client.query(
+    `SELECT COALESCE(sm.business_date, sm.created_at::date) AS date,
+            p.id AS product_id,
+            p.name AS product_name,
+            c.name AS category_name,
+            SUM(sm.quantity_out)::INTEGER AS quantity_damaged,
+            COALESCE(SUM(sm.quantity_out * p.purchase_price), 0)::NUMERIC AS cost_value
+     FROM stock_movements sm
+     JOIN products p ON p.id = sm.product_id AND p.tenant_id = sm.tenant_id
+     LEFT JOIN categories c ON c.id = p.category_id
+     WHERE ${conditions.join(" AND ")}
+     GROUP BY date, p.id, p.name, c.name
+     ORDER BY date DESC, quantity_damaged DESC`,
+    params,
+  );
+  return result.rows.map((r) => ({
+    date: r.date,
+    productId: r.product_id,
+    productName: r.product_name,
+    categoryName: r.category_name || '',
+    quantityDamaged: Number(r.quantity_damaged),
+    costValue: Number(r.cost_value),
+  }));
+}
+
 export async function listStockMovementsPage(client, { tenantId, productId, type, referenceType, dateFrom, dateTo, limit, offset }) {
   const params = [];
   const where = buildFilterClause({ tenantId, productId, type, referenceType, dateFrom, dateTo }, params);

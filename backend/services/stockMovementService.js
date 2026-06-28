@@ -1,7 +1,7 @@
 import { assert } from "../lib/errors.js";
 import { normalizeIsoDate } from "../lib/dateRanges.js";
 import { parsePagination, buildPageResult } from "../lib/pagination.js";
-import { countStockMovements, listStockMovementsPage } from "../repositories/stockMovementRepository.js";
+import { countStockMovements, getDamagedStockReport, getStockMovementReport, listStockMovementsPage } from "../repositories/stockMovementRepository.js";
 import { STOCK_MOVEMENT_TYPE_VALUES } from "../lib/stockMovements.js";
 
 const DATE_ERROR = "Ledger date must be in YYYY-MM-DD format.";
@@ -60,5 +60,24 @@ export class StockMovementService {
     } finally {
       client.release();
     }
+  }
+
+  async getStockMovementReport(query = {}, actor) {
+    const dateFrom = String(query.dateFrom || "").trim() || undefined;
+    const dateTo = String(query.dateTo || "").trim() || undefined;
+    const type = String(query.type || "").trim() || undefined;
+    return this.databaseManager.withClient(async (client) => {
+      const rows = await getStockMovementReport(client, { tenantId: actor.tenantId, dateFrom, dateTo, type });
+      return { rows, dateFrom: dateFrom || null, dateTo: dateTo || null };
+    });
+  }
+
+  async getDamagedStockReport(query = {}, actor) {
+    const dateFrom = String(query.dateFrom || "").trim() || undefined;
+    const dateTo = String(query.dateTo || "").trim() || undefined;
+    return this.databaseManager.withClient(async (client) => {
+      const rows = await getDamagedStockReport(client, { tenantId: actor.tenantId, dateFrom, dateTo });
+      return { rows, dateFrom: dateFrom || null, dateTo: dateTo || null };
+    });
   }
 }

@@ -28,4 +28,8 @@ export const purchaseReceiveApi = {
   restorePurchaseReceipt(purchaseReceiptId) {
     return apiRequest(`/purchase-receive/${purchaseReceiptId}/restore`, { method: "POST" });
   },
+
+  getPurchaseReport({ dateFrom, dateTo, supplierId } = {}) {
+    return apiRequest(`/purchase-receive/reports${buildQueryString({ dateFrom, dateTo, supplierId })}`);
+  },
 };

@@ -11,6 +11,7 @@ import { getLatestSupplierDueLedgerEntry } from "../repositories/supplierDueLedg
 import {
   countSupplierPayments,
   countTrashedSupplierPayments,
+  getSupplierPaymentReport,
   findSupplierPaymentById,
   findSupplierPaymentForUpdate,
   insertSupplierPayment,
@@ -342,6 +343,16 @@ export class SupplierPaymentService {
       });
 
       return { ok: true };
+    });
+  }
+
+  async getSupplierPaymentReport(query = {}, actor) {
+    const dateFrom = String(query.dateFrom || "").trim() || undefined;
+    const dateTo = String(query.dateTo || "").trim() || undefined;
+    const supplierId = String(query.supplierId || "").trim() || undefined;
+    return this.databaseManager.withClient(async (client) => {
+      const rows = await getSupplierPaymentReport(client, { tenantId: actor.tenantId, dateFrom, dateTo, supplierId });
+      return { rows, dateFrom: dateFrom || null, dateTo: dateTo || null };
     });
   }
 

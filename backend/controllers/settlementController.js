@@ -28,4 +28,12 @@ export class SettlementController {
       next(error);
     }
   };
+
+  settlementReport = async (req, res, next) => {
+    try {
+      res.json(await this.settlementService.getSettlementReport(req.query, req.currentUser));
+    } catch (error) {
+      next(error);
+    }
+  };
 }

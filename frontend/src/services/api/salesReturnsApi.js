@@ -12,4 +12,8 @@ export const salesReturnsApi = {
   createSalesReturn(salesReturn) {
     return apiRequest("/sales-returns", { method: "POST", body: JSON.stringify(salesReturn) });
   },
+
+  getSalesReturnReport({ dateFrom, dateTo } = {}) {
+    return apiRequest(`/sales-returns/reports${buildQueryString({ dateFrom, dateTo })}`);
+  },
 };

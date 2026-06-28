@@ -59,4 +59,12 @@ export const TENANT_FEATURES = [
   "payroll",
   "payslips",
   "salary-reports",
+  "purchase-report",
+  "stock-movement-report",
+  "settlement-report",
+  "supplier-payment-report",
+  "sales-return-report",
+  "customer-due-report",
+  "cash-session-report",
+  "damaged-stock-report",
 ];

@@ -16,4 +16,8 @@ export const retailCashSessionsApi = {
   stopRetailCashSession(sessionId, payload) {
     return apiRequest(`/retail-cash-sessions/${sessionId}/stop`, { method: 'POST', body: JSON.stringify(payload) });
   },
+
+  getCashSessionReport({ dateFrom, dateTo } = {}) {
+    return apiRequest(`/retail-cash-sessions/reports${buildQueryString({ dateFrom, dateTo })}`);
+  },
 };

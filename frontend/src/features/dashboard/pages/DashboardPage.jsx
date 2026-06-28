@@ -111,6 +111,10 @@ export default function DashboardPage() {
   const totalDue = (financeDashboard?.totalDsrDue ?? 0) + (financeDashboard?.totalCustomerDue ?? 0);
   const totalOwe = financeDashboard?.totalSupplierDue ?? 0;
 
+  const todaySales = todayPnl.grossRevenue + retailPos.revenue;
+  const todayDue = Math.max(0, todayPnl.grossRevenue - vm.payableToday) + retailPos.dueAmount;
+  const todayProfit = todayPnl.netProfit + retailPos.profit;
+
   return (
     <div className="space-y-6">
       <SectionHeader
@@ -256,6 +260,71 @@ export default function DashboardPage() {
           </div>
         </div>
       )}
+
+      {/* ── 2. TODAY'S PROFIT REPORT ── */}
+      <div className="overflow-hidden rounded-[32px] border border-slate-200/80 bg-white shadow-[0_24px_60px_rgba(var(--slate-900),0.07)] ring-1 ring-[color-mix(in_srgb,var(--brand)_8%,transparent)]">
+        <div className="px-7 pb-4 pt-6">
+          <div className="flex items-center gap-2">
+            <div className="rounded-lg bg-emerald-50 p-1.5">
+              <TrendingUp size={13} className="text-emerald-700" />
+            </div>
+            <p className="text-[11px] font-black uppercase tracking-[0.22em] text-slate-600">
+              Today's Profit Report
+            </p>
+          </div>
+        </div>
+
+        <div className="grid gap-px bg-slate-100/80 sm:grid-cols-2 lg:grid-cols-4">
+          {[
+            {
+              label: "Today's Sales",
+              value: formatCurrency(todaySales, language),
+              sub: "DSR + retail revenue",
+              icon: ShoppingCart,
+              iconClass: "bg-blue-50 text-blue-700",
+              valueClass: "text-slate-950",
+            },
+            {
+              label: "Today's Due",
+              value: formatCurrency(todayDue, language),
+              sub: "Uncollected from DSR sales",
+              icon: HandCoins,
+              iconClass: todayDue > 0 ? "bg-amber-50 text-amber-700" : "bg-emerald-50 text-emerald-700",
+              valueClass: todayDue > 0 ? "text-amber-700" : "text-slate-950",
+            },
+            {
+              label: "Today's Expense",
+              value: formatCurrency(todayPnl.expenseTotal, language),
+              sub: "Total expenses today",
+              icon: Receipt,
+              iconClass: todayPnl.expenseTotal > 0 ? "bg-rose-50 text-rose-600" : "bg-slate-50 text-slate-500",
+              valueClass: todayPnl.expenseTotal > 0 ? "text-rose-600" : "text-slate-950",
+            },
+            {
+              label: "Today's Profit",
+              value: formatCurrency(todayProfit, language),
+              sub: "DSR + retail profit minus expenses",
+              icon: todayProfit >= 0 ? TrendingUp : TrendingDown,
+              iconClass: todayProfit >= 0 ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-600",
+              valueClass: todayProfit >= 0 ? "text-emerald-700" : "text-rose-600",
+            },
+          ].map((item) => {
+            const Icon = item.icon;
+            return (
+              <div key={item.label} className="bg-white px-7 py-6">
+                <div className={cx("w-fit rounded-xl p-2.5", item.iconClass)}>
+                  <Icon size={16} />
+                </div>
+                <p className="mt-4 text-[11px] font-black uppercase tracking-[0.16em] text-slate-600">{item.label}</p>
+                <p className={cx("mt-2 text-[clamp(1.4rem,2.5vw,1.875rem)] font-black tracking-tight leading-none", item.valueClass)}>
+                  {item.value}
+                </p>
+                <p className="mt-2 text-xs font-medium text-slate-500">{item.sub}</p>
+              </div>
+            );
+          })}
+        </div>
+      </div>
 
       {/* ── 4. INVENTORY BY CATEGORY + TOP PRODUCTS BY CASH ── */}
       <div className="grid gap-6 xl:grid-cols-2">

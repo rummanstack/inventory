@@ -82,7 +82,7 @@ export function useDashboardViewModel({ products, dsrs, today, t, language = 'en
           inventoryApi.listSettlements({ dateFrom: heatmapFrom, dateTo: today, pageSize: HEATMAP_PAGE_SIZE }),
           inventoryApi.listIssues({ dateFrom: yesterday, dateTo: yesterday, pageSize: DAY_SCOPE_PAGE_SIZE }),
           inventoryApi.listSettlements({ dateFrom: yesterday, dateTo: yesterday, pageSize: DAY_SCOPE_PAGE_SIZE }),
-          inventoryApi.listSalesInvoices({ dateFrom: today, dateTo: today, pageSize: 200 }).catch(() => ({ items: [] })),
+          inventoryApi.listSalesInvoices({ dateFrom: today, dateTo: today, pageSize: 2000 }).catch(() => ({ items: [] })),
           inventoryApi.getFinanceDashboard().catch(() => null),
           inventoryApi.getCurrentRetailCashSession().catch(() => null),
           inventoryApi.getExpenseReport({ date: today }).catch(() => null),
@@ -180,6 +180,8 @@ export function useDashboardViewModel({ products, dsrs, today, t, language = 'en
   const retailInvoiceCount = todaySalesInvoices.length;
   const retailRevenue = todaySalesInvoices.reduce((sum, inv) => sum + Number(inv.totalAmount || 0), 0);
   const retailAvgBasket = retailInvoiceCount > 0 ? retailRevenue / retailInvoiceCount : 0;
+  const retailDue = todaySalesInvoices.reduce((sum, inv) => sum + Number(inv.dueAmount || 0), 0);
+  const retailProfit = todaySalesInvoices.reduce((sum, inv) => sum + Number(inv.totalProfit || 0), 0);
 
   // Yesterday comparison
   const yesterdayIssuedPcs = yesterdayIssues.reduce((sum, issue) => sum + issue.items.reduce((s, i) => s + Number(i.issuedPieces || 0), 0), 0);
@@ -357,6 +359,8 @@ export function useDashboardViewModel({ products, dsrs, today, t, language = 'en
       invoiceCount: retailInvoiceCount,
       revenue: retailRevenue,
       avgBasket: retailAvgBasket,
+      dueAmount: retailDue,
+      profit: retailProfit,
     },
     retailCashSession,
     financeDashboard,

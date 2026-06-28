@@ -7,6 +7,7 @@ export function createFinanceDashboardRoutes(financeDashboardController) {
 
   router.get("/", requirePermission(PERMISSIONS.VIEW_FINANCE_DASHBOARD), financeDashboardController.getDashboard);
   router.get("/range-report", requirePermission(PERMISSIONS.VIEW_FINANCE_DASHBOARD), financeDashboardController.getRangeReport);
+  router.get("/monthly-trend", requirePermission(PERMISSIONS.VIEW_STATE), financeDashboardController.getMonthlyTrend);
 
   return router;
 }

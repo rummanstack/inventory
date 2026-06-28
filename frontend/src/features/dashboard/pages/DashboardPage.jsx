@@ -100,7 +100,7 @@ export default function DashboardPage() {
     );
   }
 
-  const { financeDashboard, retailPos, retailCashSession, dsrLeaderboard, noSaleToday, todayPnl } = vm;
+  const { financeDashboard, retailPos, retailCashSession, dsrLeaderboard, noSaleToday, todayPnl, monthlyTrend } = vm;
   const secondary = getCssVar("--secondary", "#5e5b8e");
 
   const cashInHand = financeDashboard?.accounts?.filter((a) => a.type === "CASH").reduce((s, a) => s + a.balance, 0) ?? 0;
@@ -324,6 +324,37 @@ export default function DashboardPage() {
             );
           })}
         </div>
+      </div>
+
+      {/* ── 3. MONTHLY ANALYTICS ── */}
+      <div className="grid gap-6 xl:grid-cols-2">
+        <ChartPanel
+          title="Monthly Sales"
+          description="Total revenue from all channels over the last 12 months."
+        >
+          <TrendChart
+            data={monthlyTrend.length > 0 ? monthlyTrend : Array.from({ length: 12 }, (_, i) => ({ label: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][i], sales: 0, profit: 0 }))}
+            valueFormatter={(v) => formatCurrency(v, language)}
+            series={[
+              { key: 'sales', label: 'Sales', color: getCssVar('--secondary', '#5e5b8e'), fill: true },
+            ]}
+            height={220}
+          />
+        </ChartPanel>
+
+        <ChartPanel
+          title="Monthly Profit"
+          description="Net profit from invoices over the last 12 months."
+        >
+          <TrendChart
+            data={monthlyTrend.length > 0 ? monthlyTrend : Array.from({ length: 12 }, (_, i) => ({ label: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][i], sales: 0, profit: 0 }))}
+            valueFormatter={(v) => formatCurrency(v, language)}
+            series={[
+              { key: 'profit', label: 'Profit', color: getCssVar('--success', '#37a864'), fill: true },
+            ]}
+            height={220}
+          />
+        </ChartPanel>
       </div>
 
       {/* ── 4. INVENTORY BY CATEGORY + TOP PRODUCTS BY CASH ── */}

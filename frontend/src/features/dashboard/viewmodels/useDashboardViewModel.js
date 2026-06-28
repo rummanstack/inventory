@@ -11,6 +11,19 @@ import { inventoryApi } from '../../../services/inventoryApi';
 import { formatCasePiece, formatCurrency, formatNumber, getLowStockProducts } from '../../../utils/calculations.js';
 import { getCssVar } from '../../../utils/theme.js';
 
+const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+function formatMonthlyTrend(rows) {
+  return rows.map((row) => {
+    const [, monthNum] = row.month.split('-');
+    return {
+      label: MONTH_NAMES[parseInt(monthNum, 10) - 1] || row.month,
+      sales: row.totalSales,
+      profit: row.totalProfit,
+    };
+  });
+}
+
 const DAY_SCOPE_PAGE_SIZE = 100;
 const TREND_DAYS = 7;
 const HEATMAP_DAYS = 70;
@@ -42,6 +55,7 @@ export function useDashboardViewModel({ products, dsrs, today, t, language = 'en
   const [retailCashSession, setRetailCashSession] = useState(undefined);
   const [todayExpenseReport, setTodayExpenseReport] = useState(null);
   const [dsrTargetSummary, setDsrTargetSummary] = useState([]);
+  const [monthlyTrend, setMonthlyTrend] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -73,6 +87,7 @@ export function useDashboardViewModel({ products, dsrs, today, t, language = 'en
           cashSessionResult,
           expenseReportResult,
           dsrTargetSummaryResult,
+          monthlyTrendResult,
         ] = await Promise.all([
           inventoryApi.listIssues({ dateFrom: today, dateTo: today, pageSize: DAY_SCOPE_PAGE_SIZE }),
           inventoryApi.listSettlements({ dateFrom: today, dateTo: today, pageSize: DAY_SCOPE_PAGE_SIZE }),
@@ -87,6 +102,7 @@ export function useDashboardViewModel({ products, dsrs, today, t, language = 'en
           inventoryApi.getCurrentRetailCashSession().catch(() => null),
           inventoryApi.getExpenseReport({ date: today }).catch(() => null),
           inventoryApi.getDsrTargetSummary(today.slice(0, 7)).catch(() => ({ summary: [] })),
+          inventoryApi.getMonthlyTrend().catch(() => ({ rows: [] })),
         ]);
 
         if (cancelled) {
@@ -106,6 +122,7 @@ export function useDashboardViewModel({ products, dsrs, today, t, language = 'en
         setRetailCashSession(cashSessionResult);
         setTodayExpenseReport(expenseReportResult);
         setDsrTargetSummary(dsrTargetSummaryResult?.summary || []);
+        setMonthlyTrend(formatMonthlyTrend(monthlyTrendResult?.rows || []));
       } catch (requestError) {
         if (!cancelled) {
           setError(requestError.message);
@@ -120,6 +137,7 @@ export function useDashboardViewModel({ products, dsrs, today, t, language = 'en
           setTodaySalesInvoices([]);
           setFinanceDashboard(null);
           setRetailCashSession(null);
+          setMonthlyTrend([]);
         }
       } finally {
         if (!cancelled) {
@@ -367,6 +385,7 @@ export function useDashboardViewModel({ products, dsrs, today, t, language = 'en
     dsrTargetSummary,
     noSaleToday,
     dsrLeaderboard,
+    monthlyTrend,
     todayPnl: { grossRevenue, grossCogs, grossProfit, expenseTotal, netProfit, dsrProfitRows, productProfitRows, expensesByCategory },
     yesterdayDeltas: {
       issued: computeDelta(totalIssuedToday, yesterdayIssuedPcs),

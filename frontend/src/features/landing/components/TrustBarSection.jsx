@@ -15,7 +15,7 @@ export default function TrustBarSection() {
           {STATS.map(({ Icon, value, label }) => (
             <div
               key={label}
-              className="flex flex-col items-center gap-2 rounded-[18px] bg-[linear-gradient(135deg,#0e0c25,#373373)] px-4 py-4 text-center"
+              className="flex flex-col items-center gap-2 rounded-[18px] bg-[linear-gradient(135deg,#24205a,#5550a8)] px-4 py-4 text-center"
             >
               <Icon size={20} className="text-blue-300" />
               <span className="text-xl font-black text-white">{value}</span>

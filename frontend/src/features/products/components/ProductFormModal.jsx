@@ -15,6 +15,8 @@ export default function ProductFormModal({ product, onClose, onSave }) {
   const [categories, setCategories] = useState([]);
   const [brands, setBrands] = useState([]);
   const [suppliers, setSuppliers] = useState([]);
+  const [manufacturers, setManufacturers] = useState([]);
+  const [genericMedicines, setGenericMedicines] = useState([]);
   const { form, updateField, error, setError, saving, setSaving } = useFormState({
     name: product?.name || '',
     categoryId: product?.categoryId || '',
@@ -41,6 +43,8 @@ export default function ProductFormModal({ product, onClose, onSave }) {
     dosageForm: product?.dosageForm || '',
     strength: product?.strength || '',
     manufacturer: product?.manufacturer || '',
+    manufacturerId: product?.manufacturerId || '',
+    genericMedicineId: product?.genericMedicineId || '',
     regNumber: product?.regNumber || '',
     controlledSubstance: product?.controlledSubstance === true,
     packSize: product?.packSize ?? 0,
@@ -60,6 +64,10 @@ export default function ProductFormModal({ product, onClose, onSave }) {
     inventoryApi.listCategories().then((result) => setCategories(result.categories || [])).catch(() => setCategories([]));
     inventoryApi.listBrands().then((result) => setBrands(result.brands || [])).catch(() => setBrands([]));
     inventoryApi.getActiveSuppliers().then((result) => setSuppliers(result.items || [])).catch(() => setSuppliers([]));
+    if (isPharmacy) {
+      inventoryApi.listActiveManufacturers().then((result) => setManufacturers(result.manufacturers || [])).catch(() => setManufacturers([]));
+      inventoryApi.listActiveGenericMedicines().then((result) => setGenericMedicines(result.genericMedicines || [])).catch(() => setGenericMedicines([]));
+    }
   }, []);
 
   async function submitForm(event) {
@@ -112,6 +120,8 @@ export default function ProductFormModal({ product, onClose, onSave }) {
       packSize: Number(form.packSize) || 0,
       medicineType: form.medicineType || '',
       requiresBatch: Boolean(form.requiresBatch),
+      manufacturerId: form.manufacturerId || null,
+      genericMedicineId: form.genericMedicineId || null,
     };
 
     if (isEdit) {
@@ -320,12 +330,30 @@ export default function ProductFormModal({ product, onClose, onSave }) {
                 </div>
               </div>
               <div>
+                <label className="label">{t('genericMedicines.label')}</label>
+                <select className="input" value={form.genericMedicineId || ''} onChange={(e) => updateField('genericMedicineId', e.target.value)}>
+                  <option value="">{t('common.select')}</option>
+                  {genericMedicines.map((g) => (
+                    <option key={g.id} value={g.id}>{g.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
                 <label className="label">{t('products.genericName')}</label>
-                <input className="input" value={form.genericName} onChange={(e) => updateField('genericName', e.target.value)} />
+                <input className="input" value={form.genericName} onChange={(e) => updateField('genericName', e.target.value)} placeholder="e.g. Paracetamol (free text fallback)" />
               </div>
               <div>
                 <label className="label">{t('products.manufacturer')}</label>
-                <input className="input" value={form.manufacturer} onChange={(e) => updateField('manufacturer', e.target.value)} />
+                {manufacturers.length > 0 ? (
+                  <select className="input" value={form.manufacturerId || ''} onChange={(e) => updateField('manufacturerId', e.target.value)}>
+                    <option value="">{t('common.select')}</option>
+                    {manufacturers.map((m) => (
+                      <option key={m.id} value={m.id}>{m.name}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <input className="input" value={form.manufacturer} onChange={(e) => updateField('manufacturer', e.target.value)} placeholder="Add manufacturers in Inventory → Manufacturers" />
+                )}
               </div>
               <div>
                 <label className="label">{t('products.dosageForm')}</label>

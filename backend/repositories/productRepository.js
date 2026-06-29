@@ -29,6 +29,8 @@ export function mapProduct(row) {
     dosageForm: row.dosage_form || '',
     strength: row.strength || '',
     manufacturer: row.manufacturer || '',
+    manufacturerId: row.manufacturer_id || null,
+    genericMedicineId: row.generic_medicine_id || null,
     regNumber: row.reg_number || '',
     controlledSubstance: row.controlled_substance === true || row.controlled_substance === 't',
     packSize: Number(row.pack_size || 0),
@@ -106,7 +108,8 @@ export async function listAllActiveProductsLite(client, tenantId, { supplierId }
     `SELECT p.id, p.name, c.name AS category_name, p.category_id, p.pieces_per_case, p.purchase_price,
             p.wholesale_price, p.retail_price, p.stock_pieces, p.damaged_pieces, p.refundable,
             p.tax_rate, p.order_index, p.serial_required, p.sku, p.barcode, p.brand, p.model,
-            p.warranty_months, p.status,
+            p.warranty_months, p.status, p.manufacturer_id,
+            p.medicine_type, p.requires_batch, p.pack_size,
             COALESCE(
               (SELECT array_agg(ps.supplier_id) FROM product_suppliers ps WHERE ps.product_id = p.id AND ps.tenant_id = $1),
               ARRAY[]::TEXT[]
@@ -150,9 +153,9 @@ export function insertProduct(client, product) {
         stock_pieces, refundable, tax_rate, order_index, reorder_level,
         sku, barcode, brand, model, serial_required, warranty_months, status, description, image_url,
         generic_name, drug_type, dosage_form, strength, manufacturer, reg_number, controlled_substance,
-        pack_size, medicine_type, requires_batch
+        pack_size, medicine_type, requires_batch, manufacturer_id, generic_medicine_id
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34)
       RETURNING *
      )
      SELECT inserted.*, c.name AS category_name FROM inserted LEFT JOIN categories c ON c.id = inserted.category_id`,
@@ -189,6 +192,8 @@ export function insertProduct(client, product) {
       product.packSize || 0,
       product.medicineType || '',
       product.requiresBatch || false,
+      product.manufacturerId || null,
+      product.genericMedicineId || null,
     ],
   );
 }
@@ -203,7 +208,7 @@ export function updateProduct(client, product) {
            status = $19, description = $20, image_url = $21,
            generic_name = $22, drug_type = $23, dosage_form = $24, strength = $25,
            manufacturer = $26, reg_number = $27, controlled_substance = $28,
-           pack_size = $29, medicine_type = $30, requires_batch = $31
+           pack_size = $29, medicine_type = $30, requires_batch = $31, manufacturer_id = $32, generic_medicine_id = $33
        WHERE id = $1 AND tenant_id = $2
        RETURNING *
      )
@@ -240,6 +245,8 @@ export function updateProduct(client, product) {
       product.packSize || 0,
       product.medicineType || '',
       product.requiresBatch || false,
+      product.manufacturerId || null,
+      product.genericMedicineId || null,
     ],
   );
 }

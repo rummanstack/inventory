@@ -3,6 +3,8 @@ import { auditApi } from './api/auditApi.js';
 import { authApi } from './api/authApi.js';
 import { categoriesApi } from './api/categoriesApi.js';
 import { brandsApi } from './api/brandsApi.js';
+import { manufacturersApi } from './api/manufacturersApi.js';
+import { genericMedicinesApi } from './api/genericMedicinesApi.js';
 import { customersApi } from './api/customersApi.js';
 import { databaseBackupApi } from './api/databaseBackupApi.js';
 import { dsrFinanceApi } from './api/dsrFinanceApi.js';
@@ -69,6 +71,8 @@ export const inventoryApi = {
   ...tradeInsApi,
   ...categoriesApi,
   ...brandsApi,
+  ...manufacturersApi,
+  ...genericMedicinesApi,
   ...dsrsApi,
   ...customersApi,
   ...morningIssueApi,

@@ -71,6 +71,8 @@ export function normalizeProduct(input) {
     requiresBatch:
       input.requiresBatch === true ||
       String(input.requiresBatch || "").trim().toLowerCase() === "true",
+    manufacturerId: String(input.manufacturerId || "").trim() || null,
+    genericMedicineId: String(input.genericMedicineId || "").trim() || null,
   };
 }
 

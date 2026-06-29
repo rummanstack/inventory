@@ -49,6 +49,14 @@ import {
   applyStockDelta,
   updateProductPurchasePrice,
 } from "./shared/inventoryHelpers.js";
+import {
+  insertDrugBatch,
+  findDrugBatchByReceiptItemId,
+  adjustDrugBatchQuantity,
+  deductDrugBatchReceiptQuantities,
+  restoreDrugBatchReceiptQuantities,
+} from "../repositories/drugBatchRepository.js";
+import { createId } from "../lib/ids.js";
 
 const DATE_ERROR = "Purchase date must be in YYYY-MM-DD format.";
 
@@ -205,6 +213,45 @@ async function restorePurchaseSerials(client, purchaseReceiptId, tenantId) {
   const lockedResult = await findProductSerialsByPurchaseReceiptId(client, purchaseReceiptId, tenantId, { includeDeleted: true });
   for (const row of lockedResult.rows) {
     await restoreProductSerial(client, row.id, tenantId);
+  }
+}
+
+// Creates or adjusts drug_batches rows to match the purchase receipt items.
+// previousItemMap: Map<itemId, { quantityPieces }> — empty Map for new receipts.
+// Only creates a batch when the item has a batchNumber, lotNumber, expiryDate, or
+// manufactureDate — non-pharmacy products with none of these fields are silently skipped.
+async function syncDrugBatchesForItems(client, items, previousItemMap, { tenantId, purchaseReceiptId, createdBy }) {
+  for (const item of items) {
+    const hasBatchInfo = item.batchNumber || item.lotNumber || item.expiryDate || item.manufactureDate;
+    if (!hasBatchInfo) continue;
+
+    const prevQty = previousItemMap.get(item.id)?.quantityPieces ?? 0;
+    const delta = item.quantityPieces - prevQty;
+
+    if (prevQty === 0) {
+      // New item — insert a fresh batch row.
+      await insertDrugBatch(client, {
+        id: createId("drugbatch"),
+        tenantId,
+        productId: item.productId,
+        purchaseReceiptId,
+        purchaseReceiptItemId: item.id,
+        batchNumber: item.batchNumber || '',
+        lotNumber: item.lotNumber || '',
+        expiryDate: item.expiryDate || null,
+        manufactureDate: item.manufactureDate || null,
+        quantityReceived: item.quantityPieces,
+        quantityRemaining: item.quantityPieces,
+        purchasePrice: item.purchasePrice || 0,
+        createdBy: createdBy || null,
+      });
+    } else if (delta !== 0) {
+      // Existing item — adjust the linked batch by the quantity delta.
+      const existing = await findDrugBatchByReceiptItemId(client, item.id, tenantId);
+      if (existing) {
+        await adjustDrugBatchQuantity(client, existing.id, delta);
+      }
+    }
   }
 }
 
@@ -455,8 +502,18 @@ export class PurchaseReceiveService {
         lineTotal: item.lineTotal,
         taxRate: item.taxRate,
         taxAmount: item.taxAmount,
+        batchNumber: item.batchNumber || '',
+        lotNumber: item.lotNumber || '',
+        expiryDate: item.expiryDate || null,
+        manufactureDate: item.manufactureDate || null,
       });
     }
+
+    await syncDrugBatchesForItems(client, base.items, new Map(), {
+      tenantId: actor.tenantId,
+      purchaseReceiptId: base.id,
+      createdBy: actor.id,
+    });
 
     await insertSerialsForItems(client, base.items, productMap, {
       tenantId: actor.tenantId,
@@ -591,6 +648,7 @@ export class PurchaseReceiveService {
     });
 
     const previousIds = new Set(previousItems.map((item) => item.id));
+    const previousItemMap = new Map(previousItems.map((item) => [item.id, item]));
     const nextIds = new Set(base.items.map((item) => item.id));
     const removedItemIds = previousItems.filter((item) => !nextIds.has(item.id)).map((item) => item.id);
     await deletePurchaseReceiptItemsByIds(client, removedItemIds);
@@ -607,6 +665,10 @@ export class PurchaseReceiveService {
         lineTotal: item.lineTotal,
         taxRate: item.taxRate,
         taxAmount: item.taxAmount,
+        batchNumber: item.batchNumber || '',
+        lotNumber: item.lotNumber || '',
+        expiryDate: item.expiryDate || null,
+        manufactureDate: item.manufactureDate || null,
       };
 
       if (previousIds.has(item.id)) {
@@ -615,6 +677,12 @@ export class PurchaseReceiveService {
         await insertPurchaseReceiptItem(client, itemPayload);
       }
     }
+
+    await syncDrugBatchesForItems(client, base.items, previousItemMap, {
+      tenantId: actor.tenantId,
+      purchaseReceiptId: base.id,
+      createdBy: actor.id,
+    });
 
     const updateResult = await updatePurchaseReceipt(client, { ...base, purchaseNumber: previousPurchase.purchase_number });
 
@@ -758,6 +826,8 @@ export class PurchaseReceiveService {
         businessDate: purchaseDate,
       });
 
+      await deductDrugBatchReceiptQuantities(client, purchaseId, actor.tenantId);
+
       await softDeletePurchaseReceipt(client, purchaseId, actor.tenantId, {
         deletedById: actor.id,
         deleteReason: reason,
@@ -857,6 +927,8 @@ export class PurchaseReceiveService {
         note: `Purchase ${purchase.purchase_number} restored — stock re-applied`,
         businessDate: purchaseDate,
       });
+
+      await restoreDrugBatchReceiptQuantities(client, purchaseId, actor.tenantId);
 
       const totalAmount = Number(purchase.total_amount || 0);
       const paidAmount = Number(purchase.paid_amount || 0);

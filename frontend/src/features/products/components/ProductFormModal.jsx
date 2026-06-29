@@ -322,10 +322,6 @@ export default function ProductFormModal({ product, onClose, onSave }) {
                 <input className="input" value={form.manufacturer} onChange={(e) => updateField('manufacturer', e.target.value)} />
               </div>
               <div>
-                <label className="label">{t('products.drugType')}</label>
-                <input className="input" value={form.drugType} onChange={(e) => updateField('drugType', e.target.value)} placeholder="e.g. Antibiotic, Analgesic" />
-              </div>
-              <div>
                 <label className="label">{t('products.dosageForm')}</label>
                 <input className="input" value={form.dosageForm} onChange={(e) => updateField('dosageForm', e.target.value)} placeholder="e.g. Tablet, Syrup, Injection" />
               </div>

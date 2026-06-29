@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowUp, Facebook, Instagram, Linkedin, MessageCircle, Phone, Send, Twitter } from 'lucide-react';
+import { ArrowUp, Facebook, Instagram, Linkedin, MapPin, MessageCircle, Phone, Send, Twitter } from 'lucide-react';
 import { contactPhone, navLinks, socialLinks, whatsappUrl } from '../constants.js';
 import logoMark from '../../../assets/stockledger-logo-mark.svg';
 
@@ -52,9 +52,12 @@ export default function LandingFooter({ t }) {
             <Link to="/login" className="text-sm font-bold text-slate-300 transition hover:text-white">
               {t('landing.login')}
             </Link>
+            <Link to="/founder" className="text-sm font-bold text-slate-300 transition hover:text-white">
+              About the Founder
+            </Link>
           </nav>
 
-          <div className="flex flex-col gap-2 sm:items-end">
+          <div className="flex flex-col gap-3 sm:items-end">
             <a href={`tel:${contactPhone}`} className="inline-flex items-center gap-2 text-base font-black text-white transition hover:text-slate-200">
               <Phone size={16} className="text-[var(--blue-200)]" />
               {contactPhone}
@@ -63,11 +66,22 @@ export default function LandingFooter({ t }) {
               <MessageCircle size={16} className="text-[var(--blue-200)]" />
               {t('landing.footer.whatsapp')}
             </a>
+            <div className="inline-flex items-start gap-2 text-sm text-slate-400 sm:text-right">
+              <MapPin size={15} className="mt-0.5 shrink-0 text-[var(--blue-200)]" />
+              <address className="not-italic leading-5">
+                Middle Paikpara, Mirpur-1<br />
+                Dhaka – 1216, Bangladesh
+              </address>
+            </div>
           </div>
         </div>
 
         <div className="mt-8 flex flex-col gap-3 border-t border-white/10 pt-5 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-xs font-semibold text-slate-400">{t('landing.footer.copyright')}</p>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
+            <p className="text-xs font-semibold text-slate-400">{t('landing.footer.copyright')}</p>
+            <Link to="/privacy-policy" className="text-xs font-bold text-slate-400 transition hover:text-white">Privacy Policy</Link>
+            <Link to="/terms" className="text-xs font-bold text-slate-400 transition hover:text-white">Terms &amp; Conditions</Link>
+          </div>
           <a href="#top" className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-300 transition hover:text-white">
             {t('landing.footer.backToTop')}
             <ArrowUp size={14} />

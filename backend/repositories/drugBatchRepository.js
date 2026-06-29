@@ -178,6 +178,53 @@ export async function listSalesInvoiceItemBatchesByInvoice(client, salesInvoiceI
   }));
 }
 
+// Returns the single drug_batch row linked to a purchase receipt item, or null.
+export async function findDrugBatchByReceiptItemId(client, purchaseReceiptItemId, tenantId) {
+  const result = await client.query(
+    `SELECT * FROM drug_batches
+     WHERE purchase_receipt_item_id = $1 AND tenant_id = $2
+     LIMIT 1`,
+    [purchaseReceiptItemId, tenantId],
+  );
+  return result.rows.length ? mapDrugBatch(result.rows[0]) : null;
+}
+
+// Adjusts quantity_received and quantity_remaining by delta (delta can be negative).
+// quantity_remaining is floored at 0 so it never goes negative.
+export function adjustDrugBatchQuantity(client, batchId, delta) {
+  return client.query(
+    `UPDATE drug_batches
+     SET quantity_received  = quantity_received + $2,
+         quantity_remaining = GREATEST(0, quantity_remaining + $2),
+         updated_at         = NOW()
+     WHERE id = $1`,
+    [batchId, delta],
+  );
+}
+
+// On purchase receipt trash: reduce quantity_remaining by the full quantity_received
+// for every batch linked to this receipt (they go back to 0 available for FEFO).
+export function deductDrugBatchReceiptQuantities(client, purchaseReceiptId, tenantId) {
+  return client.query(
+    `UPDATE drug_batches
+     SET quantity_remaining = GREATEST(0, quantity_remaining - quantity_received),
+         updated_at         = NOW()
+     WHERE purchase_receipt_id = $1 AND tenant_id = $2`,
+    [purchaseReceiptId, tenantId],
+  );
+}
+
+// On purchase receipt restore: add quantity_received back to quantity_remaining.
+export function restoreDrugBatchReceiptQuantities(client, purchaseReceiptId, tenantId) {
+  return client.query(
+    `UPDATE drug_batches
+     SET quantity_remaining = quantity_remaining + quantity_received,
+         updated_at         = NOW()
+     WHERE purchase_receipt_id = $1 AND tenant_id = $2`,
+    [purchaseReceiptId, tenantId],
+  );
+}
+
 export async function listSalesInvoiceItemBatchesByItem(client, salesInvoiceItemId, tenantId) {
   const result = await client.query(
     `SELECT * FROM sales_invoice_item_batches

@@ -117,7 +117,7 @@ export async function upsertProductSuppliers(client, productId, supplierIds, ten
     [productId, tenantId],
   );
   if (!supplierIds || supplierIds.length === 0) return;
-  const values = supplierIds.map((_, i) => `($1, $${i + 3}, $2)`).join(', ');
+  const values = supplierIds.map((_, i) => `($1, $2, $${i + 3})`).join(', ');
   await client.query(
     `INSERT INTO product_suppliers (product_id, tenant_id, supplier_id) VALUES ${values} ON CONFLICT DO NOTHING`,
     [productId, tenantId, ...supplierIds],

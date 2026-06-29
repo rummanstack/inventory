@@ -1809,6 +1809,9 @@ export async function createSchema(pool) {
     ALTER TABLE products ADD COLUMN IF NOT EXISTS manufacturer TEXT NOT NULL DEFAULT '';
     ALTER TABLE products ADD COLUMN IF NOT EXISTS reg_number TEXT NOT NULL DEFAULT '';
     ALTER TABLE products ADD COLUMN IF NOT EXISTS controlled_substance BOOLEAN NOT NULL DEFAULT false;
+    ALTER TABLE products ADD COLUMN IF NOT EXISTS pack_size INTEGER NOT NULL DEFAULT 0;
+    ALTER TABLE products ADD COLUMN IF NOT EXISTS medicine_type TEXT NOT NULL DEFAULT '';
+    ALTER TABLE products ADD COLUMN IF NOT EXISTS requires_batch BOOLEAN NOT NULL DEFAULT false;
 
     CREATE INDEX IF NOT EXISTS idx_products_generic_name ON products(tenant_id, generic_name) WHERE generic_name <> '';
     CREATE INDEX IF NOT EXISTS idx_products_manufacturer ON products(tenant_id, manufacturer) WHERE manufacturer <> '';

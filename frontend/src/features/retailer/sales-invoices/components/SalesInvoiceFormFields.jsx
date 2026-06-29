@@ -319,6 +319,8 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, retail
                         {hasPromo && <PromoBadge promotion={row.appliedPromotion} size="md" />}
                       </div>
                       {isPharmacy && row.productId && (() => {
+                        const selectedProduct = row.productId ? productDirectory.find((p) => p.id === row.productId) : null;
+                        if (!selectedProduct?.requiresBatch) return null;
                         const batches = batchInfoByProductId[row.productId];
                         if (!batches) return null;
                         const active = batches.filter((b) => b.quantityRemaining > 0);
@@ -329,6 +331,14 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, retail
                           <p className="mt-1 text-[10px] font-bold text-sky-700">
                             {t('pharmacy.fefoLabel')}: {fefo.batchNumber || '—'} · {t('pharmacy.expiresLabel')}: {expLabel} · {t('pharmacy.remainingLabel')}: {fefo.quantityRemaining}
                           </p>
+                        );
+                      })()}
+                      {isPharmacy && row.productId && (() => {
+                        const selectedProduct = productDirectory.find((p) => p.id === row.productId);
+                        if (selectedProduct?.medicineType !== 'Prescription') return null;
+                        if (vm.prescriptionNumber?.trim()) return null;
+                        return (
+                          <p className="mt-1 text-[10px] font-bold text-rose-600">{t('pharmacy.prescriptionRequired')}</p>
                         );
                       })()}
                     </div>

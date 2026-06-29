@@ -64,6 +64,13 @@ export function normalizeProduct(input) {
     controlledSubstance:
       input.controlledSubstance === true ||
       String(input.controlledSubstance || "").trim().toLowerCase() === "true",
+    packSize: Math.max(0, Math.floor(Number(input.packSize || 0))),
+    medicineType: ["OTC", "Prescription"].includes(String(input.medicineType || "").trim())
+      ? String(input.medicineType).trim()
+      : "",
+    requiresBatch:
+      input.requiresBatch === true ||
+      String(input.requiresBatch || "").trim().toLowerCase() === "true",
   };
 }
 

@@ -31,6 +31,9 @@ export function mapProduct(row) {
     manufacturer: row.manufacturer || '',
     regNumber: row.reg_number || '',
     controlledSubstance: row.controlled_substance === true || row.controlled_substance === 't',
+    packSize: Number(row.pack_size || 0),
+    medicineType: row.medicine_type || '',
+    requiresBatch: row.requires_batch === true || row.requires_batch === 't',
   };
 }
 
@@ -146,9 +149,10 @@ export function insertProduct(client, product) {
         id, tenant_id, name, category_id, pieces_per_case, purchase_price, wholesale_price, retail_price,
         stock_pieces, refundable, tax_rate, order_index, reorder_level,
         sku, barcode, brand, model, serial_required, warranty_months, status, description, image_url,
-        generic_name, drug_type, dosage_form, strength, manufacturer, reg_number, controlled_substance
+        generic_name, drug_type, dosage_form, strength, manufacturer, reg_number, controlled_substance,
+        pack_size, medicine_type, requires_batch
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32)
       RETURNING *
      )
      SELECT inserted.*, c.name AS category_name FROM inserted LEFT JOIN categories c ON c.id = inserted.category_id`,
@@ -182,6 +186,9 @@ export function insertProduct(client, product) {
       product.manufacturer || '',
       product.regNumber || '',
       product.controlledSubstance || false,
+      product.packSize || 0,
+      product.medicineType || '',
+      product.requiresBatch || false,
     ],
   );
 }
@@ -195,7 +202,8 @@ export function updateProduct(client, product) {
            sku = $13, barcode = $14, brand = $15, model = $16, serial_required = $17, warranty_months = $18,
            status = $19, description = $20, image_url = $21,
            generic_name = $22, drug_type = $23, dosage_form = $24, strength = $25,
-           manufacturer = $26, reg_number = $27, controlled_substance = $28
+           manufacturer = $26, reg_number = $27, controlled_substance = $28,
+           pack_size = $29, medicine_type = $30, requires_batch = $31
        WHERE id = $1 AND tenant_id = $2
        RETURNING *
      )
@@ -229,6 +237,9 @@ export function updateProduct(client, product) {
       product.manufacturer || '',
       product.regNumber || '',
       product.controlledSubstance || false,
+      product.packSize || 0,
+      product.medicineType || '',
+      product.requiresBatch || false,
     ],
   );
 }

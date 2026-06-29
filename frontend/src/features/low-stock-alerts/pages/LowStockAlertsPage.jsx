@@ -10,6 +10,7 @@ const LOW_STOCK_PRINT_ID = 'low-stock-alerts-print';
 export default function LowStockAlertsPage() {
   const { productDirectory, t, language, tenant } = useInventoryApp();
   const isElectronics = (tenant?.businessType || 'ELECTRONICS') === 'ELECTRONICS';
+  const isPharmacy = tenant?.businessType === 'DRUG_PHARMACY';
   const lowStockProducts = [...getLowStockProducts(productDirectory)].sort((a, b) => a.stockPieces - b.stockPieces);
   const outOfStockCount = lowStockProducts.filter((product) => product.stockPieces === 0).length;
 

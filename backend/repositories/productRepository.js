@@ -24,6 +24,13 @@ export function mapProduct(row) {
     description: row.description || '',
     imageUrl: row.image_url || null,
     supplierIds: Array.isArray(row.supplier_ids) ? row.supplier_ids : [],
+    genericName: row.generic_name || '',
+    drugType: row.drug_type || '',
+    dosageForm: row.dosage_form || '',
+    strength: row.strength || '',
+    manufacturer: row.manufacturer || '',
+    regNumber: row.reg_number || '',
+    controlledSubstance: row.controlled_substance === true || row.controlled_substance === 't',
   };
 }
 
@@ -138,9 +145,10 @@ export function insertProduct(client, product) {
       INSERT INTO products (
         id, tenant_id, name, category_id, pieces_per_case, purchase_price, wholesale_price, retail_price,
         stock_pieces, refundable, tax_rate, order_index, reorder_level,
-        sku, barcode, brand, model, serial_required, warranty_months, status, description, image_url
+        sku, barcode, brand, model, serial_required, warranty_months, status, description, image_url,
+        generic_name, drug_type, dosage_form, strength, manufacturer, reg_number, controlled_substance
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29)
       RETURNING *
      )
      SELECT inserted.*, c.name AS category_name FROM inserted LEFT JOIN categories c ON c.id = inserted.category_id`,
@@ -167,6 +175,13 @@ export function insertProduct(client, product) {
       product.status,
       product.description,
       product.imageUrl,
+      product.genericName || '',
+      product.drugType || '',
+      product.dosageForm || '',
+      product.strength || '',
+      product.manufacturer || '',
+      product.regNumber || '',
+      product.controlledSubstance || false,
     ],
   );
 }
@@ -178,7 +193,9 @@ export function updateProduct(client, product) {
        SET name = $3, category_id = $4, pieces_per_case = $5, purchase_price = $6, wholesale_price = $7, retail_price = $8,
            refundable = $9, tax_rate = $10, order_index = $11, reorder_level = $12,
            sku = $13, barcode = $14, brand = $15, model = $16, serial_required = $17, warranty_months = $18,
-           status = $19, description = $20, image_url = $21
+           status = $19, description = $20, image_url = $21,
+           generic_name = $22, drug_type = $23, dosage_form = $24, strength = $25,
+           manufacturer = $26, reg_number = $27, controlled_substance = $28
        WHERE id = $1 AND tenant_id = $2
        RETURNING *
      )
@@ -205,6 +222,13 @@ export function updateProduct(client, product) {
       product.status,
       product.description,
       product.imageUrl,
+      product.genericName || '',
+      product.drugType || '',
+      product.dosageForm || '',
+      product.strength || '',
+      product.manufacturer || '',
+      product.regNumber || '',
+      product.controlledSubstance || false,
     ],
   );
 }

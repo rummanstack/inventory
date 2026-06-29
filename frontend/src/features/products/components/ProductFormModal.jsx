@@ -11,6 +11,7 @@ export default function ProductFormModal({ product, onClose, onSave }) {
   const { t, pushToast, tenant } = useInventoryApp();
   const isEdit = Boolean(product);
   const isElectronics = (tenant?.businessType || 'ELECTRONICS') === 'ELECTRONICS';
+  const isPharmacy = tenant?.businessType === 'DRUG_PHARMACY';
   const [categories, setCategories] = useState([]);
   const [brands, setBrands] = useState([]);
   const [suppliers, setSuppliers] = useState([]);
@@ -35,6 +36,13 @@ export default function ProductFormModal({ product, onClose, onSave }) {
     description: product?.description || '',
     imageUrl: product?.imageUrl || '',
     supplierIds: Array.isArray(product?.supplierIds) ? product.supplierIds : [],
+    genericName: product?.genericName || '',
+    drugType: product?.drugType || '',
+    dosageForm: product?.dosageForm || '',
+    strength: product?.strength || '',
+    manufacturer: product?.manufacturer || '',
+    regNumber: product?.regNumber || '',
+    controlledSubstance: product?.controlledSubstance === true,
   });
 
   function toggleSupplier(supplierId) {
@@ -91,6 +99,13 @@ export default function ProductFormModal({ product, onClose, onSave }) {
       description: form.description.trim(),
       imageUrl: form.imageUrl.trim() || null,
       supplierIds,
+      genericName: form.genericName?.trim() || '',
+      drugType: form.drugType?.trim() || '',
+      dosageForm: form.dosageForm?.trim() || '',
+      strength: form.strength?.trim() || '',
+      manufacturer: form.manufacturer?.trim() || '',
+      regNumber: form.regNumber?.trim() || '',
+      controlledSubstance: Boolean(form.controlledSubstance),
     };
 
     if (isEdit) {
@@ -289,6 +304,55 @@ export default function ProductFormModal({ product, onClose, onSave }) {
               onChange={(event) => updateField('description', event.target.value)}
             />
           </div>
+          {isPharmacy ? (
+            <>
+              <div className="sm:col-span-2">
+                <div className="mb-2 flex items-center gap-2">
+                  <span className="h-px flex-1 bg-slate-200" />
+                  <span className="text-xs font-semibold uppercase tracking-widest text-slate-400">Drug & Pharmacy Details</span>
+                  <span className="h-px flex-1 bg-slate-200" />
+                </div>
+              </div>
+              <div>
+                <label className="label">{t('products.genericName')}</label>
+                <input className="input" value={form.genericName} onChange={(e) => updateField('genericName', e.target.value)} />
+              </div>
+              <div>
+                <label className="label">{t('products.manufacturer')}</label>
+                <input className="input" value={form.manufacturer} onChange={(e) => updateField('manufacturer', e.target.value)} />
+              </div>
+              <div>
+                <label className="label">{t('products.drugType')}</label>
+                <input className="input" value={form.drugType} onChange={(e) => updateField('drugType', e.target.value)} placeholder="e.g. Antibiotic, Analgesic" />
+              </div>
+              <div>
+                <label className="label">{t('products.dosageForm')}</label>
+                <input className="input" value={form.dosageForm} onChange={(e) => updateField('dosageForm', e.target.value)} placeholder="e.g. Tablet, Syrup, Injection" />
+              </div>
+              <div>
+                <label className="label">{t('products.strength')}</label>
+                <input className="input" value={form.strength} onChange={(e) => updateField('strength', e.target.value)} placeholder="e.g. 500mg, 250mg/5ml" />
+              </div>
+              <div>
+                <label className="label">{t('products.regNumber')}</label>
+                <input className="input" value={form.regNumber} onChange={(e) => updateField('regNumber', e.target.value)} />
+              </div>
+              <div className="sm:col-span-2">
+                <label className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3">
+                  <input
+                    className="mt-1 h-4 w-4 rounded border-slate-300 text-brand focus:ring-brand"
+                    type="checkbox"
+                    checked={Boolean(form.controlledSubstance)}
+                    onChange={(e) => updateField('controlledSubstance', e.target.checked)}
+                  />
+                  <span>
+                    <span className="block font-semibold text-slate-950">{t('products.controlledSubstance')}</span>
+                    <span className="mt-0.5 block text-xs font-medium text-slate-500">{t('products.controlledSubstanceHint')}</span>
+                  </span>
+                </label>
+              </div>
+            </>
+          ) : null}
         </div>
         <div className="flex justify-end gap-2 pt-2">
           <button type="button" className="btn-secondary" onClick={onClose} disabled={saving}>

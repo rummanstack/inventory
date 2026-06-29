@@ -7,6 +7,7 @@ import { formatCasePiece, formatNumber, toPieces } from '../../../utils/calculat
 export default function ClearDamageModal({ product, onClose, onSave }) {
   const { t, tenant } = useInventoryApp();
   const isElectronics = (tenant?.businessType || 'ELECTRONICS') === 'ELECTRONICS';
+  const isPharmacy = tenant?.businessType === 'DRUG_PHARMACY';
   const [caseQty, setCaseQty] = useState(0);
   const [pieceQty, setPieceQty] = useState(0);
   const [note, setNote] = useState('');

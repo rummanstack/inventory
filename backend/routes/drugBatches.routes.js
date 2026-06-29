@@ -1,0 +1,14 @@
+import { Router } from "express";
+import { requirePermission } from "../middleware/requireRole.js";
+import { requireFeature } from "../middleware/requireFeature.js";
+import { PERMISSIONS } from "../lib/permissions.js";
+
+export function createDrugBatchesRoutes(drugBatchController) {
+  const router = Router();
+  router.use(requireFeature("batch-tracking"));
+
+  router.get("/expiring", requirePermission(PERMISSIONS.VIEW_EXPIRY_ALERTS), drugBatchController.listExpiring);
+  router.get("/product/:productId", requirePermission(PERMISSIONS.VIEW_EXPIRY_ALERTS), drugBatchController.listByProduct);
+
+  return router;
+}

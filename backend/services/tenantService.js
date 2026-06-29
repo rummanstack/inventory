@@ -67,10 +67,13 @@ function normalizeBusinessType(value, fallback = BUSINESS_TYPES.ELECTRONICS) {
 // tenants get a feature set that matches their business type by default; this only runs
 // at creation time so it never silently removes a feature an existing tenant relies on.
 const DEALER_DISTRIBUTION_FEATURES = ["dsrs", "customers", "morning-issue", "settlements", "dsr-finance"];
-const ELECTRONICS_ONLY_FEATURES = ["product-serials", "warranty-claims"];
+const ELECTRONICS_ONLY_FEATURES = ["product-serials", "warranty-claims", "repair-jobs", "trade-ins"];
+const PHARMACY_EXCLUDED_FEATURES = ["product-serials", "warranty-claims", "repair-jobs", "trade-ins"];
 
 function defaultFeaturesForBusinessType(businessType) {
-  const excluded = businessType === BUSINESS_TYPES.GROCERY ? ELECTRONICS_ONLY_FEATURES : DEALER_DISTRIBUTION_FEATURES;
+  let excluded = DEALER_DISTRIBUTION_FEATURES;
+  if (businessType === BUSINESS_TYPES.GROCERY) excluded = ELECTRONICS_ONLY_FEATURES;
+  if (businessType === BUSINESS_TYPES.DRUG_PHARMACY) excluded = PHARMACY_EXCLUDED_FEATURES;
   return TENANT_FEATURES.filter((feature) => !excluded.includes(feature));
 }
 

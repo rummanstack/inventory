@@ -5,6 +5,7 @@ import { formatCasePiece, formatCurrency, formatDate, formatNumber } from '../..
 export default function PurchaseReceiptPrintSheet({ purchaseReceipt, printTarget = false, targetId }) {
   const { t, tenant, language } = useInventoryApp();
   const isElectronics = (tenant?.businessType || 'ELECTRONICS') === 'ELECTRONICS';
+  const isPharmacy = tenant?.businessType === 'DRUG_PHARMACY';
   if (!purchaseReceipt) return null;
 
   const items = purchaseReceipt.items || [];
@@ -45,6 +46,12 @@ export default function PurchaseReceiptPrintSheet({ purchaseReceipt, printTarget
             <tr className="bg-slate-950 text-white">
               <th className="border border-slate-800 px-1.5 py-1 align-middle">{t('common.sl')}</th>
               <th className="border border-slate-800 px-1.5 py-1 align-middle">{t('products.product')}</th>
+              {isPharmacy ? (
+                <>
+                  <th className="border border-slate-800 px-1.5 py-1 align-middle">{t('purchaseReceive.batchNumber')}</th>
+                  <th className="border border-slate-800 px-1.5 py-1 align-middle">{t('purchaseReceive.expiryDate')}</th>
+                </>
+              ) : null}
               <th className="border border-slate-800 px-1.5 py-1 align-middle">{t('purchaseReceive.quantityPieces')}</th>
               <th className="border border-slate-800 px-1.5 py-1 align-middle">{t('purchaseReceive.purchasePriceLabel')}</th>
               <th className="border border-slate-800 px-1.5 py-1 align-middle">{t('purchaseReceive.lineDiscountLabel')}</th>
@@ -56,6 +63,12 @@ export default function PurchaseReceiptPrintSheet({ purchaseReceipt, printTarget
               <tr key={item.id || index} className="print-break-inside-avoid">
                 <td className="border border-slate-300 px-1.5 py-1 align-middle font-semibold">{index + 1}</td>
                 <td className="border border-slate-300 px-1.5 py-1 align-middle font-semibold text-slate-950">{item.productName}</td>
+                {isPharmacy ? (
+                  <>
+                    <td className="border border-slate-300 px-1.5 py-1 align-middle">{item.batchNumber || '-'}</td>
+                    <td className="border border-slate-300 px-1.5 py-1 align-middle">{item.expiryDate ? formatDate(item.expiryDate, language) : '-'}</td>
+                  </>
+                ) : null}
                 <td className="border border-slate-300 px-1.5 py-1 align-middle">
                   {isElectronics ? `${formatNumber(item.quantityPieces, language)} ${t('common.pcs')}` : formatCasePiece(item.quantityPieces, item.piecesPerCase, language)}
                 </td>

@@ -20,6 +20,7 @@ function Field({ label, value }) {
 export default function PurchaseReceiptViewModal({ purchaseReceipt, onClose }) {
   const { t, tenant } = useInventoryApp();
   const isElectronics = (tenant?.businessType || 'ELECTRONICS') === 'ELECTRONICS';
+  const isPharmacy = tenant?.businessType === 'DRUG_PHARMACY';
   const items = purchaseReceipt.items || [];
   const printTargetId = `purchase-receipt-print-${purchaseReceipt.id}`;
 
@@ -42,6 +43,12 @@ export default function PurchaseReceiptViewModal({ purchaseReceipt, onClose }) {
             <thead className="table-head">
               <tr>
                 <th className="px-3 py-2 text-left">{t('products.product')}</th>
+                {isPharmacy ? (
+                  <>
+                    <th className="px-3 py-2 text-left">{t('purchaseReceive.batchNumber')}</th>
+                    <th className="px-3 py-2 text-left">{t('purchaseReceive.expiryDate')}</th>
+                  </>
+                ) : null}
                 <th className="px-3 py-2 text-right">{t('purchaseReceive.quantityPieces')}</th>
                 <th className="px-3 py-2 text-right">{t('purchaseReceive.purchasePriceLabel')}</th>
                 <th className="px-3 py-2 text-right">{t('purchaseReceive.lineDiscountLabel')}</th>
@@ -52,6 +59,12 @@ export default function PurchaseReceiptViewModal({ purchaseReceipt, onClose }) {
               {items.map((item, index) => (
                 <tr key={item.id || index}>
                   <td className="px-3 py-2 font-semibold text-slate-950">{item.productName}</td>
+                  {isPharmacy ? (
+                    <>
+                      <td className="px-3 py-2 text-slate-700">{item.batchNumber || '-'}</td>
+                      <td className="px-3 py-2 text-slate-700">{item.expiryDate ? formatDate(item.expiryDate) : '-'}</td>
+                    </>
+                  ) : null}
                   <td className="px-3 py-2 text-right">
                     {isElectronics ? `${formatNumber(item.quantityPieces)} ${t('common.pcs')}` : formatCasePiece(item.quantityPieces, item.piecesPerCase)}
                   </td>

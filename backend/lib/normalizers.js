@@ -55,6 +55,15 @@ export function normalizeProduct(input) {
     status: input.status === "INACTIVE" ? "INACTIVE" : "ACTIVE",
     description: String(input.description || "").trim(),
     imageUrl: String(input.imageUrl || "").trim() || null,
+    genericName: String(input.genericName || "").trim(),
+    drugType: String(input.drugType || "").trim(),
+    dosageForm: String(input.dosageForm || "").trim(),
+    strength: String(input.strength || "").trim(),
+    manufacturer: String(input.manufacturer || "").trim(),
+    regNumber: String(input.regNumber || "").trim(),
+    controlledSubstance:
+      input.controlledSubstance === true ||
+      String(input.controlledSubstance || "").trim().toLowerCase() === "true",
   };
 }
 
@@ -309,6 +318,10 @@ export function normalizePurchaseReceipt(input) {
             taxRate,
             taxAmount: Math.max(0, lineTotal * taxRate / 100),
             serials,
+            batchNumber: String(item.batchNumber || "").trim(),
+            lotNumber: String(item.lotNumber || "").trim(),
+            expiryDate: String(item.expiryDate || "").trim() || null,
+            manufactureDate: String(item.manufactureDate || "").trim() || null,
           };
         })
         .filter((item) => item.productId)

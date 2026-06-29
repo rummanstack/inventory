@@ -45,7 +45,11 @@ function itemsSubquery() {
       'lineDiscount', pri.line_discount,
       'lineTotal', pri.line_total,
       'taxRate', pri.tax_rate,
-      'taxAmount', pri.tax_amount
+      'taxAmount', pri.tax_amount,
+      'batchNumber', pri.batch_number,
+      'lotNumber', pri.lot_number,
+      'expiryDate', pri.expiry_date,
+      'manufactureDate', pri.manufacture_date
     ) ORDER BY pri.id), '[]'::json)
     FROM purchase_receipt_items pri
     LEFT JOIN products p ON p.id = pri.product_id
@@ -207,10 +211,10 @@ export function updatePurchaseReceipt(client, purchase) {
 
 export function insertPurchaseReceiptItem(client, item) {
   return client.query(
-    `INSERT INTO purchase_receipt_items (id, tenant_id, purchase_receipt_id, product_id, quantity_pieces, purchase_price, line_discount, line_total, tax_rate, tax_amount)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+    `INSERT INTO purchase_receipt_items (id, tenant_id, purchase_receipt_id, product_id, quantity_pieces, purchase_price, line_discount, line_total, tax_rate, tax_amount, batch_number, lot_number, expiry_date, manufacture_date)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
      RETURNING *`,
-    [item.id, item.tenantId, item.purchaseReceiptId, item.productId, item.quantityPieces, item.purchasePrice, item.lineDiscount, item.lineTotal, item.taxRate, item.taxAmount],
+    [item.id, item.tenantId, item.purchaseReceiptId, item.productId, item.quantityPieces, item.purchasePrice, item.lineDiscount, item.lineTotal, item.taxRate, item.taxAmount, item.batchNumber || '', item.lotNumber || '', item.expiryDate || null, item.manufactureDate || null],
   );
 }
 
@@ -228,9 +232,10 @@ export function deletePurchaseReceiptItemsByIds(client, ids) {
 export function updatePurchaseReceiptItem(client, item) {
   return client.query(
     `UPDATE purchase_receipt_items
-     SET product_id = $3, quantity_pieces = $4, purchase_price = $5, line_discount = $6, line_total = $7, tax_rate = $8, tax_amount = $9
+     SET product_id = $3, quantity_pieces = $4, purchase_price = $5, line_discount = $6, line_total = $7, tax_rate = $8, tax_amount = $9,
+         batch_number = $10, lot_number = $11, expiry_date = $12, manufacture_date = $13
      WHERE id = $1 AND tenant_id = $2`,
-    [item.id, item.tenantId, item.productId, item.quantityPieces, item.purchasePrice, item.lineDiscount, item.lineTotal, item.taxRate, item.taxAmount],
+    [item.id, item.tenantId, item.productId, item.quantityPieces, item.purchasePrice, item.lineDiscount, item.lineTotal, item.taxRate, item.taxAmount, item.batchNumber || '', item.lotNumber || '', item.expiryDate || null, item.manufactureDate || null],
   );
 }
 

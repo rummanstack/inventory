@@ -12,6 +12,7 @@ import { useDamagedStockViewModel } from '../viewmodels/useDamagedStockViewModel
 export default function DamagedStockPage() {
   const { productDirectory, clearDamagedStock, t, can, tenant } = useInventoryApp();
   const isElectronics = (tenant?.businessType || 'ELECTRONICS') === 'ELECTRONICS';
+  const isPharmacy = tenant?.businessType === 'DRUG_PHARMACY';
   const vm = useDamagedStockViewModel({ products: productDirectory });
   const canManageProducts = can('manage_products');
 

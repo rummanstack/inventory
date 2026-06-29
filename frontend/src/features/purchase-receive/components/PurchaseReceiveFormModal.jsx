@@ -11,6 +11,7 @@ import SupplierFormModal from '../../suppliers/components/SupplierFormModal.jsx'
 export default function PurchaseReceiveFormModal({ purchaseReceipt, onClose, onSave }) {
   const { t, supplierDirectory, productDirectory, saveSupplier, tenant } = useInventoryApp();
   const isElectronics = (tenant?.businessType || 'ELECTRONICS') === 'ELECTRONICS';
+  const isPharmacy = tenant?.businessType === 'DRUG_PHARMACY';
   const [supplierId, setSupplierId] = useState(purchaseReceipt?.supplierId || '');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
@@ -152,6 +153,26 @@ export default function PurchaseReceiveFormModal({ purchaseReceipt, onClose, onS
                         <p className={`mt-1 text-xs font-semibold ${row.serialCountMismatch ? 'text-rose-600' : 'text-emerald-600'}`}>
                           {t('purchaseReceive.serialsCount', { required: row.quantityNumber, entered: row.serials.length })}
                         </p>
+                      </div>
+                    ) : null}
+                    {isPharmacy ? (
+                      <div className="grid gap-3 sm:grid-cols-4 rounded-xl border border-dashed border-emerald-300 bg-emerald-50/60 p-3">
+                        <div>
+                          <label className="label">{t('purchaseReceive.batchNumber')}</label>
+                          <input className="input" value={row.batchNumber || ''} onChange={(e) => vm.updateItem(row.rowId, 'batchNumber', e.target.value)} placeholder="Batch No." />
+                        </div>
+                        <div>
+                          <label className="label">{t('purchaseReceive.lotNumber')}</label>
+                          <input className="input" value={row.lotNumber || ''} onChange={(e) => vm.updateItem(row.rowId, 'lotNumber', e.target.value)} placeholder="Lot No." />
+                        </div>
+                        <div>
+                          <label className="label">{t('purchaseReceive.expiryDate')}</label>
+                          <input className="input" type="date" value={row.expiryDate || ''} onChange={(e) => vm.updateItem(row.rowId, 'expiryDate', e.target.value)} />
+                        </div>
+                        <div>
+                          <label className="label">{t('purchaseReceive.manufactureDate')}</label>
+                          <input className="input" type="date" value={row.manufactureDate || ''} onChange={(e) => vm.updateItem(row.rowId, 'manufactureDate', e.target.value)} />
+                        </div>
                       </div>
                     ) : null}
                   </div>

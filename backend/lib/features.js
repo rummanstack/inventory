@@ -69,4 +69,7 @@ export const TENANT_FEATURES = [
   "customer-due-report",
   "cash-session-report",
   "damaged-stock-report",
+  "batch-tracking",
+  "expiry-alerts",
+  "controlled-drug-register",
 ];

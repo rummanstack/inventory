@@ -102,6 +102,7 @@ export function useSalesInvoiceFormViewModel({
   const [loyaltyRedeemPointsInput, setLoyaltyRedeemPointsInputState] = useState('0');
   const [paymentMethod, setPaymentMethod] = useState('CASH');
   const [note, setNote] = useState('');
+  const [prescriptionNumber, setPrescriptionNumber] = useState('');
   const selectedCustomer = customerId ? retailCustomers.find((c) => c.id === customerId) : null;
 
   function changeSaleType(nextSaleType) {
@@ -363,6 +364,7 @@ export function useSalesInvoiceFormViewModel({
       customerPhone: customerType === 'REGISTERED' ? (selectedCustomer?.phone || '') : '',
       saleType,
       invoiceDate,
+      prescriptionNumber: prescriptionNumber.trim(),
       items: taxedLineRows
         .filter((row) => row.productId)
         .map((row) => ({
@@ -436,5 +438,7 @@ export function useSalesInvoiceFormViewModel({
     hasInvalidItems,
     markFullyPaid,
     buildPayload,
+    prescriptionNumber,
+    setPrescriptionNumber,
   };
 }

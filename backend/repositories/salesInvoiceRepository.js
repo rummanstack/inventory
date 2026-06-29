@@ -10,6 +10,7 @@ export function mapSalesInvoice(row) {
     customerPhoneSnapshot: row.customer_phone_snapshot || '',
     customerType: row.customer_type,
     saleType: row.sale_type,
+    prescriptionNumber: row.prescription_number || '',
     subtotal: Number(row.subtotal || 0),
     discount: Number(row.discount || 0),
     taxRate: Number(row.tax_rate || 0),
@@ -59,6 +60,9 @@ function itemsSubquery() {
       'modelSnapshot', sii.model_snapshot,
       'barcodeSnapshot', sii.barcode_snapshot,
       'warrantyMonthsSnapshot', sii.warranty_months_snapshot,
+      'batchNumberSnapshot', sii.batch_number_snapshot,
+      'expiryDateSnapshot', sii.expiry_date_snapshot,
+      'drugBatchId', sii.drug_batch_id,
       'serials', (
         SELECT COALESCE(json_agg(json_build_object(
           'productSerialId', sis.product_serial_id,
@@ -68,6 +72,16 @@ function itemsSubquery() {
         ) ORDER BY sis.created_at), '[]'::json)
         FROM sales_item_serials sis
         WHERE sis.sales_invoice_item_id = sii.id
+      ),
+      'batchAllocations', (
+        SELECT COALESCE(json_agg(json_build_object(
+          'batchNumber', siib.batch_number,
+          'lotNumber', siib.lot_number,
+          'expiryDate', siib.expiry_date,
+          'quantityFromBatch', siib.quantity_from_batch
+        ) ORDER BY siib.expiry_date ASC NULLS LAST), '[]'::json)
+        FROM sales_invoice_item_batches siib
+        WHERE siib.sales_invoice_item_id = sii.id
       )
     ) ORDER BY sii.id), '[]'::json)
     FROM sales_invoice_items sii
@@ -175,8 +189,9 @@ export function insertSalesInvoice(client, invoice) {
        subtotal, discount, tax_rate, tax_amount, total_amount, paid_amount, due_amount, payment_method, total_profit, note, created_by
        , loyalty_points_earned, loyalty_points_redeemed, loyalty_redeem_amount
        , customer_name_snapshot, customer_phone_snapshot
+       , prescription_number
      )
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24)
      RETURNING *`,
     [
       invoice.id,
@@ -202,6 +217,7 @@ export function insertSalesInvoice(client, invoice) {
       invoice.loyaltyRedeemAmount ?? 0,
       invoice.customerNameSnapshot ?? '',
       invoice.customerPhoneSnapshot ?? '',
+      invoice.prescriptionNumber ?? '',
     ],
   );
 }
@@ -211,9 +227,10 @@ export function insertSalesInvoiceItem(client, item) {
     `INSERT INTO sales_invoice_items (
        id, tenant_id, sales_invoice_id, product_id, product_name, quantity_pieces, actual_sale_price,
        original_sale_price, cost_price_snapshot, line_discount, line_total, tax_rate, tax_amount,
-       brand_snapshot, model_snapshot, barcode_snapshot, warranty_months_snapshot
+       brand_snapshot, model_snapshot, barcode_snapshot, warranty_months_snapshot,
+       batch_number_snapshot, expiry_date_snapshot, drug_batch_id
      )
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)
      RETURNING *`,
     [
       item.id,
@@ -233,6 +250,9 @@ export function insertSalesInvoiceItem(client, item) {
       item.modelSnapshot ?? '',
       item.barcodeSnapshot ?? '',
       item.warrantyMonthsSnapshot ?? 0,
+      item.batchNumberSnapshot ?? '',
+      item.expiryDateSnapshot ?? null,
+      item.drugBatchId ?? null,
     ],
   );
 }

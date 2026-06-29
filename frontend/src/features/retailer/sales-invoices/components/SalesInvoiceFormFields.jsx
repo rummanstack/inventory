@@ -45,9 +45,10 @@ function PromoBadge({ promotion, size = 'md' }) {
   );
 }
 
-export default function SalesInvoiceFormFields({ vm, t, productDirectory, retailCustomerDirectory, saving, saveRetailCustomer }) {
+export default function SalesInvoiceFormFields({ vm, t, productDirectory, retailCustomerDirectory, saving, saveRetailCustomer, isPharmacy }) {
   const [showAddCustomer, setShowAddCustomer] = useState(false);
   const [availableSerialsByProduct, setAvailableSerialsByProduct] = useState({});
+  const [batchInfoByProductId, setBatchInfoByProductId] = useState({});
   const [productPickerRowId, setProductPickerRowId] = useState(null);
   const [productQueries, setProductQueries] = useState({});
   const [highlightedIndexes, setHighlightedIndexes] = useState({});
@@ -84,6 +85,27 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, retail
 
     return () => { cancelled = true; };
   }, [vm.lineRows, availableSerialsByProduct]);
+
+  useEffect(() => {
+    if (!isPharmacy) return;
+    const neededProductIds = [...new Set(vm.lineRows.filter((row) => row.productId).map((row) => row.productId))];
+    const missingProductIds = neededProductIds.filter((pid) => !(pid in batchInfoByProductId));
+    if (!missingProductIds.length) return;
+
+    let cancelled = false;
+    Promise.all(
+      missingProductIds.map((productId) =>
+        inventoryApi.listByProduct(productId).then((result) => [productId, result.batches || []])),
+    ).then((entries) => {
+      if (cancelled) return;
+      setBatchInfoByProductId((current) => {
+        const next = { ...current };
+        for (const [productId, batches] of entries) next[productId] = batches;
+        return next;
+      });
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, [isPharmacy, vm.lineRows, batchInfoByProductId]);
 
   function handleProductKeyDown(event, row, filteredProducts) {
     if (event.key === 'ArrowDown') {
@@ -153,6 +175,22 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, retail
           ) : null}
         </div>
       </div>
+
+      {isPharmacy && (
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label className="label">{t('pharmacy.prescriptionNumber')}</label>
+            <input
+              className="input"
+              type="text"
+              value={vm.prescriptionNumber}
+              onChange={(e) => vm.setPrescriptionNumber(e.target.value)}
+              placeholder={t('pharmacy.prescriptionNumberPlaceholder')}
+              disabled={saving}
+            />
+          </div>
+        </div>
+      )}
 
       <div>
         <div className="mb-2 flex items-center justify-between">
@@ -280,6 +318,19 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, retail
                         })()}
                         {hasPromo && <PromoBadge promotion={row.appliedPromotion} size="md" />}
                       </div>
+                      {isPharmacy && row.productId && (() => {
+                        const batches = batchInfoByProductId[row.productId];
+                        if (!batches) return null;
+                        const active = batches.filter((b) => b.quantityRemaining > 0);
+                        if (!active.length) return <p className="mt-1 text-[10px] font-bold text-amber-600">{t('pharmacy.noBatchesAvailable')}</p>;
+                        const fefo = active[0];
+                        const expLabel = fefo.expiryDate ? new Date(fefo.expiryDate).toLocaleDateString() : t('pharmacy.noExpiry');
+                        return (
+                          <p className="mt-1 text-[10px] font-bold text-sky-700">
+                            {t('pharmacy.fefoLabel')}: {fefo.batchNumber || '—'} · {t('pharmacy.expiresLabel')}: {expLabel} · {t('pharmacy.remainingLabel')}: {fefo.quantityRemaining}
+                          </p>
+                        );
+                      })()}
                     </div>
 
                     {/* Quantity */}

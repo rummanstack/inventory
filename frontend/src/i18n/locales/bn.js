@@ -123,6 +123,7 @@
       customerDueReport: 'কাস্টমার বকেয়া রিপোর্ট',
       cashSessionReport: 'ক্যাশ সেশন রিপোর্ট',
       damagedStockReport: 'নষ্ট স্টক রিপোর্ট',
+      batchSalesReport: 'ব্যাচ বিক্রয় রিপোর্ট',
     },
     navGroups: {
       overview: 'ওভারভিউ',
@@ -195,6 +196,7 @@
         view_employees: 'কর্মী দেখুন',
         manage_employees: 'কর্মী পরিচালনা করুন',
         manage_payroll: 'পেরোল পরিচালনা করুন',
+        manage_batch_tracking: 'ব্যাচ বিক্রয় রিপোর্ট পরিচালনা',
       },
     },
     common: {
@@ -2850,6 +2852,21 @@
       noReports: 'কোনো পরিশোধিত পেরোল নেই',
       noReportsDesc: 'পরিশোধিত পেরোল মাসিক রিপোর্ট হিসেবে এখানে দেখাবে।',
     },
+  pharmacy: {
+    prescriptionNumber: 'প্রেসক্রিপশন নং',
+    prescriptionNumberPlaceholder: 'যেমন: Rx-2024-0001',
+    batchSalesReport: 'ব্যাচ বিক্রয় রিপোর্ট',
+    batchNumber: 'ব্যাচ নং',
+    batchNumberPlaceholder: 'ব্যাচ নম্বর দিয়ে ফিল্টার',
+    lotNumber: 'লট নং',
+    expiryDate: 'মেয়াদ শেষ',
+    noExpiry: 'মেয়াদ নেই',
+    batchLabel: 'ব্যাচ',
+    fefoLabel: 'FEFO ব্যাচ',
+    expiresLabel: 'মেয়াদ',
+    remainingLabel: 'অবশিষ্ট',
+    noBatchesAvailable: 'এই পণ্যের কোনো ব্যাচ স্টকে নেই',
+  },
 };
 
 export default bn;

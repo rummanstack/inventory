@@ -32,6 +32,14 @@ import {
   getDailySalesReport,
 } from "../repositories/salesInvoiceRepository.js";
 import {
+  pickFefoForSale,
+  decrementDrugBatch,
+  incrementDrugBatch,
+  insertSalesInvoiceItemBatch,
+  listSalesInvoiceItemBatchesByInvoice,
+  deleteSalesInvoiceItemBatchesByInvoice,
+} from "../repositories/drugBatchRepository.js";
+import {
   logActivity,
   lockProducts,
   recordStockMovement,
@@ -198,6 +206,60 @@ function addMonthsToIsoDate(isoDate, months) {
   const date = new Date(`${isoDate}T00:00:00Z`);
   date.setUTCMonth(date.getUTCMonth() + Number(months || 0));
   return date.toISOString().slice(0, 10);
+}
+
+// For each line item, picks FEFO batches and returns { batchNumberSnapshot, expiryDateSnapshot, drugBatchId, assignments }.
+// If the product has no drug_batches at all (pre-pharmacy stock), returns null and batch fields are left empty.
+async function assignFefoBatches(client, items, tenantId) {
+  const result = new Map();
+  for (const item of items) {
+    const assignments = await pickFefoForSale(client, {
+      tenantId,
+      productId: item.productId,
+      quantityNeeded: item.quantityPieces,
+    });
+    if (assignments.length === 0) {
+      result.set(item.id, null);
+      continue;
+    }
+    const primary = assignments[0];
+    result.set(item.id, {
+      batchNumberSnapshot: primary.batchNumber,
+      expiryDateSnapshot: primary.expiryDate,
+      drugBatchId: primary.batchId,
+      assignments,
+    });
+  }
+  return result;
+}
+
+async function applyFefoBatchDecrements(client, items, batchMap, { tenantId, salesInvoiceId }, idFactory) {
+  for (const item of items) {
+    const batchInfo = batchMap.get(item.id);
+    if (!batchInfo) continue;
+    for (const assignment of batchInfo.assignments) {
+      await decrementDrugBatch(client, assignment.batchId, tenantId, assignment.qtyToTake);
+      await insertSalesInvoiceItemBatch(client, {
+        id: idFactory('siib'),
+        tenantId,
+        salesInvoiceId,
+        salesInvoiceItemId: item.id,
+        drugBatchId: assignment.batchId,
+        batchNumber: assignment.batchNumber,
+        lotNumber: assignment.lotNumber,
+        expiryDate: assignment.expiryDate,
+        quantityFromBatch: assignment.qtyToTake,
+      });
+    }
+  }
+}
+
+async function reverseFefoBatchDecrements(client, salesInvoiceId, tenantId) {
+  const allocations = await listSalesInvoiceItemBatchesByInvoice(client, salesInvoiceId, tenantId);
+  for (const alloc of allocations) {
+    await incrementDrugBatch(client, alloc.drugBatchId, tenantId, alloc.quantityFromBatch);
+  }
+  await deleteSalesInvoiceItemBatchesByInvoice(client, salesInvoiceId);
 }
 
 // Validates that every serial-required line item supplied exactly the right number of
@@ -423,6 +485,9 @@ export class SalesInvoiceService {
 
     validateSerialSelections(base.items, productMap);
 
+    // FEFO batch assignment — runs before tax summary so snapshots are ready when items are inserted
+    const batchMap = await assignFefoBatches(client, base.items, actor.tenantId);
+
     const taxSummary = applyLineItemTaxes(base.items, productMap, 0, base.discount);
     base.taxableAmount = taxSummary.taxableAmount;
     base.taxAmount = taxSummary.taxAmount;
@@ -528,6 +593,7 @@ export class SalesInvoiceService {
       invoiceNumber,
       totalProfit,
       createdById: actor.id,
+      prescriptionNumber: base.prescriptionNumber ?? '',
     });
 
     if (this.financeAccountService && base.paidAmount > 0) {
@@ -545,6 +611,7 @@ export class SalesInvoiceService {
     }
 
     for (const item of base.items) {
+      const batchInfo = batchMap.get(item.id);
       await insertSalesInvoiceItem(client, {
         id: item.id,
         tenantId: actor.tenantId,
@@ -563,8 +630,13 @@ export class SalesInvoiceService {
         modelSnapshot: item.modelSnapshot,
         barcodeSnapshot: item.barcodeSnapshot,
         warrantyMonthsSnapshot: item.warrantyMonthsSnapshot,
+        batchNumberSnapshot: batchInfo?.batchNumberSnapshot ?? '',
+        expiryDateSnapshot: batchInfo?.expiryDateSnapshot ?? null,
+        drugBatchId: batchInfo?.drugBatchId ?? null,
       });
     }
+
+    await applyFefoBatchDecrements(client, base.items, batchMap, { tenantId: actor.tenantId, salesInvoiceId: base.id }, createId);
 
     await consumeSerialSelections(client, base.items, productMap, {
       tenantId: actor.tenantId,
@@ -631,6 +703,8 @@ export class SalesInvoiceService {
         fromStatus: PRODUCT_SERIAL_STATUSES.SOLD,
         toStatus: PRODUCT_SERIAL_STATUSES.IN_STOCK,
       });
+
+      await reverseFefoBatchDecrements(client, invoiceId, actor.tenantId);
 
       await softDeleteSalesInvoice(client, invoiceId, actor.tenantId, {
         deletedById: actor.id,
@@ -735,6 +809,14 @@ export class SalesInvoiceService {
         fromStatus: PRODUCT_SERIAL_STATUSES.IN_STOCK,
         toStatus: PRODUCT_SERIAL_STATUSES.SOLD,
       });
+
+      // Restore batch allocations: pick fresh FEFO for each item and decrement drug_batches again.
+      // We clear any stale allocation rows first (there should be none after a clean void, but be safe).
+      await deleteSalesInvoiceItemBatchesByInvoice(client, invoiceId);
+      const restoredItemsResult = await getSalesInvoiceItems(client, invoiceId);
+      const restoreItems = restoredItemsResult.rows.map((row) => ({ id: row.id, productId: row.product_id, quantityPieces: Number(row.quantity_pieces || 0) }));
+      const restoreBatchMap = await assignFefoBatches(client, restoreItems, actor.tenantId);
+      await applyFefoBatchDecrements(client, restoreItems, restoreBatchMap, { tenantId: actor.tenantId, salesInvoiceId: invoiceId }, createId);
 
       // Restore: re-apply the same effects a fresh sale would — stock out, due back on the
       // ledger, cash back in — now that we know the stock is actually available to support it.

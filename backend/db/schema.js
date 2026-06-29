@@ -1826,6 +1826,7 @@ export async function createSchema(pool) {
   await pool.query(`
     ALTER TABLE sales_invoice_items ADD COLUMN IF NOT EXISTS batch_number_snapshot TEXT NOT NULL DEFAULT '';
     ALTER TABLE sales_invoice_items ADD COLUMN IF NOT EXISTS expiry_date_snapshot DATE;
+    ALTER TABLE sales_invoices ADD COLUMN IF NOT EXISTS prescription_number TEXT NOT NULL DEFAULT '';
   `);
 
   // ── Drug & Pharmacy: drug_batches — one row per received batch, tracks remaining qty ──
@@ -1855,5 +1856,32 @@ export async function createSchema(pool) {
     CREATE INDEX IF NOT EXISTS idx_drug_batches_tenant_product ON drug_batches(tenant_id, product_id);
     CREATE INDEX IF NOT EXISTS idx_drug_batches_expiry ON drug_batches(tenant_id, expiry_date) WHERE expiry_date IS NOT NULL;
     CREATE INDEX IF NOT EXISTS idx_drug_batches_remaining ON drug_batches(tenant_id, product_id, quantity_remaining) WHERE quantity_remaining > 0;
+  `);
+
+  // drug_batch_id FK can only be added after drug_batches table exists
+  await pool.query(`
+    ALTER TABLE sales_invoice_items ADD COLUMN IF NOT EXISTS drug_batch_id TEXT REFERENCES drug_batches(id) ON DELETE SET NULL;
+  `);
+
+  // ── Drug & Pharmacy: per-line-item batch allocation log ──────────────────
+  // Tracks which drug_batches were consumed (FEFO) for each sales invoice line,
+  // enabling a batch-level sales report and clean quantity restore on void.
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS sales_invoice_item_batches (
+      id                      TEXT PRIMARY KEY,
+      tenant_id               TEXT NOT NULL REFERENCES tenants(id),
+      sales_invoice_id        TEXT NOT NULL REFERENCES sales_invoices(id),
+      sales_invoice_item_id   TEXT NOT NULL REFERENCES sales_invoice_items(id),
+      drug_batch_id           TEXT NOT NULL REFERENCES drug_batches(id),
+      batch_number            TEXT NOT NULL DEFAULT '',
+      lot_number              TEXT NOT NULL DEFAULT '',
+      expiry_date             DATE,
+      quantity_from_batch     INTEGER NOT NULL DEFAULT 0,
+      created_at              TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_siib_invoice ON sales_invoice_item_batches(tenant_id, sales_invoice_id);
+    CREATE INDEX IF NOT EXISTS idx_siib_item ON sales_invoice_item_batches(sales_invoice_item_id);
+    CREATE INDEX IF NOT EXISTS idx_siib_batch ON sales_invoice_item_batches(drug_batch_id);
   `);
 }

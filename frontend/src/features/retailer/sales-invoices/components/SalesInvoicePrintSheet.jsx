@@ -95,6 +95,12 @@ export default function SalesInvoicePrintSheet({
                 <p className="mt-1 font-semibold text-slate-800">{invoice.createdByName}</p>
               </div>
             )}
+            {invoice?.prescriptionNumber && (
+              <div>
+                <p className="text-[9px] font-black uppercase tracking-[0.18em] text-slate-400">{t('pharmacy.prescriptionNumber')}</p>
+                <p className="mt-1 font-semibold text-slate-800">{invoice.prescriptionNumber}</p>
+              </div>
+            )}
             <div>
               <p className="text-[9px] font-black uppercase tracking-[0.18em] text-slate-400">Balance Due</p>
               <p className={`mt-1 text-base font-black ${dueAmount > 0 ? 'text-rose-600' : 'text-emerald-700'}`}>
@@ -150,6 +156,12 @@ export default function SalesInvoicePrintSheet({
                             months: warrantyMonths,
                             endDate: formatDate(warrantyEndDate, lang),
                           })}
+                        </span>
+                      )}
+                      {item.batchNumberSnapshot && (
+                        <span className="block text-[9px] text-slate-600">
+                          {t('pharmacy.batchLabel')}: <strong>{item.batchNumberSnapshot}</strong>
+                          {item.expiryDateSnapshot && ` · ${t('pharmacy.expiresLabel')}: ${formatDate(item.expiryDateSnapshot, lang)}`}
                         </span>
                       )}
                       {hasPromo && (

@@ -118,6 +118,7 @@ const en = {
       customerDueReport: 'Customer Due Report',
       cashSessionReport: 'Cash Session Report',
       damagedStockReport: 'Damaged Stock Report',
+      batchSalesReport: 'Batch Sales Report',
     },
     backup: {
       title: 'Database Backup',
@@ -212,6 +213,7 @@ const en = {
         view_employees: 'View Employees',
         manage_employees: 'Manage Employees',
         manage_payroll: 'Manage Payroll',
+        manage_batch_tracking: 'Manage Batch Sales Report',
       },
     },
     common: {
@@ -2941,6 +2943,21 @@ const en = {
       noReports: 'No paid payrolls',
       noReportsDesc: 'Paid payrolls will appear here as monthly reports.',
     },
+  pharmacy: {
+    prescriptionNumber: 'Prescription No.',
+    prescriptionNumberPlaceholder: 'e.g. Rx-2024-0001',
+    batchSalesReport: 'Batch Sales Report',
+    batchNumber: 'Batch No.',
+    batchNumberPlaceholder: 'Filter by batch no.',
+    lotNumber: 'Lot No.',
+    expiryDate: 'Expiry Date',
+    noExpiry: 'No expiry',
+    batchLabel: 'Batch',
+    fefoLabel: 'FEFO batch',
+    expiresLabel: 'Exp',
+    remainingLabel: 'Remaining',
+    noBatchesAvailable: 'No batches in stock for this product',
+  },
 };
 
 export default en;

@@ -50,10 +50,9 @@ function toLineItemRow(item, products) {
   };
 }
 
-export function usePurchaseReceiptFormViewModel({ purchaseReceipt, products, defaultTaxRate = 0 }) {
+export function usePurchaseReceiptFormViewModel({ purchaseReceipt, products, defaultTaxRate = 0, supplierId }) {
   const isEdit = Boolean(purchaseReceipt);
 
-  const [supplierId, setSupplierId] = useState(purchaseReceipt?.supplierId || '');
   const [supplierInvoiceNo, setSupplierInvoiceNo] = useState(purchaseReceipt?.supplierInvoiceNo || '');
   const [purchaseDate, setPurchaseDate] = useState(purchaseReceipt?.purchaseDate || todayISO());
   const [items, setItems] = useState(() => (
@@ -288,8 +287,6 @@ export function usePurchaseReceiptFormViewModel({ purchaseReceipt, products, def
 
   return {
     isEdit,
-    supplierId,
-    setSupplierId,
     supplierInvoiceNo,
     setSupplierInvoiceNo,
     purchaseDate,

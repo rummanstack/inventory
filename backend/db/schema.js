@@ -1771,5 +1771,15 @@ export async function createSchema(pool) {
     ALTER TABLE help_desk_tickets      ALTER COLUMN tenant_id SET NOT NULL;
     ALTER TABLE help_desk_ticket_notes ALTER COLUMN tenant_id SET NOT NULL;
     ALTER TABLE retail_loyalty_ledger  ALTER COLUMN tenant_id SET NOT NULL;
+
+    -- Product-supplier many-to-many relationship
+    CREATE TABLE IF NOT EXISTS product_suppliers (
+      product_id  TEXT NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+      supplier_id TEXT NOT NULL REFERENCES suppliers(id) ON DELETE CASCADE,
+      tenant_id   TEXT NOT NULL REFERENCES tenants(id),
+      PRIMARY KEY (product_id, supplier_id)
+    );
+    CREATE INDEX IF NOT EXISTS idx_product_suppliers_product_id ON product_suppliers(product_id);
+    CREATE INDEX IF NOT EXISTS idx_product_suppliers_supplier_id ON product_suppliers(supplier_id, tenant_id);
   `);
 }

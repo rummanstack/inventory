@@ -13,7 +13,8 @@ export class ProductController {
 
   directory = async (req, res, next) => {
     try {
-      res.json(await this.productService.getProductsDirectory(req.currentUser));
+      const supplierId = String(req.query.supplierId || '').trim() || null;
+      res.json(await this.productService.getProductsDirectory(req.currentUser, { supplierId }));
     } catch (error) {
       next(error);
     }

@@ -5,8 +5,8 @@ export const productsApi = {
     return apiRequest(`/products${buildQueryString({ page, pageSize, search, categoryId })}`);
   },
 
-  getProductsDirectory() {
-    return apiRequest("/products/directory");
+  getProductsDirectory({ supplierId } = {}) {
+    return apiRequest(`/products/directory${buildQueryString({ supplierId })}`);
   },
 
   getLowStockProducts() {

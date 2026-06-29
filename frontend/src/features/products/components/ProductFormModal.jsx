@@ -13,6 +13,7 @@ export default function ProductFormModal({ product, onClose, onSave }) {
   const isElectronics = (tenant?.businessType || 'ELECTRONICS') === 'ELECTRONICS';
   const [categories, setCategories] = useState([]);
   const [brands, setBrands] = useState([]);
+  const [suppliers, setSuppliers] = useState([]);
   const { form, updateField, error, setError, saving, setSaving } = useFormState({
     name: product?.name || '',
     categoryId: product?.categoryId || '',
@@ -33,11 +34,21 @@ export default function ProductFormModal({ product, onClose, onSave }) {
     status: product?.status || 'ACTIVE',
     description: product?.description || '',
     imageUrl: product?.imageUrl || '',
+    supplierIds: Array.isArray(product?.supplierIds) ? product.supplierIds : [],
   });
+
+  function toggleSupplier(supplierId) {
+    const current = form.supplierIds || [];
+    const next = current.includes(supplierId)
+      ? current.filter((id) => id !== supplierId)
+      : [...current, supplierId];
+    updateField('supplierIds', next);
+  }
 
   useEffect(() => {
     inventoryApi.listCategories().then((result) => setCategories(result.categories || [])).catch(() => setCategories([]));
     inventoryApi.listBrands().then((result) => setBrands(result.brands || [])).catch(() => setBrands([]));
+    inventoryApi.getActiveSuppliers().then((result) => setSuppliers(result.items || [])).catch(() => setSuppliers([]));
   }, []);
 
   async function submitForm(event) {
@@ -57,6 +68,7 @@ export default function ProductFormModal({ product, onClose, onSave }) {
       return;
     }
 
+    const supplierIds = form.supplierIds || [];
     const payload = {
       id: product?.id,
       name: form.name.trim(),
@@ -78,9 +90,12 @@ export default function ProductFormModal({ product, onClose, onSave }) {
       status: form.status,
       description: form.description.trim(),
       imageUrl: form.imageUrl.trim() || null,
+      supplierIds,
     };
 
     if (isEdit) {
+      const existingSupplierIds = Array.isArray(product?.supplierIds) ? [...product.supplierIds].sort().join(',') : '';
+      const nextSupplierIds = [...supplierIds].sort().join(',');
       const unchanged =
         payload.name === product.name &&
         payload.categoryId === product.categoryId &&
@@ -100,7 +115,8 @@ export default function ProductFormModal({ product, onClose, onSave }) {
         payload.warrantyMonths === (product.warrantyMonths || 0) &&
         payload.status === (product.status || 'ACTIVE') &&
         payload.description === (product.description || '') &&
-        payload.imageUrl === (product.imageUrl ?? null);
+        payload.imageUrl === (product.imageUrl ?? null) &&
+        nextSupplierIds === existingSupplierIds;
       if (unchanged) {
         pushToast('info', t('products.editTitle'), t('alerts.noChanges'));
         return;
@@ -245,6 +261,26 @@ export default function ProductFormModal({ product, onClose, onSave }) {
             <input className="input" type="number" min="0" step="1" value={form.reorderLevel} onChange={(event) => updateField('reorderLevel', event.target.value)} placeholder="auto" />
             <p className="mt-1 text-xs text-slate-500">{t('products.reorderLevelHint')}</p>
           </div>
+          {suppliers.length > 0 && (
+            <div className="sm:col-span-2">
+              <label className="label">Suppliers</label>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {suppliers.map((supplier) => (
+                  <label key={supplier.id} className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 cursor-pointer hover:bg-slate-100">
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 rounded border-slate-300 text-brand focus:ring-brand"
+                      checked={(form.supplierIds || []).includes(supplier.id)}
+                      onChange={() => toggleSupplier(supplier.id)}
+                      disabled={saving}
+                    />
+                    <span className="text-sm font-medium text-slate-800">{supplier.name}</span>
+                  </label>
+                ))}
+              </div>
+              <p className="mt-1 text-xs text-slate-500">Link this product to one or more suppliers so it appears when that supplier is selected in purchase receive.</p>
+            </div>
+          )}
           <div className="sm:col-span-2">
             <label className="label">{t('products.productDescription')}</label>
             <textarea

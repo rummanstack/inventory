@@ -23,6 +23,7 @@ export function mapProduct(row) {
     status: row.status === 'INACTIVE' ? 'INACTIVE' : 'ACTIVE',
     description: row.description || '',
     imageUrl: row.image_url || null,
+    supplierIds: Array.isArray(row.supplier_ids) ? row.supplier_ids : [],
   };
 }
 
@@ -84,19 +85,51 @@ export async function listProductsPage(client, { search, categoryId, tenantId, l
   return result.rows.map(mapProduct);
 }
 
-export async function listAllActiveProductsLite(client, tenantId) {
+export async function listAllActiveProductsLite(client, tenantId, { supplierId } = {}) {
+  const params = [tenantId];
+  let supplierJoin = '';
+  if (supplierId) {
+    params.push(supplierId);
+    supplierJoin = `JOIN product_suppliers ps_filter ON ps_filter.product_id = p.id AND ps_filter.supplier_id = $${params.length} AND ps_filter.tenant_id = $1`;
+  }
   const result = await client.query(
     `SELECT p.id, p.name, c.name AS category_name, p.category_id, p.pieces_per_case, p.purchase_price,
             p.wholesale_price, p.retail_price, p.stock_pieces, p.damaged_pieces, p.refundable,
             p.tax_rate, p.order_index, p.serial_required, p.sku, p.barcode, p.brand, p.model,
-            p.warranty_months, p.status
+            p.warranty_months, p.status,
+            COALESCE(
+              (SELECT array_agg(ps.supplier_id) FROM product_suppliers ps WHERE ps.product_id = p.id AND ps.tenant_id = $1),
+              ARRAY[]::TEXT[]
+            ) AS supplier_ids
      FROM products p
      LEFT JOIN categories c ON c.id = p.category_id
+     ${supplierJoin}
      WHERE p.tenant_id = $1 AND p.deleted_at IS NULL
      ORDER BY p.order_index ASC, p.name ASC`,
-    [tenantId],
+    params,
   );
   return result.rows.map(mapProduct);
+}
+
+export async function upsertProductSuppliers(client, productId, supplierIds, tenantId) {
+  await client.query(
+    `DELETE FROM product_suppliers WHERE product_id = $1 AND tenant_id = $2`,
+    [productId, tenantId],
+  );
+  if (!supplierIds || supplierIds.length === 0) return;
+  const values = supplierIds.map((_, i) => `($1, $${i + 3}, $2)`).join(', ');
+  await client.query(
+    `INSERT INTO product_suppliers (product_id, tenant_id, supplier_id) VALUES ${values} ON CONFLICT DO NOTHING`,
+    [productId, tenantId, ...supplierIds],
+  );
+}
+
+export async function getProductSupplierIds(client, productId, tenantId) {
+  const result = await client.query(
+    `SELECT supplier_id FROM product_suppliers WHERE product_id = $1 AND tenant_id = $2`,
+    [productId, tenantId],
+  );
+  return result.rows.map((row) => row.supplier_id);
 }
 
 export function insertProduct(client, product) {

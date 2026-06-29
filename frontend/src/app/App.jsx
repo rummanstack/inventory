@@ -3,6 +3,9 @@ import { Package } from 'lucide-react';
 import AppLayout from './AppLayout';
 import LoginPage from '../features/auth/pages/LoginPage';
 import LandingPage from '../features/landing/pages/LandingPage';
+import PrivacyPolicyPage from '../features/landing/pages/PrivacyPolicyPage';
+import TermsPage from '../features/landing/pages/TermsPage';
+import FounderPage from '../features/landing/pages/FounderPage';
 import { APP_ROUTES } from './routes';
 import { ErrorBoundary } from './ErrorBoundary.jsx';
 import { InventoryAppProvider, useInventoryApp } from './useInventoryApp.jsx';
@@ -117,6 +120,9 @@ function AppRoutes() {
     <Routes>
       <Route path="/" element={<RootRedirect />} />
       <Route path="/landing" element={<PublicOnlyRoute><LandingPage /></PublicOnlyRoute>} />
+      <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+      <Route path="/terms" element={<TermsPage />} />
+      <Route path="/founder" element={<FounderPage />} />
       <Route path="/login" element={<PublicOnlyRoute><LoginPage /></PublicOnlyRoute>} />
       <Route element={<ProtectedLayout />}>
         {APP_ROUTES.map((route) => (

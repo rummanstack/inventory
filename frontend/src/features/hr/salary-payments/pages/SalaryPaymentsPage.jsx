@@ -1,8 +1,9 @@
-import { useState } from 'react';
-import { Banknote, ChevronDown, ChevronRight } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { Banknote, ChevronDown, ChevronRight, Trash2, CheckCircle2, Clock, Calendar } from 'lucide-react';
 import { Alert, SectionHeader, TableSkeleton } from '../../../../components/ui.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
-import { formatCurrency } from '../../../../utils/calculations.js';
+import { formatCurrency, formatDate } from '../../../../utils/calculations.js';
+import { inventoryApi } from '../../../../services/inventoryApi.js';
 import { useSalaryPaymentsViewModel } from '../viewmodels/useSalaryPaymentsViewModel.js';
 import RecordPaymentModal from '../components/RecordPaymentModal.jsx';
 
@@ -24,11 +25,91 @@ function nextMonth(month) {
   return d.toISOString().slice(0, 7);
 }
 
+function PaymentStatusBadge({ emp }) {
+  const earned = emp.earnedAmount;
+  const paid = emp.totalPaid;
+  if (earned === null) return null;
+  if (paid >= earned && earned > 0) {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-700">
+        <CheckCircle2 size={10} /> Paid
+      </span>
+    );
+  }
+  if (paid > 0) {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-700">
+        <Clock size={10} /> Partial
+      </span>
+    );
+  }
+  return null;
+}
+
+function ActiveDaysInput({ emp, month, onSaved, canManage }) {
+  const [value, setValue] = useState(emp.activeDays !== null ? String(emp.activeDays) : '');
+  const [saving, setSaving] = useState(false);
+  const prevValue = useRef(value);
+
+  async function save() {
+    const num = value === '' ? null : Number(value);
+    if (num !== null && (isNaN(num) || num < 0)) return;
+    if (String(num ?? '') === String(emp.activeDays ?? '')) return;
+    if (num !== null && num > emp.daysInMonth) return;
+    setSaving(true);
+    try {
+      await inventoryApi.setSalaryActiveDays(emp.employeeId, month, num ?? 0);
+      prevValue.current = value;
+      onSaved();
+    } catch {
+      setValue(prevValue.current);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function handleKeyDown(e) {
+    if (e.key === 'Enter') { e.target.blur(); }
+    if (e.key === 'Escape') { setValue(prevValue.current); e.target.blur(); }
+  }
+
+  if (!canManage) {
+    return (
+      <span className="inline-flex items-center gap-1 text-sm font-semibold text-slate-700">
+        <Calendar size={12} className="text-slate-400" />
+        {emp.activeDays !== null ? `${emp.activeDays} / ${emp.daysInMonth}` : `— / ${emp.daysInMonth}`}
+      </span>
+    );
+  }
+
+  return (
+    <span className="inline-flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+      <Calendar size={12} className="text-slate-400" />
+      <input
+        type="number"
+        min="0"
+        max={emp.daysInMonth}
+        step="1"
+        className={`h-7 w-12 rounded-lg border px-2 text-center text-sm font-semibold outline-none transition-colors focus:border-indigo-400 focus:ring-1 focus:ring-indigo-300 ${saving ? 'opacity-50' : 'border-slate-300 bg-white'}`}
+        value={value}
+        placeholder="—"
+        disabled={saving}
+        onChange={(e) => setValue(e.target.value)}
+        onBlur={save}
+        onKeyDown={handleKeyDown}
+        title="Active days this month"
+      />
+      <span className="text-xs text-slate-400">/ {emp.daysInMonth}</span>
+    </span>
+  );
+}
+
 export default function SalaryPaymentsPage() {
-  const { t, can, language } = useInventoryApp();
+  const { t, can, language, confirm, pushToast } = useInventoryApp();
   const vm = useSalaryPaymentsViewModel();
   const [payModal, setPayModal] = useState(null);
   const [expanded, setExpanded] = useState({});
+  const [deletingId, setDeletingId] = useState(null);
 
   const canManage = can('manage_payroll');
   const employees = vm.data?.employees || [];
@@ -36,6 +117,30 @@ export default function SalaryPaymentsPage() {
   function toggleExpand(id) {
     setExpanded((prev) => ({ ...prev, [id]: !prev[id] }));
   }
+
+  async function handleDeletePayment(payment) {
+    const { confirmed } = await confirm({
+      title: 'Delete Payment',
+      description: `Delete the ${formatCurrency(payment.amount, language)} payment? This will reverse the finance transaction.`,
+      confirmLabel: 'Delete',
+      variant: 'danger',
+    });
+    if (!confirmed) return;
+    setDeletingId(payment.id);
+    try {
+      await inventoryApi.deleteSalaryPayment(payment.id);
+      pushToast('success', 'Payment deleted', 'The salary payment has been removed.');
+      vm.reload();
+    } catch (err) {
+      pushToast('error', 'Delete failed', err?.message || 'Could not delete payment.');
+    } finally {
+      setDeletingId(null);
+    }
+  }
+
+  const totalEarned = vm.data?.totalBudget ?? 0;
+  const totalPaid = vm.data?.totalPaid ?? 0;
+  const paidPercent = totalEarned > 0 ? Math.min(100, Math.round((totalPaid / totalEarned) * 100)) : 0;
 
   return (
     <div>
@@ -45,148 +150,246 @@ export default function SalaryPaymentsPage() {
         description={t('salary.description')}
       />
 
-      <div className="surface overflow-hidden">
-        {/* Month navigator */}
-        <div className="border-b border-slate-100 p-5">
-          <div className="flex items-center gap-3">
-            <button type="button" className="btn-secondary py-1.5 px-3 text-xs" onClick={() => vm.setMonth(prevMonth(vm.month))}>‹</button>
-            <span className="font-semibold text-slate-800 min-w-[140px] text-center">{monthLabel(vm.month)}</span>
-            <button type="button" className="btn-secondary py-1.5 px-3 text-xs" onClick={() => vm.setMonth(nextMonth(vm.month))}>›</button>
-            <input
-              type="month"
-              className="input w-auto py-1.5 text-xs ml-2"
-              value={vm.month}
-              onChange={(e) => vm.setMonth(e.target.value)}
-            />
+      {/* Month navigator */}
+      <div className="surface mb-5 flex flex-wrap items-center gap-3 px-5 py-4">
+        <button type="button" className="icon-btn" onClick={() => vm.setMonth(prevMonth(vm.month))} aria-label="Previous month">
+          <ChevronRight size={18} className="rotate-180" />
+        </button>
+        <span className="min-w-[160px] text-center text-base font-black text-slate-900">{monthLabel(vm.month)}</span>
+        <button type="button" className="icon-btn" onClick={() => vm.setMonth(nextMonth(vm.month))} aria-label="Next month">
+          <ChevronRight size={18} />
+        </button>
+        <input
+          type="month"
+          className="input ml-2 w-auto py-1.5 text-sm"
+          value={vm.month}
+          onChange={(e) => vm.setMonth(e.target.value)}
+        />
+        {vm.data && (
+          <span className="ml-auto text-xs text-slate-400">
+            {vm.data.daysInMonth} days in month
+          </span>
+        )}
+      </div>
+
+      {/* Summary cards */}
+      {vm.data && (
+        <div className="mb-5 grid grid-cols-2 gap-4 sm:grid-cols-4">
+          <div className="surface px-5 py-4">
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-400">{t('salary.totalEmployees')}</p>
+            <p className="mt-1 text-2xl font-black text-slate-900">{employees.length}</p>
           </div>
-
-          {vm.data && (
-            <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <div className="rounded-xl bg-slate-50 border border-slate-200 px-4 py-3">
-                <p className="text-[10px] font-black uppercase tracking-wide text-slate-400">{t('salary.totalEmployees')}</p>
-                <p className="text-xl font-bold text-slate-800">{employees.length}</p>
+          <div className="surface px-5 py-4">
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-indigo-400">Total Earned</p>
+            <p className="mt-1 text-2xl font-black text-indigo-700">{formatCurrency(totalEarned, language)}</p>
+            <p className="mt-0.5 text-[10px] text-slate-400">Based on active days</p>
+          </div>
+          <div className="surface px-5 py-4">
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-emerald-500">{t('salary.totalPaidOut')}</p>
+            <p className="mt-1 text-2xl font-black text-emerald-700">{formatCurrency(totalPaid, language)}</p>
+            {totalEarned > 0 && (
+              <div className="mt-2">
+                <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-200">
+                  <div className="h-full rounded-full bg-emerald-500 transition-all" style={{ width: `${paidPercent}%` }} />
+                </div>
+                <p className="mt-0.5 text-[10px] text-slate-400">{paidPercent}% paid</p>
               </div>
-              <div className="rounded-xl bg-indigo-50 border border-indigo-200 px-4 py-3">
-                <p className="text-[10px] font-black uppercase tracking-wide text-indigo-400">{t('salary.monthlyBudget')}</p>
-                <p className="text-xl font-bold text-indigo-700">{formatCurrency(vm.data.totalBudget, language)}</p>
-              </div>
-              <div className="rounded-xl bg-emerald-50 border border-emerald-200 px-4 py-3">
-                <p className="text-[10px] font-black uppercase tracking-wide text-emerald-400">{t('salary.totalPaidOut')}</p>
-                <p className="text-xl font-bold text-emerald-700">{formatCurrency(vm.data.totalPaid, language)}</p>
-              </div>
-              <div className="rounded-xl bg-amber-50 border border-amber-200 px-4 py-3">
-                <p className="text-[10px] font-black uppercase tracking-wide text-amber-400">{t('salary.totalRemaining')}</p>
-                <p className="text-xl font-bold text-amber-700">{formatCurrency(Math.max(0, vm.data.totalBudget - vm.data.totalPaid), language)}</p>
-              </div>
-            </div>
-          )}
+            )}
+          </div>
+          <div className="surface px-5 py-4">
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-amber-500">{t('salary.totalRemaining')}</p>
+            <p className="mt-1 text-2xl font-black text-amber-700">
+              {formatCurrency(Math.max(0, totalEarned - totalPaid), language)}
+            </p>
+          </div>
         </div>
+      )}
 
+      {/* Employee list */}
+      <div className="surface overflow-hidden">
         {vm.loading ? (
           <div className="p-5"><TableSkeleton columns={5} /></div>
         ) : vm.error ? (
           <div className="p-5"><Alert type="error">{vm.error}</Alert></div>
         ) : employees.length === 0 ? (
-          <div className="p-10 text-center">
-            <Banknote size={40} className="mx-auto text-slate-300 mb-3" />
+          <div className="flex flex-col items-center py-16 text-center">
+            <Banknote size={44} className="mb-4 text-slate-200" />
             <p className="font-semibold text-slate-500">{t('salary.noEmployees')}</p>
-            <p className="text-sm text-slate-400 mt-1">{t('salary.noEmployeesHint')}</p>
+            <p className="mt-1 text-sm text-slate-400">{t('salary.noEmployeesHint')}</p>
           </div>
         ) : (
-          <div className="divide-y divide-slate-100">
-            {employees.map((emp) => {
-              const isExpanded = expanded[emp.employeeId];
-              const remaining = emp.remaining;
-              const overpaid = remaining !== null && remaining < 0;
-              const paid = emp.totalPaid;
+          <>
+            {/* Column headers */}
+            <div className="hidden grid-cols-[1fr_auto_auto_auto_auto_auto_auto] gap-4 border-b border-slate-100 px-5 py-2.5 sm:grid">
+              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-400">{t('employees.name')}</p>
+              <p className="w-32 text-[10px] font-black uppercase tracking-[0.18em] text-slate-400 text-center">Active Days</p>
+              <p className="w-28 text-[10px] font-black uppercase tracking-[0.18em] text-slate-400 text-right">Earned</p>
+              <p className="w-24 text-[10px] font-black uppercase tracking-[0.18em] text-slate-400 text-right">{t('salary.paid')}</p>
+              <p className="w-24 text-[10px] font-black uppercase tracking-[0.18em] text-slate-400 text-right">{t('salary.balance')}</p>
+              <p className="w-20" />
+            </div>
 
-              return (
-                <div key={emp.employeeId}>
-                  {/* Employee row */}
-                  <div className="flex items-center gap-3 px-5 py-4 hover:bg-slate-50">
+            <div className="divide-y divide-slate-100">
+              {employees.map((emp) => {
+                const isExpanded = expanded[emp.employeeId];
+                const earned = emp.earnedAmount;
+                const remaining = emp.remaining;
+                const fullyPaid = remaining !== null && remaining <= 0 && earned > 0;
+                const overpaid = remaining !== null && remaining < 0;
+
+                return (
+                  <div key={emp.employeeId}>
                     <button
                       type="button"
-                      className="text-slate-400 hover:text-slate-700"
+                      className="flex w-full items-center gap-4 px-5 py-3.5 text-left transition-colors hover:bg-slate-50 focus:outline-none"
                       onClick={() => toggleExpand(emp.employeeId)}
-                      aria-label="expand"
                     >
-                      {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                      <span className="text-slate-300">
+                        {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                      </span>
+
+                      {/* Name + badges */}
+                      <span className="min-w-0 flex-1">
+                        <span className="flex flex-wrap items-center gap-2">
+                          <span className="font-semibold text-slate-900">{emp.employeeName}</span>
+                          <PaymentStatusBadge emp={emp} />
+                          <span className="muted-chip hidden sm:inline-flex">{t(`salary.payType.${emp.payType}`)}</span>
+                        </span>
+                        {emp.department && <span className="mt-0.5 block text-xs text-slate-400">{emp.department}</span>}
+                      </span>
+
+                      {/* Active days input */}
+                      <span className="hidden w-32 justify-center sm:flex">
+                        <ActiveDaysInput
+                          emp={emp}
+                          month={vm.month}
+                          onSaved={vm.reload}
+                          canManage={canManage}
+                        />
+                      </span>
+
+                      {/* Earned */}
+                      <span className="hidden w-28 text-right sm:block">
+                        {earned !== null ? (
+                          <>
+                            <span className="block text-sm font-semibold text-slate-800">{formatCurrency(earned, language)}</span>
+                            {emp.activeDays !== null && emp.payType === 'MONTHLY' && (
+                              <span className="block text-[10px] text-slate-400">
+                                of {formatCurrency(emp.salaryAmount, language)}
+                              </span>
+                            )}
+                          </>
+                        ) : (
+                          <span className="text-xs text-slate-400">Set days →</span>
+                        )}
+                      </span>
+
+                      {/* Paid */}
+                      <span className="hidden w-24 text-right sm:block">
+                        <span className={`block text-sm font-semibold ${emp.totalPaid > 0 ? 'text-emerald-700' : 'text-slate-400'}`}>
+                          {formatCurrency(emp.totalPaid, language)}
+                        </span>
+                      </span>
+
+                      {/* Balance */}
+                      {remaining !== null ? (
+                        <span className="hidden w-24 text-right sm:block">
+                          <span className={`block text-sm font-bold ${overpaid ? 'text-rose-600' : fullyPaid ? 'text-emerald-600' : 'text-slate-700'}`}>
+                            {overpaid ? '−' : ''}{formatCurrency(Math.abs(remaining), language)}
+                          </span>
+                        </span>
+                      ) : (
+                        <span className="hidden w-24 sm:block" />
+                      )}
+
+                      {/* Pay button */}
+                      {canManage && (
+                        <span className="w-20 shrink-0 text-right" onClick={(e) => e.stopPropagation()}>
+                          <button
+                            type="button"
+                            className={`btn-primary py-1.5 text-xs ${fullyPaid ? 'opacity-50' : ''}`}
+                            onClick={() => setPayModal(emp)}
+                            disabled={fullyPaid}
+                            title={fullyPaid ? 'Salary fully paid this month' : undefined}
+                          >
+                            {fullyPaid ? 'Paid' : t('salary.pay')}
+                          </button>
+                        </span>
+                      )}
                     </button>
 
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-slate-900 text-sm">{emp.employeeName}</p>
-                      {emp.department && <p className="text-xs text-slate-400">{emp.department}</p>}
-                    </div>
+                    {/* Payment history */}
+                    {isExpanded && (
+                      <div className="border-t border-slate-100 bg-slate-50/70 px-5 pb-4 pt-3">
+                        {/* Mobile active days */}
+                        <div className="mb-3 flex items-center gap-2 sm:hidden">
+                          <span className="text-xs font-semibold text-slate-500">Active Days:</span>
+                          <ActiveDaysInput emp={emp} month={vm.month} onSaved={vm.reload} canManage={canManage} />
+                        </div>
 
-                    <div className="hidden sm:flex items-center gap-1 text-xs text-slate-500 bg-slate-100 rounded-full px-2 py-0.5">
-                      {t(`salary.payType.${emp.payType}`)}
-                    </div>
+                        {/* Salary breakdown for this employee */}
+                        {earned !== null && emp.activeDays !== null && (
+                          <div className="mb-3 flex flex-wrap gap-3 text-xs text-slate-500">
+                            <span>
+                              {emp.payType === 'MONTHLY'
+                                ? `${formatCurrency(emp.salaryAmount, language)} ÷ ${emp.daysInMonth} days × ${emp.activeDays} active days`
+                                : `${formatCurrency(emp.salaryAmount, language)}/day × ${emp.activeDays} days`}
+                              {' = '}
+                              <strong className="text-slate-800">{formatCurrency(earned, language)}</strong>
+                            </span>
+                          </div>
+                        )}
 
-                    <div className="text-right min-w-[90px]">
-                      <p className="text-[10px] text-slate-400 uppercase tracking-wide">{t('salary.salary')}</p>
-                      <p className="text-sm font-semibold text-slate-700">{formatCurrency(emp.salaryAmount, language)}</p>
-                    </div>
-
-                    <div className="text-right min-w-[90px]">
-                      <p className="text-[10px] text-slate-400 uppercase tracking-wide">{t('salary.paid')}</p>
-                      <p className="text-sm font-semibold text-emerald-700">{formatCurrency(paid, language)}</p>
-                    </div>
-
-                    {remaining !== null ? (
-                      <div className="text-right min-w-[90px]">
-                        <p className="text-[10px] text-slate-400 uppercase tracking-wide">{t('salary.balance')}</p>
-                        <p className={`text-sm font-bold ${overpaid ? 'text-amber-600' : 'text-indigo-700'}`}>
-                          {overpaid ? '-' : ''}{formatCurrency(Math.abs(remaining), language)}
-                        </p>
+                        <p className="mb-2 text-[10px] font-black uppercase tracking-[0.18em] text-slate-400">Payment History</p>
+                        {emp.payments.length === 0 ? (
+                          <p className="py-2 text-xs italic text-slate-400">{t('salary.noPaymentsThisMonth')}</p>
+                        ) : (
+                          <div className="overflow-x-auto">
+                            <table className="w-full text-sm">
+                              <thead>
+                                <tr className="text-left">
+                                  <th className="pb-2 pr-4 text-[10px] font-black uppercase tracking-wide text-slate-400">{t('salary.date')}</th>
+                                  <th className="pb-2 pr-4 text-right text-[10px] font-black uppercase tracking-wide text-slate-400">{t('salary.amount')}</th>
+                                  <th className="pb-2 pr-4 text-[10px] font-black uppercase tracking-wide text-slate-400">{t('salary.paymentMethod')}</th>
+                                  <th className="pb-2 pr-4 text-[10px] font-black uppercase tracking-wide text-slate-400">{t('salary.note')}</th>
+                                  {canManage && <th className="pb-2 w-8" />}
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-slate-100">
+                                {emp.payments.map((p) => (
+                                  <tr key={p.id} className="group">
+                                    <td className="py-2 pr-4 text-slate-600">{formatDate(p.paymentDate, language)}</td>
+                                    <td className="py-2 pr-4 text-right font-semibold text-emerald-700">{formatCurrency(p.amount, language)}</td>
+                                    <td className="py-2 pr-4">
+                                      <span className="muted-chip">{p.paymentMethod === 'BANK' ? t('common.bank') : t('common.cash')}</span>
+                                    </td>
+                                    <td className="py-2 pr-4 text-xs text-slate-400">{p.note || '—'}</td>
+                                    {canManage && (
+                                      <td className="py-2">
+                                        <button
+                                          type="button"
+                                          className="icon-btn text-rose-500 opacity-0 transition-opacity group-hover:opacity-100"
+                                          disabled={deletingId === p.id}
+                                          onClick={() => handleDeletePayment(p)}
+                                          title="Delete payment"
+                                        >
+                                          <Trash2 size={14} />
+                                        </button>
+                                      </td>
+                                    )}
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        )}
                       </div>
-                    ) : (
-                      <div className="min-w-[90px]" />
-                    )}
-
-                    {canManage && (
-                      <button
-                        type="button"
-                        className="btn-primary py-1.5 text-xs shrink-0"
-                        onClick={() => setPayModal(emp)}
-                      >
-                        {t('salary.pay')}
-                      </button>
                     )}
                   </div>
-
-                  {/* Payment history (expandable) */}
-                  {isExpanded && (
-                    <div className="bg-slate-50 border-t border-slate-100 px-8 pb-3">
-                      {emp.payments.length === 0 ? (
-                        <p className="py-3 text-xs text-slate-400">{t('salary.noPaymentsThisMonth')}</p>
-                      ) : (
-                        <table className="w-full text-xs mt-2">
-                          <thead>
-                            <tr className="text-left text-[10px] font-black uppercase tracking-wide text-slate-400">
-                              <th className="pb-1 pr-4">{t('salary.date')}</th>
-                              <th className="pb-1 pr-4">{t('salary.amount')}</th>
-                              <th className="pb-1 pr-4">{t('salary.paymentMethod')}</th>
-                              <th className="pb-1 pr-4">{t('salary.note')}</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-slate-100">
-                            {emp.payments.map((p) => (
-                              <tr key={p.id} className="hover:bg-white">
-                                <td className="py-1.5 pr-4 text-slate-600">{String(p.paymentDate || '').slice(0, 10)}</td>
-                                <td className="py-1.5 pr-4 font-semibold text-emerald-700">{formatCurrency(p.amount, language)}</td>
-                                <td className="py-1.5 pr-4 text-slate-500">{t(`common.${p.paymentMethod.toLowerCase()}`)}</td>
-                                <td className="py-1.5 pr-4 text-slate-400">{p.note || '—'}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      )}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          </>
         )}
       </div>
 

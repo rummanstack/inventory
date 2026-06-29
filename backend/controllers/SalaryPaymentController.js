@@ -27,4 +27,13 @@ export class SalaryPaymentController {
       next(error);
     }
   };
+
+  setActiveDays = async (req, res, next) => {
+    try {
+      const { employeeId, month, activeDays } = req.body || {};
+      res.json(await this.salaryPaymentService.setActiveDays(employeeId, month, activeDays, req.currentUser));
+    } catch (error) {
+      next(error);
+    }
+  };
 }

@@ -44,12 +44,15 @@ export function getSalaryOverview(client, tenantId, month) {
        e.salary_amount,
        e.pay_type,
        e.department,
-       COALESCE(SUM(sp.amount), 0) AS total_paid
+       COALESCE(SUM(sp.amount), 0) AS total_paid,
+       sad.active_days
      FROM employees e
      LEFT JOIN salary_payments sp
        ON sp.employee_id = e.id AND sp.payment_month = $2 AND sp.tenant_id = $1
+     LEFT JOIN salary_active_days sad
+       ON sad.employee_id = e.id AND sad.month = $2 AND sad.tenant_id = $1
      WHERE e.tenant_id = $1 AND e.status = 'ACTIVE' AND e.deleted_at IS NULL
-     GROUP BY e.id, e.name, e.salary_amount, e.pay_type, e.department
+     GROUP BY e.id, e.name, e.salary_amount, e.pay_type, e.department, sad.active_days
      ORDER BY e.name ASC`,
     [tenantId, month],
   );

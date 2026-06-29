@@ -94,7 +94,7 @@ export default function PurchaseReceiveFormModal({ purchaseReceipt, onClose, onS
         <div>
           <div className="mb-2 flex items-center justify-between">
             <label className="label mb-0">{t('purchaseReceive.itemsTitle')}</label>
-            <button type="button" className="btn-secondary" onClick={vm.addItem} disabled={!filteredProducts.length}>
+            <button type="button" className="btn-secondary" onClick={vm.addItem} disabled={!vm.canAddItem}>
               <Plus size={16} />
               {t('purchaseReceive.addItem')}
             </button>

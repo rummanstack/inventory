@@ -9,6 +9,7 @@ export function createSalaryPaymentsRoutes(salaryPaymentController) {
 
   router.get("/overview", requirePermission(PERMISSIONS.MANAGE_PAYROLL), salaryPaymentController.overview);
   router.post("/", requirePermission(PERMISSIONS.MANAGE_PAYROLL), salaryPaymentController.record);
+  router.post("/active-days", requirePermission(PERMISSIONS.MANAGE_PAYROLL), salaryPaymentController.setActiveDays);
   router.delete("/:id", requirePermission(PERMISSIONS.MANAGE_PAYROLL), salaryPaymentController.remove);
 
   return router;

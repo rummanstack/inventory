@@ -1,6 +1,6 @@
 import { assert } from "../lib/errors.js";
 import { createId } from "../lib/ids.js";
-import { cleanMoney } from "../lib/normalizers.js";
+import { cleanMoney, cleanInteger } from "../lib/normalizers.js";
 import { SALARY_PAYMENT_ACTIONS } from "../lib/auditActions.js";
 import { logActivity } from "./shared/inventoryHelpers.js";
 import { findEmployeeById } from "../repositories/employeeRepository.js";
@@ -12,6 +12,24 @@ import {
   findSalaryPaymentById,
   deleteSalaryPaymentRecord,
 } from "../repositories/salaryPaymentRepository.js";
+import { upsertActiveDays } from "../repositories/salaryActiveDaysRepository.js";
+
+function daysInMonth(monthStr) {
+  const [y, m] = monthStr.split('-').map(Number);
+  return new Date(y, m, 0).getDate();
+}
+
+function calcEarned(salaryAmount, payType, activeDays, month) {
+  if (activeDays === null || activeDays === undefined) {
+    return payType === 'MONTHLY' ? salaryAmount : null;
+  }
+  if (payType === 'MONTHLY') {
+    const days = daysInMonth(month);
+    return days > 0 ? Math.round(((salaryAmount / days) * activeDays) * 100) / 100 : 0;
+  }
+  // DAILY: salary_amount is daily rate
+  return Math.round((salaryAmount * activeDays) * 100) / 100;
+}
 
 export class SalaryPaymentService {
   constructor(databaseManager, { auditService, financeAccountService }) {
@@ -26,6 +44,7 @@ export class SalaryPaymentService {
 
   async getOverview(month, actor) {
     const m = String(month || '').trim().slice(0, 7) || new Date().toISOString().slice(0, 7);
+    const totalDays = daysInMonth(m);
     return this.databaseManager.withClient(async (client) => {
       const [overviewResult, paymentsResult] = await Promise.all([
         getSalaryOverview(client, actor.tenantId, m),
@@ -42,23 +61,52 @@ export class SalaryPaymentService {
       const employees = overviewResult.rows.map((row) => {
         const salaryAmount = Number(row.salary_amount || 0);
         const totalPaid = Number(row.total_paid || 0);
-        const isMonthly = row.pay_type === 'MONTHLY';
+        const activeDays = row.active_days !== null && row.active_days !== undefined ? Number(row.active_days) : null;
+        const earnedAmount = calcEarned(salaryAmount, row.pay_type, activeDays, m);
         return {
           employeeId: row.employee_id,
           employeeName: row.employee_name,
           department: row.department || '',
           salaryAmount,
           payType: row.pay_type,
+          activeDays,
+          daysInMonth: totalDays,
+          earnedAmount,
           totalPaid,
-          remaining: isMonthly ? salaryAmount - totalPaid : null,
+          remaining: earnedAmount !== null ? earnedAmount - totalPaid : null,
           payments: paymentsByEmployee[row.employee_id] || [],
         };
       });
 
-      const totalBudget = employees.filter(e => e.payType === 'MONTHLY').reduce((s, e) => s + e.salaryAmount, 0);
+      const totalEarned = employees.reduce((s, e) => s + (e.earnedAmount ?? e.salaryAmount), 0);
       const totalPaid = employees.reduce((s, e) => s + e.totalPaid, 0);
 
-      return { month: m, employees, totalBudget, totalPaid };
+      return { month: m, daysInMonth: totalDays, employees, totalBudget: totalEarned, totalPaid };
+    });
+  }
+
+  async setActiveDays(employeeId, month, activeDaysInput, actor) {
+    const activeDays = cleanInteger(activeDaysInput);
+    assert(activeDays >= 0, "Active days must be 0 or more.", 400);
+    const m = String(month || '').trim().slice(0, 7);
+    assert(m, "Month is required.", 400);
+
+    return this.databaseManager.withTransaction(async (client) => {
+      const employee = await findEmployeeById(client, employeeId, actor.tenantId);
+      assert(employee, "Employee not found.", 404);
+
+      await upsertActiveDays(client, {
+        id: createId("sad"),
+        tenantId: actor.tenantId,
+        employeeId,
+        month: m,
+        activeDays,
+        updatedBy: actor.id,
+      });
+
+      const totalDays = daysInMonth(m);
+      const earnedAmount = calcEarned(Number(employee.salary_amount || 0), employee.pay_type, activeDays, m);
+      return { ok: true, employeeId, month: m, activeDays, daysInMonth: totalDays, earnedAmount };
     });
   }
 

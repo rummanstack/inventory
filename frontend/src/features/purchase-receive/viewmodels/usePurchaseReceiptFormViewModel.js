@@ -256,6 +256,9 @@ export function usePurchaseReceiptFormViewModel({ purchaseReceipt, products, def
     (row) => !row.productId || row.quantityNumber <= 0 || row.purchasePriceNumber < 0 || row.serialCountMismatch,
   );
 
+  const usedProductIds = new Set(items.map((row) => row.productId).filter(Boolean));
+  const canAddItem = products.some((product) => !usedProductIds.has(product.id));
+
   function buildPayload() {
     return {
       id: purchaseReceipt?.id,
@@ -319,6 +322,7 @@ export function usePurchaseReceiptFormViewModel({ purchaseReceipt, products, def
     dueAmount,
     hasValidItems,
     hasInvalidItems,
+    canAddItem,
     buildPayload,
   };
 }

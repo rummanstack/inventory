@@ -19,6 +19,7 @@ import {
   listProductsPage,
   mapProduct,
   updateProduct,
+  upsertProductSuppliers,
 } from "../repositories/productRepository.js";
 import { findCategoryById } from "../repositories/categoryRepository.js";
 import { countStockMovements } from "../repositories/stockMovementRepository.js";
@@ -50,9 +51,9 @@ export class ProductService {
     });
   }
 
-  async getProductsDirectory(actor) {
+  async getProductsDirectory(actor, { supplierId } = {}) {
     return this.databaseManager.withClient(async (client) => ({
-      products: await listAllActiveProductsLite(client, actor.tenantId),
+      products: await listAllActiveProductsLite(client, actor.tenantId, { supplierId: supplierId || null }),
     }));
   }
 
@@ -68,6 +69,8 @@ export class ProductService {
     assert(product.piecesPerCase > 0, "Pieces per case must be greater than zero.");
     assert(product.purchasePrice > 0, "Purchase price must be greater than zero.");
     product.taxRate = Math.min(Math.max(0, Number(product.taxRate || 0)), 100);
+
+    const supplierIds = Array.isArray(input.supplierIds) ? input.supplierIds.filter(Boolean) : [];
 
     return this.databaseManager.withTransaction(async (client) => {
       const category = await findCategoryById(client, product.categoryId, actor.tenantId);
@@ -92,6 +95,7 @@ export class ProductService {
 
         result = await updateProduct(client, nextProduct);
         assert(result.rowCount > 0, "Product not found.", 404);
+        await upsertProductSuppliers(client, nextProduct.id, supplierIds, actor.tenantId);
         await this.recordActivity(client, actor, {
           actionType: PRODUCT_ACTIONS.UPDATE,
           entityType: "product",
@@ -107,6 +111,7 @@ export class ProductService {
         product.stockPieces = 0;
         product.tenantId = actor.tenantId;
         result = await insertProduct(client, product);
+        await upsertProductSuppliers(client, product.id, supplierIds, actor.tenantId);
         await this.recordActivity(client, actor, {
           actionType: PRODUCT_ACTIONS.CREATE,
           entityType: "product",
@@ -116,7 +121,7 @@ export class ProductService {
         });
       }
 
-      return mapProduct(result.rows[0]);
+      return { ...mapProduct(result.rows[0]), supplierIds };
     });
   }
 

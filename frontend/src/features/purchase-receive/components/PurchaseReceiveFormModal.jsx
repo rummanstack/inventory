@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Plus, Save, Trash2 } from 'lucide-react';
 import { Alert, Modal } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
@@ -11,18 +11,27 @@ import SupplierFormModal from '../../suppliers/components/SupplierFormModal.jsx'
 export default function PurchaseReceiveFormModal({ purchaseReceipt, onClose, onSave }) {
   const { t, supplierDirectory, productDirectory, saveSupplier, tenant } = useInventoryApp();
   const isElectronics = (tenant?.businessType || 'ELECTRONICS') === 'ELECTRONICS';
-  const vm = usePurchaseReceiptFormViewModel({
-    purchaseReceipt,
-    products: productDirectory,
-    defaultTaxRate: tenant?.taxRate || 0,
-  });
+  const [supplierId, setSupplierId] = useState(purchaseReceipt?.supplierId || '');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
   const [showAddSupplier, setShowAddSupplier] = useState(false);
 
+  const filteredProducts = useMemo(() => {
+    if (!supplierId) return productDirectory;
+    const linked = productDirectory.filter((p) => Array.isArray(p.supplierIds) && p.supplierIds.includes(supplierId));
+    return linked.length > 0 ? linked : productDirectory;
+  }, [supplierId, productDirectory]);
+
+  const vm = usePurchaseReceiptFormViewModel({
+    purchaseReceipt,
+    products: filteredProducts,
+    defaultTaxRate: tenant?.taxRate || 0,
+    supplierId,
+  });
+
   async function submitForm(event) {
     event.preventDefault();
-    if (!vm.supplierId) {
+    if (!supplierId) {
       setError(t('purchaseReceive.supplierRequired'));
       return;
     }
@@ -65,7 +74,7 @@ export default function PurchaseReceiveFormModal({ purchaseReceipt, onClose, onS
                 </button>
               )}
             </div>
-            <select className="input" value={vm.supplierId} onChange={(event) => vm.setSupplierId(event.target.value)} disabled={vm.isEdit}>
+            <select className="input" value={supplierId} onChange={(event) => setSupplierId(event.target.value)} disabled={vm.isEdit}>
               <option value="">{t('purchaseReceive.selectSupplier')}</option>
               {supplierDirectory.map((supplier) => (
                 <option key={supplier.id} value={supplier.id}>{supplier.name}</option>
@@ -85,7 +94,7 @@ export default function PurchaseReceiveFormModal({ purchaseReceipt, onClose, onS
         <div>
           <div className="mb-2 flex items-center justify-between">
             <label className="label mb-0">{t('purchaseReceive.itemsTitle')}</label>
-            <button type="button" className="btn-secondary" onClick={vm.addItem} disabled={!productDirectory.length}>
+            <button type="button" className="btn-secondary" onClick={vm.addItem} disabled={!filteredProducts.length}>
               <Plus size={16} />
               {t('purchaseReceive.addItem')}
             </button>
@@ -244,7 +253,7 @@ export default function PurchaseReceiveFormModal({ purchaseReceipt, onClose, onS
         onSave={async (payload) => {
           const result = await saveSupplier(payload);
           if (result?.ok) {
-            vm.setSupplierId(result.supplier.id);
+            setSupplierId(result.supplier.id);
             setShowAddSupplier(false);
           }
           return result;

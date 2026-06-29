@@ -144,6 +144,18 @@ export const BRAND_ACTIONS = {
   DELETE: "brand.delete",
 };
 
+export const MANUFACTURER_ACTIONS = {
+  CREATE: "manufacturer.create",
+  UPDATE: "manufacturer.update",
+  DELETE: "manufacturer.delete",
+};
+
+export const GENERIC_MEDICINE_ACTIONS = {
+  CREATE: "generic_medicine.create",
+  UPDATE: "generic_medicine.update",
+  DELETE: "generic_medicine.delete",
+};
+
 export const EMPLOYEE_ACTIONS = {
   CREATE: "employee.create",
   UPDATE: "employee.update",

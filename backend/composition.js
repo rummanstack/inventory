@@ -21,6 +21,8 @@ import { RepairJobService } from './services/repairJobService.js';
 import { QuotationService } from './services/quotationService.js';
 import { TradeInService } from './services/tradeInService.js';
 import { BrandService } from './services/brandService.js';
+import { ManufacturerService } from './services/manufacturerService.js';
+import { GenericMedicineService } from './services/genericMedicineService.js';
 import { DsrDueLedgerService } from './services/dsrDueLedgerService.js';
 import { ShopDueLedgerService } from './services/shopDueLedgerService.js';
 import { CustomerService } from './services/customerService.js';
@@ -88,6 +90,8 @@ export async function createBackendApp() {
   const quotationService = new QuotationService(databaseManager, { auditService });
   const tradeInService = new TradeInService(databaseManager, { auditService, financeAccountService });
   const brandService = new BrandService(databaseManager, { auditService });
+  const manufacturerService = new ManufacturerService(databaseManager, { auditService });
+  const genericMedicineService = new GenericMedicineService(databaseManager, { auditService });
   const dsrDueLedgerService = new DsrDueLedgerService(databaseManager, { auditService, financeAccountService });
   const shopDueLedgerService = new ShopDueLedgerService(databaseManager, { auditService, financeAccountService });
   const customerService = new CustomerService(databaseManager, { auditService });
@@ -166,6 +170,8 @@ export async function createBackendApp() {
     quotationService,
     tradeInService,
     brandService,
+    manufacturerService,
+    genericMedicineService,
     srService,
     srDueLedgerService,
     supplierDiscountService,

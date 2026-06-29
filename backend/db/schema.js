@@ -1468,6 +1468,36 @@ export async function createSchema(pool) {
     CREATE UNIQUE INDEX IF NOT EXISTS idx_brands_tenant_name ON brands(tenant_id, LOWER(name));
     CREATE INDEX IF NOT EXISTS idx_brands_tenant_id ON brands(tenant_id);
 
+    CREATE TABLE IF NOT EXISTS manufacturers (
+      id           TEXT PRIMARY KEY,
+      tenant_id    TEXT NOT NULL REFERENCES tenants(id),
+      name         TEXT NOT NULL,
+      short_name   TEXT NOT NULL DEFAULT '',
+      country      TEXT NOT NULL DEFAULT '',
+      dgda_license TEXT NOT NULL DEFAULT '',
+      phone        TEXT NOT NULL DEFAULT '',
+      address      TEXT NOT NULL DEFAULT '',
+      status       TEXT NOT NULL DEFAULT 'ACTIVE',
+      created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_manufacturers_tenant_name ON manufacturers(tenant_id, LOWER(name));
+    CREATE INDEX IF NOT EXISTS idx_manufacturers_tenant_id ON manufacturers(tenant_id);
+
+    CREATE TABLE IF NOT EXISTS generic_medicines (
+      id          TEXT PRIMARY KEY,
+      tenant_id   TEXT NOT NULL REFERENCES tenants(id),
+      name        TEXT NOT NULL,
+      description TEXT NOT NULL DEFAULT '',
+      status      TEXT NOT NULL DEFAULT 'ACTIVE',
+      created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_generic_medicines_tenant_name ON generic_medicines(tenant_id, LOWER(name));
+    CREATE INDEX IF NOT EXISTS idx_generic_medicines_tenant_id ON generic_medicines(tenant_id);
+
     CREATE TABLE IF NOT EXISTS shop_due_ledger (
       id              TEXT PRIMARY KEY,
       tenant_id       TEXT NOT NULL REFERENCES tenants(id),
@@ -1812,9 +1842,12 @@ export async function createSchema(pool) {
     ALTER TABLE products ADD COLUMN IF NOT EXISTS pack_size INTEGER NOT NULL DEFAULT 0;
     ALTER TABLE products ADD COLUMN IF NOT EXISTS medicine_type TEXT NOT NULL DEFAULT '';
     ALTER TABLE products ADD COLUMN IF NOT EXISTS requires_batch BOOLEAN NOT NULL DEFAULT false;
+    ALTER TABLE products ADD COLUMN IF NOT EXISTS manufacturer_id TEXT REFERENCES manufacturers(id) ON DELETE SET NULL;
+    ALTER TABLE products ADD COLUMN IF NOT EXISTS generic_medicine_id TEXT REFERENCES generic_medicines(id) ON DELETE SET NULL;
 
     CREATE INDEX IF NOT EXISTS idx_products_generic_name ON products(tenant_id, generic_name) WHERE generic_name <> '';
     CREATE INDEX IF NOT EXISTS idx_products_manufacturer ON products(tenant_id, manufacturer) WHERE manufacturer <> '';
+    CREATE INDEX IF NOT EXISTS idx_products_manufacturer_id ON products(manufacturer_id) WHERE manufacturer_id IS NOT NULL;
   `);
 
   // ── Drug & Pharmacy: batch/lot/expiry on purchase receipt items ────────────

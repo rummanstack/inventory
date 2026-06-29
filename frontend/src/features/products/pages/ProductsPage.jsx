@@ -9,6 +9,8 @@ import StockLedgerPanel from '../components/StockLedgerPanel';
 import ProductsPrintSheet from '../components/ProductsPrintSheet';
 import CategoriesManagerModal from '../components/CategoriesManagerModal';
 import BrandsManagerModal from '../components/BrandsManagerModal';
+import ManufacturersManagerModal from '../components/ManufacturersManagerModal';
+import GenericMedicinesManagerModal from '../components/GenericMedicinesManagerModal';
 import { useProductsViewModel } from '../viewmodels/useProductsViewModel';
 import { downloadSheetPdf } from '../../../services/printService.js';
 import { inventoryApi } from '../../../services/inventoryApi.js';
@@ -24,6 +26,8 @@ export default function ProductsPage() {
   const [stockModalMode, setStockModalMode] = useState('add');
   const [showCategoriesModal, setShowCategoriesModal] = useState(false);
   const [showBrandsModal, setShowBrandsModal] = useState(false);
+  const [showManufacturersModal, setShowManufacturersModal] = useState(false);
+  const [showGenericMedicinesModal, setShowGenericMedicinesModal] = useState(false);
   const [ledgerRefreshKey, setLedgerRefreshKey] = useState(0);
   const [viewMode, setViewMode] = useState(() => {
     if (typeof window === 'undefined') return 'list';
@@ -99,6 +103,18 @@ export default function ProductsPage() {
               <ListTree size={18} />
               {t('categories.manage')}
             </button>
+            {isPharmacy ? (
+              <>
+                <button type="button" className="btn-secondary" onClick={() => setShowManufacturersModal(true)}>
+                  <ListTree size={18} />
+                  {t('pharmacy.manufacturers')}
+                </button>
+                <button type="button" className="btn-secondary" onClick={() => setShowGenericMedicinesModal(true)}>
+                  <ListTree size={18} />
+                  {t('genericMedicines.manage')}
+                </button>
+              </>
+            ) : null}
             <button type="button" className="btn-primary" onClick={() => setProductModal({ mode: 'add' })}>
               <Plus size={18} />
               {t('products.add')}
@@ -369,6 +385,12 @@ export default function ProductsPage() {
       ) : null}
       {showBrandsModal && isElectronics ? (
         <BrandsManagerModal onClose={() => setShowBrandsModal(false)} onChanged={() => vm.reload()} />
+      ) : null}
+      {showManufacturersModal && isPharmacy ? (
+        <ManufacturersManagerModal onClose={() => setShowManufacturersModal(false)} onChanged={() => vm.reload()} />
+      ) : null}
+      {showGenericMedicinesModal && isPharmacy ? (
+        <GenericMedicinesManagerModal onClose={() => setShowGenericMedicinesModal(false)} onChanged={() => vm.reload()} />
       ) : null}
 
       <div className="absolute -left-[10000px] top-0">

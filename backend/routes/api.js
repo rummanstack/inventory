@@ -97,6 +97,10 @@ import { TradeInController } from "../controllers/tradeInController.js";
 import { createTradeInsRoutes } from "./tradeIns.routes.js";
 import { BrandController } from "../controllers/BrandController.js";
 import { createBrandsRoutes } from "./brands.routes.js";
+import { ManufacturerController } from "../controllers/ManufacturerController.js";
+import { createManufacturersRoutes } from "./manufacturers.routes.js";
+import { GenericMedicineController } from "../controllers/GenericMedicineController.js";
+import { createGenericMedicinesRoutes } from "./genericMedicines.routes.js";
 import { SrController } from "../controllers/srController.js";
 import { SrDueLedgerController } from "../controllers/srDueLedgerController.js";
 import { createSrsRoutes } from "./srs.routes.js";
@@ -161,6 +165,8 @@ export function createApiRouter({
   quotationService,
   tradeInService,
   brandService,
+  manufacturerService,
+  genericMedicineService,
   srService,
   srDueLedgerService,
   dsrTargetService,
@@ -181,6 +187,8 @@ export function createApiRouter({
   const quotationController = new QuotationController(quotationService);
   const tradeInController = new TradeInController(tradeInService);
   const brandController = new BrandController(brandService);
+  const manufacturerController = new ManufacturerController(manufacturerService);
+  const genericMedicineController = new GenericMedicineController(genericMedicineService);
   const srController = new SrController(srService);
   const srDueLedgerController = new SrDueLedgerController(srDueLedgerService);
   const dsrDueLedgerController = new DsrDueLedgerController(dsrDueLedgerService);
@@ -267,6 +275,8 @@ export function createApiRouter({
   router.use("/products", createProductsRoutes(productController));
   router.use("/categories", createCategoriesRoutes(categoryController));
   router.use("/brands", createBrandsRoutes(brandController));
+  router.use("/manufacturers", createManufacturersRoutes(manufacturerController));
+  router.use("/generic-medicines", createGenericMedicinesRoutes(genericMedicineController));
   router.use("/stock-movements", createStockMovementsRoutes(stockMovementController));
   router.use("/product-serials", createProductSerialsRoutes(productSerialController));
   router.use("/warranty-claims", createWarrantyClaimsRoutes(warrantyClaimController));

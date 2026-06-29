@@ -261,6 +261,7 @@ const en = {
       all: 'All',
       filter: 'Filter',
       noResults: 'No results found',
+      select: 'Select',
     },
     photoUpload: {
       title: 'Photo upload',
@@ -343,6 +344,15 @@ const en = {
       regNumber: 'Registration Number',
       controlledSubstance: 'Controlled Substance',
       controlledSubstanceHint: 'Enable for narcotics, psychotropics, or other regulated substances requiring stricter tracking.',
+      packSize: 'Pack Size',
+      packSizeHint: 'Number of units per pack/strip (e.g. 10 for a strip of 10 tablets). Leave 0 for liquids sold by bottle.',
+      medicineType: 'Medicine Type',
+      medicineTypes: {
+        OTC: 'OTC (Over the Counter)',
+        Prescription: 'Prescription Only',
+      },
+      requiresBatch: 'Requires Batch Tracking',
+      requiresBatchHint: 'Enable FEFO batch tracking for this product. Turn on for all medicines with expiry dates.',
       viewList: 'List view',
       viewGrid: 'Grid view',
       noImage: 'No photo',
@@ -2963,6 +2973,7 @@ const en = {
     expiresLabel: 'Exp',
     remainingLabel: 'Remaining',
     noBatchesAvailable: 'No batches in stock for this product',
+    prescriptionRequired: 'Prescription required — enter prescription number above before saving.',
   },
 };
 

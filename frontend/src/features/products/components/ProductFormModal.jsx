@@ -43,6 +43,9 @@ export default function ProductFormModal({ product, onClose, onSave }) {
     manufacturer: product?.manufacturer || '',
     regNumber: product?.regNumber || '',
     controlledSubstance: product?.controlledSubstance === true,
+    packSize: product?.packSize ?? 0,
+    medicineType: product?.medicineType || '',
+    requiresBatch: product?.requiresBatch === true,
   });
 
   function toggleSupplier(supplierId) {
@@ -106,6 +109,9 @@ export default function ProductFormModal({ product, onClose, onSave }) {
       manufacturer: form.manufacturer?.trim() || '',
       regNumber: form.regNumber?.trim() || '',
       controlledSubstance: Boolean(form.controlledSubstance),
+      packSize: Number(form.packSize) || 0,
+      medicineType: form.medicineType || '',
+      requiresBatch: Boolean(form.requiresBatch),
     };
 
     if (isEdit) {
@@ -323,17 +329,49 @@ export default function ProductFormModal({ product, onClose, onSave }) {
               </div>
               <div>
                 <label className="label">{t('products.dosageForm')}</label>
-                <input className="input" value={form.dosageForm} onChange={(e) => updateField('dosageForm', e.target.value)} placeholder="e.g. Tablet, Syrup, Injection" />
+                <select className="input" value={form.dosageForm} onChange={(e) => updateField('dosageForm', e.target.value)}>
+                  <option value="">{t('common.select')}</option>
+                  {['Tablet', 'Capsule', 'Syrup', 'Injection', 'Cream', 'Ointment', 'Drops', 'Inhaler', 'Patch', 'Suppository', 'Powder', 'Gel', 'Spray'].map((f) => (
+                    <option key={f} value={f}>{f}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="label">{t('products.medicineType')}</label>
+                <select className="input" value={form.medicineType} onChange={(e) => updateField('medicineType', e.target.value)}>
+                  <option value="">{t('common.select')}</option>
+                  <option value="OTC">{t('products.medicineTypes.OTC')}</option>
+                  <option value="Prescription">{t('products.medicineTypes.Prescription')}</option>
+                </select>
               </div>
               <div>
                 <label className="label">{t('products.strength')}</label>
                 <input className="input" value={form.strength} onChange={(e) => updateField('strength', e.target.value)} placeholder="e.g. 500mg, 250mg/5ml" />
               </div>
               <div>
+                <label className="label">{t('products.packSize')}</label>
+                <input className="input" type="number" min="0" step="1" value={form.packSize || ''} onChange={(e) => updateField('packSize', e.target.value)} placeholder="e.g. 10 (tablets per strip)" />
+                <p className="mt-1 text-xs text-slate-500">{t('products.packSizeHint')}</p>
+              </div>
+              <div>
                 <label className="label">{t('products.regNumber')}</label>
                 <input className="input" value={form.regNumber} onChange={(e) => updateField('regNumber', e.target.value)} />
               </div>
-              <div className="sm:col-span-2">
+              <div>
+                <label className="flex items-start gap-3 rounded-2xl border border-sky-200 bg-sky-50 px-4 py-3">
+                  <input
+                    className="mt-1 h-4 w-4 rounded border-slate-300 text-brand focus:ring-brand"
+                    type="checkbox"
+                    checked={Boolean(form.requiresBatch)}
+                    onChange={(e) => updateField('requiresBatch', e.target.checked)}
+                  />
+                  <span>
+                    <span className="block font-semibold text-slate-950">{t('products.requiresBatch')}</span>
+                    <span className="mt-0.5 block text-xs font-medium text-slate-500">{t('products.requiresBatchHint')}</span>
+                  </span>
+                </label>
+              </div>
+              <div>
                 <label className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3">
                   <input
                     className="mt-1 h-4 w-4 rounded border-slate-300 text-brand focus:ring-brand"

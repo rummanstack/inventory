@@ -240,6 +240,10 @@
       dueAdjustmentReasonLabel: 'বকেয়া সমন্বয়ের কারণ',
       cash: 'নগদ',
       bank: 'ব্যাংক',
+      results: 'ফলাফল',
+      all: 'সকল',
+      filter: 'ফিল্টার',
+      noResults: 'কোনো ফলাফল পাওয়া যায়নি',
     },
     photoUpload: {
       title: 'ছবি আপলোড',
@@ -2853,6 +2857,8 @@
       noReportsDesc: 'পরিশোধিত পেরোল মাসিক রিপোর্ট হিসেবে এখানে দেখাবে।',
     },
   pharmacy: {
+    dateFrom: 'শুরুর তারিখ',
+    dateTo: 'শেষের তারিখ',
     prescriptionNumber: 'প্রেসক্রিপশন নং',
     prescriptionNumberPlaceholder: 'যেমন: Rx-2024-0001',
     batchSalesReport: 'ব্যাচ বিক্রয় রিপোর্ট',

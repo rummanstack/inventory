@@ -257,6 +257,10 @@ const en = {
       dueAdjustmentReasonLabel: 'Reason for due adjustment',
       cash: 'Cash',
       bank: 'Bank',
+      results: 'results',
+      all: 'All',
+      filter: 'Filter',
+      noResults: 'No results found',
     },
     photoUpload: {
       title: 'Photo upload',
@@ -2944,6 +2948,8 @@ const en = {
       noReportsDesc: 'Paid payrolls will appear here as monthly reports.',
     },
   pharmacy: {
+    dateFrom: 'From Date',
+    dateTo: 'To Date',
     prescriptionNumber: 'Prescription No.',
     prescriptionNumberPlaceholder: 'e.g. Rx-2024-0001',
     batchSalesReport: 'Batch Sales Report',

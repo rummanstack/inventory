@@ -111,6 +111,8 @@ import { createEmployeesRoutes } from "./employees.routes.js";
 import { createSalaryStructureRoutes } from "./salaryStructure.routes.js";
 import { createPayrollRoutes } from "./payroll.routes.js";
 import { createSalaryPaymentsRoutes } from "./salaryPayments.routes.js";
+import { DrugBatchController } from "../controllers/drugBatchController.js";
+import { createDrugBatchesRoutes } from "./drugBatches.routes.js";
 
 export function createApiRouter({
   authService,
@@ -166,6 +168,7 @@ export function createApiRouter({
   salaryStructureService,
   payrollService,
   salaryPaymentService,
+  drugBatchService,
 }) {
   const router = Router();
   const authController = new AuthController(authService, env, tenantService);
@@ -300,6 +303,9 @@ export function createApiRouter({
   router.use("/payroll", createPayrollRoutes(payrollController));
   const salaryPaymentController = new SalaryPaymentController(salaryPaymentService);
   router.use("/salary-payments", createSalaryPaymentsRoutes(salaryPaymentController));
+
+  const drugBatchController = new DrugBatchController(drugBatchService);
+  router.use("/drug-batches", createDrugBatchesRoutes(drugBatchController));
 
   return router;
 }

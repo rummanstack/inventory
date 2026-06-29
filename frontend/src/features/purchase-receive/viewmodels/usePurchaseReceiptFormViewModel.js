@@ -47,6 +47,10 @@ function toLineItemRow(item, products) {
     lineDiscount: item.lineDiscount ?? 0,
     serialRequired: Boolean(product?.serialRequired),
     serialsText: '',
+    batchNumber: item.batchNumber || '',
+    lotNumber: item.lotNumber || '',
+    expiryDate: item.expiryDate || '',
+    manufactureDate: item.manufactureDate || '',
   };
 }
 
@@ -88,6 +92,10 @@ export function usePurchaseReceiptFormViewModel({ purchaseReceipt, products, def
         taxRate: taxRateForProduct(nextProduct, defaultTaxRate),
         serialRequired: Boolean(nextProduct.serialRequired),
         serialsText: '',
+        batchNumber: '',
+        lotNumber: '',
+        expiryDate: '',
+        manufactureDate: '',
       },
     ]);
   }
@@ -277,6 +285,10 @@ export function usePurchaseReceiptFormViewModel({ purchaseReceipt, products, def
           taxRate: row.taxRate,
           taxAmount: row.taxAmount,
           serials: row.serials,
+          batchNumber: row.batchNumber || '',
+          lotNumber: row.lotNumber || '',
+          expiryDate: row.expiryDate || null,
+          manufactureDate: row.manufactureDate || null,
       })),
       discount,
       taxRate,

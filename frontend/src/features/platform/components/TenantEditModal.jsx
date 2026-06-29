@@ -53,6 +53,7 @@ export default function TenantEditModal({ tenant, onClose, onSave }) {
           <select className="input" value={form.businessType} onChange={(e) => updateField('businessType', e.target.value)}>
             <option value="ELECTRONICS">{t('organizations.businessTypeElectronics')}</option>
             <option value="GROCERY">{t('organizations.businessTypeGrocery')}</option>
+            <option value="DRUG_PHARMACY">{t('organizations.businessTypeDrugPharmacy')}</option>
           </select>
         </label>
         <PhotoUploadField label={t('orgSettings.logoUrl')} value={form.logoUrl} onChange={(url) => updateField('logoUrl', url)} shape="square" />

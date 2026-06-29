@@ -1799,4 +1799,61 @@ export async function createSchema(pool) {
   await pool.query(`
     ALTER TABLE sales_invoice_items ADD COLUMN IF NOT EXISTS original_sale_price NUMERIC;
   `);
+
+  // ── Drug & Pharmacy: product fields ───────────────────────────────────────
+  await pool.query(`
+    ALTER TABLE products ADD COLUMN IF NOT EXISTS generic_name TEXT NOT NULL DEFAULT '';
+    ALTER TABLE products ADD COLUMN IF NOT EXISTS drug_type TEXT NOT NULL DEFAULT '';
+    ALTER TABLE products ADD COLUMN IF NOT EXISTS dosage_form TEXT NOT NULL DEFAULT '';
+    ALTER TABLE products ADD COLUMN IF NOT EXISTS strength TEXT NOT NULL DEFAULT '';
+    ALTER TABLE products ADD COLUMN IF NOT EXISTS manufacturer TEXT NOT NULL DEFAULT '';
+    ALTER TABLE products ADD COLUMN IF NOT EXISTS reg_number TEXT NOT NULL DEFAULT '';
+    ALTER TABLE products ADD COLUMN IF NOT EXISTS controlled_substance BOOLEAN NOT NULL DEFAULT false;
+
+    CREATE INDEX IF NOT EXISTS idx_products_generic_name ON products(tenant_id, generic_name) WHERE generic_name <> '';
+    CREATE INDEX IF NOT EXISTS idx_products_manufacturer ON products(tenant_id, manufacturer) WHERE manufacturer <> '';
+  `);
+
+  // ── Drug & Pharmacy: batch/lot/expiry on purchase receipt items ────────────
+  await pool.query(`
+    ALTER TABLE purchase_receipt_items ADD COLUMN IF NOT EXISTS batch_number TEXT NOT NULL DEFAULT '';
+    ALTER TABLE purchase_receipt_items ADD COLUMN IF NOT EXISTS lot_number TEXT NOT NULL DEFAULT '';
+    ALTER TABLE purchase_receipt_items ADD COLUMN IF NOT EXISTS expiry_date DATE;
+    ALTER TABLE purchase_receipt_items ADD COLUMN IF NOT EXISTS manufacture_date DATE;
+  `);
+
+  // ── Drug & Pharmacy: batch snapshot on sold line items ─────────────────────
+  await pool.query(`
+    ALTER TABLE sales_invoice_items ADD COLUMN IF NOT EXISTS batch_number_snapshot TEXT NOT NULL DEFAULT '';
+    ALTER TABLE sales_invoice_items ADD COLUMN IF NOT EXISTS expiry_date_snapshot DATE;
+  `);
+
+  // ── Drug & Pharmacy: drug_batches — one row per received batch, tracks remaining qty ──
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS drug_batches (
+      id                      TEXT PRIMARY KEY,
+      tenant_id               TEXT NOT NULL REFERENCES tenants(id),
+      product_id              TEXT NOT NULL REFERENCES products(id),
+      purchase_receipt_id     TEXT REFERENCES purchase_receipts(id) ON DELETE SET NULL,
+      purchase_receipt_item_id TEXT REFERENCES purchase_receipt_items(id) ON DELETE SET NULL,
+
+      batch_number            TEXT NOT NULL DEFAULT '',
+      lot_number              TEXT NOT NULL DEFAULT '',
+      expiry_date             DATE,
+      manufacture_date        DATE,
+
+      quantity_received       INTEGER NOT NULL DEFAULT 0,
+      quantity_remaining      INTEGER NOT NULL DEFAULT 0,
+
+      purchase_price          NUMERIC NOT NULL DEFAULT 0,
+
+      created_by              TEXT REFERENCES users(id) ON DELETE SET NULL,
+      created_at              TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at              TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_drug_batches_tenant_product ON drug_batches(tenant_id, product_id);
+    CREATE INDEX IF NOT EXISTS idx_drug_batches_expiry ON drug_batches(tenant_id, expiry_date) WHERE expiry_date IS NOT NULL;
+    CREATE INDEX IF NOT EXISTS idx_drug_batches_remaining ON drug_batches(tenant_id, product_id, quantity_remaining) WHERE quantity_remaining > 0;
+  `);
 }

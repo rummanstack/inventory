@@ -35,6 +35,7 @@ export default function ProductsPage() {
   }, [viewMode]);
   const canManageProducts = can('manage_products');
   const isElectronics = (tenant?.businessType || 'ELECTRONICS') === 'ELECTRONICS';
+  const isPharmacy = tenant?.businessType === 'DRUG_PHARMACY';
   const outOfStockCount = productDirectory.filter((product) => product.stockPieces === 0).length;
   const veryLowCount = productDirectory.filter((product) => product.stockPieces > 0 && product.stockPieces <= product.piecesPerCase).length;
   const businessName = tenant?.name || '';
@@ -243,7 +244,8 @@ export default function ProductsPage() {
               <tr>
                 <th className="px-4 py-3">#</th>
                 <th className="px-4 py-3">{t('products.product')}</th>
-                {!isElectronics ? <th className="px-4 py-3">{t('products.caseSize')}</th> : null}
+                {isPharmacy ? <th className="px-4 py-3">{t('products.genericName')}</th> : null}
+                {!isElectronics && !isPharmacy ? <th className="px-4 py-3">{t('products.caseSize')}</th> : null}
                 <th className="px-4 py-3">{t('products.purchase')}</th>
                 <th className="px-4 py-3">{t('products.wholesalePrice')}</th>
                 <th className="px-4 py-3">{t('products.retailPrice')}</th>
@@ -272,12 +274,14 @@ export default function ProductsPage() {
                         <Badge tone={product.refundable === false ? 'rose' : 'emerald'}>
                           {product.refundable === false ? t('products.nonRefundable') : t('products.refundable')}
                         </Badge>
+                        {isPharmacy && product.controlledSubstance ? <Badge tone="amber">Controlled</Badge> : null}
                         {product.stockPieces === 0 ? <Badge tone="rose">{t('products.outShort')}</Badge> : null}
                         {product.stockPieces > 0 && product.stockPieces <= product.piecesPerCase ? <Badge tone="amber">{t('products.lowShort')}</Badge> : null}
                       </div>
                     </div>
                   </td>
-                  {!isElectronics ? <td className="hidden table-cell sm:table-cell">{formatNumber(product.piecesPerCase, language)} {t('common.pcsPerCase')}</td> : null}
+                  {isPharmacy ? <td className="hidden table-cell sm:table-cell text-slate-700">{product.genericName || '-'}</td> : null}
+                  {!isElectronics && !isPharmacy ? <td className="hidden table-cell sm:table-cell">{formatNumber(product.piecesPerCase, language)} {t('common.pcsPerCase')}</td> : null}
                   <td className="hidden table-cell md:table-cell">{formatCurrency(product.purchasePrice, language)}</td>
                   <td className="hidden table-cell md:table-cell">{formatCurrency(product.wholesalePrice, language)}</td>
                   <td className="hidden table-cell md:table-cell">{formatCurrency(product.retailPrice, language)}</td>

@@ -553,6 +553,7 @@ export class SalesInvoiceService {
         productName: item.productName,
         quantityPieces: item.quantityPieces,
         actualSalePrice: item.actualSalePrice,
+        originalSalePrice: item.originalSalePrice ?? null,
         costPriceSnapshot: item.costPriceSnapshot,
         lineDiscount: item.lineDiscount,
         lineTotal: item.lineTotal,

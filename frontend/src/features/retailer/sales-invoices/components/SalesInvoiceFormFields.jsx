@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Tag, Trash2 } from 'lucide-react';
 import { DatePickerField } from '../../../../components/DatePicker.jsx';
 import { formatCurrency } from '../../../../utils/calculations.js';
 import { inventoryApi } from '../../../../services/inventoryApi.js';
@@ -24,6 +24,27 @@ function isLowStock(product) {
   return Number(product.stockPieces) > 0 && Number(product.stockPieces) <= threshold;
 }
 
+function PromoBadge({ promotion, size = 'md' }) {
+  if (!promotion) return null;
+  const label = promotion.discountType === 'PERCENT'
+    ? `${promotion.discountValue}% OFF`
+    : `−${formatCurrency(promotion.discountValue)} OFF`;
+  if (size === 'sm') {
+    return (
+      <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-100 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wide text-emerald-700 border border-emerald-200">
+        <Tag size={7} />
+        {label}
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-emerald-700 border border-emerald-200">
+      <Tag size={9} />
+      {promotion.name} · {label}
+    </span>
+  );
+}
+
 export default function SalesInvoiceFormFields({ vm, t, productDirectory, retailCustomerDirectory, saving, saveRetailCustomer }) {
   const [showAddCustomer, setShowAddCustomer] = useState(false);
   const [availableSerialsByProduct, setAvailableSerialsByProduct] = useState({});
@@ -33,13 +54,10 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, retail
   const searchRefs = useRef({});
   const prevRowCount = useRef(0);
 
-  // Auto-focus the product search when a new row is added
   useEffect(() => {
     if (vm.lineRows.length > prevRowCount.current) {
       const lastRow = vm.lineRows[vm.lineRows.length - 1];
-      if (lastRow) {
-        requestAnimationFrame(() => searchRefs.current[lastRow.rowId]?.focus());
-      }
+      if (lastRow) requestAnimationFrame(() => searchRefs.current[lastRow.rowId]?.focus());
     }
     prevRowCount.current = vm.lineRows.length;
   }, [vm.lineRows.length]);
@@ -78,10 +96,7 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, retail
       event.preventDefault();
       const hi = highlightedIndexes[row.rowId] ?? -1;
       const target = filteredProducts[hi] ?? filteredProducts[0];
-      if (target) {
-        vm.updateItem(row.rowId, 'productId', target.id);
-        setProductPickerRowId(null);
-      }
+      if (target) { vm.updateItem(row.rowId, 'productId', target.id); setProductPickerRowId(null); }
     } else if (event.key === 'Escape') {
       setProductPickerRowId(null);
     }
@@ -93,7 +108,7 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, retail
       <div className="grid gap-4 sm:grid-cols-4">
         <div>
           <label className="label">{t('retailer.shared.saleTypeLabel')}</label>
-          <select className="input" value={vm.saleType} onChange={(event) => vm.setSaleType(event.target.value)} disabled={saving}>
+          <select className="input" value={vm.saleType} onChange={(e) => vm.setSaleType(e.target.value)} disabled={saving}>
             <option value="RETAIL">{t('retailer.shared.saleTypes.RETAIL')}</option>
             <option value="WHOLESALE">{t('retailer.shared.saleTypes.WHOLESALE')}</option>
           </select>
@@ -104,7 +119,7 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, retail
         </div>
         <div>
           <label className="label">{t('retailer.shared.customerTypeLabel')}</label>
-          <select className="input" value={vm.customerType} onChange={(event) => vm.setCustomerType(event.target.value)} disabled={saving}>
+          <select className="input" value={vm.customerType} onChange={(e) => vm.setCustomerType(e.target.value)} disabled={saving}>
             <option value="WALK_IN">{t('retailer.shared.customerTypes.WALK_IN')}</option>
             <option value="REGISTERED">{t('retailer.shared.customerTypes.REGISTERED')}</option>
           </select>
@@ -119,7 +134,7 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, retail
               </button>
             )}
           </div>
-          <select className="input" value={vm.customerId} onChange={(event) => vm.setCustomerId(event.target.value)} disabled={saving || vm.customerType !== 'REGISTERED'}>
+          <select className="input" value={vm.customerId} onChange={(e) => vm.setCustomerId(e.target.value)} disabled={saving || vm.customerType !== 'REGISTERED'}>
             <option value="">{t('retailer.shared.selectCustomer')}</option>
             {retailCustomerDirectory.map((customer) => (
               <option key={customer.id} value={customer.id}>{customer.name}</option>
@@ -158,12 +173,22 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, retail
               const filteredProducts = pickerOpen
                 ? availableProducts.filter((product) => matchesProductQuery(product, productQuery))
                 : [];
-              const selectedProductName = availableProducts.find((product) => product.id === row.productId)?.name || row.productName || '';
+              const selectedProductName = availableProducts.find((p) => p.id === row.productId)?.name || row.productName || '';
               const highlightIndex = highlightedIndexes[row.rowId] ?? -1;
+              const hasPromo = Boolean(row.appliedPromotion);
+              const promoSaving = row.promotionSaving || 0;
 
               return (
-                <div key={row.rowId} className="space-y-3 rounded-[22px] border border-slate-200 bg-slate-50 p-4">
+                <div
+                  key={row.rowId}
+                  className={`space-y-3 rounded-[22px] border p-4 transition-colors ${
+                    hasPromo
+                      ? 'border-emerald-200 bg-emerald-50/40'
+                      : 'border-slate-200 bg-slate-50'
+                  }`}
+                >
                   <div className="grid gap-3 lg:grid-cols-[minmax(0,1.8fr)_minmax(110px,0.6fr)_minmax(110px,0.6fr)_minmax(110px,0.6fr)_minmax(110px,0.6fr)_auto]">
+                    {/* Product search */}
                     <div className="relative">
                       <label className="label">{t('products.product')}</label>
                       <input
@@ -176,55 +201,88 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, retail
                           setProductQueries((c) => ({ ...c, [row.rowId]: '' }));
                           setHighlightedIndexes((c) => ({ ...c, [row.rowId]: -1 }));
                         }}
-                        onChange={(event) => setProductQueries((c) => ({ ...c, [row.rowId]: event.target.value }))}
+                        onChange={(e) => setProductQueries((c) => ({ ...c, [row.rowId]: e.target.value }))}
                         onBlur={() => setTimeout(() => setProductPickerRowId((c) => (c === row.rowId ? null : c)), 150)}
-                        onKeyDown={(event) => handleProductKeyDown(event, row, filteredProducts)}
+                        onKeyDown={(e) => handleProductKeyDown(e, row, filteredProducts)}
                         placeholder={t('retailer.shared.searchProductPlaceholder')}
                         disabled={saving}
                       />
+
+                      {/* Product picker dropdown */}
                       {pickerOpen ? (
-                        <div className="absolute z-20 mt-1 max-h-56 w-full overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-lg">
-                          {filteredProducts.length ? filteredProducts.map((product, index) => (
-                            <button
-                              key={product.id}
-                              type="button"
-                              className={`flex w-full flex-col items-start gap-0.5 px-3 py-2 text-left text-sm ${index === highlightIndex ? 'bg-indigo-50 text-indigo-700' : 'hover:bg-slate-50'}`}
-                              onMouseDown={() => { vm.updateItem(row.rowId, 'productId', product.id); setProductPickerRowId(null); }}
-                              onMouseEnter={() => setHighlightedIndexes((c) => ({ ...c, [row.rowId]: index }))}
-                            >
-                              <span className="font-semibold">{product.name}</span>
-                              {product.barcode || product.sku ? (
-                                <span className="text-xs text-slate-500">
-                                  {[product.sku && `SKU: ${product.sku}`, product.barcode && `Barcode: ${product.barcode}`].filter(Boolean).join(' · ')}
-                                </span>
-                              ) : null}
-                              <span className={`text-xs font-semibold ${
-                                Number(product.stockPieces) === 0 ? 'text-rose-500' :
-                                isLowStock(product) ? 'text-amber-500' : 'text-slate-400'
-                              }`}>
-                                {Number(product.stockPieces) === 0
-                                  ? '⚠ Out of stock'
-                                  : isLowStock(product)
-                                    ? `⚠ Low: ${product.stockPieces} left`
-                                    : `${product.stockPieces} in stock`}
-                              </span>
-                            </button>
-                          )) : (
+                        <div className="absolute z-20 mt-1 max-h-64 w-full overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-lg">
+                          {filteredProducts.length ? filteredProducts.map((product, index) => {
+                            const productPromo = vm.getBestPromotion(product);
+                            return (
+                              <button
+                                key={product.id}
+                                type="button"
+                                className={`flex w-full items-start gap-2 px-3 py-2.5 text-left text-sm ${index === highlightIndex ? 'bg-indigo-50 text-indigo-700' : 'hover:bg-slate-50'}`}
+                                onMouseDown={() => { vm.updateItem(row.rowId, 'productId', product.id); setProductPickerRowId(null); }}
+                                onMouseEnter={() => setHighlightedIndexes((c) => ({ ...c, [row.rowId]: index }))}
+                              >
+                                <div className="min-w-0 flex-1">
+                                  <div className="flex flex-wrap items-center gap-1.5">
+                                    <span className="font-semibold">{product.name}</span>
+                                    {productPromo && <PromoBadge promotion={productPromo} size="sm" />}
+                                  </div>
+                                  {product.barcode || product.sku ? (
+                                    <span className="block text-xs text-slate-500">
+                                      {[product.sku && `SKU: ${product.sku}`, product.barcode && `Barcode: ${product.barcode}`].filter(Boolean).join(' · ')}
+                                    </span>
+                                  ) : null}
+                                  <span className={`block text-xs font-semibold ${
+                                    Number(product.stockPieces) === 0 ? 'text-rose-500' :
+                                    isLowStock(product) ? 'text-amber-500' : 'text-slate-400'
+                                  }`}>
+                                    {Number(product.stockPieces) === 0
+                                      ? '⚠ Out of stock'
+                                      : isLowStock(product)
+                                        ? `⚠ Low: ${product.stockPieces} left`
+                                        : `${product.stockPieces} in stock`}
+                                  </span>
+                                </div>
+                                <div className="shrink-0 text-right">
+                                  {productPromo ? (
+                                    <>
+                                      <span className="block text-xs text-slate-400 line-through">{formatCurrency(product.retailPrice)}</span>
+                                      <span className="block text-sm font-black text-emerald-700">
+                                        {formatCurrency(
+                                          productPromo.discountType === 'PERCENT'
+                                            ? product.retailPrice * (1 - productPromo.discountValue / 100)
+                                            : Math.max(0, product.retailPrice - productPromo.discountValue)
+                                        )}
+                                      </span>
+                                    </>
+                                  ) : (
+                                    <span className="block text-sm font-semibold text-slate-700">{formatCurrency(product.retailPrice)}</span>
+                                  )}
+                                </div>
+                              </button>
+                            );
+                          }) : (
                             <p className="px-3 py-2 text-sm text-slate-500">{t('retailer.shared.noProductsFound')}</p>
                           )}
                         </div>
                       ) : null}
-                      {(() => {
-                        const selectedProduct = row.productId ? productDirectory.find((p) => p.id === row.productId) : null;
-                        const low = selectedProduct && isLowStock(selectedProduct);
-                        return (
-                          <p className={`mt-1 text-xs font-semibold ${overStock ? 'text-rose-600' : low ? 'text-amber-500' : 'text-slate-500'}`}>
-                            {t('retailer.shared.availableStock')}: {row.availableStock ?? 0}
-                            {overStock ? ' — exceeds available stock' : low ? ' — low stock' : ''}
-                          </p>
-                        );
-                      })()}
+
+                      {/* Stock status + promo badge */}
+                      <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                        {(() => {
+                          const selectedProduct = row.productId ? productDirectory.find((p) => p.id === row.productId) : null;
+                          const low = selectedProduct && isLowStock(selectedProduct);
+                          return (
+                            <p className={`text-xs font-semibold ${overStock ? 'text-rose-600' : low ? 'text-amber-500' : 'text-slate-500'}`}>
+                              {t('retailer.shared.availableStock')}: {row.availableStock ?? 0}
+                              {overStock ? ' — exceeds available stock' : low ? ' — low stock' : ''}
+                            </p>
+                          );
+                        })()}
+                        {hasPromo && <PromoBadge promotion={row.appliedPromotion} size="md" />}
+                      </div>
                     </div>
+
+                    {/* Quantity */}
                     <div>
                       <label className="label">{t('retailer.shared.quantityLabel')}</label>
                       <input
@@ -233,26 +291,60 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, retail
                         min="0"
                         value={row.quantityPieces}
                         onFocus={autoSelect}
-                        onChange={(event) => vm.updateItem(row.rowId, 'quantityPieces', event.target.value)}
+                        onChange={(e) => vm.updateItem(row.rowId, 'quantityPieces', e.target.value)}
                         disabled={saving || row.serialRequired}
                       />
                       {row.serialRequired ? <p className="mt-1 text-xs font-semibold text-slate-500">{t('retailer.shared.serialQuantityHint')}</p> : null}
                     </div>
+
+                    {/* Price */}
                     <div>
                       <label className="label">{t('retailer.shared.priceLabel')}</label>
-                      <input className="input" type="number" min="0" step="0.01" value={row.actualSalePrice} onFocus={autoSelect} onChange={(event) => vm.updateItem(row.rowId, 'actualSalePrice', event.target.value)} disabled={saving} />
+                      <input
+                        className={`input ${hasPromo ? 'border-emerald-300 bg-emerald-50 font-semibold text-emerald-800' : ''}`}
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={row.actualSalePrice}
+                        onFocus={autoSelect}
+                        onChange={(e) => vm.updateItem(row.rowId, 'actualSalePrice', e.target.value)}
+                        disabled={saving}
+                      />
                     </div>
+
+                    {/* Line discount — disabled when a promotion is active */}
                     <div>
                       <label className="label">{t('retailer.shared.lineDiscountLabel')}</label>
-                      <input className="input" type="number" min="0" step="0.01" value={row.lineDiscount} onFocus={autoSelect} onChange={(event) => vm.updateItem(row.rowId, 'lineDiscount', event.target.value)} disabled={saving} />
+                      <input
+                        className="input disabled:cursor-not-allowed disabled:opacity-50"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={hasPromo ? 0 : row.lineDiscount}
+                        onFocus={autoSelect}
+                        onChange={(e) => vm.updateItem(row.rowId, 'lineDiscount', e.target.value)}
+                        disabled={saving || hasPromo}
+                        title={hasPromo ? 'Promotion already applied — line discount not available' : undefined}
+                      />
                     </div>
-                    <div className="flex items-end justify-between gap-2 lg:flex-col lg:items-end">
+
+                    {/* Line total + promo saving */}
+                    <div className="flex flex-col items-end justify-end">
                       <p className="text-sm font-black text-slate-950">{formatCurrency(row.lineTotal)}</p>
+                      {hasPromo && promoSaving > 0 && (
+                        <p className="mt-0.5 text-[10px] font-bold text-emerald-600">
+                          saved {formatCurrency(promoSaving)}
+                        </p>
+                      )}
+                    </div>
+                    {/* Delete */}
+                    <div className="flex items-end justify-end">
                       <button type="button" className="icon-btn text-rose-600 hover:text-rose-700" title={t('common.delete')} onClick={() => vm.removeItem(row.rowId)} disabled={saving}>
                         <Trash2 size={16} />
                       </button>
                     </div>
                   </div>
+
                   {row.serialRequired ? (
                     <div className="rounded-xl border border-dashed border-indigo-300 bg-indigo-50/60 p-3">
                       <p className="label mb-2">
@@ -295,19 +387,31 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, retail
       <div className="grid gap-4 lg:grid-cols-[1.5fr_1fr]">
         <div className="rounded-[22px] border border-slate-200 bg-slate-50 p-4">
           <h3 className="text-sm font-black uppercase tracking-[0.14em] text-slate-700">{t('retailer.shared.summaryTitle')}</h3>
+
           <dl className="mt-3 space-y-2 text-sm">
             <div className="flex items-center justify-between">
               <dt className="font-semibold text-slate-600">{t('retailer.shared.subtotal')}</dt>
-              <dd className="font-black text-slate-950">{formatCurrency(vm.subtotal)}</dd>
+              <dd className="font-black text-slate-950">{formatCurrency(vm.originalSubtotal)}</dd>
             </div>
-            <div className="flex items-center justify-between">
-              <dt className="font-semibold text-slate-600">{t('retailer.shared.lineDiscountTotal')}</dt>
-              <dd className="font-black text-rose-700">- {formatCurrency(vm.lineDiscountTotal)}</dd>
-            </div>
+            {vm.promotionSavingsTotal > 0 && (
+              <div className="flex items-center justify-between rounded-lg bg-emerald-50 px-2 py-1.5 -mx-2">
+                <dt className="flex items-center gap-1.5 font-semibold text-emerald-700">
+                  <Tag size={12} />
+                  Promotions
+                </dt>
+                <dd className="font-black text-emerald-700">− {formatCurrency(vm.promotionSavingsTotal)}</dd>
+              </div>
+            )}
+            {vm.lineDiscountTotal > 0 && (
+              <div className="flex items-center justify-between">
+                <dt className="font-semibold text-slate-600">{t('retailer.shared.lineDiscountTotal')}</dt>
+                <dd className="font-black text-rose-700">- {formatCurrency(vm.lineDiscountTotal)}</dd>
+              </div>
+            )}
             <div className="flex items-center justify-between gap-3">
               <dt className="font-semibold text-slate-600">{t('retailer.shared.discountLabel')}</dt>
               <dd className="flex items-center gap-2">
-                <input className="input h-9 w-28 text-right" type="number" min="0" step="0.01" value={vm.discountInput} onFocus={autoSelect} onChange={(event) => vm.setDiscountInput(event.target.value)} disabled={saving} />
+                <input className="input h-9 w-28 text-right" type="number" min="0" step="0.01" value={vm.discountInput} onFocus={autoSelect} onChange={(e) => vm.setDiscountInput(e.target.value)} disabled={saving} />
               </dd>
             </div>
             {vm.loyaltyEligible ? (
@@ -322,7 +426,7 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, retail
                       step="1"
                       value={vm.loyaltyRedeemPointsInput}
                       onFocus={autoSelect}
-                      onChange={(event) => vm.setLoyaltyRedeemPointsInput(event.target.value)}
+                      onChange={(e) => vm.setLoyaltyRedeemPointsInput(e.target.value)}
                       disabled={saving}
                     />
                   </dd>
@@ -364,7 +468,7 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, retail
             <div className="flex items-center justify-between gap-3">
               <dt className="font-semibold text-slate-600">{t('retailer.shared.paidAmountLabel')}</dt>
               <dd className="flex items-center gap-2">
-                <input className="input h-9 w-28 text-right" type="number" min="0" step="0.01" value={vm.paidAmountInput} onFocus={autoSelect} onChange={(event) => vm.setPaidAmountInput(event.target.value)} disabled={saving} />
+                <input className="input h-9 w-28 text-right" type="number" min="0" step="0.01" value={vm.paidAmountInput} onFocus={autoSelect} onChange={(e) => vm.setPaidAmountInput(e.target.value)} disabled={saving} />
                 <button type="button" className="btn-secondary h-9 px-2 text-xs" onClick={vm.markFullyPaid} disabled={saving}>
                   {t('retailer.shared.markFullyPaid')}
                 </button>
@@ -385,7 +489,7 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, retail
         <div className="space-y-4">
           <div>
             <label className="label">{t('purchaseReceive.paymentMethodLabel')}</label>
-            <select className="input" value={vm.paymentMethod} onChange={(event) => vm.setPaymentMethod(event.target.value)} disabled={saving}>
+            <select className="input" value={vm.paymentMethod} onChange={(e) => vm.setPaymentMethod(e.target.value)} disabled={saving}>
               <option value="CASH">{t('purchaseReceive.paymentMethods.CASH')}</option>
               <option value="MOBILE_BANKING">{t('purchaseReceive.paymentMethods.MOBILE_BANKING')}</option>
               <option value="CHEQUE">{t('purchaseReceive.paymentMethods.CHEQUE')}</option>
@@ -393,7 +497,7 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, retail
           </div>
           <div className="sm:col-span-4">
             <label className="label">{t('purchaseReceive.noteLabel')}</label>
-            <textarea className="input min-h-28" value={vm.note} onChange={(event) => vm.setNote(event.target.value)} placeholder={t('purchaseReceive.noteLabel')} disabled={saving} />
+            <textarea className="input min-h-28" value={vm.note} onChange={(e) => vm.setNote(e.target.value)} placeholder={t('purchaseReceive.noteLabel')} disabled={saving} />
           </div>
         </div>
       </div>

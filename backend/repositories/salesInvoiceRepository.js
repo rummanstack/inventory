@@ -49,6 +49,7 @@ function itemsSubquery() {
       'productName', sii.product_name,
       'quantityPieces', sii.quantity_pieces,
       'actualSalePrice', sii.actual_sale_price,
+      'originalSalePrice', sii.original_sale_price,
       'costPriceSnapshot', sii.cost_price_snapshot,
       'lineDiscount', sii.line_discount,
       'lineTotal', sii.line_total,
@@ -209,10 +210,10 @@ export function insertSalesInvoiceItem(client, item) {
   return client.query(
     `INSERT INTO sales_invoice_items (
        id, tenant_id, sales_invoice_id, product_id, product_name, quantity_pieces, actual_sale_price,
-       cost_price_snapshot, line_discount, line_total, tax_rate, tax_amount,
+       original_sale_price, cost_price_snapshot, line_discount, line_total, tax_rate, tax_amount,
        brand_snapshot, model_snapshot, barcode_snapshot, warranty_months_snapshot
      )
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
      RETURNING *`,
     [
       item.id,
@@ -222,6 +223,7 @@ export function insertSalesInvoiceItem(client, item) {
       item.productName,
       item.quantityPieces,
       item.actualSalePrice,
+      item.originalSalePrice ?? null,
       item.costPriceSnapshot,
       item.lineDiscount,
       item.lineTotal,

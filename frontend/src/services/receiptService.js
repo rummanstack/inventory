@@ -75,7 +75,12 @@ function buildLineItemHtml(item, t, language, invoiceDate) {
   const name = escapeHtml(item?.productName || 'Item');
   const brandModel = [item?.brandSnapshot, item?.modelSnapshot].filter(Boolean).join(' / ');
   const quantity = formatQuantity(item?.quantityPieces, language);
-  const price = formatLocalizedCurrency(item?.actualSalePrice, language);
+  const origPrice = Number(item?.originalSalePrice || 0);
+  const actualPrice = Number(item?.actualSalePrice || 0);
+  const hasPromo = origPrice > 0 && origPrice > actualPrice;
+  const price = hasPromo
+    ? `<span style="text-decoration:line-through;color:#9ca3af">${escapeHtml(formatLocalizedCurrency(origPrice, language))}</span> ${escapeHtml(formatLocalizedCurrency(actualPrice, language))}`
+    : formatLocalizedCurrency(actualPrice, language);
   const discount = Number(item?.lineDiscount || 0);
   const lineTotal = lineTotalText(item, language);
   const discountLabel = labelFor(t, 'retailer.shared.discountLabel', 'Discount');
@@ -86,6 +91,8 @@ function buildLineItemHtml(item, t, language, invoiceDate) {
   const warrantyText = warrantyMonths > 0
     ? t('retailer.salesInvoices.warrantyPrintLabel', { months: warrantyMonths, endDate: formatDate(warrantyEndDate, language) })
     : '';
+  const qty = Number(item?.quantityPieces || 0);
+  const promoSaving = hasPromo ? (origPrice - actualPrice) * qty : 0;
 
   return `
     <tr>
@@ -93,6 +100,7 @@ function buildLineItemHtml(item, t, language, invoiceDate) {
         <div class="name">${name}</div>
         ${brandModel ? `<div class="meta">${escapeHtml(brandModel)}</div>` : ''}
         <div class="meta">${quantity} x ${price}${discount > 0 ? ` &middot; ${escapeHtml(discountLabel)} ${formatLocalizedCurrency(discount, language)}` : ''}</div>
+        ${hasPromo ? `<div class="meta" style="color:#059669;font-weight:700">&#10022; Promo &middot; saved ${escapeHtml(formatLocalizedCurrency(promoSaving, language))}</div>` : ''}
         ${serials.length ? `<div class="meta">${escapeHtml(serialLabel)}: ${escapeHtml(serials.join(', '))}</div>` : ''}
         ${warrantyText ? `<div class="meta">${escapeHtml(warrantyText)}</div>` : ''}
       </td>
@@ -357,10 +365,29 @@ export function buildReceiptHtml(invoice, {
 
     <table class="totals-table">
       <tbody>
-        ${buildMoneyRow(subtotalLabel, invoice?.subtotal, language)}
-        ${buildMoneyRow(discountLabel, invoice?.discount, language)}
-        ${buildOptionalMoneyRow(loyaltyRedeemLabel, invoice?.loyaltyRedeemAmount, language)}
-        ${Number(invoice?.taxRate || 0) > 0 ? buildMoneyRow(`${taxLabel} (${formatPercent(invoice.taxRate || 0, language)}%)`, invoice?.taxAmount, language) : ''}
+        ${(() => {
+          const promoSavingsTotal = items.reduce((sum, item) => {
+            const orig = Number(item?.originalSalePrice || 0);
+            const actual = Number(item?.actualSalePrice || 0);
+            const qty = Number(item?.quantityPieces || 0);
+            return orig > actual ? sum + (orig - actual) * qty : sum;
+          }, 0);
+          const lineDiscountTotal = items.reduce((sum, item) => sum + Number(item?.lineDiscount || 0), 0);
+          const originalSubtotal = Number(invoice?.subtotal || 0) + lineDiscountTotal + promoSavingsTotal;
+          const deductRow = (label, value) => value > 0 ? `
+            <tr>
+              <td class="label">${label}</td>
+              <td class="value">- ${escapeHtml(formatLocalizedCurrency(value, language))}</td>
+            </tr>` : '';
+          return `
+            ${buildMoneyRow(subtotalLabel, originalSubtotal, language)}
+            ${deductRow('&#10022; Promotions', promoSavingsTotal)}
+            ${deductRow('- Item Discounts', lineDiscountTotal)}
+            ${deductRow(`- ${escapeHtml(discountLabel)}`, Number(invoice?.discount || 0))}
+            ${buildOptionalMoneyRow(loyaltyRedeemLabel, invoice?.loyaltyRedeemAmount, language)}
+            ${Number(invoice?.taxRate || 0) > 0 ? buildMoneyRow(`${taxLabel} (${formatPercent(invoice.taxRate || 0, language)}%)`, invoice?.taxAmount, language) : ''}
+          `;
+        })()}
         <tr class="grand">
           <td class="label">${escapeHtml(totalLabel)}</td>
           <td class="value">${escapeHtml(formatLocalizedCurrency(invoice?.totalAmount, language))}</td>
@@ -422,11 +449,18 @@ export function buildInvoiceHtml(invoice, {
     const warrantyText = warrantyMonths > 0
       ? t('retailer.salesInvoices.warrantyPrintLabel', { months: warrantyMonths, endDate: formatDate(warrantyEndDate, language) })
       : '';
-    const price = escapeHtml(formatLocalizedCurrency(item?.actualSalePrice, language));
+    const origPrice = Number(item?.originalSalePrice || 0);
+    const actualPrice = Number(item?.actualSalePrice || 0);
+    const hasPromo = origPrice > 0 && origPrice > actualPrice;
     const qty = escapeHtml(formatQuantity(item?.quantityPieces, language));
     const lineTotal = escapeHtml(lineTotalText(item, language));
     const lineDiscount = Number(item?.lineDiscount || 0);
+    const promoSavingAmt = hasPromo ? (origPrice - actualPrice) * Number(item?.quantityPieces || 0) : 0;
     const bg = index % 2 === 1 ? ' style="background:#f8fafc"' : '';
+
+    const priceCell = hasPromo
+      ? `<div style="font-size:10px;text-decoration:line-through;color:#94a3b8">${escapeHtml(formatLocalizedCurrency(origPrice, language))}</div><div style="font-weight:700;color:#059669">${escapeHtml(formatLocalizedCurrency(actualPrice, language))}</div>`
+      : escapeHtml(formatLocalizedCurrency(actualPrice, language));
 
     return `<tr${bg}>
       <td class="sl">${index + 1}</td>
@@ -435,16 +469,30 @@ export function buildInvoiceHtml(invoice, {
         ${brandModel ? `<div class="imeta">${escapeHtml(brandModel)}</div>` : ''}
         ${serials.length ? `<div class="iserial">${escapeHtml(serialLabel)}: <strong>${escapeHtml(serials.join(', '))}</strong></div>` : ''}
         ${lineDiscount > 0 ? `<div class="imeta">${escapeHtml(discountLabel)}: ${escapeHtml(formatLocalizedCurrency(lineDiscount, language))}</div>` : ''}
+        ${hasPromo ? `<div class="imeta" style="color:#059669;font-weight:700">&#10022; Promo &middot; saved ${escapeHtml(formatLocalizedCurrency(promoSavingAmt, language))}</div>` : ''}
         ${warrantyText ? `<div class="imeta">${escapeHtml(warrantyText)}</div>` : ''}
       </td>
-      <td class="al-r muted">${price}</td>
+      <td class="al-r muted">${priceCell}</td>
       <td class="al-r muted">${qty}</td>
       <td class="al-r bold">${lineTotal}</td>
     </tr>`;
   }).join('');
 
+  const promoSavingsTotal = items.reduce((sum, item) => {
+    const orig = Number(item?.originalSalePrice || 0);
+    const actual = Number(item?.actualSalePrice || 0);
+    const qty2 = Number(item?.quantityPieces || 0);
+    return orig > actual ? sum + (orig - actual) * qty2 : sum;
+  }, 0);
+  const lineDiscountTotal = items.reduce((sum, item) => sum + Number(item?.lineDiscount || 0), 0);
+  const originalSubtotal = Number(invoice?.subtotal || 0) + lineDiscountTotal + promoSavingsTotal;
+
+  const promoSavingsRow = promoSavingsTotal > 0
+    ? `<tr><td class="tl" style="color:#059669">&#10022; Promotions</td><td class="tr" style="color:#059669">&minus; ${escapeHtml(formatLocalizedCurrency(promoSavingsTotal, language))}</td></tr>` : '';
+  const lineDiscountRow = lineDiscountTotal > 0
+    ? `<tr><td class="tl">- ${escapeHtml(discountLabel)} (items)</td><td class="tr">&minus; ${escapeHtml(formatLocalizedCurrency(lineDiscountTotal, language))}</td></tr>` : '';
   const discountRow = Number(invoice?.discount || 0) > 0
-    ? `<tr><td class="tl">- ${escapeHtml(discountLabel)}</td><td class="tr">- ${escapeHtml(formatLocalizedCurrency(invoice.discount, language))}</td></tr>` : '';
+    ? `<tr><td class="tl">- ${escapeHtml(discountLabel)}</td><td class="tr">&minus; ${escapeHtml(formatLocalizedCurrency(invoice.discount, language))}</td></tr>` : '';
   const taxRow = Number(invoice?.taxRate || 0) > 0
     ? `<tr><td class="tl">${escapeHtml(taxLabel)} (${escapeHtml(formatPercent(invoice.taxRate, language))}%)</td><td class="tr">${escapeHtml(formatLocalizedCurrency(invoice.taxAmount, language))}</td></tr>` : '';
   const dueRow = Number(invoice?.dueAmount || 0) > 0
@@ -583,7 +631,9 @@ body {
       <td class="sp"></td>
       <td>
         <table class="ttbl">
-          <tr><td class="tl">${escapeHtml(subtotalLabel)}</td><td class="tr">${escapeHtml(formatLocalizedCurrency(invoice?.subtotal, language))}</td></tr>
+          <tr><td class="tl">${escapeHtml(subtotalLabel)}</td><td class="tr">${escapeHtml(formatLocalizedCurrency(originalSubtotal, language))}</td></tr>
+          ${promoSavingsRow}
+          ${lineDiscountRow}
           ${discountRow}
           ${taxRow}
           <tr class="grand-row"><td class="tl">${escapeHtml(totalLabel)}</td><td class="tr">${escapeHtml(formatLocalizedCurrency(invoice?.totalAmount, language))}</td></tr>

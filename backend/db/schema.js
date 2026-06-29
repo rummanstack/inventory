@@ -1795,4 +1795,8 @@ export async function createSchema(pool) {
     CREATE INDEX IF NOT EXISTS idx_product_suppliers_product_id ON product_suppliers(product_id);
     CREATE INDEX IF NOT EXISTS idx_product_suppliers_supplier_id ON product_suppliers(supplier_id, tenant_id);
   `);
+
+  await pool.query(`
+    ALTER TABLE sales_invoice_items ADD COLUMN IF NOT EXISTS original_sale_price NUMERIC;
+  `);
 }

@@ -21,11 +21,11 @@ export default function BatchSalesReportPage() {
       <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div>
-            <label className="label">{t('retailer.shared.dateFrom')}</label>
+            <label className="label">{t('pharmacy.dateFrom')}</label>
             <DatePickerField value={vm.dateFrom} onChange={vm.setDateFrom} />
           </div>
           <div>
-            <label className="label">{t('retailer.shared.dateTo')}</label>
+            <label className="label">{t('pharmacy.dateTo')}</label>
             <DatePickerField value={vm.dateTo} onChange={vm.setDateTo} />
           </div>
           <div>
@@ -62,7 +62,7 @@ export default function BatchSalesReportPage() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-slate-200 bg-slate-50 text-left text-xs font-black uppercase tracking-wide text-slate-600">
-              <th className="px-4 py-3">{t('retailer.salesInvoices.invoiceNumber')}</th>
+              <th className="px-4 py-3">{t('retailer.salesInvoices.invoiceNumberLabel')}</th>
               <th className="px-4 py-3">{t('common.date')}</th>
               <th className="px-4 py-3">{t('products.product')}</th>
               <th className="px-4 py-3">{t('pharmacy.batchNumber')}</th>

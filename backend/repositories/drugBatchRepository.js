@@ -178,6 +178,20 @@ export async function listSalesInvoiceItemBatchesByInvoice(client, salesInvoiceI
   }));
 }
 
+export async function listSalesInvoiceItemBatchesByItem(client, salesInvoiceItemId, tenantId) {
+  const result = await client.query(
+    `SELECT * FROM sales_invoice_item_batches
+     WHERE sales_invoice_item_id = $1 AND tenant_id = $2
+     ORDER BY created_at`,
+    [salesInvoiceItemId, tenantId],
+  );
+  return result.rows.map((row) => ({
+    id: row.id,
+    drugBatchId: row.drug_batch_id,
+    quantityFromBatch: Number(row.quantity_from_batch || 0),
+  }));
+}
+
 export function deleteSalesInvoiceItemBatchesByInvoice(client, salesInvoiceId) {
   return client.query(
     `DELETE FROM sales_invoice_item_batches WHERE sales_invoice_id = $1`,

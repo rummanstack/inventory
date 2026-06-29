@@ -7,7 +7,6 @@ function formatPromotionPrice(basePrice, promotion) {
   if (!promotion || promotion.discountType === 'FIXED') {
     return Math.max(0, price - discountValue);
   }
-
   return Math.max(0, price * (1 - Math.min(100, discountValue) / 100));
 }
 
@@ -27,7 +26,6 @@ function isPromotionActive(promotion, invoiceDate, saleType, product, quantityPi
   if (end && date > end) return false;
   if (promotion.minQuantity && quantityPieces < Number(promotion.minQuantity || 0)) return false;
   if (promotion.minSubtotal && lineSubtotal < Number(promotion.minSubtotal || 0)) return false;
-
   if (promotion.targetType === 'ALL') return true;
   if (promotion.targetType === 'PRODUCT') return promotion.targetId === product?.id;
   if (promotion.targetType === 'CATEGORY') return promotion.targetId === product?.categoryId;
@@ -35,41 +33,30 @@ function isPromotionActive(promotion, invoiceDate, saleType, product, quantityPi
 }
 
 function bestPromotionForProduct(promotions, product, saleType, invoiceDate, quantityPieces = 1, lineSubtotal = 0) {
-  if (saleType === 'WHOLESALE') {
-    return null;
-  }
-
+  if (saleType === 'WHOLESALE') return null;
   return promotions
-    .filter((promotion) => isPromotionActive(promotion, invoiceDate, saleType, product, quantityPieces, lineSubtotal))
-    .sort((left, right) => {
-      const priorityDiff = Number(left.priority || 0) - Number(right.priority || 0);
-      if (priorityDiff !== 0) return priorityDiff;
-      const leftDiscount = left.discountType === 'FIXED'
-        ? Number(left.discountValue || 0)
-        : Number(product?.retailPrice || 0) * Math.min(100, Number(left.discountValue || 0)) / 100;
-      const rightDiscount = right.discountType === 'FIXED'
-        ? Number(right.discountValue || 0)
-        : Number(product?.retailPrice || 0) * Math.min(100, Number(right.discountValue || 0)) / 100;
-      return rightDiscount - leftDiscount;
+    .filter((p) => isPromotionActive(p, invoiceDate, saleType, product, quantityPieces, lineSubtotal))
+    .sort((a, b) => {
+      const pd = Number(a.priority || 0) - Number(b.priority || 0);
+      if (pd !== 0) return pd;
+      const basePrice = Number(product?.retailPrice || 0);
+      const da = a.discountType === 'FIXED' ? Number(a.discountValue || 0) : basePrice * Math.min(100, Number(a.discountValue || 0)) / 100;
+      const db = b.discountType === 'FIXED' ? Number(b.discountValue || 0) : basePrice * Math.min(100, Number(b.discountValue || 0)) / 100;
+      return db - da;
     })[0] || null;
 }
 
-function priceForProduct(product, saleType, invoiceDate, promotions = [], quantityPieces = 1) {
-  if (!product) return 0;
+function priceAndPromotionForProduct(product, saleType, invoiceDate, promotions = [], quantityPieces = 1) {
+  if (!product) return { price: 0, originalPrice: 0, promotion: null };
   if (saleType === 'WHOLESALE') {
-    return Number(product.wholesalePrice || 0);
+    const p = Number(product.wholesalePrice || 0);
+    return { price: p, originalPrice: p, promotion: null };
   }
-
-  const retailPrice = Number(product.retailPrice || 0);
-  const promotion = bestPromotionForProduct(
-    promotions,
-    product,
-    saleType,
-    invoiceDate,
-    quantityPieces,
-    retailPrice * Math.max(1, Number(quantityPieces || 1)),
-  );
-  return promotion ? Math.min(retailPrice, formatPromotionPrice(retailPrice, promotion)) : retailPrice;
+  const originalPrice = Number(product.retailPrice || 0);
+  const qty = Number(quantityPieces) || 1;
+  const promotion = bestPromotionForProduct(promotions, product, saleType, invoiceDate, qty, originalPrice * Math.max(1, qty));
+  const price = promotion ? Math.min(originalPrice, formatPromotionPrice(originalPrice, promotion)) : originalPrice;
+  return { price, originalPrice, promotion };
 }
 
 function taxRateForProduct(product, defaultTaxRate) {
@@ -115,21 +102,25 @@ export function useSalesInvoiceFormViewModel({
   const [loyaltyRedeemPointsInput, setLoyaltyRedeemPointsInputState] = useState('0');
   const [paymentMethod, setPaymentMethod] = useState('CASH');
   const [note, setNote] = useState('');
-  const selectedCustomer = customerId ? retailCustomers.find((customer) => customer.id === customerId) : null;
+  const selectedCustomer = customerId ? retailCustomers.find((c) => c.id === customerId) : null;
 
   function changeSaleType(nextSaleType) {
     setSaleType(nextSaleType);
     setItems((current) => current.map((row) => {
-      const product = products.find((candidate) => candidate.id === row.productId);
-      return product ? { ...row, actualSalePrice: priceForProduct(product, nextSaleType, invoiceDate, promotions, row.quantityPieces) } : row;
+      const product = products.find((c) => c.id === row.productId);
+      if (!product) return row;
+      const { price, originalPrice, promotion } = priceAndPromotionForProduct(product, nextSaleType, invoiceDate, promotions, row.quantityPieces);
+      return { ...row, actualSalePrice: price, originalPrice, appliedPromotion: promotion };
     }));
   }
 
   function changeInvoiceDate(nextDate) {
     setInvoiceDate(nextDate);
     setItems((current) => current.map((row) => {
-      const product = products.find((candidate) => candidate.id === row.productId);
-      return product ? { ...row, actualSalePrice: priceForProduct(product, saleType, nextDate, promotions, row.quantityPieces) } : row;
+      const product = products.find((c) => c.id === row.productId);
+      if (!product) return row;
+      const { price, originalPrice, promotion } = priceAndPromotionForProduct(product, saleType, nextDate, promotions, row.quantityPieces);
+      return { ...row, actualSalePrice: price, originalPrice, appliedPromotion: promotion };
     }));
   }
 
@@ -143,21 +134,20 @@ export function useSalesInvoiceFormViewModel({
 
   function changeCustomerId(nextCustomerId) {
     setCustomerId(nextCustomerId);
-    if (!nextCustomerId) {
-      setLoyaltyRedeemPointsInputState('0');
-    }
+    if (!nextCustomerId) setLoyaltyRedeemPointsInputState('0');
   }
 
   useEffect(() => {
     setItems((current) => current.map((row) => {
-      const product = products.find((candidate) => candidate.id === row.productId);
-      return product ? { ...row, actualSalePrice: priceForProduct(product, saleType, invoiceDate, promotions, row.quantityPieces) } : row;
+      const product = products.find((c) => c.id === row.productId);
+      if (!product) return row;
+      const { price, originalPrice, promotion } = priceAndPromotionForProduct(product, saleType, invoiceDate, promotions, row.quantityPieces);
+      return { ...row, actualSalePrice: price, originalPrice, appliedPromotion: promotion };
     }));
   }, [promotions, products, saleType, invoiceDate]);
 
   function addItem() {
     if (!products.length) return;
-
     setItems((current) => [
       ...current,
       {
@@ -166,6 +156,8 @@ export function useSalesInvoiceFormViewModel({
         productName: '',
         quantityPieces: '',
         actualSalePrice: 0,
+        originalPrice: 0,
+        appliedPromotion: null,
         lineDiscount: 0,
         availableStock: 0,
         taxRate: defaultTaxRate,
@@ -177,21 +169,19 @@ export function useSalesInvoiceFormViewModel({
 
   function updateItem(rowId, field, value) {
     setItems((current) => current.map((row) => {
-      if (row.rowId !== rowId) {
-        return row;
-      }
+      if (row.rowId !== rowId) return row;
 
       if (field === 'productId') {
-        const product = products.find((candidate) => candidate.id === value);
-        if (!product) {
-          return row;
-        }
-
+        const product = products.find((c) => c.id === value);
+        if (!product) return row;
+        const { price, originalPrice, promotion } = priceAndPromotionForProduct(product, saleType, invoiceDate, promotions, row.quantityPieces);
         return {
           ...row,
           productId: product.id,
           productName: product.name,
-          actualSalePrice: priceForProduct(product, saleType, invoiceDate, promotions, row.quantityPieces),
+          actualSalePrice: price,
+          originalPrice,
+          appliedPromotion: promotion,
           availableStock: Number(product.stockPieces || 0),
           taxRate: taxRateForProduct(product, defaultTaxRate),
           serialRequired: Boolean(product.serialRequired),
@@ -200,12 +190,15 @@ export function useSalesInvoiceFormViewModel({
       }
 
       if (field === 'quantityPieces') {
-        const product = products.find((candidate) => candidate.id === row.productId);
-        return {
-          ...row,
-          quantityPieces: value,
-          actualSalePrice: product ? priceForProduct(product, saleType, invoiceDate, promotions, value) : row.actualSalePrice,
-        };
+        const product = products.find((c) => c.id === row.productId);
+        if (!product) return { ...row, quantityPieces: value };
+        const { price, originalPrice, promotion } = priceAndPromotionForProduct(product, saleType, invoiceDate, promotions, value);
+        return { ...row, quantityPieces: value, actualSalePrice: price, originalPrice, appliedPromotion: promotion };
+      }
+
+      if (field === 'actualSalePrice') {
+        // Manual price override clears the promo indicator so the badge doesn't mislead
+        return { ...row, actualSalePrice: value, originalPrice: Number(value || 0), appliedPromotion: null };
       }
 
       if (field === 'lineDiscount') {
@@ -225,26 +218,15 @@ export function useSalesInvoiceFormViewModel({
     setItems((current) => current.filter((row) => row.rowId !== rowId));
   }
 
-  // Toggling a serial selection also drives quantityPieces — for serial-required
-  // products, quantity always equals however many serials are currently selected.
   function toggleItemSerial(rowId, serialId) {
     setItems((current) => current.map((row) => {
-      if (row.rowId !== rowId) {
-        return row;
-      }
-
+      if (row.rowId !== rowId) return row;
       const hasSerial = row.serialIds.includes(serialId);
       const nextSerialIds = hasSerial ? row.serialIds.filter((id) => id !== serialId) : [...row.serialIds, serialId];
-      const product = products.find((candidate) => candidate.id === row.productId);
-
-      return {
-        ...row,
-        serialIds: nextSerialIds,
-        quantityPieces: nextSerialIds.length,
-        actualSalePrice: product
-          ? priceForProduct(product, saleType, invoiceDate, promotions, nextSerialIds.length)
-          : row.actualSalePrice,
-      };
+      const product = products.find((c) => c.id === row.productId);
+      if (!product) return { ...row, serialIds: nextSerialIds, quantityPieces: nextSerialIds.length };
+      const { price, originalPrice, promotion } = priceAndPromotionForProduct(product, saleType, invoiceDate, promotions, nextSerialIds.length);
+      return { ...row, serialIds: nextSerialIds, quantityPieces: nextSerialIds.length, actualSalePrice: price, originalPrice, appliedPromotion: promotion };
     }));
   }
 
@@ -254,18 +236,31 @@ export function useSalesInvoiceFormViewModel({
     return products.filter((product) => !selectedProductIds.has(product.id) || currentProductId === product.id);
   }
 
+  // Exposed so the product picker can show promo badges before selection
+  function getBestPromotion(product, qty = 1) {
+    if (!product) return null;
+    const retailPrice = Number(product.retailPrice || 0);
+    return bestPromotionForProduct(promotions, product, saleType, invoiceDate, qty, retailPrice * Math.max(1, qty));
+  }
+
   const lineRows = items.map((row) => {
     const quantityNumber = Math.max(0, Math.floor(Number(row.quantityPieces || 0)));
     const actualSalePriceNumber = Math.max(0, Number(row.actualSalePrice || 0));
+    const originalPrice = Math.max(0, Number(row.originalPrice !== undefined ? row.originalPrice : actualSalePriceNumber));
+    const appliedPromotion = row.appliedPromotion || null;
     const lineDiscountNumber = Math.max(0, Number(row.lineDiscount || 0));
     const lineGross = quantityNumber * actualSalePriceNumber;
     const lineTotal = Math.max(0, lineGross - lineDiscountNumber);
     const taxRate = Math.min(Math.max(0, Number(row.taxRate || 0)), 100);
-    return { ...row, quantityNumber, actualSalePriceNumber, lineDiscountNumber, lineGross, lineTotal, taxRate };
+    const promotionSaving = Math.max(0, (originalPrice - actualSalePriceNumber) * quantityNumber);
+    return { ...row, quantityNumber, actualSalePriceNumber, originalPrice, appliedPromotion, lineDiscountNumber, lineGross, lineTotal, taxRate, promotionSaving };
   });
 
   const subtotal = lineRows.reduce((sum, row) => sum + row.lineGross, 0);
   const lineDiscountTotal = lineRows.reduce((sum, row) => sum + row.lineDiscountNumber, 0);
+  const promotionSavingsTotal = lineRows.reduce((sum, row) => sum + row.promotionSaving, 0);
+  // originalSubtotal = what the lines would cost without any promotions (display only)
+  const originalSubtotal = subtotal + promotionSavingsTotal;
   const maxDiscount = Math.max(0, subtotal - lineDiscountTotal);
   const discountRaw = Math.max(0, Number(discountInput || 0));
   const discount = Math.min(discountRaw, maxDiscount);
@@ -290,37 +285,26 @@ export function useSalesInvoiceFormViewModel({
 
   useEffect(() => {
     const currentValue = Number(discountInput || 0);
-    if (Number.isFinite(currentValue) && currentValue > maxDiscount) {
-      setDiscountInput(String(maxDiscount));
-    }
+    if (Number.isFinite(currentValue) && currentValue > maxDiscount) setDiscountInput(String(maxDiscount));
   }, [discountInput, maxDiscount]);
 
   useEffect(() => {
     const currentValue = Number(taxRateInput || 0);
-    if (Number.isFinite(currentValue) && currentValue > 100) {
-      setTaxRateInputState('100');
-    }
+    if (Number.isFinite(currentValue) && currentValue > 100) setTaxRateInputState('100');
   }, [taxRateInput]);
 
   useEffect(() => {
     const currentValue = Number(paidAmountInput || 0);
-    if (Number.isFinite(currentValue) && currentValue > netTotalAfterLoyalty) {
-      setPaidAmountInputState(String(netTotalAfterLoyalty));
-    }
+    if (Number.isFinite(currentValue) && currentValue > netTotalAfterLoyalty) setPaidAmountInputState(String(netTotalAfterLoyalty));
   }, [paidAmountInput, netTotalAfterLoyalty]);
 
   useEffect(() => {
     if (!loyaltyEligible) {
-      if (loyaltyRedeemPointsInput !== '0') {
-        setLoyaltyRedeemPointsInputState('0');
-      }
+      if (loyaltyRedeemPointsInput !== '0') setLoyaltyRedeemPointsInputState('0');
       return;
     }
-
     const currentValue = Number(loyaltyRedeemPointsInput || 0);
-    if (Number.isFinite(currentValue) && currentValue > loyaltyCustomerBalance) {
-      setLoyaltyRedeemPointsInputState(String(loyaltyCustomerBalance));
-    }
+    if (Number.isFinite(currentValue) && currentValue > loyaltyCustomerBalance) setLoyaltyRedeemPointsInputState(String(loyaltyCustomerBalance));
   }, [loyaltyEligible, loyaltyRedeemPointsInput, loyaltyCustomerBalance]);
 
   useEffect(() => {
@@ -332,10 +316,7 @@ export function useSalesInvoiceFormViewModel({
         const maxLineDiscount = quantityNumber * actualSalePriceNumber;
         const currentDiscount = Math.max(0, Number(row.lineDiscount || 0));
         const lineDiscount = Math.min(currentDiscount, maxLineDiscount);
-        if (lineDiscount !== currentDiscount) {
-          changed = true;
-          return { ...row, lineDiscount };
-        }
+        if (lineDiscount !== currentDiscount) { changed = true; return { ...row, lineDiscount }; }
         return row;
       });
       return changed ? next : current;
@@ -344,12 +325,8 @@ export function useSalesInvoiceFormViewModel({
 
   const hasValidItems = lineRows.some((row) => row.productId && row.quantityNumber > 0);
   const hasInvalidItems = lineRows.some((row) => {
-    if (!row.productId || row.quantityNumber <= 0 || row.actualSalePriceNumber < 0) {
-      return true;
-    }
-    if (row.serialRequired && row.serialIds.length !== row.quantityNumber) {
-      return true;
-    }
+    if (!row.productId || row.quantityNumber <= 0 || row.actualSalePriceNumber < 0) return true;
+    if (row.serialRequired && row.serialIds.length !== row.quantityNumber) return true;
     return row.quantityNumber > Number(row.availableStock || 0);
   });
 
@@ -358,47 +335,23 @@ export function useSalesInvoiceFormViewModel({
   }
 
   function setDiscountValue(nextValue) {
-    if (nextValue === '') {
-      setDiscountInput('');
-      return;
-    }
-
+    if (nextValue === '') { setDiscountInput(''); return; }
     const numericValue = Number(nextValue);
-    if (!Number.isFinite(numericValue)) {
-      setDiscountInput(String(nextValue));
-      return;
-    }
-
+    if (!Number.isFinite(numericValue)) { setDiscountInput(String(nextValue)); return; }
     setDiscountInput(String(Math.min(Math.max(0, numericValue), maxDiscount)));
   }
 
   function setTaxRateInput(nextValue) {
-    if (nextValue === '') {
-      setTaxRateInputState('');
-      return;
-    }
-
+    if (nextValue === '') { setTaxRateInputState(''); return; }
     const numericValue = Number(nextValue);
-    if (!Number.isFinite(numericValue)) {
-      setTaxRateInputState(String(nextValue));
-      return;
-    }
-
+    if (!Number.isFinite(numericValue)) { setTaxRateInputState(String(nextValue)); return; }
     setTaxRateInputState(String(Math.min(Math.max(0, numericValue), 100)));
   }
 
   function setPaidAmountInput(nextValue) {
-    if (nextValue === '') {
-      setPaidAmountInputState('');
-      return;
-    }
-
+    if (nextValue === '') { setPaidAmountInputState(''); return; }
     const numericValue = Number(nextValue);
-    if (!Number.isFinite(numericValue)) {
-      setPaidAmountInputState(String(nextValue));
-      return;
-    }
-
+    if (!Number.isFinite(numericValue)) { setPaidAmountInputState(String(nextValue)); return; }
     setPaidAmountInputState(String(Math.min(Math.max(0, numericValue), netTotalAfterLoyalty)));
   }
 
@@ -417,16 +370,17 @@ export function useSalesInvoiceFormViewModel({
           productName: row.productName,
           quantityPieces: row.quantityNumber,
           actualSalePrice: row.actualSalePriceNumber,
+          originalSalePrice: row.originalPrice > row.actualSalePriceNumber ? row.originalPrice : null,
           lineDiscount: row.lineDiscountNumber,
           taxRate: row.taxRate,
           taxAmount: row.taxAmount,
           serialIds: row.serialIds,
-      })),
+        })),
       discount,
       taxRate,
       taxAmount,
       paidAmount,
-      loyaltyRedeemPoints: loyaltyRedeemPoints,
+      loyaltyRedeemPoints,
       paymentMethod,
       note: note.trim(),
     };
@@ -447,6 +401,7 @@ export function useSalesInvoiceFormViewModel({
     removeItem,
     toggleItemSerial,
     getAvailableProducts,
+    getBestPromotion,
     discountInput,
     setDiscountInput: setDiscountValue,
     taxRateInput,
@@ -461,7 +416,9 @@ export function useSalesInvoiceFormViewModel({
     note,
     setNote,
     subtotal,
+    originalSubtotal,
     lineDiscountTotal,
+    promotionSavingsTotal,
     discount,
     totalAmount,
     netTotalAfterLoyalty,

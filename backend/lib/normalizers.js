@@ -369,12 +369,15 @@ export function normalizeSalesInvoice(input) {
             ? [...new Set(item.serialIds.map((id) => String(id || "").trim()).filter(Boolean))]
             : [];
 
+          const originalSalePrice = item.originalSalePrice != null ? cleanMoney(item.originalSalePrice) : null;
+
           return {
             id: item.id || createId("sales-item"),
             productId: String(item.productId || "").trim(),
             productName: String(item.productName || "").trim(),
             quantityPieces,
             actualSalePrice,
+            originalSalePrice: originalSalePrice != null && originalSalePrice > actualSalePrice ? originalSalePrice : null,
             lineDiscount,
             lineTotal,
             taxRate,

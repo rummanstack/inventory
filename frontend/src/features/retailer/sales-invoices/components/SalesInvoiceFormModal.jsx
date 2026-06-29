@@ -7,6 +7,7 @@ import SalesInvoiceFormFields from './SalesInvoiceFormFields';
 
 export default function SalesInvoiceFormModal({ onClose, onSave }) {
   const { t, productDirectory, retailCustomerDirectory, promotionDirectory, saveRetailCustomer, tenant } = useInventoryApp();
+  const isPharmacy = tenant?.businessType === 'DRUG_PHARMACY';
   const vm = useSalesInvoiceFormViewModel({
     products: productDirectory,
     promotions: promotionDirectory,
@@ -51,7 +52,7 @@ export default function SalesInvoiceFormModal({ onClose, onSave }) {
     <Modal title={t('retailer.salesInvoices.addTitle')} description={t('retailer.salesInvoices.modalDescription')} onClose={onClose} width="max-w-4xl">
       <form className="space-y-4" onSubmit={submitForm}>
         {error ? <Alert type="error">{error}</Alert> : null}
-        <SalesInvoiceFormFields vm={vm} t={t} productDirectory={productDirectory} retailCustomerDirectory={retailCustomerDirectory} saving={saving} saveRetailCustomer={saveRetailCustomer} />
+        <SalesInvoiceFormFields vm={vm} t={t} productDirectory={productDirectory} retailCustomerDirectory={retailCustomerDirectory} saving={saving} saveRetailCustomer={saveRetailCustomer} isPharmacy={isPharmacy} />
         <div className="flex justify-end gap-2 pt-2">
           <button type="button" className="btn-secondary" onClick={onClose} disabled={saving}>
             {t('common.cancel')}

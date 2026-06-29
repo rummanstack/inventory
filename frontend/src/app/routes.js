@@ -101,6 +101,7 @@ import SalesReturnReportPage from '../features/reports/pages/SalesReturnReportPa
 import CustomerDueReportPage from '../features/reports/pages/CustomerDueReportPage';
 import CashSessionReportPage from '../features/reports/pages/CashSessionReportPage';
 import DamagedStockReportPage from '../features/reports/pages/DamagedStockReportPage';
+import BatchSalesReportPage from '../features/pharmacy/pages/BatchSalesReportPage';
 
 export const APP_ROUTES = [
   // 1. Dashboard
@@ -168,6 +169,7 @@ export const APP_ROUTES = [
   { id: 'customer-due-report', path: '/reports/customer-due', labelKey: 'nav.customerDueReport', icon: HandCoins, component: CustomerDueReportPage, group: 'reports', permission: 'manage_retail_customer_due', feature: 'customer-due-report' },
   { id: 'cash-session-report', path: '/reports/cash-session', labelKey: 'nav.cashSessionReport', icon: Vault, component: CashSessionReportPage, group: 'reports', permission: 'manage_retail_quick_sale', feature: 'cash-session-report' },
   { id: 'damaged-stock-report', path: '/reports/damaged-stock', labelKey: 'nav.damagedStockReport', icon: PackageX, component: DamagedStockReportPage, group: 'reports', permission: 'view_state', feature: 'damaged-stock-report' },
+  { id: 'batch-sales-report', path: '/reports/batch-sales', labelKey: 'nav.batchSalesReport', icon: FileText, component: BatchSalesReportPage, group: 'reports', permission: 'manage_batch_tracking', feature: 'batch-tracking' },
   { id: 'history', path: '/history', labelKey: 'nav.history', icon: ClipboardList, component: HistoryPage, group: 'reports', permission: 'view_state', feature: 'history' },
   { id: 'activity-logs', path: '/activity-logs', labelKey: 'nav.activityLogs', icon: ClipboardList, component: ActivityLogsPage, group: 'reports', permission: 'view_activity_logs', feature: 'activity-logs' },
 

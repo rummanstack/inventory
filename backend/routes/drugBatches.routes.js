@@ -9,6 +9,7 @@ export function createDrugBatchesRoutes(drugBatchController) {
 
   router.get("/expiring", requirePermission(PERMISSIONS.VIEW_EXPIRY_ALERTS), drugBatchController.listExpiring);
   router.get("/product/:productId", requirePermission(PERMISSIONS.VIEW_EXPIRY_ALERTS), drugBatchController.listByProduct);
+  router.get("/batch-sales-report", requirePermission(PERMISSIONS.MANAGE_BATCH_TRACKING), drugBatchController.listBatchSalesReport);
 
   return router;
 }

@@ -424,6 +424,7 @@ export function normalizeSalesInvoice(input) {
     customerType,
     saleType,
     invoiceDate: String(input.invoiceDate || "").trim(),
+    prescriptionNumber: String(input.prescriptionNumber || "").trim(),
     items,
     subtotal,
     discount,
@@ -434,9 +435,6 @@ export function normalizeSalesInvoice(input) {
     dueAmount,
     paymentMethod: String(input.paymentMethod || "CASH").trim().toUpperCase() || "CASH",
     note: String(input.note || "").trim(),
-    // Raw walk-in name/phone, used to populate customer_name_snapshot/customer_phone_snapshot
-    // when there's no registered customer record to snapshot from. Distinct from mapSalesInvoice's
-    // `customerName` (a live join), since this is the as-typed value at sale time.
     customerNameSnapshot: String(input.customerName || "").trim(),
     customerPhoneSnapshot: String(input.customerPhone || "").trim(),
   };

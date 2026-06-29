@@ -3,6 +3,7 @@ import { parsePagination, buildPageResult } from "../lib/pagination.js";
 import { STOCK_MOVEMENT_TYPES } from "../lib/stockMovements.js";
 import { cleanInteger, normalizeIssue } from "../lib/normalizers.js";
 import { findDsrById } from "../repositories/dsrRepository.js";
+import { pickFefoForSale, decrementDrugBatch, incrementDrugBatch } from "../repositories/drugBatchRepository.js";
 import {
   countIssues,
   findDuplicateIssue,
@@ -37,6 +38,45 @@ async function buildTrustedIssueItems(client, inputItems, previousItems, tenantI
         rate: previousRate > 0 ? previousRate : Number(product.wholesale_price || 0),
       };
     });
+}
+
+// Assigns FEFO batch allocations to each issue item and returns enriched items.
+// Items without drug_batches (pre-pharmacy stock) get batchAllocations: [].
+async function enrichItemsWithBatches(client, items, tenantId) {
+  const enriched = [];
+  for (const item of items) {
+    const assignments = await pickFefoForSale(client, {
+      tenantId,
+      productId: item.productId,
+      quantityNeeded: item.issuedPieces,
+    });
+    for (const a of assignments) {
+      await decrementDrugBatch(client, a.batchId, tenantId, a.qtyToTake);
+    }
+    enriched.push({
+      ...item,
+      batchAllocations: assignments.map((a) => ({
+        batchId: a.batchId,
+        batchNumber: a.batchNumber,
+        lotNumber: a.lotNumber,
+        expiryDate: a.expiryDate,
+        qty: a.qtyToTake,
+      })),
+    });
+  }
+  return enriched;
+}
+
+// Restores drug_batch quantities that were previously decremented for an issue's JSONB items.
+async function restoreIssueBatchAllocations(client, previousItems, tenantId) {
+  for (const item of previousItems) {
+    const allocations = Array.isArray(item.batchAllocations) ? item.batchAllocations : [];
+    for (const a of allocations) {
+      if (a.batchId && a.qty > 0) {
+        await incrementDrugBatch(client, a.batchId, tenantId, a.qty);
+      }
+    }
+  }
 }
 
 async function applyIssueInventoryDelta(client, previousItems, nextItems, tenantId, movementContext = {}) {
@@ -149,6 +189,9 @@ export class IssueService {
         issue.items = await buildTrustedIssueItems(client, issue.items, previousItems, tenantId);
         assert(issue.items.length > 0, "Enter issue quantity for at least one product.");
 
+        await restoreIssueBatchAllocations(client, previousItems, tenantId);
+        issue.items = await enrichItemsWithBatches(client, issue.items, tenantId);
+
         await applyIssueInventoryDelta(client, previousItems, issue.items, tenantId, {
           referenceId: issue.id,
           createdById: actor.id,
@@ -184,6 +227,8 @@ export class IssueService {
         existingIssue.rowCount === 0,
         "Morning issue already exists for this DSR and date. Edit that issue instead.",
       );
+
+      issue.items = await enrichItemsWithBatches(client, issue.items, tenantId);
 
       await applyIssueInventoryDelta(client, [], issue.items, tenantId, {
         referenceId: issue.id,

@@ -6,6 +6,7 @@ import { inventoryApi } from '../../../services/inventoryApi.js';
 import { cleanNumber } from '../../../utils/calculations.js';
 import { useFormState } from '../../../hooks/useFormState';
 import PhotoUploadField from '../../../components/PhotoUploadField.jsx';
+import { SearchableSelect } from '../../../components/SearchableSelect.jsx';
 
 export default function ProductFormModal({ product, onClose, onSave }) {
   const { t, pushToast, tenant } = useInventoryApp();
@@ -182,12 +183,14 @@ export default function ProductFormModal({ product, onClose, onSave }) {
           </div>
           <div>
             <label className="label">{t('products.category')}</label>
-            <select className="input" value={form.categoryId} onChange={(event) => updateField('categoryId', event.target.value)}>
-              <option value="">{t('categories.selectCategory')}</option>
-              {categories.map((category) => (
-                <option key={category.id} value={category.id}>{category.name}</option>
-              ))}
-            </select>
+            <SearchableSelect
+              options={categories.map((c) => ({ value: c.id, label: c.name }))}
+              value={form.categoryId || null}
+              onChange={(v) => updateField('categoryId', v || '')}
+              placeholder={t('categories.selectCategory')}
+              searchPlaceholder="Search categories…"
+              clearable={false}
+            />
           </div>
           {isElectronics ? (
             <>
@@ -331,46 +334,50 @@ export default function ProductFormModal({ product, onClose, onSave }) {
               </div>
               <div>
                 <label className="label">{t('genericMedicines.label')}</label>
-                <select className="input" value={form.genericMedicineId || ''} onChange={(e) => updateField('genericMedicineId', e.target.value)}>
-                  <option value="">{t('common.select')}</option>
-                  {genericMedicines.map((g) => (
-                    <option key={g.id} value={g.id}>{g.name}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="label">{t('products.genericName')}</label>
-                <input className="input" value={form.genericName} onChange={(e) => updateField('genericName', e.target.value)} placeholder="e.g. Paracetamol (free text fallback)" />
+                <SearchableSelect
+                  options={genericMedicines.map((g) => ({ value: g.id, label: g.name, sublabel: g.description || undefined }))}
+                  value={form.genericMedicineId || null}
+                  onChange={(v) => updateField('genericMedicineId', v || '')}
+                  placeholder={t('common.select')}
+                  searchPlaceholder="Search generic medicines…"
+                />
               </div>
               <div>
                 <label className="label">{t('products.manufacturer')}</label>
                 {manufacturers.length > 0 ? (
-                  <select className="input" value={form.manufacturerId || ''} onChange={(e) => updateField('manufacturerId', e.target.value)}>
-                    <option value="">{t('common.select')}</option>
-                    {manufacturers.map((m) => (
-                      <option key={m.id} value={m.id}>{m.name}</option>
-                    ))}
-                  </select>
+                  <SearchableSelect
+                    options={manufacturers.map((m) => ({ value: m.id, label: m.name, sublabel: m.shortName || m.country || undefined }))}
+                    value={form.manufacturerId || null}
+                    onChange={(v) => updateField('manufacturerId', v || '')}
+                    placeholder={t('common.select')}
+                    searchPlaceholder="Search manufacturers…"
+                  />
                 ) : (
-                  <input className="input" value={form.manufacturer} onChange={(e) => updateField('manufacturer', e.target.value)} placeholder="Add manufacturers in Inventory → Manufacturers" />
+                  <input className="input" value={form.manufacturer} onChange={(e) => updateField('manufacturer', e.target.value)} placeholder="Add manufacturers via Manage button above" />
                 )}
               </div>
               <div>
                 <label className="label">{t('products.dosageForm')}</label>
-                <select className="input" value={form.dosageForm} onChange={(e) => updateField('dosageForm', e.target.value)}>
-                  <option value="">{t('common.select')}</option>
-                  {['Tablet', 'Capsule', 'Syrup', 'Injection', 'Cream', 'Ointment', 'Drops', 'Inhaler', 'Patch', 'Suppository', 'Powder', 'Gel', 'Spray'].map((f) => (
-                    <option key={f} value={f}>{f}</option>
-                  ))}
-                </select>
+                <SearchableSelect
+                  options={['Tablet', 'Capsule', 'Syrup', 'Injection', 'Cream', 'Ointment', 'Drops', 'Inhaler', 'Patch', 'Suppository', 'Powder', 'Gel', 'Spray'].map((f) => ({ value: f, label: f }))}
+                  value={form.dosageForm || null}
+                  onChange={(v) => updateField('dosageForm', v || '')}
+                  placeholder={t('common.select')}
+                  searchPlaceholder="Search dosage form…"
+                />
               </div>
               <div>
                 <label className="label">{t('products.medicineType')}</label>
-                <select className="input" value={form.medicineType} onChange={(e) => updateField('medicineType', e.target.value)}>
-                  <option value="">{t('common.select')}</option>
-                  <option value="OTC">{t('products.medicineTypes.OTC')}</option>
-                  <option value="Prescription">{t('products.medicineTypes.Prescription')}</option>
-                </select>
+                <SearchableSelect
+                  options={[
+                    { value: 'OTC', label: t('products.medicineTypes.OTC') },
+                    { value: 'Prescription', label: t('products.medicineTypes.Prescription') },
+                  ]}
+                  value={form.medicineType || null}
+                  onChange={(v) => updateField('medicineType', v || '')}
+                  placeholder={t('common.select')}
+                  clearable={true}
+                />
               </div>
               <div>
                 <label className="label">{t('products.strength')}</label>

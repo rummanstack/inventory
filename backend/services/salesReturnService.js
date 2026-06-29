@@ -31,6 +31,7 @@ import {
   recordCustomerDueLedgerEntry,
   applyStockDelta,
 } from "./shared/inventoryHelpers.js";
+import { listSalesInvoiceItemBatchesByItem, incrementDrugBatch } from "../repositories/drugBatchRepository.js";
 
 const DATE_ERROR = "Return date must be in YYYY-MM-DD format.";
 const REFUND_METHODS = ["CASH", "DUE_ADJUSTMENT"];
@@ -66,6 +67,32 @@ async function recordLoyaltyEntry(client, {
     businessDate,
   });
   await updateRetailCustomerLoyaltyBalance(client, customerId, tenantId, balanceAfter);
+}
+
+// Restores drug_batches.quantity_remaining for a returned item.
+// Uses the original batch allocations proportionally (FEFO order is maintained because
+// the original insertion order is preserved and we restore soonest-expiry batch first).
+async function restoreBatchAllocationsForItem(client, salesInvoiceItemId, tenantId, originalQty, returnedQty) {
+  if (returnedQty <= 0) return;
+  const allocs = await listSalesInvoiceItemBatchesByItem(client, salesInvoiceItemId, tenantId);
+  if (!allocs.length) return;
+
+  let remaining = returnedQty;
+  for (const alloc of allocs) {
+    if (remaining <= 0) break;
+    // Proportional share of this batch: how much of the alloc to restore
+    const proportion = alloc.quantityFromBatch / originalQty;
+    const toRestore = Math.min(remaining, Math.round(proportion * returnedQty));
+    if (toRestore > 0) {
+      await incrementDrugBatch(client, alloc.drugBatchId, tenantId, toRestore);
+      remaining -= toRestore;
+    }
+  }
+  // Floating-point rounding edge: assign any leftover units to the last batch
+  if (remaining > 0) {
+    const last = allocs[allocs.length - 1];
+    await incrementDrugBatch(client, last.drugBatchId, tenantId, remaining);
+  }
 }
 
 function isSerialRequired(product) {
@@ -270,6 +297,20 @@ export class SalesReturnService {
           isDamaged ? 0 : item.quantityPieces,
           isDamaged ? item.quantityPieces : 0,
         );
+
+        // Restore drug batch quantities for GOOD returns only — damaged stock is
+        // not put back into sellable batches.
+        if (!isDamaged) {
+          const invoiceItem = invoiceItemsById.get(item.salesInvoiceItemId);
+          await restoreBatchAllocationsForItem(
+            client,
+            item.salesInvoiceItemId,
+            actor.tenantId,
+            invoiceItem.quantityPieces,
+            item.quantityPieces,
+          );
+        }
+
         await recordStockMovement(client, {
           tenantId: actor.tenantId,
           productId: item.productId,

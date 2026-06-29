@@ -239,37 +239,39 @@ export default function SalaryPaymentsPage() {
 
                 return (
                   <div key={emp.employeeId}>
-                    <button
-                      type="button"
-                      className="flex w-full items-center gap-4 px-5 py-3.5 text-left transition-colors hover:bg-slate-50 focus:outline-none"
-                      onClick={() => toggleExpand(emp.employeeId)}
-                    >
-                      <span className="text-slate-300">
+                    <div className="flex items-center gap-4 px-5 py-3.5 hover:bg-slate-50">
+                      {/* Expand icon — only this triggers expand */}
+                      <button
+                        type="button"
+                        className="icon-btn shrink-0 text-slate-400 hover:text-slate-700"
+                        onClick={() => toggleExpand(emp.employeeId)}
+                        aria-label="Toggle payment history"
+                      >
                         {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-                      </span>
+                      </button>
 
                       {/* Name + badges */}
-                      <span className="min-w-0 flex-1">
-                        <span className="flex flex-wrap items-center gap-2">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
                           <span className="font-semibold text-slate-900">{emp.employeeName}</span>
                           <PaymentStatusBadge emp={emp} />
                           <span className="muted-chip hidden sm:inline-flex">{t(`salary.payType.${emp.payType}`)}</span>
-                        </span>
-                        {emp.department && <span className="mt-0.5 block text-xs text-slate-400">{emp.department}</span>}
-                      </span>
+                        </div>
+                        {emp.department && <div className="mt-0.5 text-xs text-slate-400">{emp.department}</div>}
+                      </div>
 
                       {/* Active days input */}
-                      <span className="hidden w-32 justify-center sm:flex">
+                      <div className="hidden w-32 justify-center sm:flex">
                         <ActiveDaysInput
                           emp={emp}
                           month={vm.month}
                           onSaved={vm.reload}
                           canManage={canManage}
                         />
-                      </span>
+                      </div>
 
                       {/* Earned */}
-                      <span className="hidden w-28 text-right sm:block">
+                      <div className="hidden w-28 text-right sm:block">
                         {earned !== null ? (
                           <>
                             <span className="block text-sm font-semibold text-slate-800">{formatCurrency(earned, language)}</span>
@@ -282,29 +284,29 @@ export default function SalaryPaymentsPage() {
                         ) : (
                           <span className="text-xs text-slate-400">Set days →</span>
                         )}
-                      </span>
+                      </div>
 
                       {/* Paid */}
-                      <span className="hidden w-24 text-right sm:block">
+                      <div className="hidden w-24 text-right sm:block">
                         <span className={`block text-sm font-semibold ${emp.totalPaid > 0 ? 'text-emerald-700' : 'text-slate-400'}`}>
                           {formatCurrency(emp.totalPaid, language)}
                         </span>
-                      </span>
+                      </div>
 
                       {/* Balance */}
                       {remaining !== null ? (
-                        <span className="hidden w-24 text-right sm:block">
+                        <div className="hidden w-24 text-right sm:block">
                           <span className={`block text-sm font-bold ${overpaid ? 'text-rose-600' : fullyPaid ? 'text-emerald-600' : 'text-slate-700'}`}>
                             {overpaid ? '−' : ''}{formatCurrency(Math.abs(remaining), language)}
                           </span>
-                        </span>
+                        </div>
                       ) : (
-                        <span className="hidden w-24 sm:block" />
+                        <div className="hidden w-24 sm:block" />
                       )}
 
                       {/* Pay button */}
                       {canManage && (
-                        <span className="w-20 shrink-0 text-right" onClick={(e) => e.stopPropagation()}>
+                        <div className="w-20 shrink-0 text-right">
                           <button
                             type="button"
                             className={`btn-primary py-1.5 text-xs ${fullyPaid ? 'opacity-50' : ''}`}
@@ -314,9 +316,9 @@ export default function SalaryPaymentsPage() {
                           >
                             {fullyPaid ? 'Paid' : t('salary.pay')}
                           </button>
-                        </span>
+                        </div>
                       )}
-                    </button>
+                    </div>
 
                     {/* Payment history */}
                     {isExpanded && (

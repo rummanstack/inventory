@@ -1772,6 +1772,19 @@ export async function createSchema(pool) {
     ALTER TABLE help_desk_ticket_notes ALTER COLUMN tenant_id SET NOT NULL;
     ALTER TABLE retail_loyalty_ledger  ALTER COLUMN tenant_id SET NOT NULL;
 
+    -- Salary active days: tracks worked days per employee per month
+    CREATE TABLE IF NOT EXISTS salary_active_days (
+      id          TEXT PRIMARY KEY,
+      tenant_id   TEXT NOT NULL REFERENCES tenants(id),
+      employee_id TEXT NOT NULL REFERENCES employees(id) ON DELETE CASCADE,
+      month       TEXT NOT NULL,
+      active_days INTEGER NOT NULL DEFAULT 0,
+      updated_by  TEXT REFERENCES users(id) ON DELETE SET NULL,
+      updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE (tenant_id, employee_id, month)
+    );
+    CREATE INDEX IF NOT EXISTS idx_salary_active_days_month ON salary_active_days(tenant_id, month);
+
     -- Product-supplier many-to-many relationship
     CREATE TABLE IF NOT EXISTS product_suppliers (
       product_id  TEXT NOT NULL REFERENCES products(id) ON DELETE CASCADE,

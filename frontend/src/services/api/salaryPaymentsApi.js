@@ -12,4 +12,11 @@ export const salaryPaymentsApi = {
   deleteSalaryPayment(id) {
     return apiRequest(`/salary-payments/${id}`, { method: 'DELETE' });
   },
+
+  setSalaryActiveDays(employeeId, month, activeDays) {
+    return apiRequest('/salary-payments/active-days', {
+      method: 'POST',
+      body: JSON.stringify({ employeeId, month, activeDays }),
+    });
+  },
 };

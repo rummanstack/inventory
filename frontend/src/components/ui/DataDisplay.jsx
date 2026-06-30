@@ -16,7 +16,7 @@ export function SectionHeader({ eyebrow, title, description, action }) {
   );
 }
 
-export function StatCard({ title, value, helper, icon: Icon, tone = 'blue', trend }) {
+export function StatCard({ title, value, helper, icon: Icon, tone = 'blue', trend, trendPct, trendLabel }) {
   const tones = {
     blue: {
       card: 'from-white to-brand-soft',
@@ -61,9 +61,20 @@ export function StatCard({ title, value, helper, icon: Icon, tone = 'blue', tren
     <div className={cx('group relative overflow-hidden rounded-[28px] border border-slate-200/80 bg-gradient-to-br p-4 shadow-[0_18px_45px_rgba(var(--slate-900),0.07)] ring-1 ring-slate-900/[0.03] transition-shadow duration-300 hover:shadow-[0_22px_55px_rgba(var(--slate-900),0.12)]', toneSet.card)}>
       <div className={cx('absolute inset-x-0 top-0 h-1 origin-left scale-x-0 transition-transform duration-300 group-hover:scale-x-100', toneSet.accent)} />
       <div className="flex items-start justify-between gap-3">
-        <div>
+        <div className="min-w-0 flex-1">
           <p className="text-sm font-bold text-slate-500">{title}</p>
           <p className="mt-2 text-2xl font-black tracking-normal text-slate-950">{value}</p>
+          {trendPct != null ? (
+            <div className="mt-2 flex items-center gap-1.5">
+              <span className={cx(
+                'inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[11px] font-bold',
+                trendPct > 0 ? 'bg-emerald-100 text-emerald-700' : trendPct < 0 ? 'bg-rose-100 text-rose-700' : 'bg-slate-100 text-slate-500',
+              )}>
+                {trendPct > 0 ? '↑' : trendPct < 0 ? '↓' : '→'} {Math.round(Math.abs(trendPct))}%
+              </span>
+              {trendLabel ? <span className="text-[11px] font-medium text-slate-400">{trendLabel}</span> : null}
+            </div>
+          ) : null}
         </div>
         {Icon ? (
           <div className={cx('rounded-lg p-2.5 transition-transform duration-300 group-hover:-rotate-6', toneSet.icon)}>

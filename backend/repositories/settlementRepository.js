@@ -220,3 +220,21 @@ export async function listRecentSettlements(client, tenantId, limit) {
     status: row.status,
   }));
 }
+
+export async function getDailySettlementTrend(client, tenantId, dateFrom, dateTo) {
+  const result = await client.query(
+    `SELECT TO_CHAR(settlement_date::date, 'YYYY-MM-DD') AS day,
+            COALESCE(SUM(amount_paid), 0) AS collected
+     FROM settlements
+     WHERE tenant_id = $1
+       AND settlement_date >= $2
+       AND settlement_date < $3
+     GROUP BY day
+     ORDER BY day`,
+    [tenantId, dateFrom, dateTo],
+  );
+  return result.rows.map((row) => ({
+    day: row.day,
+    collected: Number(row.collected),
+  }));
+}

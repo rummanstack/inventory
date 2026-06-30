@@ -1,14 +1,12 @@
-import { CircleDollarSign, Download, Eye, FileSpreadsheet, FileText, PackageCheck, Printer, RotateCcw, Truck, Wallet } from 'lucide-react';
+import { CircleDollarSign, Download, Eye, FileSpreadsheet, FileText, PackageCheck, Printer, RotateCcw, Truck, TrendingUp, Percent, Users, ReceiptText, Wallet, BadgeDollarSign } from 'lucide-react';
 import PrintableSheet from '../../../components/PrintableSheet.jsx';
-import { Alert, Badge, ChartPanel, ChartPanelSkeleton, DonutChart, EmptyState, SectionHeader, StackedBarChart, StatCard, StatCardSkeleton, TableSkeleton } from '../../../components/ui.jsx';
+import { Alert, EmptyState, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
-import { statusTone } from '../../../models/inventoryViewData.js';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { buildPdfFileName, downloadSheetPdf } from '../../../services/printService.js';
 import { inventoryApi } from '../../../services/inventoryApi';
 import { formatCurrency, formatDate, formatNumber } from '../../../utils/calculations.js';
 import { useDailyReportsViewModel } from '../viewmodels/useDailyReportsViewModel';
-import { getCssVar } from '../../../utils/theme.js';
 
 export default function DailyReportsPage() {
   const { productDirectory, dsrDirectory, today, t, tenant, language } = useInventoryApp();
@@ -16,9 +14,7 @@ export default function DailyReportsPage() {
   const dueCollectedTotal = vm.dueCollectionRows.reduce((sum, r) => sum + r.total, 0);
 
   function recordReportPrint(label) {
-    if (!vm.selectedSheet) {
-      return;
-    }
+    if (!vm.selectedSheet) return;
     inventoryApi.recordPrint({ entityType: 'report', entityId: vm.selectedSheet.dsrId, label: `${vm.selectedSheet.date} ${label}` }).catch(() => {});
   }
 
@@ -48,47 +44,39 @@ export default function DailyReportsPage() {
     return (
       <div>
         <SectionHeader eyebrow={t('nav.reports')} title={t('nav.reports')} description={t('reports.description')} />
-
-        <div className="mb-6 grid gap-4 lg:grid-cols-[320px_1fr]">
-          <div className="surface rounded-[28px] p-5">
-            <div className="space-y-2">
+        <div className="surface mb-6 grid gap-4 p-5 sm:grid-cols-2">
+          {[0, 1].map((i) => (
+            <div key={i} className="space-y-2">
               <div className="h-4 w-24 animate-pulse rounded-full bg-slate-200" />
               <div className="h-11 animate-pulse rounded-2xl bg-slate-100" />
-              <div className="h-3 w-64 animate-pulse rounded-full bg-slate-100" />
             </div>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-4">
-            {Array.from({ length: 4 }).map((_, i) => <StatCardSkeleton key={i} />)}
-          </div>
+          ))}
         </div>
-
-        <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-          <ChartPanelSkeleton height="h-80" />
-          <ChartPanelSkeleton height="h-80" />
+        <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {Array.from({ length: 8 }).map((_, i) => <StatCardSkeleton key={i} />)}
         </div>
-
-        <div className="mt-6">
-          <TableSkeleton rows={6} columns={9} />
-        </div>
+        <TableSkeleton rows={6} columns={7} />
       </div>
     );
   }
+
+  const dateLabel = vm.isSingleDay
+    ? formatDate(vm.dateFrom, language)
+    : `${formatDate(vm.dateFrom, language)} – ${formatDate(vm.dateTo, language)}`;
 
   return (
     <div>
       <SectionHeader eyebrow={t('nav.reports')} title={t('nav.reports')} description={t('reports.description')} />
 
-      <div className="mb-6 grid gap-4 lg:grid-cols-[320px_1fr]">
-        <div className="surface rounded-[28px] p-5">
-          <label className="label mt-3">{t('reports.reportDate')}</label>
-          <DatePickerField value={vm.date} onChange={vm.setDate} max={new Date().toISOString().slice(0, 10)} />
-          <p className="mt-3 text-sm text-slate-500">{t('reports.description')}</p>
+      {/* Date range pickers */}
+      <div className="surface mb-6 grid gap-4 p-5 sm:grid-cols-2">
+        <div>
+          <label className="label">{t('profit.dateFrom')}</label>
+          <DatePickerField value={vm.dateFrom} onChange={vm.setDateFrom} max={vm.dateTo} />
         </div>
-        <div className="grid gap-4 sm:grid-cols-4">
-          <StatCard title={t('reports.issued')} value={formatCurrency(vm.totals.issuedValue)} helper={`${formatNumber(vm.totals.issuedPieces, language)} ${t('common.pcs')}`} icon={Truck} tone="amber" />
-          <StatCard title={t('reports.returned')} value={formatCurrency(vm.totals.returnValue)} helper={`${formatNumber(vm.totals.returnedPieces, language)} ${t('common.pcs')}`} icon={RotateCcw} tone="slate" />
-          <StatCard title={t('reports.sold')} value={formatCurrency(vm.totals.totalPayable)} helper={`${formatNumber(vm.totals.soldPieces, language)} ${t('common.pcs')}`} icon={PackageCheck} tone="emerald" />
-          <StatCard title={t('reports.paid')} value={formatCurrency(vm.totals.amountPaid)} helper={`${formatNumber(vm.rows.filter((r) => r.status === 'Completed').length)} ${t('common.dsr')}`} icon={CircleDollarSign} tone="blue" />
+        <div>
+          <label className="label">{t('profit.dateTo')}</label>
+          <DatePickerField value={vm.dateTo} onChange={vm.setDateTo} min={vm.dateFrom} max={new Date().toISOString().slice(0, 10)} />
         </div>
       </div>
 
@@ -96,32 +84,25 @@ export default function DailyReportsPage() {
         <Alert type="error">{vm.error}</Alert>
       ) : (
         <>
-          <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-            <ChartPanel title={t('reports.routeReport', { date: formatDate(vm.date) })} description={t('reports.routeReportDescription')}>
-              {vm.chartRows.length ? (
-                <StackedBarChart
-                  data={vm.chartRows}
-                  segments={[
-                    { key: 'issued', label: t('reports.issued'), color: getCssVar('--issued-soft', '#bfbdd2') },
-                    { key: 'returned', label: t('reports.returned'), color: getCssVar('--returned', '#f8aa17') },
-                    { key: 'sold', label: t('reports.sold'), color: getCssVar('--success', '#37a864') },
-                  ]}
-                  totalFormatter={(value) => formatCurrency(value)}
-                />
-              ) : (
-                <EmptyState title={t('reports.noRouteTitle')} description={t('reports.noRouteDescription')} icon={FileText} />
-              )}
-            </ChartPanel>
-
-            <ChartPanel title={t('reports.statusMix')} description={t('reports.statusMixDescription')}>
-              <DonutChart data={vm.reportMix} centerLabel={t('reports.routes')} centerValue={formatNumber(vm.rows.length)} valueFormatter={(value) => `${formatNumber(value)} ${t('common.dsr')}`} />
-            </ChartPanel>
+          {/* 8 stat cards */}
+          <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <StatCard title={t('reports.issued')} value={formatCurrency(vm.totals.issuedValue)} helper={`${formatNumber(vm.totals.issuedPieces, language)} ${t('common.pcs')}`} icon={Truck} tone="amber" />
+            <StatCard title={t('reports.returned')} value={formatCurrency(vm.totals.returnValue)} helper={`${formatNumber(vm.totals.returnedPieces, language)} ${t('common.pcs')}`} icon={RotateCcw} tone="slate" />
+            <StatCard title={t('reports.sold')} value={formatCurrency(vm.totals.totalPayable)} helper={`${formatNumber(vm.totals.soldPieces, language)} ${t('common.pcs')}`} icon={PackageCheck} tone="emerald" />
+            <StatCard title={t('reports.paid')} value={formatCurrency(vm.totals.amountPaid)} helper={`${formatNumber(vm.rows.length)} ${t('common.dsr')}`} icon={CircleDollarSign} tone="blue" />
+            <StatCard title={t('reports.due')} value={formatCurrency(vm.dueTotal)} icon={Wallet} tone="rose" />
+            <StatCard title={t('reports.srHandover')} value={formatCurrency(vm.totals.srHandover)} icon={Users} tone="indigo" />
+            <StatCard title={t('reports.discount')} value={formatCurrency(vm.totals.discount)} icon={Percent} tone="amber" />
+            <StatCard title={t('reports.profit')} value={vm.profitTotals ? formatCurrency(vm.profitTotals.profit) : '—'} icon={TrendingUp} tone={vm.profitTotals && vm.profitTotals.profit >= 0 ? 'emerald' : 'rose'} />
           </div>
 
-          <div className="surface mt-6 overflow-hidden">
+          {/* DSR Table */}
+          <div className="surface overflow-hidden">
             <div className="border-b border-slate-100 px-5 py-4">
               <div className="flex items-center justify-between gap-3">
-                <h2 className="section-title">{t('reports.dsrTable', { date: formatDate(vm.date) })}</h2>
+                <h2 className="section-title">
+                  {vm.isSingleDay ? t('reports.dsrTable', { date: formatDate(vm.dateFrom, language) }) : t('reports.dsrTableRange')}
+                </h2>
                 <span className="muted-chip">{formatNumber(vm.rows.length)} {t('common.dsr')}</span>
               </div>
             </div>
@@ -135,58 +116,186 @@ export default function DailyReportsPage() {
                     <th className="px-4 py-3">{t('reports.sold')}</th>
                     <th className="px-4 py-3 hidden md:table-cell">{t('reports.paid')}</th>
                     <th className="px-4 py-3 hidden lg:table-cell">{t('reports.due')}</th>
-                    <th className="px-4 py-3 hidden md:table-cell">{t('dsr.status')}</th>
-                    <th className="px-4 py-3 text-right">{t('reports.sheet')}</th>
+                    <th className="px-4 py-3 hidden lg:table-cell">{t('reports.discount')}</th>
+                    {vm.isSingleDay && <th className="px-4 py-3 text-right">{t('reports.sheet')}</th>}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {vm.rows.map((row) => (
-                    <tr key={row.dsrId} className="hover:bg-slate-50">
-                      <td className="table-cell">
-                        <p className="font-semibold text-slate-950">{row.dsrName}</p>
-                        <p className="text-xs text-slate-500">{row.area}</p>
-                      </td>
-                      <td className="table-cell">
-                        <span className="font-semibold text-slate-950">{formatCurrency(row.issuedValue || 0)}</span>
-                        <span className="ml-1 text-xs text-slate-400">{formatNumber(row.issuedPieces)} {t('common.pcs')}</span>
-                      </td>
-                      <td className="table-cell hidden sm:table-cell">
-                        <span className="font-semibold text-slate-950">{formatCurrency(row.returnValue || 0)}</span>
-                        <span className="ml-1 text-xs text-slate-400">{formatNumber(row.returnedPieces)} {t('common.pcs')}</span>
-                      </td>
-                      <td className="table-cell font-semibold">
-                        <span className="font-semibold text-slate-950">{formatCurrency(row.totalPayable)}</span>
-                        <span className="ml-1 text-xs text-slate-400">{formatNumber(row.soldPieces)} {t('common.pcs')}</span>
-                      </td>
-                      <td className="table-cell hidden md:table-cell">{formatCurrency(row.amountPaid || 0)}</td>
-                      <td className="table-cell hidden lg:table-cell">{formatCurrency(row.dueAmount || 0)}</td>
-                      <td className="table-cell hidden md:table-cell">
-                        <Badge tone={statusTone(row.status)}>{row.status}</Badge>
-                      </td>
-                      <td className="table-cell text-right">
-                        <button type="button" className="btn-secondary h-9 px-3" onClick={() => vm.viewSheet(row)} disabled={row.status === 'No Issue'}>
-                          <Eye size={16} />
-                          {t('reports.view')}
-                        </button>
+                  {vm.rows.map((row) => {
+                    const rowDue = Math.max(0, row.totalPayable - row.discount - row.amountPaid);
+                    return (
+                      <tr key={row.dsrId} className="hover:bg-slate-50">
+                        <td className="table-cell">
+                          <p className="font-semibold text-slate-950">{row.dsrName}</p>
+                          <p className="text-xs text-slate-500">{row.area}</p>
+                        </td>
+                        <td className="table-cell">
+                          <span className="font-semibold text-slate-950">{formatCurrency(row.issuedValue)}</span>
+                          <span className="ml-1 text-xs text-slate-400">{formatNumber(row.issuedPieces)} {t('common.pcs')}</span>
+                        </td>
+                        <td className="table-cell hidden sm:table-cell">
+                          <span className="font-semibold text-slate-950">{formatCurrency(row.returnValue)}</span>
+                          <span className="ml-1 text-xs text-slate-400">{formatNumber(row.returnedPieces)} {t('common.pcs')}</span>
+                        </td>
+                        <td className="table-cell">
+                          <span className="font-semibold text-slate-950">{formatCurrency(row.totalPayable)}</span>
+                          <span className="ml-1 text-xs text-slate-400">{formatNumber(row.soldPieces)} {t('common.pcs')}</span>
+                        </td>
+                        <td className="table-cell hidden md:table-cell">{formatCurrency(row.amountPaid)}</td>
+                        <td className="table-cell hidden lg:table-cell text-rose-600">{formatCurrency(rowDue)}</td>
+                        <td className="table-cell hidden lg:table-cell text-amber-600">{formatCurrency(row.discount)}</td>
+                        {vm.isSingleDay && (
+                          <td className="table-cell text-right">
+                            <button
+                              type="button"
+                              className="btn-secondary h-9 px-3"
+                              onClick={() => vm.viewSheet(row)}
+                              disabled={row.settlementCount === 0}
+                            >
+                              <Eye size={16} />
+                              {t('reports.view')}
+                            </button>
+                          </td>
+                        )}
+                      </tr>
+                    );
+                  })}
+                  {vm.rows.length === 0 && (
+                    <tr>
+                      <td colSpan={vm.isSingleDay ? 8 : 7} className="p-5">
+                        <EmptyState title={t('reports.noRouteTitle')} description={t('reports.noRouteDescription')} icon={FileText} />
                       </td>
                     </tr>
-                  ))}
+                  )}
                 </tbody>
               </table>
             </div>
           </div>
 
-          {/* Due Collections — manual payments from the Due Settlement page on this date */}
+          {/* SR Table */}
           <div className="surface mt-6 overflow-hidden">
             <div className="border-b border-slate-100 px-5 py-4">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <h2 className="section-title">{t('reports.dueCollections', { date: formatDate(vm.date) })}</h2>
+                  <h2 className="section-title">{t('reports.srTable')}</h2>
+                  <p className="mt-0.5 text-xs text-slate-400">{t('reports.srTableDescription')}</p>
+                </div>
+                {vm.srRows.length > 0 && <span className="muted-chip">{formatNumber(vm.srRows.length)} SR</span>}
+              </div>
+            </div>
+            {vm.srRows.length === 0 ? (
+              <EmptyState title={t('reports.noSrData')} description={t('reports.noSrDataDescription')} icon={Users} />
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="table-head">
+                    <tr>
+                      <th className="px-4 py-3">SR</th>
+                      <th className="px-4 py-3 text-right">{t('reports.handover')}</th>
+                      <th className="px-4 py-3 text-right">{t('reports.srCollected')}</th>
+                      <th className="px-4 py-3 text-right hidden sm:table-cell">{t('reports.due')}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {vm.srRows.map((row) => (
+                      <tr key={row.srId} className="hover:bg-slate-50">
+                        <td className="table-cell font-semibold text-slate-950">{row.srName}</td>
+                        <td className="table-cell text-right font-semibold text-slate-950">{formatCurrency(row.handover)}</td>
+                        <td className="table-cell text-right font-semibold text-emerald-600">{formatCurrency(row.collected)}</td>
+                        <td className="table-cell text-right hidden sm:table-cell text-rose-600">
+                          {formatCurrency(Math.max(0, row.handover - row.collected))}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          {/* Expense Table */}
+          <div className="surface mt-6 overflow-hidden">
+            <div className="border-b border-slate-100 px-5 py-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <h2 className="section-title">{t('reports.expenseTable')}</h2>
+                  <p className="mt-0.5 text-xs text-slate-400">{t('reports.expenseTableDescription')}</p>
+                </div>
+                {vm.expenseRows.length > 0 && (
+                  <span className="muted-chip">{formatCurrency(vm.expenseRows.reduce((s, r) => s + r.totalAmount, 0))}</span>
+                )}
+              </div>
+            </div>
+            {vm.expenseRows.length === 0 ? (
+              <EmptyState title={t('reports.noExpenses')} description={t('reports.noExpensesDescription')} icon={ReceiptText} />
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="table-head">
+                    <tr>
+                      <th className="px-4 py-3">{t('reports.expenseType')}</th>
+                      <th className="px-4 py-3 text-right">{t('reports.expenseTotal')}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {vm.expenseRows.map((row) => (
+                      <tr key={row.category} className="hover:bg-slate-50">
+                        <td className="table-cell font-semibold text-slate-950">{row.category}</td>
+                        <td className="table-cell text-right font-semibold text-rose-600">{formatCurrency(row.totalAmount)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          {/* Salary Table */}
+          <div className="surface mt-6 overflow-hidden">
+            <div className="border-b border-slate-100 px-5 py-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <h2 className="section-title">{t('reports.salaryTable')}</h2>
+                  <p className="mt-0.5 text-xs text-slate-400">{t('reports.salaryTableDescription')}</p>
+                </div>
+                {vm.salaryRows.length > 0 && (
+                  <span className="muted-chip">{formatCurrency(vm.salaryRows.reduce((s, r) => s + r.totalPaid, 0))}</span>
+                )}
+              </div>
+            </div>
+            {vm.salaryRows.length === 0 ? (
+              <EmptyState title={t('reports.noSalary')} description={t('reports.noSalaryDescription')} icon={BadgeDollarSign} />
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="table-head">
+                    <tr>
+                      <th className="px-4 py-3">{t('reports.employee')}</th>
+                      <th className="px-4 py-3 text-right">{t('reports.salaryPaid')}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {vm.salaryRows.map((row) => (
+                      <tr key={row.employeeId} className="hover:bg-slate-50">
+                        <td className="table-cell font-semibold text-slate-950">{row.employeeName}</td>
+                        <td className="table-cell text-right font-semibold text-emerald-600">{formatCurrency(row.totalPaid)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          {/* Due Collections */}
+          <div className="surface mt-6 overflow-hidden">
+            <div className="border-b border-slate-100 px-5 py-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <h2 className="section-title">{t('reports.dueCollections', { date: dateLabel })}</h2>
                   <p className="mt-0.5 text-xs text-slate-400">{t('reports.dueCollectionsDescription')}</p>
                 </div>
-                {vm.dueCollectionRows.length > 0 && (
-                  <span className="muted-chip">{formatCurrency(dueCollectedTotal)}</span>
-                )}
+                {vm.dueCollectionRows.length > 0 && <span className="muted-chip">{formatCurrency(dueCollectedTotal)}</span>}
               </div>
             </div>
             {vm.dueCollectionRows.length === 0 ? (
@@ -215,7 +324,7 @@ export default function DailyReportsPage() {
             )}
           </div>
 
-          {/* DSR Outstanding Due Balances — current state, not date-specific */}
+          {/* DSR Outstanding Due Balances */}
           <div className="surface mt-6 overflow-hidden">
             <div className="border-b border-slate-100 px-5 py-4">
               <div className="flex items-center justify-between gap-3">
@@ -254,7 +363,8 @@ export default function DailyReportsPage() {
             )}
           </div>
 
-          {vm.selectedSheet ? (
+          {/* Printable Sheet — single-day mode only */}
+          {vm.selectedSheet && vm.isSingleDay ? (
             <div className="mt-6">
               <div className="mb-3 flex items-center justify-between gap-3 no-print">
                 <div>

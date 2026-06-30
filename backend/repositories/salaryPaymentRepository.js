@@ -69,6 +69,20 @@ export function listPaymentsByMonth(client, tenantId, month) {
   );
 }
 
+export async function listSalaryPaymentsInRange(client, tenantId, dateFrom, dateTo) {
+  const result = await client.query(
+    `SELECT sp.*, u.name AS created_by_name
+     FROM salary_payments sp
+     LEFT JOIN users u ON u.id = sp.created_by
+     WHERE sp.tenant_id = $1
+       AND sp.payment_date >= $2
+       AND sp.payment_date <= $3
+     ORDER BY sp.payment_date DESC, sp.created_at DESC`,
+    [tenantId, dateFrom, dateTo],
+  );
+  return result.rows.map(mapSalaryPayment);
+}
+
 export function findSalaryPaymentById(client, id, tenantId) {
   return client.query(
     `SELECT * FROM salary_payments WHERE id = $1 AND tenant_id = $2 LIMIT 1`,

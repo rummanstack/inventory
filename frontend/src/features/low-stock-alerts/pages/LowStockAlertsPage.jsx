@@ -37,7 +37,7 @@ export default function LowStockAlertsPage() {
 
   return (
     <div>
-      <SectionHeader eyebrow={t('nav.lowStockAlerts')} description={t('lowStockAlerts.description')} />
+      <SectionHeader eyebrow={t('nav.lowStockAlerts')} title={t('nav.lowStockAlerts')} description={t('lowStockAlerts.description')} />
 
       {lowStockProducts.length ? (
         <div className="mb-4">

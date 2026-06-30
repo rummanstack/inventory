@@ -1,5 +1,5 @@
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
-import { Alert, Pagination } from '../../../components/ui.jsx';
+import { Alert, Pagination, SectionHeader } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { formatDate, formatCurrency } from '../../../utils/calculations.js';
 import { useBatchSalesReportViewModel } from '../viewmodels/useBatchSalesReportViewModel.js';
@@ -10,12 +10,11 @@ export default function BatchSalesReportPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-black text-slate-900">{t('pharmacy.batchSalesReport')}</h1>
-        <p className="text-sm font-semibold text-slate-500">
-          {vm.total} {t('common.results')}
-        </p>
-      </div>
+      <SectionHeader
+        eyebrow={t('nav.reports')}
+        title={t('pharmacy.batchSalesReport')}
+        action={<span className="text-sm font-semibold text-slate-500">{vm.total} {t('common.results')}</span>}
+      />
 
       {/* Filters */}
       <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">

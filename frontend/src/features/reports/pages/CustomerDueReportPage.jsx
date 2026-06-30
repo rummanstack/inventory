@@ -27,7 +27,7 @@ export default function CustomerDueReportPage() {
 
   return (
     <div>
-      <SectionHeader eyebrow="Reports" title="Customer Due Report" description="All retail customers with outstanding due balances." />
+      <SectionHeader eyebrow={t('nav.reports')} title="Customer Due Report" description="All retail customers with outstanding due balances." />
 
       {vm.loading ? (
         <>

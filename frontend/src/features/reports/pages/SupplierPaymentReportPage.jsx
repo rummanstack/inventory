@@ -35,7 +35,7 @@ export default function SupplierPaymentReportPage() {
 
   return (
     <div>
-      <SectionHeader eyebrow="Reports" title="Supplier Payment Report" description="Daily supplier payment summary." />
+      <SectionHeader eyebrow={t('nav.reports')} title="Supplier Payment Report" description="Daily supplier payment summary." />
 
       {vm.loading ? (
         <>

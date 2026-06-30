@@ -35,7 +35,7 @@ export default function DamagedStockReportPage() {
 
   return (
     <div>
-      <SectionHeader eyebrow="Reports" title="Damaged Stock Report" description="Damaged stock by product with quantity and estimated cost." />
+      <SectionHeader eyebrow={t('nav.reports')} title="Damaged Stock Report" description="Damaged stock by product with quantity and estimated cost." />
 
       {vm.loading ? (
         <>

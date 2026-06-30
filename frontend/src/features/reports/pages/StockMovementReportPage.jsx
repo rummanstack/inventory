@@ -38,7 +38,7 @@ export default function StockMovementReportPage() {
 
   return (
     <div>
-      <SectionHeader eyebrow="Reports" title="Stock Movement Report" description="Stock in/out summary by type and date." />
+      <SectionHeader eyebrow={t('nav.reports')} title="Stock Movement Report" description="Stock in/out summary by type and date." />
 
       {vm.loading ? (
         <>

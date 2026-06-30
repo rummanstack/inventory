@@ -38,7 +38,7 @@ export default function SettlementReportPage() {
 
   return (
     <div>
-      <SectionHeader eyebrow="Reports" title="DSR Settlement Report" description="Daily evening settlement summary for all DSRs." />
+      <SectionHeader eyebrow={t('nav.reports')} title="DSR Settlement Report" description="Daily evening settlement summary for all DSRs." />
 
       {vm.loading ? (
         <>

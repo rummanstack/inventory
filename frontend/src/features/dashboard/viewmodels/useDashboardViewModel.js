@@ -57,6 +57,7 @@ export function useDashboardViewModel({ products, dsrs, today, t, language = 'en
   const [todayExpenseReport, setTodayExpenseReport] = useState(null);
   const [dsrTargetSummary, setDsrTargetSummary] = useState([]);
   const [monthlyTrend, setMonthlyTrend] = useState([]);
+  const [todayDueLedger, setTodayDueLedger] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -90,6 +91,7 @@ export function useDashboardViewModel({ products, dsrs, today, t, language = 'en
           expenseReportResult,
           dsrTargetSummaryResult,
           monthlyTrendResult,
+          todayDueLedgerResult,
         ] = await Promise.all([
           inventoryApi.listIssues({ dateFrom: today, dateTo: today, pageSize: DAY_SCOPE_PAGE_SIZE }),
           inventoryApi.listSettlements({ dateFrom: today, dateTo: today, pageSize: DAY_SCOPE_PAGE_SIZE }),
@@ -106,6 +108,7 @@ export function useDashboardViewModel({ products, dsrs, today, t, language = 'en
           inventoryApi.getExpenseReport({ date: today }).catch(() => null),
           inventoryApi.getDsrTargetSummary(today.slice(0, 7)).catch(() => ({ summary: [] })),
           inventoryApi.getMonthlyTrend().catch(() => ({ rows: [] })),
+          inventoryApi.listDsrDueLedger({ dateFrom: today, dateTo: today, pageSize: 500 }).catch(() => ({ items: [] })),
         ]);
 
         if (cancelled) {
@@ -127,6 +130,7 @@ export function useDashboardViewModel({ products, dsrs, today, t, language = 'en
         setTodayExpenseReport(expenseReportResult);
         setDsrTargetSummary(dsrTargetSummaryResult?.summary || []);
         setMonthlyTrend(formatMonthlyTrend(monthlyTrendResult?.rows || []));
+        setTodayDueLedger(todayDueLedgerResult?.items || []);
       } catch (requestError) {
         if (!cancelled) {
           setError(requestError.message);
@@ -143,6 +147,7 @@ export function useDashboardViewModel({ products, dsrs, today, t, language = 'en
           setFinanceDashboard(null);
           setRetailCashSession(null);
           setMonthlyTrend([]);
+          setTodayDueLedger([]);
         }
       } finally {
         if (!cancelled) {
@@ -296,18 +301,26 @@ export function useDashboardViewModel({ products, dsrs, today, t, language = 'en
   const grossProfit = grossRevenue - grossCogs;
   const netProfit = grossProfit - expenseTotal;
 
-  // DSR leaderboard (top 5 by total cash collected today, aggregated across settlements)
-  const dsrLeaderboard = Array.from(
-    todaySettlements.reduce((map, s) => {
-      const existing = map.get(s.dsrId) || {
-        label: dsrs.find((d) => d.id === s.dsrId)?.name || s.dsrName || s.dsrId,
-        value: 0,
-      };
-      existing.value += Number(s.amountPaid || 0);
-      map.set(s.dsrId, existing);
-      return map;
-    }, new Map()).values(),
-  )
+  // DSR leaderboard (top 5 by total cash collected today: settlement amountPaid + later due collections)
+  const leaderboardMap = new Map();
+  for (const s of todaySettlements) {
+    const existing = leaderboardMap.get(s.dsrId) || {
+      label: dsrs.find((d) => d.id === s.dsrId)?.name || s.dsrName || s.dsrId,
+      value: 0,
+    };
+    existing.value += Number(s.amountPaid || 0);
+    leaderboardMap.set(s.dsrId, existing);
+  }
+  for (const entry of todayDueLedger) {
+    if (entry.type !== 'COLLECTION' || entry.referenceType === 'settlement') continue;
+    const existing = leaderboardMap.get(entry.dsrId) || {
+      label: dsrs.find((d) => d.id === entry.dsrId)?.name || entry.dsrName || entry.dsrId,
+      value: 0,
+    };
+    existing.value += Number(entry.credit || 0);
+    leaderboardMap.set(entry.dsrId, existing);
+  }
+  const dsrLeaderboard = Array.from(leaderboardMap.values())
     .sort((a, b) => b.value - a.value)
     .slice(0, 5);
 
@@ -354,7 +367,7 @@ export function useDashboardViewModel({ products, dsrs, today, t, language = 'en
         tone: payableToday ? 'blue' : 'slate',
       },
     ],
-    tradingTrend: buildTradingTrend({ issues: trendIssues, settlements: trendSettlements, today, limit: TREND_DAYS }),
+    tradingTrend: buildTradingTrend({ issues: trendIssues, settlements: trendSettlements, today, limit: TREND_DAYS, retailInvoices: trendRetailInvoices }),
     activityHeatmap: buildActivityHeatmap({ issues: heatmapIssues, settlements: heatmapSettlements, today, days: HEATMAP_DAYS, language }),
     inventoryByCategory: buildCategoryInventory(products, language),
     routePerformance: buildRoutePerformance(dailyRows, language),

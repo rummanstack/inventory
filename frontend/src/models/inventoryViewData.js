@@ -278,10 +278,11 @@ export function shortDate(date, language = getPreferredLanguage()) {
   return new Intl.DateTimeFormat(language === 'bn' ? 'bn-BD' : 'en-US', { month: 'short', day: 'numeric' }).format(new Date(`${date}T00:00:00`));
 }
 
-export function buildTradingTrend({ issues, settlements, today, limit = 7 }) {
+export function buildTradingTrend({ issues, settlements, today, limit = 7, retailInvoices = [] }) {
   const dateSet = new Set([today]);
   issues.forEach((issue) => dateSet.add(issue.date));
   settlements.forEach((settlement) => dateSet.add(settlement.date));
+  retailInvoices.forEach((inv) => inv.invoiceDate && dateSet.add(inv.invoiceDate));
 
   return Array.from(dateSet)
     .sort((a, b) => a.localeCompare(b))
@@ -289,13 +290,17 @@ export function buildTradingTrend({ issues, settlements, today, limit = 7 }) {
     .map((date) => {
       const issueRows = issues.filter((issue) => issue.date === date);
       const settlementRows = settlements.filter((settlement) => settlement.date === date);
+      const retailRows = retailInvoices.filter((inv) => inv.invoiceDate === date);
+      const dsrRevenue = settlementRows.reduce((sum, s) => sum + Number(s.totalPayable || 0), 0);
+      const retailRevenue = retailRows.reduce((sum, inv) => sum + Number(inv.totalAmount || 0), 0);
+      const dsrSold = settlementRows.reduce((sum, s) => sum + s.items.reduce((itemSum, item) => itemSum + Number(item.soldPieces || 0), 0), 0);
+      const retailSold = retailRows.reduce((sum, inv) => sum + (inv.items || []).reduce((itemSum, item) => itemSum + Number(item.quantityPieces || 0), 0), 0);
       return {
         date,
         label: shortDate(date),
         issued: issueRows.reduce((sum, issue) => sum + issue.items.reduce((itemSum, item) => itemSum + Number(item.issuedPieces || 0), 0), 0),
-        sold: settlementRows.reduce((sum, settlement) => sum + settlement.items.reduce((itemSum, item) => itemSum + Number(item.soldPieces || 0), 0), 0),
-        payable: settlementRows.reduce((sum, settlement) => sum + Number(settlement.totalPayable || 0), 0),
-        paid: settlementRows.reduce((sum, settlement) => sum + Number(settlement.amountPaid || 0), 0),
+        sold: dsrSold + retailSold,
+        paid: dsrRevenue + retailRevenue,
       };
     });
 }

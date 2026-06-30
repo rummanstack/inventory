@@ -1,9 +1,12 @@
 import { Router } from "express";
 import { requirePermission } from "../middleware/requireRole.js";
+import { requireFeature } from "../middleware/requireFeature.js";
 import { PERMISSIONS } from "../lib/permissions.js";
 
 export function createFinanceAccountsRoutes(financeAccountController) {
   const router = Router();
+
+  router.use(requireFeature("finance-accounts"));
 
   router.get("/", requirePermission(PERMISSIONS.MANAGE_FINANCE_ACCOUNTS), financeAccountController.listAccounts);
   router.get("/transactions", requirePermission(PERMISSIONS.MANAGE_FINANCE_ACCOUNTS), financeAccountController.listTransactions);

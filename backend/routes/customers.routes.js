@@ -1,9 +1,12 @@
 import { Router } from "express";
 import { requirePermission } from "../middleware/requireRole.js";
+import { requireFeature } from "../middleware/requireFeature.js";
 import { PERMISSIONS } from "../lib/permissions.js";
 
 export function createCustomersRoutes(customerController) {
   const router = Router();
+
+  router.use(requireFeature("customers"));
 
   router.get("/trash", requirePermission(PERMISSIONS.MANAGE_CUSTOMERS), customerController.listTrash);
   router.get("/active", requirePermission(PERMISSIONS.VIEW_STATE), customerController.listActive);

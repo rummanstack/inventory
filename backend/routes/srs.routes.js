@@ -1,9 +1,12 @@
 import { Router } from "express";
 import { requirePermission } from "../middleware/requireRole.js";
+import { requireFeature } from "../middleware/requireFeature.js";
 import { PERMISSIONS } from "../lib/permissions.js";
 
 export function createSrsRoutes(srController) {
   const router = Router();
+
+  router.use(requireFeature("srs"));
 
   router.get("/directory", requirePermission(PERMISSIONS.VIEW_STATE), srController.directory);
   router.get("/trash", requirePermission(PERMISSIONS.MANAGE_SRS), srController.listTrash);

@@ -51,6 +51,7 @@ export function useDashboardViewModel({ products, dsrs, today, t, language = 'en
   const [yesterdayIssues, setYesterdayIssues] = useState([]);
   const [yesterdaySettlements, setYesterdaySettlements] = useState([]);
   const [todaySalesInvoices, setTodaySalesInvoices] = useState([]);
+  const [trendRetailInvoices, setTrendRetailInvoices] = useState([]);
   const [financeDashboard, setFinanceDashboard] = useState(null);
   const [retailCashSession, setRetailCashSession] = useState(undefined);
   const [todayExpenseReport, setTodayExpenseReport] = useState(null);
@@ -83,6 +84,7 @@ export function useDashboardViewModel({ products, dsrs, today, t, language = 'en
           yesterdayIssuesResult,
           yesterdaySettlementsResult,
           todaySalesResult,
+          trendRetailResult,
           financeDashboardResult,
           cashSessionResult,
           expenseReportResult,
@@ -98,6 +100,7 @@ export function useDashboardViewModel({ products, dsrs, today, t, language = 'en
           inventoryApi.listIssues({ dateFrom: yesterday, dateTo: yesterday, pageSize: DAY_SCOPE_PAGE_SIZE }),
           inventoryApi.listSettlements({ dateFrom: yesterday, dateTo: yesterday, pageSize: DAY_SCOPE_PAGE_SIZE }),
           inventoryApi.listSalesInvoices({ dateFrom: today, dateTo: today, pageSize: 2000 }).catch(() => ({ items: [] })),
+          inventoryApi.listSalesInvoices({ dateFrom: trendFrom, dateTo: today, pageSize: 2000 }).catch(() => ({ items: [] })),
           inventoryApi.getFinanceDashboard().catch(() => null),
           inventoryApi.getCurrentRetailCashSession().catch(() => null),
           inventoryApi.getExpenseReport({ date: today }).catch(() => null),
@@ -118,6 +121,7 @@ export function useDashboardViewModel({ products, dsrs, today, t, language = 'en
         setYesterdayIssues(yesterdayIssuesResult.items || []);
         setYesterdaySettlements(yesterdaySettlementsResult.items || []);
         setTodaySalesInvoices(todaySalesResult?.items || []);
+        setTrendRetailInvoices(trendRetailResult?.items || []);
         setFinanceDashboard(financeDashboardResult);
         setRetailCashSession(cashSessionResult);
         setTodayExpenseReport(expenseReportResult);
@@ -135,6 +139,7 @@ export function useDashboardViewModel({ products, dsrs, today, t, language = 'en
           setYesterdayIssues([]);
           setYesterdaySettlements([]);
           setTodaySalesInvoices([]);
+          setTrendRetailInvoices([]);
           setFinanceDashboard(null);
           setRetailCashSession(null);
           setMonthlyTrend([]);
@@ -206,15 +211,22 @@ export function useDashboardViewModel({ products, dsrs, today, t, language = 'en
   const yesterdaySoldPcs = yesterdaySettlements.reduce((sum, s) => sum + s.items.reduce((s2, i) => s2 + Number(i.soldPieces || 0), 0), 0);
   const yesterdayPayable = yesterdaySettlements.reduce((sum, s) => sum + Number(s.amountPaid || 0), 0);
 
-  // Top & least selling products over the 7-day trend period (DSR channel)
-  const trendSalesByProduct = trendSettlements
-    .flatMap((s) => s.items)
-    .reduce((map, item) => {
-      const existing = map.get(item.productId) || { productId: item.productId, productName: item.productName, soldPieces: 0 };
+  // Top & least selling products over the 7-day trend period (DSR + retail)
+  const trendSalesByProduct = new Map();
+  for (const s of trendSettlements) {
+    for (const item of s.items) {
+      const existing = trendSalesByProduct.get(item.productId) || { productId: item.productId, productName: item.productName, soldPieces: 0 };
       existing.soldPieces += Number(item.soldPieces || 0);
-      map.set(item.productId, existing);
-      return map;
-    }, new Map());
+      trendSalesByProduct.set(item.productId, existing);
+    }
+  }
+  for (const inv of trendRetailInvoices) {
+    for (const item of inv.items || []) {
+      const existing = trendSalesByProduct.get(item.productId) || { productId: item.productId, productName: item.productName, soldPieces: 0 };
+      existing.soldPieces += Number(item.quantityPieces || 0);
+      trendSalesByProduct.set(item.productId, existing);
+    }
+  }
 
   const topSellingProducts = Array.from(trendSalesByProduct.values())
     .filter((p) => p.soldPieces > 0)

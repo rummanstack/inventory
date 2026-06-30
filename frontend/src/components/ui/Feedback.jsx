@@ -45,16 +45,16 @@ export function LoadingState({ title, description, compact = false }) {
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(var(--blue-600),0.08),transparent_38%),radial-gradient(circle_at_bottom_left,rgba(var(--sky-500),0.08),transparent_35%)]" />
       <div className="relative flex flex-col">
         <div className="flex items-start gap-4">
-          <div className="h-12 w-12 shrink-0 animate-pulse rounded-2xl bg-slate-200/80" />
+          <div className="h-12 w-12 shrink-0 skeleton rounded-2xl" />
           <div className="min-w-0 flex-1 pt-1">
-            <div className={cx('h-4 animate-pulse rounded-full bg-slate-200/90', compact ? 'w-2/3' : 'w-3/4')} />
-            <div className="mt-2 h-3 animate-pulse rounded-full bg-slate-100" />
-            <div className="mt-2 h-3 w-1/2 animate-pulse rounded-full bg-slate-100" />
+            <div className={cx('h-4 skeleton rounded-full', compact ? 'w-2/3' : 'w-3/4')} />
+            <div className="mt-2 h-3 skeleton rounded-full" />
+            <div className="mt-2 h-3 w-1/2 skeleton rounded-full" />
           </div>
         </div>
         <div className="mt-6 grid gap-2">
-          <div className={cx('h-10 animate-pulse rounded-2xl bg-slate-100/90', compact ? 'h-8' : '')} />
-          <div className={cx('h-10 animate-pulse rounded-2xl bg-slate-100/80', compact ? 'h-8' : '')} />
+          <div className={cx('skeleton rounded-2xl', compact ? 'h-8' : 'h-10')} />
+          <div className={cx('skeleton rounded-2xl', compact ? 'h-8' : 'h-10')} />
         </div>
         {title ? <h3 className="mt-4 text-base font-bold text-slate-950">{title}</h3> : null}
         {description ? <p className="mt-1 max-w-md text-sm font-medium text-slate-500">{description}</p> : null}
@@ -81,8 +81,8 @@ export function TableSkeleton({ rows = 6, columns = 5, showHeader = true }) {
       {showHeader ? (
         <div className="border-b border-slate-100 px-5 py-4">
           <div className="flex items-center justify-between gap-3">
-            <div className="h-4 w-48 animate-pulse rounded-full bg-slate-200" />
-            <div className="h-8 w-28 animate-pulse rounded-full bg-slate-100" />
+            <div className="h-4 w-48 skeleton rounded-full" />
+            <div className="h-8 w-28 skeleton rounded-full" />
           </div>
         </div>
       ) : null}
@@ -92,7 +92,7 @@ export function TableSkeleton({ rows = 6, columns = 5, showHeader = true }) {
             <tr>
               {Array.from({ length: columns }).map((_, index) => (
                 <th key={index} className="px-4 py-3">
-                  <div className="h-3 w-16 animate-pulse rounded-full bg-slate-200" />
+                  <div className="h-3 w-16 skeleton rounded-full" />
                 </th>
               ))}
             </tr>
@@ -103,7 +103,7 @@ export function TableSkeleton({ rows = 6, columns = 5, showHeader = true }) {
                 {Array.from({ length: columns }).map((__, colIndex) => (
                   <td key={colIndex} className="table-cell">
                     <div
-                      className="h-4 animate-pulse rounded-full bg-slate-200"
+                      className="h-4 skeleton rounded-full"
                       style={{ width: `${Math.max(34, 76 - colIndex * 8)}%` }}
                     />
                   </td>
@@ -122,11 +122,11 @@ export function StatCardSkeleton() {
     <div className="relative overflow-hidden rounded-[28px] border border-slate-200/80 bg-white p-4 shadow-[0_18px_45px_rgba(var(--slate-900),0.05)]">
       <div className="flex items-start justify-between gap-3">
         <div className="w-full">
-          <div className="h-3 w-2/3 animate-pulse rounded-full bg-slate-200" />
-          <div className="mt-3 h-6 w-1/2 animate-pulse rounded-full bg-slate-200" />
-          <div className="mt-3 h-2.5 w-3/4 animate-pulse rounded-full bg-slate-100" />
+          <div className="h-3 w-2/3 skeleton rounded-full" />
+          <div className="mt-3 h-6 w-1/2 skeleton rounded-full" />
+          <div className="mt-3 h-2.5 w-3/4 skeleton rounded-full" />
         </div>
-        <div className="h-10 w-10 shrink-0 animate-pulse rounded-lg bg-slate-100" />
+        <div className="h-10 w-10 shrink-0 skeleton rounded-lg" />
       </div>
     </div>
   );
@@ -136,18 +136,18 @@ export function ChartPanelSkeleton({ height = 'h-56' }) {
   return (
     <div className="surface overflow-hidden">
       <div className="border-b border-slate-100/80 px-5 py-4">
-        <div className="h-4 w-40 animate-pulse rounded-full bg-slate-200" />
-        <div className="mt-2 h-2.5 w-56 animate-pulse rounded-full bg-slate-100" />
+        <div className="h-4 w-40 skeleton rounded-full" />
+        <div className="mt-2 h-2.5 w-56 skeleton rounded-full" />
       </div>
       <div className="p-5">
-        <div className={cx('w-full animate-pulse rounded-2xl bg-slate-100', height)} />
+        <div className={cx('w-full skeleton rounded-2xl', height)} />
       </div>
     </div>
   );
 }
 
 export function CardSkeleton({ className = '', height = 'h-24' }) {
-  return <div className={cx('animate-pulse rounded-[28px] bg-slate-100', height, className)} />;
+  return <div className={cx('skeleton rounded-[28px]', height, className)} />;
 }
 
 export function ToastViewport({ toasts, onDismiss }) {

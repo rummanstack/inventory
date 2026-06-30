@@ -9,7 +9,7 @@ export function Modal({ title, description, children, onClose, width = 'max-w-2x
 
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 p-4 backdrop-blur-[10px] no-print">
-      <div className={cx('panel-strong w-full overflow-hidden', width)}>
+      <div className={cx('panel-strong modal-enter w-full overflow-hidden', width)}>
         <div className="flex items-start justify-between border-b border-slate-100 bg-slate-50/80 px-5 py-4">
           <div>
             <h2 className="text-lg font-bold text-slate-950">{title}</h2>
@@ -91,7 +91,7 @@ export function ConfirmationDialog({
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/45 p-4 backdrop-blur-[10px] no-print">
-      <div className="panel-strong w-full max-w-lg overflow-hidden">
+      <div className="panel-strong modal-enter w-full max-w-lg overflow-hidden">
         <div className="border-b border-slate-100 bg-slate-50/80 px-5 py-5">
           <div className="flex items-start gap-3">
             <div className={cx('rounded-2xl p-2.5', tones[tone] || tones.rose)}>

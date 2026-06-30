@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Building2, CircleDollarSign, Download, FileSpreadsheet, HandCoins, Landmark, Printer, RotateCcw, Scale, ShoppingBag, Store, TrendingDown, TrendingUp, Wallet } from 'lucide-react';
 import { Alert, cx, EmptyState, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
@@ -89,6 +89,8 @@ export default function FinanceDashboardPage() {
     setPrintingSection(section);
     requestAnimationFrame(() => window.print());
   }
+
+  const fmtCurrency = useCallback((n) => formatCurrency(n, language), [language]);
 
   const cashInHand = data?.accounts?.find((a) => a.type === 'CASH')?.balance || 0;
   const bankBalance = data?.accounts?.find((a) => a.type === 'BANK')?.balance || 0;
@@ -369,14 +371,14 @@ export default function FinanceDashboardPage() {
           <div>
             <h2 className="mb-4 text-base font-bold text-slate-950">{t('financeDashboard.balanceTitle')}</h2>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              <StatCard title={t('financeDashboard.cashInHand')} value={formatCurrency(cashInHand, language)} icon={Wallet} tone="emerald" />
-              <StatCard title={t('financeAccounts.bank')} value={formatCurrency(bankBalance, language)} icon={Landmark} tone="indigo" />
-              <StatCard title={t('financeDashboard.dsrReceivables')} value={formatCurrency(data.totalDsrDue, language)} helper={t('financeDashboard.dsrReceivablesHelper')} icon={HandCoins} tone="amber" />
-              <StatCard title={t('financeDashboard.customerReceivables')} value={formatCurrency(data.totalCustomerDue, language)} helper={t('financeDashboard.customerReceivablesHelper')} icon={Store} tone="amber" />
-              <StatCard title={t('financeDashboard.supplierPayables')} value={formatCurrency(data.totalSupplierDue, language)} helper={t('financeDashboard.supplierPayablesHelper')} icon={Building2} tone="rose" />
-              <StatCard title={t('financeDashboard.monthlyExpenses')} value={formatCurrency(data.monthlyExpenses, language)} helper={t('financeDashboard.monthlyExpensesHelper')} icon={CircleDollarSign} tone="rose" />
-              <StatCard title={t('financeDashboard.monthlyProfit')} value={formatCurrency(data.monthlyProfit, language)} helper={t('financeDashboard.monthlyProfitHelper')} icon={TrendingUp} tone="emerald" trend={data.profitDailyTrend} trendPct={data.profitVsLastMonth} trendLabel="vs last month" />
-              <StatCard title={t('financeDashboard.netPosition')} value={formatCurrency(data.netPosition, language)} helper={t('financeDashboard.netPositionHelper')} icon={Scale} tone="slate" />
+              <StatCard title={t('financeDashboard.cashInHand')} value={formatCurrency(cashInHand, language)} icon={Wallet} tone="emerald" rawValue={cashInHand} formatter={fmtCurrency} />
+              <StatCard title={t('financeAccounts.bank')} value={formatCurrency(bankBalance, language)} icon={Landmark} tone="indigo" rawValue={bankBalance} formatter={fmtCurrency} />
+              <StatCard title={t('financeDashboard.dsrReceivables')} value={formatCurrency(data.totalDsrDue, language)} helper={t('financeDashboard.dsrReceivablesHelper')} icon={HandCoins} tone="amber" rawValue={data.totalDsrDue} formatter={fmtCurrency} />
+              <StatCard title={t('financeDashboard.customerReceivables')} value={formatCurrency(data.totalCustomerDue, language)} helper={t('financeDashboard.customerReceivablesHelper')} icon={Store} tone="amber" rawValue={data.totalCustomerDue} formatter={fmtCurrency} />
+              <StatCard title={t('financeDashboard.supplierPayables')} value={formatCurrency(data.totalSupplierDue, language)} helper={t('financeDashboard.supplierPayablesHelper')} icon={Building2} tone="rose" rawValue={data.totalSupplierDue} formatter={fmtCurrency} />
+              <StatCard title={t('financeDashboard.monthlyExpenses')} value={formatCurrency(data.monthlyExpenses, language)} helper={t('financeDashboard.monthlyExpensesHelper')} icon={CircleDollarSign} tone="rose" rawValue={data.monthlyExpenses} formatter={fmtCurrency} />
+              <StatCard title={t('financeDashboard.monthlyProfit')} value={formatCurrency(data.monthlyProfit, language)} helper={t('financeDashboard.monthlyProfitHelper')} icon={TrendingUp} tone="emerald" trend={data.profitDailyTrend} trendPct={data.profitVsLastMonth} trendLabel="vs last month" rawValue={data.monthlyProfit} formatter={fmtCurrency} />
+              <StatCard title={t('financeDashboard.netPosition')} value={formatCurrency(data.netPosition, language)} helper={t('financeDashboard.netPositionHelper')} icon={Scale} tone="slate" rawValue={data.netPosition} formatter={fmtCurrency} />
             </div>
           </div>
 
@@ -392,6 +394,8 @@ export default function FinanceDashboardPage() {
                 trend={data.settlementDailyTrend}
                 trendPct={data.settlementVsLastMonth}
                 trendLabel="vs last month"
+                rawValue={data.monthlySettlementCollected}
+                formatter={fmtCurrency}
               />
               <StatCard
                 title={t('financeDashboard.settlementDue')}
@@ -399,6 +403,8 @@ export default function FinanceDashboardPage() {
                 helper={t('financeDashboard.settlementDueHelper')}
                 icon={HandCoins}
                 tone="rose"
+                rawValue={data.monthlySettlementDue}
+                formatter={fmtCurrency}
               />
               <StatCard
                 title={t('financeDashboard.monthlySales')}
@@ -409,6 +415,8 @@ export default function FinanceDashboardPage() {
                 trend={data.revenueDailyTrend}
                 trendPct={data.revenueVsLastMonth}
                 trendLabel="vs last month"
+                rawValue={data.monthlySalesAmount}
+                formatter={fmtCurrency}
               />
             </div>
           </div>
@@ -416,8 +424,8 @@ export default function FinanceDashboardPage() {
           <div>
             <h2 className="mb-4 text-base font-bold text-slate-950">{t('financeDashboard.cashFlowTitle')}</h2>
             <div className="grid gap-4 sm:grid-cols-2">
-              <StatCard title={t('financeDashboard.monthlyInflow')} value={formatCurrency(data.monthlyInflow, language)} helper={t('financeDashboard.monthlyInflowHelper')} icon={TrendingUp} tone="emerald" />
-              <StatCard title={t('financeDashboard.monthlyOutflow')} value={formatCurrency(data.monthlyOutflow, language)} helper={t('financeDashboard.monthlyOutflowHelper')} icon={TrendingDown} tone="rose" />
+              <StatCard title={t('financeDashboard.monthlyInflow')} value={formatCurrency(data.monthlyInflow, language)} helper={t('financeDashboard.monthlyInflowHelper')} icon={TrendingUp} tone="emerald" rawValue={data.monthlyInflow} formatter={fmtCurrency} />
+              <StatCard title={t('financeDashboard.monthlyOutflow')} value={formatCurrency(data.monthlyOutflow, language)} helper={t('financeDashboard.monthlyOutflowHelper')} icon={TrendingDown} tone="rose" rawValue={data.monthlyOutflow} formatter={fmtCurrency} />
             </div>
           </div>
 

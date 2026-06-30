@@ -28,6 +28,10 @@ export const dsrFinanceApi = {
     return apiRequest(`/dsr-due-ledger/balance${buildQueryString({ dsrId })}`);
   },
 
+  listDsrDueBalances() {
+    return apiRequest('/dsr-due-ledger/balances');
+  },
+
   settleDsrDue({ dsrId, amount, note }) {
     return apiRequest("/dsr-due-ledger/settle", {
       method: "POST",

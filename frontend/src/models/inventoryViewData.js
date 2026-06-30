@@ -152,10 +152,18 @@ export function buildSheetData({ date, dsrId, dsrs, issues, settlements, product
   };
 }
 
-export function buildDailyRows({ date, dsrs, issues, settlements, products, language = getPreferredLanguage() }) {
+export function buildDailyRows({ date, dsrs, issues, settlements, products, dueLedgerEntries = [], language = getPreferredLanguage() }) {
   const ids = new Set(dsrs.map((dsr) => dsr.id));
   issues.filter((issue) => issue.date === date).forEach((issue) => ids.add(issue.dsrId));
   settlements.filter((settlement) => settlement.date === date).forEach((settlement) => ids.add(settlement.dsrId));
+
+  // Manual due collections recorded on this date (paid via due ledger, not at settlement time)
+  const manualCollectionsByDsr = new Map();
+  dueLedgerEntries
+    .filter((e) => e.type === 'COLLECTION' && e.referenceType === 'manual_settlement')
+    .forEach((e) => {
+      manualCollectionsByDsr.set(e.dsrId, (manualCollectionsByDsr.get(e.dsrId) || 0) + e.credit);
+    });
 
   return Array.from(ids).map((dsrId) => {
     const dsr = getDsrSnapshot(dsrs, issues, settlements, dsrId, date, language);
@@ -165,7 +173,9 @@ export function buildDailyRows({ date, dsrs, issues, settlements, products, lang
     const soldPieces = settlement ? settlement.items.reduce((sum, item) => sum + Number(item.soldPieces || 0), 0) : 0;
     const totalPayable = settlement ? settlement.totalPayable : 0;
     const previousDue = settlement ? Number(settlement.previousDue || 0) : 0;
-    const amountPaid = settlement ? Number(settlement.amountPaid || 0) : 0;
+    const settlementPaid = settlement ? Number(settlement.amountPaid || 0) : 0;
+    const manualCollected = manualCollectionsByDsr.get(dsrId) || 0;
+    const amountPaid = settlementPaid + manualCollected;
     const dueAmount = settlement ? Number(settlement.dueAmount || 0) : 0;
     const status = settlement ? 'Completed' : aggregate.issueIds.length > 0 ? 'Pending' : 'No Issue';
     const returnValue = settlement

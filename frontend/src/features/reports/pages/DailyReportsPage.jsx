@@ -121,7 +121,7 @@ export default function DailyReportsPage() {
           <div className="surface mt-6 overflow-hidden">
             <div className="border-b border-slate-100 px-5 py-4">
               <div className="flex items-center justify-between gap-3">
-                <h2 className="text-base font-bold text-slate-950">{t('reports.dsrTable', { date: formatDate(vm.date) })}</h2>
+                <h2 className="section-title">{t('reports.dsrTable', { date: formatDate(vm.date) })}</h2>
                 <span className="muted-chip">{formatNumber(vm.rows.length)} {t('common.dsr')}</span>
               </div>
             </div>
@@ -181,7 +181,7 @@ export default function DailyReportsPage() {
             <div className="border-b border-slate-100 px-5 py-4">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <h2 className="text-base font-bold text-slate-950">{t('reports.dueCollections', { date: formatDate(vm.date) })}</h2>
+                  <h2 className="section-title">{t('reports.dueCollections', { date: formatDate(vm.date) })}</h2>
                   <p className="mt-0.5 text-xs text-slate-400">{t('reports.dueCollectionsDescription')}</p>
                 </div>
                 {vm.dueCollectionRows.length > 0 && (
@@ -220,7 +220,7 @@ export default function DailyReportsPage() {
             <div className="border-b border-slate-100 px-5 py-4">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <h2 className="text-base font-bold text-slate-950">{t('reports.dueBalances')}</h2>
+                  <h2 className="section-title">{t('reports.dueBalances')}</h2>
                   <p className="mt-0.5 text-xs text-slate-400">{t('reports.dueBalancesDescription')}</p>
                 </div>
                 {vm.dsrDueBalanceRows.length > 0 && (
@@ -258,7 +258,7 @@ export default function DailyReportsPage() {
             <div className="mt-6">
               <div className="mb-3 flex items-center justify-between gap-3 no-print">
                 <div>
-                  <h2 className="text-lg font-bold text-slate-950">{t('reports.printableSheet')}</h2>
+                  <h2 className="section-title">{t('reports.printableSheet')}</h2>
                   <p className="text-sm text-slate-500">{vm.selectedSheet.dsrName} - {formatDate(vm.selectedSheet.date)}</p>
                 </div>
                 <div className="flex items-center gap-2">

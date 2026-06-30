@@ -100,7 +100,7 @@ export default function SecurityPage() {
       <div className="surface overflow-hidden">
         <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-4">
           <div>
-            <h2 className="text-base font-bold text-slate-950">{t('security.sessionsTitle')}</h2>
+            <h2 className="section-title">{t('security.sessionsTitle')}</h2>
             <p className="mt-1 text-sm text-slate-500">{t('security.sessionsDescription')}</p>
           </div>
           <button type="button" className="btn-secondary" onClick={handleRevokeOthers} disabled={busyId === 'others'}>
@@ -156,7 +156,7 @@ export default function SecurityPage() {
 
       <div className="surface overflow-hidden">
         <div className="border-b border-slate-100 px-5 py-4">
-          <h2 className="text-base font-bold text-slate-950">{t('security.loginHistoryTitle')}</h2>
+          <h2 className="section-title">{t('security.loginHistoryTitle')}</h2>
           <p className="mt-1 text-sm text-slate-500">{t('security.loginHistoryDescription')}</p>
         </div>
         {!loading && history.length === 0 ? (
@@ -202,7 +202,7 @@ export default function SecurityPage() {
             <KeyRound size={18} />
           </div>
           <div>
-            <h2 className="text-base font-bold text-slate-950">{t('security.passwordRequirementsTitle')}</h2>
+            <h2 className="section-title">{t('security.passwordRequirementsTitle')}</h2>
             <p className="mt-1 text-sm text-slate-500">{t('security.passwordRequirementsDescription')}</p>
             <a href="/profile" className="mt-2 inline-block text-sm font-bold text-[var(--secondary-strong)] hover:underline">
               {t('security.goToProfile')}
@@ -214,7 +214,7 @@ export default function SecurityPage() {
       {canManageUsers ? (
         <div className="surface overflow-hidden">
           <div className="border-b border-slate-100 px-5 py-4">
-            <h2 className="text-base font-bold text-slate-950">{t('security.pendingResetTitle')}</h2>
+            <h2 className="section-title">{t('security.pendingResetTitle')}</h2>
             <p className="mt-1 text-sm text-slate-500">{t('security.pendingResetDescription')}</p>
           </div>
           {!loading && resetRequests.length === 0 ? (

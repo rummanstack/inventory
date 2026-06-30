@@ -91,7 +91,7 @@ export default function DatabaseBackupPage() {
       <div className="surface overflow-hidden">
         <div className="border-b border-slate-100 px-5 py-4">
           <div className="flex items-center justify-between gap-3">
-            <h2 className="text-base font-bold text-slate-950">{t('backup.history.title')}</h2>
+            <h2 className="section-title">{t('backup.history.title')}</h2>
             <span className="muted-chip">{historyTotal} {t('common.records')}</span>
           </div>
         </div>

@@ -51,7 +51,7 @@ function BreakdownTable({ t, language, columns, rows, emptyIcon, exportFileName,
   return (
     <div id={printId} className="surface overflow-hidden print-target">
       <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
-        <h2 className="text-base font-bold text-slate-950">{t('profit.tableTitle')}</h2>
+        <h2 className="section-title">{t('profit.tableTitle')}</h2>
         {rows.length ? (
           <div className="flex items-center gap-2 no-print">
             <button
@@ -262,7 +262,7 @@ export default function ProfitPage() {
 
           <div id="profit-report-table" className="mt-6 surface overflow-hidden print-target">
             <div className="border-b border-slate-100 px-5 py-4">
-              <h2 className="text-base font-bold text-slate-950">{t('profit.tableTitle')}</h2>
+              <h2 className="section-title">{t('profit.tableTitle')}</h2>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full">

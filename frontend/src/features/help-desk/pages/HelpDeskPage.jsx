@@ -752,7 +752,7 @@ export default function HelpDeskPage() {
               <div className="border-b border-slate-100 px-5 py-4">
                 <div className="flex items-center justify-between gap-3">
                   <div>
-                    <h2 className="text-base font-bold text-slate-950">{t('helpDesk.escalationsTitle')}</h2>
+                    <h2 className="section-title">{t('helpDesk.escalationsTitle')}</h2>
                     <p className="mt-1 text-sm text-slate-500">{t('helpDesk.escalationsDescription')}</p>
                   </div>
                   <Badge tone="rose">{formatNumber(stats.urgent, language)}</Badge>

@@ -84,7 +84,7 @@ export default function MorningIssuePage() {
       <div className="surface overflow-hidden">
         <div className="flex flex-col gap-3 border-b border-slate-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="text-base font-bold text-slate-950">{t('morningIssue.sheetTitle')}</h2>
+            <h2 className="section-title">{t('morningIssue.sheetTitle')}</h2>
             <p className="mt-1 text-sm text-slate-500">{t('morningIssue.sheetDescription')}</p>
           </div>
           <div className="flex flex-wrap items-center gap-2">

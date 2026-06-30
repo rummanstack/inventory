@@ -233,7 +233,7 @@ export default function RetailCustomerRetentionPage() {
             <div className="border-b border-slate-100 px-5 py-4">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <h2 className="text-base font-bold text-slate-950">{t('retailCustomers.retention.repeatTitle')}</h2>
+                  <h2 className="section-title">{t('retailCustomers.retention.repeatTitle')}</h2>
                   <p className="mt-1 text-sm text-slate-500">{t('retailCustomers.retention.repeatDescription')}</p>
                 </div>
                 <Badge tone="emerald">{formatNumber(summary.repeatPurchaseRate || 0, language)}%</Badge>
@@ -279,7 +279,7 @@ export default function RetailCustomerRetentionPage() {
 
           <div className="surface overflow-hidden">
             <div className="border-b border-slate-100 px-5 py-4">
-              <h2 className="text-base font-bold text-slate-950">{t('retailCustomers.retention.inactiveTitle')}</h2>
+              <h2 className="section-title">{t('retailCustomers.retention.inactiveTitle')}</h2>
               <p className="mt-1 text-sm text-slate-500">{t('retailCustomers.retention.inactiveDescription', { count: inactiveWindowDays })}</p>
             </div>
             <div className="overflow-x-auto">
@@ -320,7 +320,7 @@ export default function RetailCustomerRetentionPage() {
         <div className="space-y-6">
           <div className="surface overflow-hidden">
             <div className="border-b border-slate-100 px-5 py-4">
-              <h2 className="text-base font-bold text-slate-950">{t('retailCustomers.retention.profileTitle')}</h2>
+              <h2 className="section-title">{t('retailCustomers.retention.profileTitle')}</h2>
               <p className="mt-1 text-sm text-slate-500">{t('retailCustomers.retention.profileDescription')}</p>
             </div>
             {selectedCustomer ? (
@@ -384,7 +384,7 @@ export default function RetailCustomerRetentionPage() {
 
           <div className="surface overflow-hidden">
             <div className="border-b border-slate-100 px-5 py-4">
-              <h2 className="text-base font-bold text-slate-950">{t('retailCustomers.retention.rewardTitle')}</h2>
+              <h2 className="section-title">{t('retailCustomers.retention.rewardTitle')}</h2>
               <p className="mt-1 text-sm text-slate-500">{t('retailCustomers.retention.rewardDescription')}</p>
             </div>
             <div className="overflow-x-auto">

@@ -120,7 +120,7 @@ export default function DsrFinancePage() {
 
           <div id="dsr-due-statement-print" className="surface mt-6 overflow-hidden print-target">
             <div className="border-b border-slate-100 px-5 py-4">
-              <h2 className="text-base font-bold text-slate-950">{t('dsrDueLedger.entriesTitle')}</h2>
+              <h2 className="section-title">{t('dsrDueLedger.entriesTitle')}</h2>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full">

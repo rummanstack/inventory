@@ -41,7 +41,7 @@ export default function ErrorLogsPage() {
       <div className="surface mt-6 overflow-hidden">
         <div className="border-b border-slate-100 px-5 py-4">
           <div className="flex items-center justify-between gap-3">
-            <h2 className="text-base font-bold text-slate-950">{t('errorLogs.tableTitle')}</h2>
+            <h2 className="section-title">{t('errorLogs.tableTitle')}</h2>
             <span className="muted-chip">{formatNumber(vm.total)} {t('common.records')}</span>
           </div>
         </div>

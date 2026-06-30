@@ -199,7 +199,7 @@ export const APP_ROUTES = [
   { id: 'contact-messages', path: '/platform/contact-messages', labelKey: 'nav.contactMessages', icon: Inbox, component: ContactMessagesPage, group: 'developer', role: 'system_developer', feature: 'contact-messages' },
 ];
 
-export const SIDEBAR_SECTIONS = ['overview', 'pos', 'customers', 'inventory', 'purchases', 'dsr', 'shops', 'warranty', 'finance', 'reports', 'hr', 'system', 'developer'];
+export const SIDEBAR_SECTIONS = ['overview', 'pos', 'customers', 'inventory', 'dsr', 'shops', 'purchases', 'warranty', 'finance', 'reports', 'hr', 'system', 'developer'];
 
 export function getRouteLabel(pathname, t = (key) => key) {
   const matchedRoute = [...APP_ROUTES]

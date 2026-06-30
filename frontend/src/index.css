@@ -18,6 +18,8 @@
     --surface-line: rgba(var(--slate-900), 0.08);
     --shadow-soft: 0 20px 55px rgba(var(--slate-900), 0.08);
     --shadow-crisp: 0 12px 30px rgba(var(--slate-900), 0.07);
+    --shadow-card: 0 18px 45px rgba(var(--slate-900), 0.07), 0 1px 3px rgba(var(--slate-900), 0.04);
+    --shadow-modal: 0 24px 64px rgba(var(--slate-900), 0.14), 0 4px 16px rgba(var(--slate-900), 0.07);
     --brand: #373373;
     --brand-strong: #0e0c25;
     --brand-soft: color-mix(in srgb, var(--brand) 12%, white);
@@ -781,11 +783,17 @@
   }
 
   .surface {
-    @apply rounded-[20px] border border-slate-200/80 bg-[rgba(var(--white),0.94)] shadow-[0_18px_45px_rgba(var(--slate-900),0.07)] ring-1 ring-[color-mix(in_srgb,var(--brand)_8%,transparent)] backdrop-blur;
+    @apply rounded-[20px] border border-slate-200/80 bg-[rgba(var(--white),0.94)] ring-1 ring-[color-mix(in_srgb,var(--brand)_8%,transparent)] backdrop-blur;
+    box-shadow: var(--shadow-card);
     background-image: linear-gradient(90deg, var(--brand), var(--secondary));
     background-repeat: no-repeat;
     background-size: 100% 2px;
     background-position: top left;
+  }
+
+  .surface-inset {
+    @apply rounded-2xl border border-slate-200/60 bg-slate-50/70;
+    box-shadow: inset 0 1px 3px rgba(var(--slate-900), 0.04);
   }
 
   .table-head {
@@ -825,7 +833,8 @@
   }
 
   .panel {
-    @apply rounded-[22px] border border-slate-200/80 bg-white/95 shadow-[0_18px_45px_rgba(var(--slate-900),0.07)] ring-1 ring-[color-mix(in_srgb,var(--brand)_8%,transparent)] backdrop-blur;
+    @apply rounded-[22px] border border-slate-200/80 bg-white/95 ring-1 ring-[color-mix(in_srgb,var(--brand)_8%,transparent)] backdrop-blur;
+    box-shadow: var(--shadow-modal);
     background-image: linear-gradient(90deg, var(--brand), var(--secondary));
     background-repeat: no-repeat;
     background-size: 100% 2px;

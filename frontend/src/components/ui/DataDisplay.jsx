@@ -64,10 +64,10 @@ export function StatCard({ title, value, helper, icon: Icon, tone = 'blue', tren
       spark: getCssVar('--warning', '#f8aa17'),
     },
     indigo: {
-      card: 'from-white to-indigo-50/75',
-      icon: 'bg-indigo-600 text-white shadow-[0_10px_20px_rgba(var(--indigo-600),0.24)]',
-      accent: 'bg-indigo-500',
-      spark: getCssVar('--purple', '#9b44ad'),
+      card: 'from-white to-brand-soft',
+      icon: 'bg-brand-strong text-white shadow-[0_10px_20px_var(--secondary-shadow-strong)]',
+      accent: 'bg-brand-strong',
+      spark: getCssVar('--brand-strong', '#425bf6'),
     },
     rose: {
       card: 'from-white to-danger-soft',

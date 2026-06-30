@@ -16,7 +16,7 @@ const BOARD_COLUMNS = [
   { status: 'RECEIVED',       icon: Package,      accent: '#94a3b8', bg: 'bg-slate-50/80',   border: 'border-slate-200'  },
   { status: 'DIAGNOSING',     icon: Search,       accent: '#60a5fa', bg: 'bg-blue-50/60',    border: 'border-blue-200'   },
   { status: 'AWAITING_PARTS', icon: Clock,        accent: '#fbbf24', bg: 'bg-amber-50/60',   border: 'border-amber-200'  },
-  { status: 'IN_REPAIR',      icon: Wrench,       accent: '#818cf8', bg: 'bg-indigo-50/60',  border: 'border-indigo-200' },
+  { status: 'IN_REPAIR',      icon: Wrench,       accent: '#a78bfa', bg: 'bg-violet-50/60',  border: 'border-violet-200' },
   { status: 'READY',          icon: CheckCircle2, accent: '#34d399', bg: 'bg-emerald-50/60', border: 'border-emerald-200'},
 ];
 

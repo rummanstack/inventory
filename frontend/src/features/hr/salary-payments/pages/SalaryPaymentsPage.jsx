@@ -180,8 +180,8 @@ export default function SalaryPaymentsPage() {
             <p className="mt-1 text-2xl font-black text-slate-900">{employees.length}</p>
           </div>
           <div className="surface px-5 py-4">
-            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-indigo-400">Total Earned</p>
-            <p className="mt-1 text-2xl font-black text-indigo-700">{formatCurrency(totalEarned, language)}</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">Total Earned</p>
+            <p className="mt-1 text-2xl font-black text-slate-900">{formatCurrency(totalEarned, language)}</p>
             <p className="mt-0.5 text-[10px] text-slate-400">Based on active days</p>
           </div>
           <div className="surface px-5 py-4">

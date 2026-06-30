@@ -1,9 +1,12 @@
 import { Router } from "express";
 import { requirePermission } from "../middleware/requireRole.js";
+import { requireFeature } from "../middleware/requireFeature.js";
 import { PERMISSIONS } from "../lib/permissions.js";
 
 export function createSuppliersRoutes(supplierController) {
   const router = Router();
+
+  router.use(requireFeature("suppliers"));
 
   router.get("/trash", requirePermission(PERMISSIONS.MANAGE_SUPPLIERS), supplierController.listTrash);
   router.get("/active", requirePermission(PERMISSIONS.VIEW_STATE), supplierController.listActive);

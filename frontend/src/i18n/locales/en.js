@@ -149,7 +149,7 @@ const en = {
       customers: 'Customers',
       inventory: 'Inventory',
       purchases: 'Purchases',
-      dsr: 'DSR Distribution',
+      dsr: 'Distribution',
       shops: 'Shops & SRs',
       warranty: 'Warranty & Repair',
       finance: 'Finance',

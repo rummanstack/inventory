@@ -19,6 +19,14 @@ export class DsrDueLedgerController {
     }
   };
 
+  balances = async (req, res, next) => {
+    try {
+      res.json(await this.dsrDueLedgerService.listBalances(req.currentUser));
+    } catch (error) {
+      next(error);
+    }
+  };
+
   balance = async (req, res, next) => {
     try {
       res.json(await this.dsrDueLedgerService.getBalance(req.query, req.currentUser));

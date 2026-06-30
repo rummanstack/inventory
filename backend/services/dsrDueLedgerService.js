@@ -9,6 +9,7 @@ import {
   countDueLedgerEntries,
   listDueLedgerPage,
   listDueLedgerInRange,
+  listDsrDueBalances,
   getLatestDueLedgerEntry,
   getBalanceBefore,
   insertDueLedgerEntry,
@@ -146,6 +147,15 @@ export class DsrDueLedgerService {
       const balance = latest ? latest.balanceAfter : Number(dsrResult.rows[0].opening_due || 0);
 
       return { dsrId, balance };
+    } finally {
+      client.release();
+    }
+  }
+
+  async listBalances(actor) {
+    const client = await this.databaseManager.getPool().connect();
+    try {
+      return listDsrDueBalances(client, actor.tenantId);
     } finally {
       client.release();
     }

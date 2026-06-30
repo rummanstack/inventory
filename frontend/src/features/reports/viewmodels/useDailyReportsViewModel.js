@@ -10,6 +10,8 @@ export function useDailyReportsViewModel({ products, dsrs, today, t, tenantName 
   const [selectedSheet, setSelectedSheet] = useState(null);
   const [dayIssues, setDayIssues] = useState([]);
   const [daySettlements, setDaySettlements] = useState([]);
+  const [dayDueLedger, setDayDueLedger] = useState([]);
+  const [dsrDueBalances, setDsrDueBalances] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -46,6 +48,14 @@ export function useDailyReportsViewModel({ products, dsrs, today, t, tenantName 
           setLoading(false);
         }
       }
+
+      // Fetch due ledger entries for the date separately so a feature-gate
+      // error here doesn't break the main report.
+      inventoryApi.listDsrDueLedger({ dateFrom: date, dateTo: date, pageSize: DAY_SCOPE_PAGE_SIZE }).then((result) => {
+        if (!cancelled) setDayDueLedger(result.items || []);
+      }).catch(() => {
+        if (!cancelled) setDayDueLedger([]);
+      });
     }
 
     load();
@@ -54,7 +64,20 @@ export function useDailyReportsViewModel({ products, dsrs, today, t, tenantName 
     };
   }, [date]);
 
-  const rows = useMemo(() => buildDailyRows({ date, dsrs, issues: dayIssues, settlements: daySettlements, products }), [date, dsrs, dayIssues, daySettlements, products]);
+  // DSR due balances reflect current state, not a specific date — fetch once.
+  useEffect(() => {
+    inventoryApi.listDsrDueBalances().then((data) => {
+      setDsrDueBalances(Array.isArray(data) ? data : []);
+    }).catch(() => {
+      setDsrDueBalances([]);
+    });
+  }, []);
+
+  const rows = useMemo(
+    () => buildDailyRows({ date, dsrs, issues: dayIssues, settlements: daySettlements, products, dueLedgerEntries: dayDueLedger }),
+    [date, dsrs, dayIssues, daySettlements, products, dayDueLedger],
+  );
+
   const totals = rows.reduce(
     (sum, row) => ({
       issuedPieces: sum.issuedPieces + row.issuedPieces,
@@ -67,6 +90,7 @@ export function useDailyReportsViewModel({ products, dsrs, today, t, tenantName 
     }),
     { issuedPieces: 0, issuedValue: 0, returnedPieces: 0, returnValue: 0, soldPieces: 0, totalPayable: 0, amountPaid: 0 },
   );
+
   const chartRows = rows
     .filter((row) => row.status !== 'No Issue')
     .sort((a, b) => b.totalPayable - a.totalPayable)
@@ -79,11 +103,30 @@ export function useDailyReportsViewModel({ products, dsrs, today, t, tenantName 
       sold: row.totalPayable,
       totalPayable: row.totalPayable,
     }));
+
   const reportMix = [
     { label: t('dashboard.completed'), value: rows.filter((row) => row.status === 'Completed').length, color: getCssVar('--success', '#37a864') },
     { label: t('dashboard.pending'), value: rows.filter((row) => row.status === 'Pending').length, color: getCssVar('--warning', '#f8aa17') },
     { label: t('dashboard.noIssue'), value: rows.filter((row) => row.status === 'No Issue').length, color: getCssVar('--muted', '#8c8f9e') },
   ];
+
+  // Manual due collections recorded on the selected date (from the due ledger page, not at settlement time)
+  const dueCollectionRows = useMemo(() => {
+    const collections = dayDueLedger.filter((e) => e.type === 'COLLECTION' && e.referenceType === 'manual_settlement');
+    const byDsr = new Map();
+    collections.forEach((e) => {
+      const existing = byDsr.get(e.dsrId) || { dsrId: e.dsrId, dsrName: e.dsrName || '-', area: e.dsrArea || '-', total: 0 };
+      existing.total += e.credit;
+      byDsr.set(e.dsrId, existing);
+    });
+    return Array.from(byDsr.values()).sort((a, b) => b.total - a.total);
+  }, [dayDueLedger]);
+
+  // Only DSRs with an outstanding balance
+  const dsrDueBalanceRows = useMemo(
+    () => dsrDueBalances.filter((row) => row.balance > 0),
+    [dsrDueBalances],
+  );
 
   useEffect(() => {
     setSelectedSheet(null);
@@ -108,5 +151,7 @@ export function useDailyReportsViewModel({ products, dsrs, today, t, tenantName 
     reportMix,
     selectedSheet,
     viewSheet,
+    dueCollectionRows,
+    dsrDueBalanceRows,
   };
 }

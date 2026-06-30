@@ -1,4 +1,4 @@
-import { CircleDollarSign, Download, Eye, FileSpreadsheet, FileText, PackageCheck, Printer, RotateCcw, Truck } from 'lucide-react';
+import { CircleDollarSign, Download, Eye, FileSpreadsheet, FileText, PackageCheck, Printer, RotateCcw, Truck, Wallet } from 'lucide-react';
 import PrintableSheet from '../../../components/PrintableSheet.jsx';
 import { Alert, Badge, ChartPanel, ChartPanelSkeleton, DonutChart, EmptyState, SectionHeader, StackedBarChart, StatCard, StatCardSkeleton, TableSkeleton } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
@@ -13,6 +13,7 @@ import { getCssVar } from '../../../utils/theme.js';
 export default function DailyReportsPage() {
   const { productDirectory, dsrDirectory, today, t, tenant, language } = useInventoryApp();
   const vm = useDailyReportsViewModel({ products: productDirectory, dsrs: dsrDirectory, today, t, tenantName: tenant?.name });
+  const dueCollectedTotal = vm.dueCollectionRows.reduce((sum, r) => sum + r.total, 0);
 
   function recordReportPrint(label) {
     if (!vm.selectedSheet) {
@@ -173,6 +174,84 @@ export default function DailyReportsPage() {
                 </tbody>
               </table>
             </div>
+          </div>
+
+          {/* Due Collections — manual payments from the Due Settlement page on this date */}
+          <div className="surface mt-6 overflow-hidden">
+            <div className="border-b border-slate-100 px-5 py-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <h2 className="text-base font-bold text-slate-950">{t('reports.dueCollections', { date: formatDate(vm.date) })}</h2>
+                  <p className="mt-0.5 text-xs text-slate-400">{t('reports.dueCollectionsDescription')}</p>
+                </div>
+                {vm.dueCollectionRows.length > 0 && (
+                  <span className="muted-chip">{formatCurrency(dueCollectedTotal)}</span>
+                )}
+              </div>
+            </div>
+            {vm.dueCollectionRows.length === 0 ? (
+              <EmptyState title={t('reports.noDueCollections')} description={t('reports.noDueCollectionsDescription')} icon={CircleDollarSign} />
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="table-head">
+                    <tr>
+                      <th className="px-4 py-3">{t('common.dsr')}</th>
+                      <th className="px-4 py-3 hidden sm:table-cell">{t('dsr.area')}</th>
+                      <th className="px-4 py-3 text-right">{t('reports.collected')}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {vm.dueCollectionRows.map((row) => (
+                      <tr key={row.dsrId} className="hover:bg-slate-50">
+                        <td className="table-cell font-semibold text-slate-950">{row.dsrName}</td>
+                        <td className="table-cell hidden sm:table-cell text-slate-500">{row.area}</td>
+                        <td className="table-cell text-right font-semibold text-emerald-600">{formatCurrency(row.total)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          {/* DSR Outstanding Due Balances — current state, not date-specific */}
+          <div className="surface mt-6 overflow-hidden">
+            <div className="border-b border-slate-100 px-5 py-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <h2 className="text-base font-bold text-slate-950">{t('reports.dueBalances')}</h2>
+                  <p className="mt-0.5 text-xs text-slate-400">{t('reports.dueBalancesDescription')}</p>
+                </div>
+                {vm.dsrDueBalanceRows.length > 0 && (
+                  <span className="muted-chip">{formatNumber(vm.dsrDueBalanceRows.length)} {t('common.dsr')}</span>
+                )}
+              </div>
+            </div>
+            {vm.dsrDueBalanceRows.length === 0 ? (
+              <EmptyState title={t('reports.noDueBalances')} description={t('reports.noDueBalancesDescription')} icon={Wallet} />
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="table-head">
+                    <tr>
+                      <th className="px-4 py-3">{t('common.dsr')}</th>
+                      <th className="px-4 py-3 hidden sm:table-cell">{t('dsr.area')}</th>
+                      <th className="px-4 py-3 text-right">{t('reports.currentBalance')}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {vm.dsrDueBalanceRows.map((row) => (
+                      <tr key={row.id} className="hover:bg-slate-50">
+                        <td className="table-cell font-semibold text-slate-950">{row.dsrName}</td>
+                        <td className="table-cell hidden sm:table-cell text-slate-500">{row.area}</td>
+                        <td className="table-cell text-right font-semibold text-rose-600">{formatCurrency(row.balance)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
 
           {vm.selectedSheet ? (

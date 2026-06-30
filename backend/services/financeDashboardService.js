@@ -5,7 +5,7 @@ import { sumLatestCustomerDueBalances } from "../repositories/customerDueLedgerR
 import { sumLatestSupplierDueBalances } from "../repositories/supplierDueLedgerRepository.js";
 import { getMonthlyCashFlow, listRecentTransactions } from "../repositories/financeAccountRepository.js";
 import { sumSettlementsInRange, listRecentSettlements } from "../repositories/settlementRepository.js";
-import { getMonthlyTrend, sumSalesInvoicesInRange } from "../repositories/salesInvoiceRepository.js";
+import { sumSalesInvoicesInRange } from "../repositories/salesInvoiceRepository.js";
 
 export class FinanceDashboardService {
   constructor(databaseManager, { financeAccountService, profitService }) {
@@ -129,9 +129,24 @@ export class FinanceDashboardService {
   }
 
   async getMonthlyTrend(actor) {
-    return this.databaseManager.withClient(async (client) => {
-      const rows = await getMonthlyTrend(client, actor.tenantId);
-      return { rows };
+    const today = new Date().toISOString().slice(0, 10);
+    const start = new Date();
+    start.setDate(1);
+    start.setMonth(start.getMonth() - 11);
+    const dateFrom = start.toISOString().slice(0, 10);
+
+    const report = await this.profitService.getProfitReport({ dateFrom, dateTo: today }, actor);
+    const monthMap = new Map(report.monthly.map((m) => [m.month, m]));
+
+    const rows = Array.from({ length: 12 }, (_, i) => {
+      const d = new Date();
+      d.setDate(1);
+      d.setMonth(d.getMonth() - (11 - i));
+      const month = d.toISOString().slice(0, 7);
+      const data = monthMap.get(month);
+      return { month, totalSales: data?.revenue ?? 0, totalProfit: data?.profit ?? 0 };
     });
+
+    return { rows };
   }
 }

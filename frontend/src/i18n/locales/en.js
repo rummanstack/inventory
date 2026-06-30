@@ -2204,6 +2204,8 @@ const en = {
       activeDsrs: '{count} active DSRs',
       payableToday: 'Cash Collected Today',
       payableTodayDesc: 'Actual cash collected from completed evening settlements.',
+      revenue: 'Revenue',
+      unitsSold: 'Units Sold',
       stockValue: 'Stock Value',
       stockValueDesc: 'Current inventory cost parked in the warehouse.',
       unitsInStock: 'Units in Stock',

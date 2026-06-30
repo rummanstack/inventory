@@ -2181,6 +2181,8 @@
       activeDsrs: '{count}টি সক্রিয় ডিএসআর',
       payableToday: 'আজকের নগদ সংগ্রহ',
       payableTodayDesc: 'সন্ধ্যার সম্পন্ন সেটেলমেন্ট থেকে প্রকৃত নগদ সংগ্রহ।',
+      revenue: 'রাজস্ব',
+      unitsSold: 'বিক্রিত ইউনিট',
       stockValue: 'স্টকের মূল্য',
       stockValueDesc: 'গুদামে থাকা বর্তমান ইনভেন্টরির ক্রয়মূল্য।',
       unitsInStock: 'স্টকে ইউনিট',

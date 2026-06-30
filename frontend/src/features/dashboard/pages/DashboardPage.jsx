@@ -14,7 +14,6 @@ import {
   Store,
   TrendingDown,
   TrendingUp,
-  Trophy,
   Truck,
   UserCheck,
   Wallet,
@@ -401,9 +400,8 @@ export default function DashboardPage() {
             data={vm.tradingTrend}
             valueFormatter={(v) => formatCurrency(v, language)}
             series={[
-              { key: "paid", label: t("dashboard.payableToday"), color: getCssVar("--success", "#37a864"), fill: true },
-              { key: "issued", label: t("reports.issued"), color: secondary },
-              { key: "sold", label: t("reports.sold"), color: getCssVar("--accent-orange", "#f5820f") },
+              { key: "paid", label: t("dashboard.revenue"), color: getCssVar("--success", "#37a864"), fill: true },
+              { key: "sold", label: t("dashboard.unitsSold"), color: getCssVar("--accent-orange", "#f5820f") },
             ]}
           />
         </ChartPanel>
@@ -536,38 +534,22 @@ export default function DashboardPage() {
             <div className="space-y-2.5">
               {dsrLeaderboard.map((dsr, index) => {
                 const pct = dsrLeaderboard[0].value > 0 ? Math.round((dsr.value / dsrLeaderboard[0].value) * 100) : 0;
-                const isFirst = index === 0;
                 return (
                   <div
                     key={dsr.label}
-                    className={cx(
-                      "flex items-center gap-3 rounded-[20px] px-4 py-3.5 ring-1 transition-colors",
-                      isFirst ? "bg-amber-50 ring-amber-200/60" : "bg-white/60 ring-slate-200/50",
-                    )}
+                    className="flex items-center gap-3 rounded-[20px] bg-white/60 px-4 py-3.5 ring-1 ring-slate-200/50 transition-colors"
                   >
-                    <div
-                      className={cx(
-                        "flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-xs font-black",
-                        isFirst ? "bg-amber-100 text-amber-700" : "bg-slate-100 text-slate-500",
-                      )}
-                    >
-                      {isFirst ? <Trophy size={14} /> : index + 1}
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-xs font-black text-slate-500">
+                      {index + 1}
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between gap-2">
-                        <p className={cx("truncate text-sm font-bold", isFirst ? "text-amber-900" : "text-slate-800")}>
-                          {dsr.label}
-                        </p>
-                        <p className={cx("shrink-0 text-sm font-black", isFirst ? "text-amber-800" : "text-slate-950")}>
-                          {formatCurrency(dsr.value, language)}
-                        </p>
+                        <p className="truncate text-sm font-bold text-slate-800">{dsr.label}</p>
+                        <p className="shrink-0 text-sm font-black text-slate-950">{formatCurrency(dsr.value, language)}</p>
                       </div>
                       <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
                         <div
-                          className={cx(
-                            "h-full rounded-full transition-all duration-500",
-                            isFirst ? "bg-amber-400" : "bg-[var(--secondary)]",
-                          )}
+                          className="h-full rounded-full bg-[var(--secondary)] transition-all duration-500"
                           style={{ width: `${pct}%` }}
                         />
                       </div>

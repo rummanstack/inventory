@@ -4,6 +4,8 @@ import { ArrowRight, CornerDownLeft, Search, X } from 'lucide-react';
 import { useInventoryApp } from './useInventoryApp.jsx';
 import { APP_ROUTES } from './routes.js';
 
+const RECENT_PAGES_KEY = 'stockledger.recentPages';
+
 function Highlight({ text, query }) {
   if (!query || !text) return <>{text}</>;
   const idx = text.toLowerCase().indexOf(query.toLowerCase());
@@ -11,7 +13,7 @@ function Highlight({ text, query }) {
   return (
     <>
       {text.slice(0, idx)}
-      <span className="font-black text-indigo-600">{text.slice(idx, idx + query.length)}</span>
+      <span className="font-black text-[var(--secondary)]">{text.slice(idx, idx + query.length)}</span>
       {text.slice(idx + query.length)}
     </>
   );
@@ -26,6 +28,7 @@ export default function CommandPalette({ open, onClose }) {
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
   const [activeIndex, setActiveIndex] = useState(0);
+  const [recentPaths, setRecentPaths] = useState([]);
   const inputRef = useRef(null);
   const activeRef = useRef(null);
 
@@ -33,6 +36,11 @@ export default function CommandPalette({ open, onClose }) {
     if (open) {
       setQuery('');
       setActiveIndex(0);
+      try {
+        setRecentPaths(JSON.parse(localStorage.getItem(RECENT_PAGES_KEY) || '[]'));
+      } catch {
+        setRecentPaths([]);
+      }
       const id = setTimeout(() => inputRef.current?.focus(), 30);
       return () => clearTimeout(id);
     }
@@ -44,6 +52,30 @@ export default function CommandPalette({ open, onClose }) {
 
   const q = query.trim().toLowerCase();
   const match = (str) => (str || '').toLowerCase().includes(q);
+
+  // Recent pages — only when query is empty
+  const recentResults = useMemo(() => {
+    if (q) return [];
+    return recentPaths
+      .map((path) => {
+        const route = APP_ROUTES.find((r) => r.path === path);
+        if (!route) return null;
+        if (route.group === 'developer' || route.group === 'hidden') return null;
+        if (route.permission && !can(route.permission)) return null;
+        if (route.feature && !hasFeature(route.feature)) return null;
+        if (route.roles && !route.roles.includes(user?.role)) return null;
+        if (route.role && user?.role !== route.role && user?.role !== 'system_developer') return null;
+        return {
+          id: `recent:${route.id}`,
+          label: t(route.labelKey),
+          sublabel: t(`navGroups.${route.group}`),
+          icon: route.icon,
+          path: route.path,
+          group: 'Recent',
+        };
+      })
+      .filter(Boolean);
+  }, [q, recentPaths, can, hasFeature, user, t]);
 
   // Pages — always visible, filtered by query when typed
   const pageResults = useMemo(() => {
@@ -151,7 +183,7 @@ export default function CommandPalette({ open, onClose }) {
     return results;
   }, [q, productDirectory, dsrDirectory, srDirectory, supplierDirectory, shopDirectory, retailCustomerDirectory, can, hasFeature, t]);
 
-  const allResults = useMemo(() => [...pageResults, ...dataResults], [pageResults, dataResults]);
+  const allResults = useMemo(() => [...recentResults, ...pageResults, ...dataResults], [recentResults, pageResults, dataResults]);
 
   useEffect(() => { setActiveIndex(0); }, [allResults.length]);
 
@@ -254,25 +286,25 @@ export default function CommandPalette({ open, onClose }) {
                 <div
                   key={result.id}
                   ref={active ? activeRef : null}
-                  className={`mx-2 flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 transition-colors ${active ? 'bg-indigo-50' : 'hover:bg-slate-50'}`}
+                  className={`mx-2 flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 transition-colors ${active ? 'bg-[var(--secondary-soft)]' : 'hover:bg-slate-50'}`}
                   onMouseEnter={() => setActiveIndex(idx)}
                   onClick={() => handleSelect(result)}
                 >
-                  <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${active ? 'bg-indigo-100' : 'bg-slate-100'}`}>
+                  <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${active ? 'bg-[var(--secondary-soft)]' : 'bg-slate-100'}`}>
                     {Icon
-                      ? <Icon size={14} className={active ? 'text-indigo-600' : 'text-slate-500'} />
-                      : <ArrowRight size={14} className={active ? 'text-indigo-600' : 'text-slate-500'} />
+                      ? <Icon size={14} className={active ? 'text-[var(--secondary)]' : 'text-slate-500'} />
+                      : <ArrowRight size={14} className={active ? 'text-[var(--secondary)]' : 'text-slate-500'} />
                     }
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className={`truncate text-sm font-semibold ${active ? 'text-indigo-700' : 'text-slate-800'}`}>
+                    <p className={`truncate text-sm font-semibold ${active ? 'text-[var(--secondary-strong)]' : 'text-slate-800'}`}>
                       <Highlight text={result.label} query={query} />
                     </p>
                     {result.sublabel && (
                       <p className="truncate text-[11px] text-slate-400">{result.sublabel}</p>
                     )}
                   </div>
-                  {active && <CornerDownLeft size={13} className="shrink-0 text-indigo-400" />}
+                  {active && <CornerDownLeft size={13} className="shrink-0 text-[var(--secondary)]" />}
                 </div>
               );
             })

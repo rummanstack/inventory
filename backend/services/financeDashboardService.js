@@ -4,8 +4,23 @@ import { sumLatestDueBalances } from "../repositories/dsrDueLedgerRepository.js"
 import { sumLatestCustomerDueBalances } from "../repositories/customerDueLedgerRepository.js";
 import { sumLatestSupplierDueBalances } from "../repositories/supplierDueLedgerRepository.js";
 import { getMonthlyCashFlow, listRecentTransactions } from "../repositories/financeAccountRepository.js";
-import { sumSettlementsInRange, listRecentSettlements } from "../repositories/settlementRepository.js";
-import { sumSalesInvoicesInRange } from "../repositories/salesInvoiceRepository.js";
+import { sumSettlementsInRange, listRecentSettlements, getDailySettlementTrend } from "../repositories/settlementRepository.js";
+import { sumSalesInvoicesInRange, getDailyRevenueTrend } from "../repositories/salesInvoiceRepository.js";
+
+function fillDays(rows, dayKey, valueKey, startDate, endDateExclusive) {
+  const map = new Map(rows.map((r) => [r[dayKey], Number(r[valueKey] || 0)]));
+  const result = [];
+  let current = startDate;
+  while (current < endDateExclusive) {
+    result.push(map.get(current) ?? 0);
+    current = addDays(current, 1);
+  }
+  return result;
+}
+
+function trendPct(current, previous) {
+  return previous > 0 ? (current - previous) / previous * 100 : null;
+}
 
 export class FinanceDashboardService {
   constructor(databaseManager, { financeAccountService, profitService }) {
@@ -19,14 +34,19 @@ export class FinanceDashboardService {
     const month = today.slice(0, 7);
     const monthStart = startOfMonth(month);
     const nextMonthStart = startOfNextMonth(month);
+    const [y, m] = month.split('-').map(Number);
+    const prevMonthDate = new Date(Date.UTC(y, m - 2, 1));
+    const prevMonthStart = prevMonthDate.toISOString().slice(0, 10);
+    const prevMonthEnd = addDays(monthStart, -1);
 
-    const [accounts, dueAndExpenseTotals, profitReport] = await Promise.all([
+    const [accounts, dueAndExpenseTotals, profitReport, prevProfitReport] = await Promise.all([
       this.financeAccountService.listAccounts(actor),
       this.databaseManager.withClient(async (client) => {
         const [
           totalDsrDue, totalCustomerDue, totalSupplierDue,
           monthlyExpenseEntries, cashFlow, recentTransactions,
           monthlySettlements, recentSettlements, monthlySales,
+          dailyRevenue, dailySettlement, prevMonthSales, prevMonthSettlements,
         ] = await Promise.all([
           sumLatestDueBalances(client, actor.tenantId),
           sumLatestCustomerDueBalances(client, actor.tenantId),
@@ -37,6 +57,10 @@ export class FinanceDashboardService {
           sumSettlementsInRange(client, actor.tenantId, monthStart, nextMonthStart),
           listRecentSettlements(client, actor.tenantId, 7),
           sumSalesInvoicesInRange(client, actor.tenantId, monthStart, nextMonthStart),
+          getDailyRevenueTrend(client, actor.tenantId, monthStart, nextMonthStart),
+          getDailySettlementTrend(client, actor.tenantId, monthStart, nextMonthStart),
+          sumSalesInvoicesInRange(client, actor.tenantId, prevMonthStart, monthStart),
+          sumSettlementsInRange(client, actor.tenantId, prevMonthStart, monthStart),
         ]);
 
         return {
@@ -49,9 +73,14 @@ export class FinanceDashboardService {
           monthlySettlements,
           recentSettlements,
           monthlySales,
+          dailyRevenue,
+          dailySettlement,
+          prevMonthSalesAmount: prevMonthSales.totalAmount,
+          prevMonthSettlementCollected: prevMonthSettlements.amountPaid,
         };
       }),
       this.profitService.getProfitReport({ dateFrom: monthStart, dateTo: today }, actor),
+      this.profitService.getProfitReport({ dateFrom: prevMonthStart, dateTo: prevMonthEnd }, actor),
     ]);
 
     const totalCashBalance = accounts.reduce((sum, account) => sum + account.balance, 0);
@@ -60,6 +89,7 @@ export class FinanceDashboardService {
       totalDsrDue, totalCustomerDue, totalSupplierDue, monthlyExpenses,
       cashFlow, recentTransactions,
       monthlySettlements, recentSettlements, monthlySales,
+      dailyRevenue, dailySettlement, prevMonthSalesAmount, prevMonthSettlementCollected,
     } = dueAndExpenseTotals;
 
     return {
@@ -80,6 +110,12 @@ export class FinanceDashboardService {
       monthlySalesCount: monthlySales.count,
       recentSettlements,
       netPosition: totalCashBalance + totalDsrDue + totalCustomerDue - totalSupplierDue,
+      revenueDailyTrend: fillDays(dailyRevenue, 'day', 'revenue', monthStart, nextMonthStart),
+      profitDailyTrend: fillDays(dailyRevenue, 'day', 'profit', monthStart, nextMonthStart),
+      settlementDailyTrend: fillDays(dailySettlement, 'day', 'collected', monthStart, nextMonthStart),
+      revenueVsLastMonth: trendPct(monthlySales.totalAmount, prevMonthSalesAmount),
+      profitVsLastMonth: trendPct(monthlyProfit, prevProfitReport.totals.profit),
+      settlementVsLastMonth: trendPct(monthlySettlements.amountPaid, prevMonthSettlementCollected),
     };
   }
 

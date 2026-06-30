@@ -375,7 +375,7 @@ export default function FinanceDashboardPage() {
               <StatCard title={t('financeDashboard.customerReceivables')} value={formatCurrency(data.totalCustomerDue, language)} helper={t('financeDashboard.customerReceivablesHelper')} icon={Store} tone="amber" />
               <StatCard title={t('financeDashboard.supplierPayables')} value={formatCurrency(data.totalSupplierDue, language)} helper={t('financeDashboard.supplierPayablesHelper')} icon={Building2} tone="rose" />
               <StatCard title={t('financeDashboard.monthlyExpenses')} value={formatCurrency(data.monthlyExpenses, language)} helper={t('financeDashboard.monthlyExpensesHelper')} icon={CircleDollarSign} tone="rose" />
-              <StatCard title={t('financeDashboard.monthlyProfit')} value={formatCurrency(data.monthlyProfit, language)} helper={t('financeDashboard.monthlyProfitHelper')} icon={TrendingUp} tone="emerald" />
+              <StatCard title={t('financeDashboard.monthlyProfit')} value={formatCurrency(data.monthlyProfit, language)} helper={t('financeDashboard.monthlyProfitHelper')} icon={TrendingUp} tone="emerald" trend={data.profitDailyTrend} trendPct={data.profitVsLastMonth} trendLabel="vs last month" />
               <StatCard title={t('financeDashboard.netPosition')} value={formatCurrency(data.netPosition, language)} helper={t('financeDashboard.netPositionHelper')} icon={Scale} tone="slate" />
             </div>
           </div>
@@ -389,6 +389,9 @@ export default function FinanceDashboardPage() {
                 helper={`${formatNumber(data.monthlySettlementCount, language)} ${t('financeDashboard.settlementCollectedHelper')}`}
                 icon={RotateCcw}
                 tone="emerald"
+                trend={data.settlementDailyTrend}
+                trendPct={data.settlementVsLastMonth}
+                trendLabel="vs last month"
               />
               <StatCard
                 title={t('financeDashboard.settlementDue')}
@@ -403,6 +406,9 @@ export default function FinanceDashboardPage() {
                 helper={`${formatNumber(data.monthlySalesCount, language)} ${t('financeDashboard.invoices')} · ${t('financeDashboard.monthlySalesHelper')}`}
                 icon={ShoppingBag}
                 tone="blue"
+                trend={data.revenueDailyTrend}
+                trendPct={data.revenueVsLastMonth}
+                trendLabel="vs last month"
               />
             </div>
           </div>

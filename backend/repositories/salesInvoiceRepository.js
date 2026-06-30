@@ -448,3 +448,24 @@ export async function getMonthlyTrend(client, tenantId) {
     totalProfit: Number(row.total_profit || 0),
   }));
 }
+
+export async function getDailyRevenueTrend(client, tenantId, dateFrom, dateTo) {
+  const result = await client.query(
+    `SELECT TO_CHAR(invoice_date::date, 'YYYY-MM-DD') AS day,
+            COALESCE(SUM(total_amount), 0) AS revenue,
+            COALESCE(SUM(total_profit), 0) AS profit
+     FROM sales_invoices
+     WHERE tenant_id = $1
+       AND invoice_date >= $2
+       AND invoice_date < $3
+       AND deleted_at IS NULL
+     GROUP BY day
+     ORDER BY day`,
+    [tenantId, dateFrom, dateTo],
+  );
+  return result.rows.map((row) => ({
+    day: row.day,
+    revenue: Number(row.revenue),
+    profit: Number(row.profit),
+  }));
+}

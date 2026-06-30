@@ -5,6 +5,10 @@ export const expensesApi = {
     return apiRequest(`/expenses${buildQueryString({ date, month })}`);
   },
 
+  getExpenseRangeReport({ dateFrom, dateTo } = {}) {
+    return apiRequest(`/expenses/range${buildQueryString({ dateFrom, dateTo })}`);
+  },
+
   createExpense(expense) {
     return apiRequest("/expenses", { method: "POST", body: JSON.stringify(expense) });
   },

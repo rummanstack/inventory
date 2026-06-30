@@ -3,6 +3,14 @@ export class ExpenseController {
     this.expenseService = expenseService;
   }
 
+  range = async (req, res, next) => {
+    try {
+      res.json(await this.expenseService.getExpenseRangeReport(req.query, req.currentUser));
+    } catch (error) {
+      next(error);
+    }
+  };
+
   report = async (req, res, next) => {
     try {
       const report = await this.expenseService.getExpenseReport(req.query, req.currentUser);

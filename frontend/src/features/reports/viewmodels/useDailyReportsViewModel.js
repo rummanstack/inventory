@@ -1,154 +1,222 @@
 import { useEffect, useMemo, useState } from 'react';
 import { inventoryApi } from '../../../services/inventoryApi';
-import { buildDailyRows, buildSheetData } from '../../../models/inventoryViewData.js';
-import { getCssVar } from '../../../utils/theme.js';
+import { buildSheetData, getDsrSnapshot } from '../../../models/inventoryViewData.js';
 
-const DAY_SCOPE_PAGE_SIZE = 100;
+const PAGE_SIZE = 200;
 
 export function useDailyReportsViewModel({ products, dsrs, today, t, tenantName }) {
-  const [date, setDate] = useState(today);
+  const [dateFrom, setDateFrom] = useState(today);
+  const [dateTo, setDateTo] = useState(today);
   const [selectedSheet, setSelectedSheet] = useState(null);
-  const [dayIssues, setDayIssues] = useState([]);
-  const [daySettlements, setDaySettlements] = useState([]);
-  const [dayDueLedger, setDayDueLedger] = useState([]);
+
+  const [rangeIssues, setRangeIssues] = useState([]);
+  const [rangeSettlements, setRangeSettlements] = useState([]);
+  const [rangeDueLedger, setRangeDueLedger] = useState([]);
+  const [srLedgerEntries, setSrLedgerEntries] = useState([]);
+  const [expenseSummary, setExpenseSummary] = useState(null);
+  const [salaryRows, setSalaryRows] = useState([]);
+  const [profitTotals, setProfitTotals] = useState(null);
   const [dsrDueBalances, setDsrDueBalances] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
+    if (!dateFrom || !dateTo) return undefined;
     let cancelled = false;
 
-    if (!date) {
-      return undefined;
-    }
-
     async function load() {
+      setLoading(true);
+      setError('');
+      setSelectedSheet(null);
+
       try {
-        setLoading(true);
-        setError('');
         const [issuesResult, settlementsResult] = await Promise.all([
-          inventoryApi.listIssues({ dateFrom: date, dateTo: date, pageSize: DAY_SCOPE_PAGE_SIZE }),
-          inventoryApi.listSettlements({ dateFrom: date, dateTo: date, pageSize: DAY_SCOPE_PAGE_SIZE }),
+          inventoryApi.listIssues({ dateFrom, dateTo, pageSize: PAGE_SIZE }),
+          inventoryApi.listSettlements({ dateFrom, dateTo, pageSize: PAGE_SIZE }),
         ]);
-
-        if (cancelled) {
-          return;
-        }
-
-        setDayIssues(issuesResult.items || []);
-        setDaySettlements(settlementsResult.items || []);
-      } catch (requestError) {
+        if (cancelled) return;
+        setRangeIssues(issuesResult.items || []);
+        setRangeSettlements(settlementsResult.items || []);
+      } catch (err) {
         if (!cancelled) {
-          setError(requestError.message);
-          setDayIssues([]);
-          setDaySettlements([]);
+          setError(err.message);
+          setRangeIssues([]);
+          setRangeSettlements([]);
         }
       } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
+        if (!cancelled) setLoading(false);
       }
 
-      // Fetch due ledger entries for the date separately so a feature-gate
-      // error here doesn't break the main report.
-      inventoryApi.listDsrDueLedger({ dateFrom: date, dateTo: date, pageSize: DAY_SCOPE_PAGE_SIZE }).then((result) => {
-        if (!cancelled) setDayDueLedger(result.items || []);
-      }).catch(() => {
-        if (!cancelled) setDayDueLedger([]);
-      });
+      inventoryApi.listDsrDueLedger({ dateFrom, dateTo, pageSize: PAGE_SIZE })
+        .then((r) => { if (!cancelled) setRangeDueLedger(r.items || []); })
+        .catch(() => { if (!cancelled) setRangeDueLedger([]); });
+
+      inventoryApi.listSrDueLedger({ dateFrom, dateTo, pageSize: PAGE_SIZE })
+        .then((r) => { if (!cancelled) setSrLedgerEntries(r.items || []); })
+        .catch(() => { if (!cancelled) setSrLedgerEntries([]); });
+
+      inventoryApi.getExpenseRangeReport({ dateFrom, dateTo })
+        .then((r) => { if (!cancelled) setExpenseSummary(r.summary || null); })
+        .catch(() => { if (!cancelled) setExpenseSummary(null); });
+
+      inventoryApi.getSalaryPaymentsRange({ dateFrom, dateTo })
+        .then((r) => { if (!cancelled) setSalaryRows(r.rows || []); })
+        .catch(() => { if (!cancelled) setSalaryRows([]); });
+
+      inventoryApi.getProfitReport({ dateFrom, dateTo })
+        .then((r) => { if (!cancelled) setProfitTotals(r.totals || null); })
+        .catch(() => { if (!cancelled) setProfitTotals(null); });
     }
 
     load();
-    return () => {
-      cancelled = true;
-    };
-  }, [date]);
+    return () => { cancelled = true; };
+  }, [dateFrom, dateTo]);
 
-  // DSR due balances reflect current state, not a specific date — fetch once.
   useEffect(() => {
-    inventoryApi.listDsrDueBalances().then((data) => {
-      setDsrDueBalances(Array.isArray(data) ? data : []);
-    }).catch(() => {
-      setDsrDueBalances([]);
-    });
+    inventoryApi.listDsrDueBalances()
+      .then((data) => setDsrDueBalances(Array.isArray(data) ? data : []))
+      .catch(() => setDsrDueBalances([]));
   }, []);
 
-  const rows = useMemo(
-    () => buildDailyRows({ date, dsrs, issues: dayIssues, settlements: daySettlements, products, dueLedgerEntries: dayDueLedger }),
-    [date, dsrs, dayIssues, daySettlements, products, dayDueLedger],
-  );
+  const rows = useMemo(() => {
+    const productMap = new Map(products.map((p) => [p.id, p]));
+    const dsrMap = new Map();
 
-  const totals = rows.reduce(
+    const ensureDsr = (dsrId) => {
+      if (!dsrMap.has(dsrId)) {
+        const snap = getDsrSnapshot(dsrs, rangeIssues, rangeSettlements, dsrId, null);
+        dsrMap.set(dsrId, {
+          dsrId,
+          dsrName: snap.dsrName,
+          area: snap.area,
+          issuedPieces: 0,
+          issuedValue: 0,
+          returnedPieces: 0,
+          returnValue: 0,
+          soldPieces: 0,
+          totalPayable: 0,
+          amountPaid: 0,
+          discount: 0,
+          srHandover: 0,
+          settlementCount: 0,
+        });
+      }
+      return dsrMap.get(dsrId);
+    };
+
+    for (const issue of rangeIssues) {
+      const row = ensureDsr(issue.dsrId);
+      for (const item of issue.items || []) {
+        const rate = Number(item.rate || productMap.get(item.productId)?.wholesalePrice || 0);
+        row.issuedPieces += Number(item.issuedPieces || 0);
+        row.issuedValue += Number(item.issuedPieces || 0) * rate;
+      }
+    }
+
+    for (const s of rangeSettlements) {
+      const row = ensureDsr(s.dsrId);
+      for (const item of s.items || []) {
+        const ret = Number(item.returnedPieces || 0) + Number(item.damagedPieces || 0);
+        row.returnedPieces += Number(item.returnedPieces || 0);
+        row.returnValue += ret * Number(item.rate || 0);
+        row.soldPieces += Number(item.soldPieces || 0);
+      }
+      row.totalPayable += Number(s.totalPayable || 0);
+      row.amountPaid += Number(s.amountPaid || 0);
+      row.discount += Number(s.discount || 0);
+      row.srHandover += (s.srHandovers || []).reduce((sum, h) => sum + Number(h.amount || 0), 0);
+      row.settlementCount += 1;
+    }
+
+    for (const e of rangeDueLedger) {
+      if (e.type === 'COLLECTION' && e.referenceType === 'manual_settlement') {
+        const row = dsrMap.get(e.dsrId);
+        if (row) row.amountPaid += Number(e.credit || 0);
+      }
+    }
+
+    return [...dsrMap.values()]
+      .filter((r) => r.issuedPieces > 0 || r.totalPayable > 0)
+      .sort((a, b) => b.totalPayable - a.totalPayable);
+  }, [dsrs, rangeIssues, rangeSettlements, rangeDueLedger, products]);
+
+  const totals = useMemo(() => rows.reduce(
     (sum, row) => ({
       issuedPieces: sum.issuedPieces + row.issuedPieces,
-      issuedValue: sum.issuedValue + (row.issuedValue || 0),
+      issuedValue: sum.issuedValue + row.issuedValue,
       returnedPieces: sum.returnedPieces + row.returnedPieces,
-      returnValue: sum.returnValue + (row.returnValue || 0),
+      returnValue: sum.returnValue + row.returnValue,
       soldPieces: sum.soldPieces + row.soldPieces,
       totalPayable: sum.totalPayable + row.totalPayable,
-      amountPaid: sum.amountPaid + (row.amountPaid || 0),
+      amountPaid: sum.amountPaid + row.amountPaid,
+      discount: sum.discount + row.discount,
+      srHandover: sum.srHandover + row.srHandover,
     }),
-    { issuedPieces: 0, issuedValue: 0, returnedPieces: 0, returnValue: 0, soldPieces: 0, totalPayable: 0, amountPaid: 0 },
+    { issuedPieces: 0, issuedValue: 0, returnedPieces: 0, returnValue: 0, soldPieces: 0, totalPayable: 0, amountPaid: 0, discount: 0, srHandover: 0 },
+  ), [rows]);
+
+  const dueTotal = Math.max(0, totals.totalPayable - totals.discount - totals.amountPaid);
+
+  const srRows = useMemo(() => {
+    const srMap = new Map();
+    for (const e of srLedgerEntries) {
+      const existing = srMap.get(e.srId) || { srId: e.srId, srName: e.srName || '-', handover: 0, collected: 0 };
+      if (e.type === 'HANDOVER') existing.handover += Number(e.debit || 0);
+      if (e.type === 'COLLECTION') existing.collected += Number(e.credit || 0);
+      srMap.set(e.srId, existing);
+    }
+    return [...srMap.values()].sort((a, b) => b.handover - a.handover);
+  }, [srLedgerEntries]);
+
+  const expenseRows = useMemo(
+    () => expenseSummary?.byCategory || [],
+    [expenseSummary],
   );
 
-  const chartRows = rows
-    .filter((row) => row.status !== 'No Issue')
-    .sort((a, b) => b.totalPayable - a.totalPayable)
-    .slice(0, 6)
-    .map((row) => ({
-      label: row.dsrName,
-      meta: row.area,
-      issued: row.issuedValue || 0,
-      returned: row.returnValue || 0,
-      sold: row.totalPayable,
-      totalPayable: row.totalPayable,
-    }));
-
-  const reportMix = [
-    { label: t('dashboard.completed'), value: rows.filter((row) => row.status === 'Completed').length, color: getCssVar('--success', '#37a864') },
-    { label: t('dashboard.pending'), value: rows.filter((row) => row.status === 'Pending').length, color: getCssVar('--warning', '#f8aa17') },
-    { label: t('dashboard.noIssue'), value: rows.filter((row) => row.status === 'No Issue').length, color: getCssVar('--muted', '#8c8f9e') },
-  ];
-
-  // Manual due collections recorded on the selected date (from the due ledger page, not at settlement time)
-  const dueCollectionRows = useMemo(() => {
-    const collections = dayDueLedger.filter((e) => e.type === 'COLLECTION' && e.referenceType === 'manual_settlement');
-    const byDsr = new Map();
-    collections.forEach((e) => {
-      const existing = byDsr.get(e.dsrId) || { dsrId: e.dsrId, dsrName: e.dsrName || '-', area: e.dsrArea || '-', total: 0 };
-      existing.total += e.credit;
-      byDsr.set(e.dsrId, existing);
-    });
-    return Array.from(byDsr.values()).sort((a, b) => b.total - a.total);
-  }, [dayDueLedger]);
-
-  // Only DSRs with an outstanding balance
   const dsrDueBalanceRows = useMemo(
     () => dsrDueBalances.filter((row) => row.balance > 0),
     [dsrDueBalances],
   );
 
-  useEffect(() => {
-    setSelectedSheet(null);
-  }, [date]);
+  const dueCollectionRows = useMemo(() => {
+    const collections = rangeDueLedger.filter((e) => e.type === 'COLLECTION' && e.referenceType === 'manual_settlement');
+    const byDsr = new Map();
+    collections.forEach((e) => {
+      const existing = byDsr.get(e.dsrId) || { dsrId: e.dsrId, dsrName: e.dsrName || '-', area: e.dsrArea || '-', total: 0 };
+      existing.total += Number(e.credit || 0);
+      byDsr.set(e.dsrId, existing);
+    });
+    return [...byDsr.values()].sort((a, b) => b.total - a.total);
+  }, [rangeDueLedger]);
 
   function viewSheet(row) {
-    if (row.status === 'No Issue') {
-      return;
-    }
-
-    setSelectedSheet(buildSheetData({ date, dsrId: row.dsrId, dsrs, issues: dayIssues, settlements: daySettlements, products, tenantName }));
+    if (dateFrom !== dateTo) return;
+    setSelectedSheet(buildSheetData({
+      date: dateFrom,
+      dsrId: row.dsrId,
+      dsrs,
+      issues: rangeIssues,
+      settlements: rangeSettlements,
+      products,
+      tenantName,
+    }));
   }
 
   return {
-    date,
-    setDate,
+    dateFrom,
+    setDateFrom,
+    dateTo,
+    setDateTo,
+    isSingleDay: dateFrom === dateTo,
     loading,
     error,
     rows,
     totals,
-    chartRows,
-    reportMix,
+    dueTotal,
+    srRows,
+    expenseRows,
+    salaryRows,
+    profitTotals,
     selectedSheet,
     viewSheet,
     dueCollectionRows,

@@ -2,7 +2,7 @@ import { assert } from "../lib/errors.js";
 import { createId } from "../lib/ids.js";
 import { diffFields } from "../lib/auditDiff.js";
 import { summarizeByAmount } from "../lib/aggregation.js";
-import { normalizeIsoDate, normalizeIsoMonth, startOfMonth, startOfNextMonth } from "../lib/dateRanges.js";
+import { addDays, normalizeIsoDate, normalizeIsoMonth, startOfMonth, startOfNextMonth } from "../lib/dateRanges.js";
 import { buildPageResult, parsePagination } from "../lib/pagination.js";
 import {
   countTrashedExpenses,
@@ -61,6 +61,22 @@ export class ExpenseService {
     this.databaseManager = databaseManager;
     this.auditService = auditService;
     this.financeAccountService = financeAccountService;
+  }
+
+  async getExpenseRangeReport({ dateFrom, dateTo }, actor) {
+    const today = new Date().toISOString().slice(0, 10);
+    const normalizedTo = normalizeIsoDate(dateTo, today, EXPENSE_DATE_ERROR);
+    const normalizedFrom = normalizeIsoDate(dateFrom, normalizedTo, EXPENSE_DATE_ERROR);
+
+    return this.databaseManager.withClient(async (client) => {
+      const expenses = await listExpensesInRange(client, normalizedFrom, addDays(normalizedTo, 1), actor.tenantId);
+      return {
+        dateFrom: normalizedFrom,
+        dateTo: normalizedTo,
+        expenses,
+        summary: aggregateExpenses(expenses),
+      };
+    });
   }
 
   async getExpenseReport({ date, month }, actor) {

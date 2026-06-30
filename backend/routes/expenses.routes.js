@@ -9,6 +9,7 @@ export function createExpensesRoutes(expenseController) {
   router.use(requireFeature("expenses"));
 
   router.get("/", requirePermission(PERMISSIONS.MANAGE_EXPENSES), expenseController.report);
+  router.get("/range", requirePermission(PERMISSIONS.MANAGE_EXPENSES), expenseController.range);
   router.get("/trash", requirePermission(PERMISSIONS.MANAGE_EXPENSES), expenseController.listTrash);
   router.post("/", requirePermission(PERMISSIONS.MANAGE_EXPENSES), expenseController.create);
   router.patch("/:id", requirePermission(PERMISSIONS.MANAGE_EXPENSES), expenseController.update);

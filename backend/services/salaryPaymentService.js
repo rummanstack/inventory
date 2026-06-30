@@ -9,6 +9,7 @@ import {
   insertSalaryPayment,
   getSalaryOverview,
   listPaymentsByMonth,
+  listSalaryPaymentsInRange,
   findSalaryPaymentById,
   deleteSalaryPaymentRecord,
 } from "../repositories/salaryPaymentRepository.js";
@@ -82,6 +83,29 @@ export class SalaryPaymentService {
       const totalPaid = employees.reduce((s, e) => s + e.totalPaid, 0);
 
       return { month: m, daysInMonth: totalDays, employees, totalBudget: totalEarned, totalPaid };
+    });
+  }
+
+  async getPaymentsInRange({ dateFrom, dateTo }, actor) {
+    const today = new Date().toISOString().slice(0, 10);
+    const normalizedTo = String(dateTo || today).slice(0, 10) || today;
+    const normalizedFrom = String(dateFrom || normalizedTo).slice(0, 10) || normalizedTo;
+
+    return this.databaseManager.withClient(async (client) => {
+      const payments = await listSalaryPaymentsInRange(client, actor.tenantId, normalizedFrom, normalizedTo);
+
+      const byEmployee = new Map();
+      for (const p of payments) {
+        const existing = byEmployee.get(p.employeeId) || { employeeId: p.employeeId, employeeName: p.employeeName, totalPaid: 0, paymentCount: 0 };
+        existing.totalPaid += p.amount;
+        existing.paymentCount += 1;
+        byEmployee.set(p.employeeId, existing);
+      }
+
+      const rows = [...byEmployee.values()].sort((a, b) => b.totalPaid - a.totalPaid);
+      const totalPaid = rows.reduce((s, r) => s + r.totalPaid, 0);
+
+      return { dateFrom: normalizedFrom, dateTo: normalizedTo, rows, totalPaid };
     });
   }
 

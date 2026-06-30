@@ -3,6 +3,14 @@ export class SalaryPaymentController {
     this.salaryPaymentService = salaryPaymentService;
   }
 
+  range = async (req, res, next) => {
+    try {
+      res.json(await this.salaryPaymentService.getPaymentsInRange(req.query, req.currentUser));
+    } catch (error) {
+      next(error);
+    }
+  };
+
   overview = async (req, res, next) => {
     try {
       res.json(await this.salaryPaymentService.getOverview(req.query.month, req.currentUser));

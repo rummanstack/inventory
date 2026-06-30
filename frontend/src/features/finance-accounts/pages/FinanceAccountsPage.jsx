@@ -204,7 +204,7 @@ export default function FinanceAccountsPage() {
                     <td className="hidden table-cell md:table-cell">{transaction.createdByName || '-'}</td>
                     {canManage ? (
                       <td className="table-cell no-print">
-                        <div className="flex justify-end gap-2">
+                        <div className="row-actions flex justify-end gap-2">
                           <button type="button" className="icon-btn text-rose-600 hover:text-rose-700" title={t('common.delete')} onClick={() => vm.deleteTransaction(transaction.id)}>
                             <Trash2 size={16} />
                           </button>

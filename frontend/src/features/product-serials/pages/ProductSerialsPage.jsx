@@ -146,7 +146,7 @@ export default function ProductSerialsPage() {
                   </td>
                   <td className="hidden table-cell md:table-cell">{serial.invoiceNumber || '-'}</td>
                   <td className="table-cell no-print">
-                    <div className="flex justify-end gap-2">
+                    <div className="row-actions flex justify-end gap-2">
                       <button type="button" className="icon-btn" title={t('common.view')} onClick={() => setViewSerial(serial)}>
                         <Eye size={16} />
                       </button>

@@ -64,7 +64,7 @@ export default function ManufacturersPage() {
                     {m.productCount ?? 0}
                   </td>
                   <td className="px-4 py-3">
-                    <div className="flex justify-end gap-2">
+                    <div className="row-actions flex justify-end gap-2">
                       <button
                         className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
                         onClick={() => vm.openEdit(m)}

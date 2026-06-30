@@ -315,7 +315,7 @@ export default function ProductsPage() {
                     ) : null}
                   </td>
                   <td className="table-cell">
-                    <div className="flex justify-end gap-2">
+                    <div className="row-actions flex justify-end gap-2">
                       {canManageProducts ? (
                         <>
                           {!product.serialRequired && (

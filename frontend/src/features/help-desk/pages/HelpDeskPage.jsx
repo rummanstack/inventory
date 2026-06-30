@@ -205,7 +205,7 @@ function TicketEditorModal({ ticket, onClose, onSave }) {
             <textarea className="input min-h-[120px] resize-y" value={form.description} onChange={(event) => setForm((prev) => ({ ...prev, description: event.target.value }))} />
           </label>
         </div>
-        <div className="flex items-center justify-end gap-2">
+        <div className="row-actions flex items-center justify-end gap-2">
           <button type="button" className="btn-secondary" onClick={onClose} disabled={saving}>
             {t('common.cancel')}
           </button>

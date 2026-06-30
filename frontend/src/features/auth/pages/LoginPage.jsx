@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, KeyRound, Loader2, Lock, Mail } from 'lucide-react';
 import { Alert } from '../../../components/ui';
+import PasswordInput from '../../../components/PasswordInput.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import loginHero from '../../../assets/login-hero.png';
 import logoMark from '../../../assets/stockledger-logo-mark.svg';
@@ -83,18 +84,15 @@ function LoginForm({ login, t, onForgot }) {
 
       <label className="block">
         <span className="label">{t('auth.password')}</span>
-        <span className="relative block">
-          <Lock className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-          <input
-            className="input pl-9"
-            type="password"
-            autoComplete="current-password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder={t('auth.passwordPlaceholder')}
-            required
-          />
-        </span>
+        <PasswordInput
+          leftIcon={<Lock size={16} />}
+          className="input pl-9"
+          autoComplete="current-password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder={t('auth.passwordPlaceholder')}
+          required
+        />
       </label>
 
       <button type="submit" className="btn-primary mt-2 w-full" disabled={submitting}>
@@ -234,33 +232,27 @@ function ResetPasswordForm({ resetPassword, t, token, onBack }) {
 
       <label className="block">
         <span className="label">{t('auth.newPassword')}</span>
-        <span className="relative block">
-          <Lock className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-          <input
-            className="input pl-9"
-            type="password"
-            autoComplete="new-password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </span>
+        <PasswordInput
+          leftIcon={<Lock size={16} />}
+          className="input pl-9"
+          autoComplete="new-password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
         <span className="mt-1 block text-xs text-slate-400">{t('auth.passwordRequirements')}</span>
       </label>
 
       <label className="block">
         <span className="label">{t('auth.confirmPassword')}</span>
-        <span className="relative block">
-          <Lock className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-          <input
-            className="input pl-9"
-            type="password"
-            autoComplete="new-password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            required
-          />
-        </span>
+        <PasswordInput
+          leftIcon={<Lock size={16} />}
+          className="input pl-9"
+          autoComplete="new-password"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          required
+        />
       </label>
 
       <button type="submit" className="btn-primary mt-2 w-full" disabled={submitting}>

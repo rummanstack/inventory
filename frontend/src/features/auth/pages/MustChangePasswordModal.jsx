@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { KeyRound, Loader2, Lock } from 'lucide-react';
 import { Alert } from '../../../components/ui.jsx';
+import PasswordInput from '../../../components/PasswordInput.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 
 export default function MustChangePasswordModal() {
@@ -37,48 +38,39 @@ export default function MustChangePasswordModal() {
 
           <label className="block">
             <span className="label">{t('auth.currentPassword')}</span>
-            <span className="relative block">
-              <Lock className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-              <input
-                className="input pl-9"
-                type="password"
-                autoComplete="current-password"
-                value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
-                required
-              />
-            </span>
+            <PasswordInput
+              leftIcon={<Lock size={16} />}
+              className="input pl-9"
+              autoComplete="current-password"
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+              required
+            />
           </label>
 
           <label className="block">
             <span className="label">{t('auth.newPassword')}</span>
-            <span className="relative block">
-              <Lock className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-              <input
-                className="input pl-9"
-                type="password"
-                autoComplete="new-password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </span>
+            <PasswordInput
+              leftIcon={<Lock size={16} />}
+              className="input pl-9"
+              autoComplete="new-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
             <span className="mt-1 block text-xs text-slate-400">{t('auth.passwordRequirements')}</span>
           </label>
 
           <label className="block">
             <span className="label">{t('auth.confirmPassword')}</span>
-            <span className="relative block">
-              <Lock className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-              <input
-                className="input pl-9"
-                type="password"
-                autoComplete="new-password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-              />
-            </span>
+            <PasswordInput
+              leftIcon={<Lock size={16} />}
+              className="input pl-9"
+              autoComplete="new-password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+            />
           </label>
 
           <button type="submit" className="btn-primary mt-2 w-full" disabled={submitting}>

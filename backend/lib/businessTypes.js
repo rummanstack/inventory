@@ -5,3 +5,10 @@ export const BUSINESS_TYPES = {
 };
 
 export const BUSINESS_TYPE_VALUES = Object.values(BUSINESS_TYPES);
+
+export const SELLER_TYPES = {
+  DEALER: "DEALER",
+  RETAILER: "RETAILER",
+};
+
+export const SELLER_TYPE_VALUES = Object.values(SELLER_TYPES);

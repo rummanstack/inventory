@@ -13,7 +13,7 @@ import {
   replaceTenantFeatures,
 } from "../repositories/tenantFeatureRepository.js";
 import { TENANT_FEATURES } from "../lib/features.js";
-import { BUSINESS_TYPES, BUSINESS_TYPE_VALUES } from "../lib/businessTypes.js";
+import { BUSINESS_TYPES, BUSINESS_TYPE_VALUES, SELLER_TYPES, SELLER_TYPE_VALUES } from "../lib/businessTypes.js";
 import { setCachedFeatures } from "../lib/tenantFeatureCache.js";
 import { assert } from "../lib/errors.js";
 
@@ -61,6 +61,16 @@ function normalizeBusinessType(value, fallback = BUSINESS_TYPES.ELECTRONICS) {
   return businessType;
 }
 
+function normalizeSellerType(value, fallback = SELLER_TYPES.DEALER) {
+  if (value === undefined || value === null || value === "") {
+    return fallback;
+  }
+
+  const sellerType = String(value).trim().toUpperCase();
+  assert(SELLER_TYPE_VALUES.includes(sellerType), `Invalid seller type: ${value}`, 400);
+  return sellerType;
+}
+
 // Dealer/DSR distribution (morning issue, evening settlement, DSR finance/due ledger) is
 // a grocery-distribution concept and doesn't apply to electronics retail. Serial/warranty
 // tracking is the reverse — an electronics concept that doesn't apply to grocery. New
@@ -91,7 +101,7 @@ export class TenantService {
     }
   }
 
-  async createTenant({ name, slug, email, plan = "starter", address, logoUrl, taxRate = 0, loyaltyEnabled = false, loyaltyPointsPer100 = 1, loyaltyPointValue = 1, businessType }) {
+  async createTenant({ name, slug, email, plan = "starter", address, logoUrl, taxRate = 0, loyaltyEnabled = false, loyaltyPointsPer100 = 1, loyaltyPointValue = 1, businessType, sellerType }) {
     assert(name && slug && email, "name, slug and email are required", 400);
     return this.databaseManager.withTransaction(async (client) => {
       const existing = await findTenantBySlug(client, slug);
@@ -110,6 +120,7 @@ export class TenantService {
         loyaltyPointsPer100: normalizeLoyaltyPointsPer100(loyaltyPointsPer100),
         loyaltyPointValue: normalizeLoyaltyPointValue(loyaltyPointValue),
         businessType: normalizeBusinessType(businessType),
+        sellerType: normalizeSellerType(sellerType),
       };
       const created = await insertTenant(client, tenant);
       const defaultFeatures = defaultFeaturesForBusinessType(created.businessType);
@@ -141,6 +152,7 @@ export class TenantService {
         loyaltyPointsPer100: fields.loyaltyPointsPer100 !== undefined ? normalizeLoyaltyPointsPer100(fields.loyaltyPointsPer100) : existing.loyaltyPointsPer100 ?? 1,
         loyaltyPointValue: fields.loyaltyPointValue !== undefined ? normalizeLoyaltyPointValue(fields.loyaltyPointValue) : existing.loyaltyPointValue ?? 1,
         businessType: fields.businessType !== undefined ? normalizeBusinessType(fields.businessType) : existing.businessType ?? BUSINESS_TYPES.ELECTRONICS,
+        sellerType: fields.sellerType !== undefined ? normalizeSellerType(fields.sellerType) : existing.sellerType ?? SELLER_TYPES.DEALER,
       };
       return await updateTenant(client, updated);
     } finally {

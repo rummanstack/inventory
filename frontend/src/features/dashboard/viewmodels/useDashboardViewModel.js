@@ -358,7 +358,7 @@ export function useDashboardViewModel({ products, dsrs, today, t, language = 'en
     activityHeatmap: buildActivityHeatmap({ issues: heatmapIssues, settlements: heatmapSettlements, today, days: HEATMAP_DAYS, language }),
     inventoryByCategory: buildCategoryInventory(products, language),
     routePerformance: buildRoutePerformance(dailyRows, language),
-    topPayableProducts: buildTopPayableProducts(todaySettlements, language),
+    topPayableProducts: buildTopPayableProducts(todaySettlements, language, todaySalesInvoices),
     settlementMix: [
       { label: t('dashboard.completed'), value: completedRows.length, color: getCssVar('--success', '#37a864') },
       { label: t('dashboard.pending'), value: pendingRows.length, color: getCssVar('--warning', '#f8aa17') },

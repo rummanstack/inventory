@@ -406,19 +406,25 @@ export function buildRoutePerformance(rows, language = getPreferredLanguage()) {
     }));
 }
 
-export function buildTopPayableProducts(settlements, language = getPreferredLanguage()) {
-  return Array.from(
-    settlements
-      .flatMap((settlement) => settlement.items)
-      .reduce((map, item) => {
-        const current = map.get(item.productId) || { label: item.productName, value: 0, soldPieces: 0 };
-        current.value += Number(item.payable || 0);
-        current.soldPieces += Number(item.soldPieces || 0);
-        map.set(item.productId, current);
-        return map;
-      }, new Map())
-      .values(),
-  )
+export function buildTopPayableProducts(settlements, language = getPreferredLanguage(), retailInvoices = []) {
+  const map = new Map();
+  for (const settlement of settlements) {
+    for (const item of settlement.items) {
+      const current = map.get(item.productId) || { label: item.productName, value: 0, soldPieces: 0 };
+      current.value += Number(item.payable || 0);
+      current.soldPieces += Number(item.soldPieces || 0);
+      map.set(item.productId, current);
+    }
+  }
+  for (const inv of retailInvoices) {
+    for (const item of inv.items || []) {
+      const current = map.get(item.productId) || { label: item.productName, value: 0, soldPieces: 0 };
+      current.value += Number(item.lineTotal || 0);
+      current.soldPieces += Number(item.quantityPieces || 0);
+      map.set(item.productId, current);
+    }
+  }
+  return Array.from(map.values())
     .sort((a, b) => b.value - a.value)
     .slice(0, 5)
     .map((item, index) => ({

@@ -306,74 +306,50 @@ export function buildTradingTrend({ issues, settlements, today, limit = 7, retai
 }
 
 function isoSubtractDays(dateISO, days) {
-  const date = new Date(`${dateISO}T00:00:00`);
-  date.setDate(date.getDate() - days);
-  return date.toISOString().slice(0, 10);
+  const d = new Date(`${dateISO}T00:00:00`);
+  d.setDate(d.getDate() - days);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-export function buildActivityHeatmap({ issues, settlements, today, days = 70, language = getPreferredLanguage() }) {
+export function buildActivityHeatmap({ settlements, today, days = 70, language = getPreferredLanguage(), retailDailyReport = [] }) {
   if (!today) return [];
 
-  const issuesByDate = new Map();
   const settlementsByDate = new Map();
-  issues.forEach((issue) => {
-    if (!issuesByDate.has(issue.date)) issuesByDate.set(issue.date, []);
-    issuesByDate.get(issue.date).push(issue);
+  settlements.forEach((s) => {
+    if (!settlementsByDate.has(s.date)) settlementsByDate.set(s.date, []);
+    settlementsByDate.get(s.date).push(s);
   });
-  settlements.forEach((settlement) => {
-    if (!settlementsByDate.has(settlement.date)) settlementsByDate.set(settlement.date, []);
-    settlementsByDate.get(settlement.date).push(settlement);
-  });
+
+  const retailByDate = new Map(retailDailyReport.map((r) => [r.date, r]));
 
   const cells = [];
-  let max = 0;
+  let maxRevenue = 0;
   for (let offset = days - 1; offset >= 0; offset -= 1) {
     const date = isoSubtractDays(today, offset);
-    const dayIssues = issuesByDate.get(date) || [];
     const daySettlements = settlementsByDate.get(date) || [];
-    const issued = dayIssues.length;
-    const settled = daySettlements.length;
-    const count = issued + settled;
-    max = Math.max(max, count);
+    const retail = retailByDate.get(date);
 
-    const dsrNames = new Set([
-      ...dayIssues.map((issue) => issue.dsrName).filter(Boolean),
-      ...daySettlements.map((settlement) => settlement.dsrName).filter(Boolean),
-    ]);
-    const issuedPieces = dayIssues.reduce(
-      (sum, issue) => sum + (issue.items || []).reduce((itemSum, item) => itemSum + Number(item.issuedPieces || 0), 0),
-      0,
-    );
-    const soldPieces = daySettlements.reduce(
-      (sum, settlement) => sum + (settlement.items || []).reduce((itemSum, item) => itemSum + Number(item.soldPieces || 0), 0),
-      0,
-    );
-    const returnedPieces = daySettlements.reduce(
-      (sum, settlement) => sum + (settlement.items || []).reduce((itemSum, item) => itemSum + Number(item.returnedPieces || 0), 0),
-      0,
-    );
-    const totalPayable = daySettlements.reduce((sum, settlement) => sum + Number(settlement.totalPayable || 0), 0);
-    const amountPaid = daySettlements.reduce((sum, settlement) => sum + Number(settlement.amountPaid || 0), 0);
-    const dueAmount = daySettlements.reduce((sum, settlement) => sum + Number(settlement.dueAmount || 0), 0);
+    const dsrRevenue = daySettlements.reduce((sum, s) => sum + Number(s.totalPayable || 0), 0);
+    const dsrTransactions = daySettlements.length;
+
+    const retailRevenue = retail ? Number(retail.totalAmount || 0) : 0;
+    const retailTransactions = retail ? Number(retail.invoiceCount || 0) : 0;
+
+    const revenue = dsrRevenue + retailRevenue;
+    const transactions = dsrTransactions + retailTransactions;
+
+    maxRevenue = Math.max(maxRevenue, revenue);
 
     cells.push({
       date,
-      issued,
-      settled,
-      count,
       weekday: new Date(`${date}T00:00:00`).getDay(),
       labelDate: shortDate(date, language),
-      dsrNames: Array.from(dsrNames),
-      issuedPieces,
-      soldPieces,
-      returnedPieces,
-      totalPayable,
-      amountPaid,
-      dueAmount,
+      revenue,
+      transactions,
     });
   }
 
-  return cells.map((cell) => ({ ...cell, intensity: max ? cell.count / max : 0 }));
+  return cells.map((cell) => ({ ...cell, intensity: maxRevenue ? cell.revenue / maxRevenue : 0 }));
 }
 
 export function buildCategoryInventory(products, language = getPreferredLanguage()) {

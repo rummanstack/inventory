@@ -28,6 +28,7 @@ const DAY_SCOPE_PAGE_SIZE = 100;
 const TREND_DAYS = 7;
 const HEATMAP_DAYS = 70;
 const HEATMAP_PAGE_SIZE = 400;
+const CALENDAR_DAYS = 365;
 
 function subtractDays(dateISO, days) {
   const date = new Date(`${dateISO}T00:00:00`);
@@ -58,6 +59,7 @@ export function useDashboardViewModel({ products, dsrs, today, t, language = 'en
   const [dsrTargetSummary, setDsrTargetSummary] = useState([]);
   const [monthlyTrend, setMonthlyTrend] = useState([]);
   const [todayDueLedger, setTodayDueLedger] = useState([]);
+  const [calendarDailyReport, setCalendarDailyReport] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -74,6 +76,7 @@ export function useDashboardViewModel({ products, dsrs, today, t, language = 'en
         setError('');
         const trendFrom = subtractDays(today, TREND_DAYS - 1);
         const heatmapFrom = subtractDays(today, HEATMAP_DAYS - 1);
+        const calendarFrom = subtractDays(today, CALENDAR_DAYS - 1);
         const yesterday = subtractDays(today, 1);
         const [
           todayIssuesResult,
@@ -92,6 +95,7 @@ export function useDashboardViewModel({ products, dsrs, today, t, language = 'en
           dsrTargetSummaryResult,
           monthlyTrendResult,
           todayDueLedgerResult,
+          calendarDailyReportResult,
         ] = await Promise.all([
           inventoryApi.listIssues({ dateFrom: today, dateTo: today, pageSize: DAY_SCOPE_PAGE_SIZE }),
           inventoryApi.listSettlements({ dateFrom: today, dateTo: today, pageSize: DAY_SCOPE_PAGE_SIZE }),
@@ -109,6 +113,7 @@ export function useDashboardViewModel({ products, dsrs, today, t, language = 'en
           inventoryApi.getDsrTargetSummary(today.slice(0, 7)).catch(() => ({ summary: [] })),
           inventoryApi.getMonthlyTrend().catch(() => ({ rows: [] })),
           inventoryApi.listDsrDueLedger({ dateFrom: today, dateTo: today, pageSize: 500 }).catch(() => ({ items: [] })),
+          inventoryApi.getDailySalesReport({ dateFrom: calendarFrom, dateTo: today }).catch(() => []),
         ]);
 
         if (cancelled) {
@@ -131,6 +136,7 @@ export function useDashboardViewModel({ products, dsrs, today, t, language = 'en
         setDsrTargetSummary(dsrTargetSummaryResult?.summary || []);
         setMonthlyTrend(formatMonthlyTrend(monthlyTrendResult?.rows || []));
         setTodayDueLedger(todayDueLedgerResult?.items || []);
+        setCalendarDailyReport(calendarDailyReportResult?.rows || []);
       } catch (requestError) {
         if (!cancelled) {
           setError(requestError.message);
@@ -148,6 +154,7 @@ export function useDashboardViewModel({ products, dsrs, today, t, language = 'en
           setRetailCashSession(null);
           setMonthlyTrend([]);
           setTodayDueLedger([]);
+          setCalendarDailyReport([]);
         }
       } finally {
         if (!cancelled) {
@@ -368,7 +375,7 @@ export function useDashboardViewModel({ products, dsrs, today, t, language = 'en
       },
     ],
     tradingTrend: buildTradingTrend({ issues: trendIssues, settlements: trendSettlements, today, limit: TREND_DAYS, retailInvoices: trendRetailInvoices }),
-    activityHeatmap: buildActivityHeatmap({ issues: heatmapIssues, settlements: heatmapSettlements, today, days: HEATMAP_DAYS, language }),
+    activityHeatmap: buildActivityHeatmap({ settlements: heatmapSettlements, today, days: CALENDAR_DAYS, language, retailDailyReport: calendarDailyReport }),
     inventoryByCategory: buildCategoryInventory(products, language),
     routePerformance: buildRoutePerformance(dailyRows, language),
     topPayableProducts: buildTopPayableProducts(todaySettlements, language, todaySalesInvoices),

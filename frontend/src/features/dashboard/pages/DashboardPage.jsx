@@ -19,7 +19,6 @@ import {
   Wallet,
 } from "lucide-react";
 import {
-  ActivityHeatmap,
   Alert,
   ChartPanel,
   EmptyState,
@@ -28,6 +27,7 @@ import {
   TrendChart,
   cx,
 } from "../../../components/ui.jsx";
+import { ActivityCalendar } from "../components/ActivityCalendar.jsx";
 import { formatCurrency, formatNumber } from "../../../utils/calculations.js";
 import { useState } from "react";
 import { useInventoryApp } from "../../../app/useInventoryApp.jsx";
@@ -699,9 +699,9 @@ export default function DashboardPage() {
         </ChartPanel>
       </div>
 
-      {/* ── 7. ACTIVITY HEATMAP ── */}
+      {/* ── 7. ACTIVITY CALENDAR ── */}
       <ChartPanel title={t("dashboard.activityHeatmap")} description={t("dashboard.activityHeatmapDescription")}>
-        <ActivityHeatmap cells={vm.activityHeatmap} color={secondary} t={t} language={language} />
+        <ActivityCalendar cells={vm.activityHeatmap} today={today} language={language} />
       </ChartPanel>
     </div>
   );

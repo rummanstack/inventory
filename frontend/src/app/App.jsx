@@ -1,4 +1,5 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { Toaster } from 'sonner';
 import { Package } from 'lucide-react';
 import AppLayout from './AppLayout';
 import LoginPage from '../features/auth/pages/LoginPage';
@@ -151,9 +152,10 @@ function AppShell() {
 
   return (
     <ErrorBoundary t={t}>
-        <BrowserRouter>
-          <AppRoutes />
-        </BrowserRouter>
+      <Toaster position="top-right" richColors expand closeButton duration={4000} />
+      <BrowserRouter>
+        <AppRoutes />
+      </BrowserRouter>
     </ErrorBoundary>
   );
 }

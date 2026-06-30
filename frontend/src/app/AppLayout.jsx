@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { HelpCircle } from 'lucide-react';
-import { Alert, ConfirmationDialog, PageLoadingState, ToastViewport } from '../components/ui';
+import { Alert, ConfirmationDialog, PageLoadingState } from '../components/ui';
 import { useInventoryApp } from './useInventoryApp.jsx';
 import AppSidebar from './AppSidebar';
 import CommandPalette from './CommandPalette.jsx';
@@ -43,7 +43,7 @@ export default function AppLayout() {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  const { today, user, tenant, tenantOptions, switchTenant, loading, loadError, toasts, dismissToast, logout, t, language, setLanguage, can, hasFeature, confirmation, closeConfirmation, productDirectory } = useInventoryApp();
+  const { today, user, tenant, tenantOptions, switchTenant, loading, loadError, logout, t, language, setLanguage, can, hasFeature, confirmation, closeConfirmation, productDirectory } = useInventoryApp();
 
   useEffect(() => {
     if (!user || !location.pathname || location.pathname === '/') return;
@@ -60,7 +60,6 @@ export default function AppLayout() {
 
   return (
     <div className="page-shell">
-      <ToastViewport toasts={toasts} onDismiss={dismissToast} />
       <AppSidebar
         mobileOpen={mobileOpen}
         setMobileOpen={setMobileOpen}

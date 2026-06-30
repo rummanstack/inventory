@@ -1,7 +1,32 @@
+import { useEffect, useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { getCssVar } from '../../utils/theme.js';
 import { Sparkline } from './charts.jsx';
 import { cx } from './utils.js';
+
+function useCountUp(target, duration = 700) {
+  const [current, setCurrent] = useState(0);
+  const rafRef = useRef(null);
+
+  useEffect(() => {
+    if (target == null || !Number.isFinite(target)) return;
+    const startTime = performance.now();
+
+    function tick(now) {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setCurrent(target * eased);
+      if (progress < 1) rafRef.current = requestAnimationFrame(tick);
+    }
+
+    cancelAnimationFrame(rafRef.current);
+    rafRef.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [target, duration]);
+
+  return current;
+}
 
 export function SectionHeader({ eyebrow, title, description, action }) {
   return (
@@ -16,7 +41,9 @@ export function SectionHeader({ eyebrow, title, description, action }) {
   );
 }
 
-export function StatCard({ title, value, helper, icon: Icon, tone = 'blue', trend, trendPct, trendLabel }) {
+export function StatCard({ title, value, helper, icon: Icon, tone = 'blue', trend, trendPct, trendLabel, rawValue, formatter }) {
+  const animated = useCountUp(rawValue ?? null);
+  const displayValue = rawValue != null && formatter != null ? formatter(animated) : value;
   const tones = {
     blue: {
       card: 'from-white to-brand-soft',
@@ -63,7 +90,7 @@ export function StatCard({ title, value, helper, icon: Icon, tone = 'blue', tren
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <p className="text-sm font-bold text-slate-500">{title}</p>
-          <p className="mt-2 text-2xl font-black tracking-normal text-slate-950">{value}</p>
+          <p className="mt-2 text-2xl font-black tracking-normal text-slate-950">{displayValue}</p>
           {trendPct != null ? (
             <div className="mt-2 flex items-center gap-1.5">
               <span className={cx(

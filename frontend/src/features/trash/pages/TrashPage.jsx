@@ -261,7 +261,7 @@ export default function TrashPage() {
                     <td className="hidden table-cell md:table-cell">{item.deletedByName || '-'}</td>
                     <td className="hidden table-cell lg:table-cell">{item.deleteReason || '-'}</td>
                     <td className="table-cell">
-                      <div className="flex justify-end gap-2">
+                      <div className="row-actions flex justify-end gap-2">
                         <button type="button" className="icon-btn text-emerald-600 hover:text-emerald-700" title={t('trash.restore')} onClick={() => handleRestore(item)}>
                           <RotateCcw size={16} />
                         </button>

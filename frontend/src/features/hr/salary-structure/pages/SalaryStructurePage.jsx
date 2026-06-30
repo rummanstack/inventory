@@ -118,7 +118,7 @@ export default function SalaryStructurePage() {
                       </td>
                       <td className="table-cell text-right">
                         {ss ? (
-                          <div className="flex items-center justify-end gap-2">
+                          <div className="row-actions flex items-center justify-end gap-2">
                             {allowanceTotal > 0 && (
                               <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
                                 +{formatCurrency(allowanceTotal, language)}

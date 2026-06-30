@@ -161,7 +161,7 @@ export default function PurchaseReceivePage() {
                     </Badge>
                   </td>
                   <td className="table-cell no-print">
-                    <div className="flex justify-end gap-2">
+                    <div className="row-actions flex justify-end gap-2">
                       <button type="button" className="icon-btn" title={t('common.view')} onClick={() => setViewReceipt(receipt)}>
                         <Eye size={16} />
                       </button>

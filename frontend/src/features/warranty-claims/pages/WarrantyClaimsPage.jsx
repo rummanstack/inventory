@@ -163,7 +163,7 @@ export default function WarrantyClaimsPage() {
                     <Badge tone={warrantyClaimStatusTone(claim.status)}>{t(`warrantyClaims.statuses.${claim.status}`)}</Badge>
                   </td>
                   <td className="table-cell no-print">
-                    <div className="flex justify-end gap-2">
+                    <div className="row-actions flex justify-end gap-2">
                       {claim.invoiceNumber ? (
                         <button type="button" className="icon-btn" title={claim.invoiceNumber} onClick={() => navigate(`/retailer/sales-invoices?invoiceNumber=${encodeURIComponent(claim.invoiceNumber)}`)}>
                           <Receipt size={16} />

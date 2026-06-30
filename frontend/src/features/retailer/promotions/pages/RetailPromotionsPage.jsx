@@ -354,7 +354,7 @@ export default function RetailPromotionsPage() {
                       </Badge>
                     </td>
                     <td className="table-cell">
-                      <div className="flex justify-end gap-2">
+                      <div className="row-actions flex justify-end gap-2">
                         {canManageRetailers ? (
                           <>
                             <button type="button" className="icon-btn" title={t('common.edit')} onClick={() => setPromotionModal({ mode: 'edit', promotion })}>

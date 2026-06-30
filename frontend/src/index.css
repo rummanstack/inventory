@@ -902,6 +902,31 @@
       box-shadow 160ms ease;
   }
 
+  .surface tbody tr .row-actions {
+    opacity: 0;
+    transition: opacity 160ms ease;
+  }
+
+  .surface tbody tr:hover .row-actions,
+  .surface tbody tr:focus-within .row-actions {
+    opacity: 1;
+  }
+
+  .table-row-active {
+    background-color: var(--secondary-soft) !important;
+    box-shadow: inset 2px 0 0 var(--secondary);
+  }
+
+  .table-head th.sortable {
+    cursor: pointer;
+    user-select: none;
+    transition: color 120ms ease;
+  }
+
+  .table-head th.sortable:hover {
+    color: var(--secondary-strong);
+  }
+
   @keyframes page-enter {
     from {
       opacity: 0;

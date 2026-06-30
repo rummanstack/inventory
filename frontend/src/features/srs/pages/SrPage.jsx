@@ -137,7 +137,7 @@ export default function SrPage() {
                       </span>
                     </td>
                     <td className="table-cell">
-                      <div className="flex justify-end gap-2">
+                      <div className="row-actions flex justify-end gap-2">
                         {canManageSrs ? (
                           <>
                             {Number(sr.currentDue) > 0 ? (

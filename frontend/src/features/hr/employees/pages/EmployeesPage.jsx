@@ -113,7 +113,7 @@ export default function EmployeesPage() {
                     </td>
                     {canManage ? (
                       <td className="table-cell">
-                        <div className="flex justify-end gap-2">
+                        <div className="row-actions flex justify-end gap-2">
                           <button type="button" className="icon-btn" onClick={() => setFormModal({ mode: 'edit', employee: emp })}>
                             <Pencil size={16} />
                           </button>

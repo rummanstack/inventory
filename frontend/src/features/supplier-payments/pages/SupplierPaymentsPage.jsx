@@ -133,7 +133,7 @@ export default function SupplierPaymentsPage() {
                   <td className="hidden table-cell lg:table-cell">{payment.note || '-'}</td>
                   <td className="table-cell no-print">
                     {canManagePayments ? (
-                      <div className="flex justify-end gap-2">
+                      <div className="row-actions flex justify-end gap-2">
                         <button type="button" className="icon-btn" title={t('common.edit')} onClick={() => setFormModal({ mode: 'edit', payment })}>
                           <Pencil size={16} />
                         </button>

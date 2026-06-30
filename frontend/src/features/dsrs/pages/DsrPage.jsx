@@ -183,7 +183,7 @@ export default function DsrPage() {
                     );
                   })()}
                   <td className="table-cell no-print">
-                    <div className="flex justify-end gap-2">
+                    <div className="row-actions flex justify-end gap-2">
                       {canManageDsrs ? (
                         <>
                           <button type="button" className="icon-btn" title={t('common.edit')} onClick={() => setDsrModal({ mode: 'edit', dsr })}>

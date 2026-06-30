@@ -185,7 +185,7 @@ export default function RetailCustomersPage() {
                     </td>
                     {canManage ? (
                       <td className="table-cell no-print">
-                        <div className="flex justify-end gap-2">
+                        <div className="row-actions flex justify-end gap-2">
                           <button type="button" className="icon-btn" title={t('common.edit')} onClick={() => setFormModal({ mode: 'edit', retailCustomer: customer })}>
                             <Pencil size={16} />
                           </button>

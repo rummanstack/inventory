@@ -468,7 +468,7 @@ export default function RepairJobsPage() {
                         <td className="hidden table-cell lg:table-cell">{job.technicianName || '-'}</td>
                         <td className="hidden table-cell lg:table-cell">{formatDateTime(job.receivedDate)}</td>
                         <td className="table-cell">
-                          <div className="flex justify-end gap-2">
+                          <div className="row-actions flex justify-end gap-2">
                             {canManage ? (
                               <>
                                 <button type="button" className="icon-btn text-amber-600 hover:text-amber-700" title={t('warrantyClaims.escalateFromRepairJob')} onClick={() => setEscalateModal({ jobId: job.id, jobNumber: job.jobNumber, productId: job.productId })}>

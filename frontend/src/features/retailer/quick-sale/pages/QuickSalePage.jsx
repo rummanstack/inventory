@@ -111,7 +111,7 @@ function CashSessionAmountModal({
             autoFocus
           />
         </label>
-        <div className="flex items-center justify-end gap-2">
+        <div className="row-actions flex items-center justify-end gap-2">
           <button type="button" className="btn-secondary" onClick={onClose} disabled={loading}>
             {t('common.cancel')}
           </button>

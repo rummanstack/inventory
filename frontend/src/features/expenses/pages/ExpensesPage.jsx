@@ -215,7 +215,7 @@ export default function ExpensesPage() {
                         </td>
                         {canManageExpenses ? (
                           <td className="table-cell">
-                            <div className="flex justify-end gap-2">
+                            <div className="row-actions flex justify-end gap-2">
                               <button type="button" className="icon-btn" title={t('common.edit')} onClick={() => setModal(expense)}>
                                 <Pencil size={16} />
                               </button>

@@ -192,7 +192,7 @@ export default function UsersPage() {
                       </div>
                     </td>
                     <td className="table-cell">
-                      <div className="flex justify-end gap-2">
+                      <div className="row-actions flex justify-end gap-2">
                         {manageableRoles.includes(user.role) ? (
                           <>
                             <button type="button" className="icon-btn" title={t('common.edit')} onClick={() => setUserModal({ mode: 'edit', user })}>

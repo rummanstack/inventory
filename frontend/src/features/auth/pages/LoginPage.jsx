@@ -1,20 +1,19 @@
 import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, KeyRound, Loader2, Lock, Mail } from 'lucide-react';
-import { Alert, ToastViewport } from '../../../components/ui';
+import { Alert } from '../../../components/ui';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import loginHero from '../../../assets/login-hero.png';
 import logoMark from '../../../assets/stockledger-logo-mark.svg';
 
 export default function LoginPage() {
-  const { login, forgotPassword, resetPassword, toasts, dismissToast, t } = useInventoryApp();
+  const { login, forgotPassword, resetPassword, t } = useInventoryApp();
   const [searchParams] = useSearchParams();
   const resetToken = searchParams.get('token') || '';
   const [view, setView] = useState(resetToken ? 'reset' : 'login');
 
   return (
     <div className="page-shell">
-      <ToastViewport toasts={toasts} onDismiss={dismissToast} />
       <div className="flex min-h-screen items-center justify-center bg-slate-100 px-4 py-8">
         <div className="grid w-full max-w-4xl overflow-hidden rounded-[28px] shadow-[0_24px_70px_rgba(var(--slate-900),0.18)] lg:grid-cols-2">
 

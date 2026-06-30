@@ -3,7 +3,7 @@ import { inventoryApi } from '../services/inventoryApi';
 import { getActiveTenantId, setActiveTenantId } from '../services/api/client.js';
 import { formatCurrency, formatDate, todayISO } from '../utils/calculations';
 import { useLanguage } from './hooks/useLanguage';
-import { useToasts } from './hooks/useToasts';
+import { pushToast } from './hooks/toast';
 import { useConfirmation } from './hooks/useConfirmation';
 import { useDirectories } from './hooks/useDirectories';
 
@@ -23,7 +23,6 @@ function getFriendlyError(error, t) {
 export function InventoryAppProvider({ children }) {
   const today = todayISO();
   const { language, setLanguage, t } = useLanguage();
-  const { toasts, pushToast, dismissToast } = useToasts();
   const { confirmation, confirm, closeConfirmation } = useConfirmation(t);
   const {
     productDirectory,
@@ -1263,9 +1262,7 @@ export function InventoryAppProvider({ children }) {
       promotionDirectory,
       loading,
       loadError,
-      toasts,
       pushToast,
-      dismissToast,
       confirmation,
       confirm,
       closeConfirmation,
@@ -1333,7 +1330,7 @@ export function InventoryAppProvider({ children }) {
       refreshPromotionDirectory,
       updateProfile,
     }),
-    [today, language, t, user, tenant, tenantOptions, permissions, authLoading, productDirectory, dsrDirectory, srDirectory, supplierDirectory, shopDirectory, retailCustomerDirectory, promotionDirectory, loading, loadError, toasts, confirmation],
+    [today, language, t, user, tenant, tenantOptions, permissions, authLoading, productDirectory, dsrDirectory, srDirectory, supplierDirectory, shopDirectory, retailCustomerDirectory, promotionDirectory, loading, loadError, confirmation],
   );
 
   return <InventoryAppContext.Provider value={value}>{children}</InventoryAppContext.Provider>;

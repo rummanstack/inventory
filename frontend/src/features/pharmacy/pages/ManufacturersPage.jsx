@@ -1,6 +1,6 @@
 import { Building2, Loader2, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
-import { Badge, EmptyState, Modal } from '../../../components/ui.jsx';
+import { Badge, EmptyState, Modal, SectionHeader } from '../../../components/ui.jsx';
 import { useManufacturersViewModel } from '../viewmodels/useManufacturersViewModel.js';
 
 const COUNTRIES = [
@@ -14,16 +14,16 @@ export default function ManufacturersPage() {
 
   return (
     <div className="space-y-6 p-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">{t('pharmacy.manufacturers')}</h1>
-          <p className="mt-1 text-sm text-slate-500">{t('pharmacy.manufacturersSubtitle')}</p>
-        </div>
-        <button className="btn-primary flex items-center gap-2" onClick={vm.openCreate}>
-          <Plus className="h-4 w-4" />
-          {t('pharmacy.addManufacturer')}
-        </button>
-      </div>
+      <SectionHeader
+        title={t('pharmacy.manufacturers')}
+        description={t('pharmacy.manufacturersSubtitle')}
+        action={
+          <button className="btn-primary flex items-center gap-2" onClick={vm.openCreate}>
+            <Plus className="h-4 w-4" />
+            {t('pharmacy.addManufacturer')}
+          </button>
+        }
+      />
 
       {vm.loading ? (
         <div className="flex justify-center py-16">

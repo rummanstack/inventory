@@ -37,7 +37,7 @@ export default function PurchaseReportPage() {
 
   return (
     <div>
-      <SectionHeader eyebrow="Reports" title="Purchase Report" description="Daily purchase summary with amounts paid and outstanding." />
+      <SectionHeader eyebrow={t('nav.reports')} title="Purchase Report" description="Daily purchase summary with amounts paid and outstanding." />
 
       {vm.loading ? (
         <>

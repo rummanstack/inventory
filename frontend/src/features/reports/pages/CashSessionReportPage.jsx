@@ -44,7 +44,7 @@ export default function CashSessionReportPage() {
 
   return (
     <div>
-      <SectionHeader eyebrow="Reports" title="Cash Session Report" description="Retail cash session history with opening/closing balances." />
+      <SectionHeader eyebrow={t('nav.reports')} title="Cash Session Report" description="Retail cash session history with opening/closing balances." />
 
       {vm.loading ? (
         <>

@@ -7,9 +7,31 @@ import { cx } from './utils.js';
 export function Modal({ title, description, children, onClose, width = 'max-w-2xl' }) {
   const { t } = useInventoryApp();
 
+  // ESC to close
+  useEffect(() => {
+    function onKeyDown(e) {
+      if (e.key === 'Escape') onClose();
+    }
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [onClose]);
+
+  // Body scroll lock
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = prev; };
+  }, []);
+
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 p-4 backdrop-blur-[10px] no-print">
-      <div className={cx('panel-strong modal-enter w-full overflow-hidden', width)}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 p-4 backdrop-blur-[10px] no-print"
+      onClick={onClose}
+    >
+      <div
+        className={cx('panel-strong modal-enter w-full overflow-hidden', width)}
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex items-start justify-between border-b border-slate-100 bg-slate-50/80 px-5 py-4">
           <div>
             <h2 className="text-lg font-bold text-slate-950">{title}</h2>
@@ -51,14 +73,28 @@ export function ConfirmationDialog({
   const [reason, setReason] = useState('');
 
   useEffect(() => {
-    if (open) {
-      setReason('');
-    }
+    if (open) setReason('');
   }, [open]);
 
-  if (!open) {
-    return null;
-  }
+  // ESC to cancel
+  useEffect(() => {
+    if (!open) return;
+    function onKeyDown(e) {
+      if (e.key === 'Escape') onCancel();
+    }
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [open, onCancel]);
+
+  // Body scroll lock
+  useEffect(() => {
+    if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = prev; };
+  }, [open]);
+
+  if (!open) return null;
 
   const toneIcon = {
     rose: AlertTriangle,
@@ -90,8 +126,14 @@ export function ConfirmationDialog({
   };
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/45 p-4 backdrop-blur-[10px] no-print">
-      <div className="panel-strong modal-enter w-full max-w-lg overflow-hidden">
+    <div
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/45 p-4 backdrop-blur-[10px] no-print"
+      onClick={onCancel}
+    >
+      <div
+        className="panel-strong modal-enter w-full max-w-lg overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="border-b border-slate-100 bg-slate-50/80 px-5 py-5">
           <div className="flex items-start gap-3">
             <div className={cx('rounded-2xl p-2.5', tones[tone] || tones.rose)}>

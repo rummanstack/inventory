@@ -36,7 +36,7 @@ export default function SalesReturnReportPage() {
 
   return (
     <div>
-      <SectionHeader eyebrow="Reports" title="Sales Return Report" description="Daily sales return summary with profit impact." />
+      <SectionHeader eyebrow={t('nav.reports')} title="Sales Return Report" description="Daily sales return summary with profit impact." />
 
       {vm.loading ? (
         <>

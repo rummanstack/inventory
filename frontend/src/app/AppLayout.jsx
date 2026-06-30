@@ -10,6 +10,8 @@ import { getRouteLabel } from './routes';
 import TopHeader from './TopHeader';
 
 const SIDEBAR_COLLAPSED_KEY = 'stockledger.sidebarCollapsed';
+const RECENT_PAGES_KEY = 'stockledger.recentPages';
+const MAX_RECENT = 5;
 
 export default function AppLayout() {
   const location = useLocation();
@@ -42,6 +44,15 @@ export default function AppLayout() {
   }, []);
 
   const { today, user, tenant, tenantOptions, switchTenant, loading, loadError, toasts, dismissToast, logout, t, language, setLanguage, can, hasFeature, confirmation, closeConfirmation, productDirectory } = useInventoryApp();
+
+  useEffect(() => {
+    if (!user || !location.pathname || location.pathname === '/') return;
+    try {
+      const stored = JSON.parse(localStorage.getItem(RECENT_PAGES_KEY) || '[]');
+      const updated = [location.pathname, ...stored.filter((p) => p !== location.pathname)].slice(0, MAX_RECENT);
+      localStorage.setItem(RECENT_PAGES_KEY, JSON.stringify(updated));
+    } catch {}
+  }, [location.pathname, user]);
 
   if (loading) {
     return <PageLoadingState title={t('app.brand')} description={t('status.loadingData')} />;
@@ -96,7 +107,7 @@ export default function AppLayout() {
       {location.pathname !== '/help-desk' && (
         <button
           onClick={() => navigate('/help-desk')}
-          className="fixed bottom-6 right-6 z-50 flex h-13 w-13 items-center justify-center rounded-full bg-indigo-600 text-white shadow-lg hover:bg-indigo-700 active:scale-95 transition-all"
+          className="fixed bottom-6 right-6 z-50 flex h-13 w-13 items-center justify-center rounded-full bg-[var(--secondary)] text-white shadow-lg hover:bg-[var(--secondary-strong)] active:scale-95 transition-all"
           title={t('nav.helpDesk')}
         >
           <HelpCircle className="h-6 w-6" />

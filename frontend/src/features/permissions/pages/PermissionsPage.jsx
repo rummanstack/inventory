@@ -231,7 +231,7 @@ export default function PermissionsPage() {
         {rolePermissions.map((entry) => (
           <div key={entry.role} className="panel-strong space-y-4 p-6">
             <div className="flex items-center justify-between gap-3">
-              <h2 className="text-base font-bold text-slate-950">{t(`permissions.roles.${entry.role}`)}</h2>
+              <h2 className="section-title">{t(`permissions.roles.${entry.role}`)}</h2>
               <button type="button" className="btn-primary h-9 px-3" onClick={() => handleSave(entry.role)} disabled={savingRole === entry.role}>
                 {savingRole === entry.role ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
                 {t('common.save')}

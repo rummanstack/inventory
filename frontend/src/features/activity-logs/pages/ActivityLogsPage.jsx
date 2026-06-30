@@ -129,7 +129,7 @@ export default function ActivityLogsPage() {
       <div id={ACTIVITY_LOGS_PRINT_ID} className="surface mt-6 overflow-hidden print-target">
         <div className="border-b border-slate-100 px-5 py-4">
           <div className="flex items-center justify-between gap-3">
-            <h2 className="text-base font-bold text-slate-950">{t('activityLogs.tableTitle')}</h2>
+            <h2 className="section-title">{t('activityLogs.tableTitle')}</h2>
             <div className="flex items-center gap-2 no-print">
               <span className="muted-chip">{formatNumber(vm.total)} {t('common.records')}</span>
               <button

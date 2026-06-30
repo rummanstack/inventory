@@ -3,16 +3,13 @@ import { getCssVar } from '../../utils/theme.js';
 import { Sparkline } from './charts.jsx';
 import { cx } from './utils.js';
 
-export function SectionHeader({ eyebrow, description, action }) {
+export function SectionHeader({ eyebrow, title, description, action }) {
   return (
     <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
       <div>
-        {eyebrow ? (
-          <p className="brand-chip">
-            {eyebrow}
-          </p>
-        ) : null}
-        {description ? <p className="mt-2 max-w-3xl text-sm font-medium leading-6 text-slate-500">{description}</p> : null}
+        {eyebrow ? <p className="brand-chip">{eyebrow}</p> : null}
+        {title ? <h1 className="page-title mt-2">{title}</h1> : null}
+        {description ? <p className="mt-1.5 max-w-2xl text-sm font-medium leading-6 text-slate-500">{description}</p> : null}
       </div>
       {action ? <div className="flex shrink-0 flex-wrap gap-2">{action}</div> : null}
     </div>

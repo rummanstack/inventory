@@ -170,7 +170,7 @@ export default function ExpensesPage() {
             <div id="expenses-daily-print" className="surface overflow-hidden">
               <div className="border-b border-slate-100 px-5 py-4">
                 <div className="flex items-center justify-between gap-3">
-                  <h2 className="text-base font-bold text-slate-950">{t('expenses.dailyExpenseList', { date: formatDate(vm.date) })}</h2>
+                  <h2 className="section-title">{t('expenses.dailyExpenseList', { date: formatDate(vm.date) })}</h2>
                   <div className="flex items-center gap-2">
                     <span className="muted-chip">{formatNumber(dailyAll.length)} {t('common.records')}</span>
                     <button
@@ -246,7 +246,7 @@ export default function ExpensesPage() {
             <div id="expenses-monthly-print" className="surface overflow-hidden">
               <div className="border-b border-slate-100 px-5 py-4">
                 <div className="flex items-center justify-between gap-3">
-                  <h2 className="text-base font-bold text-slate-950">{t('expenses.monthlyExpenseList', { month: vm.month })}</h2>
+                  <h2 className="section-title">{t('expenses.monthlyExpenseList', { month: vm.month })}</h2>
                   <div className="flex items-center gap-2">
                     <span className="muted-chip">{formatNumber(monthlyAll.length)} {t('common.records')}</span>
                     <button

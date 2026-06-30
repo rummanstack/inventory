@@ -219,7 +219,7 @@ export default function IssueCenterPage() {
 
       <div className="surface overflow-hidden">
         <div className="border-b border-slate-100 px-5 py-4">
-          <h2 className="text-base font-bold text-slate-950">{t('issueCenter.smartAlertsTitle')}</h2>
+          <h2 className="section-title">{t('issueCenter.smartAlertsTitle')}</h2>
           <p className="mt-1 text-sm text-slate-500">{t('issueCenter.smartAlertsDescription')}</p>
         </div>
         {smartAlertsError ? <div className="p-5"><Alert type="error">{smartAlertsError}</Alert></div> : null}
@@ -305,7 +305,7 @@ export default function IssueCenterPage() {
             <div className="border-b border-slate-100 px-5 py-4">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <h2 className="text-base font-bold text-slate-950">{t('issueCenter.criticalTitle')}</h2>
+                  <h2 className="section-title">{t('issueCenter.criticalTitle')}</h2>
                   <p className="mt-1 text-sm text-slate-500">{t('issueCenter.criticalDescription')}</p>
                 </div>
                 <button type="button" className="btn-secondary h-9 px-3" onClick={() => navigate('/products')}>
@@ -367,7 +367,7 @@ export default function IssueCenterPage() {
             <div className="border-b border-slate-100 px-5 py-4">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <h2 className="text-base font-bold text-slate-950">{t('issueCenter.recentFixes')}</h2>
+                  <h2 className="section-title">{t('issueCenter.recentFixes')}</h2>
                   <p className="mt-1 text-sm text-slate-500">{t('issueCenter.recentFixesDescription')}</p>
                 </div>
                 <button type="button" className="btn-secondary h-9 px-3" onClick={() => navigate('/activity-logs')}>
@@ -422,7 +422,7 @@ export default function IssueCenterPage() {
         <div className="space-y-6">
           <div className="surface overflow-hidden">
             <div className="border-b border-slate-100 px-5 py-4">
-              <h2 className="text-base font-bold text-slate-950">{t('issueCenter.quickActions')}</h2>
+              <h2 className="section-title">{t('issueCenter.quickActions')}</h2>
               <p className="mt-1 text-sm text-slate-500">{t('issueCenter.quickActionsDescription')}</p>
             </div>
             <div className="grid gap-3 p-5 sm:grid-cols-2">
@@ -447,7 +447,7 @@ export default function IssueCenterPage() {
 
           <div className="surface overflow-hidden">
             <div className="border-b border-slate-100 px-5 py-4">
-              <h2 className="text-base font-bold text-slate-950">{t('issueCenter.selectedTitle')}</h2>
+              <h2 className="section-title">{t('issueCenter.selectedTitle')}</h2>
               <p className="mt-1 text-sm text-slate-500">{t('issueCenter.selectedDescription')}</p>
             </div>
             <div className="p-5">

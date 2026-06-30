@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Save } from 'lucide-react';
 import { Alert, Modal } from '../../../components/ui.jsx';
 import PhotoUploadField from '../../../components/PhotoUploadField.jsx';
+import PasswordInput from '../../../components/PasswordInput.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import { useFormState } from '../../../hooks/useFormState';
@@ -108,7 +109,7 @@ export default function UserFormModal({ user, onClose, onSave }) {
           </div>
           <div>
             <label className="label">{t('users.password')}</label>
-            <input type="password" className="input" value={form.password} onChange={(event) => updateField('password', event.target.value)} placeholder={isEdit ? t('users.passwordHintEdit') : t('users.password')} />
+            <PasswordInput value={form.password} onChange={(event) => updateField('password', event.target.value)} placeholder={isEdit ? t('users.passwordHintEdit') : t('users.password')} />
           </div>
           <div>
             <label className="label">{t('users.role')}</label>

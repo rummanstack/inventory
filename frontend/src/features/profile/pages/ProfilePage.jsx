@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Loader2, Save } from 'lucide-react';
 import { Badge, SectionHeader } from '../../../components/ui.jsx';
 import PhotoUploadField from '../../../components/PhotoUploadField.jsx';
+import PasswordInput from '../../../components/PasswordInput.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 
 export default function ProfilePage() {
@@ -71,9 +72,7 @@ export default function ProfilePage() {
 
         <label className="block">
           <span className="label">{t('profile.newPassword')}</span>
-          <input
-            className="input"
-            type="password"
+          <PasswordInput
             value={form.password}
             onChange={(e) => handleChange('password', e.target.value)}
             placeholder={t('profile.newPasswordHint')}
@@ -82,9 +81,7 @@ export default function ProfilePage() {
 
         <label className="block">
           <span className="label">{t('profile.currentPassword')}</span>
-          <input
-            className="input"
-            type="password"
+          <PasswordInput
             value={form.currentPassword}
             onChange={(e) => handleChange('currentPassword', e.target.value)}
             placeholder={t('profile.currentPasswordHint')}

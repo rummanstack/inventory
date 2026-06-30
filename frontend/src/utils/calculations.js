@@ -125,16 +125,22 @@ export function formatTime(date, language = getPreferredLanguage()) {
 export function formatDateTime(date, language = getPreferredLanguage()) {
   if (!date) return '';
 
-  const value = date instanceof Date ? date : new Date(date);
-  if (Number.isNaN(value.getTime())) {
-    return '';
-  }
+  // Date-only strings (YYYY-MM-DD) must be parsed as local midnight, not UTC,
+  // otherwise UTC+6 users see "6:00 AM" instead of a plain date with no time.
+  const isDateOnly = typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date);
+  const value = date instanceof Date
+    ? date
+    : new Date(isDateOnly ? `${date}T00:00:00` : date);
+
+  if (Number.isNaN(value.getTime())) return '';
 
   const datePart = new Intl.DateTimeFormat(getLocale(language), {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
   }).format(value);
+
+  if (isDateOnly) return datePart;
 
   const timePart = new Intl.DateTimeFormat('en', {
     hour: 'numeric',

@@ -8,8 +8,8 @@ export function createSalesReturnsRoutes(salesReturnController) {
   router.use(requireFeature("retailer-sales-return"));
 
   router.get("/reports", requireFeature("sales-return-report"), requirePermission(PERMISSIONS.MANAGE_RETAIL_SALES_RETURNS), salesReturnController.salesReturnReport);
-  router.get("/", requirePermission(PERMISSIONS.MANAGE_RETAIL_SALES_RETURNS), salesReturnController.list);
-  router.get("/:id", requirePermission(PERMISSIONS.MANAGE_RETAIL_SALES_RETURNS), salesReturnController.get);
+  router.get("/", requirePermission(PERMISSIONS.VIEW_RETAIL_SALES_RETURNS), salesReturnController.list);
+  router.get("/:id", requirePermission(PERMISSIONS.VIEW_RETAIL_SALES_RETURNS), salesReturnController.get);
   router.post("/", requirePermission(PERMISSIONS.MANAGE_RETAIL_SALES_RETURNS), salesReturnController.create);
 
   return router;

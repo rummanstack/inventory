@@ -102,7 +102,7 @@ export default function CommandPalette({ open, onClose }) {
     if (!q) return [];
     const results = [];
 
-    if (hasFeature('products') && can('view_state')) {
+    if (hasFeature('products') && can('view_products')) {
       productDirectory
         .filter((p) => match(p.name) || match(p.sku) || match(p.brand) || match(p.model) || match(p.category))
         .slice(0, 5)
@@ -115,7 +115,7 @@ export default function CommandPalette({ open, onClose }) {
         }));
     }
 
-    if (hasFeature('dsrs') && can('view_state')) {
+    if (hasFeature('dsrs') && can('view_dsrs')) {
       dsrDirectory
         .filter((d) => match(d.name) || match(d.phone) || match(d.area))
         .slice(0, 4)
@@ -128,7 +128,7 @@ export default function CommandPalette({ open, onClose }) {
         }));
     }
 
-    if (hasFeature('customers') && can('view_state')) {
+    if (hasFeature('customers') && can('view_customers')) {
       shopDirectory
         .filter((s) => match(s.name) || match(s.phone) || match(s.area))
         .slice(0, 4)
@@ -141,7 +141,7 @@ export default function CommandPalette({ open, onClose }) {
         }));
     }
 
-    if (hasFeature('retail-customers') && can('view_state')) {
+    if (hasFeature('retail-customers') && can('view_retail_customers')) {
       retailCustomerDirectory
         .filter((c) => match(c.name) || match(c.phone))
         .slice(0, 4)
@@ -154,7 +154,7 @@ export default function CommandPalette({ open, onClose }) {
         }));
     }
 
-    if (hasFeature('suppliers') && can('manage_suppliers')) {
+    if (hasFeature('suppliers') && can('view_suppliers')) {
       supplierDirectory
         .filter((s) => match(s.name) || match(s.phone))
         .slice(0, 4)
@@ -167,7 +167,7 @@ export default function CommandPalette({ open, onClose }) {
         }));
     }
 
-    if (hasFeature('srs') && can('manage_srs')) {
+    if (hasFeature('srs') && can('view_srs')) {
       srDirectory
         .filter((s) => match(s.name) || match(s.phone))
         .slice(0, 4)

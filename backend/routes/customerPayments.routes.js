@@ -8,8 +8,8 @@ export function createCustomerPaymentsRoutes(customerPaymentController) {
   router.use(requireFeature("retailer-due-collection"));
 
   router.get("/trash", requirePermission(PERMISSIONS.MANAGE_RETAIL_DUE_COLLECTION), customerPaymentController.listTrash);
-  router.get("/", requirePermission(PERMISSIONS.MANAGE_RETAIL_DUE_COLLECTION), customerPaymentController.list);
-  router.get("/:id", requirePermission(PERMISSIONS.MANAGE_RETAIL_DUE_COLLECTION), customerPaymentController.get);
+  router.get("/", requirePermission(PERMISSIONS.VIEW_RETAIL_DUE_COLLECTION), customerPaymentController.list);
+  router.get("/:id", requirePermission(PERMISSIONS.VIEW_RETAIL_DUE_COLLECTION), customerPaymentController.get);
   router.post("/", requirePermission(PERMISSIONS.MANAGE_RETAIL_DUE_COLLECTION), customerPaymentController.create);
   router.put("/:id", requirePermission(PERMISSIONS.MANAGE_RETAIL_DUE_COLLECTION), customerPaymentController.update);
   router.delete("/:id", requirePermission(PERMISSIONS.MANAGE_RETAIL_DUE_COLLECTION), customerPaymentController.remove);

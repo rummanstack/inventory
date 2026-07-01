@@ -1,5 +1,5 @@
 import { Download, FileSpreadsheet, Printer, ArrowLeftRight } from 'lucide-react';
-import { Alert, EmptyState, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton } from '../../../components/ui.jsx';
+import { Alert, EmptyState, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../services/printService.js';
@@ -70,10 +70,10 @@ export default function StockMovementReportPage() {
             </div>
             <div>
               <label className="label">Movement Type</label>
-              <select className="input" value={vm.type} onChange={(e) => vm.setType(e.target.value)}>
+              <Select className="input" value={vm.type} onChange={(e) => vm.setType(e.target.value)}>
                 <option value="">All Types</option>
                 {MOVEMENT_TYPES.map((mt) => <option key={mt} value={mt}>{mt}</option>)}
-              </select>
+              </Select>
             </div>
           </div>
 
@@ -136,3 +136,4 @@ export default function StockMovementReportPage() {
     </div>
   );
 }
+

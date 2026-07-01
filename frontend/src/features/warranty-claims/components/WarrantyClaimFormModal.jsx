@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Save, Search } from 'lucide-react';
-import { Alert, Modal } from '../../../components/ui.jsx';
+import { Alert, Modal, Select } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { useFormState } from '../../../hooks/useFormState';
@@ -178,12 +178,12 @@ export default function WarrantyClaimFormModal({ claim, onClose, onSave, prefill
                 </div>
               ) : null}
               <p className="mt-2 text-xs font-medium text-slate-500">{t('warrantyClaims.manualProductHint')}</p>
-              <select className="input mt-2" value={form.productId} onChange={(event) => { updateField('productId', event.target.value); updateField('productSerialId', ''); }}>
+              <Select className="input mt-2" value={form.productId} onChange={(event) => { updateField('productId', event.target.value); updateField('productSerialId', ''); }}>
                 <option value="">{t('warrantyClaims.selectProduct')}</option>
                 {productDirectory.filter((product) => !product.serialRequired).map((product) => (
                   <option key={product.id} value={product.id}>{product.name}</option>
                 ))}
-              </select>
+              </Select>
             </div>
           </>
         )}
@@ -197,21 +197,21 @@ export default function WarrantyClaimFormModal({ claim, onClose, onSave, prefill
           ) : (
             <div>
               <label className="label">{t('warrantyClaims.statusLabel')}</label>
-              <select className="input" value={form.status} onChange={(event) => updateField('status', event.target.value)}>
+              <Select className="input" value={form.status} onChange={(event) => updateField('status', event.target.value)}>
                 {STATUS_VALUES.map((value) => (
                   <option key={value} value={value}>{t(`warrantyClaims.statuses.${value}`)}</option>
                 ))}
-              </select>
+              </Select>
             </div>
           )}
           <div>
             <label className="label">{t('warrantyClaims.supplierLabel')}</label>
-            <select className="input" value={form.supplierId} onChange={(event) => updateField('supplierId', event.target.value)}>
+            <Select className="input" value={form.supplierId} onChange={(event) => updateField('supplierId', event.target.value)}>
               <option value="">{t('warrantyClaims.noSupplier')}</option>
               {supplierDirectory.map((supplier) => (
                 <option key={supplier.id} value={supplier.id}>{supplier.name}</option>
               ))}
-            </select>
+            </Select>
           </div>
           <div className="sm:col-span-2">
             <label className="label">{t('warrantyClaims.problemNoteLabel')}</label>
@@ -263,3 +263,4 @@ export default function WarrantyClaimFormModal({ claim, onClose, onSave, prefill
     </Modal>
   );
 }
+

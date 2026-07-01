@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Plus, Save, Trash2 } from 'lucide-react';
-import { Alert, Modal } from '../../../components/ui.jsx';
+import { Alert, Modal, Select } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { formatCurrency } from '../../../utils/calculations.js';
@@ -75,12 +75,12 @@ export default function PurchaseReceiveFormModal({ purchaseReceipt, onClose, onS
                 </button>
               )}
             </div>
-            <select className="input" value={supplierId} onChange={(event) => setSupplierId(event.target.value)} disabled={vm.isEdit}>
+            <Select className="input" value={supplierId} onChange={(event) => setSupplierId(event.target.value)} disabled={vm.isEdit}>
               <option value="">{t('purchaseReceive.selectSupplier')}</option>
               {supplierDirectory.map((supplier) => (
                 <option key={supplier.id} value={supplier.id}>{supplier.name}</option>
               ))}
-            </select>
+            </Select>
           </div>
           <div>
             <label className="label">{t('purchaseReceive.purchaseDateLabel')}</label>
@@ -109,11 +109,11 @@ export default function PurchaseReceiveFormModal({ purchaseReceipt, onClose, onS
                     <div className={isElectronics ? 'grid gap-3 lg:grid-cols-[minmax(0,1.8fr)_minmax(110px,0.6fr)_minmax(110px,0.6fr)_minmax(110px,0.6fr)_auto]' : 'grid gap-3 lg:grid-cols-[minmax(0,1.8fr)_minmax(110px,0.6fr)_minmax(110px,0.6fr)_minmax(110px,0.6fr)_minmax(110px,0.6fr)_auto]'}>
                       <div>
                         <label className="label">{t('products.product')}</label>
-                        <select className="input" value={row.productId} onChange={(event) => vm.updateItem(row.rowId, 'productId', event.target.value)}>
+                        <Select className="input" value={row.productId} onChange={(event) => vm.updateItem(row.rowId, 'productId', event.target.value)}>
                           {availableProducts.map((product) => (
                             <option key={product.id} value={product.id}>{product.name}</option>
                           ))}
-                        </select>
+                        </Select>
                         {!isElectronics ? <p className="mt-1 text-xs font-semibold text-slate-500">{row.piecesPerCase} {t('common.pcsPerCase')}</p> : null}
                       </div>
                       {!isElectronics ? (
@@ -235,11 +235,11 @@ export default function PurchaseReceiveFormModal({ purchaseReceipt, onClose, onS
           <div className="space-y-4">
             <div>
               <label className="label">{t('purchaseReceive.paymentMethodLabel')}</label>
-              <select className="input" value={vm.paymentMethod} onChange={(event) => vm.setPaymentMethod(event.target.value)}>
+              <Select className="input" value={vm.paymentMethod} onChange={(event) => vm.setPaymentMethod(event.target.value)}>
                 <option value="CASH">{t('purchaseReceive.paymentMethods.CASH')}</option>
                 <option value="MOBILE_BANKING">{t('purchaseReceive.paymentMethods.MOBILE_BANKING')}</option>
                 <option value="CHEQUE">{t('purchaseReceive.paymentMethods.CHEQUE')}</option>
-              </select>
+              </Select>
             </div>
             <div className="sm:col-span-3">
               <label className="label">{t('purchaseReceive.noteLabel')}</label>
@@ -284,3 +284,4 @@ export default function PurchaseReceiveFormModal({ purchaseReceipt, onClose, onS
     </>
   );
 }
+

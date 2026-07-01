@@ -1,5 +1,5 @@
 import { ClipboardList, Download, FileSpreadsheet, Printer, Search } from 'lucide-react';
-import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
+import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../services/printService.js';
@@ -88,14 +88,14 @@ export default function ActivityLogsPage() {
           <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <div>
               <label className="label">{t('activityLogs.filterModule')}</label>
-              <select className="input" value={vm.module} onChange={(event) => vm.setModule(event.target.value)}>
+              <Select className="input" value={vm.module} onChange={(event) => vm.setModule(event.target.value)}>
                 <option value="">{t('activityLogs.allModules')}</option>
                 {AUDIT_MODULES.map((moduleKey) => (
                   <option key={moduleKey} value={moduleKey}>
                     {t(`activityLogs.modules.${moduleKey}`)}
                   </option>
                 ))}
-              </select>
+              </Select>
             </div>
             <div>
               <label className="label">{t('activityLogs.filterAction')}</label>
@@ -112,14 +112,14 @@ export default function ActivityLogsPage() {
             {vm.canFilterByOrg ? (
               <div>
                 <label className="label">{t('activityLogs.filterOrganization')}</label>
-                <select className="input" value={vm.tenantId} onChange={(event) => vm.setTenantId(event.target.value)}>
+                <Select className="input" value={vm.tenantId} onChange={(event) => vm.setTenantId(event.target.value)}>
                   <option value="">{t('activityLogs.allOrganizations')}</option>
                   {vm.tenants.map((tenant) => (
                     <option key={tenant.id} value={tenant.id}>
                       {tenant.name}
                     </option>
                   ))}
-                </select>
+                </Select>
               </div>
             ) : null}
           </div>
@@ -229,3 +229,4 @@ export default function ActivityLogsPage() {
     </div>
   );
 }
+

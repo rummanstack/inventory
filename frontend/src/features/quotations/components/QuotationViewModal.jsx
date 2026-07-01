@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ArrowRight, Printer, RefreshCw } from 'lucide-react';
-import { Alert, Badge, Modal } from '../../../components/ui.jsx';
+import { Alert, Badge, Modal, Select } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { quotationStatusTone } from '../../../models/inventoryViewData.js';
@@ -191,11 +191,11 @@ export default function QuotationViewModal({ quotation, onClose, onConverted }) 
               />
               <div>
                 <label className="label">{t('quotations.paymentMethodLabel')}</label>
-                <select className="input" value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)}>
+                <Select className="input" value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)}>
                   {PAYMENT_METHODS.map((m) => (
                     <option key={m} value={m}>{m.replace('_', ' ')}</option>
                   ))}
-                </select>
+                </Select>
               </div>
               <div>
                 <label className="label">{t('quotations.paidAmountLabel')}</label>
@@ -239,3 +239,4 @@ export default function QuotationViewModal({ quotation, onClose, onConverted }) 
     </>
   );
 }
+

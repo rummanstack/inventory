@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ClipboardList, Download, FileSpreadsheet, Printer, RefreshCw } from 'lucide-react';
-import { Alert, Badge, EmptyState, Pagination, TableSkeleton } from '../../../components/ui.jsx';
+import { Alert, Badge, EmptyState, Pagination, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import { downloadSheetPdf } from '../../../services/printService.js';
@@ -160,14 +160,14 @@ export default function StockLedgerPanel({ products, t, refreshKey = 0, fixedTyp
         <div className="mt-5 grid gap-4 lg:grid-cols-[1.2fr_1fr_1fr]">
           <div>
             <label className="label">{t('stockLedger.product')}</label>
-            <select className="input" value={productId} onChange={(event) => setProductId(event.target.value)}>
+            <Select className="input" value={productId} onChange={(event) => setProductId(event.target.value)}>
               <option value="">{t('stockLedger.allProducts')}</option>
               {products.map((product) => (
                 <option key={product.id} value={product.id}>
                   {product.name}
                 </option>
               ))}
-            </select>
+            </Select>
           </div>
           <div>
             <label className="label">{t('stockLedger.dateFrom')}</label>
@@ -256,3 +256,4 @@ export default function StockLedgerPanel({ products, t, refreshKey = 0, fixedTyp
     </section>
   );
 }
+

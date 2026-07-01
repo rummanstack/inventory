@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Boxes, Download, FileSpreadsheet, ImageOff, LayoutGrid, List, ListTree, PackagePlus, Pencil, Plus, Printer, Search, Trash2 } from 'lucide-react';
-import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton, cx } from '../../../components/ui.jsx';
+import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton, cx, Select } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { formatCasePiece, formatCurrency, formatNumber } from '../../../utils/calculations.js';
 import ProductFormModal from '../components/ProductFormModal';
@@ -158,12 +158,12 @@ export default function ProductsPage() {
               <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
               <input className="input pl-10" value={vm.search} onChange={(event) => vm.setSearch(event.target.value)} placeholder={t('products.searchPlaceholder')} />
             </div>
-            <select className="input sm:w-48" value={vm.categoryId} onChange={(event) => vm.setCategoryId(event.target.value)}>
+            <Select className="input sm:w-48" value={vm.categoryId} onChange={(event) => vm.setCategoryId(event.target.value)}>
               <option value="">{t('categories.allCategories')}</option>
               {categoryOptions.map((category) => (
                 <option key={category.id} value={category.id}>{category.name}</option>
               ))}
-            </select>
+            </Select>
             <div className="no-print flex shrink-0 items-center gap-1 self-start rounded-xl border border-slate-200 bg-white p-1">
               <button
                 type="button"
@@ -407,3 +407,4 @@ export default function ProductsPage() {
     </div>
   );
 }
+

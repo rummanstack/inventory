@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Save } from 'lucide-react';
-import { Alert, Modal } from '../../../components/ui.jsx';
+import { Alert, Modal, Select } from '../../../components/ui.jsx';
 import PhotoUploadField from '../../../components/PhotoUploadField.jsx';
 import PasswordInput from '../../../components/PasswordInput.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
@@ -113,29 +113,29 @@ export default function UserFormModal({ user, onClose, onSave }) {
           </div>
           <div>
             <label className="label">{t('users.role')}</label>
-            <select className="input" value={form.role} onChange={(event) => updateField('role', event.target.value)}>
+            <Select className="input" value={form.role} onChange={(event) => updateField('role', event.target.value)}>
               {roleOptions.map((role) => (
                 <option key={role} value={role}>{t(`permissions.roles.${role}`)}</option>
               ))}
-            </select>
+            </Select>
           </div>
           {needsTenant ? (
             <div>
               <label className="label">{t('users.tenant')}</label>
-              <select className="input" value={form.tenantId} onChange={(event) => updateField('tenantId', event.target.value)}>
+              <Select className="input" value={form.tenantId} onChange={(event) => updateField('tenantId', event.target.value)}>
                 <option value="">{t('users.selectTenant')}</option>
                 {tenants.map((tenant) => (
                   <option key={tenant.id} value={tenant.id}>{tenant.name}</option>
                 ))}
-              </select>
+              </Select>
             </div>
           ) : null}
           <div>
             <label className="label">{t('users.status')}</label>
-            <select className="input" value={form.status} onChange={(event) => updateField('status', event.target.value)}>
+            <Select className="input" value={form.status} onChange={(event) => updateField('status', event.target.value)}>
               <option value="active">{t('users.statusActive')}</option>
               <option value="inactive">{t('users.statusInactive')}</option>
-            </select>
+            </Select>
           </div>
         </div>
         <div className="flex justify-end gap-2 pt-2">
@@ -151,3 +151,4 @@ export default function UserFormModal({ user, onClose, onSave }) {
     </Modal>
   );
 }
+

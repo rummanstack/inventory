@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Save } from 'lucide-react';
-import { Alert, Modal } from '../../../components/ui.jsx';
+import { Alert, Modal, Select } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { useFormState } from '../../../hooks/useFormState';
@@ -169,31 +169,31 @@ export default function RepairJobFormModal({ job, onClose, onSave }) {
             <>
               <div>
                 <label className="label">{t('repairJobs.statusLabel')}</label>
-                <select className="input" value={form.status} onChange={(event) => updateField('status', event.target.value)}>
+                <Select className="input" value={form.status} onChange={(event) => updateField('status', event.target.value)}>
                   {JOB_STATUS_VALUES.map((value) => (
                     <option key={value} value={value}>{t(`repairJobs.statuses.${value}`)}</option>
                   ))}
-                </select>
+                </Select>
               </div>
               <div>
                 <label className="label">{t('repairJobs.approvalStatusLabel')}</label>
-                <select className="input" value={form.approvalStatus} onChange={(event) => updateField('approvalStatus', event.target.value)}>
+                <Select className="input" value={form.approvalStatus} onChange={(event) => updateField('approvalStatus', event.target.value)}>
                   {APPROVAL_STATUS_VALUES.map((value) => (
                     <option key={value} value={value}>{t(`repairJobs.approvalStatuses.${value}`)}</option>
                   ))}
-                </select>
+                </Select>
               </div>
             </>
           ) : null}
 
           <div>
             <label className="label">{t('repairJobs.technicianLabel')}</label>
-            <select className="input" value={form.technicianId} onChange={(event) => updateField('technicianId', event.target.value)}>
+            <Select className="input" value={form.technicianId} onChange={(event) => updateField('technicianId', event.target.value)}>
               <option value="">{t('repairJobs.noTechnician')}</option>
               {technicians.map((user) => (
                 <option key={user.id} value={user.id}>{user.name}</option>
               ))}
-            </select>
+            </Select>
           </div>
 
           {!isEdit ? (
@@ -286,3 +286,4 @@ export default function RepairJobFormModal({ job, onClose, onSave }) {
     </Modal>
   );
 }
+

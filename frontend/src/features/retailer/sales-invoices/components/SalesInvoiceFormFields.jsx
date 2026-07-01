@@ -4,6 +4,7 @@ import { DatePickerField } from '../../../../components/DatePicker.jsx';
 import { formatCurrency } from '../../../../utils/calculations.js';
 import { inventoryApi } from '../../../../services/inventoryApi.js';
 import RetailCustomerFormModal from '../../../retail-customers/components/RetailCustomerFormModal.jsx';
+import { Select } from '../../../../components/ui.jsx';
 
 function matchesProductQuery(product, query) {
   const normalizedQuery = query.trim().toLowerCase();
@@ -130,10 +131,10 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, retail
       <div className="grid gap-4 sm:grid-cols-4">
         <div>
           <label className="label">{t('retailer.shared.saleTypeLabel')}</label>
-          <select className="input" value={vm.saleType} onChange={(e) => vm.setSaleType(e.target.value)} disabled={saving}>
+          <Select className="input" value={vm.saleType} onChange={(e) => vm.setSaleType(e.target.value)} disabled={saving}>
             <option value="RETAIL">{t('retailer.shared.saleTypes.RETAIL')}</option>
             <option value="WHOLESALE">{t('retailer.shared.saleTypes.WHOLESALE')}</option>
-          </select>
+          </Select>
         </div>
         <div>
           <label className="label">{t('retailer.shared.invoiceDateLabel')}</label>
@@ -141,10 +142,10 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, retail
         </div>
         <div>
           <label className="label">{t('retailer.shared.customerTypeLabel')}</label>
-          <select className="input" value={vm.customerType} onChange={(e) => vm.setCustomerType(e.target.value)} disabled={saving}>
+          <Select className="input" value={vm.customerType} onChange={(e) => vm.setCustomerType(e.target.value)} disabled={saving}>
             <option value="WALK_IN">{t('retailer.shared.customerTypes.WALK_IN')}</option>
             <option value="REGISTERED">{t('retailer.shared.customerTypes.REGISTERED')}</option>
-          </select>
+          </Select>
         </div>
         <div>
           <div className="mb-1 flex items-center justify-between">
@@ -156,12 +157,12 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, retail
               </button>
             )}
           </div>
-          <select className="input" value={vm.customerId} onChange={(e) => vm.setCustomerId(e.target.value)} disabled={saving || vm.customerType !== 'REGISTERED'}>
+          <Select className="input" value={vm.customerId} onChange={(e) => vm.setCustomerId(e.target.value)} disabled={saving || vm.customerType !== 'REGISTERED'}>
             <option value="">{t('retailer.shared.selectCustomer')}</option>
             {retailCustomerDirectory.map((customer) => (
               <option key={customer.id} value={customer.id}>{customer.name}</option>
             ))}
-          </select>
+          </Select>
           {vm.customerType === 'REGISTERED' && vm.selectedCustomer ? (() => {
             const due = Number(vm.selectedCustomer.totalSpent || 0) - Number(vm.selectedCustomer.totalPaid || 0);
             return due > 0
@@ -550,11 +551,11 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, retail
         <div className="space-y-4">
           <div>
             <label className="label">{t('purchaseReceive.paymentMethodLabel')}</label>
-            <select className="input" value={vm.paymentMethod} onChange={(e) => vm.setPaymentMethod(e.target.value)} disabled={saving}>
+            <Select className="input" value={vm.paymentMethod} onChange={(e) => vm.setPaymentMethod(e.target.value)} disabled={saving}>
               <option value="CASH">{t('purchaseReceive.paymentMethods.CASH')}</option>
               <option value="MOBILE_BANKING">{t('purchaseReceive.paymentMethods.MOBILE_BANKING')}</option>
               <option value="CHEQUE">{t('purchaseReceive.paymentMethods.CHEQUE')}</option>
-            </select>
+            </Select>
           </div>
           <div className="sm:col-span-4">
             <label className="label">{t('purchaseReceive.noteLabel')}</label>
@@ -581,3 +582,5 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, retail
     </>
   );
 }
+
+

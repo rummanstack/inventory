@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Download, HandCoins, Printer, RefreshCw, Wallet } from 'lucide-react';
-import { Alert, Badge, EmptyState, SectionHeader, StatCard, TableSkeleton } from '../../../components/ui.jsx';
+import { Alert, Badge, EmptyState, SectionHeader, StatCard, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../services/printService.js';
@@ -62,13 +62,13 @@ export default function DsrFinancePage() {
         <div className="grid gap-4 lg:grid-cols-[1.2fr_1fr_1fr_auto]">
           <div>
             <label className="label">{t('dsrDueLedger.dsr')}</label>
-            <select className="input" value={dueVm.dsrId} onChange={(event) => dueVm.setDsrId(event.target.value)}>
+            <Select className="input" value={dueVm.dsrId} onChange={(event) => dueVm.setDsrId(event.target.value)}>
               {dsrDirectory.map((dsr) => (
                 <option key={dsr.id} value={dsr.id}>
                   {dsr.name} - {dsr.area}
                 </option>
               ))}
-            </select>
+            </Select>
           </div>
           <div>
             <label className="label">{t('dsrDueLedger.dateFrom')}</label>
@@ -178,3 +178,4 @@ export default function DsrFinancePage() {
     </div>
   );
 }
+

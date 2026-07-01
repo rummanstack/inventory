@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ArrowLeftRight, Boxes, Download, FileSpreadsheet, HandCoins, Landmark, Plus, Printer, Scale, Trash2, Wallet } from 'lucide-react';
-import { Alert, Badge, EmptyState, Pagination, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton } from '../../../components/ui.jsx';
+import { Alert, Badge, EmptyState, Pagination, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../services/printService.js';
@@ -128,12 +128,12 @@ export default function FinanceAccountsPage() {
       <div id={FINANCE_ACCOUNTS_PRINT_ID} className="surface mt-6 overflow-hidden print-target">
         <div className="border-b border-slate-100 p-5 no-print">
           <div className="grid gap-3 sm:grid-cols-3">
-            <select className="input" value={vm.accountType} onChange={(event) => vm.setAccountType(event.target.value)}>
+            <Select className="input" value={vm.accountType} onChange={(event) => vm.setAccountType(event.target.value)}>
               <option value="">{t('financeAccounts.allAccounts')}</option>
               {vm.accounts.map((account) => (
                 <option key={account.type} value={account.type}>{account.name}</option>
               ))}
-            </select>
+            </Select>
             <DatePickerField value={vm.dateFrom} onChange={vm.setDateFrom} placeholder={t('financeAccounts.dateFrom')} />
             <DatePickerField value={vm.dateTo} onChange={vm.setDateTo} placeholder={t('financeAccounts.dateTo')} min={vm.dateFrom} />
           </div>
@@ -257,3 +257,4 @@ export default function FinanceAccountsPage() {
     </div>
   );
 }
+

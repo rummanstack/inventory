@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Save } from 'lucide-react';
-import { Alert, Modal } from '../../../components/ui.jsx';
+import { Alert, Modal, Select } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import AuditHistory from '../../../components/AuditHistory.jsx';
@@ -87,14 +87,14 @@ export default function DsrFinanceFormModal({ kind, record, dsrs, defaultDate, d
           </div>
           <div>
             <label className="label">{t('dsrFinance.dsr')}</label>
-            <select className="input" value={form.dsrId} onChange={(event) => updateField('dsrId', event.target.value)}>
+            <Select className="input" value={form.dsrId} onChange={(event) => updateField('dsrId', event.target.value)}>
               <option value="">{t('dsrFinance.selectDsr')}</option>
               {dsrOptions.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
                 </option>
               ))}
-            </select>
+            </Select>
           </div>
           <div>
             <label className="label">{t('dsrFinance.amount')}</label>
@@ -125,3 +125,4 @@ export default function DsrFinanceFormModal({ kind, record, dsrs, defaultDate, d
     </Modal>
   );
 }
+

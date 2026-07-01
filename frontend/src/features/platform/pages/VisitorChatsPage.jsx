@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { CheckCircle2, MessageCircle, RefreshCw, Send } from 'lucide-react';
-import { Alert, Badge, EmptyState, SectionHeader } from '../../../components/ui.jsx';
+import { Alert, Badge, EmptyState, SectionHeader, Select } from '../../../components/ui.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { usePolling } from '../../../hooks/usePolling.js';
@@ -151,11 +151,11 @@ export default function VisitorChatsPage() {
 
       <div className="surface overflow-hidden">
         <div className="border-b border-slate-100 px-5 py-4">
-          <select className="input h-10 w-44" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
+          <Select className="input h-10 w-44" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
             <option value="">{t('visitorChats.filters.all')}</option>
             <option value="OPEN">{t('visitorChats.statuses.OPEN')}</option>
             <option value="CLOSED">{t('visitorChats.statuses.CLOSED')}</option>
-          </select>
+          </Select>
         </div>
 
         <div className="grid gap-0 xl:grid-cols-[1fr_1.2fr]">
@@ -234,3 +234,4 @@ export default function VisitorChatsPage() {
     </div>
   );
 }
+

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Download, FileSpreadsheet, HandCoins, Printer, RefreshCw, Wallet } from 'lucide-react';
-import { Alert, Badge, EmptyState, Modal, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton } from '../../../components/ui.jsx';
+import { Alert, Badge, EmptyState, Modal, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../services/printService.js';
@@ -133,7 +133,7 @@ export default function SrDueLedgerPage() {
 
       <div className="surface p-5">
         <div className="grid gap-3 sm:grid-cols-4">
-          <select
+          <Select
             className="input sm:col-span-2"
             value={vm.srId}
             onChange={(e) => vm.setSrId(e.target.value)}
@@ -142,7 +142,7 @@ export default function SrDueLedgerPage() {
             {srDirectory.map((sr) => (
               <option key={sr.id} value={sr.id}>{sr.name}</option>
             ))}
-          </select>
+          </Select>
           <DatePickerField value={vm.dateFrom} onChange={vm.setDateFrom} placeholder="Date From" />
           <DatePickerField value={vm.dateTo} onChange={vm.setDateTo} placeholder="Date To" min={vm.dateFrom} />
         </div>
@@ -302,3 +302,4 @@ export default function SrDueLedgerPage() {
     </div>
   );
 }
+

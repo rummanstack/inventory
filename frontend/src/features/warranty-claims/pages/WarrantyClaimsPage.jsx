@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Download, FileSpreadsheet, Pencil, Plus, Printer, Receipt, Search, Trash2, Wrench } from 'lucide-react';
-import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
+import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
@@ -102,24 +102,24 @@ export default function WarrantyClaimsPage() {
               <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
               <input className="input pl-10" value={vm.search} onChange={(event) => vm.setSearch(event.target.value)} placeholder={t('warrantyClaims.searchPlaceholder')} />
             </div>
-            <select className="input" value={vm.status} onChange={(event) => vm.setStatus(event.target.value)}>
+            <Select className="input" value={vm.status} onChange={(event) => vm.setStatus(event.target.value)}>
               <option value="">{t('warrantyClaims.allStatuses')}</option>
               {STATUS_VALUES.map((value) => (
                 <option key={value} value={value}>{t(`warrantyClaims.statuses.${value}`)}</option>
               ))}
-            </select>
-            <select className="input" value={vm.productId} onChange={(event) => vm.setProductId(event.target.value)}>
+            </Select>
+            <Select className="input" value={vm.productId} onChange={(event) => vm.setProductId(event.target.value)}>
               <option value="">{t('productSerials.allProducts')}</option>
               {productDirectory.map((product) => (
                 <option key={product.id} value={product.id}>{product.name}</option>
               ))}
-            </select>
-            <select className="input" value={vm.supplierId} onChange={(event) => vm.setSupplierId(event.target.value)}>
+            </Select>
+            <Select className="input" value={vm.supplierId} onChange={(event) => vm.setSupplierId(event.target.value)}>
               <option value="">{t('warrantyClaims.allSuppliers')}</option>
               {supplierDirectory.map((supplier) => (
                 <option key={supplier.id} value={supplier.id}>{supplier.name}</option>
               ))}
-            </select>
+            </Select>
             <div className="grid grid-cols-2 gap-2">
               <DatePickerField value={vm.dateFrom} onChange={vm.setDateFrom} placeholder={t('purchaseReceive.dateFrom')} />
               <DatePickerField value={vm.dateTo} onChange={vm.setDateTo} placeholder={t('purchaseReceive.dateTo')} min={vm.dateFrom} />
@@ -216,3 +216,4 @@ export default function WarrantyClaimsPage() {
     </div>
   );
 }
+

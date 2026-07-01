@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Check, Loader2, Pencil, Plus, Trash2, X } from 'lucide-react';
-import { Alert, Badge, EmptyState, Modal, TableSkeleton } from '../../../components/ui.jsx';
+import { Alert, Badge, EmptyState, Modal, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 
@@ -129,10 +129,10 @@ export default function GenericMedicinesManagerModal({ onClose, onChanged }) {
                       onChange={(e) => setEditForm((f) => ({ ...f, name: e.target.value }))}
                       disabled={savingId === item.id}
                     />
-                    <select className="input h-9 w-32 shrink-0" value={editForm.status} onChange={(e) => setEditForm((f) => ({ ...f, status: e.target.value }))} disabled={savingId === item.id}>
+                    <Select className="input h-9 w-32 shrink-0" value={editForm.status} onChange={(e) => setEditForm((f) => ({ ...f, status: e.target.value }))} disabled={savingId === item.id}>
                       <option value="ACTIVE">Active</option>
                       <option value="INACTIVE">Inactive</option>
-                    </select>
+                    </Select>
                     <button type="button" className="icon-btn text-emerald-600" onClick={() => handleSaveEdit(item)} disabled={savingId === item.id}>
                       {savingId === item.id ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
                     </button>
@@ -170,3 +170,4 @@ export default function GenericMedicinesManagerModal({ onClose, onChanged }) {
     </Modal>
   );
 }
+

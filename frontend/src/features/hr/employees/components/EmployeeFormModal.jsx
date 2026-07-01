@@ -1,5 +1,5 @@
 import { Save } from 'lucide-react';
-import { Alert, Modal } from '../../../../components/ui.jsx';
+import { Alert, Modal, Select } from '../../../../components/ui.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
 import { useFormState } from '../../../../hooks/useFormState';
 
@@ -80,10 +80,10 @@ export default function EmployeeFormModal({ employee, onClose, onSave }) {
           </div>
           <div>
             <label className="label">{t('employees.status')}</label>
-            <select className="input" value={form.status} onChange={(e) => updateField('status', e.target.value)}>
+            <Select className="input" value={form.status} onChange={(e) => updateField('status', e.target.value)}>
               <option value="ACTIVE">{t('employees.active')}</option>
               <option value="INACTIVE">{t('employees.inactive')}</option>
-            </select>
+            </Select>
           </div>
           <div>
             <label className="label">{t('employees.salaryAmount')}</label>
@@ -91,10 +91,10 @@ export default function EmployeeFormModal({ employee, onClose, onSave }) {
           </div>
           <div>
             <label className="label">{t('employees.payType')}</label>
-            <select className="input" value={form.payType} onChange={(e) => updateField('payType', e.target.value)}>
+            <Select className="input" value={form.payType} onChange={(e) => updateField('payType', e.target.value)}>
               <option value="MONTHLY">{t('employees.payTypeMonthly')}</option>
               <option value="DAILY">{t('employees.payTypeDaily')}</option>
-            </select>
+            </Select>
           </div>
           <div className="sm:col-span-2">
             <label className="label">{t('employees.address')}</label>
@@ -116,3 +116,4 @@ export default function EmployeeFormModal({ employee, onClose, onSave }) {
     </Modal>
   );
 }
+

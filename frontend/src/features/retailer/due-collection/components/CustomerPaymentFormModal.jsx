@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Save } from 'lucide-react';
-import { Alert, Modal } from '../../../../components/ui.jsx';
+import { Alert, Modal, Select } from '../../../../components/ui.jsx';
 import { DatePickerField } from '../../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
 import AuditHistory from '../../../../components/AuditHistory.jsx';
@@ -78,12 +78,12 @@ export default function CustomerPaymentFormModal({ payment, onClose, onSave }) {
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="sm:col-span-2">
             <label className="label">{t('retailer.shared.customerLabel')}</label>
-            <select className="input" value={form.customerId} onChange={(event) => updateField('customerId', event.target.value)} disabled={isEdit}>
+            <Select className="input" value={form.customerId} onChange={(event) => updateField('customerId', event.target.value)} disabled={isEdit}>
               <option value="">{t('retailer.shared.selectCustomer')}</option>
               {retailCustomerDirectory.map((customer) => (
                 <option key={customer.id} value={customer.id}>{customer.name}</option>
               ))}
-            </select>
+            </Select>
           </div>
           <div>
             <label className="label">{t('supplierPayments.paymentDateLabel')}</label>
@@ -95,11 +95,11 @@ export default function CustomerPaymentFormModal({ payment, onClose, onSave }) {
           </div>
           <div>
             <label className="label">{t('supplierPayments.paymentMethodLabel')}</label>
-            <select className="input" value={form.paymentMethod} onChange={(event) => updateField('paymentMethod', event.target.value)}>
+            <Select className="input" value={form.paymentMethod} onChange={(event) => updateField('paymentMethod', event.target.value)}>
               {PAYMENT_METHODS.map((method) => (
                 <option key={method} value={method}>{t(`purchaseReceive.paymentMethods.${method}`)}</option>
               ))}
-            </select>
+            </Select>
           </div>
           <div className="sm:col-span-2">
             <label className="label">{t('supplierPayments.noteLabel')}</label>
@@ -126,3 +126,4 @@ export default function CustomerPaymentFormModal({ payment, onClose, onSave }) {
     </Modal>
   );
 }
+

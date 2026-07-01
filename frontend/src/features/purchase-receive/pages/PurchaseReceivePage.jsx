@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Download, Eye, FileSpreadsheet, Pencil, Plus, Printer, Search, ShoppingCart, Trash2 } from 'lucide-react';
-import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
+import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi';
@@ -103,18 +103,18 @@ export default function PurchaseReceivePage() {
               <input className="input pl-10" value={vm.purchaseNumber} onChange={(event) => vm.setPurchaseNumber(event.target.value)} placeholder={t('purchaseReceive.purchaseNumberLabel')} />
             </div>
             <input className="input" value={vm.supplierInvoiceNo} onChange={(event) => vm.setSupplierInvoiceNo(event.target.value)} placeholder={t('purchaseReceive.supplierInvoiceNoFilterLabel')} />
-            <select className="input" value={vm.supplierId} onChange={(event) => vm.setSupplierId(event.target.value)}>
+            <Select className="input" value={vm.supplierId} onChange={(event) => vm.setSupplierId(event.target.value)}>
               <option value="">{t('purchaseReceive.allSuppliers')}</option>
               {supplierDirectory.map((supplier) => (
                 <option key={supplier.id} value={supplier.id}>{supplier.name}</option>
               ))}
-            </select>
-            <select className="input" value={vm.paymentStatus} onChange={(event) => vm.setPaymentStatus(event.target.value)}>
+            </Select>
+            <Select className="input" value={vm.paymentStatus} onChange={(event) => vm.setPaymentStatus(event.target.value)}>
               <option value="">{t('purchaseReceive.allPaymentStatuses')}</option>
               <option value="PAID">{t('purchaseReceive.paymentStatuses.PAID')}</option>
               <option value="PARTIAL">{t('purchaseReceive.paymentStatuses.PARTIAL')}</option>
               <option value="DUE">{t('purchaseReceive.paymentStatuses.DUE')}</option>
-            </select>
+            </Select>
             <div className="grid grid-cols-2 gap-2">
               <DatePickerField value={vm.dateFrom} onChange={vm.setDateFrom} placeholder={t('purchaseReceive.dateFrom')} />
               <DatePickerField value={vm.dateTo} onChange={vm.setDateTo} placeholder={t('purchaseReceive.dateTo')} min={vm.dateFrom} />
@@ -217,3 +217,4 @@ export default function PurchaseReceivePage() {
     </div>
   );
 }
+

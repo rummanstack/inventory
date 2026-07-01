@@ -1,5 +1,5 @@
 import { Download, FileSpreadsheet, Printer, RefreshCw, Wallet } from 'lucide-react';
-import { Badge, EmptyState, SectionHeader, StatCard, TableSkeleton } from '../../../components/ui.jsx';
+import { Badge, EmptyState, SectionHeader, StatCard, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../services/printService.js';
@@ -54,12 +54,12 @@ export default function SupplierStatementPage() {
 
       <div className="surface p-5">
         <div className="grid gap-3 sm:grid-cols-4">
-          <select className="input sm:col-span-2" value={vm.supplierId} onChange={(event) => vm.setSupplierId(event.target.value)}>
+          <Select className="input sm:col-span-2" value={vm.supplierId} onChange={(event) => vm.setSupplierId(event.target.value)}>
             <option value="">{t('supplierStatement.selectSupplier')}</option>
             {supplierDirectory.map((supplier) => (
               <option key={supplier.id} value={supplier.id}>{supplier.name}</option>
             ))}
-          </select>
+          </Select>
           <DatePickerField value={vm.dateFrom} onChange={vm.setDateFrom} placeholder={t('supplierStatement.dateFrom')} />
           <DatePickerField value={vm.dateTo} onChange={vm.setDateTo} placeholder={t('supplierStatement.dateTo')} min={vm.dateFrom} />
         </div>
@@ -170,3 +170,4 @@ export default function SupplierStatementPage() {
     </div>
   );
 }
+

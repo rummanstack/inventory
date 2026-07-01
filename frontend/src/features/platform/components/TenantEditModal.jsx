@@ -1,5 +1,5 @@
 import { Save } from 'lucide-react';
-import { Alert, Modal } from '../../../components/ui.jsx';
+import { Alert, Modal, Select } from '../../../components/ui.jsx';
 import PhotoUploadField from '../../../components/PhotoUploadField.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { useFormState } from '../../../hooks/useFormState';
@@ -43,26 +43,26 @@ export default function TenantEditModal({ tenant, onClose, onSave }) {
         </label>
         <label className="block">
           <span className="label">{t('organizations.plan')}</span>
-          <select className="input" value={form.plan} onChange={(e) => updateField('plan', e.target.value)}>
+          <Select className="input" value={form.plan} onChange={(e) => updateField('plan', e.target.value)}>
             <option value="starter">{t('organizations.planStarter')}</option>
             <option value="pro">{t('organizations.planPro')}</option>
             <option value="enterprise">{t('organizations.planEnterprise')}</option>
-          </select>
+          </Select>
         </label>
         <label className="block">
           <span className="label">{t('organizations.businessType')}</span>
-          <select className="input" value={form.businessType} onChange={(e) => updateField('businessType', e.target.value)}>
+          <Select className="input" value={form.businessType} onChange={(e) => updateField('businessType', e.target.value)}>
             <option value="ELECTRONICS">{t('organizations.businessTypeElectronics')}</option>
             <option value="GROCERY">{t('organizations.businessTypeGrocery')}</option>
             <option value="DRUG_PHARMACY">{t('organizations.businessTypeDrugPharmacy')}</option>
-          </select>
+          </Select>
         </label>
         <label className="block">
           <span className="label">{t('organizations.sellerType')}</span>
-          <select className="input" value={form.sellerType} onChange={(e) => updateField('sellerType', e.target.value)}>
+          <Select className="input" value={form.sellerType} onChange={(e) => updateField('sellerType', e.target.value)}>
             <option value="DEALER">{t('organizations.sellerTypeDealer')}</option>
             <option value="RETAILER">{t('organizations.sellerTypeRetailer')}</option>
-          </select>
+          </Select>
         </label>
         <PhotoUploadField label={t('orgSettings.logoUrl')} value={form.logoUrl} onChange={(url) => updateField('logoUrl', url)} shape="square" />
         <label className="block">
@@ -82,3 +82,4 @@ export default function TenantEditModal({ tenant, onClose, onSave }) {
     </Modal>
   );
 }
+

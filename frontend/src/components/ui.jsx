@@ -1,4 +1,5 @@
 export * from './ui/utils.js';
+export { Select } from './Select.jsx';
 export { SearchableSelect } from './SearchableSelect.jsx';
 export * from './ui/Modal.jsx';
 export * from './ui/charts.jsx';

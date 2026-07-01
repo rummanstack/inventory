@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Save } from 'lucide-react';
-import { Alert, Modal } from '../../../components/ui.jsx';
+import { Alert, Modal, Select } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import AuditHistory from '../../../components/AuditHistory.jsx';
@@ -90,13 +90,13 @@ export default function ExpenseFormModal({ expense, defaultDate, onClose, onSave
           </div>
           <div>
             <label className="label">{t('expenses.category')}</label>
-            <select className="input" value={form.category} onChange={(event) => updateField('category', event.target.value)}>
+            <Select className="input" value={form.category} onChange={(event) => updateField('category', event.target.value)}>
               {categoryOptions.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
                 </option>
               ))}
-            </select>
+            </Select>
           </div>
           <div>
             <label className="label">{t('expenses.amount')}</label>
@@ -127,3 +127,4 @@ export default function ExpenseFormModal({ expense, defaultDate, onClose, onSave
     </Modal>
   );
 }
+

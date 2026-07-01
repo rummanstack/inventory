@@ -1,6 +1,6 @@
 import { AlertTriangle, CheckCircle2, ClipboardList, Download, Plus, Printer, Trash2 } from 'lucide-react';
 import PrintableSheet from '../../../components/PrintableSheet.jsx';
-import { Alert, Badge, EmptyState, SectionHeader, TableSkeleton, cx } from '../../../components/ui.jsx';
+import { Alert, Badge, EmptyState, SectionHeader, TableSkeleton, cx, Select } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import AuditHistory from '../../../components/AuditHistory.jsx';
@@ -44,13 +44,13 @@ export default function EveningSettlementPage() {
           </div>
           <div>
             <label className="label">{t('dsr.title')}</label>
-            <select className="input" value={vm.dsrId} onChange={(event) => vm.setDsrId(event.target.value)}>
+            <Select className="input" value={vm.dsrId} onChange={(event) => vm.setDsrId(event.target.value)}>
               {vm.activeDsrs.map((dsr) => (
                 <option key={dsr.id} value={dsr.id}>
                   {dsr.name} - {dsr.area}
                 </option>
               ))}
-            </select>
+            </Select>
           </div>
           <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
             <p className="text-xs font-bold uppercase text-slate-500">{t('settlement.totalPayable')}</p>
@@ -161,7 +161,7 @@ export default function EveningSettlementPage() {
                       <div key={row.id} className="grid gap-3 rounded-[22px] border border-slate-200 bg-slate-50 p-4 lg:grid-cols-[minmax(0,1.8fr)_minmax(120px,0.5fr)_minmax(120px,0.5fr)_minmax(120px,0.5fr)_minmax(120px,0.5fr)_minmax(120px,0.5fr)_auto]">
                         <div>
                           <label className="label">{t('settlement.extraReturnProduct')}</label>
-                          <select
+                          <Select
                             className="input"
                             value={row.productId}
                             onChange={(event) => vm.updateExtraReturn(row.id, 'productId', event.target.value)}
@@ -171,7 +171,7 @@ export default function EveningSettlementPage() {
                                 {product.name} - {product.category}
                               </option>
                             ))}
-                          </select>
+                          </Select>
                         </div>
                         <div>
                           <label className="label">{t('settlement.returnCase')}</label>
@@ -222,12 +222,12 @@ export default function EveningSettlementPage() {
                     <div key={sc.id} className="grid gap-3 rounded-[22px] border border-slate-200 bg-slate-50 p-4 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1.5fr)_auto]">
                       <div>
                         <label className="label">{t('settlement.shopDueShop')}</label>
-                        <select className="input" value={sc.shopId} onChange={(e) => vm.updateShopCollection(sc.id, 'shopId', e.target.value)} disabled={vm.saving}>
+                        <Select className="input" value={sc.shopId} onChange={(e) => vm.updateShopCollection(sc.id, 'shopId', e.target.value)} disabled={vm.saving}>
                           <option value="">{t('settlement.shopDueSelectShop')}</option>
                           {shopDirectory.map((shop) => (
                             <option key={shop.id} value={shop.id}>{shop.shopName || shop.name}</option>
                           ))}
-                        </select>
+                        </Select>
                       </div>
                       <div>
                         <label className="label">{t('settlement.shopDueAmount')}</label>
@@ -266,7 +266,7 @@ export default function EveningSettlementPage() {
                     <div key={h.id} className="grid gap-3 rounded-[22px] border border-slate-200 bg-slate-50 p-4 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1.5fr)_auto]">
                       <div>
                         <label className="label">SR</label>
-                        <select
+                        <Select
                           className="input"
                           value={h.srId}
                           onChange={(e) => {
@@ -280,7 +280,7 @@ export default function EveningSettlementPage() {
                           {srDirectory.map((sr) => (
                             <option key={sr.id} value={sr.id}>{sr.name}</option>
                           ))}
-                        </select>
+                        </Select>
                       </div>
                       <div>
                         <label className="label">Amount</label>
@@ -352,7 +352,7 @@ export default function EveningSettlementPage() {
                       <div className="flex items-center justify-between gap-3 py-1.5">
                         <dt className="text-sm font-medium text-slate-400">Supplier (discount from)</dt>
                         <dd>
-                          <select
+                          <Select
                             className="input h-9 text-sm"
                             value={vm.discountSupplierId}
                             onChange={(e) => vm.setDiscountSupplierId(e.target.value)}
@@ -362,7 +362,7 @@ export default function EveningSettlementPage() {
                             {supplierDirectory.map((s) => (
                               <option key={s.id} value={s.id}>{s.name}</option>
                             ))}
-                          </select>
+                          </Select>
                         </dd>
                       </div>
                     ) : null}
@@ -492,3 +492,4 @@ export default function EveningSettlementPage() {
     </div>
   );
 }
+

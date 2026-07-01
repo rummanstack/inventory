@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Download, FileSpreadsheet, HandCoins, Plus, Printer, RefreshCw, Wallet } from 'lucide-react';
-import { Alert, Badge, EmptyState, Modal, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton } from '../../../components/ui.jsx';
+import { Alert, Badge, EmptyState, Modal, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../services/printService.js';
@@ -146,7 +146,7 @@ export default function ShopDueLedgerPage() {
 
       <div className="surface p-5">
         <div className="grid gap-3 sm:grid-cols-4">
-          <select
+          <Select
             className="input sm:col-span-2"
             value={vm.shopId}
             onChange={(e) => vm.setShopId(e.target.value)}
@@ -155,7 +155,7 @@ export default function ShopDueLedgerPage() {
             {shopDirectory.map((shop) => (
               <option key={shop.id} value={shop.id}>{shop.shopName || shop.name}</option>
             ))}
-          </select>
+          </Select>
           <DatePickerField
             value={vm.dateFrom}
             onChange={vm.setDateFrom}
@@ -350,3 +350,4 @@ export default function ShopDueLedgerPage() {
     </div>
   );
 }
+

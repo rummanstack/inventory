@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Download, Eye, FileSpreadsheet, Pencil, Plus, Printer, Search, Tag, Trash2 } from 'lucide-react';
-import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
+import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
@@ -142,7 +142,7 @@ export default function QuotationsPage() {
                 onChange={(e) => vm.setSearch(e.target.value)}
               />
             </div>
-            <select
+            <Select
               className="input"
               value={vm.status}
               onChange={(e) => vm.setStatus(e.target.value)}
@@ -151,7 +151,7 @@ export default function QuotationsPage() {
               {QUOTATION_STATUS_VALUES.map((s) => (
                 <option key={s} value={s}>{t(`quotations.statuses.${s}`)}</option>
               ))}
-            </select>
+            </Select>
             <DatePickerField value={vm.dateFrom} onChange={vm.setDateFrom} placeholder={t('purchaseReceive.dateFrom')} />
             <DatePickerField value={vm.dateTo} onChange={vm.setDateTo} placeholder={t('purchaseReceive.dateTo')} min={vm.dateFrom} />
           </div>
@@ -277,3 +277,4 @@ export default function QuotationsPage() {
     </div>
   );
 }
+

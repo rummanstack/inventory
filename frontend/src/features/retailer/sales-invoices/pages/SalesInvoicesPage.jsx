@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Download, Eye, FileSpreadsheet, Plus, Printer, Receipt, Search, Trash2 } from 'lucide-react';
-import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton } from '../../../../components/ui.jsx';
+import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton, Select } from '../../../../components/ui.jsx';
 import { DatePickerField } from '../../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../../services/printService.js';
@@ -98,24 +98,24 @@ export default function SalesInvoicesPage() {
               <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
               <input className="input pl-10" value={vm.invoiceNumber} onChange={(event) => vm.setInvoiceNumber(event.target.value)} placeholder={t('retailer.shared.invoiceNumberLabel')} />
             </div>
-            <select className="input" value={vm.customerId} onChange={(event) => vm.setCustomerId(event.target.value)}>
+            <Select className="input" value={vm.customerId} onChange={(event) => vm.setCustomerId(event.target.value)}>
               <option value="">{t('retailer.shared.allCustomers')}</option>
               {retailCustomerDirectory.map((customer) => (
                 <option key={customer.id} value={customer.id}>{customer.name}</option>
               ))}
-            </select>
-            <select className="input" value={vm.saleType} onChange={(event) => vm.setSaleType(event.target.value)}>
+            </Select>
+            <Select className="input" value={vm.saleType} onChange={(event) => vm.setSaleType(event.target.value)}>
               <option value="">{t('retailer.shared.allSaleTypes')}</option>
               <option value="RETAIL">{t('retailer.shared.saleTypes.RETAIL')}</option>
               <option value="WHOLESALE">{t('retailer.shared.saleTypes.WHOLESALE')}</option>
               <option value="QUICK_SALE">{t('retailer.shared.saleTypes.QUICK_SALE')}</option>
-            </select>
-            <select className="input" value={vm.paymentStatus} onChange={(event) => vm.setPaymentStatus(event.target.value)}>
+            </Select>
+            <Select className="input" value={vm.paymentStatus} onChange={(event) => vm.setPaymentStatus(event.target.value)}>
               <option value="">{t('purchaseReceive.allPaymentStatuses')}</option>
               <option value="PAID">{t('purchaseReceive.paymentStatuses.PAID')}</option>
               <option value="PARTIAL">{t('purchaseReceive.paymentStatuses.PARTIAL')}</option>
               <option value="DUE">{t('purchaseReceive.paymentStatuses.DUE')}</option>
-            </select>
+            </Select>
             <div className="grid grid-cols-2 gap-2">
               <DatePickerField value={vm.dateFrom} onChange={vm.setDateFrom} placeholder={t('purchaseReceive.dateFrom')} />
               <DatePickerField value={vm.dateTo} onChange={vm.setDateTo} placeholder={t('purchaseReceive.dateTo')} min={vm.dateFrom} />
@@ -209,3 +209,4 @@ export default function SalesInvoicesPage() {
     </div>
   );
 }
+

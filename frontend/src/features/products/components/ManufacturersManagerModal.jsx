@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Check, Loader2, Pencil, Plus, Trash2, X } from 'lucide-react';
-import { Alert, Badge, EmptyState, Modal, TableSkeleton } from '../../../components/ui.jsx';
+import { Alert, Badge, EmptyState, Modal, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 
@@ -116,16 +116,16 @@ export default function ManufacturersManagerModal({ onClose, onChanged }) {
                   <div className="grid grid-cols-2 gap-2">
                     <input className="input h-8 text-sm" value={editForm.name} onChange={(e) => setEditForm((f) => ({ ...f, name: e.target.value }))} placeholder={t('pharmacy.manufacturerName')} disabled={savingId === item.id} />
                     <input className="input h-8 text-sm" value={editForm.shortName} onChange={(e) => setEditForm((f) => ({ ...f, shortName: e.target.value }))} placeholder={t('pharmacy.shortName')} disabled={savingId === item.id} />
-                    <select className="input h-8 text-sm" value={editForm.country} onChange={(e) => setEditForm((f) => ({ ...f, country: e.target.value }))} disabled={savingId === item.id}>
+                    <Select className="input h-8 text-sm" value={editForm.country} onChange={(e) => setEditForm((f) => ({ ...f, country: e.target.value }))} disabled={savingId === item.id}>
                       <option value="">{t('pharmacy.country')}</option>
                       {COUNTRIES.map((c) => <option key={c} value={c}>{c}</option>)}
-                    </select>
+                    </Select>
                     <input className="input h-8 text-sm" value={editForm.dgdaLicense} onChange={(e) => setEditForm((f) => ({ ...f, dgdaLicense: e.target.value }))} placeholder={t('pharmacy.dgdaLicense')} disabled={savingId === item.id} />
                     <input className="input h-8 text-sm" value={editForm.phone} onChange={(e) => setEditForm((f) => ({ ...f, phone: e.target.value }))} placeholder={t('pharmacy.phone')} disabled={savingId === item.id} />
-                    <select className="input h-8 text-sm" value={editForm.status} onChange={(e) => setEditForm((f) => ({ ...f, status: e.target.value }))} disabled={savingId === item.id}>
+                    <Select className="input h-8 text-sm" value={editForm.status} onChange={(e) => setEditForm((f) => ({ ...f, status: e.target.value }))} disabled={savingId === item.id}>
                       <option value="ACTIVE">Active</option>
                       <option value="INACTIVE">Inactive</option>
-                    </select>
+                    </Select>
                   </div>
                   <div className="flex justify-end gap-2">
                     <button type="button" className="icon-btn text-emerald-600" onClick={() => handleSaveEdit(item)} disabled={savingId === item.id}>
@@ -160,3 +160,4 @@ export default function ManufacturersManagerModal({ onClose, onChanged }) {
     </Modal>
   );
 }
+

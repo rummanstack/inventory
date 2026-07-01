@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Save } from 'lucide-react';
-import { Alert, Modal } from '../../../components/ui.jsx';
+import { Alert, Modal, Select } from '../../../components/ui.jsx';
 import { useFormState } from '../../../hooks/useFormState';
 
 export default function SrFormModal({ sr, onClose, onSave }) {
@@ -70,10 +70,10 @@ export default function SrFormModal({ sr, onClose, onSave }) {
           </div>
           <div>
             <label className="label">Status</label>
-            <select className="input" value={form.status} onChange={(e) => updateField('status', e.target.value)}>
+            <Select className="input" value={form.status} onChange={(e) => updateField('status', e.target.value)}>
               <option value="Active">Active</option>
               <option value="Inactive">Inactive</option>
-            </select>
+            </Select>
           </div>
           <div>
             <label className="label">Opening Due</label>
@@ -97,3 +97,4 @@ export default function SrFormModal({ sr, onClose, onSave }) {
     </Modal>
   );
 }
+

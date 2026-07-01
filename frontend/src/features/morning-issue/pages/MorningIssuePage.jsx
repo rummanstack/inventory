@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { AlertTriangle, Save, Truck } from 'lucide-react';
-import { Alert, EmptyState, SectionHeader, TableSkeleton, cx } from '../../../components/ui.jsx';
+import { Alert, EmptyState, SectionHeader, TableSkeleton, cx, Select } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { formatCasePiece, formatCurrency, formatNumber } from '../../../utils/calculations.js';
@@ -38,13 +38,13 @@ export default function MorningIssuePage() {
           </div>
           <div>
             <label className="label">{t('common.dsr')}</label>
-            <select className="input" value={vm.dsrId} onChange={(event) => vm.setDsrId(event.target.value)}>
+            <Select className="input" value={vm.dsrId} onChange={(event) => vm.setDsrId(event.target.value)}>
               {vm.activeDsrs.map((dsr) => (
                 <option key={dsr.id} value={dsr.id}>
                   {dsr.name} - {dsr.area}
                 </option>
               ))}
-            </select>
+            </Select>
           </div>
           <div>
             <label className="label">{t('morningIssue.lines')}</label>
@@ -88,12 +88,12 @@ export default function MorningIssuePage() {
             <p className="mt-1 text-sm text-slate-500">{t('morningIssue.sheetDescription')}</p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <select className="input h-9 w-44" value={vm.categoryId} onChange={(event) => vm.setCategoryId(event.target.value)}>
+            <Select className="input h-9 w-44" value={vm.categoryId} onChange={(event) => vm.setCategoryId(event.target.value)}>
               <option value="">{t('categories.allCategories')}</option>
               {vm.categoryOptions.map((category) => (
                 <option key={category.id} value={category.id}>{category.name}</option>
               ))}
-            </select>
+            </Select>
             {canEditIssue ? (
               <button type="button" className="btn-primary" onClick={vm.saveIssue} disabled={vm.saving || !productDirectory.length || Boolean(vm.invalidRows.length) || Boolean(vm.existingSettlement)}>
                 <Save size={18} />
@@ -177,3 +177,4 @@ export default function MorningIssuePage() {
     </div>
   );
 }
+

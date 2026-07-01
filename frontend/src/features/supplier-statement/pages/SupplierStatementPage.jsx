@@ -4,7 +4,7 @@ import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../services/printService.js';
 import { inventoryApi } from '../../../services/inventoryApi';
-import { formatCurrency, formatDateTime, reverseEntries } from '../../../utils/calculations.js';
+import { formatCurrency, formatDateTime } from '../../../utils/calculations.js';
 import SupplierStatementPrintSheet from '../components/SupplierStatementPrintSheet';
 import { useSupplierStatementViewModel } from '../viewmodels/useSupplierStatementViewModel';
 
@@ -19,7 +19,7 @@ function ledgerTone(type) {
 export default function SupplierStatementPage() {
   const { t, supplierDirectory } = useInventoryApp();
   const vm = useSupplierStatementViewModel({ suppliers: supplierDirectory });
-  const entries = reverseEntries(vm.statement?.entries);
+  const entries = vm.statement?.entries || [];
   const printTargetId = 'supplier-statement-print-sheet';
 
   function recordStatementPrint(label) {

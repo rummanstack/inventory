@@ -235,8 +235,7 @@ export async function listStockMovementsPage(client, { tenantId, productId, type
   const result = await client.query(
     `${buildSelect()}
      ${where}
-     ORDER BY COALESCE(stock_movements.business_date, stock_movements.created_at::date) DESC,
-              stock_movements.created_at DESC,
+     ORDER BY stock_movements.created_at DESC,
               stock_movements.id DESC
      LIMIT $${params.length - 1} OFFSET $${params.length}`,
     params,

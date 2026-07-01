@@ -1654,6 +1654,15 @@ export async function createSchema(pool) {
     END $$;
   `);
 
+  // Split Issue Center from Activity Logs without changing current tenant access:
+  // any tenant that had Activity Logs enabled already should get Issue Center too.
+  await pool.query(`
+    INSERT INTO tenant_features (tenant_id, feature)
+    SELECT tenant_id, 'issue-center'
+    FROM tenant_features
+    WHERE feature = 'activity-logs'
+    ON CONFLICT (tenant_id, feature) DO NOTHING;
+  `);
   // Backfill HR permissions onto admin/manager roles that already have custom permission rows.
   await pool.query(`
     INSERT INTO role_permissions (role, tenant_id, permission)

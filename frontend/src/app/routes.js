@@ -178,7 +178,7 @@ export const APP_ROUTES = [
   { id: 'permissions', path: '/settings/permissions', labelKey: 'nav.permissions', icon: KeyRound, component: PermissionsPage, group: 'system', roles: ['system_developer', 'super_admin'], feature: 'permissions' },
   { id: 'org-settings', path: '/settings/organization', labelKey: 'nav.orgSettings', icon: Settings, component: OrgSettingsPage, group: 'system', permission: 'manage_org', feature: 'org-settings' },
   { id: 'security', path: '/security', labelKey: 'nav.security', icon: ShieldCheck, component: SecurityPage, group: 'system', feature: 'security' },
-  { id: 'issue-center', path: '/issue-center', labelKey: 'nav.issueCenter', icon: Bug, component: IssueCenterPage, group: 'system', permission: 'view_activity_logs', feature: 'activity-logs' },
+  { id: 'issue-center', path: '/issue-center', labelKey: 'nav.issueCenter', icon: Bug, component: IssueCenterPage, group: 'system', permission: 'view_activity_logs', feature: 'issue-center' },
   { id: 'trash', path: '/trash', labelKey: 'nav.trash', icon: Trash2, component: TrashPage, group: 'system', permission: 'view_state', feature: 'trash' },
   // removed from sidebar — page still routable via user avatar dropdown
   { id: 'profile', path: '/profile', labelKey: 'nav.profile', icon: UserCog, component: ProfilePage, group: 'hidden', feature: 'my-profile' },

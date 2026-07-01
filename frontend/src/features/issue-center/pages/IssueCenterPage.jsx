@@ -82,10 +82,11 @@ function IssueCard({ title, value, helper, icon: Icon, tone }) {
 }
 
 export default function IssueCenterPage() {
-  const { productDirectory, dsrDirectory, today, t, language } = useInventoryApp();
+  const { productDirectory, dsrDirectory, today, t, language, hasFeature } = useInventoryApp();
   const navigate = useNavigate();
   const dashboardVm = useDashboardViewModel({ products: productDirectory, dsrs: dsrDirectory, today, t, language });
   const logsVm = useActivityLogsViewModel();
+  const canOpenActivityLogs = hasFeature('activity-logs');
   const [selectedLog, setSelectedLog] = useState(null);
   const [currentCashSession, setCurrentCashSession] = useState(null);
   const [smartAlertsLoading, setSmartAlertsLoading] = useState(true);
@@ -161,6 +162,9 @@ export default function IssueCenterPage() {
 
   function openIssueRoute(log) {
     const { path } = getIssueRoute(log);
+    if (!canOpenActivityLogs && path === '/activity-logs') {
+      return;
+    }
     navigate(path);
   }
 
@@ -370,10 +374,12 @@ export default function IssueCenterPage() {
                   <h2 className="section-title">{t('issueCenter.recentFixes')}</h2>
                   <p className="mt-1 text-sm text-slate-500">{t('issueCenter.recentFixesDescription')}</p>
                 </div>
-                <button type="button" className="btn-secondary h-9 px-3" onClick={() => navigate('/activity-logs')}>
-                  <ExternalLink size={16} />
-                  {t('issueCenter.openActivityLogs')}
-                </button>
+                {canOpenActivityLogs ? (
+                  <button type="button" className="btn-secondary h-9 px-3" onClick={() => navigate('/activity-logs')}>
+                    <ExternalLink size={16} />
+                    {t('issueCenter.openActivityLogs')}
+                  </button>
+                ) : null}
               </div>
             </div>
 
@@ -438,10 +444,12 @@ export default function IssueCenterPage() {
                 <RotateCcw size={16} />
                 {t('issueCenter.openSettlements')}
               </button>
-              <button type="button" className="btn-secondary justify-center" onClick={() => navigate('/activity-logs')}>
-                <ClipboardList size={16} />
-                {t('issueCenter.openActivityLogs')}
-              </button>
+              {canOpenActivityLogs ? (
+                <button type="button" className="btn-secondary justify-center" onClick={() => navigate('/activity-logs')}>
+                  <ClipboardList size={16} />
+                  {t('issueCenter.openActivityLogs')}
+                </button>
+              ) : null}
             </div>
           </div>
 
@@ -477,9 +485,11 @@ export default function IssueCenterPage() {
                         <ExternalLink size={16} />
                         {t('common.view')}
                       </button>
-                      <button type="button" className="btn-secondary h-9 px-3" onClick={() => navigate('/activity-logs')}>
-                        {t('issueCenter.inspect')}
-                      </button>
+                      {canOpenActivityLogs ? (
+                        <button type="button" className="btn-secondary h-9 px-3" onClick={() => navigate('/activity-logs')}>
+                          {t('issueCenter.inspect')}
+                        </button>
+                      ) : null}
                     </div>
                   </div>
 

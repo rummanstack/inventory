@@ -1,61 +1,63 @@
 // Feature keys correspond to APP_ROUTES ids in the frontend that can be
 // individually enabled/disabled per tenant by a platform admin.
 export const TENANT_FEATURES = [
+  // Overview
+  "dashboard",
+
+  // Point of Sale
+  "retailer-quick-sale",
+  "retailer-cash-sessions",
+  "quotations",
+  "retailer-promotions",
+  "trade-ins",
+  "retailer-sales-invoices",
+  "retailer-sales-return",
+
+  // Customers
+  "retail-customers",
+  "retail-customer-retention",
+  "retailer-customer-due",
+  "retailer-due-collection",
+
+  // Inventory
   "products",
+  "stock-movement",
+  "low-stock-alerts",
+  "product-serials",
+  "damaged-stock",
+
+  // DSR Operations
   "dsrs",
-  "customers",
   "morning-issue",
   "settlements",
-  "reports",
-  "history",
-  "expenses",
   "dsr-finance",
-  "profit",
-  "activity-logs",
-  "trash",
+
+  // Shops & SRs
+  "customers",
+  "shop-due-ledger",
+  "srs",
+  "sr-due-ledger",
+
+  // Purchases
   "suppliers",
   "purchase-receive",
   "supplier-payments",
   "supplier-discounts",
   "supplier-statement",
-  "retailer-quick-sale",
-  "retailer-cash-sessions",
-  "retailer-sales-invoices",
-  "retailer-promotions",
-  "retailer-customer-due",
-  "retailer-due-collection",
-  "retailer-sales-return",
-  "retailer-daily-sales-report",
-  "finance-accounts",
-  "finance-dashboard",
-  "dashboard",
-  "my-profile",
-  "security",
-  "help-desk",
-  "org-settings",
-  "user-management",
-  "permissions",
-  "retail-customers",
-  "retail-customer-retention",
-  "database-backup",
-  "platform",
-  "visitor-chats",
-  "contact-messages",
-  "system-health",
-  "error-logs",
-  "damaged-stock",
-  "stock-movement",
-  "low-stock-alerts",
-  "product-serials",
+
+  // Warranty & Repair
   "warranty-claims",
   "repair-jobs",
-  "quotations",
-  "trade-ins",
-  "shop-due-ledger",
-  "srs",
-  "sr-due-ledger",
-  "employees",
-  "salary-payments",
+
+  // Finance
+  "finance-dashboard",
+  "finance-accounts",
+  "expenses",
+  "profit",
+
+  // Reports
+  "retailer-daily-sales-report",
+  "reports",
   "purchase-report",
   "stock-movement-report",
   "settlement-report",
@@ -65,4 +67,30 @@ export const TENANT_FEATURES = [
   "cash-session-report",
   "damaged-stock-report",
   "batch-tracking",
+  "history",
+  "activity-logs",
+
+  // HR & Payroll
+  "employees",
+  "salary-payments",
+
+  // System & Settings
+  "user-management",
+  "permissions",
+  "org-settings",
+  "security",
+  "issue-center",
+  "trash",
+
+  // Hidden / non-sidebar routes
+  "my-profile",
+  "help-desk",
+
+  // Developer
+  "platform",
+  "system-health",
+  "error-logs",
+  "database-backup",
+  "visitor-chats",
+  "contact-messages",
 ];

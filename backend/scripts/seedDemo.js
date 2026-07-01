@@ -36,7 +36,7 @@ const DEMO_PASSWORD = "Demo@1234";
 
 const DEALER_FEATURES = [
   "products", "dsrs", "customers", "morning-issue", "settlements",
-  "expenses", "dsr-finance", "reports", "history", "activity-logs", "trash",
+  "expenses", "dsr-finance", "reports", "history", "activity-logs", "issue-center", "trash",
   "suppliers", "purchase-receive", "supplier-payments", "supplier-statement",
   "finance-accounts", "finance-dashboard", "profit", "dashboard",
   "my-profile", "security", "help-desk", "org-settings", "user-management",
@@ -54,7 +54,7 @@ const RETAIL_FEATURES = [
   "retailer-promotions", "retailer-customer-due", "retailer-due-collection",
   "retailer-sales-return", "retailer-daily-sales-report",
   "finance-accounts", "finance-dashboard", "profit", "reports", "history",
-  "activity-logs", "trash", "dashboard", "my-profile", "security", "help-desk",
+  "activity-logs", "issue-center", "trash", "dashboard", "my-profile", "security", "help-desk",
   "org-settings", "user-management", "permissions", "damaged-stock",
   "stock-movement", "low-stock-alerts", "retail-customers",
   "retail-customer-retention", "database-backup",

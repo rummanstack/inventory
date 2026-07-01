@@ -3,12 +3,13 @@ import { Alert, EmptyState, Pagination, SectionHeader, TableSkeleton } from '../
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
-import { formatCurrency, formatDate, formatDateTime } from '../../../utils/calculations.js';
+import { formatCurrency, formatDateTime } from '../../../utils/calculations.js';
 import { useSupplierDiscountsViewModel } from '../viewmodels/useSupplierDiscountsViewModel.js';
 
 export default function SupplierDiscountsPage() {
-  const { confirm, pushToast } = useInventoryApp();
+  const { confirm, pushToast, can } = useInventoryApp();
   const vm = useSupplierDiscountsViewModel();
+  const canManagePayments = can('manage_supplier_payments');
 
   async function handleClear(discount) {
     const { confirmed } = await confirm({
@@ -58,7 +59,7 @@ export default function SupplierDiscountsPage() {
                   <th className="px-4 py-3">Supplier</th>
                   <th className="px-4 py-3 text-right">Amount</th>
                   <th className="px-4 py-3">Note</th>
-                  <th className="px-4 py-3 text-right">Actions</th>
+                  {canManagePayments ? <th className="px-4 py-3 text-right">Actions</th> : null}
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -67,21 +68,23 @@ export default function SupplierDiscountsPage() {
                     <td className="table-cell font-black text-slate-400">{(vm.page - 1) * vm.pageSize + index + 1}</td>
                     <td className="table-cell">{formatDateTime(discount.discountDate)}</td>
                     <td className="table-cell font-semibold text-slate-950">{discount.dsrName || '-'}</td>
-                    <td className="table-cell text-slate-700">{discount.supplierName || <span className="text-slate-300">—</span>}</td>
+                    <td className="table-cell text-slate-700">{discount.supplierName || <span className="text-slate-300">-</span>}</td>
                     <td className="table-cell text-right font-bold text-emerald-700">{formatCurrency(discount.amount)}</td>
                     <td className="hidden table-cell lg:table-cell">{discount.note || '-'}</td>
-                    <td className="table-cell">
-                      <div className="flex justify-end">
-                        <button
-                          type="button"
-                          className="icon-btn text-emerald-600 hover:text-emerald-700"
-                          title="Clear Discount (Receive Cash)"
-                          onClick={() => handleClear(discount)}
-                        >
-                          <HandCoins size={16} />
-                        </button>
-                      </div>
-                    </td>
+                    {canManagePayments ? (
+                      <td className="table-cell">
+                        <div className="flex justify-end">
+                          <button
+                            type="button"
+                            className="icon-btn text-emerald-600 hover:text-emerald-700"
+                            title="Clear Discount (Receive Cash)"
+                            onClick={() => handleClear(discount)}
+                          >
+                            <HandCoins size={16} />
+                          </button>
+                        </div>
+                      </td>
+                    ) : null}
                   </tr>
                 ))}
               </tbody>

@@ -12,8 +12,8 @@ export function createPurchaseReceiveRoutes(purchaseReceiveController) {
   router.use(requireFeature("purchase-receive"));
 
   router.get("/trash", requirePermission(PERMISSIONS.MANAGE_PURCHASES), purchaseReceiveController.listTrash);
-  router.get("/", requirePermission(PERMISSIONS.VIEW_STATE), purchaseReceiveController.list);
-  router.get("/:id", requirePermission(PERMISSIONS.VIEW_STATE), purchaseReceiveController.get);
+  router.get("/", requirePermission(PERMISSIONS.VIEW_PURCHASES), purchaseReceiveController.list);
+  router.get("/:id", requirePermission(PERMISSIONS.VIEW_PURCHASES), purchaseReceiveController.get);
   router.post("/", requirePermission(PERMISSIONS.MANAGE_PURCHASES), purchaseReceiveController.create);
   router.put("/:id", requirePermission(PERMISSIONS.MANAGE_PURCHASES), purchaseReceiveController.update);
   router.delete("/:id", requirePermission(PERMISSIONS.MANAGE_PURCHASES), purchaseReceiveController.remove);

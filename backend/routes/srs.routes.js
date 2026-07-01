@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { requirePermission } from "../middleware/requireRole.js";
+import { requireAnyPermission, requirePermission } from "../middleware/requireRole.js";
 import { requireFeature } from "../middleware/requireFeature.js";
 import { PERMISSIONS } from "../lib/permissions.js";
 
@@ -8,9 +8,9 @@ export function createSrsRoutes(srController) {
 
   router.use(requireFeature("srs"));
 
-  router.get("/directory", requirePermission(PERMISSIONS.VIEW_STATE), srController.directory);
+  router.get("/directory", requireAnyPermission(PERMISSIONS.VIEW_SRS, PERMISSIONS.MANAGE_SRS), srController.directory);
   router.get("/trash", requirePermission(PERMISSIONS.MANAGE_SRS), srController.listTrash);
-  router.get("/", requirePermission(PERMISSIONS.VIEW_STATE), srController.list);
+  router.get("/", requirePermission(PERMISSIONS.VIEW_SRS), srController.list);
   router.post("/", requirePermission(PERMISSIONS.MANAGE_SRS), srController.create);
   router.put("/:id", requirePermission(PERMISSIONS.MANAGE_SRS), srController.update);
   router.delete("/:id", requirePermission(PERMISSIONS.MANAGE_SRS), srController.remove);

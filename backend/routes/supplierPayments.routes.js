@@ -8,8 +8,8 @@ export function createSupplierPaymentsRoutes(supplierPaymentController) {
 
   router.get("/trash", requirePermission(PERMISSIONS.MANAGE_SUPPLIER_PAYMENTS), supplierPaymentController.listTrash);
   router.get("/reports", requireFeature("supplier-payment-report"), requirePermission(PERMISSIONS.MANAGE_SUPPLIER_PAYMENTS), supplierPaymentController.supplierPaymentReport);
-  router.get("/", requirePermission(PERMISSIONS.VIEW_STATE), supplierPaymentController.list);
-  router.get("/:id", requirePermission(PERMISSIONS.VIEW_STATE), supplierPaymentController.get);
+  router.get("/", requirePermission(PERMISSIONS.VIEW_SUPPLIER_PAYMENTS), supplierPaymentController.list);
+  router.get("/:id", requirePermission(PERMISSIONS.VIEW_SUPPLIER_PAYMENTS), supplierPaymentController.get);
   router.post("/", requirePermission(PERMISSIONS.MANAGE_SUPPLIER_PAYMENTS), supplierPaymentController.create);
   router.put("/:id", requirePermission(PERMISSIONS.MANAGE_SUPPLIER_PAYMENTS), supplierPaymentController.update);
   router.delete("/:id", requirePermission(PERMISSIONS.MANAGE_SUPPLIER_PAYMENTS), supplierPaymentController.remove);

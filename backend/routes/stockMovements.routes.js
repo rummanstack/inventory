@@ -9,7 +9,7 @@ export function createStockMovementsRoutes(stockMovementController) {
 
   router.get("/reports", requireFeature("stock-movement-report"), requirePermission(PERMISSIONS.VIEW_STATE), stockMovementController.stockMovementReport);
   router.get("/damaged-report", requireFeature("damaged-stock-report"), requirePermission(PERMISSIONS.VIEW_STATE), stockMovementController.damagedStockReport);
-  router.get("/", requirePermission(PERMISSIONS.VIEW_STATE), stockMovementController.list);
+  router.get("/", requirePermission(PERMISSIONS.VIEW_PRODUCTS), stockMovementController.list);
 
   return router;
 }

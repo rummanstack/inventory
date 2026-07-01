@@ -883,12 +883,12 @@ export async function createSchema(pool) {
 
     -- Lock down tenant_id on every table that must always belong to exactly one tenant.
     -- Deliberately NOT included: users (system_developer has no home tenant), activity_logs
-    -- and error_logs (platform-level actions and errors can occur with no tenant context —
+    -- and error_logs (platform-level actions and errors can occur with no tenant context â€”
     -- e.g. the tenant-switch and full-platform-backup audit entries record tenant_id = NULL
     -- on purpose), login_history and password_reset_tokens (same reasoning for platform users).
 
     -- Step 1: root tables with no better signal than "the tenant this row has always
-    -- implicitly belonged to" — backfill any leftover null to the oldest tenant.
+    -- implicitly belonged to" â€” backfill any leftover null to the oldest tenant.
     UPDATE products SET tenant_id = (SELECT id FROM tenants ORDER BY created_at ASC LIMIT 1) WHERE tenant_id IS NULL;
     UPDATE dsrs SET tenant_id = (SELECT id FROM tenants ORDER BY created_at ASC LIMIT 1) WHERE tenant_id IS NULL;
     UPDATE issues SET tenant_id = (SELECT id FROM tenants ORDER BY created_at ASC LIMIT 1) WHERE tenant_id IS NULL;
@@ -900,7 +900,7 @@ export async function createSchema(pool) {
     UPDATE retail_customers SET tenant_id = (SELECT id FROM tenants ORDER BY created_at ASC LIMIT 1) WHERE tenant_id IS NULL;
     UPDATE finance_accounts SET tenant_id = (SELECT id FROM tenants ORDER BY created_at ASC LIMIT 1) WHERE tenant_id IS NULL;
 
-    -- Step 2: tables one level down — infer tenant_id from the parent business record they
+    -- Step 2: tables one level down â€” infer tenant_id from the parent business record they
     -- reference (more accurate than guessing), then fall back to the oldest tenant for any
     -- row whose parent can't be resolved.
     UPDATE sales_invoices si SET tenant_id = rc.tenant_id
@@ -959,7 +959,7 @@ export async function createSchema(pool) {
       FROM sales_returns sr WHERE sr.id = sri.sales_return_id AND sri.tenant_id IS NULL AND sr.tenant_id IS NOT NULL;
     UPDATE sales_return_items SET tenant_id = (SELECT id FROM tenants ORDER BY created_at ASC LIMIT 1) WHERE tenant_id IS NULL;
 
-    -- Every row above now has a tenant_id (or the table is empty) — safe to enforce.
+    -- Every row above now has a tenant_id (or the table is empty) â€” safe to enforce.
     ALTER TABLE products ALTER COLUMN tenant_id SET NOT NULL;
     ALTER TABLE dsrs ALTER COLUMN tenant_id SET NOT NULL;
     ALTER TABLE issues ALTER COLUMN tenant_id SET NOT NULL;
@@ -1088,7 +1088,7 @@ export async function createSchema(pool) {
 
     -- Electronics retail: one row per non-blank serial_number/imei1/imei2 value, so a single
     -- unique index can enforce that an identifier value is never reused across *any* of those
-    -- three columns — not just within the same column (which per-column unique indexes can't do,
+    -- three columns â€” not just within the same column (which per-column unique indexes can't do,
     -- since a unique index only constrains the tuple of columns it covers, never a union of
     -- values drawn from different columns across different rows).
     CREATE TABLE IF NOT EXISTS product_serial_identifiers (
@@ -1266,7 +1266,7 @@ export async function createSchema(pool) {
     -- every tenant that already has an explicit tenant_features config, so
     -- they don't lose access to previously-always-on items (Dashboard, etc.)
     -- now that feature flags are enforced server-side. Tenants with zero rows
-    -- are left untouched on purpose — getTenantFeatures() already treats "no
+    -- are left untouched on purpose â€” getTenantFeatures() already treats "no
     -- rows" as "everything enabled", and inserting rows here would wrongly
     -- freeze them out of any future feature additions.
     DO $$
@@ -1588,7 +1588,7 @@ export async function createSchema(pool) {
     CREATE INDEX IF NOT EXISTS idx_supplier_discounts_reference ON supplier_discounts(reference_type, reference_id);
   `);
 
-  // ── Salary Management ──────────────────────────────────────────────────────
+  // â”€â”€ Salary Management â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   await pool.query(`
     CREATE TABLE IF NOT EXISTS employee_number_counters (
       tenant_id  TEXT NOT NULL REFERENCES tenants(id),
@@ -1623,7 +1623,7 @@ export async function createSchema(pool) {
     CREATE INDEX IF NOT EXISTS idx_employees_status ON employees(tenant_id, status);
   `);
 
-  // ── DSR Monthly Targets ────────────────────────────────────────────────────
+  // â”€â”€ DSR Monthly Targets â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   await pool.query(`
     CREATE TABLE IF NOT EXISTS dsr_targets (
       id          TEXT PRIMARY KEY,
@@ -1639,7 +1639,7 @@ export async function createSchema(pool) {
   `);
 
   // Backfill HR features onto all tenants that already have explicit feature rows
-  // (tenants with zero rows are untouched — "no rows" already means "all enabled").
+  // (tenants with zero rows are untouched â€” "no rows" already means "all enabled").
   await pool.query(`
     DO $$
     DECLARE
@@ -1684,12 +1684,88 @@ export async function createSchema(pool) {
     ON CONFLICT (role, tenant_id, permission) DO NOTHING;
   `);
 
-  // ── Trade-in conversion tracking ──────────────────────────────────────────
+  // Backfill the new read permissions so existing custom role rows keep the
+  // same effective access after read/write permissions are split.
+  await pool.query(`
+    INSERT INTO role_permissions (role, tenant_id, permission)
+    SELECT role, tenant_id, 'view_products'
+    FROM role_permissions
+    WHERE permission IN ('view_state', 'manage_products')
+    ON CONFLICT (role, tenant_id, permission) DO NOTHING;
+
+    INSERT INTO role_permissions (role, tenant_id, permission)
+    SELECT role, tenant_id, 'view_dsrs'
+    FROM role_permissions
+    WHERE permission IN ('view_state', 'manage_dsrs')
+    ON CONFLICT (role, tenant_id, permission) DO NOTHING;
+
+    INSERT INTO role_permissions (role, tenant_id, permission)
+    SELECT role, tenant_id, 'view_customers'
+    FROM role_permissions
+    WHERE permission IN ('view_state', 'manage_customers')
+    ON CONFLICT (role, tenant_id, permission) DO NOTHING;
+
+    INSERT INTO role_permissions (role, tenant_id, permission)
+    SELECT role, tenant_id, 'view_srs'
+    FROM role_permissions
+    WHERE permission = 'manage_srs'
+    ON CONFLICT (role, tenant_id, permission) DO NOTHING;
+
+    INSERT INTO role_permissions (role, tenant_id, permission)
+    SELECT role, tenant_id, 'view_suppliers'
+    FROM role_permissions
+    WHERE permission = 'manage_suppliers'
+    ON CONFLICT (role, tenant_id, permission) DO NOTHING;
+
+    INSERT INTO role_permissions (role, tenant_id, permission)
+    SELECT role, tenant_id, 'view_purchases'
+    FROM role_permissions
+    WHERE permission = 'manage_purchases'
+    ON CONFLICT (role, tenant_id, permission) DO NOTHING;
+
+    INSERT INTO role_permissions (role, tenant_id, permission)
+    SELECT role, tenant_id, 'view_supplier_payments'
+    FROM role_permissions
+    WHERE permission = 'manage_supplier_payments'
+    ON CONFLICT (role, tenant_id, permission) DO NOTHING;
+
+    INSERT INTO role_permissions (role, tenant_id, permission)
+    SELECT role, tenant_id, 'view_retail_customers'
+    FROM role_permissions
+    WHERE permission IN ('view_state', 'manage_retail_customers_write')
+    ON CONFLICT (role, tenant_id, permission) DO NOTHING;
+
+    INSERT INTO role_permissions (role, tenant_id, permission)
+    SELECT role, tenant_id, 'view_retail_sales_invoices'
+    FROM role_permissions
+    WHERE permission = 'manage_retail_sales_invoices'
+    ON CONFLICT (role, tenant_id, permission) DO NOTHING;
+
+    INSERT INTO role_permissions (role, tenant_id, permission)
+    SELECT role, tenant_id, 'view_retail_sales_returns'
+    FROM role_permissions
+    WHERE permission = 'manage_retail_sales_returns'
+    ON CONFLICT (role, tenant_id, permission) DO NOTHING;
+
+    INSERT INTO role_permissions (role, tenant_id, permission)
+    SELECT role, tenant_id, 'view_retail_customer_due'
+    FROM role_permissions
+    WHERE permission = 'manage_retail_customer_due'
+    ON CONFLICT (role, tenant_id, permission) DO NOTHING;
+
+    INSERT INTO role_permissions (role, tenant_id, permission)
+    SELECT role, tenant_id, 'view_retail_due_collection'
+    FROM role_permissions
+    WHERE permission = 'manage_retail_due_collection'
+    ON CONFLICT (role, tenant_id, permission) DO NOTHING;
+  `);
+
+  // â”€â”€ Trade-in conversion tracking â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   await pool.query(`
     ALTER TABLE trade_ins ADD COLUMN IF NOT EXISTS converted_invoice_id TEXT REFERENCES sales_invoices(id);
   `);
 
-  // ── Simple Salary Payments ─────────────────────────────────────────────────
+  // â”€â”€ Simple Salary Payments â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   await pool.query(`
     ALTER TABLE employees ADD COLUMN IF NOT EXISTS salary_amount NUMERIC NOT NULL DEFAULT 0;
     ALTER TABLE employees ADD COLUMN IF NOT EXISTS pay_type TEXT NOT NULL DEFAULT 'MONTHLY';
@@ -1711,7 +1787,7 @@ export async function createSchema(pool) {
     CREATE INDEX IF NOT EXISTS idx_salary_payments_employee ON salary_payments(employee_id);
   `);
 
-  // ── NOT NULL enforcement for tables created after the original enforcement block ──
+  // â”€â”€ NOT NULL enforcement for tables created after the original enforcement block â”€â”€
   // retail_cash_sessions, help_desk_tickets, help_desk_ticket_notes, and
   // retail_loyalty_ledger were added with nullable tenant_id and were not covered
   // by the earlier backfill+enforce block. Backfill any NULL rows, then lock down.
@@ -1773,7 +1849,7 @@ export async function createSchema(pool) {
     ALTER TABLE sales_invoice_items ADD COLUMN IF NOT EXISTS original_sale_price NUMERIC;
   `);
 
-  // ── Drug & Pharmacy: product fields ───────────────────────────────────────
+  // â”€â”€ Drug & Pharmacy: product fields â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   await pool.query(`
     ALTER TABLE products ADD COLUMN IF NOT EXISTS generic_name TEXT NOT NULL DEFAULT '';
     ALTER TABLE products ADD COLUMN IF NOT EXISTS drug_type TEXT NOT NULL DEFAULT '';
@@ -1793,7 +1869,7 @@ export async function createSchema(pool) {
     CREATE INDEX IF NOT EXISTS idx_products_manufacturer_id ON products(manufacturer_id) WHERE manufacturer_id IS NOT NULL;
   `);
 
-  // ── Drug & Pharmacy: batch/lot/expiry on purchase receipt items ────────────
+  // â”€â”€ Drug & Pharmacy: batch/lot/expiry on purchase receipt items â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   await pool.query(`
     ALTER TABLE purchase_receipt_items ADD COLUMN IF NOT EXISTS batch_number TEXT NOT NULL DEFAULT '';
     ALTER TABLE purchase_receipt_items ADD COLUMN IF NOT EXISTS lot_number TEXT NOT NULL DEFAULT '';
@@ -1801,14 +1877,14 @@ export async function createSchema(pool) {
     ALTER TABLE purchase_receipt_items ADD COLUMN IF NOT EXISTS manufacture_date DATE;
   `);
 
-  // ── Drug & Pharmacy: batch snapshot on sold line items ─────────────────────
+  // â”€â”€ Drug & Pharmacy: batch snapshot on sold line items â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   await pool.query(`
     ALTER TABLE sales_invoice_items ADD COLUMN IF NOT EXISTS batch_number_snapshot TEXT NOT NULL DEFAULT '';
     ALTER TABLE sales_invoice_items ADD COLUMN IF NOT EXISTS expiry_date_snapshot DATE;
     ALTER TABLE sales_invoices ADD COLUMN IF NOT EXISTS prescription_number TEXT NOT NULL DEFAULT '';
   `);
 
-  // ── Drug & Pharmacy: drug_batches — one row per received batch, tracks remaining qty ──
+  // â”€â”€ Drug & Pharmacy: drug_batches â€” one row per received batch, tracks remaining qty â”€â”€
   await pool.query(`
     CREATE TABLE IF NOT EXISTS drug_batches (
       id                      TEXT PRIMARY KEY,
@@ -1842,7 +1918,7 @@ export async function createSchema(pool) {
     ALTER TABLE sales_invoice_items ADD COLUMN IF NOT EXISTS drug_batch_id TEXT REFERENCES drug_batches(id) ON DELETE SET NULL;
   `);
 
-  // ── Drug & Pharmacy: per-line-item batch allocation log ──────────────────
+  // â”€â”€ Drug & Pharmacy: per-line-item batch allocation log â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // Tracks which drug_batches were consumed (FEFO) for each sales invoice line,
   // enabling a batch-level sales report and clean quantity restore on void.
   await pool.query(`

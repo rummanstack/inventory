@@ -33,6 +33,9 @@ const PERMISSION_REQUIRED_FEATURES = {
   manage_product_serials: "product-serials",
   view_warranty_claims: "warranty-claims",
   manage_warranty_claims: "warranty-claims",
+  view_employees: "employees",
+  manage_employees: "employees",
+  manage_payroll: "salary-payments",
 };
 
 function editableRolesFor(actor) {

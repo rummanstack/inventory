@@ -62,19 +62,6 @@ export function listDrugBatchesByProduct(client, { tenantId, productId, activeOn
   );
 }
 
-export function listExpiringBatches(client, { tenantId, daysAhead = 90 }) {
-  return client.query(
-    `SELECT db.*, p.name AS product_name
-     FROM drug_batches db
-     LEFT JOIN products p ON p.id = db.product_id
-     WHERE db.tenant_id = $1
-       AND db.quantity_remaining > 0
-       AND db.expiry_date IS NOT NULL
-       AND db.expiry_date <= CURRENT_DATE + $2 * INTERVAL '1 day'
-     ORDER BY db.expiry_date ASC`,
-    [tenantId, daysAhead],
-  );
-}
 
 export function decrementDrugBatch(client, batchId, tenantId, qty) {
   return client.query(

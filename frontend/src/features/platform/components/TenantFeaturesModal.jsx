@@ -76,8 +76,8 @@ const FEATURE_DESCRIPTIONS = {
   history: 'Combined chronological log of all morning issues and evening settlements.',
   'activity-logs': 'Full audit trail of all user actions with before/after data snapshots.',
 
-  // HR & Payroll
-  employees: 'Employee directory with department, designation, and salary structure.',
+  // HR & Salary
+  employees: 'Employee directory with department, designation, and salary payment details.',
   'salary-payments': 'Record and track monthly salary payments to employees.',
 
   // System & Settings

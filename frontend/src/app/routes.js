@@ -102,7 +102,6 @@ import CustomerDueReportPage from '../features/reports/pages/CustomerDueReportPa
 import CashSessionReportPage from '../features/reports/pages/CashSessionReportPage';
 import DamagedStockReportPage from '../features/reports/pages/DamagedStockReportPage';
 import BatchSalesReportPage from '../features/pharmacy/pages/BatchSalesReportPage';
-import ManufacturersPage from '../features/pharmacy/pages/ManufacturersPage';
 
 export const APP_ROUTES = [
   // 1. Dashboard

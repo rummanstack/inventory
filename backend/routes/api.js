@@ -108,12 +108,8 @@ import { createSrDueLedgerRoutes } from "./srDueLedger.routes.js";
 import { DsrTargetController } from "../controllers/DsrTargetController.js";
 import { createDsrTargetsRoutes } from "./dsrTargets.routes.js";
 import { EmployeeController } from "../controllers/EmployeeController.js";
-import { SalaryStructureController } from "../controllers/SalaryStructureController.js";
-import { PayrollController } from "../controllers/PayrollController.js";
 import { SalaryPaymentController } from "../controllers/SalaryPaymentController.js";
 import { createEmployeesRoutes } from "./employees.routes.js";
-import { createSalaryStructureRoutes } from "./salaryStructure.routes.js";
-import { createPayrollRoutes } from "./payroll.routes.js";
 import { createSalaryPaymentsRoutes } from "./salaryPayments.routes.js";
 import { DrugBatchController } from "../controllers/drugBatchController.js";
 import { createDrugBatchesRoutes } from "./drugBatches.routes.js";
@@ -171,8 +167,6 @@ export function createApiRouter({
   srDueLedgerService,
   dsrTargetService,
   employeeService,
-  salaryStructureService,
-  payrollService,
   salaryPaymentService,
   drugBatchService,
 }) {
@@ -229,8 +223,6 @@ export function createApiRouter({
   const retailCashSessionController = new RetailCashSessionController(retailCashSessionService);
 
   const employeeController = new EmployeeController(employeeService);
-  const salaryStructureController = new SalaryStructureController(salaryStructureService);
-  const payrollController = new PayrollController(payrollService);
 
   const loginRateLimiter = createRateLimiter({ windowMs: 15 * 60 * 1000, max: 20 });
   const authRateLimiter = createRateLimiter({ windowMs: 15 * 60 * 1000, max: 20 });
@@ -309,8 +301,6 @@ export function createApiRouter({
   const dsrTargetController = new DsrTargetController(dsrTargetService);
   router.use("/dsr-targets", createDsrTargetsRoutes(dsrTargetController));
   router.use("/employees", createEmployeesRoutes(employeeController));
-  router.use("/salary-structure", createSalaryStructureRoutes(salaryStructureController));
-  router.use("/payroll", createPayrollRoutes(payrollController));
   const salaryPaymentController = new SalaryPaymentController(salaryPaymentService);
   router.use("/salary-payments", createSalaryPaymentsRoutes(salaryPaymentController));
 

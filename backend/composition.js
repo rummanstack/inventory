@@ -52,8 +52,6 @@ import { SrDueLedgerService } from './services/srDueLedgerService.js';
 import { SupplierDiscountService } from './services/supplierDiscountService.js';
 import { EmployeeService } from './services/employeeService.js';
 import { DsrTargetService } from './services/dsrTargetService.js';
-import { SalaryStructureService } from './services/salaryStructureService.js';
-import { PayrollService } from './services/payrollService.js';
 import { SalaryPaymentService } from './services/salaryPaymentService.js';
 import { DrugBatchService } from './services/drugBatchService.js';
 import { createApp } from './app.js';
@@ -119,8 +117,6 @@ export async function createBackendApp() {
   const srDueLedgerService = new SrDueLedgerService(databaseManager, { auditService, financeAccountService });
   const dsrTargetService = new DsrTargetService(databaseManager);
   const employeeService = new EmployeeService(databaseManager, { auditService });
-  const salaryStructureService = new SalaryStructureService(databaseManager, { auditService });
-  const payrollService = new PayrollService(databaseManager, { auditService });
   const salaryPaymentService = new SalaryPaymentService(databaseManager, { auditService, financeAccountService });
   const drugBatchService = new DrugBatchService(databaseManager);
 
@@ -177,8 +173,6 @@ export async function createBackendApp() {
     supplierDiscountService,
     dsrTargetService,
     employeeService,
-    salaryStructureService,
-    payrollService,
     salaryPaymentService,
     drugBatchService,
   });

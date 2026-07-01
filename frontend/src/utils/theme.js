@@ -24,7 +24,7 @@ export function getCssVar(varName, fallback = '') {
   return fallback;
 }
 
-export function setTheme(vars = {}) {
+function setTheme(vars = {}) {
   if (typeof document === 'undefined' || !document.documentElement) return;
   Object.entries(vars).forEach(([key, value]) => {
     const name = normalizeVarName(key);
@@ -33,12 +33,7 @@ export function setTheme(vars = {}) {
   });
 }
 
-export function clearThemeCache() {
+function clearThemeCache() {
   cache.clear();
 }
 
-export default {
-  getCssVar,
-  setTheme,
-  clearThemeCache,
-};

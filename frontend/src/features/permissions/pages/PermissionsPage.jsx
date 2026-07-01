@@ -35,7 +35,7 @@ const PERMISSION_REQUIRED_FEATURES = {
   manage_srs: 'srs',
   view_employees: 'employees',
   manage_employees: 'employees',
-  manage_payroll: 'payroll',
+  manage_payroll: 'salary-payments',
 };
 
 // Curated mapping of permissions → sidebar section, in sidebar order.

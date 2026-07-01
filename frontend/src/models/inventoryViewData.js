@@ -283,7 +283,7 @@ export function quotationStatusTone(status) {
   return 'slate';
 }
 
-export function shortDate(date, language = getPreferredLanguage()) {
+function shortDate(date, language = getPreferredLanguage()) {
   if (!date) return '-';
   return new Intl.DateTimeFormat(language === 'bn' ? 'bn-BD' : 'en-US', { month: 'short', day: 'numeric' }).format(new Date(`${date}T00:00:00`));
 }

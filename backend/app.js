@@ -58,8 +58,6 @@ export function createApp({
   supplierDiscountService,
   dsrTargetService,
   employeeService,
-  salaryStructureService,
-  payrollService,
   salaryPaymentService,
   drugBatchService,
 }) {
@@ -123,8 +121,6 @@ export function createApp({
       supplierDiscountService,
       dsrTargetService,
       employeeService,
-      salaryStructureService,
-      payrollService,
       salaryPaymentService,
       drugBatchService,
     }),

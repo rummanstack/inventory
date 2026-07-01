@@ -1621,73 +1621,6 @@ export async function createSchema(pool) {
     CREATE INDEX IF NOT EXISTS idx_employees_tenant_id ON employees(tenant_id);
     CREATE INDEX IF NOT EXISTS idx_employees_deleted_at ON employees(tenant_id, deleted_at);
     CREATE INDEX IF NOT EXISTS idx_employees_status ON employees(tenant_id, status);
-
-    CREATE TABLE IF NOT EXISTS salary_structures (
-      id              TEXT PRIMARY KEY,
-      tenant_id       TEXT NOT NULL REFERENCES tenants(id),
-      employee_id     TEXT NOT NULL REFERENCES employees(id) ON DELETE CASCADE,
-      pay_type        TEXT NOT NULL DEFAULT 'MONTHLY',
-      basic_pay       NUMERIC NOT NULL DEFAULT 0,
-      effective_from  DATE NOT NULL DEFAULT CURRENT_DATE,
-      allowances      JSONB NOT NULL DEFAULT '[]'::jsonb,
-      deductions      JSONB NOT NULL DEFAULT '[]'::jsonb,
-      created_by      TEXT REFERENCES users(id) ON DELETE SET NULL,
-      created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
-    CREATE INDEX IF NOT EXISTS idx_salary_structures_tenant_employee ON salary_structures(tenant_id, employee_id);
-
-    CREATE TABLE IF NOT EXISTS payroll_number_counters (
-      tenant_id  TEXT NOT NULL REFERENCES tenants(id),
-      year       INTEGER NOT NULL,
-      last_value INTEGER NOT NULL DEFAULT 0,
-      PRIMARY KEY (tenant_id, year)
-    );
-
-    CREATE TABLE IF NOT EXISTS payrolls (
-      id                  TEXT PRIMARY KEY,
-      tenant_id           TEXT NOT NULL REFERENCES tenants(id),
-      payroll_number      TEXT NOT NULL,
-      month               TEXT NOT NULL,
-      status              TEXT NOT NULL DEFAULT 'DRAFT',
-      finance_account_id  TEXT REFERENCES finance_accounts(id) ON DELETE SET NULL,
-      total_net_pay       NUMERIC NOT NULL DEFAULT 0,
-      notes               TEXT NOT NULL DEFAULT '',
-      paid_at             TIMESTAMPTZ,
-      paid_by_id          TEXT REFERENCES users(id) ON DELETE SET NULL,
-      created_by          TEXT REFERENCES users(id) ON DELETE SET NULL,
-      created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      updated_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      UNIQUE (tenant_id, payroll_number)
-    );
-    CREATE INDEX IF NOT EXISTS idx_payrolls_tenant_month ON payrolls(tenant_id, month DESC);
-    CREATE INDEX IF NOT EXISTS idx_payrolls_tenant_status ON payrolls(tenant_id, status);
-
-    CREATE TABLE IF NOT EXISTS payroll_items (
-      id                  TEXT PRIMARY KEY,
-      tenant_id           TEXT NOT NULL REFERENCES tenants(id),
-      payroll_id          TEXT NOT NULL REFERENCES payrolls(id) ON DELETE CASCADE,
-      employee_id         TEXT NOT NULL REFERENCES employees(id),
-      employee_name       TEXT NOT NULL DEFAULT '',
-      department          TEXT NOT NULL DEFAULT '',
-      designation         TEXT NOT NULL DEFAULT '',
-      pay_type            TEXT NOT NULL DEFAULT 'MONTHLY',
-      basic_pay           NUMERIC NOT NULL DEFAULT 0,
-      working_days        INTEGER NOT NULL DEFAULT 30,
-      days_present        INTEGER NOT NULL DEFAULT 30,
-      days_absent         INTEGER NOT NULL DEFAULT 0,
-      absent_deduction    NUMERIC NOT NULL DEFAULT 0,
-      allowances          JSONB NOT NULL DEFAULT '[]'::jsonb,
-      total_allowances    NUMERIC NOT NULL DEFAULT 0,
-      deductions          JSONB NOT NULL DEFAULT '[]'::jsonb,
-      total_deductions    NUMERIC NOT NULL DEFAULT 0,
-      gross_pay           NUMERIC NOT NULL DEFAULT 0,
-      net_pay             NUMERIC NOT NULL DEFAULT 0,
-      created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      updated_at          TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
-    CREATE INDEX IF NOT EXISTS idx_payroll_items_payroll_id ON payroll_items(payroll_id);
-    CREATE INDEX IF NOT EXISTS idx_payroll_items_tenant_employee ON payroll_items(tenant_id, employee_id);
   `);
 
   // ── DSR Monthly Targets ────────────────────────────────────────────────────
@@ -1711,7 +1644,7 @@ export async function createSchema(pool) {
     DO $$
     DECLARE
       new_feature TEXT;
-      new_features TEXT[] := ARRAY['employees','salary-structure','payroll','payslips','salary-reports'];
+      new_features TEXT[] := ARRAY['employees','salary-payments'];
     BEGIN
       FOREACH new_feature IN ARRAY new_features LOOP
         INSERT INTO tenant_features (tenant_id, feature)

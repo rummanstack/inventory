@@ -1,7 +1,6 @@
 import {
   mapDrugBatch,
   listDrugBatchesByProduct,
-  listExpiringBatches,
   listBatchSalesReport,
   countBatchSalesReport,
 } from '../repositories/drugBatchRepository.js';
@@ -24,15 +23,6 @@ export class DrugBatchService {
     });
   }
 
-  async listExpiring(actor, daysAhead = 90) {
-    return this.databaseManager.withClient(async (client) => {
-      const result = await listExpiringBatches(client, {
-        tenantId: actor.tenantId,
-        daysAhead: Number(daysAhead) || 90,
-      });
-      return { batches: result.rows.map(mapDrugBatch) };
-    });
-  }
 
   async batchSalesReport(query = {}, actor) {
     const { page, pageSize, limit, offset } = parsePagination(query);

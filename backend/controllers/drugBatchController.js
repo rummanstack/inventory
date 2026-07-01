@@ -12,15 +12,6 @@ export class DrugBatchController {
     }
   };
 
-  listExpiring = async (req, res, next) => {
-    try {
-      const daysAhead = req.query.daysAhead || 90;
-      const result = await this.drugBatchService.listExpiring(req.currentUser, daysAhead);
-      res.json(result);
-    } catch (error) {
-      next(error);
-    }
-  };
 
   listBatchSalesReport = async (req, res, next) => {
     try {

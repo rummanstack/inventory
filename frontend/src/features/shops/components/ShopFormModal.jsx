@@ -1,5 +1,5 @@
 import { Save } from 'lucide-react';
-import { Alert, Modal } from '../../../components/ui.jsx';
+import { Alert, Modal, Select } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import AuditHistory from '../../../components/AuditHistory.jsx';
 import { useFormState } from '../../../hooks/useFormState';
@@ -96,19 +96,19 @@ export default function ShopFormModal({ shop, onClose, onSave }) {
           </div>
           <div>
             <label className="label">{t('shops.assignedDsrLabel')}</label>
-            <select className="input" value={form.assignedDsrId} onChange={(event) => updateField('assignedDsrId', event.target.value)}>
+            <Select className="input" value={form.assignedDsrId} onChange={(event) => updateField('assignedDsrId', event.target.value)}>
               <option value="">{t('shops.unassigned')}</option>
               {dsrDirectory.map((dsr) => (
                 <option key={dsr.id} value={dsr.id}>{dsr.name}</option>
               ))}
-            </select>
+            </Select>
           </div>
           <div>
             <label className="label">{t('shops.status')}</label>
-            <select className="input" value={form.status} onChange={(event) => updateField('status', event.target.value)}>
+            <Select className="input" value={form.status} onChange={(event) => updateField('status', event.target.value)}>
               <option value="ACTIVE">{t('shops.statusActive')}</option>
               <option value="INACTIVE">{t('shops.statusInactive')}</option>
-            </select>
+            </Select>
           </div>
           <div>
             <label className="label">{t('shops.openingDueLabel')}</label>
@@ -139,3 +139,4 @@ export default function ShopFormModal({ shop, onClose, onSave }) {
     </Modal>
   );
 }
+

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Download, FileSpreadsheet, Pencil, Plus, Printer, Trash2, Wallet } from 'lucide-react';
-import { Alert, EmptyState, Pagination, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
+import { Alert, EmptyState, Pagination, SectionHeader, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
@@ -90,12 +90,12 @@ export default function SupplierPaymentsPage() {
             </div>
           </div>
           <div className="mt-4 grid gap-3 sm:grid-cols-3">
-            <select className="input" value={vm.supplierId} onChange={(event) => vm.setSupplierId(event.target.value)}>
+            <Select className="input" value={vm.supplierId} onChange={(event) => vm.setSupplierId(event.target.value)}>
               <option value="">{t('supplierPayments.allSuppliers')}</option>
               {supplierDirectory.map((supplier) => (
                 <option key={supplier.id} value={supplier.id}>{supplier.name}</option>
               ))}
-            </select>
+            </Select>
             <DatePickerField value={vm.dateFrom} onChange={vm.setDateFrom} placeholder={t('supplierPayments.dateFrom')} />
             <DatePickerField value={vm.dateTo} onChange={vm.setDateTo} placeholder={t('supplierPayments.dateTo')} min={vm.dateFrom} />
           </div>
@@ -178,3 +178,4 @@ export default function SupplierPaymentsPage() {
     </div>
   );
 }
+

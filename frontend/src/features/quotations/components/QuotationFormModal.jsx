@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Loader2, Plus, Save, Trash2 } from 'lucide-react';
-import { Alert, Modal } from '../../../components/ui.jsx';
+import { Alert, Modal, Select } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { useFormState } from '../../../hooks/useFormState';
@@ -185,11 +185,11 @@ export default function QuotationFormModal({ quotation, onClose, onSave }) {
           {isEdit ? (
             <div>
               <label className="label">{t('quotations.statusLabel')}</label>
-              <select className="input" value={form.status} onChange={(e) => updateField('status', e.target.value)}>
+              <Select className="input" value={form.status} onChange={(e) => updateField('status', e.target.value)}>
                 {QUOTATION_STATUS_VALUES.map((s) => (
                   <option key={s} value={s}>{t(`quotations.statuses.${s}`)}</option>
                 ))}
-              </select>
+              </Select>
             </div>
           ) : null}
         </div>
@@ -219,7 +219,7 @@ export default function QuotationFormModal({ quotation, onClose, onSave }) {
                 {items.map((item, i) => (
                   <tr key={item._key}>
                     <td className="px-2 py-1.5">
-                      <select
+                      <Select
                         className="input py-1 text-sm"
                         value={item.productId}
                         onChange={(e) => updateItem(i, 'productId', e.target.value)}
@@ -228,7 +228,7 @@ export default function QuotationFormModal({ quotation, onClose, onSave }) {
                         {productDirectory.map((p) => (
                           <option key={p.id} value={p.id}>{p.name}</option>
                         ))}
-                      </select>
+                      </Select>
                       {!item.productId ? (
                         <input
                           className="input py-1 text-sm mt-1"
@@ -367,3 +367,4 @@ export default function QuotationFormModal({ quotation, onClose, onSave }) {
     </Modal>
   );
 }
+

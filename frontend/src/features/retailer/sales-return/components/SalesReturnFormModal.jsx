@@ -1,6 +1,6 @@
 import { Fragment, useState } from 'react';
 import { Save, Search } from 'lucide-react';
-import { Alert, Modal } from '../../../../components/ui.jsx';
+import { Alert, Modal, Select } from '../../../../components/ui.jsx';
 import { DatePickerField } from '../../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
 import { formatCurrency } from '../../../../utils/calculations.js';
@@ -56,10 +56,10 @@ export default function SalesReturnFormModal({ onClose, onSave }) {
 
         <div>
           <label className="label">{t('retailer.salesReturn.refundMethodLabel')}</label>
-          <select className="input" value={vm.refundMethod} onChange={(event) => vm.setRefundMethod(event.target.value)} disabled={saving}>
+          <Select className="input" value={vm.refundMethod} onChange={(event) => vm.setRefundMethod(event.target.value)} disabled={saving}>
             <option value="DUE_ADJUSTMENT">{t('retailer.salesReturn.refundMethodDueAdjustment')}</option>
             <option value="CASH">{t('retailer.salesReturn.refundMethodCash')}</option>
-          </select>
+          </Select>
           <p className="mt-1 text-xs font-medium text-slate-500">
             {t('retailer.salesReturn.refundMethodHelp')}
           </p>
@@ -101,11 +101,11 @@ export default function SalesReturnFormModal({ onClose, onSave }) {
                         )}
                       </td>
                       <td className="px-3 py-2">
-                        <select className="input h-9" value={row.condition} onChange={(event) => vm.updateReturnCondition(row.rowId, event.target.value)} disabled={saving}>
+                        <Select className="input h-9" value={row.condition} onChange={(event) => vm.updateReturnCondition(row.rowId, event.target.value)} disabled={saving}>
                           <option value="GOOD">{t('retailer.salesReturn.conditionGood')}</option>
                           <option value="DAMAGED">{t('retailer.salesReturn.conditionDamaged')}</option>
                           <option value="WARRANTY">{t('retailer.salesReturn.conditionWarranty')}</option>
-                        </select>
+                        </Select>
                       </td>
                       <td className="px-3 py-2 text-right">{formatCurrency(row.actualSalePrice)}</td>
                       <td className="px-3 py-2 text-right font-bold">{formatCurrency(row.lineTotal)}</td>
@@ -171,3 +171,4 @@ export default function SalesReturnFormModal({ onClose, onSave }) {
     </Modal>
   );
 }
+

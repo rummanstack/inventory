@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Loader2, Save } from 'lucide-react';
-import { Alert, SectionHeader } from '../../../components/ui.jsx';
+import { Alert, SectionHeader, Select } from '../../../components/ui.jsx';
 import PhotoUploadField from '../../../components/PhotoUploadField.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
@@ -96,7 +96,7 @@ export default function OrgSettingsPage() {
 
         <label className="block">
           <span className="label">{t('orgSettings.businessType')}</span>
-          <select
+          <Select
             className="input"
             value={form.businessType}
             onChange={(e) => handleChange('businessType', e.target.value)}
@@ -105,7 +105,7 @@ export default function OrgSettingsPage() {
             <option value="ELECTRONICS">{t('orgSettings.businessTypeElectronics')}</option>
             <option value="GROCERY">{t('orgSettings.businessTypeGrocery')}</option>
             <option value="DRUG_PHARMACY">{t('orgSettings.businessTypeDrugPharmacy')}</option>
-          </select>
+          </Select>
           <p className="mt-1 text-xs text-slate-500">{t('orgSettings.businessTypeHelp')}</p>
         </label>
 
@@ -206,3 +206,4 @@ export default function OrgSettingsPage() {
     </div>
   );
 }
+

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Bell, CalendarDays, CheckCircle2, Clock3, LogOut, Menu, MessageCircle, PackageX, ShieldCheck, UserCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { formatDate, getLowStockProducts, getLowStockThreshold } from '../utils/calculations';
-import { Badge } from '../components/ui';
+import { Badge, Select } from '../components/ui';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 import { inventoryApi } from '../services/inventoryApi.js';
 import { usePolling } from '../hooks/usePolling.js';
@@ -76,7 +76,7 @@ export default function TopHeader({ title, today, user, tenant, tenantOptions, o
         </div>
         <div className="hidden items-center gap-3 sm:flex">
           {user?.isPlatformUser ? (
-            <select
+            <Select
               className="input w-48"
               value={tenant?.id || ''}
               onChange={(event) => onSwitchTenant(event.target.value)}
@@ -86,7 +86,7 @@ export default function TopHeader({ title, today, user, tenant, tenantOptions, o
               {tenantOptions.map((option) => (
                 <option key={option.id} value={option.id}>{option.name}</option>
               ))}
-            </select>
+            </Select>
           ) : null}
           <div className="inline-flex items-center gap-2 rounded-full border border-[#dddaf0] bg-white/70 px-3.5 py-2 text-sm font-bold text-slate-700">
             <CalendarDays size={17} className="text-slate-400" />
@@ -193,3 +193,5 @@ export default function TopHeader({ title, today, user, tenant, tenantOptions, o
     </header>
   );
 }
+
+

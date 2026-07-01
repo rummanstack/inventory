@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Tag, Pencil, Plus, Search, Trash2 } from 'lucide-react';
-import { Alert, Badge, EmptyState, Modal, Pagination, SectionHeader, TableSkeleton } from '../../../../components/ui.jsx';
+import { Alert, Badge, EmptyState, Modal, Pagination, SectionHeader, TableSkeleton, Select } from '../../../../components/ui.jsx';
 import { DatePickerField } from '../../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../../services/inventoryApi.js';
@@ -139,36 +139,36 @@ function PromotionFormModal({ promotion, products, categories, onClose, onSave }
           </div>
           <div>
             <label className="label">{t('retailer.promotions.targetType')}</label>
-            <select className="input" value={form.targetType} onChange={(event) => updateField('targetType', event.target.value)}>
+            <Select className="input" value={form.targetType} onChange={(event) => updateField('targetType', event.target.value)}>
               {TARGET_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>{t(option.labelKey)}</option>
               ))}
-            </select>
+            </Select>
           </div>
           <div>
             <label className="label">{t('retailer.promotions.target')}</label>
-            <select className="input" value={form.targetId} onChange={(event) => updateField('targetId', event.target.value)} disabled={form.targetType === 'ALL'}>
+            <Select className="input" value={form.targetId} onChange={(event) => updateField('targetId', event.target.value)} disabled={form.targetType === 'ALL'}>
               <option value="">{t('retailer.promotions.selectTarget')}</option>
               {availableTargets().map((target) => (
                 <option key={target.id} value={target.id}>{target.name}</option>
               ))}
-            </select>
+            </Select>
           </div>
           <div>
             <label className="label">{t('retailer.promotions.saleType')}</label>
-            <select className="input" value={form.saleType} onChange={(event) => updateField('saleType', event.target.value)}>
+            <Select className="input" value={form.saleType} onChange={(event) => updateField('saleType', event.target.value)}>
               {SALE_TYPE_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>{t(option.labelKey)}</option>
               ))}
-            </select>
+            </Select>
           </div>
           <div>
             <label className="label">{t('retailer.promotions.discountType')}</label>
-            <select className="input" value={form.discountType} onChange={(event) => updateField('discountType', event.target.value)}>
+            <Select className="input" value={form.discountType} onChange={(event) => updateField('discountType', event.target.value)}>
               {DISCOUNT_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>{t(option.labelKey)}</option>
               ))}
-            </select>
+            </Select>
           </div>
           <div>
             <label className="label">{t('retailer.promotions.discountValue')}</label>
@@ -401,3 +401,4 @@ export default function RetailPromotionsPage() {
     </div>
   );
 }
+

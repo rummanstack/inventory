@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Save } from 'lucide-react';
-import { Alert, Modal } from '../../../components/ui.jsx';
+import { Alert, Modal, Select } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import { cleanNumber } from '../../../utils/calculations.js';
@@ -196,7 +196,7 @@ export default function ProductFormModal({ product, onClose, onSave }) {
             <>
               <div>
                 <label className="label">{t('products.brand')}</label>
-                <select className="input" value={form.brand} onChange={(event) => updateField('brand', event.target.value)}>
+                <Select className="input" value={form.brand} onChange={(event) => updateField('brand', event.target.value)}>
                   <option value="">{t('brands.selectBrand')}</option>
                   {brands.map((brand) => (
                     <option key={brand.id} value={brand.name}>{brand.name}</option>
@@ -204,7 +204,7 @@ export default function ProductFormModal({ product, onClose, onSave }) {
                   {form.brand && !brands.some((b) => b.name.toLowerCase() === form.brand.toLowerCase()) ? (
                     <option value={form.brand}>{form.brand}</option>
                   ) : null}
-                </select>
+                </Select>
               </div>
               <div>
                 <label className="label">{t('products.model')}</label>
@@ -251,10 +251,10 @@ export default function ProductFormModal({ product, onClose, onSave }) {
           ) : null}
           <div>
             <label className="label">{t('products.status')}</label>
-            <select className="input" value={form.status} onChange={(event) => updateField('status', event.target.value)}>
+            <Select className="input" value={form.status} onChange={(event) => updateField('status', event.target.value)}>
               <option value="ACTIVE">{t('products.statusActive')}</option>
               <option value="INACTIVE">{t('products.statusInactive')}</option>
-            </select>
+            </Select>
           </div>
           <div className="sm:col-span-2">
             <label className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
@@ -436,3 +436,4 @@ export default function ProductFormModal({ product, onClose, onSave }) {
     </Modal>
   );
 }
+

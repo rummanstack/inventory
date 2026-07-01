@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { AlertTriangle, Save, Zap } from 'lucide-react';
-import { Alert, Modal } from '../../../../components/ui.jsx';
+import { Alert, Modal, Select } from '../../../../components/ui.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
 import { formatCurrency } from '../../../../utils/calculations.js';
 import { inventoryApi } from '../../../../services/inventoryApi.js';
@@ -136,10 +136,10 @@ export default function RecordPaymentModal({ employee, onClose, onSaved }) {
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="label">{t('salary.paymentMethod')}</label>
-            <select className="input" value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)}>
+            <Select className="input" value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)}>
               <option value="CASH">{t('common.cash')}</option>
               <option value="BANK">{t('common.bank')}</option>
-            </select>
+            </Select>
           </div>
           <div>
             <label className="label">{t('salary.paymentDate')}</label>
@@ -165,3 +165,4 @@ export default function RecordPaymentModal({ employee, onClose, onSaved }) {
     </Modal>
   );
 }
+

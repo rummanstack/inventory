@@ -1,5 +1,5 @@
 import { Save } from 'lucide-react';
-import { Alert, Modal } from '../../../components/ui.jsx';
+import { Alert, Modal, Select } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { useFormState } from '../../../hooks/useFormState';
@@ -56,17 +56,17 @@ export default function AccountTransactionFormModal({ onClose, onSave }) {
           </div>
           <div>
             <label className="label">{t('financeAccounts.account')}</label>
-            <select className="input" value={form.accountType} onChange={(event) => updateField('accountType', event.target.value)}>
+            <Select className="input" value={form.accountType} onChange={(event) => updateField('accountType', event.target.value)}>
               <option value="CASH">{t('financeAccounts.cashInHand')}</option>
               <option value="BANK">{t('financeAccounts.bank')}</option>
-            </select>
+            </Select>
           </div>
           <div>
             <label className="label">{t('financeAccounts.type')}</label>
-            <select className="input" value={form.type} onChange={(event) => updateField('type', event.target.value)}>
+            <Select className="input" value={form.type} onChange={(event) => updateField('type', event.target.value)}>
               <option value="DEPOSIT">{t('financeAccounts.deposit')}</option>
               <option value="WITHDRAWAL">{t('financeAccounts.withdrawal')}</option>
-            </select>
+            </Select>
           </div>
           <div>
             <label className="label">{t('financeAccounts.amount')}</label>
@@ -90,3 +90,4 @@ export default function AccountTransactionFormModal({ onClose, onSave }) {
     </Modal>
   );
 }
+

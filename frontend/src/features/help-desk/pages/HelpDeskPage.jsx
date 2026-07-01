@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { AlertCircle, ArrowRight, CalendarClock, CheckCircle2, History, Loader2, MessageSquarePlus, RefreshCw, ShieldQuestion, Sparkles, Ticket, TriangleAlert, Users } from 'lucide-react';
-import { Alert, Badge, EmptyState, Modal, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton } from '../../../components/ui.jsx';
+import { Alert, Badge, EmptyState, Modal, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { formatDateTime, formatNumber } from '../../../utils/calculations.js';
@@ -158,35 +158,35 @@ function TicketEditorModal({ ticket, onClose, onSave }) {
           </label>
           <label className="block">
             <span className="label">{t('helpDesk.category')}</span>
-            <select className="input" value={form.category} onChange={(event) => setForm((prev) => ({ ...prev, category: event.target.value }))}>
+            <Select className="input" value={form.category} onChange={(event) => setForm((prev) => ({ ...prev, category: event.target.value }))}>
               {CATEGORY_KEYS.map((category) => (
                 <option key={category} value={category}>{t(`helpDesk.categories.${category}`)}</option>
               ))}
-            </select>
+            </Select>
           </label>
           <label className="block">
             <span className="label">{t('helpDesk.priority')}</span>
-            <select className="input" value={form.priority} onChange={(event) => setForm((prev) => ({ ...prev, priority: event.target.value }))}>
+            <Select className="input" value={form.priority} onChange={(event) => setForm((prev) => ({ ...prev, priority: event.target.value }))}>
               {PRIORITY_KEYS.map((priority) => (
                 <option key={priority} value={priority}>{t(`helpDesk.priorities.${priority}`)}</option>
               ))}
-            </select>
+            </Select>
           </label>
           <label className="block">
             <span className="label">{t('helpDesk.status')}</span>
-            <select className="input" value={form.status} onChange={(event) => setForm((prev) => ({ ...prev, status: event.target.value }))}>
+            <Select className="input" value={form.status} onChange={(event) => setForm((prev) => ({ ...prev, status: event.target.value }))}>
               {STATUS_KEYS.map((status) => (
                 <option key={status} value={status}>{t(`helpDesk.statuses.${status}`)}</option>
               ))}
-            </select>
+            </Select>
           </label>
           <label className="block">
             <span className="label">{t('helpDesk.channel')}</span>
-            <select className="input" value={form.channel} onChange={(event) => setForm((prev) => ({ ...prev, channel: event.target.value }))}>
+            <Select className="input" value={form.channel} onChange={(event) => setForm((prev) => ({ ...prev, channel: event.target.value }))}>
               {['IN_APP', 'PHONE', 'WHATSAPP', 'EMAIL'].map((channel) => (
                 <option key={channel} value={channel}>{t(`helpDesk.channels.${channel}`)}</option>
               ))}
-            </select>
+            </Select>
           </label>
           <label className="block">
             <span className="label">{t('helpDesk.customerName')}</span>
@@ -536,24 +536,24 @@ export default function HelpDeskPage() {
                   ))}
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <select className="input h-10 w-40" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
+                  <Select className="input h-10 w-40" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
                     <option value="">{t('helpDesk.filters.allStatuses')}</option>
                     {STATUS_KEYS.map((status) => (
                       <option key={status} value={status}>{t(`helpDesk.statuses.${status}`)}</option>
                     ))}
-                  </select>
-                  <select className="input h-10 w-40" value={priorityFilter} onChange={(event) => setPriorityFilter(event.target.value)}>
+                  </Select>
+                  <Select className="input h-10 w-40" value={priorityFilter} onChange={(event) => setPriorityFilter(event.target.value)}>
                     <option value="">{t('helpDesk.filters.allPriorities')}</option>
                     {PRIORITY_KEYS.map((priority) => (
                       <option key={priority} value={priority}>{t(`helpDesk.priorities.${priority}`)}</option>
                     ))}
-                  </select>
-                  <select className="input h-10 w-44" value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)}>
+                  </Select>
+                  <Select className="input h-10 w-44" value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)}>
                     <option value="">{t('helpDesk.filters.allCategories')}</option>
                     {CATEGORY_KEYS.map((category) => (
                       <option key={category} value={category}>{t(`helpDesk.categories.${category}`)}</option>
                     ))}
-                  </select>
+                  </Select>
                 </div>
               </div>
               <div className="mt-4">
@@ -810,3 +810,4 @@ export default function HelpDeskPage() {
     </div>
   );
 }
+

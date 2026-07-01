@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Download, Eye, FileSpreadsheet, FileText, Pencil, Phone, Plus, Printer, Search, Truck, Trash2 } from 'lucide-react';
-import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
+import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { statusTone } from '../../../models/inventoryViewData.js';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
@@ -93,11 +93,11 @@ export default function SuppliersPage() {
               <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
               <input className="input pl-10" value={vm.search} onChange={(event) => vm.setSearch(event.target.value)} placeholder={t('suppliers.searchPlaceholder')} />
             </div>
-            <select className="input sm:w-48" value={vm.status} onChange={(event) => vm.setStatus(event.target.value)}>
+            <Select className="input sm:w-48" value={vm.status} onChange={(event) => vm.setStatus(event.target.value)}>
               <option value="">{t('suppliers.allStatuses')}</option>
               <option value="ACTIVE">{t('suppliers.statusActive')}</option>
               <option value="INACTIVE">{t('suppliers.statusInactive')}</option>
-            </select>
+            </Select>
           </div>
         </div>
         {vm.loading ? (
@@ -193,3 +193,4 @@ export default function SuppliersPage() {
     </div>
   );
 }
+

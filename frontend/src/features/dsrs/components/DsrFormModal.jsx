@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Save } from 'lucide-react';
-import { Alert, Modal } from '../../../components/ui.jsx';
+import { Alert, Modal, Select } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import AuditHistory from '../../../components/AuditHistory.jsx';
 import { useFormState } from '../../../hooks/useFormState';
@@ -80,10 +80,10 @@ export default function DsrFormModal({ dsr, onClose, onSave }) {
           </div>
           <div>
             <label className="label">{t('dsr.status')}</label>
-            <select className="input" value={form.status} onChange={(event) => updateField('status', event.target.value)}>
+            <Select className="input" value={form.status} onChange={(event) => updateField('status', event.target.value)}>
               <option value="Active">{t('dsr.statusActive')}</option>
               <option value="Inactive">{t('dsr.statusInactive')}</option>
-            </select>
+            </Select>
           </div>
           <div>
             <label className="label">{t('dsr.openingDue')}</label>
@@ -110,3 +110,4 @@ export default function DsrFormModal({ dsr, onClose, onSave }) {
     </Modal>
   );
 }
+

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ArrowRight, Download, FileSpreadsheet, Printer, RefreshCw, Sparkles, TrendingUp, Users, UserRound } from 'lucide-react';
-import { Alert, Badge, EmptyState, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton } from '../../../components/ui.jsx';
+import { Alert, Badge, EmptyState, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../services/printService.js';
 import { inventoryApi } from '../../../services/inventoryApi.js';
@@ -180,11 +180,11 @@ export default function RetailCustomerRetentionPage() {
         description={t('retailCustomers.retention.description')}
         action={(
           <div className="flex flex-wrap items-center gap-2">
-            <select className="input h-10 w-36" value={inactiveWindowDays} onChange={(event) => setInactiveWindowDays(Number(event.target.value))}>
+            <Select className="input h-10 w-36" value={inactiveWindowDays} onChange={(event) => setInactiveWindowDays(Number(event.target.value))}>
               <option value={30}>{t('retailCustomers.retention.inactiveDaysOption', { count: 30 })}</option>
               <option value={60}>{t('retailCustomers.retention.inactiveDaysOption', { count: 60 })}</option>
               <option value={90}>{t('retailCustomers.retention.inactiveDaysOption', { count: 90 })}</option>
-            </select>
+            </Select>
             <button type="button" className="btn-secondary" onClick={loadRetention} disabled={loading}>
               <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
               {t('common.reload')}
@@ -422,3 +422,4 @@ export default function RetailCustomerRetentionPage() {
     </div>
   );
 }
+

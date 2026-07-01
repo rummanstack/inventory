@@ -1,5 +1,5 @@
 import { Save } from 'lucide-react';
-import { Alert, Modal } from '../../../components/ui.jsx';
+import { Alert, Modal, Select } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { useFormState } from '../../../hooks/useFormState';
@@ -78,10 +78,10 @@ export default function AccountTransferFormModal({ accounts = [], onClose, onSav
           </div>
           <div>
             <label className="label">{t('financeAccounts.fromAccount')}</label>
-            <select className="input" value={form.fromAccountType} onChange={(event) => handleFromChange(event.target.value)}>
+            <Select className="input" value={form.fromAccountType} onChange={(event) => handleFromChange(event.target.value)}>
               <option value="CASH">{t('financeAccounts.cashInHand')}</option>
               <option value="BANK">{t('financeAccounts.bank')}</option>
-            </select>
+            </Select>
             {fromAccount ? (
               <p className="mt-1 text-xs font-semibold text-slate-500">
                 Available: <span className={fromBalance > 0 ? 'text-emerald-600' : 'text-rose-600'}>{formatCurrency(fromBalance)}</span>
@@ -110,3 +110,4 @@ export default function AccountTransferFormModal({ accounts = [], onClose, onSav
     </Modal>
   );
 }
+

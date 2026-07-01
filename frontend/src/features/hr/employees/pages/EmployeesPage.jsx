@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Pencil, Plus, Trash2, Users } from 'lucide-react';
-import { Alert, EmptyState, Pagination, SectionHeader, TableSkeleton } from '../../../../components/ui.jsx';
+import { Alert, EmptyState, Pagination, SectionHeader, TableSkeleton, Select } from '../../../../components/ui.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../../services/inventoryApi.js';
 import { formatDate } from '../../../../utils/calculations.js';
@@ -69,11 +69,11 @@ export default function EmployeesPage() {
                 value={vm.search}
                 onChange={(e) => vm.setSearch(e.target.value)}
               />
-              <select className="input w-full sm:w-40" value={vm.status} onChange={(e) => vm.setStatus(e.target.value)}>
+              <Select className="input w-full sm:w-40" value={vm.status} onChange={(e) => vm.setStatus(e.target.value)}>
                 <option value="">{t('employees.allStatuses')}</option>
                 <option value="ACTIVE">{t('employees.active')}</option>
                 <option value="INACTIVE">{t('employees.inactive')}</option>
-              </select>
+              </Select>
             </div>
           </div>
         </div>
@@ -153,3 +153,4 @@ export default function EmployeesPage() {
     </div>
   );
 }
+

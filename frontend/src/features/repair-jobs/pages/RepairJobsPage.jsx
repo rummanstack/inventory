@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { AlertTriangle, CheckCircle2, Clock, LayoutGrid, Package, Pencil, Plus, Search, ShieldAlert, Table2, Trash2, Wrench } from 'lucide-react';
-import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
+import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
@@ -411,16 +411,16 @@ export default function RepairJobsPage() {
                   placeholder={t('repairJobs.searchPlaceholder')}
                 />
               </div>
-              <select className="input" value={vm.status} onChange={(e) => vm.setStatus(e.target.value)}>
+              <Select className="input" value={vm.status} onChange={(e) => vm.setStatus(e.target.value)}>
                 <option value="">{t('repairJobs.allStatuses')}</option>
                 {JOB_STATUS_VALUES.map((s) => (
                   <option key={s} value={s}>{t(`repairJobs.statuses.${s}`)}</option>
                 ))}
-              </select>
-              <select className="input" value={vm.technicianId} onChange={(e) => vm.setTechnicianId(e.target.value)}>
+              </Select>
+              <Select className="input" value={vm.technicianId} onChange={(e) => vm.setTechnicianId(e.target.value)}>
                 <option value="">{t('repairJobs.allTechnicians')}</option>
                 {technicians.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
-              </select>
+              </Select>
               <div className="grid grid-cols-2 gap-2 lg:col-span-2">
                 <DatePickerField value={vm.dateFrom} onChange={vm.setDateFrom} />
                 <DatePickerField value={vm.dateTo} onChange={vm.setDateTo} min={vm.dateFrom} />
@@ -521,3 +521,4 @@ export default function RepairJobsPage() {
     </div>
   );
 }
+

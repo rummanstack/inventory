@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Download, PackageX, RefreshCw } from 'lucide-react';
-import { Alert, EmptyState, Pagination, TableSkeleton } from '../../../components/ui.jsx';
+import { Alert, EmptyState, Pagination, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../services/printService.js';
@@ -105,12 +105,12 @@ export default function DamageClearHistoryPanel({ products, refreshKey = 0 }) {
         <div className="mt-5 grid gap-4 lg:grid-cols-3">
           <div>
             <label className="label">{t('stockLedger.product')}</label>
-            <select className="input" value={productId} onChange={(e) => setProductId(e.target.value)}>
+            <Select className="input" value={productId} onChange={(e) => setProductId(e.target.value)}>
               <option value="">{t('stockLedger.allProducts')}</option>
               {products.map((product) => (
                 <option key={product.id} value={product.id}>{product.name}</option>
               ))}
-            </select>
+            </Select>
           </div>
           <div>
             <label className="label">{t('stockLedger.dateFrom')}</label>
@@ -185,3 +185,4 @@ export default function DamageClearHistoryPanel({ products, refreshKey = 0 }) {
     </section>
   );
 }
+

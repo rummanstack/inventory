@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { CheckCircle2, Loader2, Plus, Save, Trash2 } from 'lucide-react';
-import { Alert, Modal } from '../../../components/ui.jsx';
+import { Alert, Modal, Select } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { useFormState } from '../../../hooks/useFormState';
@@ -316,7 +316,7 @@ export default function TradeInFormModal({ onClose, onSave }) {
                   {receivedItems.map((item, i) => (
                     <tr key={item._key}>
                       <td className="px-2 py-1.5">
-                        <select
+                        <Select
                           className="input py-1 text-sm"
                           value={item.productId}
                           onChange={(e) => updateReceived(i, 'productId', e.target.value)}
@@ -325,7 +325,7 @@ export default function TradeInFormModal({ onClose, onSave }) {
                           {productDirectory.map((p) => (
                             <option key={p.id} value={p.id}>{p.name}</option>
                           ))}
-                        </select>
+                        </Select>
                         {!item.productId ? (
                           <input
                             className="input py-1 text-sm mt-1"
@@ -344,7 +344,7 @@ export default function TradeInFormModal({ onClose, onSave }) {
                         />
                       </td>
                       <td className="px-2 py-1.5">
-                        <select
+                        <Select
                           className="input py-1 text-sm"
                           value={item.condition}
                           onChange={(e) => updateReceived(i, 'condition', e.target.value)}
@@ -352,7 +352,7 @@ export default function TradeInFormModal({ onClose, onSave }) {
                           {CONDITIONS.map((c) => (
                             <option key={c} value={c}>{t(`tradeIns.conditions.${c}`)}</option>
                           ))}
-                        </select>
+                        </Select>
                       </td>
                       <td className="px-2 py-1.5">
                         <input
@@ -421,7 +421,7 @@ export default function TradeInFormModal({ onClose, onSave }) {
                     return (
                       <tr key={item._key}>
                         <td className="px-2 py-1.5">
-                          <select
+                          <Select
                             className="input py-1 text-sm"
                             value={item.productId}
                             onChange={(e) => updateSold(i, 'productId', e.target.value)}
@@ -430,7 +430,7 @@ export default function TradeInFormModal({ onClose, onSave }) {
                             {productDirectory.map((p) => (
                               <option key={p.id} value={p.id}>{p.name}</option>
                             ))}
-                          </select>
+                          </Select>
                           {!item.productId ? (
                             <input
                               className="input py-1 text-sm mt-1"
@@ -497,11 +497,11 @@ export default function TradeInFormModal({ onClose, onSave }) {
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <label className="label">{t('tradeIns.paymentMethodLabel')}</label>
-              <select className="input" value={form.paymentMethod} onChange={(e) => updateField('paymentMethod', e.target.value)}>
+              <Select className="input" value={form.paymentMethod} onChange={(e) => updateField('paymentMethod', e.target.value)}>
                 {PAYMENT_METHODS.map((m) => (
                   <option key={m} value={m}>{m.replace(/_/g, ' ')}</option>
                 ))}
-              </select>
+              </Select>
             </div>
             <div>
               <label className="label">{t('tradeIns.notesLabel')}</label>
@@ -528,3 +528,4 @@ export default function TradeInFormModal({ onClose, onSave }) {
     </Modal>
   );
 }
+

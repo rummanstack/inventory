@@ -1,28 +1,31 @@
-import { useState, useRef, useEffect, useId, useCallback } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { Check, ChevronDown, Search, X } from 'lucide-react';
 
 /**
- * SearchableSelect â€” accessible combobox with keyboard nav and search.
+ * SearchableSelect — accessible combobox with keyboard nav and search.
  *
  * Props:
- *   options     Array<{ value: string, label: string, sublabel?: string }>
- *   value       string | null â€” controlled selected value
+ *   options     Array<{ value: string, label: ReactNode, sublabel?: string, searchText?: string }>
+ *   value       string | null — controlled selected value
  *   onChange    (value: string | null) => void
- *   placeholder string â€” shown when nothing selected
+ *   placeholder string — shown when nothing selected
  *   searchPlaceholder string
  *   disabled    boolean
- *   clearable   boolean â€” show Ã— to clear (default true)
- *   className   string â€” extra classes on the trigger button
+ *   clearable   boolean — show x to clear (default true)
+ *   containerClassName string — extra classes on the outer container
+ *   className   string — extra classes on the trigger button
  */
 export function SearchableSelect({
   options = [],
   value = null,
   onChange,
-  placeholder = 'Selectâ€¦',
-  searchPlaceholder = 'Searchâ€¦',
+  placeholder = 'Select...',
+  searchPlaceholder = 'Search...',
   disabled = false,
   clearable = true,
+  containerClassName = '',
   className = '',
+  ...triggerProps
 }) {
   const id = useId();
   const [open, setOpen] = useState(false);
@@ -33,26 +36,30 @@ export function SearchableSelect({
   const listRef = useRef(null);
   const containerRef = useRef(null);
 
-  const selected = options.find((o) => o.value === value) ?? null;
+  const selected = options.find((option) => option.value === value) ?? null;
 
   const filtered = query.trim()
-    ? options.filter((o) =>
-        o.label.toLowerCase().includes(query.toLowerCase()) ||
-        (o.sublabel && o.sublabel.toLowerCase().includes(query.toLowerCase()))
-      )
+    ? options.filter((option) => {
+        const searchSource = [
+          option.searchText,
+          typeof option.label === 'string' ? option.label : '',
+          option.sublabel || '',
+        ].filter(Boolean).join(' ').toLowerCase();
+        return searchSource.includes(query.toLowerCase());
+      })
     : options;
 
-  // Close on outside click
   useEffect(() => {
     if (!open) return;
-    function handleDown(e) {
-      if (!containerRef.current?.contains(e.target)) close();
+
+    function handleDown(event) {
+      if (!containerRef.current?.contains(event.target)) close();
     }
+
     document.addEventListener('mousedown', handleDown);
     return () => document.removeEventListener('mousedown', handleDown);
   }, [open]);
 
-  // Focus search input when opening
   useEffect(() => {
     if (open) {
       setActiveIndex(-1);
@@ -60,7 +67,6 @@ export function SearchableSelect({
     }
   }, [open]);
 
-  // Scroll active item into view
   useEffect(() => {
     if (activeIndex < 0 || !listRef.current) return;
     const item = listRef.current.children[activeIndex];
@@ -79,44 +85,47 @@ export function SearchableSelect({
     else setOpen(true);
   }
 
-  function select(opt) {
-    onChange(opt.value);
+  function select(option) {
+    if (option.disabled) return;
+    onChange(option.value);
     close();
     triggerRef.current?.focus();
   }
 
-  function clear(e) {
-    e.stopPropagation();
+  function clear(event) {
+    event.stopPropagation();
     onChange(null);
     triggerRef.current?.focus();
   }
 
-  function handleSearchKey(e) {
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      setActiveIndex((i) => Math.min(i + 1, filtered.length - 1));
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      setActiveIndex((i) => Math.max(i - 1, 0));
-    } else if (e.key === 'Enter') {
-      e.preventDefault();
+  function handleSearchKey(event) {
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      setActiveIndex((index) => Math.min(index + 1, filtered.length - 1));
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      setActiveIndex((index) => Math.max(index - 1, 0));
+    } else if (event.key === 'Enter') {
+      event.preventDefault();
       if (activeIndex >= 0 && filtered[activeIndex]) select(filtered[activeIndex]);
-    } else if (e.key === 'Escape') {
+    } else if (event.key === 'Escape') {
       close();
       triggerRef.current?.focus();
     }
   }
 
-  function handleTriggerKey(e) {
-    if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown') {
-      e.preventDefault();
+  function handleTriggerKey(event) {
+    if (event.key === 'Enter' || event.key === ' ' || event.key === 'ArrowDown') {
+      event.preventDefault();
       setOpen(true);
     }
   }
 
   return (
-    <div ref={containerRef} className="relative w-full">
-      {/* Trigger */}
+    <div
+      ref={containerRef}
+      className={['relative w-full', containerClassName].filter(Boolean).join(' ')}
+    >
       <button
         ref={triggerRef}
         type="button"
@@ -127,6 +136,7 @@ export function SearchableSelect({
         disabled={disabled}
         onClick={toggle}
         onKeyDown={handleTriggerKey}
+        {...triggerProps}
         className={[
           'input flex items-center justify-between gap-2 text-left',
           !selected && 'text-slate-400',
@@ -163,29 +173,37 @@ export function SearchableSelect({
         </span>
       </button>
 
-      {/* Dropdown */}
       {open && (
         <div className="absolute left-0 right-0 top-[calc(100%+4px)] z-50 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl ring-1 ring-slate-900/5">
-          {/* Search box */}
           <div className="flex items-center gap-2 border-b border-slate-100 px-3 py-2">
             <Search size={14} className="shrink-0 text-slate-400" />
             <input
               ref={searchRef}
               type="text"
               value={query}
-              onChange={(e) => { setQuery(e.target.value); setActiveIndex(0); }}
+              onChange={(event) => {
+                setQuery(event.target.value);
+                setActiveIndex(0);
+              }}
               onKeyDown={handleSearchKey}
               placeholder={searchPlaceholder}
               className="flex-1 bg-transparent text-sm font-medium text-slate-900 outline-none placeholder:text-slate-400"
             />
             {query && (
-              <button type="button" onClick={() => { setQuery(''); setActiveIndex(-1); searchRef.current?.focus(); }} className="shrink-0 text-slate-400 hover:text-slate-600">
+              <button
+                type="button"
+                onClick={() => {
+                  setQuery('');
+                  setActiveIndex(-1);
+                  searchRef.current?.focus();
+                }}
+                className="shrink-0 text-slate-400 hover:text-slate-600"
+              >
                 <X size={13} />
               </button>
             )}
           </div>
 
-          {/* Options list */}
           <ul
             ref={listRef}
             id={`${id}-listbox`}
@@ -195,26 +213,30 @@ export function SearchableSelect({
             {filtered.length === 0 ? (
               <li className="px-4 py-3 text-center text-sm text-slate-400">No results found</li>
             ) : (
-              filtered.map((opt, i) => {
-                const isSelected = opt.value === value;
-                const isActive = i === activeIndex;
+              filtered.map((option, index) => {
+                const isSelected = option.value === value;
+                const isActive = index === activeIndex;
+                const isDisabled = Boolean(option.disabled);
+
                 return (
                   <li
-                    key={opt.value}
+                    key={option.key ?? String(option.value)}
                     role="option"
                     aria-selected={isSelected}
-                    onClick={() => select(opt)}
-                    onMouseEnter={() => setActiveIndex(i)}
+                    aria-disabled={isDisabled}
+                    onClick={() => select(option)}
+                    onMouseEnter={() => !isDisabled && setActiveIndex(index)}
                     className={[
                       'flex cursor-pointer items-center gap-3 px-4 py-2.5 text-sm transition-colors',
                       isActive ? 'bg-slate-50' : '',
+                      isDisabled ? 'cursor-not-allowed opacity-50' : '',
                       isSelected ? 'text-brand font-semibold' : 'text-slate-800 font-medium',
                     ].join(' ')}
                   >
                     <span className="flex-1 truncate">
-                      {opt.label}
-                      {opt.sublabel && (
-                        <span className="ml-2 text-xs font-normal text-slate-400">{opt.sublabel}</span>
+                      {option.label}
+                      {option.sublabel && (
+                        <span className="ml-2 text-xs font-normal text-slate-400">{option.sublabel}</span>
                       )}
                     </span>
                     {isSelected && <Check size={14} className="shrink-0 text-brand" />}

@@ -1,5 +1,5 @@
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
-import { Alert, Pagination, SectionHeader } from '../../../components/ui.jsx';
+import { Alert, Pagination, SectionHeader, Select } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { formatDate, formatCurrency } from '../../../utils/calculations.js';
 import { useBatchSalesReportViewModel } from '../viewmodels/useBatchSalesReportViewModel.js';
@@ -39,12 +39,12 @@ export default function BatchSalesReportPage() {
           </div>
           <div>
             <label className="label">{t('products.product')}</label>
-            <select className="input" value={vm.productId} onChange={(e) => vm.setProductId(e.target.value)}>
+            <Select className="input" value={vm.productId} onChange={(e) => vm.setProductId(e.target.value)}>
               <option value="">{t('common.all')}</option>
               {vm.products.map((p) => (
                 <option key={p.id} value={p.id}>{p.name}</option>
               ))}
-            </select>
+            </Select>
           </div>
         </div>
         <div className="mt-3 flex justify-end">
@@ -116,3 +116,4 @@ export default function BatchSalesReportPage() {
     </div>
   );
 }
+

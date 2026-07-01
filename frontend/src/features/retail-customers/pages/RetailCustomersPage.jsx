@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Download, FileSpreadsheet, Pencil, Phone, Plus, Printer, Search, Trash2, Users } from 'lucide-react';
-import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
+import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { statusTone } from '../../../models/inventoryViewData.js';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../services/printService.js';
@@ -129,11 +129,11 @@ export default function RetailCustomersPage() {
               <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
               <input className="input pl-10" value={vm.search} onChange={(event) => vm.setSearch(event.target.value)} placeholder={t('retailCustomers.searchPlaceholder')} />
             </div>
-            <select className="input sm:w-48" value={vm.status} onChange={(event) => vm.setStatus(event.target.value)}>
+            <Select className="input sm:w-48" value={vm.status} onChange={(event) => vm.setStatus(event.target.value)}>
               <option value="">{t('retailCustomers.allStatuses')}</option>
               <option value="ACTIVE">{t('retailCustomers.statusActive')}</option>
               <option value="INACTIVE">{t('retailCustomers.statusInactive')}</option>
-            </select>
+            </Select>
           </div>
         </div>
 
@@ -224,3 +224,4 @@ export default function RetailCustomersPage() {
     </div>
   );
 }
+

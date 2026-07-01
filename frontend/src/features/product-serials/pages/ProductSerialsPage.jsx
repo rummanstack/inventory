@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Download, Eye, FileSpreadsheet, Fingerprint, Pencil, Plus, Printer, Search, Trash2 } from 'lucide-react';
-import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
+import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import { downloadSheetPdf } from '../../../services/printService.js';
@@ -98,18 +98,18 @@ export default function ProductSerialsPage() {
               <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
               <input className="input pl-10" value={vm.search} onChange={(event) => vm.setSearch(event.target.value)} placeholder={t('productSerials.searchPlaceholder')} />
             </div>
-            <select className="input" value={vm.productId} onChange={(event) => vm.setProductId(event.target.value)}>
+            <Select className="input" value={vm.productId} onChange={(event) => vm.setProductId(event.target.value)}>
               <option value="">{t('productSerials.allProducts')}</option>
               {productDirectory.map((product) => (
                 <option key={product.id} value={product.id}>{product.name}</option>
               ))}
-            </select>
-            <select className="input" value={vm.status} onChange={(event) => vm.setStatus(event.target.value)}>
+            </Select>
+            <Select className="input" value={vm.status} onChange={(event) => vm.setStatus(event.target.value)}>
               <option value="">{t('productSerials.allStatuses')}</option>
               {STATUS_VALUES.map((value) => (
                 <option key={value} value={value}>{t(`productSerials.statuses.${value}`)}</option>
               ))}
-            </select>
+            </Select>
           </div>
         </div>
         {vm.loading ? (
@@ -199,3 +199,4 @@ export default function ProductSerialsPage() {
     </div>
   );
 }
+

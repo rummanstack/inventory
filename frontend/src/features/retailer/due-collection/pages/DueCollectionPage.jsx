@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Download, FileSpreadsheet, Pencil, Plus, Printer, Trash2, Wallet } from 'lucide-react';
-import { Alert, EmptyState, Pagination, SectionHeader, TableSkeleton } from '../../../../components/ui.jsx';
+import { Alert, EmptyState, Pagination, SectionHeader, TableSkeleton, Select } from '../../../../components/ui.jsx';
 import { DatePickerField } from '../../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../../services/printService.js';
@@ -77,12 +77,12 @@ export default function DueCollectionPage() {
             </div>
           </div>
           <div className="mt-4 grid gap-3 sm:grid-cols-3">
-            <select className="input" value={vm.customerId} onChange={(event) => vm.setCustomerId(event.target.value)}>
+            <Select className="input" value={vm.customerId} onChange={(event) => vm.setCustomerId(event.target.value)}>
               <option value="">{t('retailer.shared.allCustomers')}</option>
               {retailCustomerDirectory.map((customer) => (
                 <option key={customer.id} value={customer.id}>{customer.name}</option>
               ))}
-            </select>
+            </Select>
             <DatePickerField value={vm.dateFrom} onChange={vm.setDateFrom} placeholder={t('supplierPayments.dateFrom')} />
             <DatePickerField value={vm.dateTo} onChange={vm.setDateTo} placeholder={t('supplierPayments.dateTo')} min={vm.dateFrom} />
           </div>
@@ -165,3 +165,4 @@ export default function DueCollectionPage() {
     </div>
   );
 }
+

@@ -1,5 +1,5 @@
 import { Save } from 'lucide-react';
-import { Alert, Modal } from '../../../components/ui.jsx';
+import { Alert, Modal, Select } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import AuditHistory from '../../../components/AuditHistory.jsx';
 import { useFormState } from '../../../hooks/useFormState';
@@ -70,10 +70,10 @@ export default function RetailCustomerFormModal({ retailCustomer, onClose, onSav
           </div>
           <div>
             <label className="label">{t('retailCustomers.status')}</label>
-            <select className="input" value={form.status} onChange={(event) => updateField('status', event.target.value)}>
+            <Select className="input" value={form.status} onChange={(event) => updateField('status', event.target.value)}>
               <option value="ACTIVE">{t('retailCustomers.statusActive')}</option>
               <option value="INACTIVE">{t('retailCustomers.statusInactive')}</option>
-            </select>
+            </Select>
           </div>
           <div className="sm:col-span-2">
             <label className="label">{t('retailCustomers.addressLabel')}</label>
@@ -120,3 +120,4 @@ export default function RetailCustomerFormModal({ retailCustomer, onClose, onSav
     </Modal>
   );
 }
+

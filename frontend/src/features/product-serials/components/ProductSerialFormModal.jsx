@@ -1,5 +1,5 @@
 import { Save } from 'lucide-react';
-import { Alert, Modal } from '../../../components/ui.jsx';
+import { Alert, Modal, Select } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { useFormState } from '../../../hooks/useFormState';
 
@@ -63,12 +63,12 @@ export default function ProductSerialFormModal({ serial, onClose, onSave }) {
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="sm:col-span-2">
             <label className="label">{t('products.product')}</label>
-            <select className="input" value={form.productId} onChange={(event) => updateField('productId', event.target.value)} disabled={isEdit}>
+            <Select className="input" value={form.productId} onChange={(event) => updateField('productId', event.target.value)} disabled={isEdit}>
               <option value="">{t('productSerials.selectProduct')}</option>
               {serialRequiredProducts.map((product) => (
                 <option key={product.id} value={product.id}>{product.name}</option>
               ))}
-            </select>
+            </Select>
             {!serialRequiredProducts.length ? (
               <p className="mt-1 text-xs font-semibold text-rose-600">{t('productSerials.noSerialProducts')}</p>
             ) : null}
@@ -87,11 +87,11 @@ export default function ProductSerialFormModal({ serial, onClose, onSave }) {
           </div>
           <div>
             <label className="label">{t('productSerials.statusLabel')}</label>
-            <select className="input" value={form.status} onChange={(event) => updateField('status', event.target.value)}>
+            <Select className="input" value={form.status} onChange={(event) => updateField('status', event.target.value)}>
               {STATUS_VALUES.map((value) => (
                 <option key={value} value={value}>{t(`productSerials.statuses.${value}`)}</option>
               ))}
-            </select>
+            </Select>
           </div>
         </div>
         <div className="flex justify-end gap-2 pt-2">
@@ -107,3 +107,4 @@ export default function ProductSerialFormModal({ serial, onClose, onSave }) {
     </Modal>
   );
 }
+

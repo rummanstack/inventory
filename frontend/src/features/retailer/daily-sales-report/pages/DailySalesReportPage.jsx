@@ -1,5 +1,5 @@
 import { Download, FileSpreadsheet, Printer, Wallet } from 'lucide-react';
-import { Alert, EmptyState, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton } from '../../../../components/ui.jsx';
+import { Alert, EmptyState, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton, Select } from '../../../../components/ui.jsx';
 import { DatePickerField } from '../../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../../services/printService.js';
@@ -86,12 +86,12 @@ export default function DailySalesReportPage() {
             </div>
             <div>
               <label className="label">{t('retailer.shared.saleTypeLabel')}</label>
-              <select className="input" value={vm.saleType} onChange={(event) => vm.setSaleType(event.target.value)}>
+              <Select className="input" value={vm.saleType} onChange={(event) => vm.setSaleType(event.target.value)}>
                 <option value="">{t('retailer.shared.allSaleTypes')}</option>
                 <option value="RETAIL">{t('retailer.shared.saleTypes.RETAIL')}</option>
                 <option value="WHOLESALE">{t('retailer.shared.saleTypes.WHOLESALE')}</option>
                 <option value="QUICK_SALE">{t('retailer.shared.saleTypes.QUICK_SALE')}</option>
-              </select>
+              </Select>
             </div>
           </div>
 
@@ -171,3 +171,4 @@ export default function DailySalesReportPage() {
     </div>
   );
 }
+

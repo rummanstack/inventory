@@ -1,5 +1,5 @@
 import { Download, FileSpreadsheet, Printer, RefreshCw, Wallet } from 'lucide-react';
-import { Badge, EmptyState, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton } from '../../../../components/ui.jsx';
+import { Badge, EmptyState, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton, Select } from '../../../../components/ui.jsx';
 import { DatePickerField } from '../../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../../services/printService.js';
@@ -57,12 +57,12 @@ export default function CustomerDuePage() {
 
       <div className="surface p-5">
         <div className="grid gap-3 sm:grid-cols-4">
-          <select className="input sm:col-span-2" value={vm.customerId} onChange={(event) => vm.setCustomerId(event.target.value)}>
+          <Select className="input sm:col-span-2" value={vm.customerId} onChange={(event) => vm.setCustomerId(event.target.value)}>
             <option value="">{t('retailer.shared.selectCustomer')}</option>
             {retailCustomerDirectory.map((customer) => (
               <option key={customer.id} value={customer.id}>{customer.name}</option>
             ))}
-          </select>
+          </Select>
           {selectedCustomer ? (
             <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700">
               {t('retailCustomers.loyaltyPoints')}: <span className="font-black text-slate-950">{formatNumber(selectedCustomer.loyaltyPointsBalance || 0, language)}</span>
@@ -215,3 +215,4 @@ export default function CustomerDuePage() {
     </div>
   );
 }
+

@@ -910,6 +910,12 @@
     @apply rounded-2xl border border-slate-200/70 bg-white shadow-card ring-1 ring-slate-900/[0.03];
   }
 
+  /* Literal white in both themes: logo artwork needs a constant field,
+     unlike bg-white which remaps to the dark card surface. */
+  .logo-chip {
+    background: #ffffff;
+  }
+
   .brand-chip {
     @apply inline-flex items-center gap-2 rounded-full border-[var(--secondary-soft)] bg-[var(--secondary-soft)] px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--secondary-strong)];
   }

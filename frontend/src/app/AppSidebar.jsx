@@ -148,7 +148,7 @@ export default function AppSidebar({ mobileOpen, setMobileOpen, user, tenant, la
         {/* Header */}
         <div className="relative flex items-center justify-between px-2">
           <div className={cx('flex min-w-0 flex-1 items-center gap-3', collapsed && 'lg:hidden')}>
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 shadow-[0_8px_18px_rgba(var(--slate-900),0.06)]">
+            <div className="logo-chip flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-slate-200 shadow-card">
               <img src={tenant?.logoUrl || stockLedgerLogoIcon} alt="" className="h-full w-full object-contain p-1.5" />
             </div>
             <div className="min-w-0">
@@ -161,7 +161,7 @@ export default function AppSidebar({ mobileOpen, setMobileOpen, user, tenant, la
             </div>
           </div>
           <div className={cx('hidden', collapsed && 'lg:flex lg:flex-1 lg:justify-center')}>
-            <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
+            <div className="logo-chip flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl border border-slate-200">
               <img src={tenant?.logoUrl || stockLedgerLogoIcon} alt="" className="h-full w-full object-contain p-1" />
             </div>
           </div>

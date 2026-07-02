@@ -26,7 +26,7 @@ export default function LoginPage() {
           {/* Form */}
           <div className="flex flex-col justify-center bg-white px-8 py-10">
             <div className="mb-8 flex items-center gap-3">
-              <Link to="/" className="flex h-12 items-center transition hover:opacity-80">
+              <Link to="/" className="logo-chip flex h-12 items-center rounded-control px-2 transition hover:opacity-80">
                 <img src={stockLedgerLogoHorizontal} alt="StockLedger" className="h-full w-auto object-contain" />
               </Link>
               <div>

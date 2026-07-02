@@ -13,28 +13,30 @@ import { stockLedgerLogoHorizontal, stockLedgerLogoIcon } from '../assets/brandA
 
 function SessionLoadingScreen() {
   return (
-    <div className="fixed inset-0 flex flex-col items-center justify-center overflow-hidden bg-[#f4f3f8]">
+    <div className="fixed inset-0 flex flex-col items-center justify-center overflow-hidden bg-[var(--sidebar-bg)]">
       {/* Ambient glow */}
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute left-1/2 top-1/2 h-[520px] w-[520px] -translate-x-1/2 -translate-y-2/3 rounded-full bg-[#373373]/10 blur-[120px]" />
+        <div className="absolute left-1/2 top-1/2 h-[520px] w-[520px] -translate-x-1/2 -translate-y-2/3 rounded-full bg-[color-mix(in_srgb,var(--brand)_10%,transparent)] blur-[120px]" />
       </div>
 
       <div className="relative z-10 flex flex-col items-center">
         {/* Logo mark */}
         <div className="relative">
           <div className="absolute inset-0 -m-2 animate-ping rounded-2xl bg-[color-mix(in_srgb,var(--secondary)_15%,transparent)]" style={{ animationDuration: '2.2s' }} />
-          <div className="relative flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl bg-white shadow-[0_8px_40px_rgba(55,51,115,0.2)]">
+          <div className="logo-chip relative flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl shadow-[0_8px_40px_rgba(55,51,115,0.2)]">
             <img src={stockLedgerLogoIcon} alt="" className="h-full w-full object-contain p-1.5" />
           </div>
         </div>
 
         {/* Brand */}
-        <img src={stockLedgerLogoHorizontal} alt="StockLedger" className="mt-7 h-10 w-auto object-contain" />
+        <div className="logo-chip mt-7 rounded-control px-3 py-1.5">
+          <img src={stockLedgerLogoHorizontal} alt="StockLedger" className="h-10 w-auto object-contain" />
+        </div>
         <p className="mt-1.5 text-[13px] font-medium tracking-widest text-slate-400 uppercase">Checking session</p>
 
         {/* Indeterminate progress bar */}
-        <div className="relative mt-10 h-px w-48 overflow-hidden rounded-full bg-[#373373]/10">
-          <div className="session-loader-bar absolute inset-y-0 w-1/2 rounded-full bg-gradient-to-r from-transparent via-[#5e5b8e] to-transparent" />
+        <div className="relative mt-10 h-px w-48 overflow-hidden rounded-full bg-[color-mix(in_srgb,var(--brand)_10%,transparent)]">
+          <div className="session-loader-bar absolute inset-y-0 w-1/2 rounded-full bg-gradient-to-r from-transparent via-[var(--secondary)] to-transparent" />
         </div>
       </div>
     </div>

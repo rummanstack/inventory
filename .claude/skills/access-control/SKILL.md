@@ -20,14 +20,14 @@ Layer 3 — Feature     What the TENANT has PURCHASED (module on/off switch)
 Fixed hierarchy, highest to lowest:
 
 ```
-system_developer  → Platform staff. No tenant. Can do everything everywhere.
-super_admin       → Tenant owner. Full access within their tenant.
-admin             → Senior manager. Almost everything.
-manager           → Mid-level. Common operations.
-operator          → Front-line. Limited operations.
+system_developer  → Platform staff. No tenant. Unconditional, hardcoded, full access everywhere.
+super_admin       → Tenant owner. Access is entirely DB-configured per tenant — no hardcoded default (see Layer 2).
+admin             → Senior manager. Access is entirely DB-configured per tenant — no hardcoded default.
+manager           → Mid-level. Access is entirely DB-configured per tenant — no hardcoded default.
+operator          → Front-line. Access is entirely DB-configured per tenant — no hardcoded default.
 ```
 
-A user has exactly **one** role. Roles are mostly used as the default permission bundle — they don't gate individual API calls directly. Exception: a handful of routes/pages are **hard role-gated** (e.g. `/platform` and `/system-health` are `system_developer`-only regardless of permissions).
+A user has exactly **one** role. Only `system_developer`'s permission set is fixed in code — every other role's actual capabilities live in the `role_permissions` table, not in a hardcoded bundle (see Layer 2 below; this changed from the old "hardcoded defaults, DB overrides them" model). A handful of routes/pages are **hard role-gated** regardless of permissions (e.g. `/platform` and `/system-health` are `system_developer`-only; `/settings/permissions` itself is `system_developer`/`super_admin`-only by role, not permission — this is deliberate, so a role can never lock itself out of the page that fixes its own permissions).
 
 **Backend:** `requireRoles([ROLES.SUPER_ADMIN, ROLES.ADMIN])` in a route  
 **Frontend:** `role: 'super_admin'` or `roles: ['super_admin', 'admin']` on an `APP_ROUTES` entry
@@ -38,10 +38,13 @@ A user has exactly **one** role. Roles are mostly used as the default permission
 
 Fine-grained capability flags. These are what actually gate most API calls.
 
-**How the defaults work:**
-- `ROLE_PERMISSIONS` in `permissions.js` is the hardcoded default set per role
-- A tenant's `super_admin` can customize their tenant's role→permission mapping via `role_permissions` DB table
-- At request time: `getCachedPermissions(role, tenantId)` in `lib/permissionCache.js` checks the DB first, falls back to the hardcoded defaults
+**How this actually works (no hardcoded defaults except system_developer):**
+- `ROLE_PERMISSIONS` in `permissions.js` contains **only** `system_developer` — `[...Object.values(PERMISSIONS)]`, unconditional. Every other role has no code-level grant at all.
+- What `super_admin`/`admin`/`manager`/`operator` can do lives **entirely** in the `role_permissions` DB table, scoped by `(role, tenant_id)`.
+- `system_developer` configures **any** role for **any** tenant (including `super_admin` — a tenant owner's access is itself a per-tenant, system_developer-controlled ceiling, not a fixed guarantee).
+- `super_admin` configures `admin`/`manager`/`operator` for their **own** tenant only — cannot touch their own row (no self-escalation).
+- At request time: `getRolePermissions(role, tenantId)` in `lib/permissions.js` → `getCachedPermissions(role, tenantId)` in `lib/permissionCache.js` → DB via `role_permissions` table. **If nothing has been configured for a (role, tenant) pair, that role has zero permissions** — there is no fallback to a hardcoded list. This is a deliberate design decision (see git log around "Remove hardcoded role permission defaults" for the full rationale and migration consequences) — a freshly-created tenant's `admin`/`manager`/`operator`/`super_admin` all start with **no permissions** until explicitly configured via the Permissions page.
+- `system_developer` reaches the Permissions page and picks a target tenant via a dropdown (it has no tenant of its own); `super_admin` is implicitly scoped to their own tenant, no picker shown.
 
 **Backend enforcement:**
 ```js
@@ -77,15 +80,20 @@ const canManage = can('manage_products'); // hide/show buttons
    ];
    ```
 
-3. Decide which default roles get it in `ROLE_PERMISSIONS`:
-   ```js
-   export const ROLE_PERMISSIONS = {
-     super_admin: [...existing, PERMISSIONS.MANAGE_YOUR_THING],
-     admin:       [...existing, PERMISSIONS.MANAGE_YOUR_THING],
-     manager:     [...existing], // leave out if managers shouldn't have it
-     operator:    [...existing],
-   };
-   ```
+3. **Do not** add it to a hardcoded per-role list — that mechanism no longer
+   exists for `super_admin`/`admin`/`manager`/`operator`. Nobody gets the new
+   permission automatically. It becomes assignable via the Permissions page
+   (`system_developer` for any role/tenant, `super_admin` for their own
+   `admin`/`manager`/`operator`) and each tenant opts in explicitly.
+
+4. If the permission gates a single feature-specific route (not shared
+   across multiple features), add it to `PERMISSION_REQUIRED_FEATURES` in
+   `backend/services/permissionService.js` — this is the **only** copy of
+   that map (do not duplicate it in the frontend; `PermissionsPage.jsx`
+   reads it from the `GET /permissions` API response). See
+   `permission-feature-map.md` in this skill folder for the full current
+   table and the reasoning for which permissions are deliberately left
+   unmapped.
 
 ---
 
@@ -170,8 +178,8 @@ Check `tenant_features` table for this tenantId + feature key. Is the cache stal
 → Check `lib/tenantFeatureCache.js` — cache has a 5-minute TTL. In dev, restart the server to clear.
 
 **Step 3 — Does the user's role have the permission?**
-Has the tenant customized this role's permissions? Check `role_permissions` table for (role, tenantId).
-→ `getRolePermissions(role, tenantId)` in `lib/permissionCache.js`
+Remember: `admin`/`manager`/`operator`/`super_admin` have **no** hardcoded permissions — if nobody has configured `role_permissions` for this exact `(role, tenantId)`, the role has zero permissions, full stop. This is the single most common cause of a 403 after this architecture change (Jul 2026) — a freshly-created tenant, or one that hasn't been reconfigured since, will 403 on everything until someone visits the Permissions page. Check the `role_permissions` table for `(role, tenantId)` rows.
+→ `getRolePermissions(role, tenantId)` in `lib/permissions.js`
 
 **Step 4 — Is this a hard role-gated route?**
 Does the route use `requireRoles(...)` instead of `requirePermission(...)`? No permission can unlock a role-gated route.
@@ -187,9 +195,10 @@ Is the page visible but the API rejects? Verify the exact string values match:
 
 | Scenario | Which layer |
 |---|---|
-| Only `super_admin` can access `/platform` | Role (`requireRoles`) |
+| Only `system_developer` can access `/platform` | Role (`requireRoles`) |
 | Only users with `manage_finance_accounts` can add transactions | Permission (`requirePermission`) |
 | Tenant A doesn't have the retail POS module at all | Feature flag (`requireFeature`) |
-| A manager needs to be given an extra permission for one tenant | Customize via `role_permissions` table (UI: Permissions page) |
+| A manager needs any permission at all for one tenant (there's no default) | Configure via `role_permissions` table (UI: Permissions page → `super_admin`, own tenant only) |
+| A tenant owner's (`super_admin`) own access needs adjusting | Only `system_developer` can do this — Permissions page, pick the tenant from the dropdown, edit the `super_admin` card |
 | Hiding a button for users who can't do an action | `can('permission_key')` in the component |
 | Hiding a nav item for tenants without the feature | `feature:` field in `APP_ROUTES` + `hasFeature()` in components |

@@ -13,18 +13,18 @@ export default function CtaSection({ t }) {
           </div>
 
           <div className="flex flex-col gap-3 sm:flex-row lg:flex-col xl:flex-row">
-            <Link to="/login" className="demo-white-btn group">
-              {t('landing.login')}
-              <ArrowRight size={18} className="transition duration-200 group-hover:translate-x-1" />
-            </Link>
-            <a href={`tel:${contactPhone}`} className="cta-outline-btn group">
-              <span className="demo-btn-icon"><Phone size={15} /></span>
-              {t('landing.cta.callNow')}
-            </a>
             <a href={whatsappUrl} target="_blank" rel="noreferrer" className="demo-whatsapp-btn group">
               <span className="demo-btn-icon"><MessageCircle size={15} /></span>
               {t('landing.cta.whatsapp')}
             </a>
+            <a href={`tel:${contactPhone}`} className="cta-outline-btn group">
+              <span className="demo-btn-icon"><Phone size={15} /></span>
+              {t('landing.cta.callNow')}
+            </a>
+            <Link to="/login" className="demo-white-btn group">
+              {t('landing.login')}
+              <ArrowRight size={18} className="transition duration-200 group-hover:translate-x-1" />
+            </Link>
           </div>
         </div>
       </div>

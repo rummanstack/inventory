@@ -2733,6 +2733,7 @@ const en = {
         },
       },
       hero: {
+        seePricing: 'See Pricing',
         eyebrow: 'Trusted by 500+ businesses across Bangladesh',
         title: 'Manage stock, sales, due and profit Ã¢â‚¬â€ all in one place.',
         subtitle: 'Stop using notebooks and scattered Excel sheets. One system for all your sales, stock, dues and profit Ã¢â‚¬â€ always accurate, always ready.',

@@ -4,7 +4,7 @@ import { getCssVar } from '../../utils/theme.js';
 import { Sparkline } from './charts.jsx';
 import { cx } from './utils.js';
 
-function useCountUp(target, duration = 700) {
+function useCountUp(target, duration = 300) {
   const [current, setCurrent] = useState(0);
   const rafRef = useRef(null);
 

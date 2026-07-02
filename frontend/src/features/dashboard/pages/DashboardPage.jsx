@@ -549,7 +549,7 @@ export default function DashboardPage() {
                       </div>
                       <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
                         <div
-                          className="h-full rounded-full bg-[var(--secondary)] transition-all duration-500"
+                          className="h-full rounded-full bg-[var(--secondary)] transition-all duration-300"
                           style={{ width: `${pct}%` }}
                         />
                       </div>

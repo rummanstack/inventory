@@ -22,7 +22,7 @@ function SessionLoadingScreen() {
       <div className="relative z-10 flex flex-col items-center">
         {/* Logo mark */}
         <div className="relative">
-          <div className="absolute inset-0 -m-2 animate-ping rounded-2xl bg-[#5e5b8e]/15" style={{ animationDuration: '2.2s' }} />
+          <div className="absolute inset-0 -m-2 animate-ping rounded-2xl bg-[color-mix(in_srgb,var(--secondary)_15%,transparent)]" style={{ animationDuration: '2.2s' }} />
           <div className="relative flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl bg-white shadow-[0_8px_40px_rgba(55,51,115,0.2)]">
             <img src={stockLedgerLogoIcon} alt="" className="h-full w-full object-contain p-1.5" />
           </div>

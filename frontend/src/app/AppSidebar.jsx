@@ -4,7 +4,7 @@ import { Link, NavLink, useLocation } from 'react-router-dom';
 import { ChevronDown, LogOut, PanelLeftClose, PanelLeftOpen, X } from 'lucide-react';
 import { Avatar, cx } from '../components/ui';
 import { APP_ROUTES, SIDEBAR_SECTIONS } from './routes';
-import logoMark from '../assets/stockledger-logo-mark.svg';
+import { stockLedgerLogoIcon } from '../assets/brandAssets.js';
 
 const COLLAPSED_GROUPS_STORAGE_KEY = 'stockledger.sidebarCollapsedGroups';
 
@@ -149,7 +149,7 @@ export default function AppSidebar({ mobileOpen, setMobileOpen, user, tenant, la
         <div className="relative flex items-center justify-between px-2">
           <div className={cx('flex min-w-0 flex-1 items-center gap-3', collapsed && 'lg:hidden')}>
             <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 shadow-[0_8px_18px_rgba(var(--slate-900),0.06)]">
-              <img src={tenant?.logoUrl || logoMark} alt="" className="h-full w-full object-contain p-1.5" />
+              <img src={tenant?.logoUrl || stockLedgerLogoIcon} alt="" className="h-full w-full object-contain p-1.5" />
             </div>
             <div className="min-w-0">
               <h2 className="mt-1 truncate text-xl font-black tracking-normal text-slate-950">{tenant?.name || t('app.brand')}</h2>
@@ -162,7 +162,7 @@ export default function AppSidebar({ mobileOpen, setMobileOpen, user, tenant, la
           </div>
           <div className={cx('hidden', collapsed && 'lg:flex lg:flex-1 lg:justify-center')}>
             <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
-              <img src={tenant?.logoUrl || logoMark} alt="" className="h-full w-full object-contain p-1" />
+              <img src={tenant?.logoUrl || stockLedgerLogoIcon} alt="" className="h-full w-full object-contain p-1" />
             </div>
           </div>
           <div className="flex shrink-0 items-center gap-1">

@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { ArrowUp, Facebook, Instagram, Linkedin, MapPin, MessageCircle, Phone, Send, Twitter } from 'lucide-react';
 import { contactPhone, navLinks, socialLinks, whatsappUrl } from '../constants.js';
-import logoMark from '../../../assets/stockledger-logo-mark.svg';
+import { stockLedgerLogoHorizontal } from '../../../assets/brandAssets.js';
 
 const SOCIAL_LINKS = [
   { key: 'facebook', href: socialLinks.facebook, Icon: Facebook },
@@ -17,14 +17,9 @@ export default function LandingFooter({ t }) {
       <div className="landing-container py-10">
         <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
           <div className="max-w-sm">
-            <div className="flex items-center gap-3">
-              <span className="brand-mark">
-                <img src={logoMark} alt="" className="h-full w-full object-contain" />
-              </span>
-              <div>
-                <h2 className="text-lg font-black text-white">StockLedger</h2>
-                <p className="text-xs font-semibold text-slate-300">{t('landing.footer.tagline')}</p>
-              </div>
+            <div>
+              <img src={stockLedgerLogoHorizontal} alt="StockLedger" className="h-11 w-auto object-contain" />
+              <p className="mt-3 text-xs font-semibold text-slate-300">{t('landing.footer.tagline')}</p>
             </div>
             <p className="mt-4 text-sm font-medium leading-6 text-slate-300">{t('landing.footer.description')}</p>
             <div className="mt-5 flex items-center gap-2">
@@ -70,7 +65,7 @@ export default function LandingFooter({ t }) {
               <MapPin size={15} className="mt-0.5 shrink-0 text-[var(--blue-200)]" />
               <address className="not-italic leading-5">
                 Middle Paikpara, Mirpur-1<br />
-                Dhaka – 1216, Bangladesh
+                Dhaka ??? 1216, Bangladesh
               </address>
             </div>
           </div>

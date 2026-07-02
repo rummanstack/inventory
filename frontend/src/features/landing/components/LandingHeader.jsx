@@ -2,19 +2,14 @@ import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import LanguageSwitcher from '../../../components/LanguageSwitcher.jsx';
 import { navLinks } from '../constants.js';
-import logoMark from '../../../assets/stockledger-logo-mark.svg';
+import { stockLedgerLogoHorizontal } from '../../../assets/brandAssets.js';
 
 export default function LandingHeader({ language, setLanguage, t }) {
   return (
     <header className="landing-header">
       <div className="landing-header-inner">
         <a href="#top" className="flex items-center gap-3" aria-label="StockLedger home">
-          <span className="brand-mark">
-            <img src={logoMark} alt="" className="h-full w-full object-contain" />
-          </span>
-          <span className="hidden sm:block">
-            <span className="block text-lg font-black leading-none text-white">StockLedger</span>
-          </span>
+          <img src={stockLedgerLogoHorizontal} alt="StockLedger" className="h-10 w-auto object-contain" />
         </a>
 
         <nav className="hidden items-center gap-1 lg:flex" aria-label="Landing navigation">

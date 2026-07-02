@@ -5,7 +5,7 @@ import { Alert } from '../../../components/ui';
 import PasswordInput from '../../../components/PasswordInput.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import loginHero from '../../../assets/login-hero.png';
-import logoMark from '../../../assets/stockledger-logo-mark.svg';
+import { stockLedgerLogoHorizontal } from '../../../assets/brandAssets.js';
 
 export default function LoginPage() {
   const { login, forgotPassword, resetPassword, t } = useInventoryApp();
@@ -26,8 +26,8 @@ export default function LoginPage() {
           {/* Form */}
           <div className="flex flex-col justify-center bg-white px-8 py-10">
             <div className="mb-8 flex items-center gap-3">
-              <Link to="/" className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-2xl transition hover:opacity-80">
-                <img src={logoMark} alt="" className="h-full w-full object-contain" />
+              <Link to="/" className="flex h-12 items-center transition hover:opacity-80">
+                <img src={stockLedgerLogoHorizontal} alt="StockLedger" className="h-full w-auto object-contain" />
               </Link>
               <div>
                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">{t('app.brand')}</p>

@@ -22,7 +22,7 @@ import LandingHeader from '../components/LandingHeader.jsx';
 import LandingFooter from '../components/LandingFooter.jsx';
 import LandingChatWidget from '../components/LandingChatWidget.jsx';
 import { contactPhone, whatsappUrl } from '../constants.js';
-import logoMark from '../../../assets/stockledger-logo-mark.svg';
+import { stockLedgerLogoIcon } from '../../../assets/brandAssets.js';
 
 // ── Replace this import with the founder's real photo when ready ──
 import founderPhoto from '../../../assets/landing/business-owner.png';
@@ -240,7 +240,7 @@ export default function FounderPage() {
               {/* Floating badge */}
               <div className="absolute -bottom-4 -right-4 flex items-center gap-2.5 rounded-2xl border border-white/20 bg-white/95 px-4 py-3 shadow-[0_16px_40px_rgba(0,0,0,0.22)] backdrop-blur-xl">
                 <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[linear-gradient(135deg,var(--brand),var(--brand-strong))]">
-                  <img src={logoMark} alt="" className="h-5 w-5 object-contain" />
+                  <img src={stockLedgerLogoIcon} alt="" className="h-5 w-5 object-contain" />
                 </span>
                 <div>
                   <p className="text-xs font-black text-slate-950">StockLedger</p>

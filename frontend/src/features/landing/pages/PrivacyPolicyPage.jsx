@@ -20,7 +20,7 @@ import LandingHeader from '../components/LandingHeader.jsx';
 import LandingFooter from '../components/LandingFooter.jsx';
 import LandingChatWidget from '../components/LandingChatWidget.jsx';
 import { contactPhone, whatsappUrl } from '../constants.js';
-import logoMark from '../../../assets/stockledger-logo-mark.svg';
+import { stockLedgerLogoIcon } from '../../../assets/brandAssets.js';
 
 const LAST_UPDATED = 'June 29, 2026';
 const COMPANY_NAME = 'StockLedger (Arinda)';
@@ -478,7 +478,7 @@ export default function PrivacyPolicyPage() {
             <div className="rounded-[28px] border border-[var(--brand)]/15 bg-[linear-gradient(135deg,var(--brand-strong)_0%,#1a1440_55%,#0d2040_100%)] p-8 sm:p-10">
               <div className="flex items-center gap-4">
                 <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/10">
-                  <img src={logoMark} alt="" className="h-7 w-7 object-contain" />
+                  <img src={stockLedgerLogoIcon} alt="" className="h-7 w-7 object-contain" />
                 </span>
                 <div>
                   <h3 className="text-lg font-black text-white">Ready to get started?</h3>

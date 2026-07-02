@@ -1,6 +1,5 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { Toaster } from 'sonner';
-import { Package } from 'lucide-react';
 import AppLayout from './AppLayout';
 import LoginPage from '../features/auth/pages/LoginPage';
 import LandingPage from '../features/landing/pages/LandingPage';
@@ -10,6 +9,7 @@ import FounderPage from '../features/landing/pages/FounderPage';
 import { APP_ROUTES } from './routes';
 import { ErrorBoundary } from './ErrorBoundary.jsx';
 import { InventoryAppProvider, useInventoryApp } from './useInventoryApp.jsx';
+import { stockLedgerLogoHorizontal, stockLedgerLogoIcon } from '../assets/brandAssets.js';
 
 function SessionLoadingScreen() {
   return (
@@ -23,13 +23,13 @@ function SessionLoadingScreen() {
         {/* Logo mark */}
         <div className="relative">
           <div className="absolute inset-0 -m-2 animate-ping rounded-2xl bg-[#5e5b8e]/15" style={{ animationDuration: '2.2s' }} />
-          <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-[#5e5b8e] to-[#373373] shadow-[0_8px_40px_rgba(55,51,115,0.35)]">
-            <Package size={26} className="text-white" strokeWidth={1.8} />
+          <div className="relative flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl bg-white shadow-[0_8px_40px_rgba(55,51,115,0.2)]">
+            <img src={stockLedgerLogoIcon} alt="" className="h-full w-full object-contain p-1.5" />
           </div>
         </div>
 
         {/* Brand */}
-        <h1 className="mt-7 text-[22px] font-black tracking-tight text-[#0e0c25]">Stock Ledger</h1>
+        <img src={stockLedgerLogoHorizontal} alt="StockLedger" className="mt-7 h-10 w-auto object-contain" />
         <p className="mt-1.5 text-[13px] font-medium tracking-widest text-slate-400 uppercase">Checking session</p>
 
         {/* Indeterminate progress bar */}

@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Clock, FileText, MessageCircle, Phone } from 'lucide-react';
+import { ArrowRight, ChevronLeft, ChevronRight, Clock, FileText, MessageCircle, Phone } from 'lucide-react';
 import LandingHeader from '../LandingHeader.jsx';
 import LandingFooter from '../LandingFooter.jsx';
 import LandingChatWidget from '../LandingChatWidget.jsx';
@@ -139,8 +139,18 @@ function ContactCards({ contact, email }) {
 export default function LegalPageLayout({ language, setLanguage, t, contentKey, sectionIcons, email, heroGradient, ctaGradient }) {
   const content = t(contentKey) || {};
   const sections = content.sections || [];
-  const tocEntries = [...sections.map(({ id, label }) => ({ id, label })), { id: 'contact', label: content.contact?.label }];
-  const [activeSection, setActiveSection] = useState(tocEntries[0]?.id);
+  const tabs = useMemo(
+    () => [...sections.map(({ id, label }) => ({ id, label })), { id: 'contact', label: content.contact?.label }],
+    [sections, content.contact],
+  );
+
+  // Deep links like /terms#subscription open on that tab.
+  const [activeId, setActiveId] = useState(() => {
+    const hash = typeof window !== 'undefined' ? window.location.hash.slice(1) : '';
+    return hash || 'initial';
+  });
+  const activeIndex = Math.max(0, tabs.findIndex((tab) => tab.id === activeId));
+  const activeTab = tabs[activeIndex];
 
   useEffect(() => {
     document.documentElement.classList.add('landing-page-active');
@@ -152,39 +162,26 @@ export default function LegalPageLayout({ language, setLanguage, t, contentKey, 
     };
   }, []);
 
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) setActiveSection(entry.target.id);
-        });
-      },
-      { rootMargin: '-30% 0px -60% 0px' },
-    );
-    tocEntries.forEach(({ id }) => {
-      const el = document.getElementById(id);
-      if (el) observer.observe(el);
-    });
-    return () => observer.disconnect();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [language]);
-
-  function scrollToSection(id) {
-    const el = document.getElementById(id);
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  function selectTab(id) {
+    setActiveId(id);
+    if (typeof window !== 'undefined') {
+      window.history.replaceState(null, '', `#${id}`);
+      const top = document.getElementById('legal-content');
+      if (top) {
+        const offset = top.getBoundingClientRect().top + window.scrollY - 110;
+        if (window.scrollY > offset) window.scrollTo({ top: offset, behavior: 'smooth' });
+      }
+    }
   }
 
-  function SectionHeading({ id, title }) {
+  function TabIcon({ id, size = 14 }) {
     const Icon = sectionIcons[id] || FileText;
-    return (
-      <div className="mb-5 flex items-center gap-3">
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,var(--brand-soft),color-mix(in_srgb,var(--teal)_12%,white))]">
-          <Icon size={18} className="text-[var(--brand-strong)]" />
-        </span>
-        <h2 className="text-xl font-black tracking-tight text-slate-950 sm:text-2xl">{title}</h2>
-      </div>
-    );
+    return <Icon size={size} className="shrink-0" />;
   }
+
+  const activeSection = sections.find((section) => section.id === activeTab?.id);
+  const prevTab = activeIndex > 0 ? tabs[activeIndex - 1] : null;
+  const nextTab = activeIndex < tabs.length - 1 ? tabs[activeIndex + 1] : null;
 
   return (
     <main className="landing-page">
@@ -224,64 +221,106 @@ export default function LegalPageLayout({ language, setLanguage, t, contentKey, 
       </section>
 
       {/* ── Body ── */}
-      <div className="landing-container py-12 lg:py-16">
+      <div id="legal-content" className="landing-container py-12 lg:py-16">
+
+        {/* Mobile tab strip */}
+        <div className="-mx-4 mb-8 overflow-x-auto px-4 lg:hidden">
+          <div className="flex w-max gap-2 pb-1">
+            {tabs.map(({ id, label }) => (
+              <button
+                key={id}
+                type="button"
+                onClick={() => selectTab(id)}
+                className={`inline-flex shrink-0 items-center gap-2 rounded-full border px-4 py-2 text-[13px] font-bold transition duration-150 ${
+                  activeTab?.id === id
+                    ? 'border-transparent bg-[var(--brand-strong)] text-white shadow-[0_8px_20px_rgba(var(--blue-700),0.25)]'
+                    : 'border-slate-200 bg-white text-slate-600'
+                }`}
+              >
+                <TabIcon id={id} />
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <div className="lg:flex lg:gap-14 xl:gap-20">
 
-          {/* Sticky TOC */}
+          {/* Desktop tab list */}
           <aside className="hidden lg:block lg:w-56 xl:w-64 shrink-0">
             <nav className="sticky top-28 space-y-0.5">
               <p className="mb-3 text-[10px] font-black uppercase tracking-[0.22em] text-slate-400">{content.toc}</p>
-              {tocEntries.map(({ id, label }) => {
-                const Icon = sectionIcons[id] || FileText;
-                return (
-                  <button
-                    key={id}
-                    type="button"
-                    onClick={() => scrollToSection(id)}
-                    className={`flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-[13px] font-semibold transition duration-150 ${
-                      activeSection === id
-                        ? 'bg-[var(--brand-soft)] text-[var(--brand-strong)]'
-                        : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'
-                    }`}
-                  >
-                    <Icon size={14} className="shrink-0" />
-                    {label}
-                  </button>
-                );
-              })}
+              {tabs.map(({ id, label }) => (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => selectTab(id)}
+                  className={`flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-[13px] font-semibold transition duration-150 ${
+                    activeTab?.id === id
+                      ? 'bg-[var(--brand-soft)] text-[var(--brand-strong)]'
+                      : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'
+                  }`}
+                >
+                  <TabIcon id={id} />
+                  {label}
+                </button>
+              ))}
             </nav>
           </aside>
 
-          {/* Main content */}
-          <article className="min-w-0 flex-1 space-y-14">
-            {sections.map(({ id, label, blocks }) => (
-              <div key={id} className="space-y-14">
-                <section id={id} className="scroll-mt-28">
-                  <SectionHeading id={id} title={label} />
-                  <div className="space-y-4 text-[15px] leading-7 text-slate-600">
-                    {blocks.map((block, blockIndex) => (
-                      <Block key={blockIndex} block={block} email={email} t={t} />
-                    ))}
-                  </div>
-                </section>
-                <div className="border-t border-slate-100" />
+          {/* Active tab content */}
+          <article className="min-w-0 flex-1">
+            <div key={activeTab?.id} className="page-enter">
+              <div className="mb-5 flex items-center gap-3">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,var(--brand-soft),color-mix(in_srgb,var(--teal)_12%,white))]">
+                  <TabIcon id={activeTab?.id} size={18} />
+                </span>
+                <h2 className="text-xl font-black tracking-tight text-slate-950 sm:text-2xl">{activeTab?.label}</h2>
               </div>
-            ))}
 
-            {/* Contact */}
-            <section id="contact" className="scroll-mt-28">
-              <SectionHeading id="contact" title={content.contact?.label} />
               <div className="space-y-4 text-[15px] leading-7 text-slate-600">
-                <p>{content.contact?.intro}</p>
-                <ContactCards contact={content.contact || {}} email={email} />
-                {content.contact?.outro ? (
-                  <p className="text-[13px] text-slate-500"><RichText text={content.contact.outro} email={email} t={t} /></p>
-                ) : null}
+                {activeTab?.id === 'contact' ? (
+                  <>
+                    <p>{content.contact?.intro}</p>
+                    <ContactCards contact={content.contact || {}} email={email} />
+                    {content.contact?.outro ? (
+                      <p className="text-[13px] text-slate-500"><RichText text={content.contact.outro} email={email} t={t} /></p>
+                    ) : null}
+                  </>
+                ) : (
+                  activeSection?.blocks.map((block, blockIndex) => (
+                    <Block key={blockIndex} block={block} email={email} t={t} />
+                  ))
+                )}
               </div>
-            </section>
+
+              {/* Prev / Next */}
+              <div className="mt-10 flex items-stretch justify-between gap-3 border-t border-slate-100 pt-6">
+                {prevTab ? (
+                  <button
+                    type="button"
+                    onClick={() => selectTab(prevTab.id)}
+                    className="group inline-flex max-w-[46%] items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-left text-[13px] font-bold text-slate-600 transition duration-150 hover:border-[var(--brand)]/30 hover:text-[var(--brand-strong)]"
+                  >
+                    <ChevronLeft size={16} className="shrink-0 transition group-hover:-translate-x-0.5" />
+                    <span className="truncate">{prevTab.label}</span>
+                  </button>
+                ) : <span />}
+                {nextTab ? (
+                  <button
+                    type="button"
+                    onClick={() => selectTab(nextTab.id)}
+                    className="group ml-auto inline-flex max-w-[46%] items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-right text-[13px] font-bold text-slate-600 transition duration-150 hover:border-[var(--brand)]/30 hover:text-[var(--brand-strong)]"
+                  >
+                    <span className="truncate">{nextTab.label}</span>
+                    <ChevronRight size={16} className="shrink-0 transition group-hover:translate-x-0.5" />
+                  </button>
+                ) : <span />}
+              </div>
+            </div>
 
             {/* Bottom CTA */}
-            <div className="rounded-[28px] border border-[var(--brand)]/15 p-8 sm:p-10" style={{ background: ctaGradient }}>
+            <div className="mt-10 rounded-[28px] border border-[var(--brand)]/15 p-8 sm:p-10" style={{ background: ctaGradient }}>
               <div className="flex items-center gap-4">
                 <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/10">
                   <img loading="lazy" decoding="async" src={stockLedgerLogoIcon} alt="" className="h-7 w-7 object-contain" />

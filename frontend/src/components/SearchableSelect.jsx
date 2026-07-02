@@ -3,18 +3,18 @@ import { Check, ChevronDown, Search, X } from 'lucide-react';
 import { createPortal } from 'react-dom';
 
 /**
- * SearchableSelect — accessible combobox with keyboard nav and search.
+ * SearchableSelect ï¿½ accessible combobox with keyboard nav and search.
  *
  * Props:
  *   options     Array<{ value: string, label: ReactNode, sublabel?: string, searchText?: string }>
- *   value       string | null — controlled selected value
+ *   value       string | null ï¿½ controlled selected value
  *   onChange    (value: string | null) => void
- *   placeholder string — shown when nothing selected
+ *   placeholder string ï¿½ shown when nothing selected
  *   searchPlaceholder string
  *   disabled    boolean
- *   clearable   boolean — show x to clear (default true)
- *   containerClassName string — extra classes on the outer container
- *   className   string — extra classes on the trigger button
+ *   clearable   boolean ï¿½ show x to clear (default true)
+ *   containerClassName string ï¿½ extra classes on the outer container
+ *   className   string ï¿½ extra classes on the trigger button
  */
 export function SearchableSelect({
   options = [],
@@ -179,7 +179,7 @@ export function SearchableSelect({
     ? createPortal(
         <div
           ref={dropdownRef}
-          className="fixed z-[90] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl ring-1 ring-slate-900/5"
+          className="popover-fade fixed z-[90] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl ring-1 ring-slate-900/5"
           style={{
             left: menuPosition.left,
             top: menuPosition.top,

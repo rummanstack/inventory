@@ -136,7 +136,7 @@ function PickerFrame({ open, anchorRef, panelRef, children, className = '', pane
       ref={panelRef}
       style={style}
       className={cx(
-        'rounded-card border border-slate-200 bg-white p-3 shadow-modal ring-1 ring-slate-900/[0.04]',
+        'popover-enter rounded-card border border-slate-200 bg-white p-3 shadow-modal ring-1 ring-slate-900/[0.04]',
         className,
       )}
     >

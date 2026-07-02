@@ -2730,7 +2730,6 @@ const en = {
         quickReplies: {
           pricing: 'Need pricing details',
           setup: 'Need setup help',
-          demo: 'Book a demo',
         },
       },
       hero: {

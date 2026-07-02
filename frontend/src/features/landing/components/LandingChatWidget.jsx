@@ -42,7 +42,6 @@ export default function LandingChatWidget({ t }) {
     () => [
       t('landing.chat.quickReplies.pricing'),
       t('landing.chat.quickReplies.setup'),
-      t('landing.chat.quickReplies.demo'),
     ],
     [t],
   );

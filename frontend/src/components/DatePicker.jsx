@@ -136,7 +136,7 @@ function PickerFrame({ open, anchorRef, panelRef, children, className = '', pane
       ref={panelRef}
       style={style}
       className={cx(
-        'rounded-[24px] border border-slate-200 bg-white p-3 shadow-[0_24px_60px_rgba(var(--slate-900),0.18)] ring-1 ring-slate-900/[0.04]',
+        'rounded-card border border-slate-200 bg-white p-3 shadow-modal ring-1 ring-slate-900/[0.04]',
         className,
       )}
     >
@@ -272,7 +272,7 @@ export function DatePickerField({ value, onChange, placeholder = 'Select date', 
                   isDisabled
                     ? 'cursor-not-allowed opacity-25'
                     : selected
-                      ? 'bg-[var(--secondary)] text-white shadow-[0_12px_20px_var(--secondary-shadow)]'
+                      ? 'bg-[var(--secondary)] text-white shadow-[0_1px_2px_var(--secondary-shadow)]'
                       : 'text-slate-700 hover:bg-slate-100',
                   isToday && !selected && !isDisabled ? 'ring-1 ring-[var(--secondary-soft)]' : '',
                 )}
@@ -370,7 +370,7 @@ export function MonthPickerField({ value, onChange, placeholder = 'Select month'
                 type="button"
                 className={cx(
                   'rounded-2xl px-3 py-3 text-sm font-bold transition',
-                  selected ? 'bg-[var(--secondary)] text-white shadow-[0_12px_20px_var(--secondary-shadow)]' : 'bg-slate-50 text-slate-700 hover:bg-slate-100',
+                  selected ? 'bg-[var(--secondary)] text-white shadow-[0_1px_2px_var(--secondary-shadow)]' : 'bg-slate-50 text-slate-700 hover:bg-slate-100',
                 )}
                 onClick={() => {
                   onChange(toISOMonth(candidate));

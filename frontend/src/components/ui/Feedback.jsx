@@ -8,8 +8,8 @@ export function EmptyState({ title = 'No data found', description = 'Add records
   const resolvedDescription = description === 'Add records to see them here.' ? t('common.addRecords') : description;
 
   return (
-    <div className="flex min-h-52 flex-col items-center justify-center rounded-[28px] border border-dashed border-slate-200 bg-slate-50/60 px-6 py-10 text-center">
-      <div className="rounded-2xl bg-white p-3 text-slate-500 shadow-[0_12px_24px_rgba(var(--slate-900),0.06)] ring-1 ring-slate-200">
+    <div className="flex min-h-52 flex-col items-center justify-center rounded-card border border-dashed border-slate-200 bg-slate-50/60 px-6 py-10 text-center">
+      <div className="rounded-control bg-white p-3 text-slate-500 shadow-crisp ring-1 ring-slate-200">
         <Icon size={24} />
       </div>
       <h3 className="mt-4 text-base font-bold text-slate-900">{resolvedTitle}</h3>
@@ -29,7 +29,7 @@ export function Alert({ type = 'info', className = '', children }) {
   return (
     <div
       className={cx(
-        'rounded-2xl border px-4 py-3 text-sm font-medium shadow-[0_10px_22px_rgba(var(--slate-900),0.04)]',
+        'rounded-control border px-4 py-3 text-sm font-medium',
         tones[type] || tones.info,
         className,
       )}
@@ -42,7 +42,6 @@ export function Alert({ type = 'info', className = '', children }) {
 export function LoadingState({ title, description, compact = false }) {
   return (
     <div className={cx('panel relative overflow-hidden', compact ? 'min-h-32 p-4' : 'min-h-64 p-6')}>
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(var(--blue-600),0.08),transparent_38%),radial-gradient(circle_at_bottom_left,rgba(var(--sky-500),0.08),transparent_35%)]" />
       <div className="relative flex flex-col">
         <div className="flex items-start gap-4">
           <div className="h-12 w-12 shrink-0 skeleton rounded-2xl" />
@@ -77,7 +76,7 @@ export function PageLoadingState({ title, description }) {
 
 export function TableSkeleton({ rows = 6, columns = 5, showHeader = true }) {
   return (
-    <div className="overflow-hidden rounded-[28px] border border-slate-100 bg-white shadow-[0_16px_35px_rgba(var(--slate-900),0.05)]">
+    <div className="overflow-hidden rounded-card border border-slate-100 bg-white shadow-card">
       {showHeader ? (
         <div className="border-b border-slate-100 px-5 py-4">
           <div className="flex items-center justify-between gap-3">
@@ -119,14 +118,14 @@ export function TableSkeleton({ rows = 6, columns = 5, showHeader = true }) {
 
 export function StatCardSkeleton() {
   return (
-    <div className="relative overflow-hidden rounded-[28px] border border-slate-200/80 bg-white p-4 shadow-[0_18px_45px_rgba(var(--slate-900),0.05)]">
+    <div className="relative overflow-hidden rounded-card border border-slate-200/80 bg-white p-4 shadow-card">
       <div className="flex items-start justify-between gap-3">
         <div className="w-full">
           <div className="h-3 w-2/3 skeleton rounded-full" />
           <div className="mt-3 h-6 w-1/2 skeleton rounded-full" />
           <div className="mt-3 h-2.5 w-3/4 skeleton rounded-full" />
         </div>
-        <div className="h-10 w-10 shrink-0 skeleton rounded-lg" />
+        <div className="h-10 w-10 shrink-0 skeleton rounded-control" />
       </div>
     </div>
   );
@@ -147,7 +146,7 @@ export function ChartPanelSkeleton({ height = 'h-56' }) {
 }
 
 export function CardSkeleton({ className = '', height = 'h-24' }) {
-  return <div className={cx('skeleton rounded-[28px]', height, className)} />;
+  return <div className={cx('skeleton rounded-card', height, className)} />;
 }
 
 export function ToastViewport({ toasts, onDismiss }) {
@@ -180,8 +179,8 @@ export function ToastViewport({ toasts, onDismiss }) {
     },
     info: {
       shell: 'border-indigo-200 bg-white text-slate-900',
-      icon: 'bg-[#373373] text-white',
-      bar: 'bg-[#373373]',
+      icon: 'bg-[var(--brand)] text-white',
+      bar: 'bg-[var(--brand)]',
       msg: 'text-slate-600',
     },
   };
@@ -192,14 +191,14 @@ export function ToastViewport({ toasts, onDismiss }) {
         const Icon = icons[toast.type] || Info;
         const tone = tones[toast.type] || tones.info;
         return (
-          <div key={toast.id} className={cx('pointer-events-auto overflow-hidden rounded-[28px] border shadow-[0_8px_30px_rgba(0,0,0,0.12)]', tone.shell)}>
+          <div key={toast.id} className={cx('pointer-events-auto overflow-hidden rounded-card border shadow-modal', tone.shell)}>
             <div className={cx('h-1.5 w-full', tone.bar)} />
             <div className="flex items-start gap-3 px-4 py-4">
-              <div className={cx('mt-0.5 shrink-0 rounded-2xl p-2.5', tone.icon)}>
+              <div className={cx('mt-0.5 shrink-0 rounded-control p-2.5', tone.icon)}>
                 <Icon size={18} strokeWidth={2.4} />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-black tracking-tight">{toast.title}</p>
+                <p className="text-sm font-semibold tracking-tight">{toast.title}</p>
                 {toast.message ? <p className={cx('mt-1 text-sm font-medium leading-6', tone.msg)}>{toast.message}</p> : null}
               </div>
               <button

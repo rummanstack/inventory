@@ -253,7 +253,7 @@ export function TrendChart({ data, series, valueFormatter = (value) => value, he
         ))}
       </div>
       <div
-        className="rounded-[28px] border border-slate-100 bg-[linear-gradient(180deg,rgba(var(--white),0.95),rgba(243,247,250,0.95))] p-4 shadow-[inset_0_1px_0_rgba(var(--white),0.9)]"
+        className="rounded-card border border-slate-100 bg-white p-4"
         style={{ height }}
       >
         <Line data={chartData} options={options} />
@@ -304,7 +304,7 @@ export function HorizontalBarChart({ data, valueFormatter = (value) => value, tr
   };
 
   return (
-    <div className={cx('rounded-[24px] p-2', trackClassName)} style={{ height: Math.max(data.length * 50, 180) }}>
+    <div className={cx('rounded-card p-2', trackClassName)} style={{ height: Math.max(data.length * 50, 180) }}>
       <Bar data={chartData} options={options} />
     </div>
   );

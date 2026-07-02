@@ -12,10 +12,12 @@ import {
   listTenantFeatures,
   replaceTenantFeatures,
 } from "../repositories/tenantFeatureRepository.js";
+import { TENANT_ACTIONS } from "../lib/auditActions.js";
 import { TENANT_FEATURES } from "../lib/features.js";
 import { BUSINESS_TYPES, BUSINESS_TYPE_VALUES, SELLER_TYPES, SELLER_TYPE_VALUES } from "../lib/businessTypes.js";
 import { setCachedFeatures } from "../lib/tenantFeatureCache.js";
 import { assert } from "../lib/errors.js";
+import { logActivity } from "./shared/inventoryHelpers.js";
 
 function normalizeTaxRate(value) {
   const parsed = Number(value);
@@ -88,8 +90,9 @@ function defaultFeaturesForBusinessType(businessType) {
 }
 
 export class TenantService {
-  constructor(databaseManager) {
+  constructor(databaseManager, { auditService } = {}) {
     this.databaseManager = databaseManager;
+    this.auditService = auditService;
   }
 
   async listTenants() {
@@ -101,7 +104,7 @@ export class TenantService {
     }
   }
 
-  async createTenant({ name, slug, email, plan = "starter", address, logoUrl, taxRate = 0, loyaltyEnabled = false, loyaltyPointsPer100 = 1, loyaltyPointValue = 1, businessType, sellerType }) {
+  async createTenant({ name, slug, email, plan = "starter", address, logoUrl, taxRate = 0, loyaltyEnabled = false, loyaltyPointsPer100 = 1, loyaltyPointValue = 1, businessType, sellerType }, actor) {
     assert(name && slug && email, "name, slug and email are required", 400);
     return this.databaseManager.withTransaction(async (client) => {
       const existing = await findTenantBySlug(client, slug);
@@ -126,11 +129,32 @@ export class TenantService {
       const defaultFeatures = defaultFeaturesForBusinessType(created.businessType);
       await replaceTenantFeatures(client, created.id, defaultFeatures);
       setCachedFeatures(created.id, defaultFeatures);
+      await logActivity(this.auditService, client, actor, {
+        actionType: TENANT_ACTIONS.CREATE,
+        entityType: "tenant",
+        entityId: created.id,
+        description: `${actor.name} created organization ${created.name}`,
+        metadata: {
+          name: created.name,
+          slug: created.slug,
+          plan: created.plan,
+          businessType: created.businessType,
+          sellerType: created.sellerType,
+        },
+        after: {
+          name: created.name,
+          slug: created.slug,
+          plan: created.plan,
+          status: created.status,
+          businessType: created.businessType,
+          sellerType: created.sellerType,
+        },
+      });
       return created;
     });
   }
 
-  async updateTenant(tenantId, fields) {
+  async updateTenant(tenantId, fields, actor) {
     const client = await this.databaseManager.getPool().connect();
     try {
       const existing = await findTenantById(client, tenantId);
@@ -154,19 +178,59 @@ export class TenantService {
         businessType: fields.businessType !== undefined ? normalizeBusinessType(fields.businessType) : existing.businessType ?? BUSINESS_TYPES.ELECTRONICS,
         sellerType: fields.sellerType !== undefined ? normalizeSellerType(fields.sellerType) : existing.sellerType ?? SELLER_TYPES.DEALER,
       };
-      return await updateTenant(client, updated);
+      const saved = await updateTenant(client, updated);
+      await logActivity(this.auditService, client, actor, {
+        actionType: TENANT_ACTIONS.UPDATE,
+        entityType: "tenant",
+        entityId: tenantId,
+        description: `${actor.name} updated organization ${saved.name}`,
+        metadata: {
+          name: saved.name,
+          slug: saved.slug,
+          plan: saved.plan,
+        },
+        before: {
+          name: existing.name,
+          slug: existing.slug,
+          email: existing.email,
+          plan: existing.plan,
+          status: existing.status,
+          businessType: existing.businessType,
+          sellerType: existing.sellerType,
+        },
+        after: {
+          name: saved.name,
+          slug: saved.slug,
+          email: saved.email,
+          plan: saved.plan,
+          status: saved.status,
+          businessType: saved.businessType,
+          sellerType: saved.sellerType,
+        },
+      });
+      return saved;
     } finally {
       client.release();
     }
   }
 
-  async setStatus(tenantId, status) {
+  async setStatus(tenantId, status, actor) {
     assert(status === "active" || status === "inactive", "status must be active or inactive", 400);
     const client = await this.databaseManager.getPool().connect();
     try {
       const existing = await findTenantById(client, tenantId);
       assert(existing, "Organization not found", 404);
-      return await setTenantStatus(client, tenantId, status);
+      const updated = await setTenantStatus(client, tenantId, status);
+      await logActivity(this.auditService, client, actor, {
+        actionType: TENANT_ACTIONS.STATUS_UPDATE,
+        entityType: "tenant",
+        entityId: tenantId,
+        description: `${actor.name} changed organization ${updated.name} status to ${status}`,
+        before: { status: existing.status },
+        after: { status: updated.status },
+        metadata: { name: updated.name },
+      });
+      return updated;
     } finally {
       client.release();
     }
@@ -185,7 +249,7 @@ export class TenantService {
     }
   }
 
-  async updateTenantFeatures(tenantId, features) {
+  async updateTenantFeatures(tenantId, features, actor) {
     assert(Array.isArray(features), "features must be an array", 400);
 
     const cleanFeatures = [...new Set(features.map((feature) => String(feature)))];
@@ -197,8 +261,19 @@ export class TenantService {
     try {
       const existing = await findTenantById(client, tenantId);
       assert(existing, "Organization not found", 404);
+      const configured = await hasTenantFeatureConfig(client, tenantId);
+      const previousFeatures = configured ? await listTenantFeatures(client, tenantId) : [...TENANT_FEATURES];
       await replaceTenantFeatures(client, tenantId, cleanFeatures);
       setCachedFeatures(tenantId, cleanFeatures);
+      await logActivity(this.auditService, client, actor, {
+        actionType: TENANT_ACTIONS.FEATURES_UPDATE,
+        entityType: "tenant",
+        entityId: tenantId,
+        description: `${actor.name} updated features for organization ${existing.name}`,
+        before: { features: previousFeatures },
+        after: { features: cleanFeatures },
+        metadata: { name: existing.name, featureCount: cleanFeatures.length },
+      });
       return cleanFeatures;
     } finally {
       client.release();

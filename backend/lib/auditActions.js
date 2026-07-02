@@ -178,3 +178,22 @@ export const SALARY_PAYMENT_ACTIONS = {
   CREATE: "salary_payment.create",
   DELETE: "salary_payment.delete",
 };
+
+export const TENANT_ACTIONS = {
+  CREATE: "tenant.create",
+  UPDATE: "tenant.update",
+  STATUS_UPDATE: "tenant.status_update",
+  FEATURES_UPDATE: "tenant.features_update",
+};
+
+export const DSR_TARGET_ACTIONS = {
+  SET: "dsr_target.set",
+};
+
+export const CONTACT_MESSAGE_ACTIONS = {
+  SUBMIT: "contact_message.submit",
+};
+
+export const UPLOAD_ACTIONS = {
+  PHOTO_UPLOAD: "upload.photo_upload",
+};

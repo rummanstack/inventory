@@ -1,4 +1,5 @@
 import businessOwnerImage from '../../assets/landing/business-owner.png';
+import landingImage2 from '../../assets/landing/2.png';
 import contactSupportImage from '../../assets/landing/contact-support.png';
 import dashboardSummaryImage from '../../assets/landing/dashboard-summary.png';
 import dealerImage from '../../assets/landing/dealer.png';
@@ -58,7 +59,7 @@ export const navLinks = [
 ];
 
 export const heroDashboardImage = dashboardSummaryImage;
-export const heroMobileImage = mobileDashboardImage;
+export const heroMobileImage = landingImage2;
 export const contactUsImage = supportCallImage;
 
 export const featureStoryImages = [
@@ -131,3 +132,4 @@ export const showcaseImages = [
   { src: supplierPurchaseImage, key: 'supplierPurchase', fit: 'cover' },
   { src: shopCounter2Image, key: 'shopCounter2', fit: 'cover', position: 'top' },
 ];
+

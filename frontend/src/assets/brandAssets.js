@@ -1,2 +1,2 @@
-export const stockLedgerLogoIcon = '/stockledger-icon-512x512.png';
-export const stockLedgerLogoHorizontal = '/stockledger-logo-horizontal.png';
+export const stockLedgerLogoIcon = '/stockledger-brand-mark.png';
+export const stockLedgerLogoHorizontal = '/stockledger-brand-horizontal.png';

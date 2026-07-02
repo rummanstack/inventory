@@ -139,7 +139,7 @@ export default function SalesInvoicesPage() {
                 <th className="px-4 py-3">{t('retailer.shared.invoiceNumberLabel')}</th>
                 <th className="px-4 py-3">{t('retailer.shared.invoiceDateLabel')}</th>
                 <th className="px-4 py-3">{t('retailer.shared.customerLabel')}</th>
-                <th className="px-4 py-3">{t('retailer.shared.saleTypeLabel')}</th>
+                <th className="hidden px-4 py-3 lg:table-cell">{t('retailer.shared.saleTypeLabel')}</th>
                 <th className="px-4 py-3 text-right">{t('retailer.shared.totalAmount')}</th>
                 <th className="hidden px-4 py-3 text-right sm:table-cell">{t('retailer.shared.dueAmount')}</th>
                 <th className="px-4 py-3">{t('purchaseReceive.paymentStatus')}</th>
@@ -149,13 +149,13 @@ export default function SalesInvoicesPage() {
             <tbody className="divide-y divide-slate-100">
               {vm.items.map((invoice, index) => (
                 <tr key={invoice.id} className="hover:bg-slate-50">
-                  <td className="table-cell font-black text-slate-400">{(vm.page - 1) * vm.pageSize + index + 1}</td>
+                  <td className="table-cell font-medium text-slate-400">{(vm.page - 1) * vm.pageSize + index + 1}</td>
                   <td className="table-cell font-semibold text-slate-950">{invoice.invoiceNumber}</td>
                   <td className="table-cell">{formatDateTime(invoice.invoiceDate)}</td>
                   <td className="table-cell">{invoice.customerName || t('retailer.shared.customerTypes.WALK_IN')}</td>
                   <td className="hidden table-cell lg:table-cell">{t(`retailer.shared.saleTypes.${invoice.saleType}`)}</td>
-                  <td className="table-cell text-right font-bold">{formatCurrency(invoice.totalAmount)}</td>
-                  <td className="hidden table-cell text-right font-bold text-rose-700 sm:table-cell">{formatCurrency(invoice.dueAmount)}</td>
+                  <td className="table-cell text-right font-semibold">{formatCurrency(invoice.totalAmount)}</td>
+                  <td className="hidden table-cell text-right font-semibold text-rose-700 sm:table-cell">{formatCurrency(invoice.dueAmount)}</td>
                   <td className="table-cell">
                     <Badge tone={paymentStatusTone(paymentStatusOf(invoice))}>
                       {t(`purchaseReceive.paymentStatuses.${paymentStatusOf(invoice)}`)}

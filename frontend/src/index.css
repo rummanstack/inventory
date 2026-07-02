@@ -793,7 +793,7 @@
   }
 
   .table-head {
-    @apply text-left text-[11px] font-black uppercase tracking-[0.14em] text-slate-500;
+    @apply text-left text-xs font-semibold uppercase tracking-wider text-slate-500;
   }
 
   .table-head th {
@@ -805,7 +805,11 @@
   }
 
   .table-cell {
-    @apply px-4 py-3 text-sm font-medium text-slate-700 tabular-nums;
+    @apply px-4 py-2.5 text-sm font-medium text-slate-700 tabular-nums;
+  }
+
+  .table-cell-num {
+    @apply px-4 py-2.5 text-right text-sm font-medium text-slate-700 tabular-nums;
   }
 
   .page-shell {
@@ -876,6 +880,10 @@
     transition:
       background-color 160ms ease,
       box-shadow 160ms ease;
+  }
+
+  .surface tbody tr:hover {
+    background-color: rgb(var(--slate-50) / 0.8);
   }
 
   .surface tbody tr .row-actions {

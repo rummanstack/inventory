@@ -1,0 +1,143 @@
+import { ActivityLogController } from "../controllers/activityLogController.js";
+import { AuditController } from "../controllers/auditController.js";
+import { AuthController } from "../controllers/authController.js";
+import { BackupController } from "../controllers/backupController.js";
+import { BrandController } from "../controllers/brandController.js";
+import { CategoryController } from "../controllers/categoryController.js";
+import { ContactMessageController } from "../controllers/contactMessageController.js";
+import { CustomerController } from "../controllers/customerController.js";
+import { CustomerDueLedgerController } from "../controllers/customerDueLedgerController.js";
+import { CustomerPaymentController } from "../controllers/customerPaymentController.js";
+import { DrugBatchController } from "../controllers/drugBatchController.js";
+import { DsrController } from "../controllers/dsrController.js";
+import { DsrDueLedgerController } from "../controllers/dsrDueLedgerController.js";
+import { DsrFinanceController } from "../controllers/dsrFinanceController.js";
+import { DsrTargetController } from "../controllers/dsrTargetController.js";
+import { EmployeeController } from "../controllers/employeeController.js";
+import { ExpenseController } from "../controllers/expenseController.js";
+import { FinanceAccountController } from "../controllers/financeAccountController.js";
+import { FinanceDashboardController } from "../controllers/financeDashboardController.js";
+import { GenericMedicineController } from "../controllers/genericMedicineController.js";
+import { HelpDeskController } from "../controllers/helpDeskController.js";
+import { IssueController } from "../controllers/issueController.js";
+import { ManufacturerController } from "../controllers/manufacturerController.js";
+import { OrgController } from "../controllers/orgController.js";
+import { PermissionController } from "../controllers/permissionController.js";
+import { ProductController } from "../controllers/productController.js";
+import { ProductSerialController } from "../controllers/productSerialController.js";
+import { ProfitController } from "../controllers/profitController.js";
+import { PurchaseReceiveController } from "../controllers/purchaseReceiveController.js";
+import { QuotationController } from "../controllers/quotationController.js";
+import { RepairJobController } from "../controllers/repairJobController.js";
+import { RetailCashSessionController } from "../controllers/retailCashSessionController.js";
+import { RetailCustomerController } from "../controllers/retailCustomerController.js";
+import { RetailPromotionController } from "../controllers/retailPromotionController.js";
+import { SalaryPaymentController } from "../controllers/salaryPaymentController.js";
+import { SalesInvoiceController } from "../controllers/salesInvoiceController.js";
+import { SalesReturnController } from "../controllers/salesReturnController.js";
+import { SettlementController } from "../controllers/settlementController.js";
+import { ShopDueLedgerController } from "../controllers/shopDueLedgerController.js";
+import { SrController } from "../controllers/srController.js";
+import { SrDueLedgerController } from "../controllers/srDueLedgerController.js";
+import { StockMovementController } from "../controllers/stockMovementController.js";
+import { SupplierController } from "../controllers/supplierController.js";
+import { SupplierDiscountController } from "../controllers/supplierDiscountController.js";
+import { SupplierDueLedgerController } from "../controllers/supplierDueLedgerController.js";
+import { SupplierPaymentController } from "../controllers/supplierPaymentController.js";
+import { SystemController } from "../controllers/systemController.js";
+import { TenantController } from "../controllers/tenantController.js";
+import { TradeInController } from "../controllers/tradeInController.js";
+import { UploadController } from "../controllers/uploadController.js";
+import { UserController } from "../controllers/userController.js";
+import { VisitorChatAdminController } from "../controllers/visitorChatAdminController.js";
+import { VisitorChatController } from "../controllers/visitorChatController.js";
+import { WarrantyClaimController } from "../controllers/warrantyClaimController.js";
+
+export function createControllerRegistry({ services, env, databaseManager }) {
+  return {
+    public: {
+      authController: new AuthController(services.operations.authService, env, services.platform.tenantService),
+      contactMessageController: new ContactMessageController(services.customers.contactMessageService),
+      visitorChatController: new VisitorChatController(services.customers.visitorChatService),
+    },
+    platform: {
+      backupController: new BackupController(
+        services.platform.backupService,
+        databaseManager,
+        services.platform.auditService,
+      ),
+      systemController: new SystemController(
+        services.platform.systemService,
+        services.platform.errorLogService,
+        env,
+        services.platform.invariantService,
+      ),
+      tenantController: new TenantController(services.platform.tenantService),
+      visitorChatAdminController: new VisitorChatAdminController(services.customers.visitorChatService),
+    },
+    tenant: {
+      activityLogController: new ActivityLogController(services.platform.auditService),
+      auditController: new AuditController(services.platform.auditService),
+      orgController: new OrgController(services.platform.tenantService),
+      permissionController: new PermissionController(services.platform.permissionService),
+      uploadController: new UploadController(),
+      userController: new UserController(services.platform.userService),
+    },
+    catalog: {
+      brandController: new BrandController(services.catalog.brandService),
+      categoryController: new CategoryController(services.catalog.categoryService),
+      drugBatchController: new DrugBatchController(services.catalog.drugBatchService),
+      genericMedicineController: new GenericMedicineController(services.catalog.genericMedicineService),
+      manufacturerController: new ManufacturerController(services.catalog.manufacturerService),
+      productController: new ProductController(services.catalog.productService),
+      productSerialController: new ProductSerialController(services.catalog.productSerialService),
+      stockMovementController: new StockMovementController(services.catalog.stockMovementService),
+    },
+    customers: {
+      contactMessageAdminController: new ContactMessageController(services.customers.contactMessageService),
+      customerController: new CustomerController(services.customers.customerService),
+      customerDueLedgerController: new CustomerDueLedgerController(services.customers.customerDueLedgerService),
+      customerPaymentController: new CustomerPaymentController(services.customers.customerPaymentService),
+      retailCustomerController: new RetailCustomerController(services.customers.retailCustomerService),
+      retailPromotionController: new RetailPromotionController(services.customers.retailPromotionService),
+      tradeInController: new TradeInController(services.customers.tradeInService),
+    },
+    operations: {
+      expenseController: new ExpenseController(services.operations.expenseService),
+      helpDeskController: new HelpDeskController(services.operations.helpDeskService),
+      profitController: new ProfitController(services.finance.profitService),
+      quotationController: new QuotationController(services.operations.quotationService),
+      repairJobController: new RepairJobController(services.operations.repairJobService),
+      retailCashSessionController: new RetailCashSessionController(services.operations.retailCashSessionService),
+      salesInvoiceController: new SalesInvoiceController(services.operations.salesInvoiceService),
+      salesReturnController: new SalesReturnController(services.operations.salesReturnService),
+      warrantyClaimController: new WarrantyClaimController(services.operations.warrantyClaimService),
+    },
+    field: {
+      dsrController: new DsrController(services.field.dsrService),
+      dsrDueLedgerController: new DsrDueLedgerController(services.field.dsrDueLedgerService),
+      dsrFinanceController: new DsrFinanceController(services.field.dsrFinanceService),
+      dsrTargetController: new DsrTargetController(services.field.dsrTargetService),
+      issueController: new IssueController(services.field.issueService),
+      settlementController: new SettlementController(services.field.settlementService),
+      shopDueLedgerController: new ShopDueLedgerController(services.field.shopDueLedgerService),
+      srController: new SrController(services.field.srService),
+      srDueLedgerController: new SrDueLedgerController(services.field.srDueLedgerService),
+    },
+    suppliers: {
+      purchaseReceiveController: new PurchaseReceiveController(services.suppliers.purchaseReceiveService),
+      supplierController: new SupplierController(services.suppliers.supplierService),
+      supplierDiscountController: new SupplierDiscountController(services.suppliers.supplierDiscountService),
+      supplierDueLedgerController: new SupplierDueLedgerController(services.suppliers.supplierDueLedgerService),
+      supplierPaymentController: new SupplierPaymentController(services.suppliers.supplierPaymentService),
+    },
+    finance: {
+      financeAccountController: new FinanceAccountController(services.finance.financeAccountService),
+      financeDashboardController: new FinanceDashboardController(services.finance.financeDashboardService),
+    },
+    hr: {
+      employeeController: new EmployeeController(services.hr.employeeService),
+      salaryPaymentController: new SalaryPaymentController(services.hr.salaryPaymentService),
+    },
+  };
+}

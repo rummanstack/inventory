@@ -10,7 +10,6 @@ import {
   MessageCircle,
   Phone,
   Quote,
-  Rocket,
   Send,
   Shield,
   Twitter,
@@ -27,86 +26,16 @@ import { stockLedgerLogoIcon } from '../../../assets/brandAssets.js';
 // ── Replace this import with the founder's real photo when ready ──
 import founderPhoto from '../../../assets/landing/business-owner.png';
 
-const FOUNDER = {
-  name: 'Rumman',
-  title: 'Founder & CEO, StockLedger',
-  location: 'Dhaka, Bangladesh',
-  tagline: 'Building software that actually works for Bangladeshi businesses.',
-  social: {
-    linkedin: '#',
-    twitter: '#',
-    facebook: '#',
-    telegram: '#',
-  },
-};
+// Placeholder '#' entries are filtered out — icons appear once real
+// profile URLs are filled in.
+const SOCIAL_LINKS = [
+  { href: '#', Icon: Linkedin, label: 'LinkedIn' },
+  { href: '#', Icon: Twitter, label: 'Twitter' },
+  { href: '#', Icon: Facebook, label: 'Facebook' },
+  { href: '#', Icon: Send, label: 'Telegram' },
+].filter((link) => link.href && link.href !== '#');
 
-const TIMELINE = [
-  {
-    year: '2020',
-    title: 'The Problem Becomes Clear',
-    body: 'While working closely with small and medium business owners across Bangladesh, I kept seeing the same pain — stock managed in worn notebooks, DSR settlements done on phone calls, and profit calculated by gut feeling. Something had to change.',
-  },
-  {
-    year: '2021',
-    title: 'First Lines of Code',
-    body: 'I started building a simple inventory tool for a single shop owner. Within weeks, three more businesses wanted it. That was the signal: this wasn\'t a niche problem — it was universal.',
-  },
-  {
-    year: '2022',
-    title: 'Going Multi-Tenant',
-    body: 'The architecture evolved from a single-business tool into a full multi-tenant SaaS. Features like DSR morning issue, evening settlements, supplier due ledgers, and retail POS were shaped directly by real merchants telling us what they needed.',
-  },
-  {
-    year: '2023',
-    title: 'StockLedger is Born',
-    body: 'The platform launched under the StockLedger brand. Businesses across Dhaka, Chittagong, Sylhet, and Rajshahi started onboarding. Customer feedback drove a wave of new features: serial tracking, warranty claims, finance accounts, profit reports.',
-  },
-  {
-    year: '2024 →',
-    title: 'Scaling the Vision',
-    body: 'Today, StockLedger serves dozens of tenants — grocery wholesalers, electronics retailers, pharmacies, FMCG distributors. The mission is unchanged: give every Bangladeshi business owner the financial clarity and operational control they deserve.',
-  },
-];
-
-const VALUES = [
-  {
-    Icon: Heart,
-    title: 'Built with empathy',
-    body: 'Every feature starts with a real conversation with a real business owner. Software should fit the user, not the other way around.',
-  },
-  {
-    Icon: Shield,
-    title: 'Trustworthy by design',
-    body: 'Your data belongs to you. Multi-tenant isolation, audit trails, and secure sessions aren\'t afterthoughts — they\'re foundational.',
-  },
-  {
-    Icon: Zap,
-    title: 'Relentlessly practical',
-    body: 'No bloat. No feature you\'ll never use. Every screen is designed to save time for someone who has too little of it.',
-  },
-  {
-    Icon: Lightbulb,
-    title: 'Continuously improving',
-    body: 'The best version of StockLedger is always the next one. Feedback loops are short, releases are frequent, and nothing is set in stone.',
-  },
-  {
-    Icon: Users,
-    title: 'Community-first',
-    body: 'StockLedger grows because the businesses that use it grow. When our users win, we win.',
-  },
-  {
-    Icon: Globe,
-    title: 'Made in Bangladesh, for Bangladesh',
-    body: 'We understand the local business context — the way DSR distribution works, how supplier credit flows, what matters in a Bangladeshi P&L.',
-  },
-];
-
-const STATS = [
-  { value: '3+',  label: 'Years building' },
-  { value: '50+', label: 'Businesses served' },
-  { value: '8+',  label: 'Industry verticals' },
-  { value: '∞',   label: 'Cups of tea' },
-];
+const VALUE_ICONS = [Heart, Shield, Zap, Lightbulb, Users, Globe];
 
 export default function FounderPage() {
   const { language, setLanguage, t } = useLanguage();
@@ -120,6 +49,11 @@ export default function FounderPage() {
       document.body.classList.remove('landing-page-active');
     };
   }, []);
+
+  const stats = t('landing.founder.stats') || [];
+  const storyParagraphs = t('landing.founder.storyParagraphs') || [];
+  const timeline = t('landing.founder.timeline') || [];
+  const values = t('landing.founder.values') || [];
 
   return (
     <main className="landing-page">
@@ -150,9 +84,9 @@ export default function FounderPage() {
         <div className="landing-container relative">
           {/* Breadcrumb */}
           <div className="flex items-center gap-2 text-xs font-bold text-slate-400">
-            <Link to="/landing" className="transition hover:text-white">Home</Link>
+            <Link to="/landing" className="transition hover:text-white">{t('landing.founder.breadcrumbHome')}</Link>
             <span>/</span>
-            <span className="text-slate-300">About the Founder</span>
+            <span className="text-slate-300">{t('landing.founder.breadcrumbCurrent')}</span>
           </div>
 
           {/* Hero layout */}
@@ -160,21 +94,21 @@ export default function FounderPage() {
 
             {/* Copy */}
             <div className="max-w-xl lg:pb-16">
-              <span className="landing-eyebrow !text-[var(--teal)]">About the Founder</span>
+              <span className="landing-eyebrow !text-[var(--teal)]">{t('landing.founder.eyebrow')}</span>
               <h1 className="mt-3 text-4xl font-black leading-[1.06] tracking-[-0.03em] text-white sm:text-5xl lg:text-6xl">
-                {FOUNDER.name}
+                {t('landing.founder.name')}
               </h1>
-              <p className="mt-2 text-base font-bold text-[var(--teal)]">{FOUNDER.title}</p>
+              <p className="mt-2 text-base font-bold text-[var(--teal)]">{t('landing.founder.title')}</p>
               <p className="mt-5 text-base font-medium leading-7 text-slate-300 sm:text-lg">
-                {FOUNDER.tagline}
+                {t('landing.founder.tagline')}
               </p>
 
               {/* Stats */}
               <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
-                {STATS.map(({ value, label }) => (
+                {stats.map(({ value, label }) => (
                   <div
                     key={label}
-                    className="rounded-2xl border border-white/10 bg-white/8 px-4 py-3 text-center backdrop-blur-sm"
+                    className="rounded-2xl border border-white/10 px-4 py-3 text-center backdrop-blur-sm"
                     style={{ background: 'rgba(255,255,255,0.06)' }}
                   >
                     <p className="text-2xl font-black text-white">{value}</p>
@@ -183,14 +117,9 @@ export default function FounderPage() {
                 ))}
               </div>
 
-              {/* Social links */}
+              {/* Social + WhatsApp */}
               <div className="mt-7 flex items-center gap-2">
-                {[
-                  { href: FOUNDER.social.linkedin, Icon: Linkedin, label: 'LinkedIn' },
-                  { href: FOUNDER.social.twitter,  Icon: Twitter,  label: 'Twitter' },
-                  { href: FOUNDER.social.facebook,  Icon: Facebook, label: 'Facebook' },
-                  { href: FOUNDER.social.telegram,  Icon: Send,     label: 'Telegram' },
-                ].map(({ href, Icon, label }) => (
+                {SOCIAL_LINKS.map(({ href, Icon, label }) => (
                   <a
                     key={label}
                     href={href}
@@ -206,10 +135,10 @@ export default function FounderPage() {
                   href={whatsappUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="ml-2 inline-flex h-10 items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/15 px-4 text-sm font-bold text-emerald-300 transition duration-200 hover:-translate-y-0.5 hover:bg-emerald-500/25"
+                  className="inline-flex h-10 items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/15 px-4 text-sm font-bold text-emerald-300 transition duration-200 hover:-translate-y-0.5 hover:bg-emerald-500/25"
                 >
                   <MessageCircle size={15} />
-                  WhatsApp
+                  {t('landing.founder.whatsapp')}
                 </a>
               </div>
             </div>
@@ -231,7 +160,7 @@ export default function FounderPage() {
                   {/* ── PLACEHOLDER PHOTO — replace src when ready ── */}
                   <img
                     src={founderPhoto}
-                    alt={`${FOUNDER.name} — Founder of StockLedger`}
+                    alt={t('landing.founder.photoAlt')}
                     className="h-full w-full object-cover object-top"
                   />
                 </div>
@@ -244,7 +173,7 @@ export default function FounderPage() {
                 </span>
                 <div>
                   <p className="text-xs font-black text-slate-950">StockLedger</p>
-                  <p className="text-[10px] font-semibold text-slate-500">{FOUNDER.location}</p>
+                  <p className="text-[10px] font-semibold text-slate-500">{t('landing.founder.location')}</p>
                 </div>
               </div>
             </div>
@@ -258,11 +187,10 @@ export default function FounderPage() {
           <div className="mx-auto max-w-3xl text-center">
             <Quote size={36} className="mx-auto text-[var(--brand)]/30" />
             <blockquote className="mt-4 text-xl font-bold leading-8 text-slate-800 sm:text-2xl sm:leading-9">
-              "Every business owner in Bangladesh deserves the same financial clarity that big corporations have.
-              I built StockLedger so that a shop in Sylhet can run as tightly as a company in Singapore."
+              &ldquo;{t('landing.founder.quote')}&rdquo;
             </blockquote>
             <p className="mt-5 text-sm font-black uppercase tracking-[0.18em] text-[var(--brand)]">
-              — {FOUNDER.name}, Founder
+              {t('landing.founder.quoteBy')}
             </p>
           </div>
         </div>
@@ -275,32 +203,14 @@ export default function FounderPage() {
 
             {/* Left — story intro */}
             <div>
-              <p className="landing-eyebrow">The story</p>
+              <p className="landing-eyebrow">{t('landing.founder.storyEyebrow')}</p>
               <h2 className="mt-4 text-3xl font-black leading-tight tracking-tight text-slate-950 sm:text-4xl">
-                Why I Built This
+                {t('landing.founder.storyTitle')}
               </h2>
               <div className="mt-6 space-y-5 text-[15px] leading-7 text-slate-600">
-                <p>
-                  Bangladesh has millions of small and medium businesses — grocery wholesalers, electronics
-                  distributors, pharmacy chains, FMCG traders. They move serious money every day, but most of
-                  them still manage their operations through WhatsApp messages, paper ledgers, and mental
-                  arithmetic.
-                </p>
-                <p>
-                  I've sat across from these business owners. I've seen the 11 PM phone calls chasing DSR cash,
-                  the end-of-month panic when supplier dues don't match, the guesswork where profit should be.
-                  These aren't small problems — they compound into missed growth, broken trust, and lost sleep.
-                </p>
-                <p>
-                  StockLedger exists because I believe the right software, designed specifically for how
-                  Bangladeshi distribution and retail actually works, can give these owners their time back —
-                  and their confidence back.
-                </p>
-                <p>
-                  It's not a generic ERP adapted for here. It's built from the ground up for morning issue,
-                  evening settlement, DSR due ledgers, supplier credit, case-and-piece inventory, and
-                  every other workflow that's specific to this market.
-                </p>
+                {storyParagraphs.map((paragraph) => (
+                  <p key={paragraph.slice(0, 32)}>{paragraph}</p>
+                ))}
               </div>
 
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -311,10 +221,10 @@ export default function FounderPage() {
                   className="landing-primary-btn !bg-[#25D366] !shadow-[0_16px_32px_rgba(37,211,102,0.28)] hover:!bg-[#1ebe5d]"
                 >
                   <MessageCircle size={18} />
-                  Talk to me on WhatsApp
+                  {t('landing.founder.talkWhatsApp')}
                 </a>
-                <Link to="/login" className="landing-secondary-btn">
-                  Try StockLedger
+                <Link to="/landing" className="landing-secondary-btn">
+                  {t('landing.founder.explore')}
                   <ArrowRight size={18} />
                 </Link>
               </div>
@@ -322,12 +232,12 @@ export default function FounderPage() {
 
             {/* Right — timeline */}
             <div>
-              <p className="landing-eyebrow">The journey</p>
+              <p className="landing-eyebrow">{t('landing.founder.journeyEyebrow')}</p>
               <h2 className="mt-4 text-3xl font-black leading-tight tracking-tight text-slate-950 sm:text-4xl">
-                From Idea to Platform
+                {t('landing.founder.journeyTitle')}
               </h2>
               <div className="mt-8 space-y-0">
-                {TIMELINE.map(({ year, title, body }, index) => (
+                {timeline.map(({ year, title, body }, index) => (
                   <div key={year} className="flex gap-5">
                     {/* Spine */}
                     <div className="flex flex-col items-center">
@@ -339,13 +249,13 @@ export default function FounderPage() {
                       >
                         {index + 1}
                       </div>
-                      {index < TIMELINE.length - 1 && (
+                      {index < timeline.length - 1 && (
                         <div className="mt-1 w-px flex-1 bg-gradient-to-b from-[var(--brand)]/30 to-transparent" />
                       )}
                     </div>
 
                     {/* Content */}
-                    <div className={index < TIMELINE.length - 1 ? 'pb-8' : 'pb-0'}>
+                    <div className={index < timeline.length - 1 ? 'pb-8' : 'pb-0'}>
                       <span className="inline-block rounded-full bg-[var(--brand-soft)] px-2.5 py-0.5 text-[11px] font-black uppercase tracking-wider text-[var(--brand-strong)]">
                         {year}
                       </span>
@@ -364,29 +274,31 @@ export default function FounderPage() {
       <section className="landing-section landing-section-soft">
         <div className="landing-container">
           <div className="text-center">
-            <p className="landing-eyebrow">What I believe</p>
+            <p className="landing-eyebrow">{t('landing.founder.valuesEyebrow')}</p>
             <h2 className="mt-4 text-3xl font-black leading-tight tracking-tight text-slate-950 sm:text-4xl">
-              The Principles Behind StockLedger
+              {t('landing.founder.valuesTitle')}
             </h2>
             <p className="mx-auto mt-4 max-w-xl text-base font-medium leading-7 text-slate-600">
-              These aren't company values written for a slide deck. They're the actual decisions I make
-              every day when building this product.
+              {t('landing.founder.valuesText')}
             </p>
           </div>
 
           <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {VALUES.map(({ Icon, title, body }) => (
-              <div
-                key={title}
-                className="rounded-[22px] border border-blue-100 bg-white p-6 shadow-[0_4px_16px_rgba(var(--blue-700),0.06)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_32px_rgba(var(--blue-700),0.1)]"
-              >
-                <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-[var(--brand-soft)]">
-                  <Icon size={20} className="text-[var(--brand-strong)]" />
-                </span>
-                <h3 className="mt-4 font-black text-slate-950">{title}</h3>
-                <p className="mt-2 text-[14px] leading-6 text-slate-600">{body}</p>
-              </div>
-            ))}
+            {values.map(({ title, body }, index) => {
+              const Icon = VALUE_ICONS[index % VALUE_ICONS.length];
+              return (
+                <div
+                  key={title}
+                  className="rounded-[22px] border border-blue-100 bg-white p-6 shadow-[0_4px_16px_rgba(var(--blue-700),0.06)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_32px_rgba(var(--blue-700),0.1)]"
+                >
+                  <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-[var(--brand-soft)]">
+                    <Icon size={20} className="text-[var(--brand-strong)]" />
+                  </span>
+                  <h3 className="mt-4 font-black text-slate-950">{title}</h3>
+                  <p className="mt-2 text-[14px] leading-6 text-slate-600">{body}</p>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -412,8 +324,10 @@ export default function FounderPage() {
                   }}
                 >
                   <img
+                    loading="lazy"
+                    decoding="async"
                     src={founderPhoto}
-                    alt={FOUNDER.name}
+                    alt={t('landing.founder.photoAlt')}
                     className="h-full w-full rounded-full object-cover object-top"
                   />
                 </div>
@@ -421,13 +335,11 @@ export default function FounderPage() {
 
               {/* Message */}
               <div className="flex-1">
-                <p className="landing-eyebrow !text-[var(--teal)]">A personal note</p>
+                <p className="landing-eyebrow !text-[var(--teal)]">{t('landing.founder.noteEyebrow')}</p>
                 <p className="mt-3 text-lg font-bold leading-7 text-white sm:text-xl">
-                  If you're a business owner who's been managing stock in notebooks, tracking dues on
-                  WhatsApp, and lying awake wondering if you made money this month — I built this for you.
-                  I'd love to talk. Reach out anytime.
+                  {t('landing.founder.noteText')}
                 </p>
-                <p className="mt-3 text-sm font-bold text-[var(--teal)]">— {FOUNDER.name}</p>
+                <p className="mt-3 text-sm font-bold text-[var(--teal)]">{t('landing.founder.noteBy')}</p>
               </div>
 
               {/* Actions */}
@@ -439,7 +351,7 @@ export default function FounderPage() {
                   className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-[#25D366] px-5 text-sm font-black text-white shadow-[0_12px_28px_rgba(37,211,102,0.3)] transition hover:-translate-y-0.5"
                 >
                   <MessageCircle size={16} />
-                  WhatsApp me
+                  {t('landing.founder.whatsappMe')}
                 </a>
                 <a
                   href={`tel:${contactPhone}`}
@@ -449,10 +361,10 @@ export default function FounderPage() {
                   {contactPhone}
                 </a>
                 <Link
-                  to="/login"
+                  to="/landing"
                   className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-white px-5 text-sm font-black text-[var(--brand-strong)] shadow-[0_8px_24px_rgba(0,0,0,0.2)] transition hover:-translate-y-0.5"
                 >
-                  Try StockLedger
+                  {t('landing.founder.explore')}
                   <ArrowRight size={15} />
                 </Link>
               </div>

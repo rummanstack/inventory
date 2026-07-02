@@ -75,7 +75,10 @@ export function StatCard({ title, value, helper, icon: Icon, tone = 'blue', tren
       spark: getCssVar('--danger', '#f1454f'),
     },
     slate: {
-      icon: 'bg-slate-800 text-white',
+      // Literal hex, not bg-slate-800 — the slate scale inverts in dark
+      // mode (it's the adaptive ink scale), which would turn this into a
+      // near-white chip with white text on top of it.
+      icon: 'bg-[#1e293b] text-white',
       accent: 'bg-slate-400',
       spark: getCssVar('--tick-color', '#2f3347'),
     },
@@ -227,7 +230,9 @@ export function Pagination({ page, totalPages, onPageChange, className = '' }) {
             type="button"
             className={cx(
               'h-9 min-w-[2.25rem] rounded-full px-3 text-sm font-semibold transition',
-              entry === page ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100',
+              entry === page
+                ? 'bg-[linear-gradient(135deg,var(--secondary-strong),var(--brand-strong))] text-white shadow-[0_1px_2px_var(--secondary-shadow)]'
+                : 'text-slate-600 hover:bg-slate-100',
             )}
             onClick={() => changePage(entry)}
           >

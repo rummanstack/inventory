@@ -108,7 +108,9 @@ export function ConfirmationDialog({
     amber: 'bg-amber-500 text-white shadow-[0_1px_2px_rgba(var(--amber-500),0.22)] hover:bg-amber-600 focus:ring-amber-100',
     blue: 'bg-[var(--secondary)] text-white shadow-[0_1px_2px_var(--secondary-shadow)] hover:bg-[var(--secondary-strong)] focus:ring-[var(--secondary-soft)]',
     emerald: 'bg-emerald-600 text-white shadow-[0_1px_2px_rgba(var(--emerald-600),0.22)] hover:bg-emerald-700 focus:ring-emerald-100',
-    slate: 'bg-slate-800 text-white shadow-[0_1px_2px_rgba(var(--slate-900),0.18)] hover:bg-slate-900 focus:ring-slate-100',
+    // Literal hex, not bg-slate-800/900 — the slate scale inverts in dark
+    // mode, which would turn this into a near-white button with white text.
+    slate: 'bg-[#1e293b] text-white shadow-[0_1px_2px_rgba(var(--slate-900),0.18)] hover:bg-[#0f172a] focus:ring-slate-100',
   };
   const Icon = toneIcon[tone] || toneIcon.rose;
 

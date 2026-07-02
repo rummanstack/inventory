@@ -93,7 +93,7 @@ function JobCard({ job, canManage, accent, t, onEdit, onDelete, onEscalate, onDr
           <button
             type="button"
             onClick={() => onEdit(job)}
-            className="text-[10px] font-black tracking-widest text-slate-400 uppercase hover:text-indigo-600 transition-colors"
+            className="text-[10px] font-semibold tracking-widest text-slate-400 uppercase hover:text-indigo-600 transition-colors"
           >
             {job.jobNumber}
           </button>
@@ -148,7 +148,7 @@ function JobCard({ job, canManage, accent, t, onEdit, onDelete, onEscalate, onDr
 
           {tech ? (
             <div
-              className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[9px] font-black"
+              className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[9px] font-semibold"
               style={{ backgroundColor: `${accent}22`, color: accent }}
               title={job.technicianName}
             >
@@ -325,12 +325,12 @@ export default function RepairJobsPage() {
                       <div className="mb-3 flex items-center justify-between px-1">
                         <div className="flex items-center gap-2">
                           <ColIcon size={13} style={{ color: col.accent }} />
-                          <span className="text-[11px] font-black uppercase tracking-widest text-slate-600">
+                          <span className="text-[11px] font-semibold uppercase tracking-widest text-slate-600">
                             {t(`repairJobs.statuses.${col.status}`)}
                           </span>
                         </div>
                         <span
-                          className="flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[10px] font-black text-white"
+                          className="flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[10px] font-semibold text-white"
                           style={{ backgroundColor: col.accent }}
                         >
                           {jobs.length}

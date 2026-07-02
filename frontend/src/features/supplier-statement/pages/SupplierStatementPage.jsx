@@ -141,9 +141,9 @@ export default function SupplierStatementPage() {
                         <Badge tone={ledgerTone(entry.type)}>{t(`supplierStatement.types.${entry.type}`)}</Badge>
                         {entry.note ? <p className="mt-1 max-w-56 truncate text-xs text-slate-500">{entry.note}</p> : null}
                       </td>
-                      <td className="table-cell text-right font-black text-rose-700">{entry.debit ? formatCurrency(entry.debit) : '-'}</td>
-                      <td className="table-cell text-right font-black text-emerald-700">{entry.credit ? formatCurrency(entry.credit) : '-'}</td>
-                      <td className="table-cell text-right font-black text-slate-950">{formatCurrency(entry.balanceAfter)}</td>
+                      <td className="table-cell text-right font-semibold text-rose-700">{entry.debit ? formatCurrency(entry.debit) : '-'}</td>
+                      <td className="table-cell text-right font-semibold text-emerald-700">{entry.credit ? formatCurrency(entry.credit) : '-'}</td>
+                      <td className="table-cell text-right font-semibold text-slate-950">{formatCurrency(entry.balanceAfter)}</td>
                       <td className="hidden table-cell lg:table-cell">
                         <p className="max-w-52 truncate text-xs font-semibold text-slate-600">{entry.referenceType ? `${entry.referenceType} / ${String(entry.referenceId || '').slice(0, 18)}` : '-'}</p>
                       </td>

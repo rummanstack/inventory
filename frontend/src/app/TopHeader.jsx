@@ -70,7 +70,7 @@ export default function TopHeader({ title, today, user, tenant, tenantOptions, o
             <Menu size={20} />
           </button>
           <div>
-            <h1 className="mt-3 text-lg font-black tracking-tight text-slate-950 sm:text-xl">{title}</h1>
+            <h1 className="mt-3 text-lg font-semibold tracking-tight text-slate-950 sm:text-xl">{title}</h1>
             {!tenant?.name && t('app.subtitle') ? <p className="mt-1 hidden text-sm font-medium text-slate-500 md:block">{t('app.subtitle')}</p> : null}
           </div>
         </div>
@@ -131,7 +131,7 @@ export default function TopHeader({ title, today, user, tenant, tenantOptions, o
             {notifOpen ? (
               <div className="panel shadow-modal absolute right-0 top-full z-30 mt-2 w-80 overflow-hidden sm:w-96">
                 <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
-                  <p className="text-sm font-black text-slate-950">{t('notifications.title')}</p>
+                  <p className="text-sm font-semibold text-slate-950">{t('notifications.title')}</p>
                   {lowStockProducts.length > 0 ? <Badge tone="rose">{lowStockProducts.length}</Badge> : null}
                 </div>
                 <div className="premium-scrollbar max-h-80 overflow-y-auto">

@@ -92,7 +92,7 @@ export default function WarrantyClaimsPage() {
         </div>
         <div className="border-b border-slate-100 p-5 no-print">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <p className="text-[11px] font-black uppercase tracking-[0.22em] text-slate-400">{t('warrantyClaims.eyebrow')}</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">{t('warrantyClaims.eyebrow')}</p>
             <div className="flex flex-wrap gap-2 text-sm font-bold">
               <span className="muted-chip">{formatNumber(vm.total)} {t('warrantyClaims.claimCount')}</span>
             </div>

@@ -61,7 +61,7 @@ export default function EmployeesPage() {
       <div className="surface overflow-hidden">
         <div className="border-b border-slate-100 p-5">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <p className="text-[11px] font-black uppercase tracking-[0.22em] text-slate-400">{t('employees.eyebrow')}</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">{t('employees.eyebrow')}</p>
             <div className="flex flex-1 flex-wrap gap-2 sm:justify-end">
               <input
                 className="input w-full sm:w-56"
@@ -100,7 +100,7 @@ export default function EmployeesPage() {
               <tbody className="divide-y divide-slate-100">
                 {vm.items.map((emp, idx) => (
                   <tr key={emp.id} className="hover:bg-slate-50">
-                    <td className="table-cell font-black text-slate-400">{(vm.page - 1) * vm.pageSize + idx + 1}</td>
+                    <td className="table-cell font-semibold text-slate-400">{(vm.page - 1) * vm.pageSize + idx + 1}</td>
                     <td className="table-cell font-mono text-xs text-slate-500">{emp.employeeNumber}</td>
                     <td className="table-cell font-semibold text-slate-950">{emp.name}</td>
                     <td className="table-cell">{emp.department || '—'}</td>

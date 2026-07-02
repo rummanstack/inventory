@@ -23,18 +23,18 @@ export default function TradeInViewModal({ tradeIn, onClose }) {
           <div className="grid gap-3 sm:grid-cols-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
             {tradeIn?.customerName && (
               <div>
-                <p className="text-[11px] font-black uppercase tracking-[0.14em] text-slate-400">{t('tradeIns.customerNameLabel')}</p>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">{t('tradeIns.customerNameLabel')}</p>
                 <p className="mt-1 text-sm font-semibold text-slate-950">{tradeIn.customerName}</p>
               </div>
             )}
             {tradeIn?.customerPhone && (
               <div>
-                <p className="text-[11px] font-black uppercase tracking-[0.14em] text-slate-400">{t('tradeIns.customerPhoneLabel')}</p>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">{t('tradeIns.customerPhoneLabel')}</p>
                 <p className="mt-1 text-sm font-semibold text-slate-950">{tradeIn.customerPhone}</p>
               </div>
             )}
             <div>
-              <p className="text-[11px] font-black uppercase tracking-[0.14em] text-slate-400">{t('tradeIns.paymentMethodLabel')}</p>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">{t('tradeIns.paymentMethodLabel')}</p>
               <p className="mt-1 text-sm font-semibold text-slate-950">{tradeIn?.paymentMethod}</p>
             </div>
           </div>
@@ -45,7 +45,7 @@ export default function TradeInViewModal({ tradeIn, onClose }) {
           <p className="text-sm font-semibold text-emerald-700 mb-2">{t('tradeIns.receivedSectionLabel')}</p>
           <div className="rounded-xl border border-emerald-200 overflow-hidden">
             <table className="w-full text-sm">
-              <thead className="bg-emerald-50 text-left text-[11px] font-black uppercase tracking-[0.14em] text-emerald-600">
+              <thead className="bg-emerald-50 text-left text-[11px] font-semibold uppercase tracking-[0.14em] text-emerald-600">
                 <tr>
                   <th className="px-3 py-2">{t('tradeIns.productLabel')}</th>
                   <th className="px-3 py-2">{t('tradeIns.serialLabel')}</th>
@@ -78,7 +78,7 @@ export default function TradeInViewModal({ tradeIn, onClose }) {
           <p className="text-sm font-semibold text-indigo-700 mb-2">{t('tradeIns.soldSectionLabel')}</p>
           <div className="rounded-xl border border-indigo-200 overflow-hidden">
             <table className="w-full text-sm">
-              <thead className="bg-indigo-50 text-left text-[11px] font-black uppercase tracking-[0.14em] text-indigo-600">
+              <thead className="bg-indigo-50 text-left text-[11px] font-semibold uppercase tracking-[0.14em] text-indigo-600">
                 <tr>
                   <th className="px-3 py-2">{t('tradeIns.productLabel')}</th>
                   <th className="px-3 py-2 text-right">{t('tradeIns.qtyLabel')}</th>
@@ -103,22 +103,22 @@ export default function TradeInViewModal({ tradeIn, onClose }) {
         {/* Summary */}
         <div className="grid grid-cols-3 gap-3">
           <div className="rounded-xl bg-emerald-50 border border-emerald-200 px-4 py-3 text-center">
-            <p className="text-[11px] font-black uppercase tracking-[0.14em] text-emerald-500">{t('tradeIns.totalTradeInValueLabel')}</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-emerald-500">{t('tradeIns.totalTradeInValueLabel')}</p>
             <p className="text-lg font-bold text-emerald-700">{formatCurrency(tradeIn?.totalTradeInValue, language)}</p>
           </div>
           <div className="rounded-xl bg-indigo-50 border border-indigo-200 px-4 py-3 text-center">
-            <p className="text-[11px] font-black uppercase tracking-[0.14em] text-indigo-500">{t('tradeIns.totalSaleAmountLabel')}</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-indigo-500">{t('tradeIns.totalSaleAmountLabel')}</p>
             <p className="text-lg font-bold text-indigo-700">{formatCurrency(tradeIn?.totalSaleAmount, language)}</p>
           </div>
           <div className={`rounded-xl border px-4 py-3 text-center ${paymentAmount >= 0 ? 'bg-slate-900 border-slate-900' : 'bg-amber-50 border-amber-200'}`}>
-            <p className={`text-[11px] font-black uppercase tracking-[0.14em] ${paymentAmount >= 0 ? 'text-slate-400' : 'text-amber-500'}`}>{t('tradeIns.paymentAmountLabel')}</p>
+            <p className={`text-[11px] font-semibold uppercase tracking-[0.14em] ${paymentAmount >= 0 ? 'text-slate-400' : 'text-amber-500'}`}>{t('tradeIns.paymentAmountLabel')}</p>
             <p className={`text-lg font-bold ${paymentAmount >= 0 ? 'text-white' : 'text-amber-700'}`}>{formatCurrency(Math.abs(paymentAmount), language)}</p>
           </div>
         </div>
 
         {tradeIn?.notes && (
           <div className="rounded-xl bg-amber-50 border border-amber-200 px-4 py-3">
-            <p className="text-[11px] font-black uppercase tracking-[0.14em] text-amber-500 mb-1">{t('tradeIns.notesLabel')}</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-amber-500 mb-1">{t('tradeIns.notesLabel')}</p>
             <p className="text-sm text-amber-900">{tradeIn.notes}</p>
           </div>
         )}

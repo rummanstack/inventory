@@ -51,7 +51,7 @@ export default function SalesReturnPage() {
       <div id="sales-return-print" className="surface overflow-hidden print-target">
         <div className="border-b border-slate-100 p-5">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <p className="text-[11px] font-black uppercase tracking-[0.22em] text-slate-400">{t('retailer.salesReturn.eyebrow')}</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">{t('retailer.salesReturn.eyebrow')}</p>
             <div className="flex flex-wrap items-center gap-2 text-sm font-bold">
               <span className="muted-chip">{formatNumber(vm.total, language)} {t('retailer.salesReturn.returnCount')}</span>
               <button
@@ -111,7 +111,7 @@ export default function SalesReturnPage() {
             <tbody className="divide-y divide-slate-100">
               {vm.items.map((salesReturn, index) => (
                 <tr key={salesReturn.id} className="hover:bg-slate-50">
-                  <td className="table-cell font-black text-slate-400">{formatNumber((vm.page - 1) * vm.pageSize + index + 1, language)}</td>
+                  <td className="table-cell font-semibold text-slate-400">{formatNumber((vm.page - 1) * vm.pageSize + index + 1, language)}</td>
                   <td className="table-cell font-semibold text-slate-950">{salesReturn.returnNumber}</td>
                   <td className="table-cell">{formatDateTime(salesReturn.returnDate, language)}</td>
                   <td className="table-cell">{salesReturn.invoiceNumber || '-'}</td>

@@ -408,10 +408,10 @@ export default function QuickSalePage() {
       {cashSessionEnabled && <div className="surface mt-4 p-5">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-2xl">
-            <p className="text-[11px] font-black uppercase tracking-[0.24em] text-slate-400">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">
               {t('retailer.cashSession.eyebrow')}
             </p>
-            <h2 className="mt-1 text-xl font-black text-slate-950">
+            <h2 className="mt-1 text-xl font-semibold text-slate-950">
               {t('retailer.cashSession.title')}
             </h2>
             <p className="mt-2 text-sm font-medium text-slate-500">
@@ -467,21 +467,21 @@ export default function QuickSalePage() {
         {session ? (
           <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-              <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">{t('retailer.cashSession.openedAt')}</p>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">{t('retailer.cashSession.openedAt')}</p>
               <p className="mt-2 text-sm font-bold text-slate-950">{formatDateTime(session.startedAt)}</p>
             </div>
             <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-              <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">{t('retailer.cashSession.openingCash')}</p>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">{t('retailer.cashSession.openingCash')}</p>
               <p className="mt-2 text-sm font-bold text-slate-950">{formatCurrency(session.openingCash)}</p>
             </div>
             <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-              <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">{t('retailer.cashSession.cashSales')}</p>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">{t('retailer.cashSession.cashSales')}</p>
               <p className="mt-2 text-sm font-bold text-slate-950">
                 {formatCurrency(activeCashSales)} / {formatNumber(session.cashSalesCount)}
               </p>
             </div>
             <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-              <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">{t('retailer.cashSession.expectedCash')}</p>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">{t('retailer.cashSession.expectedCash')}</p>
               <p className="mt-2 text-sm font-bold text-slate-950">{formatCurrency(expectedCash)}</p>
             </div>
           </div>

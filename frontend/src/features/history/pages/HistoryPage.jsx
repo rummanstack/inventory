@@ -118,7 +118,7 @@ export default function HistoryPage() {
               <tbody className="divide-y divide-slate-100">
                 {vm.rows.map((row, index) => (
                   <tr key={row.id} className="hover:bg-slate-50">
-                    <td className="table-cell font-black text-slate-400">{(vm.page - 1) * vm.pageSize + index + 1}</td>
+                    <td className="table-cell font-semibold text-slate-400">{(vm.page - 1) * vm.pageSize + index + 1}</td>
                     <td className="table-cell font-semibold text-slate-950">{formatDate(row.date)}</td>
                     <td className="table-cell">
                       <Badge tone={row.type === 'Morning Issue' ? 'amber' : 'emerald'}>{row.type === 'Morning Issue' ? t('history.issueType') : t('history.settlementType')}</Badge>

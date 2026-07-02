@@ -214,7 +214,7 @@ export default function TenantFeaturesModal({ tenant, onClose, onSave }) {
                   {/* Section header */}
                   <div className="mb-2.5 flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2">
-                      <p className="text-xs font-black uppercase tracking-[0.14em] text-slate-400">
+                      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">
                         {t(`navGroups.${section}`)}
                       </p>
                       {enabledInSection > 0 && (

@@ -146,8 +146,8 @@ export default function SalesReturnFormModal({ onClose, onSave }) {
           <div className="flex justify-end">
             <div className="w-full max-w-xs space-y-2 text-sm">
               <div className="flex items-center justify-between border-t-2 border-slate-300 pt-2">
-                <span className="text-base font-black uppercase tracking-[0.1em] text-slate-950">{t('retailer.shared.totalAmount')}</span>
-                <span className="text-lg font-black text-slate-950">{formatCurrency(vm.totalAmount)}</span>
+                <span className="text-base font-semibold uppercase tracking-[0.1em] text-slate-950">{t('retailer.shared.totalAmount')}</span>
+                <span className="text-lg font-semibold text-slate-950">{formatCurrency(vm.totalAmount)}</span>
               </div>
             </div>
           </div>

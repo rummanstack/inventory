@@ -606,8 +606,8 @@ export default function HelpDeskPage() {
                     <div className="grid gap-4 sm:grid-cols-2">
                       {reportRows.map((row) => (
                         <div key={row.label} className="rounded-[22px] border border-slate-200 bg-slate-50 p-4">
-                          <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-400">{row.label}</p>
-                          <p className="mt-2 text-3xl font-black text-slate-950">{formatNumber(row.value, language)}</p>
+                          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">{row.label}</p>
+                          <p className="mt-2 text-3xl font-semibold text-slate-950">{formatNumber(row.value, language)}</p>
                         </div>
                       ))}
                     </div>
@@ -627,7 +627,7 @@ export default function HelpDeskPage() {
                                 <Badge tone={getStatusTone(selectedTicket.priority)}>{t(`helpDesk.priorities.${selectedTicket.priority}`)}</Badge>
                                 <Badge tone={getStatusTone(selectedTicket.status)}>{t(`helpDesk.statuses.${selectedTicket.status}`)}</Badge>
                               </div>
-                              <h3 className="mt-3 text-lg font-black text-slate-950">{selectedTicket.subject}</h3>
+                              <h3 className="mt-3 text-lg font-semibold text-slate-950">{selectedTicket.subject}</h3>
                               <p className="mt-1 text-sm text-slate-600">{selectedTicket.ticketNumber}</p>
                             </div>
                             <button type="button" className="btn-secondary h-9 px-3" onClick={() => openEditTicket(selectedTicket)}>
@@ -638,24 +638,24 @@ export default function HelpDeskPage() {
                           <div className="mt-4 grid gap-3 text-sm">
                             <div className="flex items-center justify-between gap-3">
                               <span className="font-semibold text-slate-600">{t('helpDesk.customer')}</span>
-                              <span className="font-black text-slate-950">{selectedTicket.customerName || t('helpDesk.walkInCustomer')}</span>
+                              <span className="font-semibold text-slate-950">{selectedTicket.customerName || t('helpDesk.walkInCustomer')}</span>
                             </div>
                             <div className="flex items-center justify-between gap-3">
                               <span className="font-semibold text-slate-600">{t('helpDesk.channel')}</span>
-                              <span className="font-black text-slate-950">{t(`helpDesk.channels.${selectedTicket.channel}`)}</span>
+                              <span className="font-semibold text-slate-950">{t(`helpDesk.channels.${selectedTicket.channel}`)}</span>
                             </div>
                             <div className="flex items-center justify-between gap-3">
                               <span className="font-semibold text-slate-600">{t('helpDesk.referenceNumber')}</span>
-                              <span className="font-black text-slate-950">{selectedTicket.referenceNumber || '-'}</span>
+                              <span className="font-semibold text-slate-950">{selectedTicket.referenceNumber || '-'}</span>
                             </div>
                             <div className="flex items-center justify-between gap-3">
                               <span className="font-semibold text-slate-600">{t('helpDesk.assignee')}</span>
-                              <span className="font-black text-slate-950">{selectedTicket.assigneeName || t('helpDesk.unassigned')}</span>
+                              <span className="font-semibold text-slate-950">{selectedTicket.assigneeName || t('helpDesk.unassigned')}</span>
                             </div>
                           </div>
 
                           <div className="mt-4 rounded-2xl bg-white p-4 ring-1 ring-slate-200">
-                            <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-400">{t('helpDesk.description')}</p>
+                            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">{t('helpDesk.description')}</p>
                             <p className="mt-2 text-sm text-slate-700">{selectedTicket.description || '-'}</p>
                           </div>
 
@@ -699,7 +699,7 @@ export default function HelpDeskPage() {
                         </div>
 
                         <div className="rounded-card border border-slate-200 bg-white p-4">
-                          <h4 className="text-sm font-black uppercase tracking-[0.18em] text-slate-400">{t('helpDesk.timelineTitle')}</h4>
+                          <h4 className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-400">{t('helpDesk.timelineTitle')}</h4>
                           <div className="mt-3 space-y-2">
                             {buildTimeline(selectedTicket, t, language).map((entry) => (
                               <div key={entry.id} className="flex items-center justify-between gap-3 rounded-2xl bg-slate-50 px-3 py-2">
@@ -711,7 +711,7 @@ export default function HelpDeskPage() {
                         </div>
 
                         <div className="rounded-card border border-slate-200 bg-white p-4">
-                          <h4 className="text-sm font-black uppercase tracking-[0.18em] text-slate-400">{t('helpDesk.notesTitle')}</h4>
+                          <h4 className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-400">{t('helpDesk.notesTitle')}</h4>
                           <div className="mt-3 space-y-2">
                             {(selectedTicket.notes || []).map((note) => (
                               <div key={note.id} className="rounded-2xl bg-slate-50 p-3">
@@ -731,7 +731,7 @@ export default function HelpDeskPage() {
                               placeholder={t('helpDesk.addNotePlaceholder')}
                             />
                             <div className="mt-2 flex justify-end">
-                              <button type="button" className="btn-primary" onClick={() => addNote(selectedTicket.id)}>
+                              <button type="button" className="btn-secondary" onClick={() => addNote(selectedTicket.id)}>
                                 {t('helpDesk.addNote')}
                               </button>
                             </div>

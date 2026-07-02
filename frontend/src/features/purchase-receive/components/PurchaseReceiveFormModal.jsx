@@ -135,7 +135,7 @@ export default function PurchaseReceiveFormModal({ purchaseReceipt, onClose, onS
                         <input className="input" type="number" min="0" step="0.01" value={row.lineDiscount} onChange={(event) => vm.updateItem(row.rowId, 'lineDiscount', event.target.value)} />
                       </div>
                       <div className="flex items-end justify-between gap-2 lg:flex-col lg:items-end">
-                        <p className="text-sm font-black text-slate-950">{formatCurrency(row.lineTotal)}</p>
+                        <p className="text-sm font-semibold text-slate-950">{formatCurrency(row.lineTotal)}</p>
                         <button type="button" className="icon-btn text-rose-600 hover:text-rose-700" title={t('common.delete')} onClick={() => vm.removeItem(row.rowId)}>
                           <Trash2 size={16} />
                         </button>
@@ -188,15 +188,15 @@ export default function PurchaseReceiveFormModal({ purchaseReceipt, onClose, onS
 
         <div className="grid gap-4 lg:grid-cols-[1.5fr_1fr]">
           <div className="rounded-[22px] border border-slate-200 bg-slate-50 p-4">
-            <h3 className="text-sm font-black uppercase tracking-[0.14em] text-slate-700">{t('purchaseReceive.summaryTitle')}</h3>
+            <h3 className="text-sm font-semibold uppercase tracking-[0.14em] text-slate-700">{t('purchaseReceive.summaryTitle')}</h3>
             <dl className="mt-3 space-y-2 text-sm">
               <div className="flex items-center justify-between">
                 <dt className="font-semibold text-slate-600">{t('purchaseReceive.grossTotal')}</dt>
-                <dd className="font-black text-slate-950">{formatCurrency(vm.grossTotal)}</dd>
+                <dd className="font-semibold text-slate-950">{formatCurrency(vm.grossTotal)}</dd>
               </div>
               <div className="flex items-center justify-between">
                 <dt className="font-semibold text-slate-600">{t('purchaseReceive.lineDiscountTotal')}</dt>
-                <dd className="font-black text-rose-700">- {formatCurrency(vm.lineDiscountTotal)}</dd>
+                <dd className="font-semibold text-rose-700">- {formatCurrency(vm.lineDiscountTotal)}</dd>
               </div>
               <div className="flex items-center justify-between gap-3">
                 <dt className="font-semibold text-slate-600">{t('purchaseReceive.discountLabel')}</dt>
@@ -208,17 +208,17 @@ export default function PurchaseReceiveFormModal({ purchaseReceipt, onClose, onS
                 <>
                   <div className="flex items-center justify-between gap-3">
                     <dt className="font-semibold text-slate-600">{t('retailer.shared.taxRateLabel')}</dt>
-                    <dd className="font-black text-slate-950">{vm.taxRate.toFixed(2)}%</dd>
+                    <dd className="font-semibold text-slate-950">{vm.taxRate.toFixed(2)}%</dd>
                   </div>
                   <div className="flex items-center justify-between">
                     <dt className="font-semibold text-slate-600">{t('retailer.shared.taxAmountLabel')}</dt>
-                    <dd className="font-black text-slate-950">{formatCurrency(vm.taxAmount)}</dd>
+                    <dd className="font-semibold text-slate-950">{formatCurrency(vm.taxAmount)}</dd>
                   </div>
                 </>
               ) : null}
               <div className="flex items-center justify-between border-t border-slate-200 pt-2">
-                <dt className="font-black uppercase tracking-[0.1em] text-slate-700">{t('purchaseReceive.totalAmount')}</dt>
-                <dd className="font-black text-slate-950">{formatCurrency(vm.totalAmount)}</dd>
+                <dt className="font-semibold uppercase tracking-[0.1em] text-slate-700">{t('purchaseReceive.totalAmount')}</dt>
+                <dd className="font-semibold text-slate-950">{formatCurrency(vm.totalAmount)}</dd>
               </div>
               <div className="flex items-center justify-between gap-3">
                 <dt className="font-semibold text-slate-600">{t('purchaseReceive.paidAmountLabel')}</dt>
@@ -227,8 +227,8 @@ export default function PurchaseReceiveFormModal({ purchaseReceipt, onClose, onS
                 </dd>
               </div>
               <div className="flex items-center justify-between border-t-2 border-slate-300 pt-2">
-                <dt className="text-base font-black uppercase tracking-[0.1em] text-slate-950">{t('purchaseReceive.dueAmount')}</dt>
-                <dd className="text-lg font-black text-rose-700">{formatCurrency(vm.dueAmount)}</dd>
+                <dt className="text-base font-semibold uppercase tracking-[0.1em] text-slate-950">{t('purchaseReceive.dueAmount')}</dt>
+                <dd className="text-lg font-semibold text-rose-700">{formatCurrency(vm.dueAmount)}</dd>
               </div>
             </dl>
           </div>

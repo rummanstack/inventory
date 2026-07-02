@@ -94,12 +94,12 @@ export default function SupplierPaymentFormModal({ payment, onClose, onSave }) {
           {selectedSupplier ? (
             <div className="sm:col-span-2 grid gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm sm:grid-cols-2">
               <div>
-                <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">{t('suppliers.currentDueLabel')}</p>
-                <p className="mt-1 text-lg font-black text-slate-950">{formatCurrency(dueBaseline)}</p>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">{t('suppliers.currentDueLabel')}</p>
+                <p className="mt-1 text-lg font-semibold text-slate-950">{formatCurrency(dueBaseline)}</p>
               </div>
               <div>
-                <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">{t('supplierPayments.dueAfterPaymentLabel')}</p>
-                <p className={`mt-1 text-lg font-black ${dueAfterPayment < 0 ? 'text-rose-600' : 'text-emerald-700'}`}>{formatCurrency(dueAfterPayment)}</p>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">{t('supplierPayments.dueAfterPaymentLabel')}</p>
+                <p className={`mt-1 text-lg font-semibold ${dueAfterPayment < 0 ? 'text-rose-600' : 'text-emerald-700'}`}>{formatCurrency(dueAfterPayment)}</p>
               </div>
             </div>
           ) : null}

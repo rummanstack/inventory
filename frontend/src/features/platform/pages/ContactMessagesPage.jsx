@@ -10,7 +10,7 @@ function ContactMessageRow({ item, language }) {
     <div className="rounded-card border border-slate-200 bg-white p-5 shadow-card">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
-          <p className="font-black text-slate-900">{item.name}</p>
+          <p className="font-semibold text-slate-900">{item.name}</p>
           <p className="mt-0.5 text-sm font-semibold text-[var(--brand)]">{item.phone}</p>
         </div>
         <p className="text-xs font-semibold text-slate-400">{formatDateTime(item.createdAt, language)}</p>

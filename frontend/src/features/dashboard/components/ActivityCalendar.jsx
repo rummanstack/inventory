@@ -67,7 +67,7 @@ export function ActivityCalendar({ cells = [], today, language = "en" }) {
         >
           <ChevronLeft size={15} />
         </button>
-        <p className="text-sm font-black text-slate-800">{monthLabel}</p>
+        <p className="text-sm font-semibold text-slate-800">{monthLabel}</p>
         <button
           type="button"
           onClick={nextMonth}
@@ -81,7 +81,7 @@ export function ActivityCalendar({ cells = [], today, language = "en" }) {
       {/* Day headers */}
       <div className="mb-1 grid grid-cols-7 gap-1">
         {DAY_HEADERS.map((d) => (
-          <p key={d} className="py-1 text-center text-[10px] font-black uppercase tracking-widest text-slate-400">
+          <p key={d} className="py-1 text-center text-[10px] font-semibold uppercase tracking-widest text-slate-400">
             {d}
           </p>
         ))}
@@ -109,7 +109,7 @@ export function ActivityCalendar({ cells = [], today, language = "en" }) {
                   : "bg-slate-50/40 ring-slate-100",
               )}
             >
-              <p className={cx("text-xs font-black", isToday ? "text-[var(--brand)]" : "text-slate-500")}>
+              <p className={cx("text-xs font-semibold", isToday ? "text-[var(--brand)]" : "text-slate-500")}>
                 {day}
               </p>
 
@@ -123,7 +123,7 @@ export function ActivityCalendar({ cells = [], today, language = "en" }) {
                       </span>
                     </span>
                   )}
-                  <p className="mt-0.5 text-[9px] font-black text-emerald-700">
+                  <p className="mt-0.5 text-[9px] font-semibold text-emerald-700">
                     {formatCurrency(cell.revenue, language)}
                   </p>
                 </div>

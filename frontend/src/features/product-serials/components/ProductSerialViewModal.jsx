@@ -8,7 +8,7 @@ import { productSerialStatusTone } from '../../../models/inventoryViewData.js';
 function Field({ label, value }) {
   return (
     <div>
-      <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">{label}</p>
+      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">{label}</p>
       <p className="mt-1 text-sm font-semibold text-slate-950">{value || '-'}</p>
     </div>
   );
@@ -23,7 +23,7 @@ export default function ProductSerialViewModal({ serial, onClose }) {
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label={t('products.product')} value={serial.productName} />
         <div>
-          <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">{t('productSerials.statusLabel')}</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">{t('productSerials.statusLabel')}</p>
           <p className="mt-1"><Badge tone={productSerialStatusTone(serial.status)}>{t(`productSerials.statuses.${serial.status}`)}</Badge></p>
         </div>
         <Field label={t('productSerials.serialNumberLabel')} value={serial.serialNumber} />
@@ -32,7 +32,7 @@ export default function ProductSerialViewModal({ serial, onClose }) {
         <Field label={t('productSerials.warrantyStartLabel')} value={formatDate(serial.warrantyStartDate)} />
         <Field label={t('productSerials.warrantyEndLabel')} value={formatDate(serial.warrantyEndDate)} />
         <div className="sm:col-span-2">
-          <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">{t('productSerials.linkedInvoiceLabel')}</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">{t('productSerials.linkedInvoiceLabel')}</p>
           {serial.invoiceNumber ? (
             <button
               type="button"

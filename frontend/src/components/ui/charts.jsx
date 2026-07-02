@@ -135,8 +135,8 @@ export function RadialProgressChart({ value = 0, label, valueLabel, color = getC
     <div className="relative mx-auto" style={{ width: size, height: size }}>
       <Doughnut data={chartData} options={options} />
       <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
-        <span className="text-3xl font-black tracking-tight text-slate-950">{valueLabel ?? `${clamped}%`}</span>
-        {label ? <span className="mt-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">{label}</span> : null}
+        <span className="text-3xl font-semibold tracking-tight text-slate-950">{valueLabel ?? `${clamped}%`}</span>
+        {label ? <span className="mt-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400">{label}</span> : null}
       </div>
     </div>
   );
@@ -180,8 +180,8 @@ export function DonutChart({ data, valueFormatter = (value) => value, centerLabe
       <div className="relative" style={{ width: size, height: size }}>
         <Doughnut data={chartData} options={options} />
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
-          <span className="text-[11px] font-black uppercase tracking-[0.22em] text-slate-400">{centerLabel}</span>
-          <span className="mt-2 text-3xl font-black tracking-tight text-slate-950">{centerValue ?? valueFormatter(total)}</span>
+          <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">{centerLabel}</span>
+          <span className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">{centerValue ?? valueFormatter(total)}</span>
         </div>
       </div>
       <div className="grid w-full gap-3">
@@ -192,7 +192,7 @@ export function DonutChart({ data, valueFormatter = (value) => value, centerLabe
                 <span className="h-3 w-3 shrink-0 rounded-full" style={{ backgroundColor: item.color }} />
                 <span className="truncate text-sm font-bold text-slate-700">{item.label}</span>
               </div>
-              <span className="shrink-0 text-sm font-black text-slate-950">{valueFormatter(item.value)}</span>
+              <span className="shrink-0 text-sm font-semibold text-slate-950">{valueFormatter(item.value)}</span>
             </div>
           </div>
         ))}
@@ -246,7 +246,7 @@ export function TrendChart({ data, series, valueFormatter = (value) => value, he
     <div className="space-y-4">
       <div className="flex flex-wrap gap-3">
         {series.map((entry) => (
-          <div key={entry.key} className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-black uppercase tracking-[0.16em] text-slate-600">
+          <div key={entry.key} className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-slate-600">
             <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: entry.color }} />
             {entry.label}
           </div>
@@ -349,7 +349,7 @@ export function StackedBarChart({ data, segments, totalFormatter = (value) => va
     <div className="space-y-5">
       <div className="flex flex-wrap gap-3">
         {segments.map((segment) => (
-          <div key={segment.key} className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-black uppercase tracking-[0.16em] text-slate-600">
+          <div key={segment.key} className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-slate-600">
             <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: segment.color }} />
             {segment.label}
           </div>

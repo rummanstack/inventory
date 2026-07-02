@@ -30,8 +30,8 @@ export default function LoginPage() {
                 <img src={stockLedgerLogoHorizontal} alt="StockLedger" className="h-full w-auto object-contain" />
               </Link>
               <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">{t('app.brand')}</p>
-                <h1 className="text-lg font-black text-slate-950">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400">{t('app.brand')}</p>
+                <h1 className="text-lg font-semibold text-slate-950">
                   {view === 'login' ? t('auth.loginTitle') : view === 'forgot' ? t('auth.forgotPasswordTitle') : t('auth.resetPasswordTitle')}
                 </h1>
               </div>

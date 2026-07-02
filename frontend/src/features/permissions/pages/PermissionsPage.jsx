@@ -287,7 +287,7 @@ export default function PermissionsPage() {
             <div className="space-y-4">
               {permissionGroups.map(({ section, permissions }) => (
                 <div key={section}>
-                  <p className="mb-2 text-xs font-black uppercase tracking-[0.12em] text-slate-400">{t(`navGroups.${section}`)}</p>
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-slate-400">{t(`navGroups.${section}`)}</p>
                   <div className="grid gap-2 sm:grid-cols-2">
                     {permissions.map((permission) => {
                       const Icon = iconByPermission[permission];

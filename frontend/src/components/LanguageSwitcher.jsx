@@ -25,7 +25,7 @@ export default function LanguageSwitcher({ language, onChange, t, compact = fals
       <button
         type="button"
         className={cx(
-          'h-8 rounded-full px-2 text-xs font-black uppercase tracking-[0.14em] transition sm:px-3',
+          'h-8 rounded-full px-2 text-xs font-semibold uppercase tracking-[0.14em] transition sm:px-3',
           language === 'en'
             ? 'bg-[var(--secondary)] text-white shadow-[0_10px_18px_var(--secondary-shadow)]'
             : isDark
@@ -39,7 +39,7 @@ export default function LanguageSwitcher({ language, onChange, t, compact = fals
       <button
         type="button"
         className={cx(
-          'h-8 rounded-full px-2 text-xs font-black uppercase tracking-[0.14em] transition sm:px-3',
+          'h-8 rounded-full px-2 text-xs font-semibold uppercase tracking-[0.14em] transition sm:px-3',
           language === 'bn'
             ? 'bg-[var(--secondary)] text-white shadow-[0_10px_18px_var(--secondary-shadow)]'
             : isDark

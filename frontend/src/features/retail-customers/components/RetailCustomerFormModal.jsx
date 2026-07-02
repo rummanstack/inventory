@@ -88,19 +88,19 @@ export default function RetailCustomerFormModal({ retailCustomer, onClose, onSav
           <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
-                <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">{t('retailCustomers.loyaltyPoints')}</p>
-                <p className="mt-1 text-lg font-black text-slate-950">{Number(retailCustomer.loyaltyPointsBalance || 0)}</p>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">{t('retailCustomers.loyaltyPoints')}</p>
+                <p className="mt-1 text-lg font-semibold text-slate-950">{Number(retailCustomer.loyaltyPointsBalance || 0)}</p>
               </div>
               <div>
-                <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">{t('retailCustomers.retention.purchases')}</p>
-                <p className="mt-1 text-lg font-black text-slate-950">{formatNumber(retailCustomer.purchaseCount || 0)}</p>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">{t('retailCustomers.retention.purchases')}</p>
+                <p className="mt-1 text-lg font-semibold text-slate-950">{formatNumber(retailCustomer.purchaseCount || 0)}</p>
               </div>
               <div>
-                <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">{t('retailCustomers.retention.lastPurchase')}</p>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">{t('retailCustomers.retention.lastPurchase')}</p>
                 <p className="mt-1 text-sm font-semibold text-slate-700">{retailCustomer.lastPurchaseAt ? formatDate(retailCustomer.lastPurchaseAt) : t('retailCustomers.retention.neverPurchased')}</p>
               </div>
               <div>
-                <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">{t('retailCustomers.retention.totalSpent')}</p>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">{t('retailCustomers.retention.totalSpent')}</p>
                 <p className="mt-1 text-sm font-semibold text-slate-700">{formatCurrency(retailCustomer.totalSpent || 0)}</p>
               </div>
             </div>

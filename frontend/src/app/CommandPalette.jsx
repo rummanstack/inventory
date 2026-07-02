@@ -13,7 +13,7 @@ function Highlight({ text, query }) {
   return (
     <>
       {text.slice(0, idx)}
-      <span className="font-black text-[var(--secondary)]">{text.slice(idx, idx + query.length)}</span>
+      <span className="font-semibold text-[var(--secondary)]">{text.slice(idx, idx + query.length)}</span>
       {text.slice(idx + query.length)}
     </>
   );
@@ -274,7 +274,7 @@ export default function CommandPalette({ open, onClose }) {
             displayList.map((entry, i) => {
               if (entry.type === 'header') {
                 return (
-                  <p key={`h${i}`} className="px-4 pb-1 pt-3 text-[10px] font-black uppercase tracking-[0.14em] text-slate-400">
+                  <p key={`h${i}`} className="px-4 pb-1 pt-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-400">
                     {entry.label}
                   </p>
                 );

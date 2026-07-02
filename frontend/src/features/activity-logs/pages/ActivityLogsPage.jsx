@@ -70,7 +70,7 @@ export default function ActivityLogsPage() {
       ) : null}
 
       <div className="mb-6">
-        <div className="surface rounded-[28px] p-5">
+        <div className="surface p-5">
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <label className="label">{t('activityLogs.searchLabel')}</label>

@@ -32,14 +32,14 @@ function PromoBadge({ promotion, size = 'md' }) {
     : `−${formatCurrency(promotion.discountValue)} OFF`;
   if (size === 'sm') {
     return (
-      <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-100 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wide text-emerald-700 border border-emerald-200">
+      <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-100 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-emerald-700 border border-emerald-200">
         <Tag size={7} />
         {label}
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-emerald-700 border border-emerald-200">
+    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-700 border border-emerald-200">
       <Tag size={9} />
       {promotion.name} · {label}
     </span>
@@ -285,7 +285,7 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, retail
                                   {productPromo ? (
                                     <>
                                       <span className="block text-xs text-slate-400 line-through">{formatCurrency(product.retailPrice)}</span>
-                                      <span className="block text-sm font-black text-emerald-700">
+                                      <span className="block text-sm font-semibold text-emerald-700">
                                         {formatCurrency(
                                           productPromo.discountType === 'PERCENT'
                                             ? product.retailPrice * (1 - productPromo.discountValue / 100)
@@ -392,7 +392,7 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, retail
 
                     {/* Line total + promo saving */}
                     <div className="flex flex-col items-end justify-end">
-                      <p className="text-sm font-black text-slate-950">{formatCurrency(row.lineTotal)}</p>
+                      <p className="text-sm font-semibold text-slate-950">{formatCurrency(row.lineTotal)}</p>
                       {hasPromo && promoSaving > 0 && (
                         <p className="mt-0.5 text-[10px] font-bold text-emerald-600">
                           saved {formatCurrency(promoSaving)}
@@ -448,12 +448,12 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, retail
 
       <div className="grid gap-4 lg:grid-cols-[1.5fr_1fr]">
         <div className="rounded-[22px] border border-slate-200 bg-slate-50 p-4">
-          <h3 className="text-sm font-black uppercase tracking-[0.14em] text-slate-700">{t('retailer.shared.summaryTitle')}</h3>
+          <h3 className="text-sm font-semibold uppercase tracking-[0.14em] text-slate-700">{t('retailer.shared.summaryTitle')}</h3>
 
           <dl className="mt-3 space-y-2 text-sm">
             <div className="flex items-center justify-between">
               <dt className="font-semibold text-slate-600">{t('retailer.shared.subtotal')}</dt>
-              <dd className="font-black text-slate-950">{formatCurrency(vm.originalSubtotal)}</dd>
+              <dd className="font-semibold text-slate-950">{formatCurrency(vm.originalSubtotal)}</dd>
             </div>
             {vm.promotionSavingsTotal > 0 && (
               <div className="flex items-center justify-between rounded-lg bg-emerald-50 px-2 py-1.5 -mx-2">
@@ -461,13 +461,13 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, retail
                   <Tag size={12} />
                   Promotions
                 </dt>
-                <dd className="font-black text-emerald-700">− {formatCurrency(vm.promotionSavingsTotal)}</dd>
+                <dd className="font-semibold text-emerald-700">− {formatCurrency(vm.promotionSavingsTotal)}</dd>
               </div>
             )}
             {vm.lineDiscountTotal > 0 && (
               <div className="flex items-center justify-between">
                 <dt className="font-semibold text-slate-600">{t('retailer.shared.lineDiscountTotal')}</dt>
-                <dd className="font-black text-rose-700">- {formatCurrency(vm.lineDiscountTotal)}</dd>
+                <dd className="font-semibold text-rose-700">- {formatCurrency(vm.lineDiscountTotal)}</dd>
               </div>
             )}
             <div className="flex items-center justify-between gap-3">
@@ -495,7 +495,7 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, retail
                 </div>
                 <div className="flex items-center justify-between">
                   <dt className="font-semibold text-slate-600">{t('retailer.shared.loyaltyRedeemAmount')}</dt>
-                  <dd className="font-black text-rose-700">- {formatCurrency(vm.loyaltyRedeemAmount)}</dd>
+                  <dd className="font-semibold text-rose-700">- {formatCurrency(vm.loyaltyRedeemAmount)}</dd>
                 </div>
               </>
             ) : null}
@@ -503,28 +503,28 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, retail
               <>
                 <div className="flex items-center justify-between gap-3">
                   <dt className="font-semibold text-slate-600">{t('retailer.shared.taxRateLabel')}</dt>
-                  <dd className="font-black text-slate-950">{vm.taxRate.toFixed(2)}%</dd>
+                  <dd className="font-semibold text-slate-950">{vm.taxRate.toFixed(2)}%</dd>
                 </div>
                 <div className="flex items-center justify-between">
                   <dt className="font-semibold text-slate-600">{t('retailer.shared.taxAmountLabel')}</dt>
-                  <dd className="font-black text-slate-950">{formatCurrency(vm.taxAmount)}</dd>
+                  <dd className="font-semibold text-slate-950">{formatCurrency(vm.taxAmount)}</dd>
                 </div>
               </>
             ) : null}
             <div className="flex items-center justify-between border-t border-slate-200 pt-2">
-              <dt className="font-black uppercase tracking-[0.1em] text-slate-700">{t('retailer.shared.totalAmount')}</dt>
-              <dd className="font-black text-slate-950">{formatCurrency(vm.totalAmount)}</dd>
+              <dt className="font-semibold uppercase tracking-[0.1em] text-slate-700">{t('retailer.shared.totalAmount')}</dt>
+              <dd className="font-semibold text-slate-950">{formatCurrency(vm.totalAmount)}</dd>
             </div>
             {vm.loyaltyEligible ? (
               <div className="flex items-center justify-between">
                 <dt className="font-semibold text-slate-600">{t('retailer.shared.payableAfterLoyalty')}</dt>
-                <dd className="font-black text-slate-950">{formatCurrency(vm.netTotalAfterLoyalty)}</dd>
+                <dd className="font-semibold text-slate-950">{formatCurrency(vm.netTotalAfterLoyalty)}</dd>
               </div>
             ) : null}
             {vm.loyaltyEligible ? (
               <div className="flex items-center justify-between">
                 <dt className="font-semibold text-slate-600">{t('retailer.shared.loyaltyPointsEarned')}</dt>
-                <dd className="font-black text-emerald-700">{vm.loyaltyPointsEarned}</dd>
+                <dd className="font-semibold text-emerald-700">{vm.loyaltyPointsEarned}</dd>
               </div>
             ) : null}
             <div className="flex items-center justify-between gap-3">
@@ -537,8 +537,8 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, retail
               </dd>
             </div>
             <div className="flex items-center justify-between border-t-2 border-slate-300 pt-2">
-              <dt className="text-base font-black uppercase tracking-[0.1em] text-slate-950">{t('retailer.shared.dueAmount')}</dt>
-              <dd className="text-lg font-black text-rose-700">{formatCurrency(vm.dueAmount)}</dd>
+              <dt className="text-base font-semibold uppercase tracking-[0.1em] text-slate-950">{t('retailer.shared.dueAmount')}</dt>
+              <dd className="text-lg font-semibold text-rose-700">{formatCurrency(vm.dueAmount)}</dd>
             </div>
           </dl>
           {vm.customerType === 'WALK_IN' && vm.dueAmount > 0 ? (

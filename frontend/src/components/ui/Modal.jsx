@@ -140,7 +140,7 @@ export function ConfirmationDialog({
               <Icon size={18} />
             </div>
             <div className="min-w-0 flex-1">
-              <span className={cx('inline-flex items-center rounded-full border px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.2em]', tones[tone] || tones.rose)}>
+              <span className={cx('inline-flex items-center rounded-full border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.2em]', tones[tone] || tones.rose)}>
                 {title}
               </span>
               <p className="mt-3 text-sm font-medium leading-6 text-slate-600">{description}</p>
@@ -149,7 +149,7 @@ export function ConfirmationDialog({
 
           {consequences.length > 0 ? (
             <div className="mt-4 rounded-xl border border-slate-200 bg-white px-4 py-3">
-              <p className="mb-2 text-[10px] font-black uppercase tracking-[0.18em] text-slate-400">What happens</p>
+              <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">What happens</p>
               <ul className="space-y-1.5">
                 {consequences.map((c, i) => (
                   <li

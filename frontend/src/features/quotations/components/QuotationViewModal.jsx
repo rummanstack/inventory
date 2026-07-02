@@ -74,19 +74,19 @@ export default function QuotationViewModal({ quotation, onClose, onConverted }) 
           <div className="grid gap-3 sm:grid-cols-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
             {quotation?.customerName && (
               <div>
-                <p className="text-[11px] font-black uppercase tracking-[0.14em] text-slate-400">{t('quotations.customerNameLabel')}</p>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">{t('quotations.customerNameLabel')}</p>
                 <p className="mt-1 text-sm font-semibold text-slate-950">{quotation.customerName}</p>
               </div>
             )}
             {quotation?.customerPhone && (
               <div>
-                <p className="text-[11px] font-black uppercase tracking-[0.14em] text-slate-400">{t('quotations.customerPhoneLabel')}</p>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">{t('quotations.customerPhoneLabel')}</p>
                 <p className="mt-1 text-sm font-semibold text-slate-950">{quotation.customerPhone}</p>
               </div>
             )}
             {quotation?.customerEmail && (
               <div>
-                <p className="text-[11px] font-black uppercase tracking-[0.14em] text-slate-400">{t('quotations.customerEmailLabel')}</p>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">{t('quotations.customerEmailLabel')}</p>
                 <p className="mt-1 text-sm font-semibold text-slate-950">{quotation.customerEmail}</p>
               </div>
             )}
@@ -148,7 +148,7 @@ export default function QuotationViewModal({ quotation, onClose, onConverted }) 
         {/* Notes */}
         {quotation?.notes && (
           <div className="rounded-xl bg-amber-50 border border-amber-200 px-4 py-3">
-            <p className="text-[11px] font-black uppercase tracking-[0.14em] text-amber-500 mb-1">{t('quotations.notesLabel')}</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-amber-500 mb-1">{t('quotations.notesLabel')}</p>
             <p className="text-sm text-amber-900 whitespace-pre-wrap">{quotation.notes}</p>
           </div>
         )}

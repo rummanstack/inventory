@@ -76,7 +76,7 @@ export default function DamageFromSettlementsPanel({ products }) {
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
             <p className="brand-chip">{t('damagedStock.eyebrow')}</p>
-            <h2 className="mt-3 text-lg font-black text-slate-950">{t('damagedStock.settlementDamageHistoryTitle')}</h2>
+            <h2 className="mt-3 text-lg font-semibold text-slate-950">{t('damagedStock.settlementDamageHistoryTitle')}</h2>
             <p className="mt-1 max-w-3xl text-sm font-medium leading-6 text-slate-500">{t('damagedStock.settlementDamageHistoryDescription')}</p>
           </div>
           <button type="button" className="btn-secondary shrink-0" onClick={() => setVersion((v) => v + 1)}>

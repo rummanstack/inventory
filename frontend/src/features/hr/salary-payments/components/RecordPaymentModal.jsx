@@ -67,10 +67,10 @@ export default function RecordPaymentModal({ employee, onClose, onSaved }) {
         {/* Salary summary */}
         <div className="grid grid-cols-3 gap-2">
           <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-3 text-center">
-            <p className="text-[10px] font-black uppercase tracking-wide text-slate-400">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
               {employee?.activeDays !== null && employee?.activeDays !== undefined ? 'Earned' : (isMonthly ? t('salary.monthlySalary') : 'Salary')}
             </p>
-            <p className="mt-1 text-base font-black text-slate-800">{formatCurrency(earnedAmount, language)}</p>
+            <p className="mt-1 text-base font-semibold text-slate-800">{formatCurrency(earnedAmount, language)}</p>
             <p className="mt-0.5 text-[10px] text-slate-400">
               {employee?.activeDays !== null && employee?.activeDays !== undefined
                 ? `${employee.activeDays} / ${employee.daysInMonth} days`
@@ -78,22 +78,22 @@ export default function RecordPaymentModal({ employee, onClose, onSaved }) {
             </p>
           </div>
           <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-3 py-3 text-center">
-            <p className="text-[10px] font-black uppercase tracking-wide text-emerald-500">{t('salary.paidThisMonth')}</p>
-            <p className="mt-1 text-base font-black text-emerald-700">{formatCurrency(totalPaid, language)}</p>
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-emerald-500">{t('salary.paidThisMonth')}</p>
+            <p className="mt-1 text-base font-semibold text-emerald-700">{formatCurrency(totalPaid, language)}</p>
           </div>
           {remaining !== null ? (
             <div className={`rounded-2xl border px-3 py-3 text-center ${remaining <= 0 ? 'border-rose-200 bg-rose-50' : 'border-indigo-200 bg-indigo-50'}`}>
-              <p className={`text-[10px] font-black uppercase tracking-wide ${remaining <= 0 ? 'text-rose-400' : 'text-indigo-500'}`}>
+              <p className={`text-[10px] font-semibold uppercase tracking-wide ${remaining <= 0 ? 'text-rose-400' : 'text-indigo-500'}`}>
                 {remaining <= 0 ? t('salary.overpaid') : t('salary.remaining')}
               </p>
-              <p className={`mt-1 text-base font-black ${remaining <= 0 ? 'text-rose-700' : 'text-indigo-700'}`}>
+              <p className={`mt-1 text-base font-semibold ${remaining <= 0 ? 'text-rose-700' : 'text-indigo-700'}`}>
                 {formatCurrency(Math.abs(remaining), language)}
               </p>
             </div>
           ) : (
             <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-3 text-center">
-              <p className="text-[10px] font-black uppercase tracking-wide text-slate-400">{t('salary.totalPaid')}</p>
-              <p className="mt-1 text-base font-black text-slate-700">{formatCurrency(totalPaid, language)}</p>
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">{t('salary.totalPaid')}</p>
+              <p className="mt-1 text-base font-semibold text-slate-700">{formatCurrency(totalPaid, language)}</p>
             </div>
           )}
         </div>

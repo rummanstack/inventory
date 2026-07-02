@@ -65,7 +65,7 @@ export default function SupplierDiscountsPage() {
               <tbody className="divide-y divide-slate-100">
                 {vm.items.map((discount, index) => (
                   <tr key={discount.id} className="hover:bg-slate-50">
-                    <td className="table-cell font-black text-slate-400">{(vm.page - 1) * vm.pageSize + index + 1}</td>
+                    <td className="table-cell font-semibold text-slate-400">{(vm.page - 1) * vm.pageSize + index + 1}</td>
                     <td className="table-cell">{formatDateTime(discount.discountDate)}</td>
                     <td className="table-cell font-semibold text-slate-950">{discount.dsrName || '-'}</td>
                     <td className="table-cell text-slate-700">{discount.supplierName || <span className="text-slate-300">-</span>}</td>

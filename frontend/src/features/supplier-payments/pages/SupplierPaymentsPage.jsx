@@ -84,7 +84,7 @@ export default function SupplierPaymentsPage() {
         </div>
         <div className="border-b border-slate-100 p-5 no-print">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <p className="text-[11px] font-black uppercase tracking-[0.22em] text-slate-400">{t('supplierPayments.eyebrow')}</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">{t('supplierPayments.eyebrow')}</p>
             <div className="flex flex-wrap gap-2 text-sm font-bold">
               <span className="muted-chip">{formatNumber(vm.total)} {t('supplierPayments.paymentCount')}</span>
             </div>
@@ -125,7 +125,7 @@ export default function SupplierPaymentsPage() {
             <tbody className="divide-y divide-slate-100">
               {vm.items.map((payment, index) => (
                 <tr key={payment.id} className="hover:bg-slate-50">
-                  <td className="table-cell font-black text-slate-400">{(vm.page - 1) * vm.pageSize + index + 1}</td>
+                  <td className="table-cell font-semibold text-slate-400">{(vm.page - 1) * vm.pageSize + index + 1}</td>
                   <td className="table-cell">{formatDateTime(payment.paymentDate)}</td>
                   <td className="table-cell font-semibold text-slate-950">{payment.supplierName || '-'}</td>
                   <td className="table-cell text-right font-bold text-emerald-700">{formatCurrency(payment.amount)}</td>

@@ -258,10 +258,10 @@ export default function RetailCustomerRetentionPage() {
                         <p className="font-semibold text-slate-950">{customer.name}</p>
                         <p className="text-xs text-slate-500">{customer.phone || '-'}</p>
                       </td>
-                      <td className="table-cell text-right font-black text-slate-950">{formatNumber(customer.purchaseCount || 0, language)}</td>
-                      <td className="table-cell text-right font-black text-slate-950">{formatCurrency(customer.totalSpent || 0, language)}</td>
+                      <td className="table-cell text-right font-semibold text-slate-950">{formatNumber(customer.purchaseCount || 0, language)}</td>
+                      <td className="table-cell text-right font-semibold text-slate-950">{formatCurrency(customer.totalSpent || 0, language)}</td>
                       <td className="table-cell text-sm font-semibold text-slate-700">{customer.lastPurchaseAt ? formatDate(customer.lastPurchaseAt, language) : t('retailCustomers.retention.neverPurchased')}</td>
-                      <td className="table-cell text-right font-black text-emerald-700">{formatNumber(customer.pointsBalance || 0, language)}</td>
+                      <td className="table-cell text-right font-semibold text-emerald-700">{formatNumber(customer.pointsBalance || 0, language)}</td>
                       <td className="table-cell">
                         <Badge tone={retentionTone(customer)}>{t(`retailCustomers.retention.tiers.${customer.customerTier}`)}</Badge>
                       </td>
@@ -300,9 +300,9 @@ export default function RetailCustomerRetentionPage() {
                         <p className="font-semibold text-slate-950">{customer.name}</p>
                         <p className="text-xs text-slate-500">{customer.phone || '-'}</p>
                       </td>
-                      <td className="table-cell text-right font-black text-rose-700">{formatDays(customer.daysSinceLastPurchase, t, language)}</td>
+                      <td className="table-cell text-right font-semibold text-rose-700">{formatDays(customer.daysSinceLastPurchase, t, language)}</td>
                       <td className="table-cell text-sm font-semibold text-slate-700">{customer.lastPurchaseAt ? formatDate(customer.lastPurchaseAt, language) : t('retailCustomers.retention.neverPurchased')}</td>
-                      <td className="table-cell text-right font-black text-slate-950">{formatNumber(customer.pointsBalance || 0, language)}</td>
+                      <td className="table-cell text-right font-semibold text-slate-950">{formatNumber(customer.pointsBalance || 0, language)}</td>
                       <td className="table-cell text-sm font-semibold text-slate-600">{t(`retailCustomers.retention.actions.${selectedFollowUpKey(customer).split('.').pop()}`)}</td>
                     </tr>
                   ))}
@@ -328,7 +328,7 @@ export default function RetailCustomerRetentionPage() {
                 <div className="rounded-card border border-slate-200 bg-slate-50 p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <h3 className="text-lg font-black text-slate-950">{selectedCustomer.name}</h3>
+                      <h3 className="text-lg font-semibold text-slate-950">{selectedCustomer.name}</h3>
                       <p className="text-sm text-slate-500">{selectedCustomer.phone || t('retailCustomers.retention.noPhone')}</p>
                     </div>
                     <Badge tone={retentionTone(selectedCustomer)}>{t(`retailCustomers.retention.tiers.${selectedCustomer.customerTier}`)}</Badge>
@@ -337,40 +337,40 @@ export default function RetailCustomerRetentionPage() {
                   <div className="mt-4 grid gap-3 text-sm">
                     <div className="flex items-center justify-between gap-3">
                       <span className="font-semibold text-slate-600">{t('retailCustomers.retention.purchaseCount')}</span>
-                      <span className="font-black text-slate-950">{formatNumber(selectedCustomer.purchaseCount || 0, language)}</span>
+                      <span className="font-semibold text-slate-950">{formatNumber(selectedCustomer.purchaseCount || 0, language)}</span>
                     </div>
                     <div className="flex items-center justify-between gap-3">
                       <span className="font-semibold text-slate-600">{t('retailCustomers.retention.firstPurchase')}</span>
-                      <span className="font-black text-slate-950">{selectedCustomer.firstPurchaseAt ? formatDate(selectedCustomer.firstPurchaseAt, language) : t('retailCustomers.retention.neverPurchased')}</span>
+                      <span className="font-semibold text-slate-950">{selectedCustomer.firstPurchaseAt ? formatDate(selectedCustomer.firstPurchaseAt, language) : t('retailCustomers.retention.neverPurchased')}</span>
                     </div>
                     <div className="flex items-center justify-between gap-3">
                       <span className="font-semibold text-slate-600">{t('retailCustomers.retention.lastPurchase')}</span>
-                      <span className="font-black text-slate-950">{selectedCustomer.lastPurchaseAt ? formatDate(selectedCustomer.lastPurchaseAt, language) : t('retailCustomers.retention.neverPurchased')}</span>
+                      <span className="font-semibold text-slate-950">{selectedCustomer.lastPurchaseAt ? formatDate(selectedCustomer.lastPurchaseAt, language) : t('retailCustomers.retention.neverPurchased')}</span>
                     </div>
                     <div className="flex items-center justify-between gap-3">
                       <span className="font-semibold text-slate-600">{t('retailCustomers.retention.totalSpent')}</span>
-                      <span className="font-black text-slate-950">{formatCurrency(selectedCustomer.totalSpent || 0, language)}</span>
+                      <span className="font-semibold text-slate-950">{formatCurrency(selectedCustomer.totalSpent || 0, language)}</span>
                     </div>
                     <div className="flex items-center justify-between gap-3">
                       <span className="font-semibold text-slate-600">{t('retailCustomers.loyaltyPoints')}</span>
-                      <span className="font-black text-emerald-700">{formatNumber(selectedCustomer.pointsBalance || 0, language)}</span>
+                      <span className="font-semibold text-emerald-700">{formatNumber(selectedCustomer.pointsBalance || 0, language)}</span>
                     </div>
                     <div className="flex items-center justify-between gap-3">
                       <span className="font-semibold text-slate-600">{t('retailCustomers.retention.nextReward')}</span>
-                      <span className="font-black text-slate-950">{selectedCustomer.pointsToNextReward === 0 ? t('retailCustomers.retention.rewardReady') : formatNumber(selectedCustomer.pointsToNextReward, language)}</span>
+                      <span className="font-semibold text-slate-950">{selectedCustomer.pointsToNextReward === 0 ? t('retailCustomers.retention.rewardReady') : formatNumber(selectedCustomer.pointsToNextReward, language)}</span>
                     </div>
                     <div className="flex items-center justify-between gap-3">
                       <span className="font-semibold text-slate-600">{t('retailCustomers.retention.daysIdle')}</span>
-                      <span className="font-black text-rose-700">{formatDays(selectedCustomer.daysSinceLastPurchase, t, language)}</span>
+                      <span className="font-semibold text-rose-700">{formatDays(selectedCustomer.daysSinceLastPurchase, t, language)}</span>
                     </div>
                     <div className="flex items-center justify-between gap-3">
                       <span className="font-semibold text-slate-600">{t('retailCustomers.retention.avgGap')}</span>
-                      <span className="font-black text-slate-950">{formatDays(selectedCustomer.averageDaysBetweenPurchases, t, language)}</span>
+                      <span className="font-semibold text-slate-950">{formatDays(selectedCustomer.averageDaysBetweenPurchases, t, language)}</span>
                     </div>
                   </div>
 
                   <div className="mt-4 rounded-2xl bg-white p-3 ring-1 ring-slate-200">
-                    <p className="text-xs font-black uppercase tracking-[0.14em] text-slate-400">{t('retailCustomers.retention.followUpTitle')}</p>
+                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">{t('retailCustomers.retention.followUpTitle')}</p>
                     <p className="mt-1 text-sm font-semibold text-slate-700">{t(selectedFollowUpKey(selectedCustomer), { count: inactiveWindowDays })}</p>
                   </div>
                 </div>
@@ -403,8 +403,8 @@ export default function RetailCustomerRetentionPage() {
                         <p className="font-semibold text-slate-950">{customer.name}</p>
                         <p className="text-xs text-slate-500">{customer.phone || '-'}</p>
                       </td>
-                      <td className="table-cell text-right font-black text-emerald-700">{formatNumber(customer.pointsBalance || 0, language)}</td>
-                      <td className="table-cell text-right font-black text-slate-950">{customer.pointsToNextReward === 0 ? t('retailCustomers.retention.rewardReady') : formatNumber(customer.pointsToNextReward, language)}</td>
+                      <td className="table-cell text-right font-semibold text-emerald-700">{formatNumber(customer.pointsBalance || 0, language)}</td>
+                      <td className="table-cell text-right font-semibold text-slate-950">{customer.pointsToNextReward === 0 ? t('retailCustomers.retention.rewardReady') : formatNumber(customer.pointsToNextReward, language)}</td>
                     </tr>
                   ))}
                 </tbody>

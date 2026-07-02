@@ -70,7 +70,7 @@ export default function AuditHistory({ entityType, entityId }) {
 
   return (
     <div className="space-y-3">
-      <h3 className="text-sm font-black uppercase tracking-[0.14em] text-slate-700">{t('auditHistory.title')}</h3>
+      <h3 className="text-sm font-semibold uppercase tracking-[0.14em] text-slate-700">{t('auditHistory.title')}</h3>
       <div className="space-y-2">
         {items.map((item) => {
           const fields = Object.keys(item.afterData || {});

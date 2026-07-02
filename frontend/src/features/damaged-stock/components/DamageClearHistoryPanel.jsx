@@ -76,7 +76,7 @@ export default function DamageClearHistoryPanel({ products, refreshKey = 0 }) {
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
             <p className="brand-chip">{t('damagedStock.eyebrow')}</p>
-            <h2 className="mt-3 text-lg font-black text-slate-950">{t('damagedStock.clearHistoryTitle')}</h2>
+            <h2 className="mt-3 text-lg font-semibold text-slate-950">{t('damagedStock.clearHistoryTitle')}</h2>
             <p className="mt-1 max-w-3xl text-sm font-medium leading-6 text-slate-500">{t('damagedStock.clearHistoryDescription')}</p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -150,7 +150,7 @@ export default function DamageClearHistoryPanel({ products, refreshKey = 0 }) {
                     <p className="font-semibold text-slate-950">{record.productName}</p>
                   </td>
                   <td className="table-cell text-slate-500">{record.productCategory || '-'}</td>
-                  <td className="table-cell text-right font-black text-emerald-700">
+                  <td className="table-cell text-right font-semibold text-emerald-700">
                     {formatNumber(record.quantityIn || record.quantityOut || 0)}
                   </td>
                   <td className="hidden table-cell md:table-cell">

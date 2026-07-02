@@ -43,8 +43,8 @@ function MetricPill({ label, value, sub, icon: Icon, iconClass = "bg-slate-100 t
       <div className={cx("w-fit rounded-xl p-2", iconClass)}>
         <Icon size={15} />
       </div>
-      <p className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-600">{label}</p>
-      <p className="text-2xl font-black tracking-tight text-slate-950">{value}</p>
+      <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-600">{label}</p>
+      <p className="text-2xl font-semibold tracking-tight text-slate-950">{value}</p>
       {sub && <p className="text-xs font-medium text-slate-500">{sub}</p>}
     </div>
   );
@@ -57,10 +57,10 @@ function DueRow({ icon: Icon, iconClass, label, sub, value, valueClass = "text-s
         <Icon size={17} />
       </div>
       <div className="min-w-0 flex-1">
-        <p className="text-xs font-black uppercase tracking-[0.13em] text-slate-600">{label}</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.13em] text-slate-600">{label}</p>
         {sub && <p className="mt-0.5 text-xs font-medium text-slate-500">{sub}</p>}
       </div>
-      <p className={cx("shrink-0 text-base font-black", valueClass)}>{value}</p>
+      <p className={cx("shrink-0 text-base font-semibold", valueClass)}>{value}</p>
     </div>
   );
 }
@@ -130,7 +130,7 @@ export default function DashboardPage() {
               <div className="rounded-lg bg-[var(--secondary-soft)] p-1.5">
                 <Landmark size={13} className="text-[var(--secondary-strong)]" />
               </div>
-              <p className="text-[11px] font-black uppercase tracking-[0.22em] text-slate-600">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-600">
                 {t("dashboard.financialHealth")}
               </p>
             </div>
@@ -179,10 +179,10 @@ export default function DashboardPage() {
                   <div className={cx("w-fit rounded-xl p-2.5", item.iconClass)}>
                     <Icon size={16} />
                   </div>
-                  <p className="mt-4 text-[11px] font-black uppercase tracking-[0.16em] text-slate-600">{item.label}</p>
+                  <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-600">{item.label}</p>
                   <p
                     className={cx(
-                      "mt-2 text-[clamp(1.4rem,2.5vw,1.875rem)] font-black tracking-tight leading-none",
+                      "mt-2 text-[clamp(1.4rem,2.5vw,1.875rem)] font-semibold tracking-tight leading-none",
                       item.valueClass,
                     )}
                   >
@@ -235,8 +235,8 @@ export default function DashboardPage() {
                   <div className={cx("w-fit rounded-xl p-2.5", item.iconClass)}>
                     <Icon size={16} />
                   </div>
-                  <p className="mt-4 text-[11px] font-black uppercase tracking-[0.16em] text-slate-600">{item.label}</p>
-                  <p className={cx("mt-2 text-[clamp(1.4rem,2.5vw,1.875rem)] font-black tracking-tight leading-none", item.valueClass)}>
+                  <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-600">{item.label}</p>
+                  <p className={cx("mt-2 text-[clamp(1.4rem,2.5vw,1.875rem)] font-semibold tracking-tight leading-none", item.valueClass)}>
                     {item.value}
                   </p>
                   <p className="mt-2 text-xs font-medium text-slate-500">{item.sub}</p>
@@ -252,7 +252,7 @@ export default function DashboardPage() {
             <Lock size={18} />
           </div>
           <div>
-            <p className="text-sm font-black text-slate-700">{t("dashboard.financialHealth")}</p>
+            <p className="text-sm font-semibold text-slate-700">{t("dashboard.financialHealth")}</p>
             <p className="text-xs font-medium text-slate-500">
               Finance dashboard permission required to view financial data.
             </p>
@@ -267,7 +267,7 @@ export default function DashboardPage() {
             <div className="rounded-lg bg-emerald-50 p-1.5">
               <TrendingUp size={13} className="text-emerald-700" />
             </div>
-            <p className="text-[11px] font-black uppercase tracking-[0.22em] text-slate-600">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-600">
               Today's Profit Report
             </p>
           </div>
@@ -314,8 +314,8 @@ export default function DashboardPage() {
                 <div className={cx("w-fit rounded-xl p-2.5", item.iconClass)}>
                   <Icon size={16} />
                 </div>
-                <p className="mt-4 text-[11px] font-black uppercase tracking-[0.16em] text-slate-600">{item.label}</p>
-                <p className={cx("mt-2 text-[clamp(1.4rem,2.5vw,1.875rem)] font-black tracking-tight leading-none", item.valueClass)}>
+                <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-600">{item.label}</p>
+                <p className={cx("mt-2 text-[clamp(1.4rem,2.5vw,1.875rem)] font-semibold tracking-tight leading-none", item.valueClass)}>
                   {item.value}
                 </p>
                 <p className="mt-2 text-xs font-medium text-slate-500">{item.sub}</p>
@@ -408,7 +408,7 @@ export default function DashboardPage() {
 
         {financeDashboard ? (
           <div className="surface overflow-hidden p-5">
-            <p className="px-1 text-[11px] font-black uppercase tracking-[0.16em] text-slate-600">
+            <p className="px-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-600">
               {t("dashboard.receivablesPayables")}
             </p>
             <p className="mt-1 px-1 text-xs font-medium leading-5 text-slate-500">
@@ -440,12 +440,12 @@ export default function DashboardPage() {
             </div>
             <div className="mt-4 rounded-[18px] bg-slate-50 px-5 py-3">
               <div className="flex items-center justify-between">
-                <p className="text-xs font-black uppercase tracking-[0.12em] text-slate-600">
+                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-600">
                   {t("dashboard.netPosition")}
                 </p>
                 <p
                   className={cx(
-                    "text-sm font-black",
+                    "text-sm font-semibold",
                     financeDashboard.netPosition >= 0 ? "text-emerald-700" : "text-rose-600",
                   )}
                 >
@@ -456,7 +456,7 @@ export default function DashboardPage() {
           </div>
         ) : (
           <div className="surface overflow-hidden p-5">
-            <p className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-600">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-600">
               {t("dashboard.receivablesPayables")}
             </p>
             <div className="mt-6 flex flex-col items-center justify-center gap-2 py-8 text-center">
@@ -539,13 +539,13 @@ export default function DashboardPage() {
                     key={dsr.label}
                     className="flex items-center gap-3 rounded-card bg-white/60 px-4 py-3.5 ring-1 ring-slate-200/50 transition-colors"
                   >
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-xs font-black text-slate-500">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-xs font-semibold text-slate-500">
                       {index + 1}
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between gap-2">
                         <p className="truncate text-sm font-bold text-slate-800">{dsr.label}</p>
-                        <p className="shrink-0 text-sm font-black text-slate-950">{formatCurrency(dsr.value, language)}</p>
+                        <p className="shrink-0 text-sm font-semibold text-slate-950">{formatCurrency(dsr.value, language)}</p>
                       </div>
                       <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
                         <div
@@ -592,14 +592,14 @@ export default function DashboardPage() {
                         <r.icon size={14} />
                       </div>
                       <p className="min-w-0 flex-1 truncate text-sm font-medium text-slate-700">{r.label}</p>
-                      <p className={cx('shrink-0 text-sm font-black', r.negative ? 'text-rose-600' : 'text-slate-950')}>
+                      <p className={cx('shrink-0 text-sm font-semibold', r.negative ? 'text-rose-600' : 'text-slate-950')}>
                         {r.negative ? '− ' : ''}{formatCurrency(r.value, language)}
                       </p>
                     </div>
                   ))}
                   <div className="mt-2 flex items-center justify-between rounded-[18px] bg-slate-100 px-5 py-3">
-                    <p className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">Net Cash Position</p>
-                    <p className={cx('text-sm font-black', net >= 0 ? 'text-emerald-600' : 'text-rose-500')}>
+                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Net Cash Position</p>
+                    <p className={cx('text-sm font-semibold', net >= 0 ? 'text-emerald-600' : 'text-rose-500')}>
                       {formatCurrency(net, language)}
                     </p>
                   </div>

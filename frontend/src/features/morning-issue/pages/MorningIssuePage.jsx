@@ -163,7 +163,7 @@ export default function MorningIssuePage() {
               )}
               <div className="text-right text-sm">
                 <p className="font-semibold text-slate-600">{t('morningIssue.totalIssueValue')}</p>
-                <p className="text-2xl font-black text-slate-950">{formatCurrency(vm.totalIssueValue)}</p>
+                <p className="text-2xl font-semibold text-slate-950">{formatCurrency(vm.totalIssueValue)}</p>
               </div>
             </div>
           </>

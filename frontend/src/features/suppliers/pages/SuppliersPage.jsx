@@ -83,7 +83,7 @@ export default function SuppliersPage() {
         </div>
         <div className="border-b border-slate-100 p-5 no-print">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <p className="text-[11px] font-black uppercase tracking-[0.22em] text-slate-400">{t('suppliers.eyebrow')}</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">{t('suppliers.eyebrow')}</p>
             <div className="flex flex-wrap gap-2 text-sm font-bold">
               <span className="muted-chip">{formatNumber(vm.total)} {t('suppliers.supplierCount')}</span>
             </div>
@@ -126,7 +126,7 @@ export default function SuppliersPage() {
             <tbody className="divide-y divide-slate-100">
               {vm.items.map((supplier, index) => (
                 <tr key={supplier.id} className="hover:bg-slate-50">
-                  <td className="table-cell font-black text-slate-400">{(vm.page - 1) * vm.pageSize + index + 1}</td>
+                  <td className="table-cell font-semibold text-slate-400">{(vm.page - 1) * vm.pageSize + index + 1}</td>
                   <td className="table-cell font-semibold text-slate-950">{supplier.name}</td>
                   <td className="hidden table-cell sm:table-cell">
                     <span className="inline-flex items-center gap-2">

@@ -185,7 +185,7 @@ export default function VisitorChatsPage() {
               <div className="flex h-full flex-col gap-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
-                    <p className="text-lg font-black text-slate-950">{selectedChat.visitorName || t('visitorChats.anonymousVisitor')}</p>
+                    <p className="text-lg font-semibold text-slate-950">{selectedChat.visitorName || t('visitorChats.anonymousVisitor')}</p>
                     <p className="text-sm text-slate-500">{selectedChat.visitorPhone || '-'}</p>
                   </div>
                   {selectedChat.status !== 'CLOSED' ? (

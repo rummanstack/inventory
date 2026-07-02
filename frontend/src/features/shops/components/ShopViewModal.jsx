@@ -6,7 +6,7 @@ import { statusTone } from '../../../models/inventoryViewData.js';
 function Field({ label, value }) {
   return (
     <div>
-      <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">{label}</p>
+      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">{label}</p>
       <p className="mt-1 text-sm font-semibold text-slate-950">{value || '-'}</p>
     </div>
   );
@@ -27,7 +27,7 @@ export default function ShopViewModal({ shop, onClose }) {
         </div>
         <Field label={t('shops.assignedDsrLabel')} value={shop.assignedDsrName || t('shops.unassigned')} />
         <div>
-          <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">{t('shops.status')}</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">{t('shops.status')}</p>
           <p className="mt-1"><Badge tone={statusTone(shop.status === 'ACTIVE' ? 'Active' : 'Inactive')}>{shop.status === 'ACTIVE' ? t('shops.statusActive') : t('shops.statusInactive')}</Badge></p>
         </div>
         <Field label={t('shops.openingDueLabel')} value={formatCurrency(shop.openingDue)} />

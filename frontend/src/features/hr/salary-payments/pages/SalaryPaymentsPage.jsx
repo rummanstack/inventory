@@ -155,7 +155,7 @@ export default function SalaryPaymentsPage() {
         <button type="button" className="icon-btn" onClick={() => vm.setMonth(prevMonth(vm.month))} aria-label="Previous month">
           <ChevronRight size={18} className="rotate-180" />
         </button>
-        <span className="min-w-[160px] text-center text-base font-black text-slate-900">{monthLabel(vm.month)}</span>
+        <span className="min-w-[160px] text-center text-base font-semibold text-slate-900">{monthLabel(vm.month)}</span>
         <button type="button" className="icon-btn" onClick={() => vm.setMonth(nextMonth(vm.month))} aria-label="Next month">
           <ChevronRight size={18} />
         </button>
@@ -176,17 +176,17 @@ export default function SalaryPaymentsPage() {
       {vm.data && (
         <div className="mb-5 grid grid-cols-2 gap-4 sm:grid-cols-4">
           <div className="surface px-5 py-4">
-            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-400">{t('salary.totalEmployees')}</p>
-            <p className="mt-1 text-2xl font-black text-slate-900">{employees.length}</p>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">{t('salary.totalEmployees')}</p>
+            <p className="mt-1 text-2xl font-semibold text-slate-900">{employees.length}</p>
           </div>
           <div className="surface px-5 py-4">
-            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">Total Earned</p>
-            <p className="mt-1 text-2xl font-black text-slate-900">{formatCurrency(totalEarned, language)}</p>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">Total Earned</p>
+            <p className="mt-1 text-2xl font-semibold text-slate-900">{formatCurrency(totalEarned, language)}</p>
             <p className="mt-0.5 text-[10px] text-slate-400">Based on active days</p>
           </div>
           <div className="surface px-5 py-4">
-            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-emerald-500">{t('salary.totalPaidOut')}</p>
-            <p className="mt-1 text-2xl font-black text-emerald-700">{formatCurrency(totalPaid, language)}</p>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-500">{t('salary.totalPaidOut')}</p>
+            <p className="mt-1 text-2xl font-semibold text-emerald-700">{formatCurrency(totalPaid, language)}</p>
             {totalEarned > 0 && (
               <div className="mt-2">
                 <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-200">
@@ -197,8 +197,8 @@ export default function SalaryPaymentsPage() {
             )}
           </div>
           <div className="surface px-5 py-4">
-            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-amber-500">{t('salary.totalRemaining')}</p>
-            <p className="mt-1 text-2xl font-black text-amber-700">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-amber-500">{t('salary.totalRemaining')}</p>
+            <p className="mt-1 text-2xl font-semibold text-amber-700">
               {formatCurrency(Math.max(0, totalEarned - totalPaid), language)}
             </p>
           </div>
@@ -221,11 +221,11 @@ export default function SalaryPaymentsPage() {
           <>
             {/* Column headers */}
             <div className="hidden grid-cols-[1fr_auto_auto_auto_auto_auto_auto] gap-4 border-b border-slate-100 px-5 py-2.5 sm:grid">
-              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-400">{t('employees.name')}</p>
-              <p className="w-32 text-[10px] font-black uppercase tracking-[0.18em] text-slate-400 text-center">Active Days</p>
-              <p className="w-28 text-[10px] font-black uppercase tracking-[0.18em] text-slate-400 text-right">Earned</p>
-              <p className="w-24 text-[10px] font-black uppercase tracking-[0.18em] text-slate-400 text-right">{t('salary.paid')}</p>
-              <p className="w-24 text-[10px] font-black uppercase tracking-[0.18em] text-slate-400 text-right">{t('salary.balance')}</p>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">{t('employees.name')}</p>
+              <p className="w-32 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400 text-center">Active Days</p>
+              <p className="w-28 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400 text-right">Earned</p>
+              <p className="w-24 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400 text-right">{t('salary.paid')}</p>
+              <p className="w-24 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400 text-right">{t('salary.balance')}</p>
               <p className="w-20" />
             </div>
 
@@ -342,7 +342,7 @@ export default function SalaryPaymentsPage() {
                           </div>
                         )}
 
-                        <p className="mb-2 text-[10px] font-black uppercase tracking-[0.18em] text-slate-400">Payment History</p>
+                        <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">Payment History</p>
                         {emp.payments.length === 0 ? (
                           <p className="py-2 text-xs italic text-slate-400">{t('salary.noPaymentsThisMonth')}</p>
                         ) : (
@@ -350,10 +350,10 @@ export default function SalaryPaymentsPage() {
                             <table className="w-full text-sm">
                               <thead>
                                 <tr className="text-left">
-                                  <th className="pb-2 pr-4 text-[10px] font-black uppercase tracking-wide text-slate-400">{t('salary.date')}</th>
-                                  <th className="pb-2 pr-4 text-right text-[10px] font-black uppercase tracking-wide text-slate-400">{t('salary.amount')}</th>
-                                  <th className="pb-2 pr-4 text-[10px] font-black uppercase tracking-wide text-slate-400">{t('salary.paymentMethod')}</th>
-                                  <th className="pb-2 pr-4 text-[10px] font-black uppercase tracking-wide text-slate-400">{t('salary.note')}</th>
+                                  <th className="pb-2 pr-4 text-[10px] font-semibold uppercase tracking-wide text-slate-400">{t('salary.date')}</th>
+                                  <th className="pb-2 pr-4 text-right text-[10px] font-semibold uppercase tracking-wide text-slate-400">{t('salary.amount')}</th>
+                                  <th className="pb-2 pr-4 text-[10px] font-semibold uppercase tracking-wide text-slate-400">{t('salary.paymentMethod')}</th>
+                                  <th className="pb-2 pr-4 text-[10px] font-semibold uppercase tracking-wide text-slate-400">{t('salary.note')}</th>
                                   {canManage && <th className="pb-2 w-8" />}
                                 </tr>
                               </thead>

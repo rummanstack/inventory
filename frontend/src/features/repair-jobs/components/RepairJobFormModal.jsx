@@ -103,15 +103,15 @@ export default function RepairJobFormModal({ job, onClose, onSave }) {
         {isEdit ? (
           <div className="grid gap-4 sm:grid-cols-3 rounded-2xl border border-slate-200 bg-slate-50 p-4">
             <div>
-              <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">{t('repairJobs.jobNumberLabel')}</p>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">{t('repairJobs.jobNumberLabel')}</p>
               <p className="mt-1 text-sm font-semibold text-slate-950">{job.jobNumber}</p>
             </div>
             <div>
-              <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">{t('repairJobs.customerLabel')}</p>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">{t('repairJobs.customerLabel')}</p>
               <p className="mt-1 text-sm font-semibold text-slate-950">{job.customerName}</p>
             </div>
             <div>
-              <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">{t('repairJobs.receivedDateLabel')}</p>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">{t('repairJobs.receivedDateLabel')}</p>
               <p className="mt-1 text-sm font-semibold text-slate-950">{job.receivedDate}</p>
             </div>
           </div>

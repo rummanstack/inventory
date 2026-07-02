@@ -72,7 +72,7 @@ function HeatmapTooltip({ anchor, cell, t, language }) {
       style={{ position: 'fixed', left: style.left, top: style.top, width: style.width, zIndex: 200, backgroundColor: tooltipBg }}
       className="pointer-events-none w-60 rounded-2xl px-4 py-3 text-left shadow-[0_24px_55px_rgba(var(--slate-900),0.35)] ring-1 ring-white/10"
     >
-      <p className="text-[11px] font-black tracking-tight" style={{ color: tooltipTitleColor }}>
+      <p className="text-[11px] font-semibold tracking-tight" style={{ color: tooltipTitleColor }}>
         {heatmapFullDateFormatter.format(dayDate)}
       </p>
       <div className="mt-2 space-y-1">
@@ -128,7 +128,7 @@ function HeatmapTooltip({ anchor, cell, t, language }) {
 
       {dsrNames.length ? (
         <div className="mt-2.5 border-t border-white/10 pt-2">
-          <p className="text-[9px] font-black uppercase tracking-[0.18em]" style={{ color: getCssVar('--highlight', '#c4c5cd') }}>
+          <p className="text-[9px] font-semibold uppercase tracking-[0.18em]" style={{ color: getCssVar('--highlight', '#c4c5cd') }}>
             {t('activityHeatmap.activeDsrs')}
           </p>
           <p className="mt-1 text-[11px] font-semibold leading-snug" style={{ color: tooltipBodyColor }}>
@@ -138,7 +138,7 @@ function HeatmapTooltip({ anchor, cell, t, language }) {
         </div>
       ) : null}
 
-      <p className="mt-2.5 border-t border-white/10 pt-2 text-[9px] font-black uppercase tracking-[0.18em]" style={{ color: getCssVar('--highlight', '#c4c5cd') }}>
+      <p className="mt-2.5 border-t border-white/10 pt-2 text-[9px] font-semibold uppercase tracking-[0.18em]" style={{ color: getCssVar('--highlight', '#c4c5cd') }}>
         {heatmapActivityLabel(cell, t)}
       </p>
     </div>,
@@ -186,7 +186,7 @@ export function ActivityHeatmap({ cells = [], color = getCssVar('--secondary', '
       <div className="flex items-start gap-3 overflow-x-auto premium-scrollbar pb-2">
         <div className="flex shrink-0 flex-col gap-1.5 pt-px">
           {weekdayLabels.map((label) => (
-            <span key={label} className="flex h-9 items-center text-[10px] font-black uppercase tracking-[0.14em] text-slate-400">
+            <span key={label} className="flex h-9 items-center text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-400">
               {label}
             </span>
           ))}
@@ -207,7 +207,7 @@ export function ActivityHeatmap({ cells = [], color = getCssVar('--secondary', '
                     key={cell.date}
                     tabIndex={0}
                     className={cx(
-                      'flex h-9 w-9 cursor-default items-center justify-center rounded-xl text-xs font-black uppercase ring-1 ring-inset ring-slate-900/[0.05] outline-none transition duration-150 ease-out hover:shadow-crisp focus-visible:shadow-crisp',
+                      'flex h-9 w-9 cursor-default items-center justify-center rounded-xl text-xs font-semibold uppercase ring-1 ring-inset ring-slate-900/[0.05] outline-none transition duration-150 ease-out hover:shadow-crisp focus-visible:shadow-crisp',
                       lit ? 'text-white' : 'text-slate-600',
                     )}
                     style={{ backgroundColor: cell.count ? hexToRgba(color, 0.16 + cell.intensity * 0.76) : emptyTone }}
@@ -227,7 +227,7 @@ export function ActivityHeatmap({ cells = [], color = getCssVar('--secondary', '
 
       {hovered ? <HeatmapTooltip anchor={hovered.anchor} cell={hovered.cell} t={t} language={language} /> : null}
 
-      <div className="flex items-center justify-end gap-2.5 text-[10px] font-black uppercase tracking-[0.18em] text-slate-400">
+      <div className="flex items-center justify-end gap-2.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">
         <span>{t('activityHeatmap.less')}</span>
         <div className="flex gap-1">
           {legendStops.map((stop) => (

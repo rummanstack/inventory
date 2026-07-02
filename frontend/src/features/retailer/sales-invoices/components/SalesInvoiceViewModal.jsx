@@ -13,7 +13,7 @@ import SalesInvoicePrintSheet from './SalesInvoicePrintSheet.jsx';
 function Field({ label, value }) {
   return (
     <div>
-      <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">{label}</p>
+      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">{label}</p>
       <p className="mt-1 text-sm font-semibold text-slate-950">{value || '-'}</p>
     </div>
   );
@@ -150,8 +150,8 @@ export default function SalesInvoiceViewModal({ salesInvoice, onClose }) {
             </>
           ) : null}
           <div className="flex items-center justify-between border-t border-slate-200 pt-2">
-            <span className="font-black uppercase tracking-[0.1em] text-slate-700">{t('retailer.shared.totalAmount')}</span>
-            <span className="font-black text-slate-950">{formatCurrency(salesInvoice.totalAmount, language)}</span>
+            <span className="font-semibold uppercase tracking-[0.1em] text-slate-700">{t('retailer.shared.totalAmount')}</span>
+            <span className="font-semibold text-slate-950">{formatCurrency(salesInvoice.totalAmount, language)}</span>
           </div>
           {Number(salesInvoice.loyaltyPointsEarned || 0) > 0 ? (
             <div className="flex items-center justify-between">
@@ -164,15 +164,15 @@ export default function SalesInvoiceViewModal({ salesInvoice, onClose }) {
             <span className="font-bold text-emerald-700">{formatCurrency(salesInvoice.paidAmount, language)}</span>
           </div>
           <div className="flex items-center justify-between border-t-2 border-slate-300 pt-2">
-            <span className="text-base font-black uppercase tracking-[0.1em] text-slate-950">{t('retailer.shared.dueAmount')}</span>
-            <span className="text-lg font-black"><Badge tone={paymentStatusTone(paymentStatusOf(salesInvoice))}>{formatCurrency(salesInvoice.dueAmount, language)}</Badge></span>
+            <span className="text-base font-semibold uppercase tracking-[0.1em] text-slate-950">{t('retailer.shared.dueAmount')}</span>
+            <span className="text-lg font-semibold"><Badge tone={paymentStatusTone(paymentStatusOf(salesInvoice))}>{formatCurrency(salesInvoice.dueAmount, language)}</Badge></span>
           </div>
         </div>
       </div>
 
       {salesInvoice.note ? (
         <div className="mt-4 border-t border-slate-200 pt-3 text-sm">
-          <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">{t('purchaseReceive.noteLabel')}</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">{t('purchaseReceive.noteLabel')}</p>
           <p className="mt-1 text-slate-700">{salesInvoice.note}</p>
         </div>
       ) : null}

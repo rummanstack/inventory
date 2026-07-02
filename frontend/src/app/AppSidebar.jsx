@@ -152,7 +152,7 @@ export default function AppSidebar({ mobileOpen, setMobileOpen, user, tenant, la
               <img src={tenant?.logoUrl || stockLedgerLogoIcon} alt="" className="h-full w-full object-contain p-1.5" />
             </div>
             <div className="min-w-0">
-              <h2 className="mt-1 truncate text-xl font-black tracking-normal text-slate-950">{tenant?.name || t('app.brand')}</h2>
+              <h2 className="mt-1 truncate text-xl font-semibold tracking-normal text-slate-950">{tenant?.name || t('app.brand')}</h2>
               {tenant?.plan ? (
                 <p className="text-xs font-semibold capitalize text-slate-500">{tenant.plan}</p>
               ) : t('app.subtitle') ? (
@@ -210,7 +210,7 @@ export default function AppSidebar({ mobileOpen, setMobileOpen, user, tenant, la
                       onClick={() => toggleGroup(section)}
                       aria-expanded={!isGroupCollapsed}
                     >
-                      <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-400">{label}</p>
+                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">{label}</p>
                       <ChevronDown size={16} className={cx('shrink-0 text-slate-400 transition-transform', isGroupCollapsed && '-rotate-90')} />
                     </button>
                   </div>

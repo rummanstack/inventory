@@ -231,7 +231,7 @@ export function DatePickerField({ value, onChange, placeholder = 'Select date', 
           >
             <ChevronLeft size={16} />
           </button>
-          <div className="text-sm font-black text-slate-950">
+          <div className="text-sm font-semibold text-slate-950">
             {formatMonth(viewMonth)}
           </div>
           <button
@@ -244,7 +244,7 @@ export function DatePickerField({ value, onChange, placeholder = 'Select date', 
           </button>
         </div>
 
-        <div className="mt-3 grid grid-cols-7 gap-1 px-1 text-center text-[10px] font-black uppercase tracking-[0.16em] text-slate-400">
+        <div className="mt-3 grid grid-cols-7 gap-1 px-1 text-center text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">
           {weekdays.map((weekday) => (
             <div key={weekday} className="py-1">
               {weekday}
@@ -353,7 +353,7 @@ export function MonthPickerField({ value, onChange, placeholder = 'Select month'
           <button type="button" className="icon-btn h-9 w-9" onClick={() => setViewYear((current) => current - 1)}>
             <ChevronLeft size={16} />
           </button>
-          <div className="text-sm font-black text-slate-950">{viewYear}</div>
+          <div className="text-sm font-semibold text-slate-950">{viewYear}</div>
           <button type="button" className="icon-btn h-9 w-9" onClick={() => setViewYear((current) => current + 1)}>
             <ChevronRight size={16} />
           </button>

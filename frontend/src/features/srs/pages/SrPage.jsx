@@ -120,7 +120,7 @@ export default function SrPage() {
               <tbody className="divide-y divide-slate-100">
                 {vm.items.map((sr, index) => (
                   <tr key={sr.id} className="hover:bg-slate-50">
-                    <td className="table-cell font-black text-slate-400">{(vm.page - 1) * vm.pageSize + index + 1}</td>
+                    <td className="table-cell font-semibold text-slate-400">{(vm.page - 1) * vm.pageSize + index + 1}</td>
                     <td className="table-cell font-semibold text-slate-950">{sr.name}</td>
                     <td className="hidden table-cell sm:table-cell">
                       <span className="inline-flex items-center gap-2">

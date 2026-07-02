@@ -251,7 +251,7 @@ export default function ShopDueLedgerPage() {
                 ) : null}
                 <div>
                   <p className="text-xs font-bold uppercase tracking-wide text-slate-400">{t('shopDueLedger.currentDue')}</p>
-                  <p className={`mt-1 text-lg font-black ${vm.statement.shop.currentDue > 0 ? 'text-rose-700' : 'text-emerald-700'}`}>
+                  <p className={`mt-1 text-lg font-semibold ${vm.statement.shop.currentDue > 0 ? 'text-rose-700' : 'text-emerald-700'}`}>
                     {formatCurrency(vm.statement.shop.currentDue, language)}
                   </p>
                 </div>
@@ -285,13 +285,13 @@ export default function ShopDueLedgerPage() {
                       <td className="table-cell">
                         <Badge tone={ledgerTone(entry.type)}>{t(`shopDueLedger.types.${entry.type}`)}</Badge>
                       </td>
-                      <td className="table-cell text-right font-black text-rose-700">
+                      <td className="table-cell text-right font-semibold text-rose-700">
                         {entry.debit ? formatCurrency(entry.debit, language) : '-'}
                       </td>
-                      <td className="table-cell text-right font-black text-emerald-700">
+                      <td className="table-cell text-right font-semibold text-emerald-700">
                         {entry.credit ? formatCurrency(entry.credit, language) : '-'}
                       </td>
-                      <td className="table-cell text-right font-black text-slate-950">
+                      <td className="table-cell text-right font-semibold text-slate-950">
                         {formatCurrency(entry.balanceAfter, language)}
                       </td>
                       <td className="hidden table-cell lg:table-cell max-w-52">

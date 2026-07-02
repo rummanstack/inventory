@@ -54,7 +54,7 @@ export default function EveningSettlementPage() {
           </div>
           <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
             <p className="text-xs font-bold uppercase text-slate-500">{t('settlement.totalPayable')}</p>
-            <p className="mt-1 text-2xl font-black text-slate-950">{formatCurrency(vm.totalPayable)}</p>
+            <p className="mt-1 text-2xl font-semibold text-slate-950">{formatCurrency(vm.totalPayable)}</p>
           </div>
         </div>
         {vm.message ? (
@@ -140,7 +140,7 @@ export default function EveningSettlementPage() {
             </div>
             <div className="border-t border-slate-100 px-5 py-4">
               <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                <h3 className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-500">{t('settlement.extraReturnsTitle')}</h3>
+                <h3 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">{t('settlement.extraReturnsTitle')}</h3>
                 <div className="flex items-center gap-3">
                   <Badge tone="amber">{t('settlement.extraReturnTotal', { pieces: vm.totalExtraReturnedPieces })}</Badge>
                   <button type="button" className="btn-secondary h-8 gap-1.5 px-3 py-1.5 text-xs" onClick={vm.addExtraReturn} disabled={!productDirectory.length}>
@@ -210,7 +210,7 @@ export default function EveningSettlementPage() {
             </div>
             <div className="border-t border-slate-100 px-5 py-4">
               <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                <h3 className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-500">{t('settlement.shopDueCollectionsTitle')}</h3>
+                <h3 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">{t('settlement.shopDueCollectionsTitle')}</h3>
                 <button type="button" className="btn-secondary h-8 gap-1.5 px-3 py-1.5 text-xs" onClick={vm.addShopCollection}>
                   <Plus size={14} />
                   {t('settlement.addShopCollection')}
@@ -254,7 +254,7 @@ export default function EveningSettlementPage() {
 
             <div className="border-t border-slate-100 px-5 py-4">
               <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                <h3 className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-500">SR Handover</h3>
+                <h3 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">SR Handover</h3>
                 <button type="button" className="btn-secondary h-8 gap-1.5 px-3 py-1.5 text-xs" onClick={vm.addSrHandover}>
                   <Plus size={14} />
                   Add SR Handover
@@ -315,7 +315,7 @@ export default function EveningSettlementPage() {
 
               <div className="grid gap-4 lg:grid-cols-[1.5fr_1fr]">
                 <div className="rounded-[22px] border border-slate-200 bg-slate-50 p-4">
-                  <h3 className="text-sm font-black uppercase tracking-[0.14em] text-slate-700">{t('settlement.summaryTitle')}</h3>
+                  <h3 className="text-sm font-semibold uppercase tracking-[0.14em] text-slate-700">{t('settlement.summaryTitle')}</h3>
                   <dl className="mt-3 space-y-0 text-sm">
                     {/* Today's Sales (with optional returns breakdown) */}
                     {vm.totalReturnValue > 0 ? (
@@ -326,17 +326,17 @@ export default function EveningSettlementPage() {
                         </div>
                         <div className="flex items-center justify-between py-1.5">
                           <dt className="font-semibold text-slate-500">{t('settlement.damagedReturnedPrice')}</dt>
-                          <dd className="font-black text-rose-600">− {formatCurrency(vm.totalReturnValue, language)}</dd>
+                          <dd className="font-semibold text-rose-600">− {formatCurrency(vm.totalReturnValue, language)}</dd>
                         </div>
                         <div className="flex items-center justify-between border-t border-dashed border-slate-200 py-1.5">
                           <dt className="font-bold text-slate-700">{t('settlement.todaySales')}</dt>
-                          <dd className="font-black text-slate-950">{formatCurrency(vm.totalPayable - vm.extraReturnValue, language)}</dd>
+                          <dd className="font-semibold text-slate-950">{formatCurrency(vm.totalPayable - vm.extraReturnValue, language)}</dd>
                         </div>
                       </>
                     ) : (
                       <div className="flex items-center justify-between py-1.5">
                         <dt className="font-bold text-slate-700">{t('settlement.todaySales')}</dt>
-                        <dd className="font-black text-slate-950">{formatCurrency(vm.totalPayable - vm.extraReturnValue, language)}</dd>
+                        <dd className="font-semibold text-slate-950">{formatCurrency(vm.totalPayable - vm.extraReturnValue, language)}</dd>
                       </div>
                     )}
 
@@ -369,28 +369,28 @@ export default function EveningSettlementPage() {
                     {vm.totalSrHandovers > 0 ? (
                       <div className="flex items-center justify-between py-1.5">
                         <dt className="font-semibold text-slate-500">SR Handover</dt>
-                        <dd className="font-black text-rose-600">− {formatCurrency(vm.totalSrHandovers, language)}</dd>
+                        <dd className="font-semibold text-rose-600">− {formatCurrency(vm.totalSrHandovers, language)}</dd>
                       </div>
                     ) : null}
 
                     {/* Today Payable = today's sales − discount − sr handovers */}
                     <div className="flex items-center justify-between border-t border-slate-200 pt-2.5 pb-1.5 mt-1">
-                      <dt className="font-black text-slate-800">Today Payable</dt>
-                      <dd className="font-black text-slate-950">{formatCurrency(vm.todayDue + vm.amountPaid, language)}</dd>
+                      <dt className="font-semibold text-slate-800">Today Payable</dt>
+                      <dd className="font-semibold text-slate-950">{formatCurrency(vm.todayDue + vm.amountPaid, language)}</dd>
                     </div>
 
                     {/* Previous Due */}
                     {vm.previousDue > 0 ? (
                       <div className="flex items-center justify-between py-1.5">
                         <dt className="font-semibold text-slate-500">{t('settlement.previousDue')}</dt>
-                        <dd className="font-black text-amber-700">+ {formatCurrency(vm.previousDue, language)}</dd>
+                        <dd className="font-semibold text-amber-700">+ {formatCurrency(vm.previousDue, language)}</dd>
                       </div>
                     ) : null}
 
                     {/* Total Receivable */}
                     <div className="flex items-center justify-between border-t-2 border-slate-300 pt-2.5 pb-1.5 mt-1">
-                      <dt className="font-black text-slate-800">{t('settlement.totalReceivable')}</dt>
-                      <dd className="font-black text-slate-950">{formatCurrency(vm.receivableTotal, language)}</dd>
+                      <dt className="font-semibold text-slate-800">{t('settlement.totalReceivable')}</dt>
+                      <dd className="font-semibold text-slate-950">{formatCurrency(vm.receivableTotal, language)}</dd>
                     </div>
 
                     {/* Cash Received */}
@@ -404,8 +404,8 @@ export default function EveningSettlementPage() {
 
                     {/* New Due */}
                     <div className="flex items-center justify-between rounded-xl border-2 border-slate-300 bg-white px-3 py-2.5 mt-1">
-                      <dt className="text-base font-black uppercase tracking-[0.1em] text-slate-950">{t('settlement.newDue')}</dt>
-                      <dd className={cx('text-lg font-black', vm.dueAmount > 0 ? 'text-rose-700' : 'text-emerald-700')}>
+                      <dt className="text-base font-semibold uppercase tracking-[0.1em] text-slate-950">{t('settlement.newDue')}</dt>
+                      <dd className={cx('text-lg font-semibold', vm.dueAmount > 0 ? 'text-rose-700' : 'text-emerald-700')}>
                         {formatCurrency(Math.max(0, vm.dueAmount), language)}
                       </dd>
                     </div>
@@ -426,8 +426,8 @@ export default function EveningSettlementPage() {
 
                 <div className="flex flex-col gap-3">
                   <div className="rounded-[22px] border border-slate-200 bg-white px-4 py-3 shadow-sm">
-                    <p className="text-[11px] font-black uppercase tracking-[0.14em] text-slate-500">Today's Outstanding</p>
-                    <p className={cx('mt-1 text-lg font-black', vm.todayDue > 0 ? 'text-rose-700' : 'text-emerald-700')}>{formatCurrency(Math.max(0, vm.todayDue), language)}</p>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">Today's Outstanding</p>
+                    <p className={cx('mt-1 text-lg font-semibold', vm.todayDue > 0 ? 'text-rose-700' : 'text-emerald-700')}>{formatCurrency(Math.max(0, vm.todayDue), language)}</p>
                     <p className="mt-1 text-xs font-medium text-slate-400">Today's sales − discount − cash received</p>
                   </div>
                   {vm.completedSettlement ? (

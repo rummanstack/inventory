@@ -42,7 +42,6 @@ const DashboardPage = lazy(() => import('../features/dashboard/pages/DashboardPa
 const ActivityLogsPage = lazy(() => import('../features/activity-logs/pages/ActivityLogsPage'));
 const IssueCenterPage = lazy(() => import('../features/issue-center/pages/IssueCenterPage'));
 const DsrPage = lazy(() => import('../features/dsrs/pages/DsrPage'));
-const HistoryPage = lazy(() => import('../features/history/pages/HistoryPage'));
 const ExpensesPage = lazy(() => import('../features/expenses/pages/ExpensesPage'));
 const DsrFinancePage = lazy(() => import('../features/dsr-finance/pages/DsrFinancePage'));
 const ProfitPage = lazy(() => import('../features/profit/pages/ProfitPage'));
@@ -94,15 +93,6 @@ const QuotationsPage = lazy(() => import('../features/quotations/pages/Quotation
 const TradeInsPage = lazy(() => import('../features/trade-ins/pages/TradeInsPage'));
 const EmployeesPage = lazy(() => import('../features/hr/employees/pages/EmployeesPage'));
 const SalaryPaymentsPage = lazy(() => import('../features/hr/salary-payments/pages/SalaryPaymentsPage'));
-const PurchaseReportPage = lazy(() => import('../features/reports/pages/PurchaseReportPage'));
-const StockMovementReportPage = lazy(() => import('../features/reports/pages/StockMovementReportPage'));
-const SettlementReportPage = lazy(() => import('../features/reports/pages/SettlementReportPage'));
-const SupplierPaymentReportPage = lazy(() => import('../features/reports/pages/SupplierPaymentReportPage'));
-const SalesReturnReportPage = lazy(() => import('../features/reports/pages/SalesReturnReportPage'));
-const CustomerDueReportPage = lazy(() => import('../features/reports/pages/CustomerDueReportPage'));
-const CashSessionReportPage = lazy(() => import('../features/reports/pages/CashSessionReportPage'));
-const DamagedStockReportPage = lazy(() => import('../features/reports/pages/DamagedStockReportPage'));
-const BatchSalesReportPage = lazy(() => import('../features/pharmacy/pages/BatchSalesReportPage'));
 
 export const APP_ROUTES = [
   // 1. Dashboard
@@ -162,16 +152,6 @@ export const APP_ROUTES = [
   // 9. Reports
   { id: 'retailer-daily-sales-report', path: '/retailer/daily-sales-report', labelKey: 'nav.retailerDailySalesReport', icon: FileText, component: DailySalesReportPage, group: 'reports', permission: 'manage_retail_daily_sales_report', feature: 'retailer-daily-sales-report' },
   { id: 'reports', path: '/reports', labelKey: 'nav.reports', icon: FileText, component: DailyReportsPage, group: 'reports', permission: 'view_state', feature: 'reports' },
-  { id: 'purchase-report', path: '/reports/purchase', labelKey: 'nav.purchaseReport', icon: ShoppingBag, component: PurchaseReportPage, group: 'reports', permission: 'manage_purchases', feature: 'purchase-report' },
-  { id: 'stock-movement-report', path: '/reports/stock-movement', labelKey: 'nav.stockMovementReport', icon: ArrowLeftRight, component: StockMovementReportPage, group: 'reports', permission: 'view_state', feature: 'stock-movement-report' },
-  { id: 'settlement-report', path: '/reports/settlement', labelKey: 'nav.settlementReport', icon: RotateCcw, component: SettlementReportPage, group: 'reports', permission: 'create_settlements', feature: 'settlement-report' },
-  { id: 'supplier-payment-report', path: '/reports/supplier-payment', labelKey: 'nav.supplierPaymentReport', icon: CreditCard, component: SupplierPaymentReportPage, group: 'reports', permission: 'manage_supplier_payments', feature: 'supplier-payment-report' },
-  { id: 'sales-return-report', path: '/reports/sales-return', labelKey: 'nav.salesReturnReport', icon: RotateCcw, component: SalesReturnReportPage, group: 'reports', permission: 'manage_retail_sales_returns', feature: 'sales-return-report' },
-  { id: 'customer-due-report', path: '/reports/customer-due', labelKey: 'nav.customerDueReport', icon: HandCoins, component: CustomerDueReportPage, group: 'reports', permission: 'manage_retail_customer_due', feature: 'customer-due-report' },
-  { id: 'cash-session-report', path: '/reports/cash-session', labelKey: 'nav.cashSessionReport', icon: Vault, component: CashSessionReportPage, group: 'reports', permission: 'manage_retail_quick_sale', feature: 'cash-session-report' },
-  { id: 'damaged-stock-report', path: '/reports/damaged-stock', labelKey: 'nav.damagedStockReport', icon: PackageX, component: DamagedStockReportPage, group: 'reports', permission: 'view_state', feature: 'damaged-stock-report' },
-  { id: 'batch-sales-report', path: '/reports/batch-sales', labelKey: 'nav.batchSalesReport', icon: FileText, component: BatchSalesReportPage, group: 'reports', permission: 'manage_batch_tracking', feature: 'batch-tracking' },
-  { id: 'history', path: '/history', labelKey: 'nav.history', icon: ClipboardList, component: HistoryPage, group: 'reports', permission: 'view_state', feature: 'history' },
   { id: 'activity-logs', path: '/activity-logs', labelKey: 'nav.activityLogs', icon: ClipboardList, component: ActivityLogsPage, group: 'reports', permission: 'view_activity_logs', feature: 'activity-logs' },
 
   // 10. System & Settings

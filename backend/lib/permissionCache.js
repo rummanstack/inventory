@@ -1,11 +1,12 @@
-import { USER_ROLES } from "./roles.js";
-
 const cache = new Map();
 
 export const GLOBAL_SCOPE = "global";
 
-function scopeFor(role, tenantId) {
-  return role === USER_ROLES.SUPER_ADMIN ? GLOBAL_SCOPE : tenantId || GLOBAL_SCOPE;
+// Every role, including super_admin, is scoped per-tenant now — a tenant
+// with no explicit override falls through to the GLOBAL_SCOPE bucket (used
+// only if something has been written there), never to a hardcoded default.
+function scopeFor(tenantId) {
+  return tenantId || GLOBAL_SCOPE;
 }
 
 function cacheKey(role, scope) {
@@ -13,7 +14,7 @@ function cacheKey(role, scope) {
 }
 
 export function getCachedPermissions(role, tenantId) {
-  const scope = scopeFor(role, tenantId);
+  const scope = scopeFor(tenantId);
   const scoped = cache.get(cacheKey(role, scope));
   if (scoped) return scoped;
 
@@ -25,7 +26,7 @@ export function getCachedPermissions(role, tenantId) {
 }
 
 export function setCachedPermissions(role, tenantId, permissions) {
-  cache.set(cacheKey(role, scopeFor(role, tenantId)), permissions);
+  cache.set(cacheKey(role, scopeFor(tenantId)), permissions);
 }
 
 export async function loadPermissionCache(pool) {

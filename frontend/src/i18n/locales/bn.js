@@ -151,6 +151,8 @@ const bn = {
       title: 'পারমিশন',
       description: 'প্রতিটি রোল কোন কোন ফিচার ব্যবহার করতে পারবে তা নিয়ন্ত্রণ করুন।',
       saved: 'পারমিশন সংরক্ষিত হয়েছে।',
+      selectTenant: 'প্রতিষ্ঠান',
+      selectTenantPlaceholder: 'কনফিগার করতে একটি প্রতিষ্ঠান নির্বাচন করুন',
       roles: {
         system_developer: 'সিস্টেম ডেভেলপার',
         super_admin: 'সুপার অ্যাডমিন',

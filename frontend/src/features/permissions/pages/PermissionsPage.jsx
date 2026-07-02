@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Loader2, Save } from 'lucide-react';
-import { Alert, SectionHeader } from '../../../components/ui.jsx';
+import { Alert, Select, SectionHeader } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import { APP_ROUTES } from '../../../app/routes.js';
@@ -131,8 +131,13 @@ const PERMISSION_GROUPS = [
 const GROUPED_PERMISSIONS = new Set(PERMISSION_GROUPS.flatMap(({ permissions }) => permissions));
 
 export default function PermissionsPage() {
-  const { t, pushToast, hasFeature } = useInventoryApp();
-  const [loading, setLoading] = useState(true);
+  const { t, pushToast, hasFeature, user, tenantOptions } = useInventoryApp();
+  // system_developer has no tenant of its own and must pick one before any
+  // permissions can load; super_admin is always implicitly scoped to their
+  // own tenant on the backend, so no picker is needed for them.
+  const needsTenantPicker = Boolean(user?.isPlatformUser);
+  const [selectedTenantId, setSelectedTenantId] = useState('');
+  const [loading, setLoading] = useState(!needsTenantPicker);
   const [error, setError] = useState('');
   const [allPermissions, setAllPermissions] = useState([]);
   const [rolePermissions, setRolePermissions] = useState([]);
@@ -140,12 +145,19 @@ export default function PermissionsPage() {
   const [savingRole, setSavingRole] = useState('');
 
   useEffect(() => {
+    if (needsTenantPicker && !selectedTenantId) {
+      setRolePermissions([]);
+      setAllPermissions([]);
+      return;
+    }
+
     let cancelled = false;
 
     async function load() {
       try {
         setLoading(true);
-        const result = await inventoryApi.getRolePermissions();
+        setError('');
+        const result = await inventoryApi.getRolePermissions(needsTenantPicker ? selectedTenantId : undefined);
         if (cancelled) return;
         setAllPermissions(result.allPermissions || []);
         setRolePermissions(result.roles || []);
@@ -163,7 +175,7 @@ export default function PermissionsPage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [needsTenantPicker, selectedTenantId]);
 
   function togglePermission(role, permission) {
     setRolePermissions((current) =>
@@ -192,7 +204,7 @@ export default function PermissionsPage() {
 
     setSavingRole(role);
     try {
-      const result = await inventoryApi.updateRolePermissions(role, entry.permissions);
+      const result = await inventoryApi.updateRolePermissions(role, entry.permissions, needsTenantPicker ? selectedTenantId : undefined);
       setRolePermissions(result.roles || []);
       setOriginalPermissions(
         Object.fromEntries((result.roles || []).map((item) => [item.role, [...item.permissions].sort()])),
@@ -239,10 +251,32 @@ export default function PermissionsPage() {
     return groups;
   }, [visiblePermissions]);
 
+  const tenantPicker = needsTenantPicker ? (
+    <label className="block max-w-xs">
+      <span className="label">{t('permissions.selectTenant')}</span>
+      <Select value={selectedTenantId} onChange={(event) => setSelectedTenantId(event.target.value)}>
+        <option value="">{t('permissions.selectTenantPlaceholder')}</option>
+        {(tenantOptions || []).map((option) => (
+          <option key={option.id} value={option.id}>{option.name}</option>
+        ))}
+      </Select>
+    </label>
+  ) : null;
+
+  if (needsTenantPicker && !selectedTenantId) {
+    return (
+      <div className="space-y-6">
+        <SectionHeader eyebrow={t('nav.permissions')} title={t('permissions.title')} description={t('permissions.description')} />
+        {tenantPicker}
+      </div>
+    );
+  }
+
   if (loading) {
     return (
-      <div>
+      <div className="space-y-6">
         <SectionHeader eyebrow={t('nav.permissions')} title={t('permissions.title')} description={t('permissions.description')} />
+        {tenantPicker}
         <div className="grid gap-6 lg:grid-cols-2">
           {Array.from({ length: 4 }).map((_, cardIndex) => (
             <div key={cardIndex} className="panel-strong space-y-4 p-6">
@@ -265,6 +299,8 @@ export default function PermissionsPage() {
   return (
     <div className="space-y-6">
       <SectionHeader eyebrow={t('nav.permissions')} title={t('permissions.title')} description={t('permissions.description')} />
+
+      {tenantPicker}
 
       {error ? <Alert type="error">{error}</Alert> : null}
 

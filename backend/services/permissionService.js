@@ -1,13 +1,20 @@
 import { assert } from "../lib/errors.js";
-import { ROLE_PERMISSIONS, TENANT_BUSINESS_PERMISSIONS } from "../lib/permissions.js";
+import { TENANT_BUSINESS_PERMISSIONS } from "../lib/permissions.js";
 import { setCachedPermissions } from "../lib/permissionCache.js";
 import { USER_ROLES } from "../lib/roles.js";
 import { listRolePermissions, replaceRolePermissions } from "../repositories/rolePermissionRepository.js";
+import { findTenantById } from "../repositories/tenantRepository.js";
 
 const ALL_PERMISSIONS = TENANT_BUSINESS_PERMISSIONS;
 
 const EDITABLE_ROLES_BY_ACTOR_ROLE = {
-  [USER_ROLES.SYSTEM_DEVELOPER]: [USER_ROLES.ADMIN, USER_ROLES.MANAGER, USER_ROLES.OPERATOR],
+  // system_developer sets the ceiling for every tenant-facing role,
+  // including super_admin — a tenant's owner-level access is no longer
+  // hardcoded, it's whatever the platform operator configures per tenant.
+  [USER_ROLES.SYSTEM_DEVELOPER]: [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.MANAGER, USER_ROLES.OPERATOR],
+  // super_admin can delegate to their own sub-roles but can't touch its
+  // own row — prevents a tenant from self-escalating past what
+  // system_developer granted it.
   [USER_ROLES.SUPER_ADMIN]: [USER_ROLES.ADMIN, USER_ROLES.MANAGER, USER_ROLES.OPERATOR],
 };
 
@@ -74,30 +81,44 @@ export class PermissionService {
     this.tenantService = tenantService;
   }
 
-  async getPermissions(actor) {
+  // system_developer has no tenant of its own, so it must name one; every
+  // other actor is always scoped to their own tenant.
+  async resolveTenantId(actor, requestedTenantId) {
+    if (actor.role !== USER_ROLES.SYSTEM_DEVELOPER) {
+      return actor.tenantId;
+    }
+
+    assert(requestedTenantId, "A tenant is required.");
+    const tenant = await this.databaseManager.withClient((client) => findTenantById(client, requestedTenantId));
+    assert(tenant, "Organization not found.");
+    return tenant.id;
+  }
+
+  async getPermissions(actor, requestedTenantId) {
     const roles = editableRolesFor(actor);
     assert(roles.length > 0, "Forbidden.", 403);
+
+    const tenantId = await this.resolveTenantId(actor, requestedTenantId);
 
     const client = await this.databaseManager.getPool().connect();
     try {
       const result = [];
       for (const role of roles) {
-        const stored = await listRolePermissions(client, role, actor.tenantId);
-        result.push({
-          role,
-          permissions: stored.length > 0 ? stored : ROLE_PERMISSIONS[role] || [],
-        });
+        const stored = await listRolePermissions(client, role, tenantId);
+        result.push({ role, permissions: stored });
       }
-      return { roles: result, allPermissions: ALL_PERMISSIONS };
+      return { roles: result, allPermissions: ALL_PERMISSIONS, tenantId };
     } finally {
       client.release();
     }
   }
 
-  async updateRolePermissions(role, permissions, actor) {
+  async updateRolePermissions(role, permissions, actor, requestedTenantId) {
     const editableRoles = editableRolesFor(actor);
     assert(editableRoles.includes(role), "Forbidden.", 403);
     assert(Array.isArray(permissions), "Permissions must be an array.");
+
+    const tenantId = await this.resolveTenantId(actor, requestedTenantId);
 
     const cleanPermissions = [...new Set(permissions.map((permission) => String(permission)))];
     for (const permission of cleanPermissions) {
@@ -117,21 +138,21 @@ export class PermissionService {
     }
 
     await this.databaseManager.withTransaction(async (client) => {
-      await replaceRolePermissions(client, role, actor.tenantId, cleanPermissions);
+      await replaceRolePermissions(client, role, tenantId, cleanPermissions);
 
       await this.auditService.record(client, {
-        tenantId: actor.tenantId,
+        tenantId,
         userId: actor.id,
         actionType: "permissions.update",
         entityType: "role",
         entityId: role,
         description: `${actor.name} updated permissions for role ${role}`,
-        metadata: { role, permissions: cleanPermissions },
+        metadata: { role, permissions: cleanPermissions, tenantId },
       });
     });
 
-    setCachedPermissions(role, actor.tenantId, cleanPermissions);
+    setCachedPermissions(role, tenantId, cleanPermissions);
 
-    return this.getPermissions(actor);
+    return this.getPermissions(actor, tenantId);
   }
 }

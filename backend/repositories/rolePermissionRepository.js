@@ -1,12 +1,11 @@
 import { GLOBAL_SCOPE } from "../lib/permissionCache.js";
-import { USER_ROLES } from "../lib/roles.js";
 
-function scopeFor(role, tenantId) {
-  return role === USER_ROLES.SUPER_ADMIN ? GLOBAL_SCOPE : tenantId || GLOBAL_SCOPE;
+function scopeFor(tenantId) {
+  return tenantId || GLOBAL_SCOPE;
 }
 
 export async function listRolePermissions(client, role, tenantId) {
-  const scope = scopeFor(role, tenantId);
+  const scope = scopeFor(tenantId);
   const result = await client.query("SELECT permission FROM role_permissions WHERE role = $1 AND tenant_id = $2", [
     role,
     scope,
@@ -15,7 +14,7 @@ export async function listRolePermissions(client, role, tenantId) {
 }
 
 export async function replaceRolePermissions(client, role, tenantId, permissions) {
-  const scope = scopeFor(role, tenantId);
+  const scope = scopeFor(tenantId);
   await client.query("DELETE FROM role_permissions WHERE role = $1 AND tenant_id = $2", [role, scope]);
 
   for (const permission of permissions) {
@@ -28,7 +27,7 @@ export async function replaceRolePermissions(client, role, tenantId, permissions
 }
 
 export async function hasAnyRolePermissions(client, role, tenantId) {
-  const scope = scopeFor(role, tenantId);
+  const scope = scopeFor(tenantId);
   const result = await client.query("SELECT 1 FROM role_permissions WHERE role = $1 AND tenant_id = $2 LIMIT 1", [
     role,
     scope,

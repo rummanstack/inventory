@@ -1,11 +1,12 @@
 import { apiRequest } from './client.js';
 
 export const permissionsApi = {
-  getRolePermissions() {
-    return apiRequest("/permissions");
+  getRolePermissions(tenantId) {
+    const query = tenantId ? `?tenantId=${encodeURIComponent(tenantId)}` : '';
+    return apiRequest(`/permissions${query}`);
   },
 
-  updateRolePermissions(role, permissions) {
-    return apiRequest(`/permissions/${role}`, { method: "PUT", body: JSON.stringify({ permissions }) });
+  updateRolePermissions(role, permissions, tenantId) {
+    return apiRequest(`/permissions/${role}`, { method: "PUT", body: JSON.stringify({ permissions, tenantId }) });
   },
 };

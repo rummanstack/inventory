@@ -5,7 +5,7 @@ export class PermissionController {
 
   list = async (req, res, next) => {
     try {
-      res.json(await this.permissionService.getPermissions(req.currentUser));
+      res.json(await this.permissionService.getPermissions(req.currentUser, req.query.tenantId));
     } catch (error) {
       next(error);
     }
@@ -17,6 +17,7 @@ export class PermissionController {
         req.params.role,
         req.body.permissions,
         req.currentUser,
+        req.body.tenantId,
       );
       res.json(result);
     } catch (error) {

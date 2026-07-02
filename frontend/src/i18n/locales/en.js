@@ -2612,6 +2612,102 @@ const en = {
       },
       login: 'Login',
       whatsappUs: 'WhatsApp Us',
+      tagline: 'Inventory System',
+      trustBar: {
+        items: [
+          { value: '500+', label: 'Active Businesses' },
+          { value: '৳50 Crore+', label: 'Revenue Tracked' },
+          { value: '4.9 / 5', label: 'Customer Rating' },
+          { value: '24/7', label: 'Support Available' },
+        ],
+      },
+      whoIsItFor: {
+        eyebrow: 'Who is this for?',
+        title: 'Built for Every Type of Bangladeshi Business',
+        text: 'If you sell products, manage stock, or have a team on the field — StockLedger is made for you.',
+        types: [
+          'Grocery & General Store',
+          'Pharmacy & Medical',
+          'Electronics Shop',
+          'Clothing & Fashion',
+          'Hardware & Tools',
+          'FMCG Distributor',
+          'Wholesale Trader',
+          'Multi-branch Business',
+        ],
+      },
+      faq: {
+        eyebrow: 'Common Questions',
+        title: 'Frequently Asked Questions',
+        text: 'Everything you need to know before getting started. Still have questions? Chat with us on WhatsApp.',
+        items: [
+          {
+            question: 'Do I need internet all the time to use StockLedger?',
+            answer: 'An internet connection is required to sync data across devices and to access the system from multiple locations. However, for single-location use on a desktop, the system loads fast even on slow connections. We are working on an offline-first mode for future releases.',
+          },
+          {
+            question: 'Can multiple staff members log in at the same time?',
+            answer: 'Yes. Each user gets their own login with a specific role — operator, manager, admin, or super admin. You control exactly what each person can see and do. Multiple users can work simultaneously without any conflict.',
+          },
+          {
+            question: 'Is my business data safe? Who can see it?',
+            answer: 'Your data belongs to you only. Each business account is fully isolated — no other tenant can see your data. All connections are SSL-encrypted, and we run daily automatic backups so nothing is ever lost.',
+          },
+          {
+            question: 'What happens if I want to stop using StockLedger?',
+            answer: 'You can export all your data at any time — products, invoices, purchase records, customer lists, and reports — in Excel format. There are no lock-in contracts. You can cancel any time with no penalties.',
+          },
+          {
+            question: 'Can you help me set it up and train my team?',
+            answer: 'Absolutely. Every new subscription includes free onboarding setup and a training session for your team. Our support team is also available on WhatsApp and phone during business hours to help with any questions.',
+          },
+          {
+            question: 'Does StockLedger support DSR (dealer/distribution) operations?',
+            answer: 'Yes — DSR management is one of our core features. Morning issue, evening settlement, due collection, DSR performance tracking, and cash advance management are all built in and used by distributors across Bangladesh.',
+          },
+        ],
+      },
+      testimonials: {
+        eyebrow: 'Customer Stories',
+        title: 'Trusted by Business Owners Across Bangladesh',
+        text: 'From small retail shops to large wholesale distributors — real businesses, real results.',
+        items: [
+          {
+            name: 'Rafiqul Islam',
+            role: 'Grocery Wholesale, Dhaka',
+            quote: 'Before StockLedger, I had no idea how much profit I was making daily. Now I check the dashboard every morning and know exactly where my money stands. My DSRs are more accountable too.',
+          },
+          {
+            name: 'Mahmudul Hasan',
+            role: 'Pharmacy Owner, Chittagong',
+            quote: 'The purchase and supplier payment tracking alone saved us from countless disputes. Everything is recorded, and I can pull a supplier statement in seconds. Highly recommended.',
+          },
+          {
+            name: 'Kamal Hossain',
+            role: 'Electronics Retailer, Sylhet',
+            quote: "Serial number tracking and warranty claims are a game changer for my electronics shop. Customers trust us more because we can look up any product's history instantly.",
+          },
+          {
+            name: 'Shahadat Hossain',
+            role: 'Clothing Distributor, Rajshahi',
+            quote: 'I manage 12 DSRs across three districts. The morning issue and evening settlement flow is so smooth now — dues are clear, cash is tracked, no more end-of-day confusion.',
+          },
+          {
+            name: 'Farzana Akter',
+            role: 'FMCG Trader, Comilla',
+            quote: 'The profit report section is outstanding. I can filter by date, see which products are most profitable, and share the report with my accountant in one click.',
+          },
+          {
+            name: 'Nusrat Jahan',
+            role: 'Hardware & Tools Shop, Khulna',
+            quote: 'Stock management used to be a nightmare with so many SKUs. Now I get low-stock alerts before I run out, and the purchase history keeps every supplier deal on record.',
+          },
+        ],
+      },
+      footerLinks: {
+        privacy: 'Privacy Policy',
+        terms: 'Terms & Conditions',
+      },
       chat: {
         launch: 'Live Chat',
         badge: 'Support Desk',

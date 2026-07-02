@@ -34,8 +34,8 @@ export default function LandingPage() {
     <main className="landing-page">
       <LandingHeader language={language} setLanguage={setLanguage} t={t} />
       <HeroSection t={t} />
-      <TrustBarSection />
-      <WhoIsItForSection />
+      <TrustBarSection t={t} />
+      <WhoIsItForSection t={t} />
       <ProblemSection t={t} />
       <FeatureStorySection t={t} />
       <FeatureGridSection t={t} />
@@ -45,7 +45,7 @@ export default function LandingPage() {
       <CtaSection t={t} />
       <TestimonialsSection t={t} />
       <PricingSection t={t} />
-      <FaqSection />
+      <FaqSection t={t} />
       <ContactSection t={t} />
       <LandingFooter t={t} />
       <LandingChatWidget t={t} />

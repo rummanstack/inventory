@@ -77,8 +77,8 @@ export default function LandingFooter({ t }) {
         <div className="mt-8 flex flex-col gap-3 border-t border-white/10 pt-5 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
             <p className="text-xs font-semibold text-slate-400">{t('landing.footer.copyright')}</p>
-            <Link to="/privacy-policy" className="text-xs font-bold text-slate-400 transition hover:text-white">Privacy Policy</Link>
-            <Link to="/terms" className="text-xs font-bold text-slate-400 transition hover:text-white">Terms &amp; Conditions</Link>
+            <Link to="/privacy-policy" className="text-xs font-bold text-slate-400 transition hover:text-white">{t('landing.footerLinks.privacy')}</Link>
+            <Link to="/terms" className="text-xs font-bold text-slate-400 transition hover:text-white">{t('landing.footerLinks.terms')}</Link>
           </div>
           <a href="#top" className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-300 transition hover:text-white">
             {t('landing.footer.backToTop')}

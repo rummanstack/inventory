@@ -87,7 +87,7 @@ export function Sparkline({ data = [], color = getCssVar('--secondary', '#5e5b8e
   const options = {
     responsive: true,
     maintainAspectRatio: false,
-    animation: { duration: 600, easing: 'easeOutQuart' },
+    animation: { duration: 300, easing: 'easeOutQuart' },
     scales: {
       x: { display: false },
       y: { display: false },
@@ -124,7 +124,7 @@ export function RadialProgressChart({ value = 0, label, valueLabel, color = getC
     responsive: true,
     maintainAspectRatio: false,
     cutout: '76%',
-    animation: { animateRotate: true, duration: 900, easing: 'easeOutQuart' },
+    animation: { animateRotate: true, duration: 300, easing: 'easeOutQuart' },
     plugins: {
       legend: { display: false },
       tooltip: { enabled: false },
@@ -163,7 +163,7 @@ export function DonutChart({ data, valueFormatter = (value) => value, centerLabe
     responsive: true,
     maintainAspectRatio: false,
     cutout: '72%',
-    animation: { animateRotate: true, animateScale: true, duration: 800, easing: 'easeOutQuart' },
+    animation: { animateRotate: true, animateScale: true, duration: 300, easing: 'easeOutQuart' },
     plugins: {
       legend: { display: false },
       tooltip: {
@@ -226,7 +226,7 @@ export function TrendChart({ data, series, valueFormatter = (value) => value, he
     responsive: true,
     maintainAspectRatio: false,
     interaction: { mode: 'index', intersect: false },
-    animation: { duration: 700, easing: 'easeOutQuart' },
+    animation: { duration: 300, easing: 'easeOutQuart' },
     scales: {
       x: { grid: { display: false }, ticks: chartAxisTickStyle },
       y: { grid: chartGridStyle, ticks: { ...chartAxisTickStyle, callback: (value) => valueFormatter(value) } },
@@ -283,7 +283,7 @@ export function HorizontalBarChart({ data, valueFormatter = (value) => value, tr
     indexAxis: 'y',
     responsive: true,
     maintainAspectRatio: false,
-    animation: { duration: 700, easing: 'easeOutQuart' },
+    animation: { duration: 300, easing: 'easeOutQuart' },
     scales: {
       x: { grid: chartGridStyle, ticks: { ...chartAxisTickStyle, callback: (value) => valueFormatter(value) } },
       y: { grid: { display: false }, ticks: { color: getCssVar('--tick-color', '#2f3347'), font: { weight: '800', size: 12 } } },
@@ -329,7 +329,7 @@ export function StackedBarChart({ data, segments, totalFormatter = (value) => va
     indexAxis: 'y',
     responsive: true,
     maintainAspectRatio: false,
-    animation: { duration: 700, easing: 'easeOutQuart' },
+    animation: { duration: 300, easing: 'easeOutQuart' },
     scales: {
       x: { stacked: true, grid: chartGridStyle, ticks: chartAxisTickStyle },
       y: { stacked: true, grid: { display: false }, ticks: { color: getCssVar('--tick-color', '#2f3347'), font: { weight: '800', size: 12 } } },

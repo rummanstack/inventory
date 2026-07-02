@@ -76,7 +76,7 @@ export default function SecurityPage() {
   }
 
   async function handleCopyLink(token) {
-    const link = `${window.location.origin}/?token=${token}`;
+    const link = `${window.location.origin}/login?token=${token}`;
     try {
       await navigator.clipboard.writeText(link);
       pushToast('success', t('security.title'), t('security.linkCopied'));

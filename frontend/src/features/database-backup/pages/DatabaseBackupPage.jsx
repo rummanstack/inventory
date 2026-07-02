@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react';
 import { ClipboardList, Download } from 'lucide-react';
 import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
+import TableReportActions from '../../../components/TableReportActions.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi';
 import { formatDateTime } from '../../../utils/calculations.js';
 import { usePagination } from '../../../hooks/usePagination';
+
+const BACKUP_HISTORY_REPORT_ID = 'backup-history-report';
 
 export default function DatabaseBackupPage() {
   const { t, pushToast } = useInventoryApp();
@@ -88,11 +91,14 @@ export default function DatabaseBackupPage() {
         </div>
       ) : null}
 
-      <div className="surface overflow-hidden">
+      <div id={BACKUP_HISTORY_REPORT_ID} className="surface overflow-hidden">
         <div className="border-b border-slate-100 px-5 py-4">
           <div className="flex items-center justify-between gap-3">
             <h2 className="section-title">{t('backup.history.title')}</h2>
-            <span className="muted-chip">{historyTotal} {t('common.records')}</span>
+            <div className="flex flex-wrap items-center justify-end gap-2 no-print">
+              <span className="muted-chip">{historyTotal} {t('common.records')}</span>
+              <TableReportActions targetId={BACKUP_HISTORY_REPORT_ID} title={t('backup.history.title')} fileName="backup-history" entityType="database_backup_history" t={t} />
+            </div>
           </div>
         </div>
 

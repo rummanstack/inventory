@@ -256,6 +256,7 @@ const en = {
       search: 'Search',
       actions: 'Actions',
       print: 'Print',
+      downloadPdf: 'Download as PDF',
       exportExcel: 'Export as Excel',
       view: 'View',
       reload: 'Reload',

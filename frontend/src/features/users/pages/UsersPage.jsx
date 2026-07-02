@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Copy, KeyRound, Loader2, Pencil, Plus, Trash2, UserCog, Unlock } from 'lucide-react';
 import { Alert, Avatar, Badge, EmptyState, Modal, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
+import TableReportActions from '../../../components/TableReportActions.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import UserFormModal from '../components/UserFormModal';
@@ -9,6 +10,8 @@ const MANAGEABLE_ROLES = {
   system_developer: ['super_admin', 'admin', 'manager', 'operator'],
   super_admin: ['super_admin', 'admin', 'manager', 'operator'],
 };
+
+const USERS_REPORT_ID = 'users-report';
 
 export default function UsersPage() {
   const { t, user: actor, confirm, pushToast } = useInventoryApp();
@@ -144,7 +147,11 @@ export default function UsersPage() {
         )}
       />
 
-      <div className="surface overflow-hidden">
+      <div id={USERS_REPORT_ID} className="surface overflow-hidden">
+        <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-3 no-print">
+          <span className="text-sm font-bold text-slate-700">{t('users.title')}</span>
+          <TableReportActions targetId={USERS_REPORT_ID} title={t('users.title')} fileName="users" entityType="users" t={t} />
+        </div>
         {loading ? (
           <div className="p-5">
             <TableSkeleton columns={isSystemDeveloper ? 6 : 5} showHeader={false} />
@@ -163,7 +170,7 @@ export default function UsersPage() {
                   {isSystemDeveloper ? <th className="px-4 py-3">{t('users.tenant')}</th> : null}
                   <th className="px-4 py-3">{t('users.role')}</th>
                   <th className="px-4 py-3">{t('users.status')}</th>
-                  <th className="px-4 py-3 text-right">{t('common.actions')}</th>
+                  <th className="px-4 py-3 text-right no-print">{t('common.actions')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -177,7 +184,7 @@ export default function UsersPage() {
                     </td>
                     <td className="table-cell">{user.email}</td>
                     {isSystemDeveloper ? <td className="table-cell">{user.tenantName || user.tenantId}</td> : null}
-                    <td className="table-cell">
+                    <td className="table-cell no-print">
                       <Badge tone="slate">{t(`permissions.roles.${user.role}`) || user.role}</Badge>
                     </td>
                     <td className="table-cell">

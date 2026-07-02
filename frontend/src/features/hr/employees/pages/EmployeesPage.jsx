@@ -1,11 +1,14 @@
 import { useState } from 'react';
 import { Pencil, Plus, Trash2, Users } from 'lucide-react';
 import { Alert, EmptyState, Pagination, SectionHeader, TableSkeleton, Select } from '../../../../components/ui.jsx';
+import TableReportActions from '../../../../components/TableReportActions.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../../services/inventoryApi.js';
 import { formatDate } from '../../../../utils/calculations.js';
 import { useEmployeesViewModel } from '../viewmodels/useEmployeesViewModel.js';
 import EmployeeFormModal from '../components/EmployeeFormModal.jsx';
+
+const EMPLOYEES_REPORT_ID = 'employees-report';
 
 export default function EmployeesPage() {
   const { t, can, language, confirm } = useInventoryApp();
@@ -58,11 +61,12 @@ export default function EmployeesPage() {
         ) : null}
       />
 
-      <div className="surface overflow-hidden">
+      <div id={EMPLOYEES_REPORT_ID} className="surface overflow-hidden">
         <div className="border-b border-slate-100 p-5">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">{t('employees.eyebrow')}</p>
             <div className="flex flex-1 flex-wrap gap-2 sm:justify-end">
+              <TableReportActions targetId={EMPLOYEES_REPORT_ID} title={t('employees.title')} fileName="employees" entityType="employees" t={t} />
               <input
                 className="input w-full sm:w-56"
                 placeholder={t('common.search')}
@@ -94,7 +98,7 @@ export default function EmployeesPage() {
                   <th className="px-4 py-3">{t('employees.designation')}</th>
                   <th className="px-4 py-3">{t('employees.joinDate')}</th>
                   <th className="px-4 py-3">{t('employees.status')}</th>
-                  {canManage ? <th className="px-4 py-3 text-right">{t('common.actions')}</th> : null}
+                  {canManage ? <th className="px-4 py-3 text-right no-print">{t('common.actions')}</th> : null}
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -112,7 +116,7 @@ export default function EmployeesPage() {
                       </span>
                     </td>
                     {canManage ? (
-                      <td className="table-cell">
+                      <td className="table-cell no-print">
                         <div className="row-actions flex justify-end gap-2">
                           <button type="button" className="icon-btn" onClick={() => setFormModal({ mode: 'edit', employee: emp })}>
                             <Pencil size={16} />

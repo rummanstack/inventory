@@ -23,6 +23,7 @@ import { IssueController } from "../controllers/issueController.js";
 import { ManufacturerController } from "../controllers/manufacturerController.js";
 import { OrgController } from "../controllers/orgController.js";
 import { PermissionController } from "../controllers/permissionController.js";
+import { ReportExportController } from "../controllers/reportExportController.js";
 import { ProductController } from "../controllers/productController.js";
 import { ProductSerialController } from "../controllers/productSerialController.js";
 import { ProfitController } from "../controllers/profitController.js";
@@ -78,6 +79,7 @@ export function createControllerRegistry({ services, env, databaseManager }) {
     tenant: {
       activityLogController: new ActivityLogController(services.platform.auditService),
       auditController: new AuditController(services.platform.auditService),
+      reportExportController: new ReportExportController(services.platform.reportExportService, services.platform.auditService),
       orgController: new OrgController(services.platform.tenantService),
       permissionController: new PermissionController(services.platform.permissionService),
       uploadController: new UploadController(services.platform.auditService),

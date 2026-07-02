@@ -1,5 +1,6 @@
 import { CircleDollarSign, Download, Eye, FileSpreadsheet, FileText, PackageCheck, Printer, RotateCcw, Truck, TrendingUp, Percent, Users, ReceiptText, Wallet, BadgeDollarSign } from 'lucide-react';
 import PrintableSheet from '../../../components/PrintableSheet.jsx';
+import TableReportActions from '../../../components/TableReportActions.jsx';
 import { Alert, EmptyState, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
@@ -12,6 +13,8 @@ export default function DailyReportsPage() {
   const { productDirectory, dsrDirectory, today, t, tenant, language } = useInventoryApp();
   const vm = useDailyReportsViewModel({ products: productDirectory, dsrs: dsrDirectory, today, t, tenantName: tenant?.name });
   const dueCollectedTotal = vm.dueCollectionRows.reduce((sum, r) => sum + r.total, 0);
+  const reportFileSuffix = vm.isSingleDay ? vm.dateFrom : `${vm.dateFrom}-to-${vm.dateTo}`;
+  const reportSubtitle = vm.isSingleDay ? vm.dateFrom : `${vm.dateFrom} to ${vm.dateTo}`;
 
   function recordReportPrint(label) {
     if (!vm.selectedSheet) return;
@@ -62,7 +65,7 @@ export default function DailyReportsPage() {
 
   const dateLabel = vm.isSingleDay
     ? formatDate(vm.dateFrom, language)
-    : `${formatDate(vm.dateFrom, language)} – ${formatDate(vm.dateTo, language)}`;
+    : `${formatDate(vm.dateFrom, language)} - ${formatDate(vm.dateTo, language)}`;
 
   return (
     <div>
@@ -93,17 +96,28 @@ export default function DailyReportsPage() {
             <StatCard title={t('reports.due')} value={formatCurrency(vm.dueTotal)} icon={Wallet} tone="rose" />
             <StatCard title={t('reports.srHandover')} value={formatCurrency(vm.totals.srHandover)} icon={Users} tone="indigo" />
             <StatCard title={t('reports.discount')} value={formatCurrency(vm.totals.discount)} icon={Percent} tone="amber" />
-            <StatCard title={t('reports.profit')} value={vm.profitTotals ? formatCurrency(vm.profitTotals.profit) : '—'} icon={TrendingUp} tone={vm.profitTotals && vm.profitTotals.profit >= 0 ? 'emerald' : 'rose'} />
+            <StatCard title={t('reports.profit')} value={vm.profitTotals ? formatCurrency(vm.profitTotals.profit) : '-'} icon={TrendingUp} tone={vm.profitTotals && vm.profitTotals.profit >= 0 ? 'emerald' : 'rose'} />
           </div>
 
           {/* DSR Table */}
-          <div className="surface overflow-hidden">
+          <div id="daily-reports-dsr-table" className="surface overflow-hidden">
             <div className="border-b border-slate-100 px-5 py-4">
-              <div className="flex items-center justify-between gap-3">
+              <div className="flex flex-wrap items-center justify-between gap-3">
                 <h2 className="section-title">
                   {vm.isSingleDay ? t('reports.dsrTable', { date: formatDate(vm.dateFrom, language) }) : t('reports.dsrTableRange')}
                 </h2>
-                <span className="muted-chip">{formatNumber(vm.rows.length)} {t('common.dsr')}</span>
+                <div className="flex flex-wrap items-center gap-2">
+                  <TableReportActions
+                    targetId="daily-reports-dsr-table"
+                    title={vm.isSingleDay ? t('reports.dsrTable', { date: formatDate(vm.dateFrom, language) }) : t('reports.dsrTableRange')}
+                    subtitle={reportSubtitle}
+                    fileName={`daily-reports-dsr-${reportFileSuffix}`}
+                    entityType="daily_reports_dsr"
+                    t={t}
+                    className="flex flex-wrap gap-2 no-print"
+                  />
+                  <span className="muted-chip">{formatNumber(vm.rows.length)} {t('common.dsr')}</span>
+                </div>
               </div>
             </div>
             <div className="overflow-x-auto">
@@ -117,7 +131,7 @@ export default function DailyReportsPage() {
                     <th className="px-4 py-3 hidden md:table-cell">{t('reports.paid')}</th>
                     <th className="px-4 py-3 hidden lg:table-cell">{t('reports.due')}</th>
                     <th className="px-4 py-3 hidden lg:table-cell">{t('reports.discount')}</th>
-                    {vm.isSingleDay && <th className="px-4 py-3 text-right">{t('reports.sheet')}</th>}
+                    {vm.isSingleDay && <th className="px-4 py-3 text-right no-print">{t('reports.sheet')}</th>}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -145,7 +159,7 @@ export default function DailyReportsPage() {
                         <td className="table-cell hidden lg:table-cell text-rose-600">{formatCurrency(rowDue)}</td>
                         <td className="table-cell hidden lg:table-cell text-amber-600">{formatCurrency(row.discount)}</td>
                         {vm.isSingleDay && (
-                          <td className="table-cell text-right">
+                          <td className="table-cell text-right no-print">
                             <button
                               type="button"
                               className="btn-secondary h-9 px-3"
@@ -173,14 +187,25 @@ export default function DailyReportsPage() {
           </div>
 
           {/* SR Table */}
-          <div className="surface mt-6 overflow-hidden">
+          <div id="daily-reports-sr-table" className="surface mt-6 overflow-hidden">
             <div className="border-b border-slate-100 px-5 py-4">
-              <div className="flex items-center justify-between gap-3">
+              <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <h2 className="section-title">{t('reports.srTable')}</h2>
                   <p className="mt-0.5 text-xs text-slate-400">{t('reports.srTableDescription')}</p>
                 </div>
-                {vm.srRows.length > 0 && <span className="muted-chip">{formatNumber(vm.srRows.length)} SR</span>}
+                <div className="flex flex-wrap items-center gap-2">
+                  <TableReportActions
+                    targetId="daily-reports-sr-table"
+                    title={t('reports.srTable')}
+                    subtitle={reportSubtitle}
+                    fileName={`daily-reports-sr-${reportFileSuffix}`}
+                    entityType="daily_reports_sr"
+                    t={t}
+                    className="flex flex-wrap gap-2 no-print"
+                  />
+                  {vm.srRows.length > 0 && <span className="muted-chip">{formatNumber(vm.srRows.length)} SR</span>}
+                </div>
               </div>
             </div>
             {vm.srRows.length === 0 ? (
@@ -214,16 +239,27 @@ export default function DailyReportsPage() {
           </div>
 
           {/* Expense Table */}
-          <div className="surface mt-6 overflow-hidden">
+          <div id="daily-reports-expense-table" className="surface mt-6 overflow-hidden">
             <div className="border-b border-slate-100 px-5 py-4">
-              <div className="flex items-center justify-between gap-3">
+              <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <h2 className="section-title">{t('reports.expenseTable')}</h2>
                   <p className="mt-0.5 text-xs text-slate-400">{t('reports.expenseTableDescription')}</p>
                 </div>
-                {vm.expenseRows.length > 0 && (
-                  <span className="muted-chip">{formatCurrency(vm.expenseRows.reduce((s, r) => s + r.totalAmount, 0))}</span>
-                )}
+                <div className="flex flex-wrap items-center gap-2">
+                  <TableReportActions
+                    targetId="daily-reports-expense-table"
+                    title={t('reports.expenseTable')}
+                    subtitle={reportSubtitle}
+                    fileName={`daily-reports-expenses-${reportFileSuffix}`}
+                    entityType="daily_reports_expenses"
+                    t={t}
+                    className="flex flex-wrap gap-2 no-print"
+                  />
+                  {vm.expenseRows.length > 0 && (
+                    <span className="muted-chip">{formatCurrency(vm.expenseRows.reduce((s, r) => s + r.totalAmount, 0))}</span>
+                  )}
+                </div>
               </div>
             </div>
             {vm.expenseRows.length === 0 ? (
@@ -251,16 +287,27 @@ export default function DailyReportsPage() {
           </div>
 
           {/* Salary Table */}
-          <div className="surface mt-6 overflow-hidden">
+          <div id="daily-reports-salary-table" className="surface mt-6 overflow-hidden">
             <div className="border-b border-slate-100 px-5 py-4">
-              <div className="flex items-center justify-between gap-3">
+              <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <h2 className="section-title">{t('reports.salaryTable')}</h2>
                   <p className="mt-0.5 text-xs text-slate-400">{t('reports.salaryTableDescription')}</p>
                 </div>
-                {vm.salaryRows.length > 0 && (
-                  <span className="muted-chip">{formatCurrency(vm.salaryRows.reduce((s, r) => s + r.totalPaid, 0))}</span>
-                )}
+                <div className="flex flex-wrap items-center gap-2">
+                  <TableReportActions
+                    targetId="daily-reports-salary-table"
+                    title={t('reports.salaryTable')}
+                    subtitle={reportSubtitle}
+                    fileName={`daily-reports-salary-${reportFileSuffix}`}
+                    entityType="daily_reports_salary"
+                    t={t}
+                    className="flex flex-wrap gap-2 no-print"
+                  />
+                  {vm.salaryRows.length > 0 && (
+                    <span className="muted-chip">{formatCurrency(vm.salaryRows.reduce((s, r) => s + r.totalPaid, 0))}</span>
+                  )}
+                </div>
               </div>
             </div>
             {vm.salaryRows.length === 0 ? (
@@ -288,14 +335,25 @@ export default function DailyReportsPage() {
           </div>
 
           {/* Due Collections */}
-          <div className="surface mt-6 overflow-hidden">
+          <div id="daily-reports-due-collections-table" className="surface mt-6 overflow-hidden">
             <div className="border-b border-slate-100 px-5 py-4">
-              <div className="flex items-center justify-between gap-3">
+              <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <h2 className="section-title">{t('reports.dueCollections', { date: dateLabel })}</h2>
                   <p className="mt-0.5 text-xs text-slate-400">{t('reports.dueCollectionsDescription')}</p>
                 </div>
-                {vm.dueCollectionRows.length > 0 && <span className="muted-chip">{formatCurrency(dueCollectedTotal)}</span>}
+                <div className="flex flex-wrap items-center gap-2">
+                  <TableReportActions
+                    targetId="daily-reports-due-collections-table"
+                    title={t('reports.dueCollections', { date: dateLabel })}
+                    subtitle={reportSubtitle}
+                    fileName={`daily-reports-due-collections-${reportFileSuffix}`}
+                    entityType="daily_reports_due_collections"
+                    t={t}
+                    className="flex flex-wrap gap-2 no-print"
+                  />
+                  {vm.dueCollectionRows.length > 0 && <span className="muted-chip">{formatCurrency(dueCollectedTotal)}</span>}
+                </div>
               </div>
             </div>
             {vm.dueCollectionRows.length === 0 ? (
@@ -325,16 +383,27 @@ export default function DailyReportsPage() {
           </div>
 
           {/* DSR Outstanding Due Balances */}
-          <div className="surface mt-6 overflow-hidden">
+          <div id="daily-reports-due-balances-table" className="surface mt-6 overflow-hidden">
             <div className="border-b border-slate-100 px-5 py-4">
-              <div className="flex items-center justify-between gap-3">
+              <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <h2 className="section-title">{t('reports.dueBalances')}</h2>
                   <p className="mt-0.5 text-xs text-slate-400">{t('reports.dueBalancesDescription')}</p>
                 </div>
-                {vm.dsrDueBalanceRows.length > 0 && (
-                  <span className="muted-chip">{formatNumber(vm.dsrDueBalanceRows.length)} {t('common.dsr')}</span>
-                )}
+                <div className="flex flex-wrap items-center gap-2">
+                  <TableReportActions
+                    targetId="daily-reports-due-balances-table"
+                    title={t('reports.dueBalances')}
+                    subtitle={reportSubtitle}
+                    fileName={`daily-reports-due-balances-${reportFileSuffix}`}
+                    entityType="daily_reports_due_balances"
+                    t={t}
+                    className="flex flex-wrap gap-2 no-print"
+                  />
+                  {vm.dsrDueBalanceRows.length > 0 && (
+                    <span className="muted-chip">{formatNumber(vm.dsrDueBalanceRows.length)} {t('common.dsr')}</span>
+                  )}
+                </div>
               </div>
             </div>
             {vm.dsrDueBalanceRows.length === 0 ? (
@@ -363,7 +432,7 @@ export default function DailyReportsPage() {
             )}
           </div>
 
-          {/* Printable Sheet — single-day mode only */}
+          {/* Printable Sheet - single-day mode only */}
           {vm.selectedSheet && vm.isSingleDay ? (
             <div className="mt-6">
               <div className="mb-3 flex items-center justify-between gap-3 no-print">

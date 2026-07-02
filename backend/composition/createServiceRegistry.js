@@ -29,6 +29,7 @@ import { ProfitService } from "../services/profitService.js";
 import { PurchaseReceiveService } from "../services/purchaseReceiveService.js";
 import { QuotationService } from "../services/quotationService.js";
 import { RepairJobService } from "../services/repairJobService.js";
+import { ReportExportService } from "../services/reportExportService.js";
 import { RetailCashSessionService } from "../services/retailCashSessionService.js";
 import { RetailCustomerService } from "../services/retailCustomerService.js";
 import { RetailPromotionService } from "../services/retailPromotionService.js";
@@ -57,6 +58,7 @@ export function createServiceRegistry({ databaseManager, env }) {
     backupService: null,
     errorLogService: null,
     invariantService: null,
+    reportExportService: null,
     permissionService: null,
     systemService: null,
     tenantService: null,
@@ -198,6 +200,7 @@ export function createServiceRegistry({ databaseManager, env }) {
   platform.invariantService = new InvariantService(databaseManager);
   platform.errorLogService = new ErrorLogService(databaseManager);
   platform.backupService = new BackupService(databaseManager, { auditService: platform.auditService });
+  platform.reportExportService = new ReportExportService();
 
   finance.financeDashboardService = new FinanceDashboardService(databaseManager, {
     financeAccountService: finance.financeAccountService,

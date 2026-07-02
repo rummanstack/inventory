@@ -71,6 +71,12 @@
     --highlight: #c4c5cd;
     --text-strong: #0e0c25;
     --text-soft: #6c7083;
+    /* App-shell chrome (sidebar) + floating tooltip surfaces */
+    --sidebar-bg: #f5f4fb;
+    --sidebar-line: #e4e2f2;
+    --sidebar-line-strong: #dddaf0;
+    --sidebar-line-hover: #c8c4e6;
+    --tooltip-bg: rgba(15, 23, 42, 0.94);
 
     /* Full Tailwind palette shades, wired to variables so every bg-/text-/border-/ring-*
        utility class across the app (not just the brand/status tokens above) can be
@@ -201,6 +207,78 @@
     --black: 0 0 0;
     /* Used by a couple of one-off decorative landing-page gradients/shadows. */
     --cyan-600: 8 145 178;
+  }
+
+  /* Dark theme: the slate scale inverts and --white becomes the card surface,
+     so bg-white/text-slate-* utilities re-theme without touching components.
+     text-white collisions are patched right after this block. */
+  [data-theme="dark"] {
+    color-scheme: dark;
+    --app-bg: #101120;
+    --app-bg-strong: #1b1c31;
+    --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.35), 0 4px 12px rgba(0, 0, 0, 0.3);
+    --shadow-crisp: 0 1px 2px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.35);
+    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4), 0 1px 3px rgba(0, 0, 0, 0.35);
+    --shadow-modal: 0 24px 64px rgba(0, 0, 0, 0.55), 0 4px 16px rgba(0, 0, 0, 0.4);
+    --brand: #8a87c4;
+    --brand-strong: #6c68a8;
+    --brand-soft: color-mix(in srgb, var(--brand) 18%, #171827);
+    --secondary: #8a87c4;
+    --secondary-strong: #6c68a8;
+    --secondary-soft: color-mix(in srgb, var(--secondary) 20%, #171827);
+    --secondary-shadow: rgba(0, 0, 0, 0.45);
+    --secondary-shadow-strong: rgba(0, 0, 0, 0.55);
+    --login-hero-bg: #171827;
+    --bg-grad-start: color-mix(in srgb, var(--brand) 5%, #0f101f);
+    --bg-grad-mid: color-mix(in srgb, var(--brand) 7%, #0f101f);
+    --bg-grad-end: color-mix(in srgb, var(--brand) 9%, #0f101f);
+    --chart-grid: rgba(148, 163, 184, 0.14);
+    --tick-color: #c6c9e0;
+    --tooltip-bg: rgba(43, 45, 66, 0.97);
+    --success-strong: #6ee7a0;
+    --warning-strong: #fbc55e;
+    --danger-strong: #ff8b92;
+    --issued-soft: color-mix(in srgb, var(--secondary) 45%, #171827);
+    --surface-white: #1b1c2e;
+    --muted: #565b78;
+    --highlight: #3c415f;
+    --text-strong: #eef0fa;
+    --text-soft: #9ba0bc;
+    --sidebar-bg: #14152a;
+    --sidebar-line: #23243d;
+    --sidebar-line-strong: #23243d;
+    --sidebar-line-hover: #33345a;
+
+    --slate-50: 28 30 46;
+    --slate-100: 36 38 58;
+    --slate-200: 50 52 74;
+    --slate-300: 68 71 96;
+    --slate-400: 130 134 160;
+    --slate-500: 148 152 178;
+    --slate-600: 178 182 205;
+    --slate-700: 200 203 222;
+    --slate-800: 222 224 238;
+    --slate-900: 237 238 248;
+    --slate-950: 248 249 253;
+
+    --white: 23 24 39;
+  }
+
+  /* bg-white doubles as the card surface (remapped above), but text-white,
+     the nav indicator bar, and hover states genuinely mean white. */
+  [data-theme="dark"] .text-white,
+  [data-theme="dark"] .hover\:text-white:hover,
+  [data-theme="dark"] .group-hover\:text-white {
+    color: #ffffff;
+  }
+
+  [data-theme="dark"] .before\:bg-white::before {
+    background-color: #ffffff;
+  }
+
+  [data-theme="dark"] .skeleton {
+    background: linear-gradient(90deg, #23243a 25%, #2e2f4a 50%, #23243a 75%);
+    background-size: 200% 100%;
   }
 
   html {

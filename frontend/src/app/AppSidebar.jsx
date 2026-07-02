@@ -33,7 +33,7 @@ function SidebarTooltip({ label, show, children }) {
       {pos ? createPortal(
         <div
           style={{ top: pos.top, left: 76 }}
-          className="pointer-events-none fixed z-[9999] -translate-y-1/2 whitespace-nowrap rounded-lg bg-slate-900 px-2.5 py-1.5 text-xs font-semibold text-white shadow-lg"
+          className="pointer-events-none fixed z-[9999] -translate-y-1/2 whitespace-nowrap rounded-lg bg-[var(--tooltip-bg)] px-2.5 py-1.5 text-xs font-semibold text-white shadow-lg"
         >
           <div className="absolute right-full top-1/2 -translate-y-1/2 border-[5px] border-transparent border-r-slate-900" />
           {label}
@@ -139,7 +139,7 @@ export default function AppSidebar({ mobileOpen, setMobileOpen, user, tenant, la
     <>
       <div
         className={cx(
-          'fixed inset-y-0 left-0 z-40 flex flex-col overflow-hidden border-r border-[#e4e2f2] bg-[#f5f4fb] py-5 text-slate-950 shadow-[0_24px_60px_rgba(var(--slate-900),0.08)] transition-[width,transform] duration-300 lg:translate-x-0',
+          'fixed inset-y-0 left-0 z-40 flex flex-col overflow-hidden border-r border-[var(--sidebar-line)] bg-[var(--sidebar-bg)] py-5 text-slate-950 shadow-[0_24px_60px_rgba(var(--slate-900),0.08)] transition-[width,transform] duration-300 lg:translate-x-0',
           'w-[min(18rem,85vw)] px-4',
           collapsed ? 'lg:w-[68px] lg:px-2' : 'lg:w-72',
           mobileOpen ? 'translate-x-0' : '-translate-x-full',
@@ -168,7 +168,7 @@ export default function AppSidebar({ mobileOpen, setMobileOpen, user, tenant, la
           <div className="flex shrink-0 items-center gap-1">
             <button
               type="button"
-              className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-[#dddaf0] bg-white/70 text-slate-600 transition hover:border-[#c8c4e6] hover:bg-white hover:text-slate-950 lg:hidden"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-[var(--sidebar-line-strong)] bg-white/70 text-slate-600 transition hover:border-[var(--sidebar-line-hover)] hover:bg-white hover:text-slate-950 lg:hidden"
               title={t('common.closeMenu')}
               onClick={() => setMobileOpen(false)}
             >
@@ -176,7 +176,7 @@ export default function AppSidebar({ mobileOpen, setMobileOpen, user, tenant, la
             </button>
             <button
               type="button"
-              className="hidden h-9 w-9 items-center justify-center rounded-xl border border-[#dddaf0] bg-white/70 text-slate-600 transition hover:border-[#c8c4e6] hover:bg-white hover:text-slate-950 lg:inline-flex"
+              className="hidden h-9 w-9 items-center justify-center rounded-xl border border-[var(--sidebar-line-strong)] bg-white/70 text-slate-600 transition hover:border-[var(--sidebar-line-hover)] hover:bg-white hover:text-slate-950 lg:inline-flex"
               title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
               onClick={onToggleCollapsed}
             >
@@ -237,7 +237,7 @@ export default function AppSidebar({ mobileOpen, setMobileOpen, user, tenant, la
             onClick={() => setMobileOpen(false)}
             title={t('profile.online')}
             className={cx(
-              'mt-4 flex items-center rounded-2xl border border-[#dddaf0] bg-white/70 px-3 py-2.5 text-slate-950 transition hover:border-[#c8c4e6] hover:bg-white',
+              'mt-4 flex items-center rounded-2xl border border-[var(--sidebar-line-strong)] bg-white/70 px-3 py-2.5 text-slate-950 transition hover:border-[var(--sidebar-line-hover)] hover:bg-white',
               collapsed ? 'lg:justify-center' : 'gap-3',
             )}
           >
@@ -254,7 +254,7 @@ export default function AppSidebar({ mobileOpen, setMobileOpen, user, tenant, la
           <button
             type="button"
             className={cx(
-              'mt-2 inline-flex h-10 w-full items-center gap-2 rounded-2xl border border-[#dddaf0] bg-white/70 px-3 text-sm font-bold text-slate-950 transition hover:border-[#c8c4e6] hover:bg-white',
+              'mt-2 inline-flex h-10 w-full items-center gap-2 rounded-2xl border border-[var(--sidebar-line-strong)] bg-white/70 px-3 text-sm font-bold text-slate-950 transition hover:border-[var(--sidebar-line-hover)] hover:bg-white',
               collapsed ? 'lg:justify-center' : 'justify-center',
             )}
             onClick={onLogout}
@@ -265,7 +265,7 @@ export default function AppSidebar({ mobileOpen, setMobileOpen, user, tenant, la
         </SidebarTooltip>
       </div>
 
-      {mobileOpen ? <button type="button" aria-label="Close sidebar overlay" className="fixed inset-0 z-30 bg-slate-950/50 backdrop-blur-sm lg:hidden" onClick={() => setMobileOpen(false)} /> : null}
+      {mobileOpen ? <button type="button" aria-label="Close sidebar overlay" className="fixed inset-0 z-30 bg-[rgb(var(--black)/0.5)] backdrop-blur-sm lg:hidden" onClick={() => setMobileOpen(false)} /> : null}
     </>
   );
 }

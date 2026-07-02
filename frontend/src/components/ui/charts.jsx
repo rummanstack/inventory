@@ -17,7 +17,9 @@ import { cx } from './utils.js';
 ChartJS.register(ArcElement, BarElement, CategoryScale, Filler, LinearScale, LineElement, PointElement, ChartTooltip, Legend);
 ChartJS.defaults.font.family = "'Inter', 'Segoe UI Variable', 'Segoe UI', 'Avenir Next', sans-serif";
 
-export const chartTooltipStyle = {
+// Functions (not module-level consts) so every render re-reads the CSS
+// variables — required for charts to pick up a light/dark theme switch.
+export const chartTooltipStyle = () => ({
   backgroundColor: getCssVar('--tooltip-bg', 'rgba(15, 23, 42, 0.94)'),
   titleColor: getCssVar('--chart-tooltip-title', '#f8f8f9'),
   bodyColor: getCssVar('--chart-tooltip-body', '#f6f6f6'),
@@ -27,10 +29,10 @@ export const chartTooltipStyle = {
   boxPadding: 4,
   titleFont: { weight: '700', size: 12 },
   bodyFont: { weight: '600', size: 12 },
-};
+});
 
-export const chartAxisTickStyle = { color: getCssVar('--highlight', '#c4c5cd'), font: { weight: '700', size: 11 } };
-export const chartGridStyle = { color: getCssVar('--chart-grid', 'rgba(148,163,184,0.16)'), drawBorder: false };
+export const chartAxisTickStyle = () => ({ color: getCssVar('--highlight', '#c4c5cd'), font: { weight: '700', size: 11 } });
+export const chartGridStyle = () => ({ color: getCssVar('--chart-grid', 'rgba(148,163,184,0.16)'), drawBorder: false });
 
 export function hexToRgba(color, alpha) {
   if (!color) return `rgba(37, 99, 235, ${alpha})`;
@@ -167,7 +169,7 @@ export function DonutChart({ data, valueFormatter = (value) => value, centerLabe
     plugins: {
       legend: { display: false },
       tooltip: {
-        ...chartTooltipStyle,
+        ...chartTooltipStyle(),
         callbacks: {
           label: (context) => `${context.label}: ${valueFormatter(context.parsed)}`,
         },
@@ -228,13 +230,13 @@ export function TrendChart({ data, series, valueFormatter = (value) => value, he
     interaction: { mode: 'index', intersect: false },
     animation: { duration: 300, easing: 'easeOutQuart' },
     scales: {
-      x: { grid: { display: false }, ticks: chartAxisTickStyle },
-      y: { grid: chartGridStyle, ticks: { ...chartAxisTickStyle, callback: (value) => valueFormatter(value) } },
+      x: { grid: { display: false }, ticks: chartAxisTickStyle() },
+      y: { grid: chartGridStyle(), ticks: { ...chartAxisTickStyle(), callback: (value) => valueFormatter(value) } },
     },
     plugins: {
       legend: { display: false },
       tooltip: {
-        ...chartTooltipStyle,
+        ...chartTooltipStyle(),
         callbacks: {
           label: (context) => `${context.dataset.label}: ${valueFormatter(context.parsed.y)}`,
         },
@@ -285,13 +287,13 @@ export function HorizontalBarChart({ data, valueFormatter = (value) => value, tr
     maintainAspectRatio: false,
     animation: { duration: 300, easing: 'easeOutQuart' },
     scales: {
-      x: { grid: chartGridStyle, ticks: { ...chartAxisTickStyle, callback: (value) => valueFormatter(value) } },
+      x: { grid: chartGridStyle(), ticks: { ...chartAxisTickStyle(), callback: (value) => valueFormatter(value) } },
       y: { grid: { display: false }, ticks: { color: getCssVar('--tick-color', '#2f3347'), font: { weight: '800', size: 12 } } },
     },
     plugins: {
       legend: { display: false },
       tooltip: {
-        ...chartTooltipStyle,
+        ...chartTooltipStyle(),
         callbacks: {
           title: (items) => {
             const item = data[items[0].dataIndex];
@@ -331,13 +333,13 @@ export function StackedBarChart({ data, segments, totalFormatter = (value) => va
     maintainAspectRatio: false,
     animation: { duration: 300, easing: 'easeOutQuart' },
     scales: {
-      x: { stacked: true, grid: chartGridStyle, ticks: chartAxisTickStyle },
+      x: { stacked: true, grid: chartGridStyle(), ticks: chartAxisTickStyle() },
       y: { stacked: true, grid: { display: false }, ticks: { color: getCssVar('--tick-color', '#2f3347'), font: { weight: '800', size: 12 } } },
     },
     plugins: {
       legend: { display: false },
       tooltip: {
-        ...chartTooltipStyle,
+        ...chartTooltipStyle(),
         callbacks: {
           label: (context) => `${context.dataset.label}: ${totalFormatter(context.parsed.x)}`,
         },

@@ -25,7 +25,7 @@ export function Modal({ title, description, children, onClose, width = 'max-w-2x
 
   return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 p-4 backdrop-blur-[10px] no-print"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[rgb(var(--black)/0.45)] p-4 backdrop-blur-[10px] no-print"
       onClick={onClose}
     >
       <div
@@ -127,7 +127,7 @@ export function ConfirmationDialog({
 
   return (
     <div
-      className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/45 p-4 backdrop-blur-[10px] no-print"
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-[rgb(var(--black)/0.45)] p-4 backdrop-blur-[10px] no-print"
       onClick={onCancel}
     >
       <div

@@ -51,6 +51,9 @@ const bn = {
       english: 'ইংরেজি',
       bangla: 'বাংলা',
     },
+    theme: {
+      toggle: 'ডার্ক মোড টগল করুন',
+    },
     commandPalette: {
       placeholder: 'পেজ, পণ্য, কাস্টমার, সাপ্লায়ার খুঁজুন…',
       noResults: 'কোনো ফলাফল পাওয়া যায়নি।',

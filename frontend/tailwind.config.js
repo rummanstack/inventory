@@ -13,8 +13,16 @@ export default {
       fontFamily: {
         sans: ['Plus Jakarta Sans', 'Noto Sans Bengali', 'Segoe UI Variable', 'Segoe UI', 'Avenir Next', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },
+      borderRadius: {
+        card: 'var(--radius-card)',
+        control: 'var(--radius-control)',
+        pill: 'var(--radius-pill)',
+      },
       boxShadow: {
-        soft: '0 20px 50px rgba(15, 23, 42, 0.08)',
+        soft: 'var(--shadow-soft)',
+        crisp: 'var(--shadow-crisp)',
+        card: 'var(--shadow-card)',
+        modal: 'var(--shadow-modal)',
       },
       colors: {
         slate: {

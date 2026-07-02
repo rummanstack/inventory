@@ -129,7 +129,7 @@ export default function TopHeader({ title, today, user, tenant, tenantOptions, o
               ) : null}
             </button>
             {notifOpen ? (
-              <div className="panel absolute right-0 top-full z-30 mt-2 w-80 overflow-hidden sm:w-96">
+              <div className="panel shadow-modal absolute right-0 top-full z-30 mt-2 w-80 overflow-hidden sm:w-96">
                 <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
                   <p className="text-sm font-black text-slate-950">{t('notifications.title')}</p>
                   {lowStockProducts.length > 0 ? <Badge tone="rose">{lowStockProducts.length}</Badge> : null}

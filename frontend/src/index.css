@@ -16,9 +16,12 @@
     --surface: rgba(var(--white), 0.94);
     --surface-strong: rgba(var(--white), 0.98);
     --surface-line: rgba(var(--slate-900), 0.08);
-    --shadow-soft: 0 20px 55px rgba(var(--slate-900), 0.08);
-    --shadow-crisp: 0 12px 30px rgba(var(--slate-900), 0.07);
-    --shadow-card: 0 18px 45px rgba(var(--slate-900), 0.07), 0 1px 3px rgba(var(--slate-900), 0.04);
+    --radius-card: 14px;
+    --radius-control: 10px;
+    --radius-pill: 9999px;
+    --shadow-soft: 0 1px 2px rgba(var(--slate-900), 0.03), 0 4px 12px rgba(var(--slate-900), 0.05);
+    --shadow-crisp: 0 1px 2px rgba(var(--slate-900), 0.05), 0 2px 8px rgba(var(--slate-900), 0.06);
+    --shadow-card: 0 1px 2px rgba(var(--slate-900), 0.04), 0 1px 3px rgba(var(--slate-900), 0.06);
     --shadow-modal: 0 24px 64px rgba(var(--slate-900), 0.14), 0 4px 16px rgba(var(--slate-900), 0.07);
     --brand: #373373;
     --brand-strong: #0e0c25;
@@ -208,10 +211,7 @@
     min-height: 100vh;
     height: 100%;
     overflow: hidden;
-    background:
-      radial-gradient(circle at top left, rgba(var(--blue-600), 0.08), transparent 30%),
-      radial-gradient(circle at top right, rgba(var(--sky-500), 0.08), transparent 24%),
-      linear-gradient(180deg, var(--bg-grad-start) 0%, var(--bg-grad-mid) 52%, var(--bg-grad-end) 100%);
+    background: var(--bg-grad-mid);
     color: var(--text-strong);
   }
 
@@ -743,7 +743,7 @@
   }
 
   .input {
-    @apply h-10 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 shadow-[0_1px_0_rgba(var(--slate-900),0.03)] outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-[var(--secondary)] focus:bg-white focus:ring-4 focus:ring-[var(--secondary-soft)] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400;
+    @apply h-10 w-full rounded-control border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 shadow-[0_1px_0_rgba(var(--slate-900),0.03)] outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-[var(--secondary)] focus:bg-white focus:ring-4 focus:ring-[var(--secondary-soft)] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400;
   }
 
   select.input {
@@ -758,7 +758,7 @@
   }
 
   .page-title {
-    @apply text-2xl font-black leading-tight tracking-[-0.02em] text-slate-950 sm:text-3xl;
+    @apply text-2xl font-bold leading-tight tracking-[-0.02em] text-slate-950 sm:text-3xl;
     text-wrap: balance;
   }
 
@@ -767,32 +767,28 @@
   }
 
   .btn-primary {
-    @apply inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-[linear-gradient(135deg,var(--secondary-strong),var(--secondary))] px-4 text-sm font-bold text-white shadow-[0_14px_28px_var(--secondary-shadow)] transition duration-200 ease-out hover:-translate-y-px hover:brightness-95 hover:shadow-[0_18px_34px_var(--secondary-shadow-strong)] active:translate-y-0 active:brightness-90 focus:outline-none focus:ring-4 focus:ring-[var(--secondary-soft)] disabled:cursor-not-allowed disabled:translate-y-0 disabled:bg-slate-300 disabled:shadow-none;
+    @apply inline-flex h-10 items-center justify-center gap-2 rounded-control bg-[linear-gradient(135deg,var(--secondary-strong),var(--secondary))] px-4 text-sm font-bold text-white shadow-[0_1px_2px_var(--secondary-shadow)] transition duration-200 ease-out hover:brightness-95 hover:shadow-[0_2px_8px_var(--secondary-shadow-strong)] active:brightness-90 focus:outline-none focus:ring-4 focus:ring-[var(--secondary-soft)] disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none;
   }
 
   .btn-secondary {
-    @apply inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-700 shadow-[0_1px_0_rgba(var(--slate-900),0.03)] transition duration-200 ease-out hover:-translate-y-px hover:border-[var(--secondary-soft)] hover:bg-[var(--secondary-soft)] hover:text-[var(--secondary-strong)] hover:shadow-[0_12px_24px_rgba(var(--slate-900),0.08)] active:translate-y-0 active:bg-[var(--secondary-soft)] focus:outline-none focus:ring-4 focus:ring-[var(--secondary-soft)] disabled:cursor-not-allowed disabled:translate-y-0 disabled:text-slate-400 disabled:shadow-none;
+    @apply inline-flex h-10 items-center justify-center gap-2 rounded-control border border-slate-200 bg-white px-4 text-sm font-bold text-slate-700 shadow-[0_1px_0_rgba(var(--slate-900),0.03)] transition duration-200 ease-out hover:border-[var(--secondary-soft)] hover:bg-[var(--secondary-soft)] hover:text-[var(--secondary-strong)] hover:shadow-crisp active:bg-[var(--secondary-soft)] focus:outline-none focus:ring-4 focus:ring-[var(--secondary-soft)] disabled:cursor-not-allowed disabled:text-slate-400 disabled:shadow-none;
   }
 
   .btn-danger {
-    @apply inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-rose-200 bg-rose-50 px-3 text-sm font-bold text-rose-700 shadow-sm transition duration-200 ease-out hover:-translate-y-px hover:border-rose-300 hover:bg-rose-100 hover:shadow-md active:translate-y-0 active:bg-rose-200 focus:outline-none focus:ring-4 focus:ring-rose-100;
+    @apply inline-flex h-10 items-center justify-center gap-2 rounded-control border border-rose-200 bg-rose-50 px-3 text-sm font-bold text-rose-700 shadow-sm transition duration-200 ease-out hover:border-rose-300 hover:bg-rose-100 hover:shadow-crisp active:bg-rose-200 focus:outline-none focus:ring-4 focus:ring-rose-100;
   }
 
   .icon-btn {
-    @apply inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-[0_1px_0_rgba(var(--slate-900),0.03)] transition duration-200 ease-out hover:-translate-y-px hover:border-[var(--secondary-soft)] hover:bg-[var(--secondary-soft)] hover:text-[var(--secondary-strong)] hover:shadow-[0_12px_24px_rgba(var(--slate-900),0.08)] active:translate-y-0 active:bg-[var(--secondary-soft)] focus:outline-none focus:ring-4 focus:ring-[var(--secondary-soft)];
+    @apply inline-flex h-9 w-9 items-center justify-center rounded-control border border-slate-200 bg-white text-slate-600 shadow-[0_1px_0_rgba(var(--slate-900),0.03)] transition duration-200 ease-out hover:border-[var(--secondary-soft)] hover:bg-[var(--secondary-soft)] hover:text-[var(--secondary-strong)] hover:shadow-crisp active:bg-[var(--secondary-soft)] focus:outline-none focus:ring-4 focus:ring-[var(--secondary-soft)];
   }
 
   .surface {
-    @apply rounded-[20px] border border-slate-200/80 bg-[rgba(var(--white),0.94)] ring-1 ring-[color-mix(in_srgb,var(--brand)_8%,transparent)] backdrop-blur;
+    @apply rounded-card border border-slate-200/80 bg-[rgba(var(--white),0.94)] ring-1 ring-[color-mix(in_srgb,var(--brand)_8%,transparent)] backdrop-blur;
     box-shadow: var(--shadow-card);
-    background-image: linear-gradient(90deg, var(--brand), var(--secondary));
-    background-repeat: no-repeat;
-    background-size: 100% 2px;
-    background-position: top left;
   }
 
   .surface-inset {
-    @apply rounded-2xl border border-slate-200/60 bg-slate-50/70;
+    @apply rounded-card border border-slate-200/60 bg-slate-50/70;
     box-shadow: inset 0 1px 3px rgba(var(--slate-900), 0.04);
   }
 
@@ -816,37 +812,17 @@
     @apply relative h-screen overflow-hidden;
   }
 
-  .page-shell::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    background-image:
-      linear-gradient(rgba(var(--slate-900), 0.025) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(var(--slate-900), 0.025) 1px, transparent 1px),
-      radial-gradient(circle, color-mix(in srgb, var(--brand) 16%, transparent), transparent 70%),
-      radial-gradient(circle, color-mix(in srgb, var(--secondary) 14%, transparent), transparent 70%);
-    background-size: 48px 48px, 48px 48px, 640px 640px, 520px 520px;
-    background-position: 0 0, 0 0, 50% 0%, 22% 30%;
-    background-repeat: repeat, repeat, no-repeat, no-repeat;
-    mask-image: linear-gradient(180deg, rgba(var(--black), 0.58), transparent 72%);
-  }
-
   .panel {
-    @apply rounded-[22px] border border-slate-200/80 bg-white/95 ring-1 ring-[color-mix(in_srgb,var(--brand)_8%,transparent)] backdrop-blur;
-    box-shadow: var(--shadow-modal);
-    background-image: linear-gradient(90deg, var(--brand), var(--secondary));
-    background-repeat: no-repeat;
-    background-size: 100% 2px;
-    background-position: top left;
+    @apply rounded-card border border-slate-200/80 bg-white/95 ring-1 ring-[color-mix(in_srgb,var(--brand)_8%,transparent)] backdrop-blur;
+    box-shadow: var(--shadow-card);
   }
 
   .panel-strong {
-    @apply rounded-[24px] border border-slate-200/70 bg-white shadow-[0_22px_60px_rgba(var(--slate-900),0.08)] ring-1 ring-slate-900/[0.03];
+    @apply rounded-card border border-slate-200/70 bg-white shadow-card ring-1 ring-slate-900/[0.03];
   }
 
   .shell-surface {
-    @apply rounded-[24px] border border-slate-200/70 bg-[linear-gradient(180deg,rgba(var(--white),0.98),rgba(244,247,251,0.96))] shadow-[0_20px_60px_rgba(var(--slate-900),0.08)] ring-1 ring-slate-900/[0.03];
+    @apply rounded-2xl border border-slate-200/70 bg-white shadow-card ring-1 ring-slate-900/[0.03];
   }
 
   .brand-chip {

@@ -32,8 +32,8 @@ function SummaryCard({ label, value, tone }) {
   };
   return (
     <div className={`rounded-xl border px-4 py-3 text-center ${styles[tone]}`}>
-      <p className={`text-[11px] font-black uppercase tracking-[0.14em] ${textStyles[tone].label}`}>{label}</p>
-      <p className={`mt-1 text-lg font-black ${textStyles[tone].value}`}>{value}</p>
+      <p className={`text-[11px] font-semibold uppercase tracking-[0.14em] ${textStyles[tone].label}`}>{label}</p>
+      <p className={`mt-1 text-lg font-semibold ${textStyles[tone].value}`}>{value}</p>
     </div>
   );
 }
@@ -49,8 +49,8 @@ function TradeInReceipt({ receipt, onClose }) {
       <div className="flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-4">
         <CheckCircle2 className="mt-0.5 shrink-0 text-emerald-600" size={22} />
         <div>
-          <p className="text-xs font-black uppercase tracking-[0.16em] text-emerald-600">Trade-In Saved</p>
-          <p className="mt-0.5 text-xl font-black text-emerald-900">{receipt.tradeInNumber}</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-600">Trade-In Saved</p>
+          <p className="mt-0.5 text-xl font-semibold text-emerald-900">{receipt.tradeInNumber}</p>
           <p className="mt-1 text-sm text-emerald-700">
             {receipt.customerName ? <strong>{receipt.customerName}</strong> : 'Walk-in customer'}
             {receipt.customerPhone ? <span className="ml-2 font-normal text-emerald-600">{receipt.customerPhone}</span> : null}
@@ -60,10 +60,10 @@ function TradeInReceipt({ receipt, onClose }) {
       </div>
 
       <div>
-        <p className="mb-2 text-xs font-black uppercase tracking-[0.14em] text-slate-400">Devices Taken In</p>
+        <p className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">Devices Taken In</p>
         <div className="overflow-hidden rounded-xl border border-emerald-200">
           <table className="w-full text-sm">
-            <thead className="bg-emerald-50 text-left text-[11px] font-black uppercase tracking-[0.14em] text-emerald-600">
+            <thead className="bg-emerald-50 text-left text-[11px] font-semibold uppercase tracking-[0.14em] text-emerald-600">
               <tr>
                 <th className="px-3 py-2">Device</th>
                 <th className="px-3 py-2">Serial</th>
@@ -88,10 +88,10 @@ function TradeInReceipt({ receipt, onClose }) {
       </div>
 
       <div>
-        <p className="mb-2 text-xs font-black uppercase tracking-[0.14em] text-slate-400">Devices Sold</p>
+        <p className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">Devices Sold</p>
         <div className="overflow-hidden rounded-xl border border-indigo-200">
           <table className="w-full text-sm">
-            <thead className="bg-indigo-50 text-left text-[11px] font-black uppercase tracking-[0.14em] text-indigo-600">
+            <thead className="bg-indigo-50 text-left text-[11px] font-semibold uppercase tracking-[0.14em] text-indigo-600">
               <tr>
                 <th className="px-3 py-2">Device</th>
                 <th className="px-3 py-2 text-right">Qty</th>
@@ -302,7 +302,7 @@ export default function TradeInFormModal({ onClose, onSave }) {
             </div>
             <div className="overflow-hidden rounded-xl border border-emerald-200 bg-emerald-50/40">
               <table className="w-full text-sm">
-                <thead className="bg-emerald-50 text-left text-[11px] font-black uppercase tracking-[0.14em] text-emerald-600">
+                <thead className="bg-emerald-50 text-left text-[11px] font-semibold uppercase tracking-[0.14em] text-emerald-600">
                   <tr>
                     <th className="px-3 py-2 w-[28%]">{t('tradeIns.productLabel')}</th>
                     <th className="px-3 py-2 w-[18%]">{t('tradeIns.serialLabel')}</th>
@@ -374,7 +374,7 @@ export default function TradeInFormModal({ onClose, onSave }) {
                           onChange={(e) => updateReceived(i, 'tradeInValue', e.target.value)}
                         />
                       </td>
-                      <td className="px-2 py-1.5 text-center">
+                      <td className="px-2 py-1.5 text-right">
                         {receivedItems.length > 1 ? (
                           <button
                             type="button"
@@ -406,7 +406,7 @@ export default function TradeInFormModal({ onClose, onSave }) {
             </div>
             <div className="overflow-hidden rounded-xl border border-indigo-200 bg-indigo-50/40">
               <table className="w-full text-sm">
-                <thead className="bg-indigo-50 text-left text-[11px] font-black uppercase tracking-[0.14em] text-indigo-600">
+                <thead className="bg-indigo-50 text-left text-[11px] font-semibold uppercase tracking-[0.14em] text-indigo-600">
                   <tr>
                     <th className="px-3 py-2 w-[40%]">{t('tradeIns.productLabel')}</th>
                     <th className="px-3 py-2 w-[15%] text-right">{t('tradeIns.qtyLabel')}</th>
@@ -463,7 +463,7 @@ export default function TradeInFormModal({ onClose, onSave }) {
                         <td className="px-2 py-1.5 text-right font-semibold text-slate-900">
                           {formatCurrency(lineTotal, language)}
                         </td>
-                        <td className="px-2 py-1.5 text-center">
+                        <td className="px-2 py-1.5 text-right">
                           {soldItems.length > 1 ? (
                             <button
                               type="button"

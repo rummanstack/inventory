@@ -271,7 +271,7 @@ export default function QuotationFormModal({ quotation, onClose, onSave }) {
                     <td className="px-2 py-1.5 text-right font-semibold text-slate-900">
                       {formatCurrency(itemTotal(item), language)}
                     </td>
-                    <td className="px-2 py-1.5 text-center">
+                    <td className="px-2 py-1.5 text-right">
                       {items.length > 1 ? (
                         <button
                           type="button"
@@ -335,8 +335,8 @@ export default function QuotationFormModal({ quotation, onClose, onSave }) {
                 </div>
               ) : null}
               <div className="flex items-center justify-between gap-8 border-t border-slate-200 pt-2">
-                <span className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500">{t('quotations.totalLabel')}</span>
-                <span className="text-lg font-black text-slate-950">{formatCurrency(totalAmount, language)}</span>
+                <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">{t('quotations.totalLabel')}</span>
+                <span className="text-lg font-semibold text-slate-950">{formatCurrency(totalAmount, language)}</span>
               </div>
             </div>
           </div>

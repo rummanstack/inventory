@@ -220,11 +220,8 @@ export class AuthService {
     });
   }
 
-  async forgotPassword({ email, orgSlug }) {
+  async forgotPassword({ email }) {
     const normalizedEmail = String(email || "")
-      .trim()
-      .toLowerCase();
-    const normalizedSlug = String(orgSlug || "")
       .trim()
       .toLowerCase();
 
@@ -233,13 +230,8 @@ export class AuthService {
     }
 
     await this.databaseManager.withTransaction(async (client) => {
-      let tenant = null;
-      if (normalizedSlug) {
-        tenant = await findTenantBySlug(client, normalizedSlug);
-      }
-
-      const tenantIdFilter = normalizedSlug ? tenant?.id : undefined;
-      const userRow = await findUserByEmail(client, normalizedEmail, tenantIdFilter);
+      // email is globally unique, so no tenant/org-slug scoping is needed.
+      const userRow = await findUserByEmail(client, normalizedEmail);
 
       if (!userRow || userRow.status !== "active") {
         return;

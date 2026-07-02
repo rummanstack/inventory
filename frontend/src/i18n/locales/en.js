@@ -10,9 +10,6 @@ const en = {
     auth: {
       login: 'Login',
       loginTitle: 'Everything Your Business Needs',
-      orgCode: 'Organization Code',
-      orgCodePlaceholder: 'e.g. arinda',
-      orgCodeHint: 'Leave blank if you are the platform administrator',
       email: 'Email',
       password: 'Password',
       emailPlaceholder: 'you@example.com',
@@ -23,7 +20,7 @@ const en = {
       logout: 'Logout',
       forgotPassword: 'Forgot password?',
       forgotPasswordTitle: 'Reset your password',
-      forgotPasswordHint: 'Enter your account email and (if applicable) your organization code. If an account exists, an admin will be able to share a reset link with you.',
+      forgotPasswordHint: 'Enter your account email. If an account exists, an admin will be able to share a reset link with you.',
       sendResetLink: 'Send reset link',
       sending: 'Sending',
       resetRequestSent: 'If an account exists for this email, a password reset request has been created. Please contact your administrator for the reset link.',

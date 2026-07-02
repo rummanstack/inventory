@@ -109,7 +109,6 @@ function LoginForm({ login, t, onForgot }) {
 
 function ForgotPasswordForm({ forgotPassword, t, onBack }) {
   const [email, setEmail] = useState('');
-  const [orgSlug, setOrgSlug] = useState('');
   const [submitError, setSubmitError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
@@ -118,7 +117,7 @@ function ForgotPasswordForm({ forgotPassword, t, onBack }) {
     event.preventDefault();
     setSubmitError('');
     setSubmitting(true);
-    const result = await forgotPassword({ email, orgSlug });
+    const result = await forgotPassword({ email });
     if (!result.ok) {
       setSubmitError(result.message);
     } else {
@@ -159,18 +158,6 @@ function ForgotPasswordForm({ forgotPassword, t, onBack }) {
             required
           />
         </span>
-      </label>
-
-      <label className="block">
-        <span className="label">{t('auth.orgCode')}</span>
-        <input
-          className="input"
-          type="text"
-          value={orgSlug}
-          onChange={(e) => setOrgSlug(e.target.value)}
-          placeholder={t('auth.orgCodePlaceholder')}
-        />
-        <span className="mt-1 block text-xs text-slate-400">{t('auth.orgCodeHint')}</span>
       </label>
 
       <button type="submit" className="btn-primary mt-2 w-full" disabled={submitting}>

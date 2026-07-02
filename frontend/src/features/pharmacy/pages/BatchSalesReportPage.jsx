@@ -9,7 +9,7 @@ export default function BatchSalesReportPage() {
   const vm = useBatchSalesReportViewModel({ products: productDirectory });
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <SectionHeader
         eyebrow={t('nav.reports')}
         title={t('pharmacy.batchSalesReport')}
@@ -57,10 +57,10 @@ export default function BatchSalesReportPage() {
       {vm.error && <Alert type="error">{vm.error}</Alert>}
 
       {/* Table */}
-      <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-slate-200 bg-slate-50 text-left text-xs font-black uppercase tracking-wide text-slate-600">
+      <div className="surface overflow-x-auto">
+        <table className="w-full">
+          <thead className="table-head">
+            <tr>
               <th className="px-4 py-3">{t('retailer.salesInvoices.invoiceNumberLabel')}</th>
               <th className="px-4 py-3">{t('common.date')}</th>
               <th className="px-4 py-3">{t('products.product')}</th>
@@ -73,7 +73,7 @@ export default function BatchSalesReportPage() {
               <th className="px-4 py-3">{t('pharmacy.prescriptionNumber')}</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-slate-100">
             {vm.loading ? (
               <tr>
                 <td colSpan={10} className="px-4 py-8 text-center text-slate-500">{t('common.loading')}</td>
@@ -82,28 +82,28 @@ export default function BatchSalesReportPage() {
               <tr>
                 <td colSpan={10} className="px-4 py-8 text-center text-slate-500">{t('common.noResults')}</td>
               </tr>
-            ) : vm.rows.map((row, i) => (
-              <tr key={row.id} className={`border-b border-slate-100 ${i % 2 === 1 ? 'bg-slate-50' : ''}`}>
-                <td className="px-4 py-2.5 font-semibold text-slate-800">{row.invoiceNumber}</td>
-                <td className="px-4 py-2.5 text-slate-600">{formatDate(row.invoiceDate, language)}</td>
-                <td className="px-4 py-2.5 font-medium text-slate-900">{row.productName}</td>
-                <td className="px-4 py-2.5">
+            ) : vm.rows.map((row) => (
+              <tr key={row.id}>
+                <td className="table-cell font-semibold text-slate-800">{row.invoiceNumber}</td>
+                <td className="table-cell text-slate-600">{formatDate(row.invoiceDate, language)}</td>
+                <td className="table-cell font-medium text-slate-900">{row.productName}</td>
+                <td className="table-cell">
                   {row.batchNumber
                     ? <span className="rounded-full bg-sky-100 px-2 py-0.5 text-xs font-bold text-sky-800">{row.batchNumber}</span>
                     : <span className="text-slate-400">—</span>}
                 </td>
-                <td className="px-4 py-2.5 text-slate-600">{row.lotNumber || '—'}</td>
-                <td className="px-4 py-2.5">
+                <td className="table-cell text-slate-600">{row.lotNumber || '—'}</td>
+                <td className="table-cell">
                   {row.expiryDate ? (
                     <span className={`text-xs font-semibold ${new Date(row.expiryDate) < new Date() ? 'text-rose-600' : 'text-slate-700'}`}>
                       {formatDate(row.expiryDate, language)}
                     </span>
                   ) : '—'}
                 </td>
-                <td className="px-4 py-2.5 text-right font-semibold text-slate-800">{row.quantityFromBatch}</td>
-                <td className="px-4 py-2.5 text-right text-slate-700">{formatCurrency(row.actualSalePrice)}</td>
-                <td className="px-4 py-2.5 text-slate-600">{row.customerName || '—'}</td>
-                <td className="px-4 py-2.5 text-slate-600">{row.prescriptionNumber || '—'}</td>
+                <td className="table-cell text-right font-semibold text-slate-800">{row.quantityFromBatch}</td>
+                <td className="table-cell text-right text-slate-700">{formatCurrency(row.actualSalePrice)}</td>
+                <td className="table-cell text-slate-600">{row.customerName || '—'}</td>
+                <td className="table-cell text-slate-600">{row.prescriptionNumber || '—'}</td>
               </tr>
             ))}
           </tbody>
@@ -111,7 +111,7 @@ export default function BatchSalesReportPage() {
       </div>
 
       {vm.totalPages > 1 && (
-        <Pagination currentPage={vm.page} totalPages={vm.totalPages} onPageChange={vm.setPage} />
+        <Pagination page={vm.page} totalPages={vm.totalPages} onPageChange={vm.setPage} />
       )}
     </div>
   );

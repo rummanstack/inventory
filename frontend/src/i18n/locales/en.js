@@ -46,6 +46,16 @@ const en = {
       english: 'English',
       bangla: 'Bangla',
     },
+    commandPalette: {
+      placeholder: 'Search pages, products, customers, suppliers…',
+      noResults: 'No results found.',
+      hint: 'Type to search pages, products, customers and more.',
+      recent: 'Recent',
+      pages: 'Pages',
+      navigate: 'navigate',
+      open: 'open',
+      close: 'close',
+    },
     nav: {
       dashboard: 'Dashboard',
       products: 'Products',

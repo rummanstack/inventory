@@ -2645,7 +2645,6 @@ const bn = {
         quickReplies: {
           pricing: 'প্রাইসিং জানতে চাই',
           setup: 'সেটআপে সাহায্য দরকার',
-          demo: 'ডেমো বুক করুন',
         },
       },
       hero: {

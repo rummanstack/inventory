@@ -51,6 +51,16 @@ const bn = {
       english: 'ইংরেজি',
       bangla: 'বাংলা',
     },
+    commandPalette: {
+      placeholder: 'পেজ, পণ্য, কাস্টমার, সাপ্লায়ার খুঁজুন…',
+      noResults: 'কোনো ফলাফল পাওয়া যায়নি।',
+      hint: 'পেজ, পণ্য, কাস্টমারসহ আরও কিছু খুঁজতে টাইপ করুন।',
+      recent: 'সাম্প্রতিক',
+      pages: 'পেজসমূহ',
+      navigate: 'নেভিগেট',
+      open: 'খুলুন',
+      close: 'বন্ধ',
+    },
     nav: {
       dashboard: 'ড্যাশবোর্ড',
       products: 'পণ্য',

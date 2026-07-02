@@ -28,7 +28,7 @@ export default function MustChangePasswordModal() {
 
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/45 p-4 backdrop-blur-[10px] no-print">
-      <div className="panel-strong w-full max-w-md overflow-hidden">
+      <div className="panel-strong shadow-modal w-full max-w-md overflow-hidden">
         <div className="border-b border-slate-100 bg-slate-50/80 px-5 py-4">
           <h2 className="text-lg font-bold text-slate-950">{t('auth.mustChangePasswordTitle')}</h2>
           <p className="mt-1 text-sm text-slate-500">{t('auth.mustChangePasswordHint')}</p>

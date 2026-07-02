@@ -1,4 +1,5 @@
 import { assert } from "../lib/errors.js";
+import { validateEmail } from "../lib/email.js";
 import { createId } from "../lib/ids.js";
 import { generateTempPassword, hashPassword, validatePasswordStrength, verifyPassword } from "../lib/passwords.js";
 import { USER_ROLES, TENANT_ROLE_VALUES } from "../lib/roles.js";
@@ -88,6 +89,8 @@ export class UserService {
     const status = normalizeStatus(input.status || "active");
 
     assert(name && email && password, "Name, email, and password are required.");
+    const emailError = validateEmail(email);
+    assert(!emailError, emailError);
     const passwordStrengthError = validatePasswordStrength(password);
     assert(!passwordStrengthError, passwordStrengthError);
 
@@ -159,6 +162,8 @@ export class UserService {
       const nextPasswordHash = input.password ? await hashPassword(String(input.password)) : null;
 
       if (nextEmail !== existingUser.email) {
+        const emailError = validateEmail(nextEmail);
+        assert(!emailError, emailError);
         const duplicateUser = await findUserByEmail(client, nextEmail);
         assert(!duplicateUser || duplicateUser.id === userId, "A user with this email already exists.");
       }
@@ -218,6 +223,8 @@ export class UserService {
       }
 
       if (nextEmail !== existingUser.email) {
+        const emailError = validateEmail(nextEmail);
+        assert(!emailError, emailError);
         const duplicateUser = await findUserByEmail(client, nextEmail);
         assert(!duplicateUser || duplicateUser.id === actor.id, "A user with this email already exists.");
       }

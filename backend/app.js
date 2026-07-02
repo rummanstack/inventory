@@ -8,8 +8,22 @@ import { createApiRouter } from "./routes/api.js";
 export function createApp({ controllers, authService, env, auditService, errorLogService }) {
   const app = express();
 
+  app.disable("x-powered-by");
   app.set("trust proxy", 1);
-  app.use(express.json());
+  app.use((req, res, next) => {
+    res.setHeader("Referrer-Policy", "no-referrer");
+    res.setHeader("X-Content-Type-Options", "nosniff");
+    res.setHeader("X-Frame-Options", "DENY");
+    res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+    res.setHeader("Cross-Origin-Opener-Policy", "same-origin");
+
+    if (env.NODE_ENV === "production") {
+      res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+    }
+
+    next();
+  });
+  app.use(express.json({ limit: "1mb" }));
   app.use("/uploads", express.static(path.join(backendRoot, "uploads")));
   app.use(
     "/api",

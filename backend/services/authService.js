@@ -1,6 +1,7 @@
 import { assert } from "../lib/errors.js";
 import { createId } from "../lib/ids.js";
 import { hashPassword, validatePasswordStrength, verifyPassword } from "../lib/passwords.js";
+import { validateEmail } from "../lib/email.js";
 import { createSessionToken, hashSessionToken } from "../lib/sessionTokens.js";
 import {
   LOCKOUT_DURATION_MINUTES,
@@ -228,6 +229,11 @@ export class AuthService {
     if (!normalizedEmail) {
       return { ok: true };
     }
+
+    // A malformed address can never match a real account, so the lookup
+    // below would silently no-op — reject it here instead so a typo gets
+    // real feedback rather than a false "request sent" message.
+    assert(!validateEmail(normalizedEmail), validateEmail(normalizedEmail));
 
     await this.databaseManager.withTransaction(async (client) => {
       // email is globally unique, so no tenant/org-slug scoping is needed.

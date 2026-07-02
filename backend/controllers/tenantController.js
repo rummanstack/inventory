@@ -15,7 +15,7 @@ export class TenantController {
 
   create = async (req, res, next) => {
     try {
-      const tenant = await this.tenantService.createTenant(req.body);
+      const tenant = await this.tenantService.createTenant(req.body, req.currentUser);
       res.status(201).json({ tenant });
     } catch (error) {
       next(error);
@@ -24,7 +24,7 @@ export class TenantController {
 
   update = async (req, res, next) => {
     try {
-      const tenant = await this.tenantService.updateTenant(req.params.id, req.body);
+      const tenant = await this.tenantService.updateTenant(req.params.id, req.body, req.currentUser);
       res.json({ tenant });
     } catch (error) {
       next(error);
@@ -33,7 +33,7 @@ export class TenantController {
 
   setStatus = async (req, res, next) => {
     try {
-      const tenant = await this.tenantService.setStatus(req.params.id, req.body.status);
+      const tenant = await this.tenantService.setStatus(req.params.id, req.body.status, req.currentUser);
       res.json({ tenant });
     } catch (error) {
       next(error);
@@ -51,7 +51,7 @@ export class TenantController {
 
   updateFeatures = async (req, res, next) => {
     try {
-      const features = await this.tenantService.updateTenantFeatures(req.params.id, req.body.features);
+      const features = await this.tenantService.updateTenantFeatures(req.params.id, req.body.features, req.currentUser);
       res.json({ features });
     } catch (error) {
       next(error);

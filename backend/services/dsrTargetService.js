@@ -1,14 +1,17 @@
 import { createId } from "../lib/ids.js";
 import { assert } from "../lib/errors.js";
+import { DSR_TARGET_ACTIONS } from "../lib/auditActions.js";
 import {
   upsertDsrTarget,
   getTargetsByMonth,
   getMonthlySummary,
 } from "../repositories/dsrTargetRepository.js";
+import { logActivity } from "./shared/inventoryHelpers.js";
 
 export class DsrTargetService {
-  constructor(databaseManager) {
+  constructor(databaseManager, { auditService } = {}) {
     this.databaseManager = databaseManager;
+    this.auditService = auditService;
   }
 
   async setTargets(targets, actor) {
@@ -31,6 +34,28 @@ export class DsrTargetService {
         });
         results.push(row);
       }
+      await logActivity(this.auditService, client, actor, {
+        actionType: DSR_TARGET_ACTIONS.SET,
+        entityType: "dsr_target",
+        entityId: month,
+        description: `${actor.name} updated ${results.length} DSR target${results.length === 1 ? "" : "s"} for ${month}`,
+        metadata: {
+          month,
+          count: results.length,
+          dsrIds: results.map((item) => item.dsrId),
+          targetAmounts: results.map((item) => ({
+            dsrId: item.dsrId,
+            targetAmount: item.targetAmount,
+          })),
+        },
+        after: {
+          month,
+          targets: results.map((item) => ({
+            dsrId: item.dsrId,
+            targetAmount: item.targetAmount,
+          })),
+        },
+      });
       return results;
     });
   }

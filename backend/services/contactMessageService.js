@@ -1,13 +1,15 @@
 import { assert } from "../lib/errors.js";
 import { createId } from "../lib/ids.js";
+import { CONTACT_MESSAGE_ACTIONS } from "../lib/auditActions.js";
 import { insertContactMessage, listContactMessages, mapContactMessage } from "../repositories/contactMessageRepository.js";
 
 export class ContactMessageService {
-  constructor(databaseManager) {
+  constructor(databaseManager, { auditService } = {}) {
     this.databaseManager = databaseManager;
+    this.auditService = auditService;
   }
 
-  async submitContactMessage(input = {}) {
+  async submitContactMessage(input = {}, actor = null, requestMeta = {}) {
     const name = String(input.name || "").trim();
     const phone = String(input.phone || "").trim();
     const message = String(input.message || "").trim();
@@ -26,7 +28,33 @@ export class ContactMessageService {
     const client = await this.databaseManager.getPool().connect();
     try {
       const result = await insertContactMessage(client, contactMessage);
-      return mapContactMessage(result.rows[0]);
+      const saved = mapContactMessage(result.rows[0]);
+      if (this.auditService) {
+        await this.auditService.record(client, {
+          tenantId: actor?.tenantId || null,
+          userId: actor?.id || null,
+          actionType: CONTACT_MESSAGE_ACTIONS.SUBMIT,
+          entityType: "contact_message",
+          entityId: saved.id,
+          description: actor
+            ? `${actor.name} submitted a contact message`
+            : `Public visitor submitted a contact message`,
+          metadata: {
+            actorName: actor?.name || "Public visitor",
+            actorRole: actor?.role || "public",
+            name,
+            phone,
+            ip: requestMeta.ip || "",
+            userAgent: requestMeta.userAgent || "",
+          },
+          after: {
+            name,
+            phone,
+            status: saved.status,
+          },
+        });
+      }
+      return saved;
     } finally {
       client.release();
     }

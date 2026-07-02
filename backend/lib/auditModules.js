@@ -20,6 +20,7 @@ const ENTITY_TYPE_MODULES = {
   product: "products",
   category: "products",
   dsr: "dsrs",
+  dsr_target: "dsrs",
   customer: "customers",
   expense: "expenses",
   issue: "morning-issue",
@@ -40,8 +41,11 @@ const ENTITY_TYPE_MODULES = {
   retail_customer: "retailer",
   retail_promotion: "retailer",
   help_desk_ticket: "support",
+  contact_message: "support",
   employee: "hr",
   salary_payment: "hr",
+  tenant: "system",
+  upload: "system",
 };
 
 export function moduleForEntityType(entityType) {

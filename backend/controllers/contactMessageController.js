@@ -5,7 +5,10 @@ export class ContactMessageController {
 
   submit = async (req, res, next) => {
     try {
-      const contactMessage = await this.contactMessageService.submitContactMessage(req.body);
+      const contactMessage = await this.contactMessageService.submitContactMessage(req.body, req.currentUser || null, {
+        ip: req.ip,
+        userAgent: req.headers["user-agent"] || "",
+      });
       res.status(201).json({ contactMessage });
     } catch (error) {
       next(error);

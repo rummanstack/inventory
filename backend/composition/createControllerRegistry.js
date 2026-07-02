@@ -80,7 +80,7 @@ export function createControllerRegistry({ services, env, databaseManager }) {
       auditController: new AuditController(services.platform.auditService),
       orgController: new OrgController(services.platform.tenantService),
       permissionController: new PermissionController(services.platform.permissionService),
-      uploadController: new UploadController(),
+      uploadController: new UploadController(services.platform.auditService),
       userController: new UserController(services.platform.userService),
     },
     catalog: {

@@ -83,7 +83,9 @@ export function createServiceRegistry({ databaseManager, env }) {
   };
 
   const customers = {
-    contactMessageService: new ContactMessageService(databaseManager),
+    contactMessageService: new ContactMessageService(databaseManager, {
+      auditService: platform.auditService,
+    }),
     customerDueLedgerService: new CustomerDueLedgerService(databaseManager),
     customerPaymentService: new CustomerPaymentService(databaseManager, {
       auditService: platform.auditService,
@@ -109,7 +111,9 @@ export function createServiceRegistry({ databaseManager, env }) {
       financeAccountService: finance.financeAccountService,
     }),
     dsrService: new DsrService(databaseManager, { auditService: platform.auditService }),
-    dsrTargetService: new DsrTargetService(databaseManager),
+    dsrTargetService: new DsrTargetService(databaseManager, {
+      auditService: platform.auditService,
+    }),
     issueService: new IssueService(databaseManager, { auditService: platform.auditService }),
     settlementService: null,
     shopDueLedgerService: new ShopDueLedgerService(databaseManager, {
@@ -182,7 +186,9 @@ export function createServiceRegistry({ databaseManager, env }) {
     }),
   };
 
-  platform.tenantService = new TenantService(databaseManager);
+  platform.tenantService = new TenantService(databaseManager, {
+    auditService: platform.auditService,
+  });
   platform.userService = new UserService(databaseManager, { auditService: platform.auditService });
   platform.permissionService = new PermissionService(databaseManager, {
     auditService: platform.auditService,

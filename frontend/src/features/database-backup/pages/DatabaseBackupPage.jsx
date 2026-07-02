@@ -74,7 +74,7 @@ export default function DatabaseBackupPage() {
               <Download size={18} />
               {loadingFormat === 'sql' ? t('backup.downloading') : t('backup.exportSql')}
             </button>
-            <button type="button" className="btn-primary" onClick={() => handleDownload('json')} disabled={Boolean(loadingFormat)}>
+            <button type="button" className="btn-secondary" onClick={() => handleDownload('json')} disabled={Boolean(loadingFormat)}>
               <Download size={18} />
               {loadingFormat === 'json' ? t('backup.downloading') : t('backup.exportJson')}
             </button>

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Bell, CalendarDays, CheckCircle2, Clock3, LogOut, Menu, MessageCircle, PackageX, ShieldCheck, UserCircle } from 'lucide-react';
+import { Bell, CalendarDays, CheckCircle2, Clock3, LogOut, Menu, MessageCircle, Moon, PackageX, ShieldCheck, Sun, UserCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useInventoryApp } from './useInventoryApp.jsx';
 import { formatDate, getLowStockProducts, getLowStockThreshold } from '../utils/calculations';
 import { Badge, Select } from '../components/ui';
 import LanguageSwitcher from '../components/LanguageSwitcher';
@@ -8,6 +9,7 @@ import { inventoryApi } from '../services/inventoryApi.js';
 import { usePolling } from '../hooks/usePolling.js';
 
 export default function TopHeader({ title, today, user, tenant, tenantOptions, onSwitchTenant, onLogout, onOpenMenu, language, onLanguageChange, t, products = [] }) {
+  const { theme, toggleTheme } = useInventoryApp();
   const [notifOpen, setNotifOpen] = useState(false);
   const [now, setNow] = useState(() => new Date());
   const [visitorChatUnread, setVisitorChatUnread] = useState(0);
@@ -98,7 +100,7 @@ export default function TopHeader({ title, today, user, tenant, tenantOptions, o
           <Link
             to="/profile"
             title={t('nav.profile')}
-            className="inline-flex items-center gap-2 rounded-full border border-[#dddaf0] bg-white/70 px-3.5 py-2 text-sm font-bold text-slate-700 transition hover:border-[#c8c4e6] hover:bg-white"
+            className="inline-flex items-center gap-2 rounded-full border border-[var(--sidebar-line-strong)] bg-white/70 px-3.5 py-2 text-sm font-bold text-slate-700 transition hover:border-[var(--sidebar-line-hover)] hover:bg-white"
           >
             <UserCircle size={17} className="text-slate-400" />
             <span className="max-w-44 truncate">{user?.name}</span>
@@ -115,6 +117,9 @@ export default function TopHeader({ title, today, user, tenant, tenantOptions, o
               ) : null}
             </Link>
           ) : null}
+          <button type="button" className="icon-btn" title={t('theme.toggle')} onClick={toggleTheme}>
+            {theme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
+          </button>
           <div className="relative" ref={notifWrapperRef}>
             <button
               type="button"

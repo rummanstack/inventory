@@ -33,7 +33,7 @@ function setTheme(vars = {}) {
   });
 }
 
-function clearThemeCache() {
+export function clearCssVarCache() {
   cache.clear();
 }
 

@@ -46,6 +46,9 @@ const en = {
       english: 'English',
       bangla: 'Bangla',
     },
+    theme: {
+      toggle: 'Toggle dark mode',
+    },
     commandPalette: {
       placeholder: 'Search pages, products, customers, suppliers…',
       noResults: 'No results found.',

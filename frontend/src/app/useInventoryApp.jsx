@@ -6,8 +6,33 @@ import { useLanguage } from './hooks/useLanguage';
 import { pushToast } from './hooks/toast';
 import { useConfirmation } from './hooks/useConfirmation';
 import { useDirectories } from './hooks/useDirectories';
+import { clearCssVarCache } from '../utils/theme.js';
 
 const InventoryAppContext = createContext(null);
+
+const THEME_STORAGE_KEY = 'stockledger.theme';
+
+function useTheme() {
+  const [theme, setThemeState] = useState(() =>
+    typeof document !== 'undefined' && document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light',
+  );
+
+  function setTheme(next) {
+    setThemeState(next);
+    document.documentElement.dataset.theme = next === 'dark' ? 'dark' : '';
+    try {
+      window.localStorage.setItem(THEME_STORAGE_KEY, next);
+    } catch { /* private mode */ }
+    // getCssVar memoizes resolved variables; charts must re-read them.
+    clearCssVarCache();
+  }
+
+  function toggleTheme() {
+    setTheme(theme === 'dark' ? 'light' : 'dark');
+  }
+
+  return { theme, setTheme, toggleTheme };
+}
 
 function interpolateConfirm(template, values) {
   return template.replace(/\{(\w+)\}/g, (_, name) => {
@@ -23,6 +48,7 @@ function getFriendlyError(error, t) {
 export function InventoryAppProvider({ children }) {
   const today = todayISO();
   const { language, setLanguage, t } = useLanguage();
+  const { theme, setTheme, toggleTheme } = useTheme();
   const { confirmation, confirm, closeConfirmation } = useConfirmation(t);
   const {
     productDirectory,
@@ -1243,6 +1269,9 @@ export function InventoryAppProvider({ children }) {
       today,
       language,
       setLanguage,
+      theme,
+      setTheme,
+      toggleTheme,
       t,
       can: (permission) => user?.role === 'system_developer' || permissions.includes(permission),
       hasFeature: (feature) =>
@@ -1330,7 +1359,7 @@ export function InventoryAppProvider({ children }) {
       refreshPromotionDirectory,
       updateProfile,
     }),
-    [today, language, t, user, tenant, tenantOptions, permissions, authLoading, productDirectory, dsrDirectory, srDirectory, supplierDirectory, shopDirectory, retailCustomerDirectory, promotionDirectory, loading, loadError, confirmation],
+    [today, language, theme, t, user, tenant, tenantOptions, permissions, authLoading, productDirectory, dsrDirectory, srDirectory, supplierDirectory, shopDirectory, retailCustomerDirectory, promotionDirectory, loading, loadError, confirmation],
   );
 
   return <InventoryAppContext.Provider value={value}>{children}</InventoryAppContext.Provider>;

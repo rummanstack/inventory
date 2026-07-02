@@ -101,7 +101,10 @@ export class UserService {
         tenantId = tenant.id;
       }
 
-      const existingUser = await findUserByEmail(client, email, tenantId);
+      // email is globally unique (schema.js), not per-tenant, so this must
+      // check across all tenants or a cross-tenant collision slips past
+      // this assert and crashes into a raw Postgres 23505 on insert.
+      const existingUser = await findUserByEmail(client, email);
       assert(!existingUser, "A user with this email already exists.");
 
       const user = {
@@ -156,7 +159,7 @@ export class UserService {
       const nextPasswordHash = input.password ? await hashPassword(String(input.password)) : null;
 
       if (nextEmail !== existingUser.email) {
-        const duplicateUser = await findUserByEmail(client, nextEmail, existingUser.tenant_id);
+        const duplicateUser = await findUserByEmail(client, nextEmail);
         assert(!duplicateUser || duplicateUser.id === userId, "A user with this email already exists.");
       }
 
@@ -215,7 +218,7 @@ export class UserService {
       }
 
       if (nextEmail !== existingUser.email) {
-        const duplicateUser = await findUserByEmail(client, nextEmail, existingUser.tenant_id);
+        const duplicateUser = await findUserByEmail(client, nextEmail);
         assert(!duplicateUser || duplicateUser.id === actor.id, "A user with this email already exists.");
       }
 

@@ -17,8 +17,8 @@ export const authApi = {
     return apiRequest("/profile", { method: "PATCH", body: JSON.stringify(fields) });
   },
 
-  forgotPassword({ email, orgSlug }) {
-    return apiRequest("/auth/forgot-password", { method: "POST", body: JSON.stringify({ email, orgSlug }) });
+  forgotPassword({ email }) {
+    return apiRequest("/auth/forgot-password", { method: "POST", body: JSON.stringify({ email }) });
   },
 
   resetPassword({ token, password }) {

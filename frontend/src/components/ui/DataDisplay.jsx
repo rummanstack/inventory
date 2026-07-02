@@ -10,6 +10,10 @@ function useCountUp(target, duration = 700) {
 
   useEffect(() => {
     if (target == null || !Number.isFinite(target)) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setCurrent(target);
+      return;
+    }
     const startTime = performance.now();
 
     function tick(now) {

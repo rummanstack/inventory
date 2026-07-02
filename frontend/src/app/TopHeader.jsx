@@ -60,7 +60,7 @@ export default function TopHeader({ title, today, user, tenant, tenantOptions, o
   }, 30000, { enabled: isSystemDeveloper });
 
   return (
-    <header className="sticky top-0 z-20 border-b border-[#e4e2f2] bg-[#f5f4fb]/95 shadow-[0_8px_24px_rgba(var(--slate-900),0.05)] backdrop-blur-xl no-print">
+    <header className="sticky top-0 z-20 border-b border-[var(--sidebar-line)] bg-[color-mix(in_srgb,var(--sidebar-bg)_95%,transparent)] shadow-card backdrop-blur-xl no-print">
       <div className="mx-auto flex min-h-20 max-w-[1600px] items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
         <div className="flex items-center gap-3">
           <button
@@ -90,7 +90,7 @@ export default function TopHeader({ title, today, user, tenant, tenantOptions, o
               ))}
             </Select>
           ) : null}
-          <div className="inline-flex items-center gap-2 rounded-full border border-[#dddaf0] bg-white/70 px-3.5 py-2 text-sm font-bold text-slate-700">
+          <div className="inline-flex items-center gap-2 rounded-full border border-[var(--sidebar-line-strong)] bg-white/70 px-3.5 py-2 text-sm font-bold text-slate-700">
             <CalendarDays size={17} className="text-slate-400" />
             {formatDate(today)}
             <span className="mx-0.5 text-slate-300">•</span>

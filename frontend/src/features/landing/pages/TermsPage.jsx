@@ -557,7 +557,7 @@ export default function TermsPage() {
             <div className="rounded-[28px] border border-indigo-900/30 bg-[linear-gradient(135deg,#0c0b1e_0%,#12103a_50%,#0d2040_100%)] p-8 sm:p-10">
               <div className="flex items-center gap-4">
                 <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/10">
-                  <img src={stockLedgerLogoIcon} alt="" className="h-7 w-7 object-contain" />
+                  <img loading="lazy" decoding="async" src={stockLedgerLogoIcon} alt="" className="h-7 w-7 object-contain" />
                 </span>
                 <div>
                   <h3 className="text-lg font-black text-white">Questions about these terms?</h3>

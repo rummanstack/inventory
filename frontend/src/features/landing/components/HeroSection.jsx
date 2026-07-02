@@ -1,4 +1,3 @@
-import { Link } from 'react-router-dom';
 import { ArrowRight, MessageCircle } from 'lucide-react';
 import ImagePlaceholder from './shared/ImagePlaceholder.jsx';
 import { heroDashboardImage, heroMobileImage, whatsappUrl } from '../constants.js';
@@ -27,10 +26,10 @@ export default function HeroSection({ t }) {
               <MessageCircle size={18} />
               {t('landing.whatsappUs')}
             </a>
-            <Link to="/login" className="landing-secondary-btn">
-              {t('landing.login')}
+            <a href="#pricing" className="landing-secondary-btn">
+              {t('landing.hero.seePricing')}
               <ArrowRight size={18} />
-            </Link>
+            </a>
           </div>
         </div>
 

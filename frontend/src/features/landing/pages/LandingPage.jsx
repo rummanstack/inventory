@@ -4,7 +4,6 @@ import LandingHeader from '../components/LandingHeader.jsx';
 import HeroSection from '../components/HeroSection.jsx';
 import ProblemSection from '../components/ProblemSection.jsx';
 import FeatureStorySection from '../components/FeatureStorySection.jsx';
-import FeatureGridSection from '../components/FeatureGridSection.jsx';
 import SolutionsSection from '../components/SolutionsSection.jsx';
 import WorkflowSection from '../components/WorkflowSection.jsx';
 import ImageShowcaseSection from '../components/ImageShowcaseSection.jsx';
@@ -38,14 +37,13 @@ export default function LandingPage() {
       <WhoIsItForSection t={t} />
       <ProblemSection t={t} />
       <FeatureStorySection t={t} />
-      <FeatureGridSection t={t} />
       <SolutionsSection t={t} />
       <WorkflowSection t={t} />
       <ImageShowcaseSection t={t} />
-      <CtaSection t={t} />
       <TestimonialsSection t={t} />
       <PricingSection t={t} />
       <FaqSection t={t} />
+      <CtaSection t={t} />
       <ContactSection t={t} />
       <LandingFooter t={t} />
       <LandingChatWidget t={t} />

@@ -118,18 +118,14 @@ export const solutionHighlightImages = [
 
 export const workflowIcons = [Warehouse, Boxes, ReceiptText, WalletCards, BarChart3];
 
+// One main shot + five tiles fills the lg collage grid exactly; the six
+// chosen here are the ones not already repeated by other sections.
 export const showcaseImages = [
   { src: ownerLaptopImage, key: 'ownerLaptop', fit: 'cover' },
   { src: heroDashboardImageFile, key: 'heroDashboard', fit: 'cover' },
-  { src: warehouseStockImage, key: 'warehouseStock', fit: 'cover' },
   { src: profitReportImage, key: 'profitReport', fit: 'cover' },
-  { src: contactSupportImage, key: 'contactUs', fit: 'cover' },
   { src: retailCounter2Image, key: 'retailCounter', fit: 'cover', position: 'top' },
-  { src: dueCollectionImage, key: 'dueCollection', fit: 'cover' },
-  { src: eveningSettlementImage, key: 'eveningSettlement', fit: 'cover' },
-  { src: purchaseReceiveImage, key: 'purchaseReceive', fit: 'cover' },
   { src: dsrRouteImage, key: 'dsrRoute', fit: 'cover' },
-  { src: supplierPurchaseImage, key: 'supplierPurchase', fit: 'cover' },
-  { src: shopCounter2Image, key: 'shopCounter2', fit: 'cover', position: 'top' },
+  { src: purchaseReceiveImage, key: 'purchaseReceive', fit: 'cover' },
 ];
 

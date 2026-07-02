@@ -240,7 +240,7 @@ export default function FounderPage() {
               {/* Floating badge */}
               <div className="absolute -bottom-4 -right-4 flex items-center gap-2.5 rounded-2xl border border-white/20 bg-white/95 px-4 py-3 shadow-[0_16px_40px_rgba(0,0,0,0.22)] backdrop-blur-xl">
                 <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[linear-gradient(135deg,var(--brand),var(--brand-strong))]">
-                  <img src={stockLedgerLogoIcon} alt="" className="h-5 w-5 object-contain" />
+                  <img loading="lazy" decoding="async" src={stockLedgerLogoIcon} alt="" className="h-5 w-5 object-contain" />
                 </span>
                 <div>
                   <p className="text-xs font-black text-slate-950">StockLedger</p>

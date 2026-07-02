@@ -18,7 +18,7 @@ export default function LandingFooter({ t }) {
         <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
           <div className="max-w-sm">
             <div className="flex items-center gap-3">
-              <img src={stockLedgerLogoIcon} alt="" className="h-12 w-12 object-contain drop-shadow-[0_10px_24px_rgba(15,23,42,0.24)]" />
+              <img loading="lazy" decoding="async" src={stockLedgerLogoIcon} alt="" className="h-12 w-12 object-contain drop-shadow-[0_10px_24px_rgba(15,23,42,0.24)]" />
               <div>
                 <h2 className="text-lg font-black tracking-tight text-white">StockLedger</h2>
                 <p className="mt-1 text-[11px] font-bold uppercase tracking-[0.16em] text-slate-300">{t('landing.footer.tagline')}</p>

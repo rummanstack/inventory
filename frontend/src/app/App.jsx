@@ -1,15 +1,18 @@
+import { Suspense, lazy } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { Toaster } from 'sonner';
-import AppLayout from './AppLayout';
-import LoginPage from '../features/auth/pages/LoginPage';
-import LandingPage from '../features/landing/pages/LandingPage';
-import PrivacyPolicyPage from '../features/landing/pages/PrivacyPolicyPage';
-import TermsPage from '../features/landing/pages/TermsPage';
-import FounderPage from '../features/landing/pages/FounderPage';
 import { APP_ROUTES } from './routes';
 import { ErrorBoundary } from './ErrorBoundary.jsx';
 import { InventoryAppProvider, useInventoryApp } from './useInventoryApp.jsx';
+import { LoadingState } from '../components/ui/Feedback.jsx';
 import { stockLedgerLogoHorizontal, stockLedgerLogoIcon } from '../assets/brandAssets.js';
+
+const AppLayout = lazy(() => import('./AppLayout'));
+const LoginPage = lazy(() => import('../features/auth/pages/LoginPage'));
+const LandingPage = lazy(() => import('../features/landing/pages/LandingPage'));
+const PrivacyPolicyPage = lazy(() => import('../features/landing/pages/PrivacyPolicyPage'));
+const TermsPage = lazy(() => import('../features/landing/pages/TermsPage'));
+const FounderPage = lazy(() => import('../features/landing/pages/FounderPage'));
 
 function SessionLoadingScreen() {
   return (
@@ -105,7 +108,17 @@ function GuardedAppRoute({ route }) {
     !hasFeature(route.feature)
   );
 
-  return blocked ? <Navigate to={defaultRoute} replace /> : <RouteComponent />;
+  if (blocked) {
+    return <Navigate to={defaultRoute} replace />;
+  }
+
+  // Per-page Suspense keeps the sidebar/header mounted while a lazy page
+  // chunk downloads; only the content area shows the skeleton.
+  return (
+    <Suspense fallback={<div className="pt-2"><LoadingState /></div>}>
+      <RouteComponent />
+    </Suspense>
+  );
 }
 
 function AppFallbackRedirect() {
@@ -156,7 +169,9 @@ function AppShell() {
     <ErrorBoundary t={t}>
       <Toaster position="top-right" richColors expand closeButton duration={4000} />
       <BrowserRouter>
-        <AppRoutes />
+        <Suspense fallback={<SessionLoadingScreen />}>
+          <AppRoutes />
+        </Suspense>
       </BrowserRouter>
     </ErrorBoundary>
   );

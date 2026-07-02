@@ -115,7 +115,7 @@ export class PermissionService {
         const stored = await listRolePermissions(client, role, tenantId);
         result.push({ role, permissions: stored });
       }
-      return { roles: result, allPermissions: ALL_PERMISSIONS, tenantId };
+      return { roles: result, allPermissions: ALL_PERMISSIONS, permissionRequiredFeatures: PERMISSION_REQUIRED_FEATURES, tenantId };
     } finally {
       client.release();
     }

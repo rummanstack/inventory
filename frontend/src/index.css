@@ -19,6 +19,9 @@
     --radius-card: 14px;
     --radius-control: 10px;
     --radius-pill: 9999px;
+    --motion-fast: 150ms;
+    --motion-base: 250ms;
+    --motion-ease: cubic-bezier(0.16, 1, 0.3, 1);
     --shadow-soft: 0 1px 2px rgba(var(--slate-900), 0.03), 0 4px 12px rgba(var(--slate-900), 0.05);
     --shadow-crisp: 0 1px 2px rgba(var(--slate-900), 0.05), 0 2px 8px rgba(var(--slate-900), 0.06);
     --shadow-card: 0 1px 2px rgba(var(--slate-900), 0.04), 0 1px 3px rgba(var(--slate-900), 0.06);
@@ -767,7 +770,7 @@
   }
 
   .btn-primary {
-    @apply inline-flex h-10 items-center justify-center gap-2 rounded-control bg-[linear-gradient(135deg,var(--secondary-strong),var(--secondary))] px-4 text-sm font-bold text-white shadow-[0_1px_2px_var(--secondary-shadow)] transition duration-200 ease-out hover:brightness-95 hover:shadow-[0_2px_8px_var(--secondary-shadow-strong)] active:brightness-90 focus:outline-none focus:ring-4 focus:ring-[var(--secondary-soft)] disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none;
+    @apply inline-flex h-10 items-center justify-center gap-2 rounded-control bg-[linear-gradient(135deg,var(--secondary-strong),var(--secondary))] px-4 text-sm font-bold text-white shadow-[0_1px_2px_var(--secondary-shadow)] transition duration-200 ease-out hover:brightness-95 hover:shadow-[0_2px_8px_var(--secondary-shadow-strong)] active:scale-[0.98] active:brightness-90 focus:outline-none focus:ring-4 focus:ring-[var(--secondary-soft)] disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none;
   }
 
   .btn-secondary {
@@ -878,8 +881,8 @@
 
   .surface tbody tr {
     transition:
-      background-color 160ms ease,
-      box-shadow 160ms ease;
+      background-color var(--motion-fast) ease,
+      box-shadow var(--motion-fast) ease;
   }
 
   .surface tbody tr:hover {
@@ -888,7 +891,7 @@
 
   .surface tbody tr .row-actions {
     opacity: 0;
-    transition: opacity 160ms ease;
+    transition: opacity var(--motion-fast) ease;
   }
 
   .surface tbody tr:hover .row-actions,
@@ -904,7 +907,7 @@
   .table-head th.sortable {
     cursor: pointer;
     user-select: none;
-    transition: color 120ms ease;
+    transition: color var(--motion-fast) ease;
   }
 
   .table-head th.sortable:hover {
@@ -923,7 +926,7 @@
   }
 
   .page-enter {
-    animation: page-enter 200ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation: page-enter var(--motion-base) var(--motion-ease) both;
   }
 
   @keyframes modal-enter {
@@ -932,7 +935,28 @@
   }
 
   .modal-enter {
-    animation: modal-enter 160ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation: modal-enter var(--motion-fast) var(--motion-ease) both;
+  }
+
+  @keyframes popover-enter {
+    from { opacity: 0; transform: scale(0.98); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+
+  .popover-enter {
+    transform-origin: top center;
+    animation: popover-enter var(--motion-fast) var(--motion-ease) both;
+  }
+
+  @keyframes popover-fade {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  /* For floating panels positioned via an inline transform (a scale
+     animation would override it and shift the panel while entering). */
+  .popover-fade {
+    animation: popover-fade var(--motion-fast) var(--motion-ease) both;
   }
 
   @keyframes shimmer {

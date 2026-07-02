@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { MessageCircle, Phone, Send, X } from 'lucide-react';
-import logoMark from '../../../assets/stockledger-logo-mark.svg';
+import { stockLedgerLogoIcon } from '../../../assets/brandAssets.js';
 import { contactPhone, whatsappUrl } from '../constants.js';
 import { getVisitorToken, setVisitorToken } from '../lib/visitorIdentity.js';
 import { visitorChatApi } from '../../../services/api/visitorChatApi.js';
@@ -105,7 +105,7 @@ export default function LandingChatWidget({ t }) {
           <div className="landing-chat-header">
             <div className="landing-chat-brand">
               <span className="landing-chat-logo">
-                <img src={logoMark} alt="" className="h-full w-full object-contain" />
+                <img src={stockLedgerLogoIcon} alt="" className="h-full w-full object-contain" />
               </span>
               <div>
                 <p className="landing-chat-agent-name">{t('landing.chat.team')}</p>
@@ -129,7 +129,7 @@ export default function LandingChatWidget({ t }) {
                   <div key={item.id} className={`flex items-end gap-2 ${isSupport ? '' : 'flex-row-reverse'}`}>
                     {isSupport ? (
                       <span className="landing-chat-avatar">
-                        <img src={logoMark} alt="" className="h-full w-full object-contain" />
+                        <img src={stockLedgerLogoIcon} alt="" className="h-full w-full object-contain" />
                       </span>
                     ) : null}
                     <div className="flex max-w-[78%] flex-col gap-1">
@@ -144,7 +144,7 @@ export default function LandingChatWidget({ t }) {
             ) : (
               <div className="flex items-start gap-2">
                 <span className="landing-chat-avatar">
-                  <img src={logoMark} alt="" className="h-full w-full object-contain" />
+                  <img src={stockLedgerLogoIcon} alt="" className="h-full w-full object-contain" />
                 </span>
                 <div className="landing-chat-bubble landing-chat-bubble-support">{t('landing.chat.greeting')}</div>
               </div>

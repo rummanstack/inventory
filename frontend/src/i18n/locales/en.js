@@ -2799,6 +2799,412 @@ const en = {
         noteBy: '— Rumman',
         whatsappMe: 'WhatsApp me',
       },
+      privacy: {
+        breadcrumbHome: 'Home',
+        breadcrumb: 'Privacy Policy',
+        eyebrow: 'Legal',
+        title: 'Privacy Policy',
+        intro: 'We are committed to protecting your data. This policy explains what we collect, why we collect it, and how we keep it secure.',
+        updated: 'Last updated: June 29, 2026',
+        toc: 'On this page',
+        sections: [
+          {
+            id: 'introduction',
+            label: 'Introduction',
+            blocks: [
+              { type: 'p', text: 'Welcome to **StockLedger (Arinda)** — a multi-tenant inventory, retail POS, dealer-distribution, and finance management platform built for businesses across Bangladesh and beyond.' },
+              { type: 'p', text: 'This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our software-as-a-service (SaaS) platform. By accessing or using StockLedger, you agree to the practices described in this policy.' },
+              { type: 'card', tone: 'blue', text: '**Who does this apply to?** This policy applies to all users of the StockLedger platform — platform administrators, tenant business owners, managers, operators, and any other individuals whose data is processed through our system.' },
+              { type: 'p', text: 'We operate under a multi-tenant architecture. Each business (tenant) has its own isolated data environment. StockLedger platform staff can access tenant data only for support and operational purposes, always in accordance with this policy.' },
+            ],
+          },
+          {
+            id: 'data-we-collect',
+            label: 'Data We Collect',
+            blocks: [
+              { type: 'p', text: 'We collect information in the following categories:' },
+              {
+                type: 'table',
+                head: ['Category', 'Examples'],
+                rows: [
+                  ['Account data', 'Name, email address, phone number, role, password hash'],
+                  ['Business data', 'Tenant name, business type, org settings, subscription tier'],
+                  ['Operational data', 'Products, inventory movements, invoices, purchases, payments'],
+                  ['Financial data', 'Finance account balances, expense records, profit reports'],
+                  ['People data', 'Customer names/phones, supplier details, DSR profiles, employee payroll'],
+                  ['Usage data', 'Activity logs, audit trail, page views, session tokens'],
+                  ['Device & network', 'IP address, browser type, operating system (from server logs)'],
+                ],
+              },
+              { type: 'p', text: 'We do **not** intentionally collect sensitive personal data such as national ID numbers, biometric data, or health records unless your business type (e.g., pharmacy) requires it for regulatory compliance.' },
+            ],
+          },
+          {
+            id: 'how-we-use',
+            label: 'How We Use Your Data',
+            blocks: [
+              { type: 'p', text: 'We use collected data to:' },
+              {
+                type: 'bullets',
+                items: [
+                  'Provide, operate, and improve the StockLedger platform and its features.',
+                  'Authenticate users and maintain secure sessions.',
+                  'Generate reports, dashboards, and analytics for your business.',
+                  'Send transactional notifications (e.g., low-stock alerts, due payment reminders).',
+                  'Respond to support requests and troubleshoot issues.',
+                  'Enforce platform terms, prevent fraud, and maintain system security.',
+                  'Comply with applicable laws and regulations.',
+                ],
+              },
+              { type: 'card', tone: 'teal', text: 'We do **not** sell your data to third parties. We do not use your business data to train AI models or for any advertising purposes.' },
+            ],
+          },
+          {
+            id: 'data-sharing',
+            label: 'Data Sharing',
+            blocks: [
+              { type: 'p', text: 'We share data only in the limited circumstances below:' },
+              {
+                type: 'bullets',
+                items: [
+                  'Infrastructure providers (e.g., Render, Vercel, Neon/PostgreSQL) that host and run the platform under strict data-processing agreements.',
+                  'When required by law, court order, or government authority in Bangladesh or applicable jurisdictions.',
+                  'With your explicit consent — for example, when you integrate a third-party service.',
+                  'In the event of a merger, acquisition, or sale of assets, in which case you will be notified.',
+                ],
+              },
+              { type: 'p', text: 'All third-party service providers we use are contractually bound to process data only as directed by us and are prohibited from using it for their own purposes.' },
+            ],
+          },
+          {
+            id: 'security',
+            label: 'Data Security',
+            blocks: [
+              { type: 'p', text: 'We implement industry-standard technical and organizational measures to protect your data:' },
+              {
+                type: 'bullets',
+                items: [
+                  'All data in transit is encrypted using TLS (HTTPS).',
+                  'Passwords are hashed using bcrypt — we never store plain-text passwords.',
+                  'Session tokens are stored in HTTP-only cookies to prevent XSS access.',
+                  'Multi-tenant isolation is enforced at the application layer: every query is scoped to a tenant ID.',
+                  'Regular automated database backups with point-in-time recovery.',
+                  'Audit logs capture all sensitive data changes (who, what, when).',
+                  'Role-based access control (RBAC) with fine-grained, per-tenant permission customization.',
+                ],
+              },
+              { type: 'card', tone: 'amber', text: '**Important:** No system is 100% secure. If you suspect a security breach, please contact us immediately at {email} so we can respond swiftly.' },
+            ],
+          },
+          {
+            id: 'your-rights',
+            label: 'Your Privacy Rights',
+            blocks: [
+              { type: 'p', text: 'Depending on your jurisdiction, you may have the following rights regarding your personal data:' },
+              {
+                type: 'defs',
+                columns: 2,
+                items: [
+                  { term: 'Access', def: 'Request a copy of the personal data we hold about you.' },
+                  { term: 'Correction', def: 'Ask us to correct inaccurate or incomplete data.' },
+                  { term: 'Deletion', def: 'Request erasure of your personal data ("right to be forgotten").' },
+                  { term: 'Portability', def: 'Receive your data in a machine-readable format.' },
+                  { term: 'Restriction', def: 'Ask us to limit how we process your data.' },
+                  { term: 'Objection', def: 'Object to processing based on our legitimate interests.' },
+                ],
+              },
+              { type: 'p', text: 'To exercise any right, contact your account administrator or reach out to us directly at {email}. We will respond within 30 days.' },
+            ],
+          },
+          {
+            id: 'cookies',
+            label: 'Cookies & Tracking',
+            blocks: [
+              { type: 'p', text: 'StockLedger uses a minimal set of cookies and similar technologies:' },
+              {
+                type: 'table',
+                head: ['Cookie', 'Purpose', 'Type'],
+                rows: [
+                  ['Session cookie', 'Authenticates your login session', 'HTTP-only, essential'],
+                  ['Active tenant', 'Remembers which tenant you are operating as (localStorage)', 'Functional'],
+                  ['Language preference', 'Stores your language selection (localStorage)', 'Functional'],
+                ],
+              },
+              { type: 'p', text: 'We do not use advertising cookies, third-party tracking pixels, or analytics cookies that identify you across other websites.' },
+            ],
+          },
+          {
+            id: 'retention',
+            label: 'Data Retention',
+            blocks: [
+              { type: 'p', text: 'We retain your data for as long as your account is active or as needed to provide you services:' },
+              {
+                type: 'bullets',
+                items: [
+                  'Active tenant data is retained for the duration of your subscription.',
+                  'After subscription termination, data is kept for 90 days to allow for reactivation or export requests.',
+                  'After 90 days post-termination, data is permanently deleted from production databases.',
+                  'Audit logs and activity records are retained for 2 years for compliance purposes.',
+                  'Backup snapshots are cycled on a 30-day rolling retention schedule.',
+                ],
+              },
+              { type: 'p', text: 'You may request earlier deletion by contacting us at {email}.' },
+            ],
+          },
+          {
+            id: 'changes',
+            label: 'Policy Changes',
+            blocks: [
+              { type: 'p', text: 'We may update this Privacy Policy from time to time to reflect changes in our practices, technology, or applicable law. When we do:' },
+              {
+                type: 'bullets',
+                items: [
+                  'We will update the "Last updated" date at the top of this page.',
+                  'For material changes, we will notify tenant administrators via in-app notification or email at least 14 days before the change takes effect.',
+                  'Your continued use of the platform after the effective date constitutes acceptance of the updated policy.',
+                ],
+              },
+              { type: 'p', text: 'We encourage you to review this page periodically. Previous versions are available on request.' },
+            ],
+          },
+        ],
+        contact: {
+          label: 'Contact Us',
+          intro: 'If you have any questions, concerns, or requests regarding this Privacy Policy or the handling of your personal data, please reach out:',
+          emailTitle: 'Email',
+          emailNote: 'We respond within 2 business days',
+          phoneTitle: 'Phone',
+          phoneNote: 'Available during business hours',
+          whatsappTitle: 'WhatsApp',
+          whatsappAction: 'Chat with us',
+          whatsappNote: 'Quickest response channel',
+        },
+        cta: {
+          title: 'Ready to get started?',
+          text: 'Your data is safe with us. Talk to our team anytime.',
+          whatsapp: 'WhatsApp Us',
+          explore: 'Explore StockLedger',
+        },
+      },
+      terms: {
+        breadcrumbHome: 'Home',
+        breadcrumb: 'Terms & Conditions',
+        eyebrow: 'Legal',
+        title: 'Terms & Conditions',
+        intro: 'Please read these terms carefully before using StockLedger. By accessing our platform you agree to be bound by the conditions outlined below.',
+        updated: 'Last updated: June 29, 2026',
+        toc: 'On this page',
+        sections: [
+          {
+            id: 'acceptance',
+            label: 'Acceptance of Terms',
+            blocks: [
+              { type: 'p', text: 'These Terms & Conditions ("Terms") govern your access to and use of the **StockLedger (Arinda)** platform, including all associated websites, mobile interfaces, APIs, and related services (collectively, the "Service").' },
+              { type: 'p', text: 'By creating an account, subscribing to a plan, or otherwise using the Service, you confirm that you have read, understood, and agree to be bound by these Terms on behalf of yourself and, where applicable, the business entity you represent ("Tenant").' },
+              { type: 'card', tone: 'amber', text: '**If you do not agree** with any part of these Terms, you must not use the Service. Continued use after any update to these Terms constitutes acceptance of the revised version.' },
+              { type: 'p', text: 'These Terms should be read alongside our {privacy}, which is incorporated by reference.' },
+            ],
+          },
+          {
+            id: 'service',
+            label: 'Description of Service',
+            blocks: [
+              { type: 'p', text: 'StockLedger is a cloud-based, multi-tenant software-as-a-service (SaaS) platform that provides:' },
+              {
+                type: 'bullets',
+                items: [
+                  'Inventory and stock management (products, categories, stock movements, damaged stock).',
+                  'Retail point-of-sale (POS) with sales invoices, returns, and customer due ledgers.',
+                  'Dealer/DSR (Delivery Sales Rep) distribution management including morning issue and evening settlements.',
+                  'Purchasing and supplier management with due ledgers.',
+                  'Finance management: accounts, transfers, expenses, and profit reports.',
+                  'Platform administration: tenant management, user roles, audit trails, and system health.',
+                ],
+              },
+              { type: 'p', text: 'We reserve the right to modify, suspend, or discontinue any part of the Service at any time with reasonable notice. We are not liable to you or any third party for any modification, suspension, or discontinuance.' },
+              { type: 'card', tone: 'teal', text: 'Feature availability may vary by subscription tier and business type. Some features (e.g., batch tracking for pharmacies, serial tracking for electronics) are only enabled for eligible tenants.' },
+            ],
+          },
+          {
+            id: 'accounts',
+            label: 'Accounts & Security',
+            blocks: [
+              { type: 'p', text: 'To use the Service, your business must be registered as a Tenant and each individual must hold a User account. The following conditions apply:' },
+              {
+                type: 'defs',
+                items: [
+                  { term: 'Eligibility', def: 'You must be at least 18 years old and legally capable of entering into a binding contract. By registering, you represent that you meet these requirements.' },
+                  { term: 'Accurate information', def: 'You agree to provide truthful, current, and complete information during registration and to keep it up to date.' },
+                  { term: 'Account credentials', def: 'You are responsible for maintaining the confidentiality of your login credentials. You must notify us immediately at the contact details below if you suspect unauthorized access.' },
+                  { term: 'Account responsibility', def: 'You are responsible for all activities that occur under your account or Tenant. StockLedger is not liable for any loss arising from unauthorized use of your credentials.' },
+                  { term: 'One account per user', def: 'Each user must have their own account. Sharing credentials between multiple individuals is prohibited.' },
+                ],
+              },
+            ],
+          },
+          {
+            id: 'subscription',
+            label: 'Subscription & Payment',
+            blocks: [
+              { type: 'p', text: 'Access to the Service is offered on a subscription basis. By subscribing you agree to the following:' },
+              {
+                type: 'bullets',
+                items: [
+                  'Subscription fees are billed in advance on a monthly or annual cycle as selected at sign-up.',
+                  'All fees are quoted in Bangladeshi Taka (BDT) unless otherwise stated.',
+                  'Payment must be made via the accepted methods listed on the pricing page (mobile banking, bank transfer, etc.).',
+                  'Subscriptions automatically renew unless cancelled before the renewal date.',
+                  'We reserve the right to change pricing with at least 30 days prior written notice.',
+                  'Fees paid are non-refundable except where required by applicable law or as expressly stated in writing.',
+                ],
+              },
+              { type: 'card', tone: 'rose', text: '**Late or failed payments** may result in suspension of access to the Service. Data associated with a suspended account is retained for 90 days before permanent deletion.' },
+              { type: 'p', text: 'If you believe you have been billed incorrectly, contact us within 30 days of the charge at {email}.' },
+            ],
+          },
+          {
+            id: 'acceptable-use',
+            label: 'Acceptable Use',
+            blocks: [
+              { type: 'p', text: 'You agree to use the Service only for lawful purposes and in accordance with these Terms. You must not:' },
+              {
+                type: 'bullets',
+                items: [
+                  'Use the Service to store, transmit, or process any data that is illegal, fraudulent, defamatory, or infringes the rights of any third party.',
+                  'Attempt to gain unauthorized access to any part of the Service, other tenant accounts, or connected systems.',
+                  'Reverse-engineer, decompile, or disassemble any portion of the Service or its underlying software.',
+                  'Use automated scripts, bots, or crawlers to extract data from the Service without written permission.',
+                  'Resell, sublicense, or otherwise commercially exploit access to the Service without our express written consent.',
+                  'Upload or transmit malicious code, viruses, or anything designed to disrupt the Service or other users.',
+                  'Misrepresent your identity or affiliation with any person or organization.',
+                ],
+              },
+              { type: 'p', text: 'Violation of this section may result in immediate suspension or termination of your account, at our sole discretion, without refund.' },
+            ],
+          },
+          {
+            id: 'data-ownership',
+            label: 'Data & Ownership',
+            blocks: [
+              { type: 'p', text: 'The following principles govern data ownership and processing within the platform:' },
+              {
+                type: 'defs',
+                items: [
+                  { term: 'Your data is yours', def: 'All business data you input into the Service — including products, customers, invoices, and financial records — remains your property at all times. We do not claim ownership over Tenant data.' },
+                  { term: 'Data processing license', def: 'By using the Service, you grant StockLedger a limited, non-exclusive license to process, store, and display your data solely for the purpose of providing the Service to you.' },
+                  { term: 'Data export', def: "You may export your data at any time via the platform's export features (Excel, PDF). Upon termination, you have 90 days to request a full export before data deletion." },
+                  { term: 'Tenant isolation', def: 'Data belonging to one Tenant is logically isolated from all others. We do not share your data with other tenants under any circumstances.' },
+                  { term: 'Platform-generated data', def: 'Aggregated, anonymized usage statistics derived from your use of the Service may be used by StockLedger to improve the platform. This data cannot be traced back to you or your business.' },
+                ],
+              },
+            ],
+          },
+          {
+            id: 'ip',
+            label: 'Intellectual Property',
+            blocks: [
+              { type: 'p', text: 'The Service and all its contents — including software, design, text, graphics, logos, interfaces, and underlying code — are the exclusive property of StockLedger (Arinda) and its licensors, protected by copyright, trademark, and other intellectual property laws.' },
+              {
+                type: 'bullets',
+                items: [
+                  'The StockLedger name, logo, and brand marks are trademarks of Arinda. You may not use them without written permission.',
+                  'Nothing in these Terms transfers any intellectual property rights to you.',
+                  'Any feedback, suggestions, or ideas you provide may be used by us to improve the Service without obligation or compensation to you.',
+                  'Open-source components used within the platform remain subject to their respective licenses.',
+                ],
+              },
+              { type: 'p', text: 'If you believe any content on the platform infringes your intellectual property rights, please notify us at {email}.' },
+            ],
+          },
+          {
+            id: 'disclaimers',
+            label: 'Warranties & Disclaimers',
+            blocks: [
+              { type: 'card', tone: 'amber', text: '**The Service is provided "as is" and "as available"** without warranties of any kind, either express or implied, including but not limited to implied warranties of merchantability, fitness for a particular purpose, or non-infringement.' },
+              { type: 'p', text: 'We do not warrant that:' },
+              {
+                type: 'bullets',
+                items: [
+                  'The Service will be uninterrupted, error-free, or completely secure.',
+                  'Results obtained from the Service will be accurate, complete, or reliable for any specific business purpose.',
+                  'Any defects or errors will be corrected on a specific timeline.',
+                  'The Service or its servers are free from viruses or other harmful components.',
+                ],
+              },
+              { type: 'p', text: 'Financial data, reports, and calculations generated by the platform are provided for informational and operational convenience. They do not constitute professional accounting, tax, or legal advice. You should consult qualified professionals for those purposes.' },
+            ],
+          },
+          {
+            id: 'liability',
+            label: 'Limitation of Liability',
+            blocks: [
+              { type: 'p', text: 'To the fullest extent permitted by applicable law, StockLedger (Arinda) and its officers, directors, employees, and agents shall not be liable for any:' },
+              {
+                type: 'bullets',
+                items: [
+                  'Indirect, incidental, special, consequential, or punitive damages.',
+                  'Loss of profits, revenue, data, business opportunities, or goodwill.',
+                  'Damages arising from unauthorized access to or alteration of your data.',
+                  'Damages resulting from your reliance on the accuracy of any information provided by the Service.',
+                  'Service interruptions, downtime, or data loss beyond our reasonable control.',
+                ],
+              },
+              { type: 'p', text: 'In no event shall our total cumulative liability to you exceed the amount you paid to us in the twelve (12) months immediately preceding the event giving rise to the claim.' },
+              { type: 'card', tone: 'blue', text: 'Some jurisdictions do not allow the exclusion of certain warranties or limitations on liability, so some of the above may not apply to you. In those cases, our liability will be limited to the maximum extent permitted by law.' },
+            ],
+          },
+          {
+            id: 'termination',
+            label: 'Termination',
+            blocks: [
+              { type: 'p', text: 'Either party may terminate the agreement governed by these Terms:' },
+              {
+                type: 'defs',
+                items: [
+                  { term: 'Termination by you', def: 'You may cancel your subscription at any time through your account settings or by contacting support. Access continues until the end of your current billing period.' },
+                  { term: 'Termination by us — with notice', def: "We may terminate or suspend your account with 14 days' written notice if you breach these Terms and fail to remedy the breach within 7 days of notification." },
+                  { term: 'Termination by us — immediately', def: 'We may terminate immediately and without notice for serious violations including fraud, illegal activity, security threats, or non-payment exceeding 30 days past due.' },
+                  { term: 'Effect of termination', def: 'Upon termination, your right to access the Service ceases. Your data is retained for 90 days for export, then permanently deleted. Provisions that by their nature should survive termination (including liability, IP, and governing law sections) will do so.' },
+                ],
+              },
+            ],
+          },
+          {
+            id: 'governing-law',
+            label: 'Governing Law',
+            blocks: [
+              { type: 'p', text: "These Terms are governed by and construed in accordance with the laws of the **People's Republic of Bangladesh**, without regard to its conflict of law provisions." },
+              {
+                type: 'bullets',
+                items: [
+                  'Any dispute arising from or related to these Terms or the Service shall first be attempted to be resolved through good-faith negotiation between the parties.',
+                  'If negotiation fails within 30 days, disputes shall be submitted to the exclusive jurisdiction of the courts of Dhaka, Bangladesh.',
+                  'You waive any objection to the laying of venue in such courts and to any claim that proceedings have been brought in an inconvenient forum.',
+                ],
+              },
+              { type: 'p', text: 'If any provision of these Terms is found to be unenforceable or invalid by a court of competent jurisdiction, that provision shall be modified to the minimum extent necessary to make it enforceable, and the remaining provisions shall continue in full force and effect.' },
+            ],
+          },
+        ],
+        contact: {
+          label: 'Contact Us',
+          intro: 'If you have questions about these Terms or need assistance, please reach us through any of the following channels:',
+          emailTitle: 'Legal email',
+          emailNote: 'For legal & compliance inquiries',
+          phoneTitle: 'Phone',
+          phoneNote: 'Available during business hours',
+          whatsappTitle: 'WhatsApp',
+          whatsappAction: 'Chat with us',
+          whatsappNote: 'Quickest response channel',
+          outro: 'Also see our {privacy} for information on how we handle your data.',
+        },
+        cta: {
+          title: 'Questions about these terms?',
+          text: 'Our team is happy to clarify anything before you commit.',
+          whatsapp: 'WhatsApp Us',
+          explore: 'Explore StockLedger',
+        },
+      },
       chat: {
         launch: 'Live Chat',
         badge: 'Support Desk',

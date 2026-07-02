@@ -12,6 +12,12 @@
     <link rel="manifest" href="/site.webmanifest" />
     <script>
       (function () {
+        // Landing/legal routes are light-only; pre-marking them here keeps
+        // the stored dark theme from flashing in before React mounts.
+        var lightOnly = ['/landing', '/terms', '/privacy-policy', '/founder'];
+        if (lightOnly.indexOf(location.pathname) !== -1) {
+          document.documentElement.classList.add('landing-page-active');
+        }
         try {
           if (localStorage.getItem('stockledger.theme') === 'dark') {
             document.documentElement.dataset.theme = 'dark';

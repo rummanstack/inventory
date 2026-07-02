@@ -1,32 +1,4 @@
 import { Router } from "express";
-import { AuthController } from "../controllers/authController.js";
-import { DsrFinanceController } from "../controllers/dsrFinanceController.js";
-import { ProfitController } from "../controllers/profitController.js";
-import { BackupController } from "../controllers/backupController.js";
-import { DsrController } from "../controllers/dsrController.js";
-import { ActivityLogController } from "../controllers/activityLogController.js";
-import { AuditController } from "../controllers/auditController.js";
-import { ExpenseController } from "../controllers/expenseController.js";
-import { IssueController } from "../controllers/issueController.js";
-import { HelpDeskController } from "../controllers/helpDeskController.js";
-import { ProductController } from "../controllers/productController.js";
-import { CategoryController } from "../controllers/categoryController.js";
-import { StockMovementController } from "../controllers/stockMovementController.js";
-import { ProductSerialController } from "../controllers/productSerialController.js";
-import { WarrantyClaimController } from "../controllers/warrantyClaimController.js";
-import { RepairJobController } from "../controllers/repairJobController.js";
-import { DsrDueLedgerController } from "../controllers/dsrDueLedgerController.js";
-import { ShopDueLedgerController } from "../controllers/shopDueLedgerController.js";
-import { CustomerController } from "../controllers/customerController.js";
-import { RetailCustomerController } from "../controllers/retailCustomerController.js";
-import { RetailPromotionController } from "../controllers/retailPromotionController.js";
-import { UserController } from "../controllers/userController.js";
-import { SettlementController } from "../controllers/settlementController.js";
-import { TenantController } from "../controllers/tenantController.js";
-import { OrgController } from "../controllers/orgController.js";
-import { PermissionController } from "../controllers/permissionController.js";
-import { SystemController } from "../controllers/systemController.js";
-import { UploadController } from "../controllers/uploadController.js";
 import { requireAuth } from "../middleware/requireAuth.js";
 import { requireActiveTenant } from "../middleware/requireActiveTenant.js";
 import { createRateLimiter } from "../middleware/rateLimiter.js";
@@ -60,169 +32,97 @@ import { createRetailPromotionsRoutes } from "./retailPromotions.routes.js";
 import { createIssuesRoutes } from "./issues.routes.js";
 import { createHelpDeskRoutes } from "./helpDesk.routes.js";
 import { createSettlementsRoutes } from "./settlements.routes.js";
-import { SupplierController } from "../controllers/supplierController.js";
-import { SupplierDueLedgerController } from "../controllers/supplierDueLedgerController.js";
-import { PurchaseReceiveController } from "../controllers/purchaseReceiveController.js";
-import { SupplierPaymentController } from "../controllers/supplierPaymentController.js";
-import { SupplierDiscountController } from "../controllers/supplierDiscountController.js";
 import { createSuppliersRoutes } from "./suppliers.routes.js";
 import { createSupplierDueLedgerRoutes } from "./supplierDueLedger.routes.js";
 import { createPurchaseReceiveRoutes } from "./purchaseReceive.routes.js";
 import { createSupplierPaymentsRoutes } from "./supplierPayments.routes.js";
 import { createSupplierDiscountsRoutes } from "./supplierDiscounts.routes.js";
-import { SalesInvoiceController } from "../controllers/salesInvoiceController.js";
-import { CustomerDueLedgerController } from "../controllers/customerDueLedgerController.js";
-import { CustomerPaymentController } from "../controllers/customerPaymentController.js";
-import { SalesReturnController } from "../controllers/salesReturnController.js";
 import { createSalesInvoicesRoutes } from "./salesInvoices.routes.js";
 import { createCustomerDueLedgerRoutes } from "./customerDueLedger.routes.js";
 import { createCustomerPaymentsRoutes } from "./customerPayments.routes.js";
 import { createSalesReturnsRoutes } from "./salesReturns.routes.js";
-import { ContactMessageController } from "../controllers/contactMessageController.js";
 import { createContactRoutes } from "./contact.routes.js";
-import { VisitorChatController } from "../controllers/visitorChatController.js";
-import { VisitorChatAdminController } from "../controllers/visitorChatAdminController.js";
 import { createVisitorChatRoutes } from "./visitorChat.routes.js";
 import { createVisitorChatAdminRoutes } from "./visitorChatAdmin.routes.js";
 import { createContactMessagesRoutes } from "./contactMessages.routes.js";
-import { FinanceAccountController } from "../controllers/financeAccountController.js";
-import { FinanceDashboardController } from "../controllers/financeDashboardController.js";
-import { RetailCashSessionController } from "../controllers/retailCashSessionController.js";
-import { QuotationController } from "../controllers/quotationController.js";
 import { createFinanceAccountsRoutes } from "./financeAccounts.routes.js";
 import { createFinanceDashboardRoutes } from "./financeDashboard.routes.js";
 import { createRetailCashSessionsRoutes } from "./retailCashSessions.routes.js";
 import { createQuotationsRoutes } from "./quotations.routes.js";
-import { TradeInController } from "../controllers/tradeInController.js";
 import { createTradeInsRoutes } from "./tradeIns.routes.js";
-import { BrandController } from "../controllers/brandController.js";
 import { createBrandsRoutes } from "./brands.routes.js";
-import { ManufacturerController } from "../controllers/manufacturerController.js";
 import { createManufacturersRoutes } from "./manufacturers.routes.js";
-import { GenericMedicineController } from "../controllers/genericMedicineController.js";
 import { createGenericMedicinesRoutes } from "./genericMedicines.routes.js";
-import { SrController } from "../controllers/srController.js";
-import { SrDueLedgerController } from "../controllers/srDueLedgerController.js";
 import { createSrsRoutes } from "./srs.routes.js";
 import { createSrDueLedgerRoutes } from "./srDueLedger.routes.js";
-import { DsrTargetController } from "../controllers/dsrTargetController.js";
 import { createDsrTargetsRoutes } from "./dsrTargets.routes.js";
-import { EmployeeController } from "../controllers/employeeController.js";
-import { SalaryPaymentController } from "../controllers/salaryPaymentController.js";
 import { createEmployeesRoutes } from "./employees.routes.js";
 import { createSalaryPaymentsRoutes } from "./salaryPayments.routes.js";
-import { DrugBatchController } from "../controllers/drugBatchController.js";
 import { createDrugBatchesRoutes } from "./drugBatches.routes.js";
 
 export function createApiRouter({
+  controllers,
   authService,
   env,
-  productService,
-  categoryService,
-  dsrService,
-  issueService,
-  settlementService,
   auditService,
-  userService,
-  expenseService,
-  dsrFinanceService,
-  profitService,
-  backupService,
-  stockMovementService,
-  productSerialService,
-  warrantyClaimService,
-  repairJobService,
-  dsrDueLedgerService,
-  shopDueLedgerService,
-  customerService,
-  databaseManager,
-  tenantService,
-  permissionService,
-  systemService,
-  invariantService,
-  errorLogService,
-  supplierService,
-  supplierDueLedgerService,
-  purchaseReceiveService,
-  supplierPaymentService,
-  supplierDiscountService,
-  salesInvoiceService,
-  customerDueLedgerService,
-  customerPaymentService,
-  salesReturnService,
-  contactMessageService,
-  financeAccountService,
-  financeDashboardService,
-  retailCustomerService,
-  retailCashSessionService,
-  retailPromotionService,
-  helpDeskService,
-  visitorChatService,
-  quotationService,
-  tradeInService,
-  brandService,
-  manufacturerService,
-  genericMedicineService,
-  srService,
-  srDueLedgerService,
-  dsrTargetService,
-  employeeService,
-  salaryPaymentService,
-  drugBatchService,
 }) {
   const router = Router();
-  const authController = new AuthController(authService, env, tenantService);
-  const productController = new ProductController(productService);
-  const categoryController = new CategoryController(categoryService);
-  const stockMovementController = new StockMovementController(stockMovementService);
-  const productSerialController = new ProductSerialController(productSerialService);
-  const warrantyClaimController = new WarrantyClaimController(warrantyClaimService);
-  const repairJobController = new RepairJobController(repairJobService);
-  const quotationController = new QuotationController(quotationService);
-  const tradeInController = new TradeInController(tradeInService);
-  const brandController = new BrandController(brandService);
-  const manufacturerController = new ManufacturerController(manufacturerService);
-  const genericMedicineController = new GenericMedicineController(genericMedicineService);
-  const srController = new SrController(srService);
-  const srDueLedgerController = new SrDueLedgerController(srDueLedgerService);
-  const dsrDueLedgerController = new DsrDueLedgerController(dsrDueLedgerService);
-  const shopDueLedgerController = new ShopDueLedgerController(shopDueLedgerService);
-  const dsrController = new DsrController(dsrService);
-  const customerController = new CustomerController(customerService);
-  const retailCustomerController = new RetailCustomerController(retailCustomerService);
-  const helpDeskController = new HelpDeskController(helpDeskService);
-  const retailPromotionController = new RetailPromotionController(retailPromotionService);
-  const issueController = new IssueController(issueService);
-  const settlementController = new SettlementController(settlementService);
-  const activityLogController = new ActivityLogController(auditService);
-  const auditController = new AuditController(auditService);
-  const userController = new UserController(userService);
-  const expenseController = new ExpenseController(expenseService);
-  const dsrFinanceController = new DsrFinanceController(dsrFinanceService);
-  const profitController = new ProfitController(profitService);
-  const backupController = new BackupController(backupService, databaseManager, auditService);
-  const tenantController = new TenantController(tenantService);
-  const orgController = new OrgController(tenantService);
-  const permissionController = new PermissionController(permissionService);
-  const systemController = new SystemController(systemService, errorLogService, env, invariantService);
-  const uploadController = new UploadController();
-  const supplierController = new SupplierController(supplierService);
-  const supplierDueLedgerController = new SupplierDueLedgerController(supplierDueLedgerService);
-  const purchaseReceiveController = new PurchaseReceiveController(purchaseReceiveService);
-  const supplierPaymentController = new SupplierPaymentController(supplierPaymentService);
-  const supplierDiscountController = new SupplierDiscountController(supplierDiscountService);
-  const salesInvoiceController = new SalesInvoiceController(salesInvoiceService);
-  const customerDueLedgerController = new CustomerDueLedgerController(customerDueLedgerService);
-  const customerPaymentController = new CustomerPaymentController(customerPaymentService);
-  const salesReturnController = new SalesReturnController(salesReturnService);
-  const contactMessageController = new ContactMessageController(contactMessageService);
-  const visitorChatController = new VisitorChatController(visitorChatService);
-  const visitorChatAdminController = new VisitorChatAdminController(visitorChatService);
-  const financeAccountController = new FinanceAccountController(financeAccountService);
-  const financeDashboardController = new FinanceDashboardController(financeDashboardService);
-  const retailCashSessionController = new RetailCashSessionController(retailCashSessionService);
-
-  const employeeController = new EmployeeController(employeeService);
+  const {
+    activityLogController,
+    auditController,
+    authController,
+    backupController,
+    brandController,
+    categoryController,
+    contactMessageController,
+    customerController,
+    customerDueLedgerController,
+    customerPaymentController,
+    drugBatchController,
+    dsrController,
+    dsrDueLedgerController,
+    dsrFinanceController,
+    dsrTargetController,
+    employeeController,
+    expenseController,
+    financeAccountController,
+    financeDashboardController,
+    genericMedicineController,
+    helpDeskController,
+    issueController,
+    manufacturerController,
+    orgController,
+    permissionController,
+    productController,
+    productSerialController,
+    profitController,
+    purchaseReceiveController,
+    quotationController,
+    repairJobController,
+    retailCashSessionController,
+    retailCustomerController,
+    retailPromotionController,
+    salaryPaymentController,
+    salesInvoiceController,
+    salesReturnController,
+    settlementController,
+    shopDueLedgerController,
+    srController,
+    srDueLedgerController,
+    stockMovementController,
+    supplierController,
+    supplierDiscountController,
+    supplierDueLedgerController,
+    supplierPaymentController,
+    systemController,
+    tenantController,
+    tradeInController,
+    uploadController,
+    userController,
+    visitorChatAdminController,
+    visitorChatController,
+    warrantyClaimController,
+  } = controllers;
 
   const loginRateLimiter = createRateLimiter({ windowMs: 15 * 60 * 1000, max: 20 });
   const authRateLimiter = createRateLimiter({ windowMs: 15 * 60 * 1000, max: 20 });
@@ -298,13 +198,9 @@ export function createApiRouter({
   router.use("/retail-cash-sessions", createRetailCashSessionsRoutes(retailCashSessionController));
   router.use("/srs", createSrsRoutes(srController));
   router.use("/sr-due-ledger", createSrDueLedgerRoutes(srDueLedgerController));
-  const dsrTargetController = new DsrTargetController(dsrTargetService);
   router.use("/dsr-targets", createDsrTargetsRoutes(dsrTargetController));
   router.use("/employees", createEmployeesRoutes(employeeController));
-  const salaryPaymentController = new SalaryPaymentController(salaryPaymentService);
   router.use("/salary-payments", createSalaryPaymentsRoutes(salaryPaymentController));
-
-  const drugBatchController = new DrugBatchController(drugBatchService);
   router.use("/drug-batches", createDrugBatchesRoutes(drugBatchController));
 
   return router;

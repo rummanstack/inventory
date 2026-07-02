@@ -60,12 +60,7 @@ import { createEmployeesRoutes } from "./employees.routes.js";
 import { createSalaryPaymentsRoutes } from "./salaryPayments.routes.js";
 import { createDrugBatchesRoutes } from "./drugBatches.routes.js";
 
-export function createApiRouter({
-  controllers,
-  authService,
-  env,
-  auditService,
-}) {
+export function createApiRouter({ controllers, authService, env, auditService }) {
   const router = Router();
   const {
     public: { authController, contactMessageController, visitorChatController },
@@ -137,10 +132,10 @@ export function createApiRouter({
 
   router.use("/auth", createPublicAuthRoutes(authController, { loginRateLimiter, authRateLimiter }));
 
-  // Public contact form — no auth required
+  // Public contact form - no auth required
   router.use("/contact", createContactRoutes(contactMessageController, { contactRateLimiter }));
 
-  // Public visitor chat widget — no auth required
+  // Public visitor chat widget - no auth required
   router.use("/visitor-chat", createVisitorChatRoutes(visitorChatController, { visitorChatRateLimiter }));
 
   router.use(requireAuth(authService, env, auditService));
@@ -149,13 +144,13 @@ export function createApiRouter({
   router.use("/profile", createProfileRoutes(userController));
   router.use("/uploads", createUploadsRoutes(uploadController));
 
-  // Platform admin routes — no tenant required, system_developer only
+  // Platform admin routes - no tenant required, system_developer only
   router.use("/platform/tenants", createPlatformTenantsRoutes(tenantController));
   router.use("/platform/backup", createPlatformBackupRoutes(backupController));
   router.use("/platform/visitor-chats", createVisitorChatAdminRoutes(visitorChatAdminController));
   router.use("/platform/contact-messages", createContactMessagesRoutes(contactMessageAdminController));
 
-  // System developer routes — no tenant required, system_developer only
+  // System developer routes - no tenant required, system_developer only
   router.use("/system", createSystemRoutes(systemController));
 
   // All business routes require an active tenant subscription

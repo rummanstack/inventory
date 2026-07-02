@@ -35,7 +35,7 @@ function formatSqlValue(value) {
   return `'${String(value).replace(/'/g, "''")}'`;
 }
 
-// Tables that are pure auth/session secrets — never useful in a data backup, never safe to export.
+// Tables that are pure auth/session secrets - never useful in a data backup, never safe to export.
 const EXCLUDED_TABLES = new Set(["user_sessions", "password_reset_tokens"]);
 
 // Sensitive columns that must never leave the database via a backup, even on otherwise-included tables.
@@ -68,7 +68,7 @@ export class BackupService {
   }
 
   // Resolves, per table, the safe column list and whether it can be scoped to one tenant.
-  // A tenant-scoped export only includes tables that actually carry a tenant_id column —
+  // A tenant-scoped export only includes tables that actually carry a tenant_id column -
   // anything else (platform-only config, or a table we can't attribute to one tenant) is skipped.
   async resolveExportableTables(pool, tenantId) {
     const { rows: tableRows } = await pool.query(`

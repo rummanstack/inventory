@@ -6,11 +6,11 @@
  * first invocation and reused across warm-container invocations.
  *
  * Environment variables expected in Lambda:
- *   DATABASE_URL           — PostgreSQL connection string (required)
- *   SESSION_COOKIE_NAME    — cookie name (default: arinda_session)
- *   SESSION_DAYS           — session lifetime in days (default: 7)
- *   DB_MAX_CONNECTIONS     — pg pool size per Lambda instance (default: 3)
- *   NODE_ENV               — set to "production"
+ *   DATABASE_URL           - PostgreSQL connection string (required)
+ *   SESSION_COOKIE_NAME    - cookie name (default: arinda_session)
+ *   SESSION_DAYS           - session lifetime in days (default: 7)
+ *   DB_MAX_CONNECTIONS     - pg pool size per Lambda instance (default: 3)
+ *   NODE_ENV               - set to "production"
  *
  * Handler reference in template.yaml / Lambda console: lambda.handler
  */
@@ -42,7 +42,7 @@ const appPromise = createBackendApp().then(({ app }) =>
 
 export const handler = async (event, context) => {
   // Tell Lambda not to wait for the event loop to drain before freezing the
-  // container — pg keeps idle connections alive, which would otherwise block.
+  // container - pg keeps idle connections alive, which would otherwise block.
   context.callbackWaitsForEmptyEventLoop = false;
 
   const handle = await appPromise;

@@ -261,18 +261,18 @@ export default function ProductsPage() {
                 <th className="px-4 py-3">#</th>
                 <th className="px-4 py-3">{t('products.product')}</th>
                 {isPharmacy ? <th className="px-4 py-3">{t('products.genericName')}</th> : null}
-                {!isElectronics && !isPharmacy ? <th className="px-4 py-3">{t('products.caseSize')}</th> : null}
-                <th className="px-4 py-3">{t('products.purchase')}</th>
-                <th className="px-4 py-3">{t('products.wholesalePrice')}</th>
-                <th className="px-4 py-3">{t('products.retailPrice')}</th>
-                <th className="px-4 py-3">{t('products.stock')}</th>
+                {!isElectronics && !isPharmacy ? <th className="px-4 py-3 text-right">{t('products.caseSize')}</th> : null}
+                <th className="px-4 py-3 text-right">{t('products.purchase')}</th>
+                <th className="px-4 py-3 text-right">{t('products.wholesalePrice')}</th>
+                <th className="px-4 py-3 text-right">{t('products.retailPrice')}</th>
+                <th className="px-4 py-3 text-right">{t('products.stock')}</th>
                 <th className="px-4 py-3 text-right">{t('common.actions')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {vm.items.map((product, index) => (
                 <tr key={product.id} className="hover:bg-slate-50">
-                  <td className="table-cell font-black text-slate-400">{(vm.page - 1) * vm.pageSize + index + 1}</td>
+                  <td className="table-cell font-medium text-slate-400">{(vm.page - 1) * vm.pageSize + index + 1}</td>
                   <td className="table-cell">
                     <div className="flex items-start gap-3">
                       <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-slate-200 bg-slate-50">
@@ -297,11 +297,11 @@ export default function ProductsPage() {
                     </div>
                   </td>
                   {isPharmacy ? <td className="hidden table-cell sm:table-cell text-slate-700">{product.genericName || '-'}</td> : null}
-                  {!isElectronics && !isPharmacy ? <td className="hidden table-cell sm:table-cell">{formatNumber(product.piecesPerCase, language)} {t('common.pcsPerCase')}</td> : null}
-                  <td className="hidden table-cell md:table-cell">{formatCurrency(product.purchasePrice, language)}</td>
-                  <td className="hidden table-cell md:table-cell">{formatCurrency(product.wholesalePrice, language)}</td>
-                  <td className="hidden table-cell md:table-cell">{formatCurrency(product.retailPrice, language)}</td>
-                  <td className="table-cell">
+                  {!isElectronics && !isPharmacy ? <td className="hidden table-cell text-right sm:table-cell">{formatNumber(product.piecesPerCase, language)} {t('common.pcsPerCase')}</td> : null}
+                  <td className="hidden table-cell text-right md:table-cell">{formatCurrency(product.purchasePrice, language)}</td>
+                  <td className="hidden table-cell text-right md:table-cell">{formatCurrency(product.wholesalePrice, language)}</td>
+                  <td className="hidden table-cell text-right md:table-cell">{formatCurrency(product.retailPrice, language)}</td>
+                  <td className="table-cell text-right">
                     {isElectronics ? (
                       <p className="font-semibold text-slate-950">{formatNumber(product.stockPieces, language)} {t('common.pcs')}</p>
                     ) : (

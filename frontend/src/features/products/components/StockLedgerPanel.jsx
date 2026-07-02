@@ -122,7 +122,7 @@ export default function StockLedgerPanel({ products, t, refreshKey = 0, fixedTyp
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
             <p className="brand-chip">{t('stockLedger.eyebrow')}</p>
-            <h2 className="mt-3 text-lg font-black text-slate-950">{sectionTitle || t('stockLedger.title')}</h2>
+            <h2 className="mt-3 text-lg font-bold tracking-tight text-slate-950">{sectionTitle || t('stockLedger.title')}</h2>
             <p className="mt-1 max-w-3xl text-sm font-medium leading-6 text-slate-500">{sectionDescription || t('stockLedger.description')}</p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -196,8 +196,8 @@ export default function StockLedgerPanel({ products, t, refreshKey = 0, fixedTyp
               <th className="px-4 py-3 text-right">{t('stockLedger.quantityIn')}</th>
               <th className="px-4 py-3 text-right">{t('stockLedger.quantityOut')}</th>
               <th className="px-4 py-3 text-right">{t('stockLedger.balanceAfter')}</th>
-              <th className="px-4 py-3">{t('stockLedger.reference')}</th>
-              <th className="px-4 py-3">{t('stockLedger.createdBy')}</th>
+              <th className="hidden px-4 py-3 lg:table-cell">{t('stockLedger.reference')}</th>
+              <th className="hidden px-4 py-3 xl:table-cell">{t('stockLedger.createdBy')}</th>
             </tr>
           </thead>
           {loading ? null : (
@@ -215,13 +215,13 @@ export default function StockLedgerPanel({ products, t, refreshKey = 0, fixedTyp
                     <Badge tone={movementTone(movement.type)}>{t(`stockLedger.types.${movement.type}`)}</Badge>
                     {movement.note ? <p className="mt-1 max-w-56 truncate text-xs text-slate-500">{movement.note}</p> : null}
                   </td>
-                  <td className="table-cell text-right font-black text-emerald-700">
+                  <td className="table-cell text-right font-semibold text-emerald-700">
                     {movement.quantityIn ? `+${formatNumber(movement.quantityIn)}` : '-'}
                   </td>
-                  <td className="table-cell text-right font-black text-rose-700">
+                  <td className="table-cell text-right font-semibold text-rose-700">
                     {movement.quantityOut ? `-${formatNumber(movement.quantityOut)}` : '-'}
                   </td>
-                  <td className="table-cell text-right font-black text-slate-950">{formatNumber(movement.balanceAfter)}</td>
+                  <td className="table-cell text-right font-semibold text-slate-950">{formatNumber(movement.balanceAfter)}</td>
                   <td className="hidden table-cell lg:table-cell">
                     <p className="max-w-52 truncate text-xs font-semibold text-slate-600">{formatReference(movement)}</p>
                   </td>

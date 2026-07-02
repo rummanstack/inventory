@@ -46,38 +46,32 @@ export function StatCard({ title, value, helper, icon: Icon, tone = 'blue', tren
   const displayValue = rawValue != null && formatter != null ? formatter(animated) : value;
   const tones = {
     blue: {
-      card: 'from-white to-brand-soft',
-      icon: 'bg-brand text-white shadow-[0_10px_20px_var(--secondary-shadow)]',
+      icon: 'bg-brand text-white',
       accent: 'bg-brand-strong',
       spark: getCssVar('--brand', '#373373'),
     },
     emerald: {
-      card: 'from-white to-success-soft',
-      icon: 'bg-success text-white shadow-[0_10px_20px_var(--success-line)]',
+      icon: 'bg-success text-white',
       accent: 'bg-success',
       spark: getCssVar('--success', '#37a864'),
     },
     amber: {
-      card: 'from-white to-warning-soft',
-      icon: 'bg-warning text-white shadow-[0_10px_20px_var(--warning-line)]',
+      icon: 'bg-warning text-white',
       accent: 'bg-warning',
       spark: getCssVar('--warning', '#f8aa17'),
     },
     indigo: {
-      card: 'from-white to-brand-soft',
-      icon: 'bg-brand-strong text-white shadow-[0_10px_20px_var(--secondary-shadow-strong)]',
+      icon: 'bg-brand-strong text-white',
       accent: 'bg-brand-strong',
       spark: getCssVar('--brand-strong', '#425bf6'),
     },
     rose: {
-      card: 'from-white to-danger-soft',
-      icon: 'bg-danger text-white shadow-[0_10px_20px_var(--danger-line)]',
+      icon: 'bg-danger text-white',
       accent: 'bg-danger',
       spark: getCssVar('--danger', '#f1454f'),
     },
     slate: {
-      card: 'from-white to-slate-100/80',
-      icon: 'bg-slate-800 text-white shadow-[0_10px_20px_rgba(var(--slate-900),0.18)]',
+      icon: 'bg-slate-800 text-white',
       accent: 'bg-slate-400',
       spark: getCssVar('--tick-color', '#2f3347'),
     },
@@ -85,12 +79,12 @@ export function StatCard({ title, value, helper, icon: Icon, tone = 'blue', tren
   const toneSet = tones[tone] || tones.blue;
 
   return (
-    <div className={cx('group relative overflow-hidden rounded-[28px] border border-slate-200/80 bg-gradient-to-br p-4 shadow-[0_18px_45px_rgba(var(--slate-900),0.07)] ring-1 ring-slate-900/[0.03] transition-shadow duration-300 hover:shadow-[0_22px_55px_rgba(var(--slate-900),0.12)]', toneSet.card)}>
+    <div className="group relative overflow-hidden rounded-card border border-slate-200/80 bg-white p-4 shadow-card ring-1 ring-slate-900/[0.03] transition-shadow duration-300 hover:shadow-crisp">
       <div className={cx('absolute inset-x-0 top-0 h-1 origin-left scale-x-0 transition-transform duration-300 group-hover:scale-x-100', toneSet.accent)} />
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <p className="text-sm font-bold text-slate-500">{title}</p>
-          <p className="mt-2 text-2xl font-black tracking-normal text-slate-950">{displayValue}</p>
+          <p className="mt-2 text-2xl font-semibold tabular-nums tracking-tight text-slate-950">{displayValue}</p>
           {trendPct != null ? (
             <div className="mt-2 flex items-center gap-1.5">
               <span className={cx(
@@ -104,7 +98,7 @@ export function StatCard({ title, value, helper, icon: Icon, tone = 'blue', tren
           ) : null}
         </div>
         {Icon ? (
-          <div className={cx('rounded-lg p-2.5 transition-transform duration-300 group-hover:-rotate-6', toneSet.icon)}>
+          <div className={cx('rounded-control p-2.5 transition-transform duration-300 group-hover:-rotate-6', toneSet.icon)}>
             <Icon size={20} />
           </div>
         ) : null}
@@ -131,7 +125,7 @@ export function Badge({ children, tone = 'slate' }) {
   };
 
   return (
-    <span className={cx('inline-flex items-center rounded-full px-2.5 py-1 text-xs font-black ring-1', tones[tone] || tones.slate)}>
+    <span className={cx('inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ring-1', tones[tone] || tones.slate)}>
       {children}
     </span>
   );
@@ -149,7 +143,7 @@ export function Avatar({ name, imageUrl, size = 40, status, className = '' }) {
 
   return (
     <span className={cx('relative inline-flex shrink-0', className)} style={{ width: dimension, height: dimension }}>
-      <span className="flex h-full w-full items-center justify-center overflow-hidden rounded-full bg-[linear-gradient(135deg,var(--secondary-strong),var(--bg-dark))] text-sm font-black text-white">
+      <span className="flex h-full w-full items-center justify-center overflow-hidden rounded-full bg-[linear-gradient(135deg,var(--secondary-strong),var(--bg-dark))] text-sm font-semibold text-white">
         {imageUrl ? <img src={imageUrl} alt={name || ''} className="h-full w-full object-cover" /> : getInitials(name)}
       </span>
       {status === 'online' ? (
@@ -164,7 +158,7 @@ export function ChartPanel({ title, description, action, children, className = '
     <section className={cx('surface overflow-hidden', className)}>
       <div className="flex items-start justify-between gap-4 border-b border-slate-100/80 px-5 py-4">
         <div>
-          <h2 className="text-base font-black text-slate-950">{title}</h2>
+          <h2 className="text-base font-bold tracking-tight text-slate-950">{title}</h2>
           {description ? <p className="mt-1 max-w-2xl text-sm font-medium leading-6 text-slate-500">{description}</p> : null}
         </div>
         {action ? <div className="shrink-0">{action}</div> : null}

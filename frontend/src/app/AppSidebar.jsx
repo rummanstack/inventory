@@ -110,7 +110,7 @@ export default function AppSidebar({ mobileOpen, setMobileOpen, user, tenant, la
               isActive
                 ? collapsed
                   ? 'pl-4 lg:pl-0'
-                  : 'bg-[linear-gradient(135deg,var(--secondary-strong),var(--brand-strong))] pl-4 text-white shadow-[0_10px_20px_var(--secondary-shadow)] before:absolute before:left-0 before:top-1/2 before:h-6 before:w-1 before:-translate-y-1/2 before:rounded-full before:bg-white'
+                  : 'bg-[linear-gradient(135deg,var(--secondary-strong),var(--brand-strong))] pl-4 text-white shadow-[0_1px_2px_var(--secondary-shadow)] before:absolute before:left-0 before:top-1/2 before:h-6 before:w-1 before:-translate-y-1/2 before:rounded-full before:bg-white'
                 : 'pl-3 text-slate-700 hover:bg-white/80 hover:text-slate-950',
             )
           }

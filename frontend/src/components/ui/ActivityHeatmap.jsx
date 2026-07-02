@@ -207,7 +207,7 @@ export function ActivityHeatmap({ cells = [], color = getCssVar('--secondary', '
                     key={cell.date}
                     tabIndex={0}
                     className={cx(
-                      'flex h-9 w-9 cursor-default items-center justify-center rounded-xl text-xs font-black uppercase ring-1 ring-inset ring-slate-900/[0.05] outline-none transition duration-150 ease-out hover:-translate-y-1 hover:shadow-[0_14px_28px_rgba(var(--slate-900),0.2)] focus-visible:-translate-y-1 focus-visible:shadow-[0_14px_28px_rgba(var(--slate-900),0.2)]',
+                      'flex h-9 w-9 cursor-default items-center justify-center rounded-xl text-xs font-black uppercase ring-1 ring-inset ring-slate-900/[0.05] outline-none transition duration-150 ease-out hover:shadow-crisp focus-visible:shadow-crisp',
                       lit ? 'text-white' : 'text-slate-600',
                     )}
                     style={{ backgroundColor: cell.count ? hexToRgba(color, 0.16 + cell.intensity * 0.76) : emptyTone }}

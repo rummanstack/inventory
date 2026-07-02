@@ -168,6 +168,8 @@ const en = {
       title: 'Permissions',
       description: 'Control which features each role can access.',
       saved: 'Permissions saved.',
+      selectTenant: 'Organization',
+      selectTenantPlaceholder: 'Select an organization to configure',
       roles: {
         system_developer: 'System Developer',
         super_admin: 'Super Admin',

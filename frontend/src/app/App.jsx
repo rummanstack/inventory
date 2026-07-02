@@ -1,5 +1,5 @@
 import { Suspense, lazy } from 'react';
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Navigate, Route, Routes, useSearchParams } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import { APP_ROUTES } from './routes';
 import { ErrorBoundary } from './ErrorBoundary.jsx';
@@ -52,12 +52,16 @@ function getDefaultRoute(user) {
 
 function PublicOnlyRoute({ children }) {
   const { authLoading, user } = useInventoryApp();
+  const [searchParams] = useSearchParams();
 
   if (authLoading) {
     return <SessionLoadingScreen />;
   }
 
-  if (user) {
+  // A password-reset link must work even if this browser still holds a
+  // session for someone (the admin testing their own copied link, or a
+  // stale login on the affected user's device) — never drop the token.
+  if (user && !searchParams.has('token')) {
     return <Navigate to={getDefaultRoute(user)} replace />;
   }
 

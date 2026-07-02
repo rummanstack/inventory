@@ -32,9 +32,7 @@ async function resolveActiveTenantForPlatformUser(req, token, authService, audit
           actionType: "tenant.switch",
           entityType: "tenant",
           entityId: resolvedTenantId,
-          description: resolvedTenantId
-            ? `${req.currentUser.name} switched active organization`
-            : `${req.currentUser.name} cleared active organization`,
+          description: resolvedTenantId ? `${req.currentUser.name} switched active organization` : `${req.currentUser.name} cleared active organization`,
           metadata: {
             fromTenantId: previousTenantId,
             toTenantId: resolvedTenantId,

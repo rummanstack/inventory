@@ -235,6 +235,11 @@ export class UserService {
 
       if (nextPasswordHash) {
         await setMustChangePassword(client, actor.id, false);
+        // Matches the token-based reset flow: a password change revokes
+        // every session for this user, including the one making this
+        // request — the frontend must treat a self password change as an
+        // immediate logout.
+        await deleteAllSessionsForUser(client, actor.id);
       }
 
       await this.auditService.record(client, {

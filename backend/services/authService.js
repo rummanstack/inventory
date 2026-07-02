@@ -227,13 +227,15 @@ export class AuthService {
       .toLowerCase();
 
     if (!normalizedEmail) {
-      return { ok: true };
+      return { ok: true, found: false };
     }
 
     // A malformed address can never match a real account, so the lookup
     // below would silently no-op — reject it here instead so a typo gets
     // real feedback rather than a false "request sent" message.
     assert(!validateEmail(normalizedEmail), validateEmail(normalizedEmail));
+
+    let found = false;
 
     await this.databaseManager.withTransaction(async (client) => {
       // email is globally unique, so no tenant/org-slug scoping is needed.
@@ -243,6 +245,7 @@ export class AuthService {
         return;
       }
 
+      found = true;
       await deleteResetTokensForUser(client, userRow.id);
       await createPasswordResetToken(client, {
         id: createId("reset"),
@@ -253,7 +256,7 @@ export class AuthService {
       });
     });
 
-    return { ok: true };
+    return { ok: true, found };
   }
 
   async resetPassword({ token, newPassword }) {

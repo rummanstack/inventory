@@ -1233,8 +1233,8 @@ export function InventoryAppProvider({ children }) {
 
   async function forgotPassword(payload) {
     try {
-      await inventoryApi.forgotPassword(payload);
-      return { ok: true };
+      const result = await inventoryApi.forgotPassword(payload);
+      return { ok: true, found: Boolean(result.found) };
     } catch (error) {
       const message = getFriendlyError(error, t);
       return { ok: false, message };

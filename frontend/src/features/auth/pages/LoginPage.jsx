@@ -112,6 +112,7 @@ function ForgotPasswordForm({ forgotPassword, t, onBack }) {
   const [submitError, setSubmitError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
+  const [found, setFound] = useState(false);
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -121,6 +122,7 @@ function ForgotPasswordForm({ forgotPassword, t, onBack }) {
     if (!result.ok) {
       setSubmitError(result.message);
     } else {
+      setFound(result.found);
       setDone(true);
     }
     setSubmitting(false);
@@ -129,7 +131,9 @@ function ForgotPasswordForm({ forgotPassword, t, onBack }) {
   if (done) {
     return (
       <div className="space-y-4">
-        <Alert type="success">{t('auth.resetRequestSent')}</Alert>
+        <Alert type={found ? 'success' : 'info'}>
+          {found ? t('auth.resetRequestFound') : t('auth.resetRequestNotFound')}
+        </Alert>
         <button type="button" className="btn-secondary flex w-full items-center justify-center gap-2" onClick={onBack}>
           <ArrowLeft size={16} />
           {t('auth.backToLogin')}

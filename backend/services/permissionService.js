@@ -22,6 +22,14 @@ const EDITABLE_ROLES_BY_ACTOR_ROLE = {
 // super_admin can grant it to a sub-role - keeps permission assignment from
 // outrunning what the tenant's plan actually has turned on.
 const PERMISSION_REQUIRED_FEATURES = {
+  manage_expenses: "expenses",
+  manage_dsr_finance: "dsr-finance",
+  manage_users: "user-management",
+  manage_org: "org-settings",
+  manage_finance_accounts: "finance-accounts",
+  view_finance_dashboard: "finance-dashboard",
+  create_issues: "morning-issue",
+  create_settlements: "settlements",
   view_products: "products",
   manage_products: "products",
   view_dsrs: "dsrs",

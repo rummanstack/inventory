@@ -7,6 +7,14 @@ import { APP_ROUTES } from '../../../app/routes.js';
 
 // Keep the frontend role editor aligned with backend/services/permissionService.js.
 const PERMISSION_REQUIRED_FEATURES = {
+  manage_expenses: 'expenses',
+  manage_dsr_finance: 'dsr-finance',
+  manage_users: 'user-management',
+  manage_org: 'org-settings',
+  manage_finance_accounts: 'finance-accounts',
+  view_finance_dashboard: 'finance-dashboard',
+  create_issues: 'morning-issue',
+  create_settlements: 'settlements',
   view_products: 'products',
   manage_products: 'products',
   view_dsrs: 'dsrs',

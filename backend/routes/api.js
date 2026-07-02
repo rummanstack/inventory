@@ -125,10 +125,14 @@ export function createApiRouter({ controllers, authService, env, auditService })
     hr: { employeeController, salaryPaymentController },
   } = controllers;
 
-  const loginRateLimiter = createRateLimiter({ windowMs: 15 * 60 * 1000, max: 20 });
-  const authRateLimiter = createRateLimiter({ windowMs: 15 * 60 * 1000, max: 20 });
-  const contactRateLimiter = createRateLimiter({ windowMs: 15 * 60 * 1000, max: 10 });
-  const visitorChatRateLimiter = createRateLimiter({ windowMs: 15 * 60 * 1000, max: 60 });
+  const loginRateLimiter = createRateLimiter({ name: "auth-login", windowMs: 15 * 60 * 1000, max: 20 });
+  const authRateLimiter = createRateLimiter({ name: "auth-recovery", windowMs: 15 * 60 * 1000, max: 20 });
+  const contactRateLimiter = createRateLimiter({ name: "contact-submit", windowMs: 15 * 60 * 1000, max: 10 });
+  const visitorChatRateLimiter = createRateLimiter({
+    name: "visitor-chat-post",
+    windowMs: 15 * 60 * 1000,
+    max: 60,
+  });
 
   router.use("/auth", createPublicAuthRoutes(authController, { loginRateLimiter, authRateLimiter }));
 

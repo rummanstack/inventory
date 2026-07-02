@@ -12,7 +12,7 @@ export default function LandingHeader({ language, setLanguage, t }) {
           <img src={stockLedgerLogoIcon} alt="" className="h-11 w-11 object-contain drop-shadow-[0_10px_24px_rgba(15,23,42,0.2)]" />
           <span className="hidden sm:block">
             <span className="block text-lg font-black leading-none tracking-tight text-white">StockLedger</span>
-            <span className="mt-1 block text-[10px] font-bold uppercase tracking-[0.18em] text-white/55">Inventory System</span>
+            <span className="mt-1 block text-[10px] font-bold uppercase tracking-[0.18em] text-white/55">{t('landing.tagline')}</span>
           </span>
         </a>
 

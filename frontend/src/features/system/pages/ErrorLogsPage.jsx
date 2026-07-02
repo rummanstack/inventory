@@ -1,6 +1,7 @@
 import { Fragment, useState } from 'react';
 import { Bug } from 'lucide-react';
 import { Alert, Badge, EmptyState, Pagination, SectionHeader, StatCard, TableSkeleton } from '../../../components/ui.jsx';
+import TableReportActions from '../../../components/TableReportActions.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { formatDateTime, formatNumber } from '../../../utils/calculations.js';
 import { useErrorLogsViewModel } from '../viewmodels/useErrorLogsViewModel';
@@ -14,6 +15,8 @@ function statusTone(statusCode = 0) {
   }
   return 'slate';
 }
+
+const ERROR_LOGS_REPORT_ID = 'error-logs-report';
 
 export default function ErrorLogsPage() {
   const { t } = useInventoryApp();
@@ -38,11 +41,14 @@ export default function ErrorLogsPage() {
         <StatCard title={t('errorLogs.totalErrors')} value={formatNumber(vm.total)} helper={t('errorLogs.totalErrorsHelper')} tone="rose" />
       </div>
 
-      <div className="surface mt-6 overflow-hidden">
+      <div id={ERROR_LOGS_REPORT_ID} className="surface mt-6 overflow-hidden">
         <div className="border-b border-slate-100 px-5 py-4">
           <div className="flex items-center justify-between gap-3">
             <h2 className="section-title">{t('errorLogs.tableTitle')}</h2>
-            <span className="muted-chip">{formatNumber(vm.total)} {t('common.records')}</span>
+            <div className="flex flex-wrap items-center justify-end gap-2 no-print">
+              <span className="muted-chip">{formatNumber(vm.total)} {t('common.records')}</span>
+              <TableReportActions targetId={ERROR_LOGS_REPORT_ID} title={t('errorLogs.title')} fileName="error-logs" entityType="error_logs" t={t} />
+            </div>
           </div>
         </div>
         <div className="overflow-x-auto">

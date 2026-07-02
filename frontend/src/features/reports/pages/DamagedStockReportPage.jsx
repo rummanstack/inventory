@@ -1,9 +1,8 @@
-import { Download, FileSpreadsheet, Printer, PackageX } from 'lucide-react';
+import { PackageX } from 'lucide-react';
+import TableReportActions from '../../../components/TableReportActions.jsx';
 import { Alert, EmptyState, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
-import { downloadSheetPdf } from '../../../services/printService.js';
-import { inventoryApi } from '../../../services/inventoryApi.js';
 import { formatCurrency, formatDate, formatNumber } from '../../../utils/calculations.js';
 import { useDamagedStockReportViewModel } from '../viewmodels/useDamagedStockReportViewModel';
 
@@ -21,17 +20,6 @@ export default function DamagedStockReportPage() {
     },
     { quantityDamaged: 0, costValue: 0 },
   );
-
-  async function handleExportExcel() {
-    const { utils, writeFile } = await import('xlsx');
-    const header = ['Date', 'Product', 'Category', 'Qty Damaged', 'Cost Value'];
-    const data = rows.map((row) => [row.date, row.productName, row.categoryName || '', Number(row.quantityDamaged), Number(row.costValue)]);
-    const ws = utils.aoa_to_sheet([header, ...data]);
-    ws['!cols'] = [{ wch: 14 }, { wch: 28 }, { wch: 18 }, { wch: 14 }, { wch: 16 }];
-    const wb = utils.book_new();
-    utils.book_append_sheet(wb, ws, 'Damaged Stock Report');
-    writeFile(wb, `damaged-stock-report-${vm.dateFrom}-${vm.dateTo}.xlsx`);
-  }
 
   return (
     <div>
@@ -67,17 +55,15 @@ export default function DamagedStockReportPage() {
             </div>
           </div>
 
-          <div className="mb-4 flex flex-wrap gap-2 no-print">
-            <button type="button" className="btn-secondary" onClick={() => { inventoryApi.recordPrint({ entityType: 'damaged_stock_report', entityId: null, label: 'pdf' }).catch(() => {}); downloadSheetPdf(printTargetId, `damaged-stock-report-${vm.dateFrom}-${vm.dateTo}.pdf`); }}>
-              <Download size={18} />{t('purchaseReceive.downloadPdf')}
-            </button>
-            <button type="button" className="btn-secondary" onClick={handleExportExcel}>
-              <FileSpreadsheet size={18} />{t('common.exportExcel')}
-            </button>
-            <button type="button" className="btn-secondary" onClick={() => { inventoryApi.recordPrint({ entityType: 'damaged_stock_report', entityId: null, label: 'print' }).catch(() => {}); window.print(); }}>
-              <Printer size={18} />{t('common.print')}
-            </button>
-          </div>
+          <TableReportActions
+            targetId={printTargetId}
+            title="Damaged Stock Report"
+            subtitle={`${vm.dateFrom} to ${vm.dateTo}`}
+            fileName={`damaged-stock-report-${vm.dateFrom}-${vm.dateTo}`}
+            entityType="damaged_stock_report"
+            t={t}
+            className="mb-4 flex flex-wrap gap-2 no-print"
+          />
 
           <div id={printTargetId} className="print-target">
             <div className="mb-6 grid gap-4 sm:grid-cols-2">

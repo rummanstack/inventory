@@ -1,8 +1,11 @@
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { Alert, Pagination, SectionHeader, Select } from '../../../components/ui.jsx';
+import TableReportActions from '../../../components/TableReportActions.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { formatDate, formatCurrency } from '../../../utils/calculations.js';
 import { useBatchSalesReportViewModel } from '../viewmodels/useBatchSalesReportViewModel.js';
+
+const BATCH_SALES_REPORT_ID = 'batch-sales-report-table';
 
 export default function BatchSalesReportPage() {
   const { t, language, productDirectory } = useInventoryApp();
@@ -57,7 +60,12 @@ export default function BatchSalesReportPage() {
       {vm.error && <Alert type="error">{vm.error}</Alert>}
 
       {/* Table */}
-      <div className="surface overflow-x-auto">
+      <div id={BATCH_SALES_REPORT_ID} className="surface overflow-hidden">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-5 py-3 no-print">
+          <span className="text-sm font-bold text-slate-700">{t('pharmacy.batchSalesReport')}</span>
+          <TableReportActions targetId={BATCH_SALES_REPORT_ID} title={t('pharmacy.batchSalesReport')} fileName="batch-sales-report" entityType="batch_sales_report" t={t} />
+        </div>
+        <div className="overflow-x-auto">
         <table className="w-full">
           <thead className="table-head">
             <tr>
@@ -108,6 +116,7 @@ export default function BatchSalesReportPage() {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
 
       {vm.totalPages > 1 && (
@@ -116,4 +125,3 @@ export default function BatchSalesReportPage() {
     </div>
   );
 }
-

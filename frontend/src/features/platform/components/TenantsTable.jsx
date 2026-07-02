@@ -1,9 +1,16 @@
 import { LayoutGrid, Loader2, Pencil } from 'lucide-react';
 import { Badge, cx } from '../../../components/ui.jsx';
+import TableReportActions from '../../../components/TableReportActions.jsx';
+
+const TENANTS_REPORT_ID = 'platform-tenants-report';
 
 export default function TenantsTable({ tenants, togglingId, t, onEdit, onFeatures, onToggleStatus }) {
   return (
-    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-soft">
+    <div id={TENANTS_REPORT_ID} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-soft">
+      <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-3 no-print">
+        <span className="text-sm font-bold text-slate-700">{t('nav.platform')}</span>
+        <TableReportActions targetId={TENANTS_REPORT_ID} title={t('nav.platform')} fileName="platform-tenants" entityType="platform_tenants" t={t} />
+      </div>
       <table className="w-full text-sm">
         <thead className="table-head">
           <tr className="border-b border-slate-200">
@@ -11,9 +18,9 @@ export default function TenantsTable({ tenants, togglingId, t, onEdit, onFeature
             <th className="px-4 py-3">{t('organizations.table.code')}</th>
             <th className="px-4 py-3">{t('organizations.table.plan')}</th>
             <th className="px-4 py-3">{t('organizations.table.status')}</th>
-            <th className="px-4 py-3 text-right">{t('organizations.table.edit')}</th>
-            <th className="px-4 py-3 text-right">{t('organizations.table.features')}</th>
-            <th className="px-4 py-3 text-right">{t('organizations.table.toggle')}</th>
+            <th className="px-4 py-3 text-right no-print">{t('organizations.table.edit')}</th>
+            <th className="px-4 py-3 text-right no-print">{t('organizations.table.features')}</th>
+            <th className="px-4 py-3 text-right no-print">{t('organizations.table.toggle')}</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-100">
@@ -30,17 +37,17 @@ export default function TenantsTable({ tenants, togglingId, t, onEdit, onFeature
               <td className="px-4 py-3">
                 <Badge tone={tenant.status === 'active' ? 'emerald' : 'rose'}>{tenant.status}</Badge>
               </td>
-              <td className="px-4 py-3 text-right">
+              <td className="px-4 py-3 text-right no-print">
                 <button type="button" className="icon-btn" title={t('common.edit')} onClick={() => onEdit(tenant)}>
                   <Pencil size={16} />
                 </button>
               </td>
-              <td className="px-4 py-3 text-right">
+              <td className="px-4 py-3 text-right no-print">
                 <button type="button" className="icon-btn" title={t('organizations.featuresTitle')} onClick={() => onFeatures(tenant)}>
                   <LayoutGrid size={16} />
                 </button>
               </td>
-              <td className="px-4 py-3 text-right">
+              <td className="px-4 py-3 text-right no-print">
                 <button
                   type="button"
                   role="switch"

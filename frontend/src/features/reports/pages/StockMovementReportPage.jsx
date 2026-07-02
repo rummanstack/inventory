@@ -1,9 +1,8 @@
-import { Download, FileSpreadsheet, Printer, ArrowLeftRight } from 'lucide-react';
+import { ArrowLeftRight } from 'lucide-react';
+import TableReportActions from '../../../components/TableReportActions.jsx';
 import { Alert, EmptyState, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
-import { downloadSheetPdf } from '../../../services/printService.js';
-import { inventoryApi } from '../../../services/inventoryApi.js';
 import { formatDate, formatNumber } from '../../../utils/calculations.js';
 import { useStockMovementReportViewModel } from '../viewmodels/useStockMovementReportViewModel';
 
@@ -24,17 +23,6 @@ export default function StockMovementReportPage() {
     },
     { movementCount: 0, totalIn: 0, totalOut: 0 },
   );
-
-  async function handleExportExcel() {
-    const { utils, writeFile } = await import('xlsx');
-    const header = ['Date', 'Type', 'Movements', 'Total In', 'Total Out'];
-    const data = rows.map((row) => [row.date, row.type, row.movementCount, Number(row.totalIn), Number(row.totalOut)]);
-    const ws = utils.aoa_to_sheet([header, ...data]);
-    ws['!cols'] = [{ wch: 14 }, { wch: 14 }, { wch: 12 }, { wch: 12 }, { wch: 12 }];
-    const wb = utils.book_new();
-    utils.book_append_sheet(wb, ws, 'Stock Movement Report');
-    writeFile(wb, `stock-movement-report-${vm.dateFrom}-${vm.dateTo}.xlsx`);
-  }
 
   return (
     <div>
@@ -77,17 +65,15 @@ export default function StockMovementReportPage() {
             </div>
           </div>
 
-          <div className="mb-4 flex flex-wrap gap-2 no-print">
-            <button type="button" className="btn-secondary" onClick={() => { inventoryApi.recordPrint({ entityType: 'stock_movement_report', entityId: null, label: 'pdf' }).catch(() => {}); downloadSheetPdf(printTargetId, `stock-movement-report-${vm.dateFrom}-${vm.dateTo}.pdf`); }}>
-              <Download size={18} />{t('purchaseReceive.downloadPdf')}
-            </button>
-            <button type="button" className="btn-secondary" onClick={handleExportExcel}>
-              <FileSpreadsheet size={18} />{t('common.exportExcel')}
-            </button>
-            <button type="button" className="btn-secondary" onClick={() => { inventoryApi.recordPrint({ entityType: 'stock_movement_report', entityId: null, label: 'print' }).catch(() => {}); window.print(); }}>
-              <Printer size={18} />{t('common.print')}
-            </button>
-          </div>
+          <TableReportActions
+            targetId={printTargetId}
+            title="Stock Movement Report"
+            subtitle={`${vm.dateFrom} to ${vm.dateTo}${vm.type ? ` | ${vm.type}` : ''}`}
+            fileName={`stock-movement-report-${vm.dateFrom}-${vm.dateTo}`}
+            entityType="stock_movement_report"
+            t={t}
+            className="mb-4 flex flex-wrap gap-2 no-print"
+          />
 
           <div id={printTargetId} className="print-target">
             <div className="mb-6 grid gap-4 sm:grid-cols-3">

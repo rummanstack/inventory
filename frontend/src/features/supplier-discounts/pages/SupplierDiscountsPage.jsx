@@ -1,13 +1,16 @@
 import { HandCoins, Tag } from 'lucide-react';
 import { Alert, EmptyState, Pagination, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
+import TableReportActions from '../../../components/TableReportActions.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import { formatCurrency, formatDateTime } from '../../../utils/calculations.js';
 import { useSupplierDiscountsViewModel } from '../viewmodels/useSupplierDiscountsViewModel.js';
 
+const SUPPLIER_DISCOUNTS_REPORT_ID = 'supplier-discounts-report';
+
 export default function SupplierDiscountsPage() {
-  const { confirm, pushToast, can } = useInventoryApp();
+  const { confirm, pushToast, can, t } = useInventoryApp();
   const vm = useSupplierDiscountsViewModel();
   const canManagePayments = can('manage_supplier_payments');
 
@@ -36,8 +39,12 @@ export default function SupplierDiscountsPage() {
         description="Discounts from suppliers via DSR settlements. Clear a discount once the cash is received from the supplier."
       />
 
-      <div className="surface overflow-hidden">
+      <div id={SUPPLIER_DISCOUNTS_REPORT_ID} className="surface overflow-hidden">
         <div className="border-b border-slate-100 p-5">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <span className="text-sm font-bold text-slate-700">Supplier Discounts</span>
+            <TableReportActions targetId={SUPPLIER_DISCOUNTS_REPORT_ID} title="Supplier Discounts" fileName="supplier-discounts" entityType="supplier_discounts" t={t} />
+          </div>
           <div className="grid gap-3 sm:grid-cols-2">
             <DatePickerField value={vm.dateFrom} onChange={vm.setDateFrom} placeholder="From date" />
             <DatePickerField value={vm.dateTo} onChange={vm.setDateTo} placeholder="To date" min={vm.dateFrom} />
@@ -59,7 +66,7 @@ export default function SupplierDiscountsPage() {
                   <th className="px-4 py-3">Supplier</th>
                   <th className="px-4 py-3 text-right">Amount</th>
                   <th className="px-4 py-3">Note</th>
-                  {canManagePayments ? <th className="px-4 py-3 text-right">Actions</th> : null}
+                  {canManagePayments ? <th className="px-4 py-3 text-right no-print">Actions</th> : null}
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -72,7 +79,7 @@ export default function SupplierDiscountsPage() {
                     <td className="table-cell text-right font-bold text-emerald-700">{formatCurrency(discount.amount)}</td>
                     <td className="hidden table-cell lg:table-cell">{discount.note || '-'}</td>
                     {canManagePayments ? (
-                      <td className="table-cell">
+                      <td className="table-cell no-print">
                         <div className="flex justify-end">
                           <button
                             type="button"

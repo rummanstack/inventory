@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { PackageX, RefreshCw } from 'lucide-react';
 import { Alert, EmptyState, Pagination, TableSkeleton, Select } from '../../../components/ui.jsx';
+import TableReportActions from '../../../components/TableReportActions.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
@@ -8,6 +9,7 @@ import { formatDate, formatDateTime, formatNumber, todayISO } from '../../../uti
 import { usePagination } from '../../../hooks/usePagination.js';
 
 const PAGE_SIZE = 15;
+const SETTLEMENT_DAMAGE_REPORT_ID = 'settlement-damage-report';
 
 function subtractDays(dateISO, days) {
   const date = new Date(`${dateISO}T00:00:00`);
@@ -71,7 +73,7 @@ export default function DamageFromSettlementsPanel({ products }) {
   }, [page, productId, dateFrom, dateTo, version]);
 
   return (
-    <section className="surface mt-6 overflow-hidden">
+    <section id={SETTLEMENT_DAMAGE_REPORT_ID} className="surface mt-6 overflow-hidden">
       <div className="border-b border-slate-100 px-5 py-4">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
@@ -79,10 +81,13 @@ export default function DamageFromSettlementsPanel({ products }) {
             <h2 className="mt-3 text-lg font-semibold text-slate-950">{t('damagedStock.settlementDamageHistoryTitle')}</h2>
             <p className="mt-1 max-w-3xl text-sm font-medium leading-6 text-slate-500">{t('damagedStock.settlementDamageHistoryDescription')}</p>
           </div>
-          <button type="button" className="btn-secondary shrink-0" onClick={() => setVersion((v) => v + 1)}>
-            <RefreshCw size={16} />
-            {t('stockLedger.refresh')}
-          </button>
+          <div className="flex flex-wrap justify-end gap-2 no-print">
+            <TableReportActions targetId={SETTLEMENT_DAMAGE_REPORT_ID} title={t('damagedStock.settlementDamageHistoryTitle')} fileName="settlement-damage-history" entityType="settlement_damage_history" t={t} />
+            <button type="button" className="btn-secondary shrink-0" onClick={() => setVersion((v) => v + 1)}>
+              <RefreshCw size={16} />
+              {t('stockLedger.refresh')}
+            </button>
+          </div>
         </div>
 
         <div className="mt-5 grid gap-4 lg:grid-cols-3">

@@ -1,9 +1,8 @@
-import { Download, FileSpreadsheet, Printer, RotateCcw } from 'lucide-react';
+import { RotateCcw } from 'lucide-react';
+import TableReportActions from '../../../components/TableReportActions.jsx';
 import { Alert, EmptyState, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
-import { downloadSheetPdf } from '../../../services/printService.js';
-import { inventoryApi } from '../../../services/inventoryApi.js';
 import { formatCurrency, formatDate, formatNumber } from '../../../utils/calculations.js';
 import { useSalesReturnReportViewModel } from '../viewmodels/useSalesReturnReportViewModel';
 
@@ -22,17 +21,6 @@ export default function SalesReturnReportPage() {
     },
     { returnCount: 0, totalAmount: 0, profitAdjustment: 0 },
   );
-
-  async function handleExportExcel() {
-    const { utils, writeFile } = await import('xlsx');
-    const header = ['Date', 'Returns', 'Total Amount', 'Profit Adjustment'];
-    const data = rows.map((row) => [row.date, row.returnCount, Number(row.totalAmount), Number(row.profitAdjustment)]);
-    const ws = utils.aoa_to_sheet([header, ...data]);
-    ws['!cols'] = [{ wch: 14 }, { wch: 10 }, { wch: 16 }, { wch: 18 }];
-    const wb = utils.book_new();
-    utils.book_append_sheet(wb, ws, 'Sales Return Report');
-    writeFile(wb, `sales-return-report-${vm.dateFrom}-${vm.dateTo}.xlsx`);
-  }
 
   return (
     <div>
@@ -68,17 +56,15 @@ export default function SalesReturnReportPage() {
             </div>
           </div>
 
-          <div className="mb-4 flex flex-wrap gap-2 no-print">
-            <button type="button" className="btn-secondary" onClick={() => { inventoryApi.recordPrint({ entityType: 'sales_return_report', entityId: null, label: 'pdf' }).catch(() => {}); downloadSheetPdf(printTargetId, `sales-return-report-${vm.dateFrom}-${vm.dateTo}.pdf`); }}>
-              <Download size={18} />{t('purchaseReceive.downloadPdf')}
-            </button>
-            <button type="button" className="btn-secondary" onClick={handleExportExcel}>
-              <FileSpreadsheet size={18} />{t('common.exportExcel')}
-            </button>
-            <button type="button" className="btn-secondary" onClick={() => { inventoryApi.recordPrint({ entityType: 'sales_return_report', entityId: null, label: 'print' }).catch(() => {}); window.print(); }}>
-              <Printer size={18} />{t('common.print')}
-            </button>
-          </div>
+          <TableReportActions
+            targetId={printTargetId}
+            title="Sales Return Report"
+            subtitle={`${vm.dateFrom} to ${vm.dateTo}`}
+            fileName={`sales-return-report-${vm.dateFrom}-${vm.dateTo}`}
+            entityType="sales_return_report"
+            t={t}
+            className="mb-4 flex flex-wrap gap-2 no-print"
+          />
 
           <div id={printTargetId} className="print-target">
             <div className="mb-6 grid gap-4 sm:grid-cols-3">

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { AlertTriangle, CheckCircle2, Clock, LayoutGrid, Package, Pencil, Plus, Search, ShieldAlert, Table2, Trash2, Wrench } from 'lucide-react';
 import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton, Select } from '../../../components/ui.jsx';
+import TableReportActions from '../../../components/TableReportActions.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
@@ -11,6 +12,7 @@ import WarrantyClaimFormModal from '../../warranty-claims/components/WarrantyCla
 import { useRepairJobsViewModel } from '../viewmodels/useRepairJobsViewModel';
 
 const JOB_STATUS_VALUES = ['RECEIVED', 'DIAGNOSING', 'AWAITING_PARTS', 'IN_REPAIR', 'READY', 'DELIVERED', 'CANCELLED'];
+const REPAIR_JOBS_REPORT_ID = 'repair-jobs-report';
 
 const BOARD_COLUMNS = [
   { status: 'RECEIVED',       icon: Package,      accent: '#94a3b8', bg: 'bg-slate-50/80',   border: 'border-slate-200'  },
@@ -399,8 +401,12 @@ export default function RepairJobsPage() {
 
       {/* ── TABLE VIEW ── */}
       {viewMode === 'table' ? (
-        <div className="surface mt-4 overflow-hidden">
+        <div id={REPAIR_JOBS_REPORT_ID} className="surface mt-4 overflow-hidden">
           <div className="border-b border-slate-100 p-5">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-3 no-print">
+              <span className="text-sm font-bold text-slate-700">{t('repairJobs.title')}</span>
+              <TableReportActions targetId={REPAIR_JOBS_REPORT_ID} title={t('repairJobs.title')} fileName="repair-jobs" entityType="repair_jobs" t={t} />
+            </div>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
               <div className="relative">
                 <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
@@ -447,14 +453,14 @@ export default function RepairJobsPage() {
                       <th className="px-4 py-3">{t('repairJobs.approvalStatusLabel')}</th>
                       <th className="px-4 py-3">{t('repairJobs.technicianLabel')}</th>
                       <th className="px-4 py-3">{t('repairJobs.receivedDateLabel')}</th>
-                      <th className="px-4 py-3 text-right">{t('common.actions')}</th>
+                      <th className="px-4 py-3 text-right no-print">{t('common.actions')}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     {vm.items.map((job) => (
                       <tr key={job.id} className="hover:bg-slate-50">
                         <td className="table-cell font-semibold text-slate-950">{job.jobNumber}</td>
-                        <td className="table-cell">
+                        <td className="table-cell no-print">
                           <div className="font-medium text-slate-900">{job.customerName || '-'}</div>
                           {job.customerPhone ? <div className="text-xs text-slate-500">{job.customerPhone}</div> : null}
                         </td>

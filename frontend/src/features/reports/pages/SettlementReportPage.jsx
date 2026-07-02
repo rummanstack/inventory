@@ -1,9 +1,8 @@
-import { Download, FileSpreadsheet, Printer, Handshake } from 'lucide-react';
+import { Handshake } from 'lucide-react';
+import TableReportActions from '../../../components/TableReportActions.jsx';
 import { Alert, EmptyState, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
-import { downloadSheetPdf } from '../../../services/printService.js';
-import { inventoryApi } from '../../../services/inventoryApi.js';
 import { formatCurrency, formatDate, formatNumber } from '../../../utils/calculations.js';
 import { useSettlementReportViewModel } from '../viewmodels/useSettlementReportViewModel';
 
@@ -24,17 +23,6 @@ export default function SettlementReportPage() {
     },
     { settlementCount: 0, totalPayable: 0, amountPaid: 0, dueAmount: 0, discount: 0 },
   );
-
-  async function handleExportExcel() {
-    const { utils, writeFile } = await import('xlsx');
-    const header = ['Date', 'Settlements', 'Total Payable', 'Amount Paid', 'Due', 'Discount'];
-    const data = rows.map((row) => [row.date, row.settlementCount, Number(row.totalPayable), Number(row.amountPaid), Number(row.dueAmount), Number(row.discount)]);
-    const ws = utils.aoa_to_sheet([header, ...data]);
-    ws['!cols'] = [{ wch: 14 }, { wch: 12 }, { wch: 16 }, { wch: 16 }, { wch: 16 }, { wch: 14 }];
-    const wb = utils.book_new();
-    utils.book_append_sheet(wb, ws, 'Settlement Report');
-    writeFile(wb, `settlement-report-${vm.dateFrom}-${vm.dateTo}.xlsx`);
-  }
 
   return (
     <div>
@@ -70,17 +58,15 @@ export default function SettlementReportPage() {
             </div>
           </div>
 
-          <div className="mb-4 flex flex-wrap gap-2 no-print">
-            <button type="button" className="btn-secondary" onClick={() => { inventoryApi.recordPrint({ entityType: 'settlement_report', entityId: null, label: 'pdf' }).catch(() => {}); downloadSheetPdf(printTargetId, `settlement-report-${vm.dateFrom}-${vm.dateTo}.pdf`); }}>
-              <Download size={18} />{t('purchaseReceive.downloadPdf')}
-            </button>
-            <button type="button" className="btn-secondary" onClick={handleExportExcel}>
-              <FileSpreadsheet size={18} />{t('common.exportExcel')}
-            </button>
-            <button type="button" className="btn-secondary" onClick={() => { inventoryApi.recordPrint({ entityType: 'settlement_report', entityId: null, label: 'print' }).catch(() => {}); window.print(); }}>
-              <Printer size={18} />{t('common.print')}
-            </button>
-          </div>
+          <TableReportActions
+            targetId={printTargetId}
+            title="DSR Settlement Report"
+            subtitle={`${vm.dateFrom} to ${vm.dateTo}`}
+            fileName={`settlement-report-${vm.dateFrom}-${vm.dateTo}`}
+            entityType="settlement_report"
+            t={t}
+            className="mb-4 flex flex-wrap gap-2 no-print"
+          />
 
           <div id={printTargetId} className="print-target">
             <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

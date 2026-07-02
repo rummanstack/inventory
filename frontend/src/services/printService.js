@@ -1,3 +1,5 @@
+import { downloadRequest } from './api/client.js';
+
 export function buildPdfFileName(sheet) {
   const safeName = String(sheet?.dsrName || 'dsr-sheet')
     .toLowerCase()
@@ -7,39 +9,212 @@ export function buildPdfFileName(sheet) {
   return `${safeName || 'dsr-sheet'}-${sheet?.date || 'report'}.pdf`;
 }
 
-export async function downloadSheetPdf(targetId, fileName) {
+function toTitle(fileName = 'report.pdf') {
+  return String(fileName)
+    .replace(/\.[^.]+$/, '')
+    .replace(/[-_]+/g, ' ')
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function cleanText(value = '') {
+  return String(value).replace(/\s+/g, ' ').trim();
+}
+
+function escapeHtml(value = '') {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function isExcludedCell(cell) {
+  return cell.classList.contains('no-print') || cell.closest('.no-print');
+}
+
+function getCellText(cell) {
+  const fieldValues = [...cell.querySelectorAll('input, select, textarea')]
+    .map((field) => {
+      if (field.tagName.toLowerCase() === 'select') {
+        return field.selectedOptions?.[0]?.textContent || field.value || '';
+      }
+      return field.value || '';
+    })
+    .filter(Boolean);
+
+  return cleanText(fieldValues.length ? fieldValues.join(' ') : (cell.innerText || cell.textContent || ''));
+}
+
+export function extractTablesFromElement(targetId) {
   const element = document.getElementById(targetId);
   if (!element) {
-    throw new Error('Printable sheet not found.');
+    throw new Error('Report target not found.');
   }
 
-  const [{ default: html2canvas }, { jsPDF }] = await Promise.all([import('html2canvas'), import('jspdf')]);
-  const { getCssVar } = await import('../utils/theme.js');
-  const canvas = await html2canvas(element, {
-    scale: 2,
-    useCORS: true,
-    backgroundColor: getCssVar('--surface-white', '#f8f8f9'),
-  });
+  return [...element.querySelectorAll('table')].map((table) => {
+    const rows = [...table.rows].map((row) =>
+      [...row.cells]
+        .filter((cell) => !isExcludedCell(cell))
+        .map((cell) => ({
+          text: getCellText(cell),
+          header: cell.tagName.toLowerCase() === 'th',
+          align: cell.className.includes('text-right') || cell.getAttribute('align') === 'right' ? 'right' : 'left',
+          colSpan: Number(cell.colSpan || 1),
+        }))
+        .filter((cell) => cell.text),
+    ).filter((row) => row.length);
 
-  const imageData = canvas.toDataURL('image/png');
-  const pdf = new jsPDF('p', 'mm', 'a4');
-  const pageWidth = pdf.internal.pageSize.getWidth();
-  const pageHeight = pdf.internal.pageSize.getHeight();
-  const imageWidth = pageWidth;
-  const imageHeight = (canvas.height * imageWidth) / canvas.width;
+    return { rows };
+  }).filter((table) => table.rows.length);
+}
 
-  let heightLeft = imageHeight;
-  let position = 0;
+function buildReportHtml({ title, subtitle, tables }) {
+  const generatedAt = new Date().toLocaleString();
+  const tableHtml = tables.map((table) => `
+    <table width="100%" cellpadding="6" cellspacing="0" style="border-collapse:collapse;font-size:13px;margin-top:14px;">
+      ${table.rows.map((row, rowIndex) => {
+        const hasHeader = row.some((cell) => cell.header) || rowIndex === 0;
+        return `<tr style="${hasHeader ? 'background:#f4f4f4;border-top:2px solid #333;border-bottom:2px solid #333;font-weight:bold;' : 'border-bottom:1px solid #eee;'}">
+          ${row.map((cell) => {
+            const tag = hasHeader ? 'th' : 'td';
+            return `<${tag} colspan="${cell.colSpan}" style="padding:8px 6px;text-align:${cell.align};vertical-align:top;">${escapeHtml(cell.text)}</${tag}>`;
+          }).join('')}
+        </tr>`;
+      }).join('')}
+    </table>
+  `).join('');
 
-  pdf.addImage(imageData, 'PNG', 0, position, imageWidth, imageHeight, undefined, 'FAST');
-  heightLeft -= pageHeight;
+  return `
+    <div style="margin:0;padding:30px;background:#f2f2f2;font-family:'Noto Sans Bengali','Noto Sans',Arial,Helvetica,sans-serif;color:#1f2937;">
+      <table width="900" align="center" cellpadding="0" cellspacing="0" style="background:#fff;border:1px solid #ddd;">
+        <tr><td style="padding:24px;">
+          <table width="100%"><tr>
+            <td>
+              <table><tr>
+                <td><div style="width:60px;height:60px;background:#373373;color:#fff;font-size:28px;font-weight:bold;text-align:center;line-height:60px;border-radius:8px;">SL</div></td>
+                <td style="padding-left:12px;">
+                  <div style="font-size:30px;font-weight:bold;color:#373373;">StockLedger</div>
+                  <div style="font-size:13px;color:#666;">Smart Inventory | POS | Accounting</div>
+                  <div style="font-size:12px;color:#999;">Dhaka, Bangladesh<br>support@stockledger.app | www.stockledger.app</div>
+                </td>
+              </tr></table>
+            </td>
+            <td align="right">
+              <div style="font-size:28px;font-weight:bold;color:#373373;text-transform:uppercase;">${escapeHtml(title)}</div>
+              ${subtitle ? `<div style="font-size:14px;color:#666;">${escapeHtml(subtitle)}</div>` : ''}
+              <div style="font-size:12px;color:#999;">Generated: ${escapeHtml(generatedAt)}</div>
+            </td>
+          </tr></table>
+        </td></tr>
+        <tr><td style="height:4px;background:#373373;"></td></tr>
+        <tr><td style="padding:20px;">${tableHtml || '<p style="font-size:13px;color:#666;">No rows available for this report.</p>'}</td></tr>
+        <tr><td style="background:#fafafa;border-top:1px solid #ddd;padding:18px;">
+          <table width="100%"><tr>
+            <td style="font-size:12px;color:#666;">Generated by <b style="color:#373373;">StockLedger</b><br>Smart Inventory | POS | Accounting</td>
+            <td align="right" style="font-size:12px;color:#666;">www.stockledger.app<br>support@stockledger.app</td>
+          </tr></table>
+        </td></tr>
+      </table>
+    </div>
+  `;
+}
 
-  while (heightLeft > 0) {
-    position = heightLeft - imageHeight;
-    pdf.addPage();
+function createReportHost(html) {
+  const host = document.createElement('div');
+  host.style.position = 'absolute';
+  host.style.left = '-10000px';
+  host.style.top = '0';
+  host.style.width = '960px';
+  host.style.background = '#f2f2f2';
+  host.innerHTML = html;
+  document.body.appendChild(host);
+  return host;
+}
+
+async function saveBlob(blob, fileName) {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = fileName;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
+async function exportReportFile(format, payload, fileName, fallback) {
+  try {
+    const { blob } = await downloadRequest(`/report-exports/${format}`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    await saveBlob(blob, fileName);
+    return;
+  } catch (error) {
+    if (!fallback) {
+      throw error;
+    }
+  }
+
+  await fallback();
+}
+
+export async function downloadSheetPdf(targetId, fileName, options = {}) {
+  const tables = extractTablesFromElement(targetId);
+  const title = options.title || toTitle(fileName);
+  await exportReportFile('pdf', { title, subtitle: options.subtitle, fileName, entityType: options.entityType, entityId: options.entityId, tables }, fileName, async () => {
+    const [{ default: html2canvas }, { jsPDF }] = await Promise.all([import('html2canvas'), import('jspdf')]);
+    const host = createReportHost(buildReportHtml({ title, subtitle: options.subtitle, tables }));
+
+    let canvas;
+    try {
+      canvas = await html2canvas(host, {
+        scale: 2.2,
+        useCORS: true,
+        backgroundColor: '#f2f2f2',
+      });
+    } finally {
+      host.remove();
+    }
+
+    const imageData = canvas.toDataURL('image/png');
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const imageWidth = pageWidth;
+    const imageHeight = (canvas.height * imageWidth) / canvas.width;
+
+    let heightLeft = imageHeight;
+    let position = 0;
+
     pdf.addImage(imageData, 'PNG', 0, position, imageWidth, imageHeight, undefined, 'FAST');
     heightLeft -= pageHeight;
-  }
 
-  pdf.save(fileName);
+    while (heightLeft > 0) {
+      position = heightLeft - imageHeight;
+      pdf.addPage();
+      pdf.addImage(imageData, 'PNG', 0, position, imageWidth, imageHeight, undefined, 'FAST');
+      heightLeft -= pageHeight;
+    }
+
+    pdf.save(fileName);
+  });
+}
+
+export async function exportTableElementToExcel(targetId, fileName, sheetName = 'Report', options = {}) {
+  const tables = extractTablesFromElement(targetId);
+  const title = toTitle(fileName);
+  await exportReportFile('excel', { title, sheetName, fileName, entityType: options.entityType, entityId: options.entityId, tables }, fileName, async () => {
+    const rows = tables.flatMap((table, tableIndex) => [
+      ...(tableIndex > 0 ? [[]] : []),
+      ...table.rows.map((row) => row.map((cell) => cell.text)),
+    ]);
+    const { utils, writeFile } = await import('xlsx');
+    const worksheet = utils.aoa_to_sheet(rows.length ? rows : [['No rows available']]);
+    worksheet['!cols'] = (rows[0] || []).map(() => ({ wch: 22 }));
+    const workbook = utils.book_new();
+    utils.book_append_sheet(workbook, worksheet, String(sheetName || 'Report').slice(0, 31));
+    writeFile(workbook, fileName);
+  });
 }

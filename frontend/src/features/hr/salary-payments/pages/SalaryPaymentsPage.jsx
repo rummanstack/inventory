@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { Banknote, ChevronDown, ChevronRight, Trash2, CheckCircle2, Clock, Calendar } from 'lucide-react';
 import { Alert, SectionHeader, TableSkeleton } from '../../../../components/ui.jsx';
+import TableReportActions from '../../../../components/TableReportActions.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
 import { formatCurrency, formatDate } from '../../../../utils/calculations.js';
 import { inventoryApi } from '../../../../services/inventoryApi.js';
@@ -24,6 +25,8 @@ function nextMonth(month) {
   d.setMonth(d.getMonth() + 1);
   return d.toISOString().slice(0, 7);
 }
+
+const SALARY_PAYMENTS_REPORT_ID = 'salary-payments-report';
 
 function PaymentStatusBadge({ emp }) {
   const earned = emp.earnedAmount;
@@ -206,7 +209,11 @@ export default function SalaryPaymentsPage() {
       )}
 
       {/* Employee list */}
-      <div className="surface overflow-hidden">
+      <div id={SALARY_PAYMENTS_REPORT_ID} className="surface overflow-hidden">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-5 py-3 no-print">
+          <span className="text-sm font-bold text-slate-700">{t('salary.title')}</span>
+          <TableReportActions targetId={SALARY_PAYMENTS_REPORT_ID} title={t('salary.title')} fileName={`salary-payments-${vm.month}`} entityType="salary_payments" t={t} />
+        </div>
         {vm.loading ? (
           <div className="p-5"><TableSkeleton columns={5} /></div>
         ) : vm.error ? (

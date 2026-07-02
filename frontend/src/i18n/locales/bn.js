@@ -239,6 +239,7 @@ const bn = {
       search: 'খুঁজুন',
       actions: 'অ্যাকশন',
       print: 'প্রিন্ট',
+      downloadPdf: 'PDF ডাউনলোড',
       exportExcel: 'এক্সেল হিসেবে এক্সপোর্ট',
       view: 'দেখুন',
       reload: 'রিলোড',

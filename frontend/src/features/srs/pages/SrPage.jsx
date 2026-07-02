@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { HandCoins, Pencil, Phone, Plus, Search, Trash2, Users } from 'lucide-react';
 import { Alert, Badge, EmptyState, Modal, Pagination, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
+import TableReportActions from '../../../components/TableReportActions.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { statusTone } from '../../../models/inventoryViewData.js';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
@@ -8,6 +9,8 @@ import { formatCurrency } from '../../../utils/calculations.js';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import SrFormModal from '../components/SrFormModal';
 import { useSrViewModel } from '../viewmodels/useSrViewModel';
+
+const SRS_REPORT_ID = 'srs-report';
 
 function CollectDueModal({ sr, onClose, onSave }) {
   const [amount, setAmount] = useState('');
@@ -63,7 +66,7 @@ function CollectDueModal({ sr, onClose, onSave }) {
 }
 
 export default function SrPage() {
-  const { saveSr, deleteSr, can } = useInventoryApp();
+  const { saveSr, deleteSr, can, t } = useInventoryApp();
   const vm = useSrViewModel();
   const [srModal, setSrModal] = useState(null);
   const [collectModal, setCollectModal] = useState(null);
@@ -83,16 +86,19 @@ export default function SrPage() {
         ) : null}
       />
 
-      <div className="surface overflow-hidden">
+      <div id={SRS_REPORT_ID} className="surface overflow-hidden">
         <div className="border-b border-slate-100 p-5">
-          <div className="relative max-w-md">
-            <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-            <input
-              className="input pl-10"
-              value={vm.search}
-              onChange={(e) => vm.setSearch(e.target.value)}
-              placeholder="Search by name or phone..."
-            />
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="relative max-w-md flex-1">
+              <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+              <input
+                className="input pl-10"
+                value={vm.search}
+                onChange={(e) => vm.setSearch(e.target.value)}
+                placeholder="Search by name or phone..."
+              />
+            </div>
+            <TableReportActions targetId={SRS_REPORT_ID} title="Sales Representatives" fileName="srs" entityType="srs" t={t} />
           </div>
         </div>
 
@@ -114,7 +120,7 @@ export default function SrPage() {
                   <th className="px-4 py-3">Phone</th>
                   <th className="px-4 py-3">Status</th>
                   <th className="px-4 py-3 text-right">Current Due</th>
-                  <th className="px-4 py-3 text-right">Actions</th>
+                  <th className="px-4 py-3 text-right no-print">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -128,7 +134,7 @@ export default function SrPage() {
                         {sr.phone}
                       </span>
                     </td>
-                    <td className="table-cell">
+                    <td className="table-cell no-print">
                       <Badge tone={statusTone(sr.status)}>{sr.status}</Badge>
                     </td>
                     <td className="table-cell text-right">

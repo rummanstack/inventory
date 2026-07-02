@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Tag, Pencil, Plus, Search, Trash2 } from 'lucide-react';
 import { Alert, Badge, EmptyState, Modal, Pagination, SectionHeader, TableSkeleton, Select } from '../../../../components/ui.jsx';
+import TableReportActions from '../../../../components/TableReportActions.jsx';
 import { DatePickerField } from '../../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../../services/inventoryApi.js';
@@ -23,6 +24,8 @@ const SALE_TYPE_OPTIONS = [
   { value: 'WHOLESALE', labelKey: 'retailer.promotions.saleTypes.WHOLESALE' },
   { value: 'QUICK_SALE', labelKey: 'retailer.promotions.saleTypes.QUICK_SALE' },
 ];
+
+const RETAIL_PROMOTIONS_REPORT_ID = 'retail-promotions-report';
 
 function PromotionFormModal({ promotion, products, categories, onClose, onSave }) {
   const { t } = useInventoryApp();
@@ -289,12 +292,13 @@ export default function RetailPromotionsPage() {
         ) : null}
       />
 
-      <div className="surface overflow-hidden">
+      <div id={RETAIL_PROMOTIONS_REPORT_ID} className="surface overflow-hidden">
         <div className="border-b border-slate-100 p-5">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">{t('retailer.promotions.eyebrow')}</p>
-            <div className="flex flex-wrap gap-2 text-sm font-bold">
+            <div className="flex flex-wrap items-center justify-end gap-2 text-sm font-bold">
               <span className="muted-chip">{filteredPromotions.length} {t('retailer.promotions.count')}</span>
+              <TableReportActions targetId={RETAIL_PROMOTIONS_REPORT_ID} title={t('retailer.promotions.title')} fileName="retail-promotions" entityType="retail_promotions" t={t} />
             </div>
           </div>
           <div className="mt-4 flex flex-col gap-3 sm:flex-row">
@@ -323,13 +327,13 @@ export default function RetailPromotionsPage() {
                   <th className="px-4 py-3">{t('retailer.promotions.discount')}</th>
                   <th className="px-4 py-3">{t('retailer.promotions.dateRange')}</th>
                   <th className="px-4 py-3">{t('retailer.promotions.status')}</th>
-                  <th className="px-4 py-3 text-right">{t('common.actions')}</th>
+                  <th className="px-4 py-3 text-right no-print">{t('common.actions')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {filteredPromotions.map((promotion) => (
                   <tr key={promotion.id} className="hover:bg-slate-50">
-                    <td className="table-cell">
+                    <td className="table-cell no-print">
                       <div className="flex items-start gap-2">
                         <div>
                           <p className="font-semibold text-slate-950">{promotion.name}</p>

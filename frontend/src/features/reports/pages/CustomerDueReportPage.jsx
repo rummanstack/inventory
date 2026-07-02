@@ -1,8 +1,7 @@
-import { Download, FileSpreadsheet, Printer, UserX } from 'lucide-react';
+import { UserX } from 'lucide-react';
+import TableReportActions from '../../../components/TableReportActions.jsx';
 import { Alert, EmptyState, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
-import { downloadSheetPdf } from '../../../services/printService.js';
-import { inventoryApi } from '../../../services/inventoryApi.js';
 import { formatCurrency, formatNumber } from '../../../utils/calculations.js';
 import { useCustomerDueReportViewModel } from '../viewmodels/useCustomerDueReportViewModel';
 
@@ -13,17 +12,6 @@ export default function CustomerDueReportPage() {
   const rows = vm.report?.rows || [];
 
   const totalDue = rows.reduce((acc, row) => acc + Number(row.currentDue || 0), 0);
-
-  async function handleExportExcel() {
-    const { utils, writeFile } = await import('xlsx');
-    const header = ['Customer', 'Phone', 'Outstanding Due'];
-    const data = rows.map((row) => [row.customerName, row.phone || '', Number(row.currentDue)]);
-    const ws = utils.aoa_to_sheet([header, ...data]);
-    ws['!cols'] = [{ wch: 24 }, { wch: 16 }, { wch: 18 }];
-    const wb = utils.book_new();
-    utils.book_append_sheet(wb, ws, 'Customer Due Report');
-    writeFile(wb, `customer-due-report.xlsx`);
-  }
 
   return (
     <div>
@@ -40,17 +28,14 @@ export default function CustomerDueReportPage() {
         <>
           {vm.error ? <div className="mb-6"><Alert type="error">{vm.error}</Alert></div> : null}
 
-          <div className="mb-4 flex flex-wrap gap-2 no-print">
-            <button type="button" className="btn-secondary" onClick={() => { inventoryApi.recordPrint({ entityType: 'customer_due_report', entityId: null, label: 'pdf' }).catch(() => {}); downloadSheetPdf(printTargetId, `customer-due-report.pdf`); }}>
-              <Download size={18} />{t('purchaseReceive.downloadPdf')}
-            </button>
-            <button type="button" className="btn-secondary" onClick={handleExportExcel}>
-              <FileSpreadsheet size={18} />{t('common.exportExcel')}
-            </button>
-            <button type="button" className="btn-secondary" onClick={() => { inventoryApi.recordPrint({ entityType: 'customer_due_report', entityId: null, label: 'print' }).catch(() => {}); window.print(); }}>
-              <Printer size={18} />{t('common.print')}
-            </button>
-          </div>
+          <TableReportActions
+            targetId={printTargetId}
+            title="Customer Due Report"
+            fileName="customer-due-report"
+            entityType="customer_due_report"
+            t={t}
+            className="mb-4 flex flex-wrap gap-2 no-print"
+          />
 
           <div id={printTargetId} className="print-target">
             <div className="mb-6 grid gap-4 sm:grid-cols-2">

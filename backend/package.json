@@ -10,11 +10,14 @@
     "test": "node --test --test-concurrency=1"
   },
   "dependencies": {
+    "@fontsource/noto-sans-bengali": "^5.2.11",
     "@vendia/serverless-express": "^4.12.6",
     "dotenv": "^16.6.1",
     "express": "^5.1.0",
     "multer": "^2.2.0",
-    "pg": "^8.16.3"
+    "pg": "^8.16.3",
+    "playwright": "^1.61.1",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "supertest": "^7.2.2"

@@ -1,12 +1,14 @@
 import { useEffect } from 'react';
 import { AlertTriangle, Save, Truck } from 'lucide-react';
 import { Alert, EmptyState, SectionHeader, TableSkeleton, cx, Select } from '../../../components/ui.jsx';
+import TableReportActions from '../../../components/TableReportActions.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { formatCasePiece, formatCurrency, formatNumber } from '../../../utils/calculations.js';
 import { useMorningIssueViewModel } from '../viewmodels/useMorningIssueViewModel';
 
 const autoSelect = (e) => e.target.select();
+const MORNING_ISSUE_REPORT_ID = 'morning-issue-report';
 
 export default function MorningIssuePage() {
   const { productDirectory, dsrDirectory, today, saveIssue, t, can } = useInventoryApp();
@@ -81,13 +83,14 @@ export default function MorningIssuePage() {
           <TableSkeleton rows={6} columns={7} />
         </div>
       ) : (
-      <div className="surface overflow-hidden">
+      <div id={MORNING_ISSUE_REPORT_ID} className="surface overflow-hidden">
         <div className="flex flex-col gap-3 border-b border-slate-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="section-title">{t('morningIssue.sheetTitle')}</h2>
             <p className="mt-1 text-sm text-slate-500">{t('morningIssue.sheetDescription')}</p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
+            <TableReportActions targetId={MORNING_ISSUE_REPORT_ID} title={t('morningIssue.sheetTitle')} fileName="morning-issue" entityType="morning_issue" t={t} />
             <Select className="input h-9 w-44" value={vm.categoryId} onChange={(event) => vm.setCategoryId(event.target.value)}>
               <option value="">{t('categories.allCategories')}</option>
               {vm.categoryOptions.map((category) => (

@@ -66,6 +66,7 @@ export async function downloadRequest(path, options = {}) {
   const response = await fetch(`/api${path}`, {
     credentials: "include",
     headers: {
+      "Content-Type": "application/json",
       ...(activeTenantId ? { "X-Active-Tenant-Id": activeTenantId } : {}),
       ...(options.headers || {}),
     },

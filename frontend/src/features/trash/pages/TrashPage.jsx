@@ -1,9 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Boxes, Building2, CircleDollarSign, RotateCcw, ShoppingCart, Store, Trash2, UserCog, Users, Wallet } from 'lucide-react';
 import { Alert, EmptyState, Pagination, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
+import TableReportActions from '../../../components/TableReportActions.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import { formatDateTime } from '../../../utils/calculations.js';
+
+const TRASH_REPORT_ID = 'trash-report';
 
 export default function TrashPage() {
   const {
@@ -228,7 +231,11 @@ export default function TrashPage() {
         })}
       </div>
 
-      <div className="surface overflow-hidden">
+      <div id={TRASH_REPORT_ID} className="surface overflow-hidden">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-5 py-3 no-print">
+          <span className="text-sm font-bold text-slate-700">{activeTab ? t(activeTab.labelKey) : t('nav.trash')}</span>
+          <TableReportActions targetId={TRASH_REPORT_ID} title={activeTab ? `${t('nav.trash')} - ${t(activeTab.labelKey)}` : t('nav.trash')} fileName={`trash-${activeKey || 'items'}`} entityType="trash" t={t} />
+        </div>
         {loading ? (
           <div className="p-5">
             <TableSkeleton columns={5} showHeader={false} />
@@ -250,7 +257,7 @@ export default function TrashPage() {
                   <th className="px-4 py-3">{t('trash.deletedAt')}</th>
                   <th className="px-4 py-3">{t('trash.deletedBy')}</th>
                   <th className="px-4 py-3">{t('trash.reason')}</th>
-                  <th className="px-4 py-3 text-right">{t('common.actions')}</th>
+                  <th className="px-4 py-3 text-right no-print">{t('common.actions')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -260,7 +267,7 @@ export default function TrashPage() {
                     <td className="hidden table-cell sm:table-cell">{formatDateTime(item.deletedAt)}</td>
                     <td className="hidden table-cell md:table-cell">{item.deletedByName || '-'}</td>
                     <td className="hidden table-cell lg:table-cell">{item.deleteReason || '-'}</td>
-                    <td className="table-cell">
+                    <td className="table-cell no-print">
                       <div className="row-actions flex justify-end gap-2">
                         <button type="button" className="icon-btn text-emerald-600 hover:text-emerald-700" title={t('trash.restore')} onClick={() => handleRestore(item)}>
                           <RotateCcw size={16} />

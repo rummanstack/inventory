@@ -10,6 +10,7 @@ import { createPlatformBackupRoutes } from "./platformBackup.routes.js";
 import { createSystemRoutes } from "./system.routes.js";
 import { createOrgRoutes } from "./org.routes.js";
 import { createPermissionsRoutes } from "./permissions.routes.js";
+import { createReportExportsRoutes } from "./reportExports.routes.js";
 import { createUsersRoutes } from "./users.routes.js";
 import { createActivityLogsRoutes } from "./activityLogs.routes.js";
 import { createAuditRoutes } from "./audit.routes.js";
@@ -70,6 +71,7 @@ export function createApiRouter({ controllers, authService, env, auditService })
       auditController,
       orgController,
       permissionController,
+      reportExportController,
       uploadController,
       userController,
     },
@@ -165,6 +167,7 @@ export function createApiRouter({ controllers, authService, env, auditService })
   router.use("/users", createUsersRoutes(userController));
   router.use("/activity-logs", createActivityLogsRoutes(activityLogController));
   router.use("/audit", createAuditRoutes(auditController));
+  router.use("/report-exports", createReportExportsRoutes(reportExportController));
   router.use("/expenses", createExpensesRoutes(expenseController));
   router.use("/dsr-advances", createDsrAdvancesRoutes(dsrFinanceController));
   router.use("/profit-report", createProfitReportRoutes(profitController));

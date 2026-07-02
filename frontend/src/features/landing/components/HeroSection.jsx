@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { ArrowRight, MessageCircle } from 'lucide-react';
 import ImagePlaceholder from './shared/ImagePlaceholder.jsx';
-import { heroDashboardImage, heroMobileImage, whatsappUrl, solutionShowcaseImage } from '../constants.js';
+import { heroDashboardImage, heroMobileImage, whatsappUrl } from '../constants.js';
 
 export default function HeroSection({ t }) {
   const heroImage = {
@@ -38,7 +38,7 @@ export default function HeroSection({ t }) {
           <ImagePlaceholder data={heroImage} heightClass="h-[300px] sm:h-[380px] lg:h-[440px]" variant="dashboard" fit="cover" position="left top" />
           <div className="landing-hero-secondary hidden md:block">
             <ImagePlaceholder
-              data={{ src: solutionShowcaseImage, alt: t('landing.images.mobileView') }}
+              data={{ src: heroMobileImage, alt: t('landing.images.mobileView') }}
               heightClass="h-[180px] lg:h-[210px]"
               variant="dashboard"
               fit="cover"

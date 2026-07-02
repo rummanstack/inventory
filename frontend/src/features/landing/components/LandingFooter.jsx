@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { ArrowUp, Facebook, Instagram, Linkedin, MapPin, MessageCircle, Phone, Send, Twitter } from 'lucide-react';
 import { contactPhone, navLinks, socialLinks, whatsappUrl } from '../constants.js';
-import { stockLedgerLogoHorizontal } from '../../../assets/brandAssets.js';
+import { stockLedgerLogoIcon } from '../../../assets/brandAssets.js';
 
 const SOCIAL_LINKS = [
   { key: 'facebook', href: socialLinks.facebook, Icon: Facebook },
@@ -17,9 +17,12 @@ export default function LandingFooter({ t }) {
       <div className="landing-container py-10">
         <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
           <div className="max-w-sm">
-            <div>
-              <img src={stockLedgerLogoHorizontal} alt="StockLedger" className="h-11 w-auto object-contain" />
-              <p className="mt-3 text-xs font-semibold text-slate-300">{t('landing.footer.tagline')}</p>
+            <div className="flex items-center gap-3">
+              <img src={stockLedgerLogoIcon} alt="" className="h-12 w-12 object-contain drop-shadow-[0_10px_24px_rgba(15,23,42,0.24)]" />
+              <div>
+                <h2 className="text-lg font-black tracking-tight text-white">StockLedger</h2>
+                <p className="mt-1 text-[11px] font-bold uppercase tracking-[0.16em] text-slate-300">{t('landing.footer.tagline')}</p>
+              </div>
             </div>
             <p className="mt-4 text-sm font-medium leading-6 text-slate-300">{t('landing.footer.description')}</p>
             <div className="mt-5 flex items-center gap-2">
@@ -65,7 +68,7 @@ export default function LandingFooter({ t }) {
               <MapPin size={15} className="mt-0.5 shrink-0 text-[var(--blue-200)]" />
               <address className="not-italic leading-5">
                 Middle Paikpara, Mirpur-1<br />
-                Dhaka ??? 1216, Bangladesh
+                Dhaka - 1216, Bangladesh
               </address>
             </div>
           </div>

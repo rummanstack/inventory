@@ -211,8 +211,10 @@
 
   /* Dark theme: the slate scale inverts and --white becomes the card surface,
      so bg-white/text-slate-* utilities re-theme without touching components.
-     text-white collisions are patched right after this block. */
-  [data-theme="dark"] {
+     text-white collisions are patched right after this block.
+     The landing/legal pages (html.landing-page-active) are light-only by
+     design, so every dark selector excludes them. */
+  [data-theme="dark"]:not(.landing-page-active) {
     color-scheme: dark;
     --app-bg: #101120;
     --app-bg-strong: #1b1c31;
@@ -266,17 +268,17 @@
 
   /* bg-white doubles as the card surface (remapped above), but text-white,
      the nav indicator bar, and hover states genuinely mean white. */
-  [data-theme="dark"] .text-white,
-  [data-theme="dark"] .hover\:text-white:hover,
-  [data-theme="dark"] .group-hover\:text-white {
+  [data-theme="dark"]:not(.landing-page-active) .text-white,
+  [data-theme="dark"]:not(.landing-page-active) .hover\:text-white:hover,
+  [data-theme="dark"]:not(.landing-page-active) .group-hover\:text-white {
     color: #ffffff;
   }
 
-  [data-theme="dark"] .before\:bg-white::before {
+  [data-theme="dark"]:not(.landing-page-active) .before\:bg-white::before {
     background-color: #ffffff;
   }
 
-  [data-theme="dark"] .skeleton {
+  [data-theme="dark"]:not(.landing-page-active) .skeleton {
     background: linear-gradient(90deg, #23243a 25%, #2e2f4a 50%, #23243a 75%);
     background-size: 200% 100%;
   }

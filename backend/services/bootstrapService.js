@@ -4,28 +4,7 @@ import { hashPassword } from "../lib/passwords.js";
 import { loadPermissionCache } from "../lib/permissionCache.js";
 import { loadFeatureCache } from "../lib/tenantFeatureCache.js";
 import { USER_ROLES } from "../lib/roles.js";
-import { countUsers, findUserByRole, insertUser } from "../repositories/userRepository.js";
-import { countTenants, insertTenant, listTenants } from "../repositories/tenantRepository.js";
-
-const FIRST_TENANT_TABLES = [
-  "products",
-  "dsrs",
-  "issues",
-  "settlements",
-  "expenses",
-  "dsr_advances",
-  "activity_logs",
-];
-
-async function backfillTenantId(pool, tenantId) {
-  for (const table of FIRST_TENANT_TABLES) {
-    await pool.query(`UPDATE ${table} SET tenant_id = $1 WHERE tenant_id IS NULL`, [tenantId]);
-  }
-
-  await pool.query(`UPDATE users SET tenant_id = $1 WHERE tenant_id IS NULL AND role != 'system_developer'`, [
-    tenantId,
-  ]);
-}
+import { findUserByRole, insertUser } from "../repositories/userRepository.js";
 
 async function seedSystemDeveloperIfEmpty(pool, env) {
   const existing = await findUserByRole(pool, USER_ROLES.SYSTEM_DEVELOPER);

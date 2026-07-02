@@ -1,7 +1,7 @@
 import { CardSkeleton, ChartPanelSkeleton } from '../../../components/ui.jsx';
 
 function PulseBlock({ className }) {
-  return <div className={`animate-pulse rounded-[20px] bg-slate-100 ${className}`} />;
+  return <div className={`animate-pulse rounded-card bg-slate-100 ${className}`} />;
 }
 
 function FinancialHealthSkeleton() {

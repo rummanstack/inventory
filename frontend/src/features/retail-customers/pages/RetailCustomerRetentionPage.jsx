@@ -325,7 +325,7 @@ export default function RetailCustomerRetentionPage() {
             </div>
             {selectedCustomer ? (
               <div className="p-5">
-                <div className="rounded-[24px] border border-slate-200 bg-slate-50 p-4">
+                <div className="rounded-card border border-slate-200 bg-slate-50 p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <h3 className="text-lg font-black text-slate-950">{selectedCustomer.name}</h3>

@@ -224,7 +224,7 @@ function HelpDeskTicketRow({ ticket, active, onSelect, t, language }) {
   return (
     <button
       type="button"
-      className={`w-full rounded-[20px] border px-4 py-3 text-left transition ${active ? 'border-[var(--secondary)] bg-[var(--secondary-soft)]/50' : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'}`}
+      className={`w-full rounded-card border px-4 py-3 text-left transition ${active ? 'border-[var(--secondary)] bg-[var(--secondary-soft)]/50' : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'}`}
       onClick={onSelect}
     >
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -528,7 +528,7 @@ export default function HelpDeskPage() {
                     <button
                       key={tabKey}
                       type="button"
-                      className={`rounded-full px-4 py-2 text-sm font-bold transition ${activeTab === tabKey ? 'bg-[var(--secondary)] text-white shadow-[0_14px_28px_var(--secondary-shadow)]' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                      className={`rounded-full px-4 py-2 text-sm font-bold transition ${activeTab === tabKey ? 'bg-[var(--secondary)] text-white shadow-[0_1px_2px_var(--secondary-shadow)]' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
                       onClick={() => setActiveTab(tabKey)}
                     >
                       {t(`helpDesk.tabs.${tabKey}`)}
@@ -620,7 +620,7 @@ export default function HelpDeskPage() {
                   <div className="p-5">
                     {selectedTicket ? (
                       <div className="space-y-4">
-                        <div className="rounded-[24px] border border-slate-200 bg-slate-50 p-4">
+                        <div className="rounded-card border border-slate-200 bg-slate-50 p-4">
                           <div className="flex flex-wrap items-start justify-between gap-3">
                             <div>
                               <div className="flex flex-wrap items-center gap-2">
@@ -698,7 +698,7 @@ export default function HelpDeskPage() {
                           </div>
                         </div>
 
-                        <div className="rounded-[24px] border border-slate-200 bg-white p-4">
+                        <div className="rounded-card border border-slate-200 bg-white p-4">
                           <h4 className="text-sm font-black uppercase tracking-[0.18em] text-slate-400">{t('helpDesk.timelineTitle')}</h4>
                           <div className="mt-3 space-y-2">
                             {buildTimeline(selectedTicket, t, language).map((entry) => (
@@ -710,7 +710,7 @@ export default function HelpDeskPage() {
                           </div>
                         </div>
 
-                        <div className="rounded-[24px] border border-slate-200 bg-white p-4">
+                        <div className="rounded-card border border-slate-200 bg-white p-4">
                           <h4 className="text-sm font-black uppercase tracking-[0.18em] text-slate-400">{t('helpDesk.notesTitle')}</h4>
                           <div className="mt-3 space-y-2">
                             {(selectedTicket.notes || []).map((note) => (

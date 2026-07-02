@@ -10,7 +10,7 @@ function VisitorChatRow({ chat, active, onSelect, t, language }) {
   return (
     <button
       type="button"
-      className={`w-full rounded-[20px] border px-4 py-3 text-left transition ${active ? 'border-[var(--secondary)] bg-[var(--secondary-soft)]/50' : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'}`}
+      className={`w-full rounded-card border px-4 py-3 text-left transition ${active ? 'border-[var(--secondary)] bg-[var(--secondary-soft)]/50' : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'}`}
       onClick={onSelect}
     >
       <div className="flex flex-wrap items-center justify-between gap-2">

@@ -52,7 +52,7 @@ function MetricPill({ label, value, sub, icon: Icon, iconClass = "bg-slate-100 t
 
 function DueRow({ icon: Icon, iconClass, label, sub, value, valueClass = "text-slate-950" }) {
   return (
-    <div className="flex items-center gap-4 rounded-[20px] bg-white/70 px-5 py-4 shadow-[0_2px_12px_rgba(0,0,0,0.04)] ring-1 ring-slate-200/50">
+    <div className="flex items-center gap-4 rounded-card bg-white/70 px-5 py-4 shadow-card ring-1 ring-slate-200/50">
       <div className={cx("shrink-0 rounded-xl p-2.5", iconClass)}>
         <Icon size={17} />
       </div>
@@ -247,7 +247,7 @@ export default function DashboardPage() {
 
         </div>
       ) : (
-        <div className="flex items-center gap-4 rounded-[28px] border border-slate-200/80 bg-white/80 px-6 py-5 shadow-[0_8px_30px_rgba(0,0,0,0.05)]">
+        <div className="flex items-center gap-4 rounded-card border border-slate-200/80 bg-white/80 px-6 py-5 shadow-card">
           <div className="rounded-2xl bg-slate-100 p-3 text-slate-400">
             <Lock size={18} />
           </div>
@@ -498,7 +498,7 @@ export default function DashboardPage() {
           {retailCashSession !== undefined && (
             <div
               className={cx(
-                "mt-3 flex items-center gap-3 rounded-[20px] px-5 py-3.5 transition-colors",
+                "mt-3 flex items-center gap-3 rounded-card px-5 py-3.5 transition-colors",
                 retailCashSession ? "bg-emerald-50 ring-1 ring-emerald-200/60" : "bg-slate-50 ring-1 ring-slate-200/50",
               )}
             >
@@ -537,7 +537,7 @@ export default function DashboardPage() {
                 return (
                   <div
                     key={dsr.label}
-                    className="flex items-center gap-3 rounded-[20px] bg-white/60 px-4 py-3.5 ring-1 ring-slate-200/50 transition-colors"
+                    className="flex items-center gap-3 rounded-card bg-white/60 px-4 py-3.5 ring-1 ring-slate-200/50 transition-colors"
                   >
                     <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-xs font-black text-slate-500">
                       {index + 1}

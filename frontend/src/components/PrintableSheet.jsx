@@ -146,7 +146,7 @@ export default function PrintableSheet({ sheet, printTarget = false, targetId, t
         </div>
         <span className="text-slate-300">|</span>
         <div className="text-center">
-          <p className="whitespace-nowrap text-[9px] font-bold uppercase text-slate-500">Today Payable</p>
+          <p className="whitespace-nowrap text-[9px] font-bold uppercase text-slate-500">{t('settlement.todayPayable')}</p>
           <p className="whitespace-nowrap font-bold text-slate-950">{formatCurrency(Math.max(0, saleTotal - (sheet.discount || 0)), language)}</p>
         </div>
         <span className="text-slate-300">|</span>
@@ -173,7 +173,7 @@ export default function PrintableSheet({ sheet, printTarget = false, targetId, t
           <>
             <span className="text-slate-300">|</span>
             <div className="text-center">
-              <p className="whitespace-nowrap text-[9px] font-bold uppercase text-slate-500">SR Handover</p>
+              <p className="whitespace-nowrap text-[9px] font-bold uppercase text-slate-500">{t('settlement.srHandoverTitle')}</p>
               <p className="whitespace-nowrap font-bold text-slate-950">- {formatCurrency(sheet.srHandovers.reduce((sum, h) => sum + Number(h.amount || 0), 0), language)}</p>
             </div>
           </>

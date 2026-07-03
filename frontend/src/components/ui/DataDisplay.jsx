@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { getCssVar } from '../../utils/theme.js';
+import { useInventoryApp } from '../../app/useInventoryApp.jsx';
 import { Sparkline } from './charts.jsx';
 import { cx } from './utils.js';
 
@@ -199,6 +200,7 @@ function buildPaginationPages(current, total) {
 }
 
 export function Pagination({ page, totalPages, onPageChange, className = '' }) {
+  const { t } = useInventoryApp();
   if (!totalPages || totalPages <= 1) {
     return null;
   }
@@ -215,7 +217,7 @@ export function Pagination({ page, totalPages, onPageChange, className = '' }) {
         className="icon-btn"
         disabled={page <= 1}
         onClick={() => changePage(page - 1)}
-        aria-label="Previous page"
+        aria-label={t('common.previousPage')}
       >
         <ChevronLeft className="h-4 w-4" />
       </button>
@@ -245,7 +247,7 @@ export function Pagination({ page, totalPages, onPageChange, className = '' }) {
         className="icon-btn"
         disabled={page >= totalPages}
         onClick={() => changePage(page + 1)}
-        aria-label="Next page"
+        aria-label={t('common.nextPage')}
       >
         <ChevronRight className="h-4 w-4" />
       </button>

@@ -179,7 +179,7 @@ export default function ProductFormModal({ product, onClose, onSave }) {
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <label className="label">{t('products.productName')}</label>
-            <input className="input" value={form.name} onChange={(event) => updateField('name', event.target.value)} placeholder="Enter product name" />
+            <input className="input" value={form.name} onChange={(event) => updateField('name', event.target.value)} placeholder={t('products.namePlaceholder')} />
           </div>
           <div>
             <label className="label">{t('products.category')}</label>
@@ -188,7 +188,7 @@ export default function ProductFormModal({ product, onClose, onSave }) {
               value={form.categoryId || null}
               onChange={(v) => updateField('categoryId', v || '')}
               placeholder={t('categories.selectCategory')}
-              searchPlaceholder="Search categories…"
+              searchPlaceholder={t('products.categorySearchPlaceholder')}
               clearable={false}
             />
           </div>
@@ -292,12 +292,12 @@ export default function ProductFormModal({ product, onClose, onSave }) {
           </div>
           <div>
             <label className="label">{t('products.reorderLevel')}</label>
-            <input className="input" type="number" min="0" step="1" value={form.reorderLevel} onChange={(event) => updateField('reorderLevel', event.target.value)} placeholder="auto" />
+            <input className="input" type="number" min="0" step="1" value={form.reorderLevel} onChange={(event) => updateField('reorderLevel', event.target.value)} placeholder={t('products.reorderLevelPlaceholder')} />
             <p className="mt-1 text-xs text-slate-500">{t('products.reorderLevelHint')}</p>
           </div>
           {suppliers.length > 0 && (
             <div className="sm:col-span-2">
-              <label className="label">Suppliers</label>
+              <label className="label">{t('products.suppliersLabel')}</label>
               <div className="grid gap-2 sm:grid-cols-2">
                 {suppliers.map((supplier) => (
                   <label key={supplier.id} className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 cursor-pointer hover:bg-slate-100">
@@ -312,7 +312,7 @@ export default function ProductFormModal({ product, onClose, onSave }) {
                   </label>
                 ))}
               </div>
-              <p className="mt-1 text-xs text-slate-500">Link this product to one or more suppliers so it appears when that supplier is selected in purchase receive.</p>
+              <p className="mt-1 text-xs text-slate-500">{t('products.suppliersHint')}</p>
             </div>
           )}
           <div className="sm:col-span-2">
@@ -328,7 +328,7 @@ export default function ProductFormModal({ product, onClose, onSave }) {
               <div className="sm:col-span-2">
                 <div className="mb-2 flex items-center gap-2">
                   <span className="h-px flex-1 bg-slate-200" />
-                  <span className="text-xs font-semibold uppercase tracking-widest text-slate-400">Drug & Pharmacy Details</span>
+                  <span className="text-xs font-semibold uppercase tracking-widest text-slate-400">{t('products.pharmacyDetailsTitle')}</span>
                   <span className="h-px flex-1 bg-slate-200" />
                 </div>
               </div>
@@ -339,7 +339,7 @@ export default function ProductFormModal({ product, onClose, onSave }) {
                   value={form.genericMedicineId || null}
                   onChange={(v) => updateField('genericMedicineId', v || '')}
                   placeholder={t('common.select')}
-                  searchPlaceholder="Search generic medicines…"
+                  searchPlaceholder={t('products.genericMedicineSearchPlaceholder')}
                 />
               </div>
               <div>
@@ -350,20 +350,20 @@ export default function ProductFormModal({ product, onClose, onSave }) {
                     value={form.manufacturerId || null}
                     onChange={(v) => updateField('manufacturerId', v || '')}
                     placeholder={t('common.select')}
-                    searchPlaceholder="Search manufacturers…"
+                    searchPlaceholder={t('products.manufacturerSearchPlaceholder')}
                   />
                 ) : (
-                  <input className="input" value={form.manufacturer} onChange={(e) => updateField('manufacturer', e.target.value)} placeholder="Add manufacturers via Manage button above" />
+                  <input className="input" value={form.manufacturer} onChange={(e) => updateField('manufacturer', e.target.value)} placeholder={t('products.manufacturerPlaceholder')} />
                 )}
               </div>
               <div>
                 <label className="label">{t('products.dosageForm')}</label>
                 <SearchableSelect
-                  options={['Tablet', 'Capsule', 'Syrup', 'Injection', 'Cream', 'Ointment', 'Drops', 'Inhaler', 'Patch', 'Suppository', 'Powder', 'Gel', 'Spray'].map((f) => ({ value: f, label: f }))}
+                  options={['Tablet', 'Capsule', 'Syrup', 'Injection', 'Cream', 'Ointment', 'Drops', 'Inhaler', 'Patch', 'Suppository', 'Powder', 'Gel', 'Spray'].map((f) => ({ value: f, label: t(`products.dosageForms.${f}`) }))}
                   value={form.dosageForm || null}
                   onChange={(v) => updateField('dosageForm', v || '')}
                   placeholder={t('common.select')}
-                  searchPlaceholder="Search dosage form…"
+                  searchPlaceholder={t('products.dosageFormSearchPlaceholder')}
                 />
               </div>
               <div>
@@ -381,11 +381,11 @@ export default function ProductFormModal({ product, onClose, onSave }) {
               </div>
               <div>
                 <label className="label">{t('products.strength')}</label>
-                <input className="input" value={form.strength} onChange={(e) => updateField('strength', e.target.value)} placeholder="e.g. 500mg, 250mg/5ml" />
+                <input className="input" value={form.strength} onChange={(e) => updateField('strength', e.target.value)} placeholder={t('products.strengthPlaceholder')} />
               </div>
               <div>
                 <label className="label">{t('products.packSize')}</label>
-                <input className="input" type="number" min="0" step="1" value={form.packSize || ''} onChange={(e) => updateField('packSize', e.target.value)} placeholder="e.g. 10 (tablets per strip)" />
+                <input className="input" type="number" min="0" step="1" value={form.packSize || ''} onChange={(e) => updateField('packSize', e.target.value)} placeholder={t('products.packSizePlaceholder')} />
                 <p className="mt-1 text-xs text-slate-500">{t('products.packSizeHint')}</p>
               </div>
               <div>

@@ -4,7 +4,7 @@ import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton, Sel
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi';
-import { downloadSheetPdf } from '../../../services/printService.js';
+import { downloadSheetPdf, printElementById } from '../../../services/printService.js';
 import { formatCurrency, formatDate, formatDateTime, formatNumber } from '../../../utils/calculations.js';
 import PurchaseReceiveFormModal from '../components/PurchaseReceiveFormModal';
 import PurchaseReceiptViewModal from '../components/PurchaseReceiptViewModal';
@@ -83,7 +83,7 @@ export default function PurchaseReceivePage() {
             <button
               type="button"
               className="btn-secondary py-1.5 text-xs"
-              onClick={() => { inventoryApi.recordPrint({ entityType: 'purchase_receive_list', entityId: null, label: 'print' }).catch(() => {}); window.print(); }}
+              onClick={() => { inventoryApi.recordPrint({ entityType: 'purchase_receive_list', entityId: null, label: 'print' }).catch(() => {}); printElementById(PURCHASE_RECEIVE_PRINT_ID); }}
             >
               <Printer size={14} />
               {t('common.print')}

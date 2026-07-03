@@ -126,12 +126,12 @@ export default function ProfitPage() {
         <SectionHeader eyebrow={t('nav.profit')} description={t('profit.description')} />
         <div className="surface mb-6 grid gap-4 p-5 md:grid-cols-2">
           <div className="space-y-2">
-            <div className="h-4 w-24 animate-pulse rounded-full bg-slate-200" />
-            <div className="h-11 animate-pulse rounded-2xl bg-slate-100" />
+            <div className="h-4 w-24 skeleton rounded-full" />
+            <div className="h-11 skeleton rounded-2xl" />
           </div>
           <div className="space-y-2">
-            <div className="h-4 w-24 animate-pulse rounded-full bg-slate-200" />
-            <div className="h-11 animate-pulse rounded-2xl bg-slate-100" />
+            <div className="h-4 w-24 skeleton rounded-full" />
+            <div className="h-11 skeleton rounded-2xl" />
           </div>
         </div>
         <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

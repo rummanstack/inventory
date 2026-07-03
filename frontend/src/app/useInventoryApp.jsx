@@ -45,6 +45,10 @@ function getFriendlyError(error, t) {
   return error?.message || t('alerts.requestFailed');
 }
 
+function buildConsequences(t, key, variants) {
+  return t(key).map((text, i) => ({ variant: variants[i], text }));
+}
+
 export function InventoryAppProvider({ children }) {
   const today = todayISO();
   const { language, setLanguage, t } = useLanguage();
@@ -275,11 +279,7 @@ export function InventoryAppProvider({ children }) {
       requireReason: true,
       reasonLabel: t('common.deleteReasonLabel'),
       reasonPlaceholder: t('common.deleteReasonPlaceholder'),
-      consequences: [
-        { variant: 'safe',   text: 'Product is moved to Trash and can be restored later.' },
-        { variant: 'info',   text: 'Stock movement history is preserved — stock levels are unchanged.' },
-        { variant: 'warn',   text: 'Product cannot be sold or purchased until restored.' },
-      ],
+      consequences: buildConsequences(t, 'products.deleteConsequences', ['safe', 'info', 'warn']),
     });
     if (!confirmed) {
       return { ok: false };
@@ -359,11 +359,7 @@ export function InventoryAppProvider({ children }) {
       requireReason: true,
       reasonLabel: t('common.deleteReasonLabel'),
       reasonPlaceholder: t('common.deleteReasonPlaceholder'),
-      consequences: [
-        { variant: 'safe', text: 'DSR record is moved to Trash and can be restored.' },
-        { variant: 'info', text: 'All past morning issues and settlements remain intact.' },
-        { variant: 'warn', text: 'Any outstanding due balance for this DSR is NOT cleared.' },
-      ],
+      consequences: buildConsequences(t, 'dsr.deleteConsequences', ['safe', 'info', 'warn']),
     });
     if (!confirmed) {
       return { ok: false };
@@ -385,7 +381,7 @@ export function InventoryAppProvider({ children }) {
     try {
       const result = sr.id ? await inventoryApi.updateSr(sr) : await inventoryApi.createSr(sr);
       upsertSrDirectory(result.sr);
-      pushToast('success', sr.id ? 'SR Updated' : 'SR Added', `${sr.name} ${sr.id ? t('alerts.updated') : t('alerts.created')}`);
+      pushToast('success', sr.id ? t('srs.updatedToast') : t('srs.addedToast'), `${sr.name} ${sr.id ? t('alerts.updated') : t('alerts.created')}`);
       return { ok: true };
     } catch (error) {
       const message = getFriendlyError(error, t);
@@ -395,9 +391,10 @@ export function InventoryAppProvider({ children }) {
   }
 
   async function deleteSr(sr) {
+    const confirmMessage = t('srs.deleteConfirm', { name: sr.name });
     const { confirmed, reason } = await confirm({
-      title: 'Delete SR',
-      description: `Are you sure you want to delete SR "${sr.name}"?`,
+      title: t('srs.deleteTitle'),
+      description: interpolateConfirm(confirmMessage, { name: sr.name }),
       confirmLabel: t('common.delete'),
       tone: 'rose',
       requireReason: true,
@@ -464,11 +461,7 @@ export function InventoryAppProvider({ children }) {
       requireReason: true,
       reasonLabel: t('common.deleteReasonLabel'),
       reasonPlaceholder: t('common.deleteReasonPlaceholder'),
-      consequences: [
-        { variant: 'safe', text: 'Customer record is moved to Trash and can be restored.' },
-        { variant: 'info', text: 'All previous orders and due ledger entries are preserved.' },
-        { variant: 'warn', text: 'Outstanding balance owed by this customer is NOT cleared.' },
-      ],
+      consequences: buildConsequences(t, 'shops.deleteConsequences', ['safe', 'info', 'warn']),
     });
     if (!confirmed) {
       return { ok: false };
@@ -513,11 +506,7 @@ export function InventoryAppProvider({ children }) {
       requireReason: true,
       reasonLabel: t('common.deleteReasonLabel'),
       reasonPlaceholder: t('common.deleteReasonPlaceholder'),
-      consequences: [
-        { variant: 'safe', text: 'Supplier record is moved to Trash and can be restored.' },
-        { variant: 'info', text: 'All purchase history and payment records are preserved.' },
-        { variant: 'warn', text: 'Any balance owed to this supplier is NOT cleared.' },
-      ],
+      consequences: buildConsequences(t, 'suppliers.deleteConsequences', ['safe', 'info', 'warn']),
     });
     if (!confirmed) {
       return { ok: false };
@@ -556,11 +545,7 @@ export function InventoryAppProvider({ children }) {
       requireReason: true,
       reasonLabel: t('common.deleteReasonLabel'),
       reasonPlaceholder: t('common.deleteReasonPlaceholder'),
-      consequences: [
-        { variant: 'danger', text: 'Serial number registration is permanently removed.' },
-        { variant: 'info',   text: 'No stock quantity changes — only the serial record is deleted.' },
-        { variant: 'warn',   text: 'Warranty lookups tied to this serial will no longer find it.' },
-      ],
+      consequences: buildConsequences(t, 'productSerials.deleteConsequences', ['danger', 'info', 'warn']),
     });
     if (!confirmed) {
       return { ok: false };
@@ -599,11 +584,7 @@ export function InventoryAppProvider({ children }) {
       requireReason: true,
       reasonLabel: t('common.deleteReasonLabel'),
       reasonPlaceholder: t('common.deleteReasonPlaceholder'),
-      consequences: [
-        { variant: 'safe',   text: 'Claim is moved to Trash and can be restored.' },
-        { variant: 'danger', text: 'Any replacement stock already issued is NOT automatically reversed.' },
-        { variant: 'warn',   text: 'Check stock levels manually if a replacement was dispatched.' },
-      ],
+      consequences: buildConsequences(t, 'warrantyClaims.deleteConsequences', ['safe', 'danger', 'warn']),
     });
     if (!confirmed) {
       return { ok: false };
@@ -642,10 +623,7 @@ export function InventoryAppProvider({ children }) {
       requireReason: true,
       reasonLabel: t('common.deleteReasonLabel'),
       reasonPlaceholder: t('common.deleteReasonPlaceholder'),
-      consequences: [
-        { variant: 'safe', text: 'Repair job is moved to Trash and can be restored.' },
-        { variant: 'info', text: 'No stock changes or financial records are affected.' },
-      ],
+      consequences: buildConsequences(t, 'repairJobs.deleteConsequences', ['safe', 'info']),
     });
     if (!confirmed) {
       return { ok: false };
@@ -684,11 +662,7 @@ export function InventoryAppProvider({ children }) {
       requireReason: true,
       reasonLabel: t('common.deleteReasonLabel'),
       reasonPlaceholder: t('common.deleteReasonPlaceholder'),
-      consequences: [
-        { variant: 'safe',   text: 'Trade-in record is moved to Trash and can be restored.' },
-        { variant: 'danger', text: 'Stock changes from devices received/sold are NOT automatically reversed.' },
-        { variant: 'warn',   text: 'Adjust stock levels manually if items were physically exchanged.' },
-      ],
+      consequences: buildConsequences(t, 'tradeIns.deleteConsequences', ['safe', 'danger', 'warn']),
     });
     if (!confirmed) return { ok: false };
     try {
@@ -724,10 +698,7 @@ export function InventoryAppProvider({ children }) {
       requireReason: true,
       reasonLabel: t('common.deleteReasonLabel'),
       reasonPlaceholder: t('common.deleteReasonPlaceholder'),
-      consequences: [
-        { variant: 'safe', text: 'Quotation is moved to Trash and can be restored.' },
-        { variant: 'info', text: 'No stock or financial impact — quotations do not affect inventory.' },
-      ],
+      consequences: buildConsequences(t, 'quotations.deleteConsequences', ['safe', 'info']),
     });
     if (!confirmed) return { ok: false };
     try {
@@ -776,12 +747,7 @@ export function InventoryAppProvider({ children }) {
       requireReason: true,
       reasonLabel: t('common.deleteReasonLabel'),
       reasonPlaceholder: t('common.deleteReasonPlaceholder'),
-      consequences: [
-        { variant: 'safe',   text: 'Purchase record is moved to Trash and can be restored.' },
-        { variant: 'danger', text: 'Stock received from this purchase is REVERSED immediately.' },
-        { variant: 'danger', text: 'Supplier balance is reduced by the full purchase amount.' },
-        { variant: 'warn',   text: 'Payments already made are NOT refunded — adjust supplier payments separately.' },
-      ],
+      consequences: buildConsequences(t, 'purchaseReceive.deleteConsequences', ['safe', 'danger', 'danger', 'warn']),
     });
     if (!confirmed) {
       return { ok: false };
@@ -821,11 +787,7 @@ export function InventoryAppProvider({ children }) {
       requireReason: true,
       reasonLabel: t('common.deleteReasonLabel'),
       reasonPlaceholder: t('common.deleteReasonPlaceholder'),
-      consequences: [
-        { variant: 'danger', text: 'Payment amount is added back to the supplier\'s outstanding balance.' },
-        { variant: 'danger', text: 'Finance account balance is adjusted to reflect the reversal.' },
-        { variant: 'warn',   text: 'This cannot be undone — verify the amount before confirming.' },
-      ],
+      consequences: buildConsequences(t, 'supplierPayments.deleteConsequences', ['danger', 'danger', 'warn']),
     });
     if (!confirmed) {
       return { ok: false };
@@ -866,12 +828,7 @@ export function InventoryAppProvider({ children }) {
       requireReason: true,
       reasonLabel: t('common.deleteReasonLabel'),
       reasonPlaceholder: t('common.deleteReasonPlaceholder'),
-      consequences: [
-        { variant: 'safe',   text: 'Invoice is moved to Trash and can be restored.' },
-        { variant: 'danger', text: 'Sold items are RETURNED to stock immediately.' },
-        { variant: 'danger', text: 'Customer due balance is reduced by the invoice amount.' },
-        { variant: 'warn',   text: 'Cash received is NOT automatically refunded — handle separately.' },
-      ],
+      consequences: buildConsequences(t, 'retailer.salesInvoices.deleteConsequences', ['safe', 'danger', 'danger', 'warn']),
     });
     if (!confirmed) {
       return { ok: false };
@@ -910,11 +867,7 @@ export function InventoryAppProvider({ children }) {
       requireReason: true,
       reasonLabel: t('common.deleteReasonLabel'),
       reasonPlaceholder: t('common.deleteReasonPlaceholder'),
-      consequences: [
-        { variant: 'danger', text: 'Payment amount is added back to the customer\'s outstanding due.' },
-        { variant: 'danger', text: 'Finance account balance is adjusted for the reversal.' },
-        { variant: 'warn',   text: 'This cannot be undone — verify the amount before confirming.' },
-      ],
+      consequences: buildConsequences(t, 'retailer.dueCollection.deleteConsequences', ['danger', 'danger', 'warn']),
     });
     if (!confirmed) {
       return { ok: false };
@@ -968,10 +921,7 @@ export function InventoryAppProvider({ children }) {
       confirmLabel: t('common.delete'),
       tone: 'rose',
       requireReason: false,
-      consequences: [
-        { variant: 'danger', text: 'Promotion is permanently removed and cannot be restored.' },
-        { variant: 'info',   text: 'Past sales that used this promotion are not affected.' },
-      ],
+      consequences: buildConsequences(t, 'retailer.promotions.deleteConsequences', ['danger', 'info']),
     });
     if (!confirmed) {
       return { ok: false };
@@ -1018,11 +968,7 @@ export function InventoryAppProvider({ children }) {
       description: interpolateConfirm(t('trash.permanentDeleteConfirm'), { name }),
       confirmLabel: t('trash.permanentDelete'),
       tone: 'rose',
-      consequences: [
-        { variant: 'danger', text: 'Record is PERMANENTLY deleted — cannot be recovered by any means.' },
-        { variant: 'danger', text: 'No backup exists within the system after this action.' },
-        { variant: 'warn',   text: 'Associated audit log entries remain but the record itself is gone.' },
-      ],
+      consequences: buildConsequences(t, 'trash.permanentDeleteConsequences', ['danger', 'danger', 'warn']),
     });
     if (!confirmed) {
       return { ok: false };

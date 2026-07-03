@@ -68,15 +68,15 @@ export default function DsrFormModal({ dsr, onClose, onSave }) {
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <label className="label">{t('dsr.nameLabel')}</label>
-            <input className="input" value={form.name} onChange={(event) => updateField('name', event.target.value)} placeholder="Enter DSR name" />
+            <input className="input" value={form.name} onChange={(event) => updateField('name', event.target.value)} placeholder={t('dsr.namePlaceholder')} />
           </div>
           <div>
             <label className="label">{t('dsr.phoneLabel')}</label>
-            <input className="input" value={form.phone} onChange={(event) => updateField('phone', event.target.value)} placeholder="Enter phone number" />
+            <input className="input" value={form.phone} onChange={(event) => updateField('phone', event.target.value)} placeholder={t('dsr.phonePlaceholder')} />
           </div>
           <div>
             <label className="label">{t('dsr.areaLabel')}</label>
-            <input className="input" value={form.area} onChange={(event) => updateField('area', event.target.value)} placeholder="Enter area" />
+            <input className="input" value={form.area} onChange={(event) => updateField('area', event.target.value)} placeholder={t('dsr.areaPlaceholder')} />
           </div>
           <div>
             <label className="label">{t('dsr.status')}</label>

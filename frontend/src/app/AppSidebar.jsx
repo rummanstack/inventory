@@ -265,7 +265,7 @@ export default function AppSidebar({ mobileOpen, setMobileOpen, user, tenant, la
         </SidebarTooltip>
       </div>
 
-      {mobileOpen ? <button type="button" aria-label="Close sidebar overlay" className="fixed inset-0 z-30 bg-[rgb(var(--black)/0.5)] backdrop-blur-sm lg:hidden" onClick={() => setMobileOpen(false)} /> : null}
+      {mobileOpen ? <button type="button" aria-label={t('common.closeSidebarOverlay')} className="fixed inset-0 z-30 bg-[rgb(var(--black)/0.5)] backdrop-blur-sm lg:hidden" onClick={() => setMobileOpen(false)} /> : null}
     </>
   );
 }

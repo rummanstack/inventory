@@ -1,7 +1,7 @@
 import { Download, FileSpreadsheet, Printer } from 'lucide-react';
 import { useInventoryApp } from '../app/useInventoryApp.jsx';
 import { inventoryApi } from '../services/inventoryApi.js';
-import { downloadSheetPdf, exportTableElementToExcel } from '../services/printService.js';
+import { downloadSheetPdf, exportTableElementToExcel, printElementById } from '../services/printService.js';
 
 export default function TableReportActions({
   targetId,
@@ -62,7 +62,7 @@ export default function TableReportActions({
           className="btn-secondary py-1.5 text-xs"
           onClick={() => {
             record('print');
-            window.print();
+            printElementById(targetId);
           }}
         >
           <Printer size={14} />

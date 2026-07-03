@@ -1,7 +1,7 @@
 import { CardSkeleton, ChartPanelSkeleton } from '../../../components/ui.jsx';
 
 function PulseBlock({ className }) {
-  return <div className={`animate-pulse rounded-card bg-slate-100 ${className}`} />;
+  return <div className={`skeleton rounded-card ${className}`} />;
 }
 
 function FinancialHealthSkeleton() {
@@ -10,18 +10,18 @@ function FinancialHealthSkeleton() {
       {/* header */}
       <div className="px-7 pb-4 pt-6">
         <div className="flex items-center gap-2">
-          <div className="h-6 w-6 animate-pulse rounded-lg bg-slate-100" />
-          <div className="h-3 w-32 animate-pulse rounded-full bg-slate-100" />
+          <div className="h-6 w-6 skeleton rounded-lg" />
+          <div className="h-3 w-32 skeleton rounded-full" />
         </div>
       </div>
       {/* row 1 — 4 white cells */}
       <div className="grid gap-px bg-slate-100/80 sm:grid-cols-2 lg:grid-cols-4">
         {Array.from({ length: 4 }).map((_, i) => (
           <div key={i} className="bg-white px-7 py-6">
-            <div className="h-8 w-8 animate-pulse rounded-xl bg-slate-100" />
-            <div className="mt-4 h-2.5 w-24 animate-pulse rounded-full bg-slate-100" />
-            <div className="mt-3 h-7 w-32 animate-pulse rounded-full bg-slate-100" />
-            <div className="mt-2 h-2 w-28 animate-pulse rounded-full bg-slate-100" />
+            <div className="h-8 w-8 skeleton rounded-xl" />
+            <div className="mt-4 h-2.5 w-24 skeleton rounded-full" />
+            <div className="mt-3 h-7 w-32 skeleton rounded-full" />
+            <div className="mt-2 h-2 w-28 skeleton rounded-full" />
           </div>
         ))}
       </div>
@@ -29,10 +29,10 @@ function FinancialHealthSkeleton() {
       <div className="grid gap-px bg-slate-100/80 sm:grid-cols-2 lg:grid-cols-4">
         {Array.from({ length: 4 }).map((_, i) => (
           <div key={i} className="bg-slate-50/60 px-7 py-5">
-            <div className="h-8 w-8 animate-pulse rounded-xl bg-slate-100" />
-            <div className="mt-4 h-2.5 w-24 animate-pulse rounded-full bg-slate-100" />
-            <div className="mt-3 h-7 w-32 animate-pulse rounded-full bg-slate-100" />
-            <div className="mt-2 h-2 w-28 animate-pulse rounded-full bg-slate-100" />
+            <div className="h-8 w-8 skeleton rounded-xl" />
+            <div className="mt-4 h-2.5 w-24 skeleton rounded-full" />
+            <div className="mt-3 h-7 w-32 skeleton rounded-full" />
+            <div className="mt-2 h-2 w-28 skeleton rounded-full" />
           </div>
         ))}
       </div>

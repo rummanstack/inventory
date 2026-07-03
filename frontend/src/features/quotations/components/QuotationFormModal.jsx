@@ -232,7 +232,7 @@ export default function QuotationFormModal({ quotation, onClose, onSave }) {
                       {!item.productId ? (
                         <input
                           className="input py-1 text-sm mt-1"
-                          placeholder="Custom item name"
+                          placeholder={t('quotations.customItemNamePlaceholder')}
                           value={item.productName}
                           onChange={(e) => updateItem(i, 'productName', e.target.value)}
                         />

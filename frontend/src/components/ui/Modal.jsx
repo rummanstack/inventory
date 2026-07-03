@@ -52,8 +52,8 @@ export function ConfirmationDialog({
   open,
   title,
   description,
-  confirmLabel = 'Confirm',
-  cancelLabel = 'Cancel',
+  confirmLabel,
+  cancelLabel,
   tone = 'rose',
   onConfirm,
   onCancel,
@@ -62,6 +62,9 @@ export function ConfirmationDialog({
   reasonPlaceholder,
   consequences = [],
 }) {
+  const { t } = useInventoryApp();
+  const resolvedConfirmLabel = confirmLabel ?? t('common.confirm');
+  const resolvedCancelLabel = cancelLabel ?? t('common.cancel');
   const tones = {
     rose: 'border-rose-200 bg-rose-50 text-rose-700',
     amber: 'border-amber-200 bg-amber-50 text-amber-700',
@@ -151,7 +154,7 @@ export function ConfirmationDialog({
 
           {consequences.length > 0 ? (
             <div className="mt-4 rounded-xl border border-slate-200 bg-white px-4 py-3">
-              <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">What happens</p>
+              <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">{t('common.whatHappens')}</p>
               <ul className="space-y-1.5">
                 {consequences.map((c, i) => (
                   <li
@@ -183,10 +186,10 @@ export function ConfirmationDialog({
         </div>
         <div className="flex flex-col-reverse gap-2 px-5 py-4 sm:flex-row sm:items-center sm:justify-end">
           <button type="button" className="btn-secondary" onClick={onCancel}>
-            {cancelLabel}
+            {resolvedCancelLabel}
           </button>
           <button type="button" className={cx('btn-primary', toneButton[tone] || toneButton.rose)} onClick={() => onConfirm(reason)}>
-            {confirmLabel}
+            {resolvedConfirmLabel}
           </button>
         </div>
       </div>

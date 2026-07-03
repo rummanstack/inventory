@@ -2,7 +2,7 @@ import { Download, Printer } from 'lucide-react';
 import { Badge, Modal } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import AuditHistory from '../../../components/AuditHistory.jsx';
-import { downloadSheetPdf } from '../../../services/printService.js';
+import { downloadSheetPdf, printElementById } from '../../../services/printService.js';
 import { inventoryApi } from '../../../services/inventoryApi';
 import { formatCasePiece, formatCurrency, formatDate, formatNumber } from '../../../utils/calculations.js';
 import { paymentStatusOf, paymentStatusTone } from '../../../models/inventoryViewData.js';
@@ -129,7 +129,7 @@ export default function PurchaseReceiptViewModal({ purchaseReceipt, onClose }) {
           <button
             type="button"
             className="btn-secondary"
-            onClick={() => { recordPurchasePrint('print'); window.print(); }}
+            onClick={() => { recordPurchasePrint('print'); printElementById(printTargetId); }}
           >
             <Printer size={18} />
             {t('purchaseReceive.printSheet')}

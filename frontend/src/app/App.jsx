@@ -15,6 +15,7 @@ const TermsPage = lazy(() => import('../features/landing/pages/TermsPage'));
 const FounderPage = lazy(() => import('../features/landing/pages/FounderPage'));
 
 function SessionLoadingScreen() {
+  const { t } = useInventoryApp();
   return (
     <div className="fixed inset-0 flex flex-col items-center justify-center overflow-hidden bg-[var(--sidebar-bg)]">
       {/* Ambient glow */}
@@ -35,7 +36,7 @@ function SessionLoadingScreen() {
         <div className="logo-chip mt-7 rounded-control px-3 py-1.5">
           <img src={stockLedgerLogoHorizontal} alt="StockLedger" className="h-10 w-auto object-contain" />
         </div>
-        <p className="mt-1.5 text-[13px] font-medium tracking-widest text-slate-400 uppercase">Checking session</p>
+        <p className="mt-1.5 text-[13px] font-medium tracking-widest text-slate-400 uppercase">{t('common.checkingSession')}</p>
 
         {/* Indeterminate progress bar */}
         <div className="relative mt-10 h-px w-48 overflow-hidden rounded-full bg-[color-mix(in_srgb,var(--brand)_10%,transparent)]">

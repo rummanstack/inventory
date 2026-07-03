@@ -1,6 +1,6 @@
 import { downloadRequest } from './api/client.js';
 
-const MAX_RECORDS_PER_PAGE = 20;
+const MAX_RECORDS_PER_PAGE = 22;
 
 export function buildPdfFileName(sheet) {
   const safeName = String(sheet?.dsrName || 'dsr-sheet')
@@ -48,11 +48,51 @@ function getCellText(cell) {
   return cleanText(fieldValues.length ? fieldValues.join(' ') : (cell.innerText || cell.textContent || ''));
 }
 
-function getTenantInfo(options = {}) {
+function readStoredTenantInfo() {
+  if (typeof window === 'undefined') {
+    return {};
+  }
+
+  try {
+    const raw = window.localStorage.getItem('stockledger.activeTenantSnapshot');
+    if (!raw) {
+      return {};
+    }
+
+    const tenant = JSON.parse(raw);
+    return {
+      tenantName: cleanText(tenant?.name || ''),
+      tenantAddress: cleanText(tenant?.address || ''),
+      tenantLogoUrl: cleanText(tenant?.logoUrl || ''),
+    };
+  } catch {
+    return {};
+  }
+}
+
+function readTenantInfoFromDom() {
+  if (typeof document === 'undefined') {
+    return {};
+  }
+
+  const expandedSidebar = document.querySelector('.logo-chip img')?.getAttribute('src') || '';
+  const tenantName = document.querySelector('.logo-chip + div h2')?.textContent || '';
+
   return {
-    tenantName: cleanText(options.tenantName || 'StockLedger'),
-    tenantAddress: cleanText(options.tenantAddress || ''),
-    tenantLogoUrl: cleanText(options.tenantLogoUrl || ''),
+    tenantName: cleanText(tenantName),
+    tenantAddress: '',
+    tenantLogoUrl: cleanText(expandedSidebar),
+  };
+}
+
+function getTenantInfo(options = {}) {
+  const stored = readStoredTenantInfo();
+  const dom = readTenantInfoFromDom();
+
+  return {
+    tenantName: cleanText(options.tenantName || stored.tenantName || dom.tenantName || 'StockLedger'),
+    tenantAddress: cleanText(options.tenantAddress || stored.tenantAddress || dom.tenantAddress || ''),
+    tenantLogoUrl: cleanText(options.tenantLogoUrl || stored.tenantLogoUrl || dom.tenantLogoUrl || ''),
   };
 }
 
@@ -176,6 +216,89 @@ function buildReportHtml({ title, tables, tenantName, tenantAddress, tenantLogoU
       ${pagesHtml || `<section data-report-page="true" style="width:794px;min-height:1122px;box-sizing:border-box;margin:0 auto;padding:18px 22px 22px;background:#ffffff;border:1px solid #dbe2ea;"><div style="font-size:11px;color:#64748b;">No rows available for this report.</div></section>`}
     </div>
   `;
+}
+
+function syncClonedFormState(sourceRoot, clonedRoot) {
+  const sourceFields = sourceRoot.querySelectorAll('input, textarea, select');
+  const clonedFields = clonedRoot.querySelectorAll('input, textarea, select');
+
+  sourceFields.forEach((field, index) => {
+    const clonedField = clonedFields[index];
+    if (!clonedField) return;
+
+    if (field instanceof HTMLInputElement) {
+      if (field.type === 'checkbox' || field.type === 'radio') {
+        clonedField.checked = field.checked;
+      } else {
+        clonedField.value = field.value;
+        clonedField.setAttribute('value', field.value);
+      }
+      return;
+    }
+
+    if (field instanceof HTMLTextAreaElement) {
+      clonedField.value = field.value;
+      clonedField.textContent = field.value;
+      return;
+    }
+
+    if (field instanceof HTMLSelectElement) {
+      clonedField.value = field.value;
+      [...clonedField.options].forEach((option) => {
+        option.selected = option.value === field.value;
+      });
+    }
+  });
+}
+
+export function printElementById(targetId) {
+  const element = document.getElementById(targetId);
+  if (!element) {
+    throw new Error('Print target not found.');
+  }
+
+  const printRoot = document.createElement('div');
+  printRoot.className = 'print-session-root';
+  const clone = element.cloneNode(true);
+  syncClonedFormState(element, clone);
+  printRoot.appendChild(clone);
+  document.body.appendChild(printRoot);
+  document.body.classList.add('printing-active');
+
+  const mediaQuery = typeof window.matchMedia === 'function' ? window.matchMedia('print') : null;
+  let restored = false;
+
+  const restore = () => {
+    if (restored) return;
+    restored = true;
+    document.body.classList.remove('printing-active');
+    printRoot.remove();
+    window.removeEventListener('afterprint', restore);
+    if (mediaQuery?.removeEventListener) {
+      mediaQuery.removeEventListener('change', handlePrintChange);
+    } else if (mediaQuery?.removeListener) {
+      mediaQuery.removeListener(handlePrintChange);
+    }
+    window.clearTimeout(fallbackTimer);
+  };
+
+  const handlePrintChange = (event) => {
+    if (!event.matches) {
+      restore();
+    }
+  };
+
+  window.addEventListener('afterprint', restore);
+  if (mediaQuery?.addEventListener) {
+    mediaQuery.addEventListener('change', handlePrintChange);
+  } else if (mediaQuery?.addListener) {
+    mediaQuery.addListener(handlePrintChange);
+  }
+
+  const fallbackTimer = window.setTimeout(restore, 60000);
+  window.requestAnimationFrame(() => {
+    window.print();
+  });
 }
 
 function createReportHost(html) {

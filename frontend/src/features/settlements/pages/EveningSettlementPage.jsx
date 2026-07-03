@@ -4,7 +4,7 @@ import { Alert, Badge, EmptyState, SectionHeader, TableSkeleton, cx, Select } fr
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import AuditHistory from '../../../components/AuditHistory.jsx';
-import { buildPdfFileName, downloadSheetPdf } from '../../../services/printService.js';
+import { buildPdfFileName, downloadSheetPdf, printElementById } from '../../../services/printService.js';
 import { inventoryApi } from '../../../services/inventoryApi';
 import { formatCasePiece, formatCurrency, formatNumber, toPieces } from '../../../utils/calculations.js';
 import { useSettlementViewModel } from '../viewmodels/useSettlementViewModel';
@@ -254,10 +254,10 @@ export default function EveningSettlementPage() {
 
             <div className="border-t border-slate-100 px-5 py-4">
               <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                <h3 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">SR Handover</h3>
+                <h3 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">{t('settlement.srHandoverTitle')}</h3>
                 <button type="button" className="btn-secondary h-8 gap-1.5 px-3 py-1.5 text-xs" onClick={vm.addSrHandover}>
                   <Plus size={14} />
-                  Add SR Handover
+                  {t('settlement.addSrHandover')}
                 </button>
               </div>
               {vm.srHandovers.length ? (
@@ -265,7 +265,7 @@ export default function EveningSettlementPage() {
                   {vm.srHandovers.map((h) => (
                     <div key={h.id} className="grid gap-3 rounded-[22px] border border-slate-200 bg-slate-50 p-4 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1.5fr)_auto]">
                       <div>
-                        <label className="label">SR</label>
+                        <label className="label">{t('settlement.srHandoverSr')}</label>
                         <Select
                           className="input"
                           value={h.srId}
@@ -276,19 +276,19 @@ export default function EveningSettlementPage() {
                           }}
                           disabled={vm.saving}
                         >
-                          <option value="">Select SR...</option>
+                          <option value="">{t('settlement.srHandoverSelectSr')}</option>
                           {srDirectory.map((sr) => (
                             <option key={sr.id} value={sr.id}>{sr.name}</option>
                           ))}
                         </Select>
                       </div>
                       <div>
-                        <label className="label">Amount</label>
+                        <label className="label">{t('settlement.srHandoverAmount')}</label>
                         <input className="input" type="number" min="0" step="0.01" value={h.amount} onChange={(e) => vm.updateSrHandover(h.id, 'amount', e.target.value)} disabled={vm.saving} />
                       </div>
                       <div>
-                        <label className="label">Note</label>
-                        <input className="input" type="text" value={h.note} onChange={(e) => vm.updateSrHandover(h.id, 'note', e.target.value)} placeholder="Optional note" disabled={vm.saving} />
+                        <label className="label">{t('settlement.srHandoverNote')}</label>
+                        <input className="input" type="text" value={h.note} onChange={(e) => vm.updateSrHandover(h.id, 'note', e.target.value)} placeholder={t('settlement.srHandoverNotePlaceholder')} disabled={vm.saving} />
                       </div>
                       <div className="flex items-end">
                         <button type="button" className="btn-secondary text-rose-600 hover:bg-rose-50 hover:text-rose-700" onClick={() => vm.removeSrHandover(h.id)} disabled={vm.saving}>
@@ -300,7 +300,7 @@ export default function EveningSettlementPage() {
                 </div>
               ) : (
                 <div className="mb-4 rounded-[22px] border border-dashed border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-500">
-                  No SR handovers — add one if DSR handed memo to an SR.
+                  {t('settlement.noSrHandovers')}
                 </div>
               )}
             </div>
@@ -438,7 +438,7 @@ export default function EveningSettlementPage() {
                   ) : null}
                   <div className="flex flex-col gap-2 sm:flex-row lg:flex-col">
                     {vm.completedSettlement && canUpdateSettlement ? (
-                      <button type="button" className="btn-secondary justify-center" onClick={() => window.print()}>
+                      <button type="button" className="btn-secondary justify-center" onClick={() => printElementById('settlement-print-sheet')}>
                         <Printer size={18} />
                         {t('settlement.printSheet')}
                       </button>
@@ -476,14 +476,16 @@ export default function EveningSettlementPage() {
                     <Download size={18} />
                     {t('settlement.downloadPdf')}
                   </button>
-                  <button type="button" className="btn-secondary" onClick={() => { recordSettlementPrint('print'); window.print(); }}>
+                  <button type="button" className="btn-secondary" onClick={() => { recordSettlementPrint('print'); printElementById('settlement-print-sheet'); }}>
                     <Printer size={18} />
                     {t('settlement.printSheet')}
                   </button>
                 </>
               ) : null}
           </div>
-          <PrintableSheet sheet={vm.sheet} printTarget targetId="settlement-print-sheet" t={t} language={language} />
+          <div className="absolute -left-[10000px] top-0">
+            <PrintableSheet sheet={vm.sheet} printTarget targetId="settlement-print-sheet" t={t} language={language} />
+          </div>
           <div className="surface mt-4 p-5">
             <AuditHistory entityType="settlement" entityId={vm.completedSettlement.id} />
           </div>

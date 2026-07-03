@@ -5,6 +5,7 @@ import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { quotationStatusTone } from '../../../models/inventoryViewData.js';
 import { formatCurrency, formatDate } from '../../../utils/calculations.js';
+import { printElementById } from '../../../services/printService.js';
 import QuotationPrintSheet from './QuotationPrintSheet.jsx';
 
 const PAYMENT_METHODS = ['CASH', 'CARD', 'MOBILE_BANKING', 'BANK_TRANSFER', 'CREDIT'];
@@ -14,7 +15,7 @@ export default function QuotationViewModal({ quotation, onClose, onConverted }) 
   const printId = `quotation-print-${quotation?.id || 'preview'}`;
 
   function handlePrint() {
-    window.print();
+    printElementById(printId);
   }
   const [showConvert, setShowConvert] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('CASH');

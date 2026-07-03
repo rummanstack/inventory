@@ -150,7 +150,7 @@ export default function RepairJobFormModal({ job, onClose, onSave }) {
                 className="input"
                 value={form.serialNumber}
                 onChange={(event) => updateField('serialNumber', event.target.value)}
-                placeholder="IMEI or serial number"
+                placeholder={t('repairJobs.serialPlaceholder')}
               />
             </div>
             <div className="sm:col-span-2">

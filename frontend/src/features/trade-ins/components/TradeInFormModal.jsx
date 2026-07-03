@@ -49,10 +49,10 @@ function TradeInReceipt({ receipt, onClose }) {
       <div className="flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-4">
         <CheckCircle2 className="mt-0.5 shrink-0 text-emerald-600" size={22} />
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-600">Trade-In Saved</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-600">{t('tradeIns.receiptSavedTitle')}</p>
           <p className="mt-0.5 text-xl font-semibold text-emerald-900">{receipt.tradeInNumber}</p>
           <p className="mt-1 text-sm text-emerald-700">
-            {receipt.customerName ? <strong>{receipt.customerName}</strong> : 'Walk-in customer'}
+            {receipt.customerName ? <strong>{receipt.customerName}</strong> : t('tradeIns.walkInCustomer')}
             {receipt.customerPhone ? <span className="ml-2 font-normal text-emerald-600">{receipt.customerPhone}</span> : null}
           </p>
           <p className="mt-0.5 text-xs text-emerald-600">{formatDate(receipt.tradeInDate)}</p>
@@ -60,16 +60,16 @@ function TradeInReceipt({ receipt, onClose }) {
       </div>
 
       <div>
-        <p className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">Devices Taken In</p>
+        <p className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">{t('tradeIns.devicesTakenInTitle')}</p>
         <div className="overflow-hidden rounded-xl border border-emerald-200">
           <table className="w-full text-sm">
             <thead className="bg-emerald-50 text-left text-[11px] font-semibold uppercase tracking-[0.14em] text-emerald-600">
               <tr>
-                <th className="px-3 py-2">Device</th>
-                <th className="px-3 py-2">Serial</th>
-                <th className="px-3 py-2">Condition</th>
-                <th className="px-3 py-2 text-right">Qty</th>
-                <th className="px-3 py-2 text-right">Value</th>
+                <th className="px-3 py-2">{t('tradeIns.deviceColumn')}</th>
+                <th className="px-3 py-2">{t('tradeIns.serialColumn')}</th>
+                <th className="px-3 py-2">{t('tradeIns.conditionColumn')}</th>
+                <th className="px-3 py-2 text-right">{t('tradeIns.qtyColumn')}</th>
+                <th className="px-3 py-2 text-right">{t('tradeIns.valueColumn')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-emerald-100">
@@ -77,7 +77,7 @@ function TradeInReceipt({ receipt, onClose }) {
                 <tr key={i}>
                   <td className="px-3 py-2 font-medium text-slate-900">{item.productName || item.productId || '—'}</td>
                   <td className="px-3 py-2 font-mono text-xs text-slate-500">{item.serialNumber || '—'}</td>
-                  <td className="px-3 py-2 text-xs text-slate-500">{item.condition}</td>
+                  <td className="px-3 py-2 text-xs text-slate-500">{t(`tradeIns.conditions.${item.condition}`)}</td>
                   <td className="px-3 py-2 text-right">{item.quantity}</td>
                   <td className="px-3 py-2 text-right font-semibold text-emerald-700">{formatCurrency(Number(item.tradeInValue || 0))}</td>
                 </tr>
@@ -88,15 +88,15 @@ function TradeInReceipt({ receipt, onClose }) {
       </div>
 
       <div>
-        <p className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">Devices Sold</p>
+        <p className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">{t('tradeIns.devicesSoldTitle')}</p>
         <div className="overflow-hidden rounded-xl border border-indigo-200">
           <table className="w-full text-sm">
             <thead className="bg-indigo-50 text-left text-[11px] font-semibold uppercase tracking-[0.14em] text-indigo-600">
               <tr>
-                <th className="px-3 py-2">Device</th>
-                <th className="px-3 py-2 text-right">Qty</th>
-                <th className="px-3 py-2 text-right">Unit Price</th>
-                <th className="px-3 py-2 text-right">Total</th>
+                <th className="px-3 py-2">{t('tradeIns.deviceColumn')}</th>
+                <th className="px-3 py-2 text-right">{t('tradeIns.qtyColumn')}</th>
+                <th className="px-3 py-2 text-right">{t('tradeIns.unitPriceColumn')}</th>
+                <th className="px-3 py-2 text-right">{t('tradeIns.totalColumn')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-indigo-100">
@@ -124,12 +124,12 @@ function TradeInReceipt({ receipt, onClose }) {
 
       <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
         <span className="text-xs font-bold uppercase tracking-wide text-slate-500">{t('tradeIns.paymentMethodLabel')}</span>
-        <span className="text-sm font-bold text-slate-900">{(receipt.paymentMethod || '').replace('_', ' ')}</span>
+        <span className="text-sm font-bold text-slate-900">{receipt.paymentMethod ? t(`purchaseReceive.paymentMethods.${receipt.paymentMethod}`) : ''}</span>
       </div>
 
       <div className="flex justify-end gap-3 pt-2">
         <button type="button" className="btn-primary" onClick={onClose}>
-          Done
+          {t('tradeIns.done')}
         </button>
       </div>
     </div>
@@ -194,11 +194,11 @@ export default function TradeInFormModal({ onClose, onSave }) {
     const validSold = soldItems.filter((i) => i.productId || i.productName?.trim());
 
     if (validReceived.length === 0) {
-      setError(t('tradeIns.receivedSectionLabel') + ': at least one device with a name is required.');
+      setError(t('tradeIns.receivedSectionLabel') + t('tradeIns.receivedRequiredSuffix'));
       return;
     }
     if (validSold.length === 0) {
-      setError(t('tradeIns.soldSectionLabel') + ': at least one device is required.');
+      setError(t('tradeIns.soldSectionLabel') + t('tradeIns.soldRequiredSuffix'));
       return;
     }
 
@@ -247,7 +247,7 @@ export default function TradeInFormModal({ onClose, onSave }) {
 
   return (
     <Modal
-      title={savedReceipt ? `Trade-In ${savedReceipt.tradeInNumber}` : t('tradeIns.addTitle')}
+      title={savedReceipt ? t('tradeIns.receiptTitle', { number: savedReceipt.tradeInNumber }) : t('tradeIns.addTitle')}
       description={savedReceipt ? null : t('tradeIns.modalDescription')}
       onClose={onClose}
       width="max-w-4xl"
@@ -275,7 +275,7 @@ export default function TradeInFormModal({ onClose, onSave }) {
                 className="input"
                 value={form.customerPhone}
                 onChange={(e) => updateField('customerPhone', e.target.value)}
-                placeholder="+880..."
+                placeholder={t('tradeIns.customerPhonePlaceholder')}
               />
             </div>
             <div>
@@ -329,7 +329,7 @@ export default function TradeInFormModal({ onClose, onSave }) {
                         {!item.productId ? (
                           <input
                             className="input py-1 text-sm mt-1"
-                            placeholder="Device name / model"
+                            placeholder={t('tradeIns.deviceNameModelPlaceholder')}
                             value={item.productName}
                             onChange={(e) => updateReceived(i, 'productName', e.target.value)}
                           />
@@ -338,7 +338,7 @@ export default function TradeInFormModal({ onClose, onSave }) {
                       <td className="px-2 py-1.5">
                         <input
                           className="input py-1 text-sm"
-                          placeholder="IMEI / Serial"
+                          placeholder={t('tradeIns.imeiSerialPlaceholder')}
                           value={item.serialNumber}
                           onChange={(e) => updateReceived(i, 'serialNumber', e.target.value)}
                         />
@@ -434,7 +434,7 @@ export default function TradeInFormModal({ onClose, onSave }) {
                           {!item.productId ? (
                             <input
                               className="input py-1 text-sm mt-1"
-                              placeholder="Device name / model"
+                              placeholder={t('tradeIns.deviceNameModelPlaceholder')}
                               value={item.productName}
                               onChange={(e) => updateSold(i, 'productName', e.target.value)}
                             />
@@ -487,7 +487,7 @@ export default function TradeInFormModal({ onClose, onSave }) {
             <SummaryCard label={t('tradeIns.totalTradeInValueLabel')} value={formatCurrency(totalTradeInValue, language)} tone="emerald" />
             <SummaryCard label={t('tradeIns.totalSaleAmountLabel')} value={formatCurrency(totalSaleAmount, language)} tone="indigo" />
             <SummaryCard
-              label={`${t('tradeIns.paymentAmountLabel')}${paymentAmount < 0 ? ' (shop pays)' : ''}`}
+              label={paymentAmount < 0 ? t('tradeIns.shopPays') : t('tradeIns.paymentAmountLabel')}
               value={formatCurrency(Math.abs(paymentAmount), language)}
               tone={paymentAmount < 0 ? 'amber' : 'slate'}
             />
@@ -499,7 +499,7 @@ export default function TradeInFormModal({ onClose, onSave }) {
               <label className="label">{t('tradeIns.paymentMethodLabel')}</label>
               <Select className="input" value={form.paymentMethod} onChange={(e) => updateField('paymentMethod', e.target.value)}>
                 {PAYMENT_METHODS.map((m) => (
-                  <option key={m} value={m}>{m.replace(/_/g, ' ')}</option>
+                  <option key={m} value={m}>{t(`purchaseReceive.paymentMethods.${m}`)}</option>
                 ))}
               </Select>
             </div>

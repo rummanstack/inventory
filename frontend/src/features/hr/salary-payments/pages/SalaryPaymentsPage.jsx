@@ -28,28 +28,28 @@ function nextMonth(month) {
 
 const SALARY_PAYMENTS_REPORT_ID = 'salary-payments-report';
 
-function PaymentStatusBadge({ emp }) {
+function PaymentStatusBadge({ emp, t }) {
   const earned = emp.earnedAmount;
   const paid = emp.totalPaid;
   if (earned === null) return null;
   if (paid >= earned && earned > 0) {
     return (
       <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-700">
-        <CheckCircle2 size={10} /> Paid
+        <CheckCircle2 size={10} /> {t('salary.paidBadge')}
       </span>
     );
   }
   if (paid > 0) {
     return (
       <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-700">
-        <Clock size={10} /> Partial
+        <Clock size={10} /> {t('salary.partialBadge')}
       </span>
     );
   }
   return null;
 }
 
-function ActiveDaysInput({ emp, month, onSaved, canManage }) {
+function ActiveDaysInput({ emp, month, onSaved, canManage, t }) {
   const [value, setValue] = useState(emp.activeDays !== null ? String(emp.activeDays) : '');
   const [saving, setSaving] = useState(false);
   const prevValue = useRef(value);
@@ -100,7 +100,7 @@ function ActiveDaysInput({ emp, month, onSaved, canManage }) {
         onChange={(e) => setValue(e.target.value)}
         onBlur={save}
         onKeyDown={handleKeyDown}
-        title="Active days this month"
+        title={t('salary.activeDaysColumn')}
       />
       <span className="text-xs text-slate-400">/ {emp.daysInMonth}</span>
     </span>
@@ -123,19 +123,19 @@ export default function SalaryPaymentsPage() {
 
   async function handleDeletePayment(payment) {
     const { confirmed } = await confirm({
-      title: 'Delete Payment',
-      description: `Delete the ${formatCurrency(payment.amount, language)} payment? This will reverse the finance transaction.`,
-      confirmLabel: 'Delete',
+      title: t('salary.deleteTitle'),
+      description: t('salary.deleteDescription', { amount: formatCurrency(payment.amount, language) }),
+      confirmLabel: t('common.delete'),
       variant: 'danger',
     });
     if (!confirmed) return;
     setDeletingId(payment.id);
     try {
       await inventoryApi.deleteSalaryPayment(payment.id);
-      pushToast('success', 'Payment deleted', 'The salary payment has been removed.');
+      pushToast('success', t('salary.deletedToast'), t('salary.deletedToastDescription'));
       vm.reload();
     } catch (err) {
-      pushToast('error', 'Delete failed', err?.message || 'Could not delete payment.');
+      pushToast('error', t('salary.deleteFailedToast'), err?.message || t('salary.deleteFailedToastDescription'));
     } finally {
       setDeletingId(null);
     }
@@ -155,11 +155,11 @@ export default function SalaryPaymentsPage() {
 
       {/* Month navigator */}
       <div className="surface mb-5 flex flex-wrap items-center gap-3 px-5 py-4">
-        <button type="button" className="icon-btn" onClick={() => vm.setMonth(prevMonth(vm.month))} aria-label="Previous month">
+        <button type="button" className="icon-btn" onClick={() => vm.setMonth(prevMonth(vm.month))} aria-label={t('salary.previousMonthAria')}>
           <ChevronRight size={18} className="rotate-180" />
         </button>
         <span className="min-w-[160px] text-center text-base font-semibold text-slate-900">{monthLabel(vm.month)}</span>
-        <button type="button" className="icon-btn" onClick={() => vm.setMonth(nextMonth(vm.month))} aria-label="Next month">
+        <button type="button" className="icon-btn" onClick={() => vm.setMonth(nextMonth(vm.month))} aria-label={t('salary.nextMonthAria')}>
           <ChevronRight size={18} />
         </button>
         <input
@@ -170,7 +170,7 @@ export default function SalaryPaymentsPage() {
         />
         {vm.data && (
           <span className="ml-auto text-xs text-slate-400">
-            {vm.data.daysInMonth} days in month
+            {t('salary.daysInMonthLabel', { count: vm.data.daysInMonth })}
           </span>
         )}
       </div>
@@ -183,9 +183,9 @@ export default function SalaryPaymentsPage() {
             <p className="mt-1 text-2xl font-semibold text-slate-900">{employees.length}</p>
           </div>
           <div className="surface px-5 py-4">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">Total Earned</p>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">{t('salary.totalEarned')}</p>
             <p className="mt-1 text-2xl font-semibold text-slate-900">{formatCurrency(totalEarned, language)}</p>
-            <p className="mt-0.5 text-[10px] text-slate-400">Based on active days</p>
+            <p className="mt-0.5 text-[10px] text-slate-400">{t('salary.totalEarnedHelper')}</p>
           </div>
           <div className="surface px-5 py-4">
             <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-500">{t('salary.totalPaidOut')}</p>
@@ -229,8 +229,8 @@ export default function SalaryPaymentsPage() {
             {/* Column headers */}
             <div className="hidden grid-cols-[1fr_auto_auto_auto_auto_auto_auto] gap-4 border-b border-slate-100 px-5 py-2.5 sm:grid">
               <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">{t('employees.name')}</p>
-              <p className="w-32 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400 text-center">Active Days</p>
-              <p className="w-28 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400 text-right">Earned</p>
+              <p className="w-32 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400 text-center">{t('salary.activeDaysColumn')}</p>
+              <p className="w-28 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400 text-right">{t('salary.earnedColumn')}</p>
               <p className="w-24 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400 text-right">{t('salary.paid')}</p>
               <p className="w-24 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400 text-right">{t('salary.balance')}</p>
               <p className="w-20" />
@@ -252,7 +252,7 @@ export default function SalaryPaymentsPage() {
                         type="button"
                         className="icon-btn shrink-0 text-slate-400 hover:text-slate-700"
                         onClick={() => toggleExpand(emp.employeeId)}
-                        aria-label="Toggle payment history"
+                        aria-label={t('salary.togglePaymentHistoryAria')}
                       >
                         {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                       </button>
@@ -261,7 +261,7 @@ export default function SalaryPaymentsPage() {
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-2">
                           <span className="font-semibold text-slate-900">{emp.employeeName}</span>
-                          <PaymentStatusBadge emp={emp} />
+                          <PaymentStatusBadge emp={emp} t={t} />
                           <span className="muted-chip hidden sm:inline-flex">{t(`salary.payType.${emp.payType}`)}</span>
                         </div>
                         {emp.department && <div className="mt-0.5 text-xs text-slate-400">{emp.department}</div>}
@@ -274,6 +274,7 @@ export default function SalaryPaymentsPage() {
                           month={vm.month}
                           onSaved={vm.reload}
                           canManage={canManage}
+                          t={t}
                         />
                       </div>
 
@@ -284,12 +285,12 @@ export default function SalaryPaymentsPage() {
                             <span className="block text-sm font-semibold text-slate-800">{formatCurrency(earned, language)}</span>
                             {emp.activeDays !== null && emp.payType === 'MONTHLY' && (
                               <span className="block text-[10px] text-slate-400">
-                                of {formatCurrency(emp.salaryAmount, language)}
+                                {t('salary.ofSalaryAmount', { amount: formatCurrency(emp.salaryAmount, language) })}
                               </span>
                             )}
                           </>
                         ) : (
-                          <span className="text-xs text-slate-400">Set days →</span>
+                          <span className="text-xs text-slate-400">{t('salary.setDaysArrow')}</span>
                         )}
                       </div>
 
@@ -319,9 +320,9 @@ export default function SalaryPaymentsPage() {
                             className={`btn-primary py-1.5 text-xs ${fullyPaid ? 'opacity-50' : ''}`}
                             onClick={() => setPayModal(emp)}
                             disabled={fullyPaid}
-                            title={fullyPaid ? 'Salary fully paid this month' : undefined}
+                            title={fullyPaid ? t('salary.fullyPaidTooltip') : undefined}
                           >
-                            {fullyPaid ? 'Paid' : t('salary.pay')}
+                            {fullyPaid ? t('salary.paidBadge') : t('salary.pay')}
                           </button>
                         </div>
                       )}
@@ -332,8 +333,8 @@ export default function SalaryPaymentsPage() {
                       <div className="border-t border-slate-100 bg-slate-50/70 px-5 pb-4 pt-3">
                         {/* Mobile active days */}
                         <div className="mb-3 flex items-center gap-2 sm:hidden">
-                          <span className="text-xs font-semibold text-slate-500">Active Days:</span>
-                          <ActiveDaysInput emp={emp} month={vm.month} onSaved={vm.reload} canManage={canManage} />
+                          <span className="text-xs font-semibold text-slate-500">{t('salary.activeDaysMobileLabel')}</span>
+                          <ActiveDaysInput emp={emp} month={vm.month} onSaved={vm.reload} canManage={canManage} t={t} />
                         </div>
 
                         {/* Salary breakdown for this employee */}
@@ -349,7 +350,7 @@ export default function SalaryPaymentsPage() {
                           </div>
                         )}
 
-                        <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">Payment History</p>
+                        <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">{t('salary.paymentHistoryTitle')}</p>
                         {emp.payments.length === 0 ? (
                           <p className="py-2 text-xs italic text-slate-400">{t('salary.noPaymentsThisMonth')}</p>
                         ) : (
@@ -380,7 +381,7 @@ export default function SalaryPaymentsPage() {
                                           className="icon-btn text-rose-500 opacity-0 transition-opacity group-hover:opacity-100"
                                           disabled={deletingId === p.id}
                                           onClick={() => handleDeletePayment(p)}
-                                          title="Delete payment"
+                                          title={t('salary.deletePayment')}
                                         >
                                           <Trash2 size={14} />
                                         </button>

@@ -2,7 +2,7 @@ import { Download, FileSpreadsheet, Printer, RefreshCw, Wallet } from 'lucide-re
 import { Badge, EmptyState, SectionHeader, StatCard, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
-import { downloadSheetPdf } from '../../../services/printService.js';
+import { downloadSheetPdf, printElementById } from '../../../services/printService.js';
 import { inventoryApi } from '../../../services/inventoryApi';
 import { formatCurrency, formatDateTime } from '../../../utils/calculations.js';
 import SupplierStatementPrintSheet from '../components/SupplierStatementPrintSheet';
@@ -81,7 +81,7 @@ export default function SupplierStatementPage() {
               <button
                 type="button"
                 className="btn-secondary"
-                onClick={() => { recordStatementPrint('print'); window.print(); }}
+                onClick={() => { recordStatementPrint('print'); printElementById(printTargetId); }}
               >
                 <Printer size={18} />
                 {t('supplierStatement.printSheet')}

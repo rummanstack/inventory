@@ -74,7 +74,7 @@ export default function SalesInvoicePrintSheet({
       <div className="border-b border-slate-200 bg-slate-50 px-8 py-4">
         <div className="flex items-start justify-between gap-6">
           <div>
-            <p className="text-[9px] font-black uppercase tracking-[0.18em] text-slate-400">Bill To</p>
+            <p className="text-[9px] font-black uppercase tracking-[0.18em] text-slate-400">{t('retailer.salesInvoices.billTo')}</p>
             <p className="mt-1 text-base font-black text-slate-900">{customerName}</p>
             {customerPhone && <p className="mt-0.5 text-[11px] text-slate-500">{customerPhone}</p>}
           </div>
@@ -102,7 +102,7 @@ export default function SalesInvoicePrintSheet({
               </div>
             )}
             <div>
-              <p className="text-[9px] font-black uppercase tracking-[0.18em] text-slate-400">Balance Due</p>
+              <p className="text-[9px] font-black uppercase tracking-[0.18em] text-slate-400">{t('retailer.salesInvoices.balanceDue')}</p>
               <p className={`mt-1 text-base font-black ${dueAmount > 0 ? 'text-rose-600' : 'text-emerald-700'}`}>
                 {formatCurrency(dueAmount, lang)}
               </p>
@@ -315,7 +315,7 @@ export default function SalesInvoicePrintSheet({
         <p className="font-semibold text-slate-600">
           {businessName}{businessPhone ? ` · ${businessPhone}` : ''}
         </p>
-        <p className="mt-0.5">Thank you for your business!</p>
+        <p className="mt-0.5">{t('retailer.salesInvoices.thankYou')}</p>
       </div>
     </div>
   );

@@ -91,7 +91,7 @@ export default function MorningIssuePage() {
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <TableReportActions targetId={MORNING_ISSUE_REPORT_ID} title={t('morningIssue.sheetTitle')} fileName="morning-issue" entityType="morning_issue" t={t} />
-            <Select className="input h-9 w-44" value={vm.categoryId} onChange={(event) => vm.setCategoryId(event.target.value)}>
+            <Select clearable={false} className="input h-9 min-w-[11rem] sm:w-52" value={vm.categoryId} onChange={(event) => vm.setCategoryId(event.target.value)}>
               <option value="">{t('categories.allCategories')}</option>
               {vm.categoryOptions.map((category) => (
                 <option key={category.id} value={category.id}>{category.name}</option>

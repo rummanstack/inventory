@@ -159,11 +159,11 @@ export default function PurchaseReceiveFormModal({ purchaseReceipt, onClose, onS
                       <div className="grid gap-3 sm:grid-cols-4 rounded-xl border border-dashed border-emerald-300 bg-emerald-50/60 p-3">
                         <div>
                           <label className="label">{t('purchaseReceive.batchNumber')}</label>
-                          <input className="input" value={row.batchNumber || ''} onChange={(e) => vm.updateItem(row.rowId, 'batchNumber', e.target.value)} placeholder="Batch No." />
+                          <input className="input" value={row.batchNumber || ''} onChange={(e) => vm.updateItem(row.rowId, 'batchNumber', e.target.value)} placeholder={t('purchaseReceive.batchNumber')} />
                         </div>
                         <div>
                           <label className="label">{t('purchaseReceive.lotNumber')}</label>
-                          <input className="input" value={row.lotNumber || ''} onChange={(e) => vm.updateItem(row.rowId, 'lotNumber', e.target.value)} placeholder="Lot No." />
+                          <input className="input" value={row.lotNumber || ''} onChange={(e) => vm.updateItem(row.rowId, 'lotNumber', e.target.value)} placeholder={t('purchaseReceive.lotNumber')} />
                         </div>
                         <div>
                           <label className="label">{t('purchaseReceive.expiryDate')}</label>

@@ -4,7 +4,7 @@ import { chromium } from "playwright";
 import { utils as xlsxUtils, write } from "xlsx";
 import { backendRoot } from "../config/paths.js";
 
-const MAX_RECORDS_PER_PAGE = 20;
+const MAX_RECORDS_PER_PAGE = 22;
 
 function escapeHtml(value = "") {
   return String(value)

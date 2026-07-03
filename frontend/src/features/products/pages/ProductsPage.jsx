@@ -12,7 +12,7 @@ import BrandsManagerModal from '../components/BrandsManagerModal';
 import ManufacturersManagerModal from '../components/ManufacturersManagerModal';
 import GenericMedicinesManagerModal from '../components/GenericMedicinesManagerModal';
 import { useProductsViewModel } from '../viewmodels/useProductsViewModel';
-import { downloadSheetPdf } from '../../../services/printService.js';
+import { downloadSheetPdf, printElementById } from '../../../services/printService.js';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 
 const PRODUCTS_PRINT_ID = 'products-report-print';
@@ -82,7 +82,7 @@ export default function ProductsPage() {
 
   async function handlePrint() {
     await inventoryApi.recordPrint({ entityType: 'products_report', entityId: 'all', label: t('products.reportPrintLabel') });
-    window.print();
+    printElementById(PRODUCTS_PRINT_ID);
   }
 
   return (
@@ -232,8 +232,8 @@ export default function ProductsPage() {
                 {canManageProducts ? (
                   <div className="mt-1 flex items-center gap-2">
                     {product.serialRequired ? (
-                      <span className="flex h-8 flex-1 items-center justify-center rounded-lg bg-slate-100 px-2 text-xs font-semibold text-slate-400" title="Serial products must be received via a purchase order">
-                        Via purchase only
+                      <span className="flex h-8 flex-1 items-center justify-center rounded-lg bg-slate-100 px-2 text-xs font-semibold text-slate-400" title={t('products.viaPurchaseOnlyTooltip')}>
+                        {t('products.viaPurchaseOnly')}
                       </span>
                     ) : (
                       <button type="button" className="btn-secondary h-8 flex-1 px-2 text-xs" onClick={() => { setStockModalMode('add'); setStockModalProduct(product); }}>

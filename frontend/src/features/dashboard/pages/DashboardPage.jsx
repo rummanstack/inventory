@@ -197,33 +197,33 @@ export default function DashboardPage() {
           <div className="grid gap-px bg-slate-100/80 sm:grid-cols-2 lg:grid-cols-4">
             {[
               {
-                label: "Value in Inventory",
+                label: t("dashboard.valueInInventory"),
                 value: formatCurrency(inventoryValue, language),
-                sub: "Healthy stock at purchase cost",
+                sub: t("dashboard.valueInInventoryHelper"),
                 icon: Boxes,
                 iconClass: "bg-indigo-50 text-indigo-700",
                 valueClass: "text-slate-950",
               },
               {
-                label: "Value in Damaged",
+                label: t("dashboard.valueInDamaged"),
                 value: formatCurrency(damagedValue, language),
-                sub: "Damaged stock at purchase cost",
+                sub: t("dashboard.valueInDamagedHelper"),
                 icon: AlertTriangle,
                 iconClass: "bg-amber-50 text-amber-700",
                 valueClass: damagedValue > 0 ? "text-amber-700" : "text-slate-950",
               },
               {
-                label: "Total Due",
+                label: t("dashboard.totalDue"),
                 value: formatCurrency(totalDue, language),
-                sub: "DSR + customer receivables",
+                sub: t("dashboard.totalDueHelper"),
                 icon: TrendingUp,
                 iconClass: "bg-emerald-50 text-emerald-700",
                 valueClass: "text-emerald-700",
               },
               {
-                label: "Total Owe",
+                label: t("dashboard.totalOwe"),
                 value: formatCurrency(totalOwe, language),
-                sub: "Outstanding to suppliers",
+                sub: t("dashboard.totalOweHelper"),
                 icon: TrendingDown,
                 iconClass: "bg-rose-50 text-rose-600",
                 valueClass: totalOwe > 0 ? "text-rose-600" : "text-slate-950",
@@ -254,7 +254,7 @@ export default function DashboardPage() {
           <div>
             <p className="text-sm font-semibold text-slate-700">{t("dashboard.financialHealth")}</p>
             <p className="text-xs font-medium text-slate-500">
-              Finance dashboard permission required to view financial data.
+              {t("dashboard.financePermissionRequired")}
             </p>
           </div>
         </div>
@@ -268,7 +268,7 @@ export default function DashboardPage() {
               <TrendingUp size={13} className="text-emerald-700" />
             </div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-600">
-              Today's Profit Report
+              {t("dashboard.todaysProfitReport")}
             </p>
           </div>
         </div>
@@ -276,33 +276,33 @@ export default function DashboardPage() {
         <div className="grid gap-px bg-slate-100/80 sm:grid-cols-2 lg:grid-cols-4">
           {[
             {
-              label: "Today's Sales",
+              label: t("dashboard.todaysSales"),
               value: formatCurrency(todaySales, language),
-              sub: "DSR + retail + wholesale + dealer",
+              sub: t("dashboard.todaysSalesHelper"),
               icon: ShoppingCart,
               iconClass: "bg-blue-50 text-blue-700",
               valueClass: "text-slate-950",
             },
             {
-              label: "Today's Due",
+              label: t("dashboard.todaysDue"),
               value: formatCurrency(todayDue, language),
-              sub: "Uncollected from all today's sales",
+              sub: t("dashboard.todaysDueHelper"),
               icon: HandCoins,
               iconClass: todayDue > 0 ? "bg-amber-50 text-amber-700" : "bg-emerald-50 text-emerald-700",
               valueClass: todayDue > 0 ? "text-amber-700" : "text-slate-950",
             },
             {
-              label: "Today's Expense",
+              label: t("dashboard.todaysExpense"),
               value: formatCurrency(todayPnl.expenseTotal, language),
-              sub: "Total expenses today",
+              sub: t("dashboard.todaysExpenseHelper"),
               icon: Receipt,
               iconClass: todayPnl.expenseTotal > 0 ? "bg-rose-50 text-rose-600" : "bg-slate-50 text-slate-500",
               valueClass: todayPnl.expenseTotal > 0 ? "text-rose-600" : "text-slate-950",
             },
             {
-              label: "Today's Profit",
+              label: t("dashboard.todaysProfit"),
               value: formatCurrency(todayProfit, language),
-              sub: "All channels minus expenses",
+              sub: t("dashboard.todaysProfitHelper"),
               icon: todayProfit >= 0 ? TrendingUp : TrendingDown,
               iconClass: todayProfit >= 0 ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-600",
               valueClass: todayProfit >= 0 ? "text-emerald-700" : "text-rose-600",
@@ -328,28 +328,28 @@ export default function DashboardPage() {
       {/* ── 3. MONTHLY ANALYTICS ── */}
       <div className="grid gap-6 xl:grid-cols-2">
         <ChartPanel
-          title="Monthly Sales"
-          description="Total revenue from all channels over the last 12 months."
+          title={t("dashboard.monthlySalesChart")}
+          description={t("dashboard.monthlySalesChartDescription")}
         >
           <TrendChart
-            data={monthlyTrend.length > 0 ? monthlyTrend : Array.from({ length: 12 }, (_, i) => ({ label: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][i], sales: 0, profit: 0 }))}
+            data={monthlyTrend.length > 0 ? monthlyTrend : Array.from({ length: 12 }, (_, i) => ({ label: t('common.monthsShort')[i], sales: 0, profit: 0 }))}
             valueFormatter={(v) => formatCurrency(v, language)}
             series={[
-              { key: 'sales', label: 'Sales', color: getCssVar('--secondary', '#5e5b8e'), fill: true },
+              { key: 'sales', label: t('dashboard.salesSeriesLabel'), color: getCssVar('--secondary', '#5e5b8e'), fill: true },
             ]}
             height={220}
           />
         </ChartPanel>
 
         <ChartPanel
-          title="Monthly Profit"
-          description="Net profit from invoices over the last 12 months."
+          title={t("dashboard.monthlyProfitChart")}
+          description={t("dashboard.monthlyProfitChartDescription")}
         >
           <TrendChart
-            data={monthlyTrend.length > 0 ? monthlyTrend : Array.from({ length: 12 }, (_, i) => ({ label: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][i], sales: 0, profit: 0 }))}
+            data={monthlyTrend.length > 0 ? monthlyTrend : Array.from({ length: 12 }, (_, i) => ({ label: t('common.monthsShort')[i], sales: 0, profit: 0 }))}
             valueFormatter={(v) => formatCurrency(v, language)}
             series={[
-              { key: 'profit', label: 'Profit', color: getCssVar('--success', '#37a864'), fill: true },
+              { key: 'profit', label: t('dashboard.profitSeriesLabel'), color: getCssVar('--success', '#37a864'), fill: true },
             ]}
             height={220}
           />
@@ -381,7 +381,7 @@ export default function DashboardPage() {
             <HorizontalBarChart
               data={vm.topPayableProducts}
               valueFormatter={(v) => formatCurrency(v, language)}
-              trackClassName="bg-emerald-50"
+              trackClassName="bg-success-soft"
             />
           ) : (
             <EmptyState
@@ -572,17 +572,17 @@ export default function DashboardPage() {
       <div className="grid gap-6 xl:grid-cols-2">
         {/* Cash Flow Forecast */}
         {financeDashboard ? (
-          <ChartPanel title="Cash Flow Forecast" description="Available cash vs expected inflows and outflows this month.">
+          <ChartPanel title={t("dashboard.cashFlowForecast")} description={t("dashboard.cashFlowForecastDescription")}>
             {(() => {
               const available = cashInHand + cashInBank;
               const inflow = (financeDashboard.totalDsrDue ?? 0) + (financeDashboard.totalCustomerDue ?? 0);
               const outflow = financeDashboard.totalSupplierDue ?? 0;
               const net = available + inflow - outflow;
               const rows = [
-                { label: 'Cash in Hand', value: cashInHand, icon: Wallet, cls: 'bg-slate-100 text-slate-600' },
-                { label: 'Cash in Bank', value: cashInBank, icon: Landmark, cls: 'bg-blue-50 text-blue-700' },
-                { label: 'Expected In (Dues)', value: inflow, icon: TrendingUp, cls: 'bg-emerald-50 text-emerald-700' },
-                { label: 'Expected Out (Supplier)', value: outflow, icon: TrendingDown, cls: 'bg-rose-50 text-rose-600', negative: true },
+                { label: t('dashboard.cashInHand'), value: cashInHand, icon: Wallet, cls: 'bg-slate-100 text-slate-600' },
+                { label: t('dashboard.cashInBank'), value: cashInBank, icon: Landmark, cls: 'bg-blue-50 text-blue-700' },
+                { label: t('dashboard.expectedInDues'), value: inflow, icon: TrendingUp, cls: 'bg-emerald-50 text-emerald-700' },
+                { label: t('dashboard.expectedOutSupplier'), value: outflow, icon: TrendingDown, cls: 'bg-rose-50 text-rose-600', negative: true },
               ];
               return (
                 <div className="space-y-2.5">
@@ -598,7 +598,7 @@ export default function DashboardPage() {
                     </div>
                   ))}
                   <div className="mt-2 flex items-center justify-between rounded-[18px] bg-slate-100 px-5 py-3">
-                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Net Cash Position</p>
+                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">{t("dashboard.netCashPosition")}</p>
                     <p className={cx('text-sm font-semibold', net >= 0 ? 'text-emerald-600' : 'text-rose-500')}>
                       {formatCurrency(net, language)}
                     </p>
@@ -615,9 +615,9 @@ export default function DashboardPage() {
           const safePage = Math.min(noSalePage, totalPages);
           const pageItems = noSaleToday.slice((safePage - 1) * NO_SALE_PAGE_SIZE, safePage * NO_SALE_PAGE_SIZE);
           return (
-            <ChartPanel title="Idle Today" description={`${noSaleToday.length} in-stock product${noSaleToday.length === 1 ? '' : 's'} with no movement today.`}>
+            <ChartPanel title={t("dashboard.idleToday")} description={t("dashboard.idleTodayDescription", { count: formatNumber(noSaleToday.length, language), plural: noSaleToday.length === 1 ? '' : 's' })}>
               {noSaleToday.length === 0 ? (
-                <EmptyState title="All clear!" description="Every in-stock product moved today." icon={PackageCheck} />
+                <EmptyState title={t("dashboard.idleTodayAllClear")} description={t("dashboard.idleTodayAllClearDescription")} icon={PackageCheck} />
               ) : (
                 <div className="flex flex-col gap-3">
                   <div className="space-y-1.5">
@@ -687,7 +687,7 @@ export default function DashboardPage() {
             <HorizontalBarChart
               data={vm.leastSellingProducts}
               valueFormatter={(v) => `${formatNumber(v, language)} pcs`}
-              trackClassName="bg-rose-50"
+              trackClassName="bg-danger-soft"
             />
           ) : (
             <EmptyState
@@ -701,7 +701,7 @@ export default function DashboardPage() {
 
       {/* ── 7. ACTIVITY CALENDAR ── */}
       <ChartPanel title={t("dashboard.activityHeatmap")} description={t("dashboard.activityHeatmapDescription")}>
-        <ActivityCalendar cells={vm.activityHeatmap} today={today} language={language} />
+        <ActivityCalendar cells={vm.activityHeatmap} today={today} language={language} t={t} />
       </ChartPanel>
     </div>
   );

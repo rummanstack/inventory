@@ -71,10 +71,6 @@ export default function TopHeader({ title, today, user, tenant, tenantOptions, o
           >
             <Menu size={20} />
           </button>
-          <div>
-            <h1 className="mt-3 text-lg font-semibold tracking-tight text-slate-950 sm:text-xl">{title}</h1>
-            {!tenant?.name && t('app.subtitle') ? <p className="mt-1 hidden text-sm font-medium text-slate-500 md:block">{t('app.subtitle')}</p> : null}
-          </div>
         </div>
         <div className="hidden items-center gap-3 sm:flex">
           {user?.isPlatformUser ? (

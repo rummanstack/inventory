@@ -3,8 +3,6 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cx } from "../../../components/ui.jsx";
 import { formatCurrency } from "../../../utils/calculations.js";
 
-const DAY_HEADERS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-
 function buildCalendarGrid(year, month) {
   const firstDay = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -21,7 +19,8 @@ function toISO(year, month, day) {
 
 const CALENDAR_BACK_MONTHS = 12;
 
-export function ActivityCalendar({ cells = [], today, language = "en" }) {
+export function ActivityCalendar({ cells = [], today, language = "en", t }) {
+  const dayHeaders = t ? t("common.weekdaysShort") : ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   const todayDate = today ? new Date(`${today}T00:00:00`) : new Date();
 
   // earliest allowed month (12 months back)
@@ -80,7 +79,7 @@ export function ActivityCalendar({ cells = [], today, language = "en" }) {
 
       {/* Day headers */}
       <div className="mb-1 grid grid-cols-7 gap-1">
-        {DAY_HEADERS.map((d) => (
+        {dayHeaders.map((d) => (
           <p key={d} className="py-1 text-center text-[10px] font-semibold uppercase tracking-widest text-slate-400">
             {d}
           </p>
@@ -103,7 +102,7 @@ export function ActivityCalendar({ cells = [], today, language = "en" }) {
               className={cx(
                 "flex min-h-[80px] flex-col rounded-xl p-2 ring-1 transition-colors",
                 isToday
-                  ? "bg-[color-mix(in_srgb,var(--brand)_8%,white)] ring-[var(--brand)]/30"
+                  ? "bg-[color-mix(in_srgb,var(--brand)_8%,rgb(var(--white)))] ring-[var(--brand)]/30"
                   : hasActivity
                   ? "bg-white ring-slate-200/70"
                   : "bg-slate-50/40 ring-slate-100",
@@ -119,7 +118,7 @@ export function ActivityCalendar({ cells = [], today, language = "en" }) {
                     <span className="inline-flex items-center gap-1">
                       <span className="h-1.5 w-1.5 rounded-full bg-[var(--secondary)]" />
                       <span className="text-[9px] font-semibold text-slate-500">
-                        {cell.transactions} sales
+                        {t ? t("common.salesCount", { count: cell.transactions }) : `${cell.transactions} sales`}
                       </span>
                     </span>
                   )}

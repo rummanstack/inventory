@@ -16,38 +16,42 @@ export default function SupplierDiscountsPage() {
 
   async function handleClear(discount) {
     const { confirmed } = await confirm({
-      title: 'Clear Discount',
-      description: `Mark the ${formatCurrency(discount.amount)} discount from ${discount.dsrName} (${formatDateTime(discount.discountDate)}) as cleared? This will add the amount to cash in hand.`,
-      confirmLabel: 'Clear & Receive Cash',
+      title: t('supplierDiscounts.clearConfirmTitle'),
+      description: t('supplierDiscounts.clearConfirmDescription', {
+        amount: formatCurrency(discount.amount),
+        dsrName: discount.dsrName,
+        date: formatDateTime(discount.discountDate),
+      }),
+      confirmLabel: t('supplierDiscounts.clearConfirmLabel'),
       danger: false,
     });
     if (!confirmed) return;
     try {
       await inventoryApi.deleteSupplierDiscount(discount.id);
-      pushToast('success', 'Discount cleared');
+      pushToast('success', t('supplierDiscounts.cleared'));
       vm.reload();
     } catch (err) {
-      pushToast('error', err.message || 'Failed to clear discount');
+      pushToast('error', err.message || t('supplierDiscounts.clearFailed'));
     }
   }
 
   return (
     <div>
       <SectionHeader
-        eyebrow="Purchases"
-        title="Supplier Discounts"
-        description="Discounts from suppliers via DSR settlements. Clear a discount once the cash is received from the supplier."
+        eyebrow={t('supplierDiscounts.eyebrow')}
+        title={t('supplierDiscounts.title')}
+        description={t('supplierDiscounts.description')}
       />
 
       <div id={SUPPLIER_DISCOUNTS_REPORT_ID} className="surface overflow-hidden">
         <div className="border-b border-slate-100 p-5">
           <div className="mb-3 flex items-center justify-between gap-3">
-            <span className="text-sm font-bold text-slate-700">Supplier Discounts</span>
-            <TableReportActions targetId={SUPPLIER_DISCOUNTS_REPORT_ID} title="Supplier Discounts" fileName="supplier-discounts" entityType="supplier_discounts" t={t} />
+            <span className="text-sm font-bold text-slate-700">{t('supplierDiscounts.tableTitle')}</span>
+            <TableReportActions targetId={SUPPLIER_DISCOUNTS_REPORT_ID} title={t('supplierDiscounts.tableTitle')} fileName="supplier-discounts" entityType="supplier_discounts" t={t} />
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
-            <DatePickerField value={vm.dateFrom} onChange={vm.setDateFrom} placeholder="From date" />
-            <DatePickerField value={vm.dateTo} onChange={vm.setDateTo} placeholder="To date" min={vm.dateFrom} />
+            <DatePickerField value={vm.dateFrom} onChange={vm.setDateFrom} placeholder={t('supplierDiscounts.dateFromPlaceholder')} />
+            <DatePickerField value={vm.dateTo} onChange={vm.setDateTo} placeholder={t('supplierDiscounts.dateToPlaceholder')} min={vm.dateFrom} />
           </div>
         </div>
 
@@ -61,12 +65,12 @@ export default function SupplierDiscountsPage() {
               <thead className="table-head">
                 <tr>
                   <th className="px-4 py-3">#</th>
-                  <th className="px-4 py-3">Date</th>
-                  <th className="px-4 py-3">DSR</th>
-                  <th className="px-4 py-3">Supplier</th>
-                  <th className="px-4 py-3 text-right">Amount</th>
-                  <th className="px-4 py-3">Note</th>
-                  {canManagePayments ? <th className="px-4 py-3 text-right no-print">Actions</th> : null}
+                  <th className="px-4 py-3">{t('supplierDiscounts.date')}</th>
+                  <th className="px-4 py-3">{t('supplierDiscounts.dsr')}</th>
+                  <th className="px-4 py-3">{t('supplierDiscounts.supplier')}</th>
+                  <th className="px-4 py-3 text-right">{t('supplierDiscounts.amount')}</th>
+                  <th className="px-4 py-3">{t('supplierDiscounts.note')}</th>
+                  {canManagePayments ? <th className="px-4 py-3 text-right no-print">{t('supplierDiscounts.actions')}</th> : null}
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -84,7 +88,7 @@ export default function SupplierDiscountsPage() {
                           <button
                             type="button"
                             className="icon-btn text-emerald-600 hover:text-emerald-700"
-                            title="Clear Discount (Receive Cash)"
+                            title={t('supplierDiscounts.clearDiscountTitle')}
                             onClick={() => handleClear(discount)}
                           >
                             <HandCoins size={16} />
@@ -101,7 +105,7 @@ export default function SupplierDiscountsPage() {
 
         {!vm.loading && !vm.error && !vm.items.length ? (
           <div className="p-5">
-            <EmptyState title="No discounts yet" description="Discounts appear here automatically when a settlement is saved with a discount amount." icon={Tag} />
+            <EmptyState title={t('supplierDiscounts.noneTitle')} description={t('supplierDiscounts.noneDescription')} icon={Tag} />
           </div>
         ) : null}
 

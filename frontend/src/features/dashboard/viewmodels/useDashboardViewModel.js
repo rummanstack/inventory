@@ -11,13 +11,12 @@ import { inventoryApi } from '../../../services/inventoryApi';
 import { formatCasePiece, formatCurrency, formatNumber, getLowStockProducts } from '../../../utils/calculations.js';
 import { getCssVar } from '../../../utils/theme.js';
 
-const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-function formatMonthlyTrend(rows) {
+function formatMonthlyTrend(rows, t) {
+  const monthNames = t('common.monthsShort');
   return rows.map((row) => {
     const [, monthNum] = row.month.split('-');
     return {
-      label: MONTH_NAMES[parseInt(monthNum, 10) - 1] || row.month,
+      label: monthNames[parseInt(monthNum, 10) - 1] || row.month,
       sales: row.totalSales,
       profit: row.totalProfit,
     };
@@ -134,7 +133,7 @@ export function useDashboardViewModel({ products, dsrs, today, t, language = 'en
         setRetailCashSession(cashSessionResult);
         setTodayExpenseReport(expenseReportResult);
         setDsrTargetSummary(dsrTargetSummaryResult?.summary || []);
-        setMonthlyTrend(formatMonthlyTrend(monthlyTrendResult?.rows || []));
+        setMonthlyTrend(formatMonthlyTrend(monthlyTrendResult?.rows || [], t));
         setTodayDueLedger(todayDueLedgerResult?.items || []);
         setCalendarDailyReport(calendarDailyReportResult?.rows || []);
       } catch (requestError) {

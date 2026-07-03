@@ -4,12 +4,14 @@ import { chromium } from "playwright";
 import { utils as xlsxUtils, write } from "xlsx";
 import { backendRoot } from "../config/paths.js";
 
+const MAX_RECORDS_PER_PAGE = 20;
+
 function escapeHtml(value = "") {
   return String(value)
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
+    .replace(/\"/g, "&quot;")
     .replace(/'/g, "&#39;");
 }
 
@@ -54,21 +56,95 @@ function tableToRows(table) {
   return rows;
 }
 
-function buildReportHtml({ title, subtitle, generatedAt, tables }) {
+function splitIntoChunks(items, size) {
+  const chunks = [];
+  for (let index = 0; index < items.length; index += size) {
+    chunks.push(items.slice(index, index + size));
+  }
+  return chunks.length ? chunks : [[]];
+}
+
+function buildPageDefinitions(tables = []) {
+  return tables.flatMap((table, tableIndex) => {
+    const rows = Array.isArray(table.rows) ? table.rows : [];
+    if (!rows.length) {
+      return [];
+    }
+
+    const headerRow = rows[0];
+    const dataRows = rows.slice(1);
+    const rowChunks = splitIntoChunks(dataRows, MAX_RECORDS_PER_PAGE);
+
+    return rowChunks.map((chunk, chunkIndex) => ({
+      title: cleanText(table.title || `Table ${tableIndex + 1}`),
+      rows: [headerRow, ...chunk],
+      pageNumber: chunkIndex + 1,
+      pageCount: rowChunks.length,
+      recordCount: chunk.length,
+    }));
+  });
+}
+
+function formatHeaderLabel(headerText = '') {
+  const label = cleanText(headerText);
+  const normalized = label.toLowerCase();
+  if (normalized.includes('wholesale price')) return 'W.H Price';
+  if (normalized.includes('retail price')) return 'R.T Price';
+  if (normalized.includes('purchase price')) return 'Pur. Price';
+  return label;
+}
+
+function getColumnSizingStyle(headerText = '') {
+  const label = cleanText(headerText).toLowerCase();
+  if (label === '#' || label === 'sl' || label === 'no') {
+    return 'width:28px;max-width:28px;';
+  }
+  if (label.includes('w.h price') || label.includes('wh price') || label.includes('r.t price') || label.includes('rt price') || label.includes('pur. price') || label.includes('pur price') || label.includes('purchase price')) {
+    return 'width:62px;max-width:62px;';
+  }
+  return '';
+}
+function buildReportHtml({ title, generatedAt, tables, tenantName, tenantAddress, tenantLogoUrl }) {
   const fontCss = pathToFileURL(path.join(backendRoot, "node_modules", "@fontsource", "noto-sans-bengali", "index.css")).href;
-  const body = tables.map((table) => `
-    ${table.title ? `<h2 style="margin:0 0 10px;font-size:18px;color:#373373;">${escapeHtml(table.title)}</h2>` : ""}
-    <table width="100%" cellpadding="6" cellspacing="0" style="border-collapse:collapse;font-size:13px;margin-top:14px;">
-      ${table.rows.map((row, rowIndex) => {
-        const hasHeader = row.some((cell) => cell.header) || rowIndex === 0;
-        return `<tr style="${hasHeader ? "background:#f4f4f4;border-top:2px solid #333;border-bottom:2px solid #333;font-weight:bold;" : "border-bottom:1px solid #eee;"}">
-          ${row.map((cell) => {
-            const tag = hasHeader ? "th" : "td";
-            return `<${tag} colspan="${cell.colSpan}" style="padding:8px 6px;text-align:${cell.align};vertical-align:top;">${escapeHtml(cell.text)}</${tag}>`;
-          }).join("")}
-        </tr>`;
-      }).join("")}
-    </table>
+  const pages = buildPageDefinitions(tables);
+
+  const pagesHtml = pages.map((page, pageIndex) => `
+    <section class="report-page">
+      <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+        <tr>
+          <td style="width:68px;vertical-align:top;">
+            ${tenantLogoUrl ? `<img src="${escapeHtml(tenantLogoUrl)}" alt="Logo" style="display:block;width:54px;height:54px;object-fit:contain;">` : '<div style="width:54px;height:54px;border:1px solid #dbe2ea;background:#f8fafc;"></div>'}
+          </td>
+          <td style="vertical-align:top;">
+            <div style="font-size:19px;font-weight:800;color:#0f172a;line-height:1.2;">${escapeHtml(tenantName)}</div>
+            ${tenantAddress ? `<div style="margin-top:3px;font-size:10px;line-height:1.35;color:#475569;">${escapeHtml(tenantAddress)}</div>` : ""}
+          </td>
+          <td align="right" style="vertical-align:top;">
+            <div style="font-size:16px;font-weight:800;line-height:1.2;color:#0f172a;text-transform:uppercase;">${escapeHtml(title)}</div>
+            <div style="margin-top:4px;font-size:10px;color:#475569;">Generated: ${escapeHtml(generatedAt)}</div>
+          </td>
+        </tr>
+      </table>
+
+      <div style="margin-top:12px;font-size:10px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;color:#64748b;">${escapeHtml(page.title)}${page.pageCount > 1 ? ` | Page ${page.pageNumber} of ${page.pageCount}` : ""}</div>
+
+      <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:8px;border-collapse:collapse;font-size:10.5px;line-height:1.3;table-layout:fixed;font-weight:700;">
+        ${page.rows.map((row, rowIndex) => {
+          const hasHeader = row.some((cell) => cell.header) || rowIndex === 0;
+          return `<tr style="${hasHeader ? "background:#eef2f7;color:#0f172a;" : `background:${rowIndex % 2 === 1 ? "#ffffff" : "#fbfdff"};`}">
+            ${row.map((cell, cellIndex) => {
+              const tag = hasHeader ? "th" : "td";
+              const headerText = page.rows[0]?.[cellIndex]?.text || cell.text;
+              const widthStyle = getColumnSizingStyle(headerText);
+              const cellStyle = hasHeader
+                ? `padding:7px 8px;text-align:${cell.align};vertical-align:top;font-size:10px;font-weight:800;text-transform:uppercase;border:1px solid #dbe2ea;white-space:nowrap;${widthStyle}`
+                : `padding:6px 8px;text-align:${cell.align};vertical-align:top;color:#1e293b;border:1px solid #e8edf3;font-weight:700;${widthStyle}`;
+              return `<${tag} colspan="${cell.colSpan}" style="${cellStyle}">${escapeHtml(cell.text)}</${tag}>`;
+            }).join("")}
+          </tr>`;
+        }).join("")}
+      </table>
+    </section>
   `).join("");
 
   return `
@@ -81,50 +157,31 @@ function buildReportHtml({ title, subtitle, generatedAt, tables }) {
           @page { size: A4; margin: 10mm; }
           body {
             margin: 0;
-            padding: 22px;
-            background: #f2f2f2;
+            padding: 12px;
+            background: #f4f6f8;
             font-family: "Noto Sans Bengali", "Noto Sans", Arial, Helvetica, sans-serif;
             color: #1f2937;
           }
-          .page {
-            width: 100%;
-            max-width: 900px;
-            margin: 0 auto;
-            background: #fff;
-            border: 1px solid #ddd;
+          .report-page {
+            width: 794px;
+            min-height: 1122px;
+            box-sizing: border-box;
+            margin: 0 auto 18px;
+            padding: 18px 22px 22px;
+            background: #ffffff;
+            border: 1px solid #dbe2ea;
+            page-break-after: always;
+            break-after: page;
+          }
+          .report-page:last-child {
+            margin-bottom: 0;
+            page-break-after: auto;
+            break-after: auto;
           }
         </style>
       </head>
       <body>
-        <table class="page" cellpadding="0" cellspacing="0">
-          <tr><td style="padding:24px;">
-            <table width="100%"><tr>
-              <td>
-                <table><tr>
-                  <td><div style="width:60px;height:60px;background:#373373;color:#fff;font-size:28px;font-weight:bold;text-align:center;line-height:60px;border-radius:8px;">SL</div></td>
-                  <td style="padding-left:12px;">
-                    <div style="font-size:30px;font-weight:bold;color:#373373;">StockLedger</div>
-                    <div style="font-size:13px;color:#666;">Smart Inventory | POS | Accounting</div>
-                    <div style="font-size:12px;color:#999;">Dhaka, Bangladesh<br>support@stockledger.app | www.stockledger.app</div>
-                  </td>
-                </tr></table>
-              </td>
-              <td align="right">
-                <div style="font-size:28px;font-weight:bold;color:#373373;text-transform:uppercase;">${escapeHtml(title)}</div>
-                ${subtitle ? `<div style="font-size:14px;color:#666;">${escapeHtml(subtitle)}</div>` : ""}
-                <div style="font-size:12px;color:#999;">Generated: ${escapeHtml(generatedAt)}</div>
-              </td>
-            </tr></table>
-          </td></tr>
-          <tr><td style="height:4px;background:#373373;"></td></tr>
-          <tr><td style="padding:20px;">${body || '<p style="font-size:13px;color:#666;">No rows available for this report.</p>'}</td></tr>
-          <tr><td style="background:#fafafa;border-top:1px solid #ddd;padding:18px;">
-            <table width="100%"><tr>
-              <td style="font-size:12px;color:#666;">Generated by <b style="color:#373373;">StockLedger</b><br>Smart Inventory | POS | Accounting</td>
-              <td align="right" style="font-size:12px;color:#666;">www.stockledger.app<br>support@stockledger.app</td>
-            </tr></table>
-          </td></tr>
-        </table>
+        ${pagesHtml || '<section class="report-page"><div style="font-size:11px;color:#64748b;">No rows available for this report.</div></section>'}
       </body>
     </html>
   `;
@@ -136,9 +193,11 @@ export class ReportExportService {
     const generatedAt = new Date().toLocaleString();
     const html = buildReportHtml({
       title: cleanText(payload.title || payload.fileName || "Report"),
-      subtitle: cleanText(payload.subtitle || ""),
       generatedAt,
       tables,
+      tenantName: cleanText(payload.tenantName || "StockLedger"),
+      tenantAddress: cleanText(payload.tenantAddress || ""),
+      tenantLogoUrl: cleanText(payload.tenantLogoUrl || ""),
     });
 
     const browser = await chromium.launch({ headless: true, args: ["--no-sandbox", "--disable-dev-shm-usage"] });
@@ -177,3 +236,4 @@ export class ReportExportService {
     return write(workbook, { bookType: "xlsx", type: "buffer" });
   }
 }
+

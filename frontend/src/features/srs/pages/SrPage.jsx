@@ -12,7 +12,7 @@ import { useSrViewModel } from '../viewmodels/useSrViewModel';
 
 const SRS_REPORT_ID = 'srs-report';
 
-function CollectDueModal({ sr, onClose, onSave }) {
+function CollectDueModal({ sr, onClose, onSave, t }) {
   const [amount, setAmount] = useState('');
   const [note, setNote] = useState('');
   const [businessDate, setBusinessDate] = useState(new Date().toISOString().slice(0, 10));
@@ -23,41 +23,41 @@ function CollectDueModal({ sr, onClose, onSave }) {
     event.preventDefault();
     const amountValue = Number(amount);
     if (!(amountValue > 0)) {
-      setError('Amount must be greater than zero.');
+      setError(t('srs.amountRequired'));
       return;
     }
     setSaving(true);
     setError('');
     const result = await onSave({ amount: amountValue, note: note.trim(), businessDate });
     setSaving(false);
-    if (!result?.ok) setError(result?.error || 'Failed to record collection.');
+    if (!result?.ok) setError(result?.error || t('srs.collectFailed'));
   }
 
   return (
-    <Modal title="Collect SR Due" description={sr.name} onClose={onClose} width="max-w-lg">
+    <Modal title={t('srs.collectModalTitle')} description={sr.name} onClose={onClose} width="max-w-lg">
       <form className="space-y-4" onSubmit={handleSubmit}>
         {error ? <Alert type="error">{error}</Alert> : null}
         <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-          <p className="text-xs font-bold uppercase text-slate-500">Current Balance</p>
+          <p className="text-xs font-bold uppercase text-slate-500">{t('srs.currentBalance')}</p>
           <p className="mt-1 text-lg font-bold text-slate-950">{formatCurrency(sr.currentDue || 0)}</p>
         </div>
         <div>
-          <label className="label">Date</label>
+          <label className="label">{t('srs.dateLabel')}</label>
           <DatePickerField value={businessDate} onChange={setBusinessDate} max={new Date().toISOString().slice(0, 10)} />
         </div>
         <div>
-          <label className="label">Amount Collected</label>
+          <label className="label">{t('srs.amountCollectedLabel')}</label>
           <input className="input" type="number" min="0" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} />
         </div>
         <div>
-          <label className="label">Note</label>
-          <textarea className="input min-h-20" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Optional note about this collection" />
+          <label className="label">{t('srs.noteLabel')}</label>
+          <textarea className="input min-h-20" value={note} onChange={(e) => setNote(e.target.value)} placeholder={t('srs.notePlaceholder')} />
         </div>
         <div className="flex justify-end gap-2 pt-2">
-          <button type="button" className="btn-secondary" onClick={onClose} disabled={saving}>Cancel</button>
+          <button type="button" className="btn-secondary" onClick={onClose} disabled={saving}>{t('common.cancel')}</button>
           <button type="submit" className="btn-primary" disabled={saving}>
             <HandCoins size={18} />
-            {saving ? 'Saving...' : 'Collect'}
+            {saving ? t('common.saving') : t('srs.collect')}
           </button>
         </div>
       </form>
@@ -75,13 +75,13 @@ export default function SrPage() {
   return (
     <div>
       <SectionHeader
-        eyebrow="SR Management"
-        title="Sales Representatives"
-        description="Manage SR due balances and handovers"
+        eyebrow={t('srs.eyebrow')}
+        title={t('srs.title')}
+        description={t('srs.description')}
         action={canManageSrs ? (
           <button type="button" className="btn-primary" onClick={() => setSrModal({ mode: 'add' })}>
             <Plus size={18} />
-            Add SR
+            {t('srs.add')}
           </button>
         ) : null}
       />
@@ -95,10 +95,10 @@ export default function SrPage() {
                 className="input pl-10"
                 value={vm.search}
                 onChange={(e) => vm.setSearch(e.target.value)}
-                placeholder="Search by name or phone..."
+                placeholder={t('srs.searchPlaceholder')}
               />
             </div>
-            <TableReportActions targetId={SRS_REPORT_ID} title="Sales Representatives" fileName="srs" entityType="srs" t={t} />
+            <TableReportActions targetId={SRS_REPORT_ID} title={t('srs.title')} fileName="srs" entityType="srs" t={t} />
           </div>
         </div>
 
@@ -116,11 +116,11 @@ export default function SrPage() {
               <thead className="table-head">
                 <tr>
                   <th className="px-4 py-3">#</th>
-                  <th className="px-4 py-3">Name</th>
-                  <th className="px-4 py-3">Phone</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3 text-right">Current Due</th>
-                  <th className="px-4 py-3 text-right no-print">Actions</th>
+                  <th className="px-4 py-3">{t('srs.name')}</th>
+                  <th className="px-4 py-3">{t('srs.phone')}</th>
+                  <th className="px-4 py-3">{t('srs.status')}</th>
+                  <th className="px-4 py-3 text-right">{t('srs.currentDue')}</th>
+                  <th className="px-4 py-3 text-right no-print">{t('srs.actions')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -147,18 +147,18 @@ export default function SrPage() {
                         {canManageSrs ? (
                           <>
                             {Number(sr.currentDue) > 0 ? (
-                              <button type="button" className="btn-secondary h-8 px-3 text-xs" title="Collect Due" onClick={() => setCollectModal(sr)}>
+                              <button type="button" className="btn-secondary h-8 px-3 text-xs" title={t('srs.collectDue')} onClick={() => setCollectModal(sr)}>
                                 <HandCoins size={15} />
-                                Collect
+                                {t('srs.collect')}
                               </button>
                             ) : null}
-                            <button type="button" className="icon-btn" title="Edit" onClick={() => setSrModal({ mode: 'edit', sr })}>
+                            <button type="button" className="icon-btn" title={t('srs.edit')} onClick={() => setSrModal({ mode: 'edit', sr })}>
                               <Pencil size={16} />
                             </button>
                             <button
                               type="button"
                               className="icon-btn text-rose-600 hover:text-rose-700"
-                              title="Delete"
+                              title={t('srs.delete')}
                               onClick={async () => {
                                 const r = await deleteSr(sr);
                                 if (r.ok) vm.reload();
@@ -181,7 +181,7 @@ export default function SrPage() {
 
         {!vm.loading && !vm.error && !vm.items.length ? (
           <div className="p-5">
-            <EmptyState title="No SRs Found" description="Add a Sales Representative to get started." icon={Users} />
+            <EmptyState title={t('srs.noneTitle')} description={t('srs.noneDescription')} icon={Users} />
           </div>
         ) : null}
 
@@ -210,6 +210,7 @@ export default function SrPage() {
       {collectModal ? (
         <CollectDueModal
           sr={collectModal}
+          t={t}
           onClose={() => setCollectModal(null)}
           onSave={async (payload) => {
             try {

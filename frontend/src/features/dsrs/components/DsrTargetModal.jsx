@@ -5,7 +5,7 @@ import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 
 export default function DsrTargetModal({ onClose, onSaved }) {
-  const { dsrDirectory, language } = useInventoryApp();
+  const { dsrDirectory, language, t } = useInventoryApp();
   const now = new Date();
   const defaultMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 
@@ -56,12 +56,12 @@ export default function DsrTargetModal({ onClose, onSaved }) {
   }
 
   return (
-    <Modal title="Set Monthly DSR Targets" description="Set collection targets per DSR for the selected month." onClose={onClose} width="max-w-xl">
+    <Modal title={t('dsr.targetModalTitle')} description={t('dsr.targetModalDescription')} onClose={onClose} width="max-w-xl">
       <form className="space-y-4" onSubmit={handleSave}>
         {error ? <Alert type="error">{error}</Alert> : null}
 
         <div>
-          <label className="label">Month</label>
+          <label className="label">{t('dsr.targetMonthLabel')}</label>
           <input className="input" type="month" value={month} onChange={(e) => setMonth(e.target.value)} />
         </div>
 
@@ -70,7 +70,7 @@ export default function DsrTargetModal({ onClose, onSaved }) {
             {[1, 2, 3].map((i) => <div key={i} className="h-12 animate-pulse rounded-2xl bg-slate-100" />)}
           </div>
         ) : activeDsrs.length === 0 ? (
-          <p className="py-4 text-center text-sm text-slate-500">No active DSRs found.</p>
+          <p className="py-4 text-center text-sm text-slate-500">{t('dsr.targetNoActiveDsrs')}</p>
         ) : (
           <div className="max-h-[50vh] space-y-2 overflow-y-auto pr-1">
             {activeDsrs.map((dsr) => (
@@ -94,10 +94,10 @@ export default function DsrTargetModal({ onClose, onSaved }) {
         )}
 
         <div className="flex justify-end gap-2 pt-2">
-          <button type="button" className="btn-secondary" onClick={onClose} disabled={saving}>Cancel</button>
+          <button type="button" className="btn-secondary" onClick={onClose} disabled={saving}>{t('common.cancel')}</button>
           <button type="submit" className="btn-primary" disabled={saving || loading}>
             <Save size={16} />
-            {saving ? 'Saving…' : 'Save Targets'}
+            {saving ? t('common.saving') : t('dsr.targetSave')}
           </button>
         </div>
       </form>

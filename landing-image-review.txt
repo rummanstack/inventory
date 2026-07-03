@@ -1,0 +1,68 @@
+Landing Page Image Review
+
+Goal
+- Current landing page needs 20 non-testimonial image slots.
+- Your list has 26 non-testimonial images.
+- Best approach: keep the strongest 20, remove duplicates, replace a few with missing content-specific shots.
+
+Keep
+- 1. Hero dashboard screenshot
+- 2. Mobile phone promo portrait
+- 3. Retail POS / receipt handoff
+- 4. Evening settlement desk scene
+- 5. Warehouse / inventory office portrait
+- 6. Supplier purchase / invoice review
+- 8. Due collection at counter
+- 10. DSR / wholesale desk discussion
+- 11. Grocery store dashboard moment
+- 12. Pharmacy checkout handoff
+- 13. Dealer / distributor office meeting
+- 14. Purchase receiving with boxes and invoice
+- 15. Executive dashboard / analytics control
+- 17. Profit report workspace
+- 18. Support / helpdesk scene
+- 23. DSR route mobile sale scene
+- 24. Supplier purchase / payment control
+
+Remove
+- 7. Too similar to 3
+- 9. Too similar to 2
+- 16. Too similar to 5
+- 19. Too similar to 3
+- 20. Too similar to 8
+- 21. Too similar to 4
+- 22. Too similar to 14
+- 25. Too similar to 18
+- 26. Too similar to 18
+
+Replace With Better Content-Specific Images
+- Replace one duplicate slot with a Print / PDF report image
+- Replace one duplicate slot with a Discount / promo at checkout image
+- Replace one duplicate slot with a Daily report with due visible image
+
+Recommended Final 20 for Current Landing Page
+- 1. Hero dashboard screenshot
+- 2. Mobile phone promo portrait
+- 3. Retail POS / receipt handoff
+- 4. Evening settlement desk scene
+- 5. Warehouse / inventory office portrait
+- 6. Supplier purchase / invoice review
+- 8. Due collection at counter
+- 10. DSR / wholesale desk discussion
+- 11. Grocery store dashboard moment
+- 12. Pharmacy checkout handoff
+- 13. Dealer / distributor office meeting
+- 14. Purchase receiving with boxes and invoice
+- 15. Executive dashboard / analytics control
+- 17. Profit report workspace
+- 18. Support / helpdesk scene
+- 23. DSR route mobile sale scene
+- 24. Supplier purchase / payment control
+- NEW. Print / PDF report scene
+- NEW. Discount / promo checkout scene
+- NEW. Daily report with due visible scene
+
+Notes
+- Top selling should not be added twice unless two different landing sections explicitly need it.
+- Cash in due is partly covered by due collection, but a stronger cash reconciliation image would be better than another receipt-handoff duplicate.
+- SR is partly covered by DSR / route / settlement imagery, so it does not need a completely separate duplicate visual unless the page copy becomes more SR-specific.

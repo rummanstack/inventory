@@ -46,7 +46,7 @@ const DATE_ERROR = "Date must be in YYYY-MM-DD format.";
 function calcTotals(items, discountAmount, taxRate) {
   const subtotal = items.reduce((sum, item) => sum + item.lineTotal, 0);
   const afterDiscount = Math.max(0, subtotal - Math.max(0, discountAmount));
-  const taxAmount = Math.round(afterDiscount * Math.max(0, taxRate) / 100 * 100) / 100;
+  const taxAmount = Math.round(afterDiscount * Math.max(0, taxRate) / 100 * 10000) / 10000;
   const totalAmount = afterDiscount + taxAmount;
   return { subtotal, taxAmount, totalAmount };
 }

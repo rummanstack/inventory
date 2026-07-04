@@ -87,7 +87,7 @@ export default function EmployeeFormModal({ employee, onClose, onSave }) {
           </div>
           <div>
             <label className="label">{t('employees.salaryAmount')}</label>
-            <input className="input" type="number" min="0" step="0.01" value={form.salaryAmount} onChange={(e) => updateField('salaryAmount', e.target.value)} placeholder="0" />
+            <input className="input" type="number" min="0" step="0.0001" value={form.salaryAmount} onChange={(e) => updateField('salaryAmount', e.target.value)} placeholder="0" />
           </div>
           <div>
             <label className="label">{t('employees.payType')}</label>

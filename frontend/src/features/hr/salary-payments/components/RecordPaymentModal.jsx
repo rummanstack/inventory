@@ -125,7 +125,7 @@ export default function RecordPaymentModal({ employee, onClose, onSaved }) {
             className="input"
             type="number"
             min="0.01"
-            step="0.01"
+            step="0.0001"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             placeholder="0.00"

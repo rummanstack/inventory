@@ -1,7 +1,10 @@
 import request from "supertest";
 import { createId } from "../../lib/ids.js";
 import { hashPassword } from "../../lib/passwords.js";
+import { TENANT_BUSINESS_PERMISSIONS } from "../../lib/permissions.js";
+import { setCachedPermissions } from "../../lib/permissionCache.js";
 import { USER_ROLES } from "../../lib/roles.js";
+import { replaceRolePermissions } from "../../repositories/rolePermissionRepository.js";
 import { insertTenant } from "../../repositories/tenantRepository.js";
 import { insertUser } from "../../repositories/userRepository.js";
 
@@ -35,7 +38,16 @@ export async function createTenantAndAdmin(databaseManager, app, { name = "Test 
       status: "active",
       tenantId,
     });
+
+    // Roles have no hardcoded permission defaults (they're configured per
+    // tenant via the Permissions page), so a fresh fixture tenant would 403
+    // on everything without seeding its role_permissions rows here.
+    await replaceRolePermissions(client, role, tenantId, TENANT_BUSINESS_PERMISSIONS);
   });
+
+  // The app loads its permission cache once at boot; prime the entry for this
+  // new tenant the same way permissionService.updateRolePermissions does.
+  setCachedPermissions(role, tenantId, TENANT_BUSINESS_PERMISSIONS);
 
   const agent = request.agent(app);
   const loginResponse = await agent.post("/api/auth/login").send({ email, password: TEST_PASSWORD });

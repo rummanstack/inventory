@@ -77,7 +77,7 @@ export default function QuotationFormModal({ quotation, onClose, onSave }) {
   const discount = Math.max(0, Number(form.discountAmount) || 0);
   const taxRate = Math.max(0, Number(form.taxRate) || 0);
   const afterDiscount = Math.max(0, subtotal - discount);
-  const taxAmount = Math.round(afterDiscount * taxRate / 100 * 100) / 100;
+  const taxAmount = Math.round(afterDiscount * taxRate / 100 * 10000) / 10000;
   const totalAmount = afterDiscount + taxAmount;
 
   async function submitForm(event) {

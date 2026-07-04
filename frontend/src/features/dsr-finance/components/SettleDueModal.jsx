@@ -39,7 +39,7 @@ export default function SettleDueModal({ dsr, balance, onClose, onSave }) {
         </div>
         <div>
           <label className="label">{t('dsrDueLedger.settleAmount')}</label>
-          <input className="input" type="number" min="0" step="0.01" value={amount} onChange={(event) => setAmount(event.target.value)} />
+          <input className="input" type="number" min="0" step="0.0001" value={amount} onChange={(event) => setAmount(event.target.value)} />
         </div>
         <div>
           <label className="label">{t('dsrDueLedger.settleNoteLabel')}</label>

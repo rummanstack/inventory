@@ -134,7 +134,7 @@ export default function OrgSettingsPage() {
             type="number"
             min="0"
             max="100"
-            step="0.01"
+            step="0.0001"
             value={form.taxRate}
             onChange={(e) => handleChange('taxRate', e.target.value)}
             disabled={!canEdit}
@@ -168,7 +168,7 @@ export default function OrgSettingsPage() {
                 className="input"
                 type="number"
                 min="0"
-                step="0.01"
+                step="0.0001"
                 value={form.loyaltyPointsPer100}
                 onChange={(e) => handleChange('loyaltyPointsPer100', e.target.value)}
                 disabled={!canEdit || !form.loyaltyEnabled}
@@ -180,7 +180,7 @@ export default function OrgSettingsPage() {
                 className="input"
                 type="number"
                 min="0"
-                step="0.01"
+                step="0.0001"
                 value={form.loyaltyPointValue}
                 onChange={(e) => handleChange('loyaltyPointValue', e.target.value)}
                 disabled={!canEdit || !form.loyaltyEnabled}

@@ -175,7 +175,7 @@ function PromotionFormModal({ promotion, products, categories, onClose, onSave }
           </div>
           <div>
             <label className="label">{t('retailer.promotions.discountValue')}</label>
-            <input className="input" type="number" min="0" step="0.01" value={form.discountValue} onChange={(event) => updateField('discountValue', event.target.value)} />
+            <input className="input" type="number" min="0" step="0.0001" value={form.discountValue} onChange={(event) => updateField('discountValue', event.target.value)} />
           </div>
           <div>
             <label className="label">{t('retailer.promotions.minQuantity')}</label>
@@ -183,7 +183,7 @@ function PromotionFormModal({ promotion, products, categories, onClose, onSave }
           </div>
           <div>
             <label className="label">{t('retailer.promotions.minSubtotal')}</label>
-            <input className="input" type="number" min="0" step="0.01" value={form.minSubtotal} onChange={(event) => updateField('minSubtotal', event.target.value)} />
+            <input className="input" type="number" min="0" step="0.0001" value={form.minSubtotal} onChange={(event) => updateField('minSubtotal', event.target.value)} />
           </div>
           <div>
             <label className="label">{t('retailer.promotions.startDate')}</label>

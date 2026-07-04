@@ -105,7 +105,7 @@ function CashSessionAmountModal({
             className="input"
             type="number"
             min="0"
-            step="0.01"
+            step="0.0001"
             value={value}
             onChange={(event) => setValue(event.target.value)}
             autoFocus

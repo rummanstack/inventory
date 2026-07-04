@@ -366,7 +366,7 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, retail
                         className={`input ${hasPromo ? 'border-emerald-300 bg-emerald-50 font-semibold text-emerald-800' : ''}`}
                         type="number"
                         min="0"
-                        step="0.01"
+                        step="0.0001"
                         value={row.actualSalePrice}
                         onFocus={autoSelect}
                         onChange={(e) => vm.updateItem(row.rowId, 'actualSalePrice', e.target.value)}
@@ -381,7 +381,7 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, retail
                         className="input disabled:cursor-not-allowed disabled:opacity-50"
                         type="number"
                         min="0"
-                        step="0.01"
+                        step="0.0001"
                         value={hasPromo ? 0 : row.lineDiscount}
                         onFocus={autoSelect}
                         onChange={(e) => vm.updateItem(row.rowId, 'lineDiscount', e.target.value)}
@@ -473,7 +473,7 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, retail
             <div className="flex items-center justify-between gap-3">
               <dt className="font-semibold text-slate-600">{t('retailer.shared.discountLabel')}</dt>
               <dd className="flex items-center gap-2">
-                <input className="input h-9 w-28 text-right" type="number" min="0" step="0.01" value={vm.discountInput} onFocus={autoSelect} onChange={(e) => vm.setDiscountInput(e.target.value)} disabled={saving} />
+                <input className="input h-9 w-28 text-right" type="number" min="0" step="0.0001" value={vm.discountInput} onFocus={autoSelect} onChange={(e) => vm.setDiscountInput(e.target.value)} disabled={saving} />
               </dd>
             </div>
             {vm.loyaltyEligible ? (
@@ -530,7 +530,7 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, retail
             <div className="flex items-center justify-between gap-3">
               <dt className="font-semibold text-slate-600">{t('retailer.shared.paidAmountLabel')}</dt>
               <dd className="flex items-center gap-2">
-                <input className="input h-9 w-28 text-right" type="number" min="0" step="0.01" value={vm.paidAmountInput} onFocus={autoSelect} onChange={(e) => vm.setPaidAmountInput(e.target.value)} disabled={saving} />
+                <input className="input h-9 w-28 text-right" type="number" min="0" step="0.0001" value={vm.paidAmountInput} onFocus={autoSelect} onChange={(e) => vm.setPaidAmountInput(e.target.value)} disabled={saving} />
                 <button type="button" className="btn-secondary h-9 px-2 text-xs" onClick={vm.markFullyPaid} disabled={saving}>
                   {t('retailer.shared.markFullyPaid')}
                 </button>

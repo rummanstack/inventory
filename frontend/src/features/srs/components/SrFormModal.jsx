@@ -79,7 +79,7 @@ export default function SrFormModal({ sr, onClose, onSave }) {
           </div>
           <div>
             <label className="label">{t('srs.openingDueLabel')}</label>
-            <input className="input" type="number" min="0" step="0.01" value={form.openingDue} onChange={(e) => updateField('openingDue', e.target.value)} placeholder="0.00" />
+            <input className="input" type="number" min="0" step="0.0001" value={form.openingDue} onChange={(e) => updateField('openingDue', e.target.value)} placeholder="0.00" />
           </div>
           {openingDueChanged ? (
             <div className="sm:col-span-2">

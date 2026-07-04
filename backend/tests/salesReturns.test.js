@@ -34,7 +34,7 @@ async function createInvoiceWithDue(productId, customerId, quantityPieces, price
 }
 
 async function getCashBalance() {
-  const response = await tenant.agent.get("/api/finance/accounts");
+  const response = await tenant.agent.get("/api/finance-accounts");
   assert.equal(response.status, 200);
   const cash = (response.body.accounts || []).find((account) => account.type === "CASH");
   assert.ok(cash, "Cash account should exist");
@@ -98,10 +98,14 @@ test("returning within the remaining quantity restores stock and credits the cus
 test("cash refunds withdraw money from cash in hand for fully paid invoices", async () => {
   const product = await createProduct(tenant.agent, { name: "Return Widget D", retailPrice: 90 });
   await addStock(tenant.agent, product.id, 50);
+
+  // The tenant's cash account is shared across the tests in this file, so
+  // assert deltas rather than absolute balances.
+  const cashBeforeSale = await getCashBalance();
   const invoice = await createInvoiceWithDue(product.id, null, 10, 90, 900);
 
   const cashBefore = await getCashBalance();
-  assert.equal(cashBefore, 900);
+  assert.equal(cashBefore - cashBeforeSale, 900, "fully paid cash sale deposits its total");
 
   const response = await tenant.agent.post("/api/sales-returns").send({
     salesInvoiceId: invoice.id,
@@ -115,7 +119,7 @@ test("cash refunds withdraw money from cash in hand for fully paid invoices", as
   assert.equal(response.body.salesReturn.totalAmount, 450);
 
   const cashAfter = await getCashBalance();
-  assert.equal(cashAfter, 450, "cash balance should reduce by the refunded amount");
+  assert.equal(cashBefore - cashAfter, 450, "cash balance should reduce by the refunded amount");
 });
 
 test("non-refundable products cannot be returned", async () => {

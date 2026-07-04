@@ -128,11 +128,11 @@ export default function PurchaseReceiveFormModal({ purchaseReceipt, onClose, onS
                       </div>
                       <div>
                         <label className="label">{t('purchaseReceive.purchasePriceLabel')}</label>
-                        <input className="input" type="number" min="0" step="0.01" value={row.purchasePrice} onChange={(event) => vm.updateItem(row.rowId, 'purchasePrice', event.target.value)} />
+                        <input className="input" type="number" min="0" step="0.0001" value={row.purchasePrice} onChange={(event) => vm.updateItem(row.rowId, 'purchasePrice', event.target.value)} />
                       </div>
                       <div>
                         <label className="label">{t('purchaseReceive.lineDiscountLabel')}</label>
-                        <input className="input" type="number" min="0" step="0.01" value={row.lineDiscount} onChange={(event) => vm.updateItem(row.rowId, 'lineDiscount', event.target.value)} />
+                        <input className="input" type="number" min="0" step="0.0001" value={row.lineDiscount} onChange={(event) => vm.updateItem(row.rowId, 'lineDiscount', event.target.value)} />
                       </div>
                       <div className="flex items-end justify-between gap-2 lg:flex-col lg:items-end">
                         <p className="text-sm font-semibold text-slate-950">{formatCurrency(row.lineTotal)}</p>
@@ -201,7 +201,7 @@ export default function PurchaseReceiveFormModal({ purchaseReceipt, onClose, onS
               <div className="flex items-center justify-between gap-3">
                 <dt className="font-semibold text-slate-600">{t('purchaseReceive.discountLabel')}</dt>
                 <dd className="flex items-center gap-2">
-                  <input className="input h-9 w-28 text-right" type="number" min="0" step="0.01" value={vm.discountInput} onChange={(event) => vm.setDiscountInput(event.target.value)} disabled={saving} />
+                  <input className="input h-9 w-28 text-right" type="number" min="0" step="0.0001" value={vm.discountInput} onChange={(event) => vm.setDiscountInput(event.target.value)} disabled={saving} />
                 </dd>
               </div>
               {vm.taxRate > 0 ? (
@@ -223,7 +223,7 @@ export default function PurchaseReceiveFormModal({ purchaseReceipt, onClose, onS
               <div className="flex items-center justify-between gap-3">
                 <dt className="font-semibold text-slate-600">{t('purchaseReceive.paidAmountLabel')}</dt>
                 <dd className="flex items-center gap-2">
-                  <input className="input h-9 w-28 text-right" type="number" min="0" step="0.01" value={vm.paidAmountInput} onChange={(event) => vm.setPaidAmountInput(event.target.value)} disabled={saving} />
+                  <input className="input h-9 w-28 text-right" type="number" min="0" step="0.0001" value={vm.paidAmountInput} onChange={(event) => vm.setPaidAmountInput(event.target.value)} disabled={saving} />
                 </dd>
               </div>
               <div className="flex items-center justify-between border-t-2 border-slate-300 pt-2">

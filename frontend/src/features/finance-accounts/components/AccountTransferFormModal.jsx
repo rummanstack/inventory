@@ -74,7 +74,7 @@ export default function AccountTransferFormModal({ accounts = [], onClose, onSav
           </div>
           <div>
             <label className="label">{t('financeAccounts.amount')}</label>
-            <input className="input" type="number" min="0" step="0.01" value={form.amount} onChange={(event) => updateField('amount', event.target.value)} />
+            <input className="input" type="number" min="0" step="0.0001" value={form.amount} onChange={(event) => updateField('amount', event.target.value)} />
           </div>
           <div>
             <label className="label">{t('financeAccounts.fromAccount')}</label>

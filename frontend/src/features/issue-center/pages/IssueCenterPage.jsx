@@ -64,8 +64,8 @@ function groupInvoicesByPotentialDuplicate(invoices = []) {
     const key = [
       invoice.customerId || invoice.customerName || 'walk-in',
       invoice.saleType || 'UNKNOWN',
-      Number(invoice.totalAmount || 0).toFixed(2),
-      Number(invoice.paidAmount || 0).toFixed(2),
+      Number(invoice.totalAmount || 0).toFixed(4),
+      Number(invoice.paidAmount || 0).toFixed(4),
       invoice.invoiceDate || '',
       Array.isArray(invoice.items) ? invoice.items.length : 0,
     ].join('|');

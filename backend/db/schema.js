@@ -1504,9 +1504,9 @@ export async function createSchema(pool) {
       tenant_id       TEXT NOT NULL REFERENCES tenants(id),
       shop_id         TEXT NOT NULL REFERENCES customers(id),
       type            TEXT NOT NULL,
-      debit           NUMERIC(14,2) NOT NULL DEFAULT 0,
-      credit          NUMERIC(14,2) NOT NULL DEFAULT 0,
-      balance_after   NUMERIC(14,2) NOT NULL DEFAULT 0,
+      debit           NUMERIC(14,4) NOT NULL DEFAULT 0,
+      credit          NUMERIC(14,4) NOT NULL DEFAULT 0,
+      balance_after   NUMERIC(14,4) NOT NULL DEFAULT 0,
       reference_type  TEXT,
       reference_id    TEXT,
       note            TEXT NOT NULL DEFAULT '',
@@ -1521,6 +1521,19 @@ export async function createSchema(pool) {
       ON shop_due_ledger(reference_type, reference_id);
     CREATE INDEX IF NOT EXISTS idx_shop_due_ledger_tenant_business_date
       ON shop_due_ledger(tenant_id, business_date);
+
+    DO $$
+    BEGIN
+      IF EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'shop_due_ledger' AND column_name = 'debit' AND numeric_scale = 2
+      ) THEN
+        ALTER TABLE shop_due_ledger
+          ALTER COLUMN debit TYPE NUMERIC(14,4),
+          ALTER COLUMN credit TYPE NUMERIC(14,4),
+          ALTER COLUMN balance_after TYPE NUMERIC(14,4);
+      END IF;
+    END $$;
   `);
 
   await pool.query(`

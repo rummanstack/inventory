@@ -47,7 +47,7 @@ function CollectDueModal({ sr, onClose, onSave, t }) {
         </div>
         <div>
           <label className="label">{t('srs.amountCollectedLabel')}</label>
-          <input className="input" type="number" min="0" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} />
+          <input className="input" type="number" min="0" step="0.0001" value={amount} onChange={(e) => setAmount(e.target.value)} />
         </div>
         <div>
           <label className="label">{t('srs.noteLabel')}</label>

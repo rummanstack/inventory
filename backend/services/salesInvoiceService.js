@@ -431,17 +431,6 @@ export class SalesInvoiceService {
       assert(base.invoiceDate, "Invoice date is required.");
       base.invoiceDate = normalizeIsoDate(base.invoiceDate, base.invoiceDate, DATE_ERROR);
 
-      if (base.customerType === "WALK_IN") {
-        assert(base.dueAmount === 0, "Walk-in sales must be fully paid.");
-      }
-
-      if (base.dueAmount > 0) {
-        assert(
-          base.customerType === "REGISTERED" && base.customerId,
-          "Due amount requires a registered customer.",
-        );
-      }
-
       return this.createSalesInvoiceRecord(client, base, actor, tenant);
     });
   }
@@ -528,6 +517,20 @@ export class SalesInvoiceService {
     } else {
       base.paidAmount = Math.max(0, Math.min(base.paidAmount, base.totalAmount));
       base.dueAmount = base.totalAmount - base.paidAmount;
+    }
+
+    // Validated here rather than in saveSalesInvoice because the final due
+    // amount isn't known until promotions and loyalty redemption have been
+    // applied — the client-sent prices may legitimately exceed what is owed.
+    if (base.customerType === "WALK_IN") {
+      assert(base.dueAmount === 0, "Walk-in sales must be fully paid.");
+    }
+
+    if (base.dueAmount > 0) {
+      assert(
+        base.customerType === "REGISTERED" && base.customerId,
+        "Due amount requires a registered customer.",
+      );
     }
 
     if (customer && loyaltyBalanceAfter !== null) {

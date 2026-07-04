@@ -26,10 +26,10 @@ function calcEarned(salaryAmount, payType, activeDays, month) {
   }
   if (payType === 'MONTHLY') {
     const days = daysInMonth(month);
-    return days > 0 ? Math.round(((salaryAmount / days) * activeDays) * 100) / 100 : 0;
+    return days > 0 ? Math.round(((salaryAmount / days) * activeDays) * 10000) / 10000 : 0;
   }
   // DAILY: salary_amount is daily rate
-  return Math.round((salaryAmount * activeDays) * 100) / 100;
+  return Math.round((salaryAmount * activeDays) * 10000) / 10000;
 }
 
 export class SalaryPaymentService {

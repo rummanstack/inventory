@@ -100,7 +100,7 @@ export default function ExpenseFormModal({ expense, defaultDate, onClose, onSave
           </div>
           <div>
             <label className="label">{t('expenses.amount')}</label>
-            <input className="input" type="number" min="0" step="0.01" value={form.amount} onChange={(event) => updateField('amount', event.target.value)} />
+            <input className="input" type="number" min="0" step="0.0001" value={form.amount} onChange={(event) => updateField('amount', event.target.value)} />
           </div>
           <div className="md:col-span-2">
             <label className="label">{t('expenses.note')}</label>

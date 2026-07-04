@@ -46,7 +46,7 @@ export function formatCurrency(amount, language = getPreferredLanguage()) {
   const value = Number(amount || 0);
   return `৳${value.toLocaleString(getLocale(language), {
     minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
+    maximumFractionDigits: 4,
   })}`;
 }
 

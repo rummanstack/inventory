@@ -228,19 +228,19 @@ export default function ProductFormModal({ product, onClose, onSave }) {
           ) : null}
           <div>
             <label className="label">{t('products.purchasePrice')}</label>
-            <input className="input" type="number" min="0" step="0.01" value={form.purchasePrice} onChange={(event) => updateField('purchasePrice', event.target.value)} />
+            <input className="input" type="number" min="0" step="0.0001" value={form.purchasePrice} onChange={(event) => updateField('purchasePrice', event.target.value)} />
           </div>
           <div>
             <label className="label">{t('products.wholesalePrice')}</label>
-            <input className="input" type="number" min="0" step="0.01" value={form.wholesalePrice} onChange={(event) => updateField('wholesalePrice', event.target.value)} />
+            <input className="input" type="number" min="0" step="0.0001" value={form.wholesalePrice} onChange={(event) => updateField('wholesalePrice', event.target.value)} />
           </div>
           <div>
             <label className="label">{t('products.retailPrice')}</label>
-            <input className="input" type="number" min="0" step="0.01" value={form.retailPrice} onChange={(event) => updateField('retailPrice', event.target.value)} />
+            <input className="input" type="number" min="0" step="0.0001" value={form.retailPrice} onChange={(event) => updateField('retailPrice', event.target.value)} />
           </div>
           <div>
             <label className="label">{t('retailer.shared.taxRateLabel')}</label>
-            <input className="input" type="number" min="0" max="100" step="0.01" value={form.taxRate} onChange={(event) => updateField('taxRate', event.target.value)} />
+            <input className="input" type="number" min="0" max="100" step="0.0001" value={form.taxRate} onChange={(event) => updateField('taxRate', event.target.value)} />
             <p className="mt-1 text-xs text-slate-500">{t('products.taxRateHint')}</p>
           </div>
           {isElectronics ? (

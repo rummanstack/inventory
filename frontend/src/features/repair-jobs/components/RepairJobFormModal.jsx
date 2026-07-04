@@ -204,7 +204,7 @@ export default function RepairJobFormModal({ job, onClose, onSave }) {
                   className="input"
                   type="number"
                   min="0"
-                  step="0.01"
+                  step="0.0001"
                   value={form.estimatedCost}
                   onChange={(event) => updateField('estimatedCost', event.target.value)}
                 />
@@ -222,7 +222,7 @@ export default function RepairJobFormModal({ job, onClose, onSave }) {
                   className="input"
                   type="number"
                   min="0"
-                  step="0.01"
+                  step="0.0001"
                   value={form.laborCost}
                   onChange={(event) => updateField('laborCost', event.target.value)}
                 />
@@ -233,7 +233,7 @@ export default function RepairJobFormModal({ job, onClose, onSave }) {
                   className="input"
                   type="number"
                   min="0"
-                  step="0.01"
+                  step="0.0001"
                   value={form.actualCost}
                   onChange={(event) => updateField('actualCost', event.target.value)}
                 />

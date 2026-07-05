@@ -39,13 +39,13 @@ import { getCssVar } from "../../../utils/theme.js";
 
 function MetricPill({ label, value, sub, icon: Icon, iconClass = "bg-slate-100 text-slate-500" }) {
   return (
-    <div className="flex flex-col gap-1.5 rounded-card bg-white px-5 py-4 shadow-card ring-1 ring-slate-200/60">
+    <div className="flex flex-col gap-1.5 rounded-card bg-white px-5 py-4 shadow-card ring-1 ring-slate-200/60 max-sm:min-w-[70%] max-sm:snap-start max-lg:px-4 max-lg:py-3">
       <div className={cx("w-fit rounded-xl p-2", iconClass)}>
         <Icon size={15} />
       </div>
       <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-600">{label}</p>
-      <p className="text-2xl font-semibold tracking-tight text-slate-950">{value}</p>
-      {sub && <p className="text-xs font-medium text-slate-500">{sub}</p>}
+      <p className="text-2xl font-semibold tracking-tight text-slate-950 max-lg:text-lg">{value}</p>
+      {sub && <p className="text-xs font-medium text-slate-500 max-lg:hidden">{sub}</p>}
     </div>
   );
 }
@@ -58,7 +58,7 @@ function DueRow({ icon: Icon, iconClass, label, sub, value, valueClass = "text-s
       </div>
       <div className="min-w-0 flex-1">
         <p className="text-xs font-semibold uppercase tracking-[0.13em] text-slate-600">{label}</p>
-        {sub && <p className="mt-0.5 text-xs font-medium text-slate-500">{sub}</p>}
+        {sub && <p className="mt-0.5 text-xs font-medium text-slate-500 max-lg:hidden">{sub}</p>}
       </div>
       <p className={cx("shrink-0 text-base font-semibold", valueClass)}>{value}</p>
     </div>
@@ -115,7 +115,7 @@ export default function DashboardPage() {
   const todayProfit = todayPnl.netProfit + retailPos.profit;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-lg:space-y-4">
       <SectionHeader
         eyebrow={t("dashboard.eyebrow")}
         title={t("dashboard.title")}
@@ -125,7 +125,7 @@ export default function DashboardPage() {
       {/* ── 1. FINANCIAL HEALTH ── */}
       {financeDashboard ? (
         <div className="overflow-hidden rounded-card border border-slate-200/80 bg-white shadow-card ring-1 ring-slate-900/[0.03]">
-          <div className="px-7 pb-4 pt-6">
+          <div className="px-7 pb-4 pt-6 max-lg:px-4 max-lg:pb-3 max-lg:pt-4">
             <div className="flex items-center gap-2">
               <div className="rounded-lg bg-[var(--secondary-soft)] p-1.5">
                 <Landmark size={13} className="text-[var(--secondary-strong)]" />
@@ -136,7 +136,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="grid gap-px bg-slate-100/80 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-px bg-slate-100/80 lg:grid-cols-4">
             {[
               {
                 label: t("dashboard.cashInHand"),
@@ -175,26 +175,26 @@ export default function DashboardPage() {
             ].map((item) => {
               const Icon = item.icon;
               return (
-                <div key={item.label} className="bg-white px-7 py-6">
+                <div key={item.label} className="bg-white px-7 py-6 max-lg:px-4 max-lg:py-4">
                   <div className={cx("w-fit rounded-xl p-2.5", item.iconClass)}>
                     <Icon size={16} />
                   </div>
-                  <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-600">{item.label}</p>
+                  <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-600 max-lg:mt-2">{item.label}</p>
                   <p
                     className={cx(
-                      "mt-2 text-[clamp(1.4rem,2.5vw,1.875rem)] font-semibold tracking-tight leading-none",
+                      "mt-2 text-lg lg:text-[clamp(1.4rem,2.5vw,1.875rem)] font-semibold tracking-tight leading-none",
                       item.valueClass,
                     )}
                   >
                     {item.value}
                   </p>
-                  <p className="mt-2 text-xs font-medium text-slate-500">{item.sub}</p>
+                  <p className="mt-2 text-xs font-medium text-slate-500 max-lg:hidden">{item.sub}</p>
                 </div>
               );
             })}
           </div>
 
-          <div className="grid gap-px bg-slate-100/80 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-px bg-slate-100/80 lg:grid-cols-4">
             {[
               {
                 label: t("dashboard.valueInInventory"),
@@ -231,15 +231,15 @@ export default function DashboardPage() {
             ].map((item) => {
               const Icon = item.icon;
               return (
-                <div key={item.label} className="bg-slate-50/60 px-7 py-5">
+                <div key={item.label} className="bg-slate-50/60 px-7 py-5 max-lg:px-4 max-lg:py-4">
                   <div className={cx("w-fit rounded-xl p-2.5", item.iconClass)}>
                     <Icon size={16} />
                   </div>
-                  <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-600">{item.label}</p>
-                  <p className={cx("mt-2 text-[clamp(1.4rem,2.5vw,1.875rem)] font-semibold tracking-tight leading-none", item.valueClass)}>
+                  <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-600 max-lg:mt-2">{item.label}</p>
+                  <p className={cx("mt-2 text-lg lg:text-[clamp(1.4rem,2.5vw,1.875rem)] font-semibold tracking-tight leading-none", item.valueClass)}>
                     {item.value}
                   </p>
-                  <p className="mt-2 text-xs font-medium text-slate-500">{item.sub}</p>
+                  <p className="mt-2 text-xs font-medium text-slate-500 max-lg:hidden">{item.sub}</p>
                 </div>
               );
             })}
@@ -315,10 +315,10 @@ export default function DashboardPage() {
                   <Icon size={16} />
                 </div>
                 <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-600">{item.label}</p>
-                <p className={cx("mt-2 text-[clamp(1.4rem,2.5vw,1.875rem)] font-semibold tracking-tight leading-none", item.valueClass)}>
+                <p className={cx("mt-2 text-lg lg:text-[clamp(1.4rem,2.5vw,1.875rem)] font-semibold tracking-tight leading-none", item.valueClass)}>
                   {item.value}
                 </p>
-                <p className="mt-2 text-xs font-medium text-slate-500">{item.sub}</p>
+                <p className="mt-2 text-xs font-medium text-slate-500 max-lg:hidden">{item.sub}</p>
               </div>
             );
           })}
@@ -411,7 +411,7 @@ export default function DashboardPage() {
             <p className="px-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-600">
               {t("dashboard.receivablesPayables")}
             </p>
-            <p className="mt-1 px-1 text-xs font-medium leading-5 text-slate-500">
+            <p className="mt-1 px-1 text-xs font-medium leading-5 text-slate-500 max-lg:hidden">
               {t("dashboard.receivablesPayablesDescription")}
             </p>
             <div className="mt-4 space-y-2.5">
@@ -471,7 +471,7 @@ export default function DashboardPage() {
       <div className="grid gap-6 xl:grid-cols-2">
         {/* Retail POS Today */}
         <ChartPanel title={t("dashboard.retailPosToday")} description={t("dashboard.retailPosTodayDescription")}>
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="grid gap-3 max-sm:flex max-sm:snap-x max-sm:snap-mandatory max-sm:overflow-x-auto max-sm:pb-1 sm:grid-cols-3">
             <MetricPill
               label={t("dashboard.retailRevenue")}
               value={formatCurrency(retailPos.revenue, language)}
@@ -514,7 +514,7 @@ export default function DashboardPage() {
                 <p className={cx("text-sm font-bold", retailCashSession ? "text-emerald-800" : "text-slate-700")}>
                   {retailCashSession ? t("dashboard.cashSessionOpen") : t("dashboard.cashSessionClosed")}
                 </p>
-                <p className="text-xs font-medium text-slate-500">
+                <p className="text-xs font-medium text-slate-500 max-lg:hidden">
                   {retailCashSession ? t("dashboard.cashSessionOpenDetail") : t("dashboard.cashSessionClosedDetail")}
                 </p>
               </div>

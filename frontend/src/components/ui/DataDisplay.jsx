@@ -115,7 +115,7 @@ export function StatCard({ title, value, helper, icon: Icon, tone = 'blue', tren
           </div>
         ) : null}
       </div>
-      {helper ? <p className="mt-3 text-xs font-medium text-slate-500">{helper}</p> : null}
+      {helper ? <p className="mt-3 text-xs font-medium text-slate-500 max-lg:hidden">{helper}</p> : null}
       {trend && trend.length > 1 ? (
         <div className="-mx-1 -mb-1 mt-3 opacity-80 transition group-hover:opacity-100">
           <Sparkline data={trend} color={toneSet.spark} height={36} />
@@ -168,14 +168,14 @@ export function Avatar({ name, imageUrl, size = 40, status, className = '' }) {
 export function ChartPanel({ title, description, action, children, className = '' }) {
   return (
     <section className={cx('surface overflow-hidden', className)}>
-      <div className="flex items-start justify-between gap-4 border-b border-slate-100/80 px-5 py-4">
+      <div className="flex items-start justify-between gap-4 border-b border-slate-100/80 px-5 py-4 max-lg:px-4 max-lg:py-3">
         <div>
           <h2 className="text-base font-bold tracking-tight text-slate-950">{title}</h2>
-          {description ? <p className="mt-1 max-w-2xl text-sm font-medium leading-6 text-slate-500">{description}</p> : null}
+          {description ? <p className="mt-1 max-w-2xl text-sm font-medium leading-6 text-slate-500 max-lg:hidden">{description}</p> : null}
         </div>
         {action ? <div className="shrink-0">{action}</div> : null}
       </div>
-      <div className="p-5">{children}</div>
+      <div className="p-5 max-lg:p-4">{children}</div>
     </section>
   );
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { CheckCircle2, Loader2, Lock, Send, Server, ShieldCheck } from 'lucide-react';
 import ImagePlaceholder from './shared/ImagePlaceholder.jsx';
 import SectionHeader from './shared/SectionHeader.jsx';
@@ -84,13 +84,13 @@ export default function ContactSection({ t }) {
             </div>
 
             <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2">
-              <span className="flex items-center gap-1.5 text-[11px] font-bold text-slate-400">
+              <span className="flex items-center gap-1.5 text-[12px] font-medium text-slate-500">
                 <Lock size={12} className="text-[var(--success)]" /> SSL Secured
               </span>
-              <span className="flex items-center gap-1.5 text-[11px] font-bold text-slate-400">
+              <span className="flex items-center gap-1.5 text-[12px] font-medium text-slate-500">
                 <Server size={12} className="text-[var(--success)]" /> Bangladesh-hosted data
               </span>
-              <span className="flex items-center gap-1.5 text-[11px] font-bold text-slate-400">
+              <span className="flex items-center gap-1.5 text-[12px] font-medium text-slate-500">
                 <ShieldCheck size={12} className="text-[var(--success)]" /> Daily backups
               </span>
             </div>

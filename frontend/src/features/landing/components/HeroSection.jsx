@@ -1,6 +1,6 @@
 import { ArrowRight, MessageCircle } from 'lucide-react';
 import ImagePlaceholder from './shared/ImagePlaceholder.jsx';
-import { heroDashboardImage, heroMobileImage, whatsappUrl } from '../constants.js';
+import { heroDashboardImage, whatsappUrl } from '../constants.js';
 
 export default function HeroSection({ t }) {
   const heroImage = {
@@ -21,7 +21,7 @@ export default function HeroSection({ t }) {
               href={whatsappUrl}
               target="_blank"
               rel="noreferrer"
-              className="landing-primary-btn !bg-[#25D366] !shadow-[0_18px_34px_rgba(37,211,102,0.32)] hover:!bg-[#1ebe5d]"
+              className="landing-primary-btn"
             >
               <MessageCircle size={18} />
               {t('landing.whatsappUs')}
@@ -34,20 +34,14 @@ export default function HeroSection({ t }) {
         </div>
 
         <div className="landing-hero-media">
-          <ImagePlaceholder data={heroImage} heightClass="h-[300px] sm:h-[380px] lg:h-[440px]" variant="dashboard" fit="cover" position="left top" priority />
-          <div className="landing-hero-secondary hidden md:block">
-            <ImagePlaceholder
-              data={{ src: heroMobileImage, alt: t('landing.images.mobileView') }}
-              heightClass="h-[180px] lg:h-[210px]"
-              variant="dashboard"
-              fit="cover"
-              position="top"
-            />
-          </div>
-          <div className="landing-floating-note hidden md:block">
-            <span className="text-[11px] font-black uppercase tracking-[0.18em] text-[var(--brand-strong)]">{t('landing.hero.liveView')}</span>
-            <p className="mt-2 text-sm font-bold leading-5 text-slate-700">{t('landing.hero.liveViewText')}</p>
-          </div>
+          <ImagePlaceholder
+            data={heroImage}
+            heightClass="h-[340px] sm:h-[430px] lg:h-[560px]"
+            variant="dashboard"
+            fit="cover"
+            position="left top"
+            priority
+          />
         </div>
       </div>
     </section>

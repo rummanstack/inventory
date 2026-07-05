@@ -21,13 +21,13 @@ function PricingCard({ plan, features, expanded, onToggle, hiddenCount, t }) {
         <div className="flex items-start justify-between gap-3">
           <div>
             <h3 className="text-2xl font-black text-slate-950">{plan.name}</h3>
-            <p className="mt-2 text-xs font-black uppercase tracking-[0.16em] text-[var(--brand-strong)]">{plan.label}</p>
+            <p className="mt-2 text-[12px] font-medium text-[var(--brand-strong)]">{plan.label}</p>
           </div>
           <span className="pricing-card-badge">{t('landing.pricing.featuredBadge')}</span>
         </div>
       ) : (
         <>
-          <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">{plan.label}</p>
+          <p className="text-[12px] font-medium text-slate-500">{plan.label}</p>
           <h3 className="mt-4 text-2xl font-black text-slate-900">{plan.name}</h3>
         </>
       )}
@@ -35,12 +35,12 @@ function PricingCard({ plan, features, expanded, onToggle, hiddenCount, t }) {
         <span className="text-3xl font-black">{plan.price}</span>
         {plan.cadence ? <span className="text-sm font-black text-slate-400">{plan.cadence}</span> : null}
       </p>
-      <p className="mt-4 text-sm font-medium leading-6 text-slate-600">{plan.description}</p>
+      <p className="mt-4 text-sm font-normal leading-7 text-slate-600">{plan.description}</p>
       <div className="mt-6 space-y-3">
         {visibleFeatures.map((feature, index) => {
           const included = Boolean(plan.included?.[index]);
           return (
-            <p key={feature} className={`flex items-center gap-3 text-sm font-bold ${included ? 'text-slate-700' : 'text-slate-400'}`}>
+            <p key={feature} className={`flex items-center gap-3 text-sm font-medium leading-6 ${included ? 'text-slate-700' : 'text-slate-400'}`}>
               {included ? (
                 <CheckCircle2 size={18} className="shrink-0 text-[var(--success)]" />
               ) : (
@@ -54,7 +54,7 @@ function PricingCard({ plan, features, expanded, onToggle, hiddenCount, t }) {
       {hiddenCount > 0 ? (
         <button
           type="button"
-          className="mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-[var(--brand-strong)] transition hover:text-[var(--brand)]"
+          className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--brand-strong)] transition hover:text-[var(--brand)]"
           onClick={onToggle}
         >
           {expanded ? t('landing.pricing.showLessFeatures') : `${t('landing.pricing.showAllFeatures')} (+${hiddenCount})`}

@@ -10,23 +10,35 @@ function Line({ label, value, tone = 'slate', strong = false }) {
     amber: 'text-amber-600',
   }[tone];
   return (
-    <div className="flex items-center justify-between gap-3 py-1.5">
+    <div className="flex items-center justify-between gap-3 py-2">
       <span className={`text-sm ${strong ? 'font-bold text-slate-950' : 'font-medium text-slate-500'}`}>{label}</span>
-      <span className={`text-sm tabular-nums ${strong ? 'font-black' : 'font-semibold'} ${toneClass}`}>{value}</span>
+      <span className={`text-right text-sm tabular-nums ${strong ? 'font-black' : 'font-semibold'} ${toneClass}`}>{value}</span>
     </div>
   );
 }
 
-function CloseCard({ icon: Icon, title, children }) {
+function TotalRow({ label, value, positive, icon = true }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5">
-      <div className="mb-3 flex items-center gap-2.5">
-        <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[var(--brand-soft)] text-[var(--brand-strong)]">
-          <Icon size={16} />
-        </span>
-        <h3 className="text-sm font-bold text-slate-950">{title}</h3>
+    <div className="mt-2 flex items-center justify-between gap-3 rounded-xl bg-slate-50 px-3 py-2.5">
+      <span className="flex items-center gap-2 text-sm font-bold text-slate-950">
+        {icon ? (
+          positive ? <ArrowUpCircle size={16} className="text-emerald-600" /> : <ArrowDownCircle size={16} className="text-rose-600" />
+        ) : null}
+        {label}
+      </span>
+      <span className={`text-base font-black tabular-nums ${positive ? 'text-emerald-600' : 'text-rose-600'}`}>{value}</span>
+    </div>
+  );
+}
+
+function CloseBox({ icon: Icon, title, children }) {
+  return (
+    <div className="surface overflow-hidden">
+      <div className="flex items-center gap-2.5 border-b border-slate-100 px-5 py-4">
+        <Icon size={16} className="text-[var(--brand-strong)]" />
+        <h3 className="section-title">{title}</h3>
       </div>
-      {children}
+      <div className="divide-y divide-slate-100 px-5 py-3">{children}</div>
     </div>
   );
 }
@@ -46,122 +58,97 @@ export default function DailyClosePanel({ close, totals, profitTotals, date, t, 
   }
 
   return (
-    <div id="daily-close-report" className="surface mb-6 overflow-hidden">
-      <div className="border-b border-slate-100 px-5 py-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h2 className="section-title">{t('reports.close.title', { date: formatDate(date, language) })}</h2>
-            <p className="mt-0.5 text-xs text-slate-400">{t('reports.close.description')}</p>
-          </div>
-          <TableReportActions
-            targetId="daily-close-report"
-            title={t('reports.close.title', { date: formatDate(date, language) })}
-            subtitle={date}
-            fileName={`daily-close-${date}`}
-            entityType="daily_close"
-            t={t}
-            className="flex flex-wrap gap-2 no-print"
-          />
+    <div id="daily-close-report">
+      {/* Section heading + export actions */}
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="section-title">{t('reports.close.title', { date: formatDate(date, language) })}</h2>
+          <p className="mt-0.5 text-xs text-slate-400">{t('reports.close.description')}</p>
         </div>
+        <TableReportActions
+          targetId="daily-close-report"
+          title={t('reports.close.title', { date: formatDate(date, language) })}
+          subtitle={date}
+          fileName={`daily-close-${date}`}
+          entityType="daily_close"
+          t={t}
+          className="flex flex-wrap gap-2 no-print"
+        />
       </div>
 
-      <div className="p-5">
-        {/* Close-out checklist */}
+      {/* Close-out checklist */}
+      <div className={`surface mb-4 p-5 ${flags.length === 0 ? '' : 'space-y-2.5'}`}>
         {flags.length === 0 ? (
-          <div className="mb-4 flex items-center gap-3 rounded-2xl border border-[var(--success-line)] bg-[var(--success-soft)] px-4 py-3">
-            <CheckCircle2 size={18} className="shrink-0 text-[var(--success)]" />
+          <div className="flex items-center gap-3">
+            <CheckCircle2 size={17} className="shrink-0 text-[var(--success)]" />
             <p className="text-sm font-semibold text-[var(--success-strong)]">{t('reports.close.allClear')}</p>
           </div>
         ) : (
-          <div className="mb-4 space-y-2">
-            {flags.map((flag) => (
-              <div key={flag} className="flex items-center gap-3 rounded-2xl border border-[var(--warning-line)] bg-[var(--warning-soft)] px-4 py-3">
-                <AlertTriangle size={18} className="shrink-0 text-[var(--warning)]" />
-                <p className="text-sm font-semibold text-[var(--warning-strong)]">{flag}</p>
-              </div>
-            ))}
-          </div>
-        )}
-
-        <div className="grid gap-4 lg:grid-cols-2">
-          {/* Cash reconciliation */}
-          <CloseCard icon={Wallet} title={t('reports.close.cashTitle')}>
-            <Line label={t('reports.close.settlementCash')} value={formatCurrency(close.settlementCash, language)} tone="emerald" />
-            <Line label={t('reports.close.dueCollected')} value={formatCurrency(close.dueCollected, language)} tone="emerald" />
-            <Line label={t('reports.close.srCollected')} value={formatCurrency(close.srCollected, language)} tone="emerald" />
-            <div className="my-1 border-t border-slate-100" />
-            <Line label={t('reports.close.cashIn')} value={formatCurrency(close.cashIn, language)} strong />
-            <Line label={t('reports.close.expenses')} value={`- ${formatCurrency(close.expensesTotal, language)}`} tone="rose" />
-            <Line label={t('reports.close.salaries')} value={`- ${formatCurrency(close.salaryTotal, language)}`} tone="rose" />
-            <Line label={t('reports.close.purchasesPaid')} value={`- ${formatCurrency(close.purchasesPaid, language)}`} tone="rose" />
-            <div className="my-1 border-t border-slate-100" />
-            <div className="flex items-center justify-between gap-3 rounded-xl bg-slate-50 px-3 py-2.5">
-              <span className="flex items-center gap-2 text-sm font-bold text-slate-950">
-                {close.netCash >= 0 ? <ArrowUpCircle size={16} className="text-emerald-600" /> : <ArrowDownCircle size={16} className="text-rose-600" />}
-                {t('reports.close.netCash')}
-              </span>
-              <span className={`text-lg font-black tabular-nums ${close.netCash >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                {formatCurrency(close.netCash, language)}
-              </span>
+          flags.map((flag) => (
+            <div key={flag} className="flex items-center gap-3 rounded-xl bg-[var(--warning-soft)] px-3 py-2.5">
+              <AlertTriangle size={17} className="shrink-0 text-[var(--warning)]" />
+              <p className="text-sm font-semibold text-[var(--warning-strong)]">{flag}</p>
             </div>
-          </CloseCard>
+          ))
+        )}
+      </div>
 
-          {/* Dues movement */}
-          <CloseCard icon={ClipboardCheck} title={t('reports.close.duesTitle')}>
-            <Line label={t('reports.close.newDue')} value={formatCurrency(close.newDue, language)} tone={close.newDue > 0 ? 'rose' : 'slate'} />
-            <Line label={t('reports.close.collectedToday')} value={formatCurrency(close.dueCollected, language)} tone="emerald" />
-            <Line
-              label={t('reports.close.netDueChange')}
-              value={formatCurrency(close.newDue - close.dueCollected, language)}
-              tone={close.newDue - close.dueCollected > 0 ? 'rose' : 'emerald'}
-              strong
-            />
-            <div className="my-1 border-t border-slate-100" />
-            <Line label={t('reports.close.outstandingDue')} value={formatCurrency(close.outstandingDue, language)} tone="rose" strong />
-            <p className="mt-2 text-xs font-medium text-slate-400">{t('reports.close.outstandingNote')}</p>
-          </CloseCard>
+      {/* Four separate boxes */}
+      <div className="grid gap-4 lg:grid-cols-2">
+        <CloseBox icon={Wallet} title={t('reports.close.cashTitle')}>
+          <Line label={t('reports.close.settlementCash')} value={formatCurrency(close.settlementCash, language)} tone="emerald" />
+          <Line label={t('reports.close.dueCollected')} value={formatCurrency(close.dueCollected, language)} tone="emerald" />
+          <Line label={t('reports.close.srCollected')} value={formatCurrency(close.srCollected, language)} tone="emerald" />
+          <Line label={t('reports.close.cashIn')} value={formatCurrency(close.cashIn, language)} strong />
+          <Line label={t('reports.close.expenses')} value={`- ${formatCurrency(close.expensesTotal, language)}`} tone="rose" />
+          <Line label={t('reports.close.salaries')} value={`- ${formatCurrency(close.salaryTotal, language)}`} tone="rose" />
+          <Line label={t('reports.close.purchasesPaid')} value={`- ${formatCurrency(close.purchasesPaid, language)}`} tone="rose" />
+          <TotalRow label={t('reports.close.netCash')} value={formatCurrency(close.netCash, language)} positive={close.netCash >= 0} />
+        </CloseBox>
 
-          {/* Stock position */}
-          <CloseCard icon={PackageSearch} title={t('reports.close.stockTitle')}>
-            <Line
-              label={t('reports.close.stockOut')}
-              value={`${formatNumber(totals.issuedPieces, language)} ${t('common.pcs')} · ${formatCurrency(totals.issuedValue, language)}`}
-            />
-            <Line label={t('reports.close.stockReturned')} value={`${formatNumber(totals.returnedPieces, language)} ${t('common.pcs')}`} />
-            <Line
-              label={t('reports.close.damagedToday')}
-              value={`${formatNumber(totals.damagedPieces, language)} ${t('common.pcs')}`}
-              tone={totals.damagedPieces > 0 ? 'amber' : 'slate'}
-            />
-            <Line label={t('reports.close.purchasesToday')} value={formatCurrency(close.purchasesTotal, language)} />
-            <div className="my-1 border-t border-slate-100" />
-            <Line
-              label={t('reports.close.currentStock')}
-              value={`${formatNumber(close.stockPiecesNow, language)} ${t('common.pcs')} · ${formatCurrency(close.stockValueNow, language)}`}
-              strong
-            />
-          </CloseCard>
+        <CloseBox icon={ClipboardCheck} title={t('reports.close.duesTitle')}>
+          <Line label={t('reports.close.newDue')} value={formatCurrency(close.newDue, language)} tone={close.newDue > 0 ? 'rose' : 'slate'} />
+          <Line label={t('reports.close.collectedToday')} value={formatCurrency(close.dueCollected, language)} tone="emerald" />
+          <Line label={t('reports.close.outstandingDue')} value={formatCurrency(close.outstandingDue, language)} tone="rose" strong />
+          <TotalRow
+            label={t('reports.close.netDueChange')}
+            value={formatCurrency(close.newDue - close.dueCollected, language)}
+            positive={close.newDue - close.dueCollected <= 0}
+          />
+          <p className="pt-2 text-xs font-medium text-slate-400">{t('reports.close.outstandingNote')}</p>
+        </CloseBox>
 
-          {/* Day P&L */}
-          <CloseCard icon={TrendingUp} title={t('reports.close.plTitle')}>
-            {profitTotals ? (
-              <>
-                <Line label={t('reports.close.revenue')} value={formatCurrency(profitTotals.revenue, language)} />
-                <Line label={t('reports.close.grossProfit')} value={formatCurrency(profitTotals.grossProfit, language)} tone="emerald" />
-                <Line label={t('reports.close.expenses')} value={`- ${formatCurrency(profitTotals.expenses, language)}`} tone="rose" />
-                <div className="my-1 border-t border-slate-100" />
-                <Line
-                  label={t('reports.close.netProfit')}
-                  value={formatCurrency(profitTotals.profit, language)}
-                  tone={profitTotals.profit >= 0 ? 'emerald' : 'rose'}
-                  strong
-                />
-              </>
-            ) : (
-              <p className="py-4 text-sm font-medium text-slate-400">{t('reports.close.noProfitData')}</p>
-            )}
-          </CloseCard>
-        </div>
+        <CloseBox icon={PackageSearch} title={t('reports.close.stockTitle')}>
+          <Line
+            label={t('reports.close.stockOut')}
+            value={`${formatNumber(totals.issuedPieces, language)} ${t('common.pcs')} · ${formatCurrency(totals.issuedValue, language)}`}
+          />
+          <Line label={t('reports.close.stockReturned')} value={`${formatNumber(totals.returnedPieces, language)} ${t('common.pcs')}`} />
+          <Line
+            label={t('reports.close.damagedToday')}
+            value={`${formatNumber(totals.damagedPieces, language)} ${t('common.pcs')}`}
+            tone={totals.damagedPieces > 0 ? 'amber' : 'slate'}
+          />
+          <Line label={t('reports.close.purchasesToday')} value={formatCurrency(close.purchasesTotal, language)} />
+          <Line
+            label={t('reports.close.currentStock')}
+            value={`${formatNumber(close.stockPiecesNow, language)} ${t('common.pcs')} · ${formatCurrency(close.stockValueNow, language)}`}
+            strong
+          />
+        </CloseBox>
+
+        <CloseBox icon={TrendingUp} title={t('reports.close.plTitle')}>
+          {profitTotals ? (
+            <>
+              <Line label={t('reports.close.revenue')} value={formatCurrency(profitTotals.revenue, language)} />
+              <Line label={t('reports.close.grossProfit')} value={formatCurrency(profitTotals.grossProfit, language)} tone="emerald" />
+              <Line label={t('reports.close.expenses')} value={`- ${formatCurrency(profitTotals.expenses, language)}`} tone="rose" />
+              <TotalRow label={t('reports.close.netProfit')} value={formatCurrency(profitTotals.profit, language)} positive={profitTotals.profit >= 0} />
+            </>
+          ) : (
+            <p className="py-3 text-sm font-medium text-slate-400">{t('reports.close.noProfitData')}</p>
+          )}
+        </CloseBox>
       </div>
     </div>
   );

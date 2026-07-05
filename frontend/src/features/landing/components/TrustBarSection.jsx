@@ -1,4 +1,4 @@
-import { Building2, Star, TrendingUp, Headphones } from 'lucide-react';
+﻿import { Building2, Star, TrendingUp, Headphones } from 'lucide-react';
 
 const STAT_ICONS = [Building2, TrendingUp, Star, Headphones];
 
@@ -18,7 +18,7 @@ export default function TrustBarSection({ t }) {
               >
                 <Icon size={20} className="text-blue-300" />
                 <span className="text-xl font-black text-white">{value}</span>
-                <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-300">{label}</span>
+                <span className="text-[12px] font-medium text-slate-300/85">{label}</span>
               </div>
             );
           })}

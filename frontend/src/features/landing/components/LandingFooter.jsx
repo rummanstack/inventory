@@ -1,9 +1,9 @@
-import { Link } from 'react-router-dom';
+﻿import { Link } from 'react-router-dom';
 import { ArrowUp, Facebook, Instagram, Linkedin, MapPin, MessageCircle, Phone, Send, Twitter } from 'lucide-react';
 import { contactPhone, socialLinks, whatsappUrl } from '../constants.js';
 import { stockLedgerLogoIcon } from '../../../assets/brandAssets.js';
 
-// Placeholder '#' entries in constants.js are filtered out — icons appear
+// Placeholder '#' entries in constants.js are filtered out â€” icons appear
 // automatically once real profile URLs are filled in.
 const SOCIAL_LINKS = [
   { key: 'facebook', href: socialLinks.facebook, Icon: Facebook },
@@ -21,7 +21,7 @@ const PRODUCT_LINKS = [
 ];
 
 function FooterHeading({ children }) {
-  return <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">{children}</p>;
+  return <p className="text-[12px] font-semibold text-slate-300/90">{children}</p>;
 }
 
 const footerLinkClass = 'text-sm font-semibold text-slate-300 transition hover:text-white';
@@ -38,7 +38,7 @@ export default function LandingFooter({ t }) {
               <img loading="lazy" decoding="async" src={stockLedgerLogoIcon} alt="" className="h-12 w-12 object-contain drop-shadow-[0_10px_24px_rgba(15,23,42,0.24)]" />
               <div>
                 <h2 className="text-lg font-black tracking-tight text-white">StockLedger</h2>
-                <p className="mt-1 text-[11px] font-bold uppercase tracking-[0.16em] text-slate-300">{t('landing.footer.tagline')}</p>
+                <p className="mt-1 text-[11px] font-medium text-slate-300/80">{t('landing.footer.tagline')}</p>
               </div>
             </div>
             <p className="mt-4 text-sm font-medium leading-6 text-slate-300">{t('landing.footer.description')}</p>

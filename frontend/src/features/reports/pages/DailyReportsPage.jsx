@@ -88,18 +88,6 @@ export default function DailyReportsPage() {
         <Alert type="error">{vm.error}</Alert>
       ) : (
         <>
-          {/* Daily Close — single-day only */}
-          {vm.isSingleDay && (
-            <DailyClosePanel
-              close={vm.dailyClose}
-              totals={vm.totals}
-              profitTotals={vm.profitTotals}
-              date={vm.dateFrom}
-              t={t}
-              language={language}
-            />
-          )}
-
           {/* 8 stat cards */}
           <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <StatCard title={t('reports.issued')} value={formatCurrency(vm.totals.issuedValue)} helper={`${formatNumber(vm.totals.issuedPieces, language)} ${t('common.pcs')}`} icon={Truck} tone="amber" />
@@ -444,6 +432,20 @@ export default function DailyReportsPage() {
               </div>
             )}
           </div>
+
+          {/* Daily Close — single-day only */}
+          {vm.isSingleDay && (
+            <div className="mt-6">
+              <DailyClosePanel
+                close={vm.dailyClose}
+                totals={vm.totals}
+                profitTotals={vm.profitTotals}
+                date={vm.dateFrom}
+                t={t}
+                language={language}
+              />
+            </div>
+          )}
 
           {/* Printable Sheet - single-day mode only */}
           {vm.selectedSheet && vm.isSingleDay ? (

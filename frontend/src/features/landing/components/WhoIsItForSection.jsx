@@ -1,4 +1,4 @@
-import {
+﻿import {
   ShoppingCart,
   Pill,
   Cpu,
@@ -34,7 +34,7 @@ export default function WhoIsItForSection({ t }) {
                 <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--brand-soft)]">
                   <Icon size={22} className="text-[var(--brand-strong)]" />
                 </span>
-                <span className="text-sm font-bold leading-5 text-slate-700">{label}</span>
+                <span className="text-sm font-medium leading-6 text-slate-700">{label}</span>
               </div>
             );
           })}

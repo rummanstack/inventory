@@ -3637,13 +3637,17 @@ const en = {
       hero: {
         seePricing: 'See Pricing',
         eyebrow: 'For shops, wholesalers and DSR teams',
-        title: 'Stop stock mismatch and due confusion.',
-        subtitle: 'Sales, purchases, SR/DSR settlement, due collection, discounts, print reports and profit. All in one dashboard.',
+        title: 'Run stock, sales and due from one view.',
+        subtitle: 'One dashboard for sales, stock, due, settlement and profit.',
         callLabel: 'Call',
         liveView: 'Live view',
-        liveViewText: 'Sales, due, cash and profit in one view.',
+        liveViewText: 'Everything the owner needs, in one clean view.',
       },
-      problem: {
+      proof: {
+        eyebrow: 'Customer Proof',
+        title: 'Real businesses in Bangladesh already run on StockLedger.',
+        text: 'Grocery wholesalers, pharmacy owners, electronics retailers and DSR teams use it for sales, due, settlement and profit.',
+      },      problem: {
         eyebrow: 'The Problem',
         title: 'Running a business is hard when records are everywhere.',
         text: 'Notebook here, Excel there — and numbers get lost. StockLedger keeps everything in one place, so you always know what is going on.',

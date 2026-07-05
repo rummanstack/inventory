@@ -62,7 +62,7 @@ function PricingCard({ plan, features, expanded, onToggle, hiddenCount, t }) {
         </button>
       ) : null}
       <div className="mt-auto pt-8">
-        <a href="#contact-form" onClick={focusContactForm} className={`w-full rounded-2xl ${plan.featured ? 'btn-primary shadow-[0_18px_34px_rgba(var(--blue-700),0.34)] ring-2 ring-[rgba(var(--brand),0.12)]' : 'btn-secondary opacity-90'}`}>
+        <a href="#contact-form" onClick={focusContactForm} className={`w-full rounded-2xl ${plan.featured ? 'btn-primary shadow-[0_18px_34px_rgba(var(--secondary-shadow-strong),0.34)] ring-2 ring-[rgba(var(--brand),0.12)]' : 'btn-secondary opacity-90'}`}>
           {t('landing.pricing.contactUs')}
         </a>
         <p className="mt-3 text-center text-[11px] font-semibold text-slate-400">

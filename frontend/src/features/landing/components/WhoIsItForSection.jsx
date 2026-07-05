@@ -1,4 +1,4 @@
-﻿import {
+import {
   ShoppingCart,
   Pill,
   Cpu,
@@ -29,7 +29,7 @@ export default function WhoIsItForSection({ t }) {
             return (
               <div
                 key={label}
-                className="flex flex-col items-center gap-3 rounded-[20px] border border-blue-100 bg-white px-4 py-6 text-center shadow-[0_2px_12px_rgba(var(--blue-700),0.06)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_6px_20px_rgba(var(--blue-700),0.10)]"
+                className="flex flex-col items-center gap-3 rounded-[20px] border border-slate-200 bg-white px-4 py-6 text-center shadow-[0_2px_12px_rgba(var(--slate-900),0.06)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_6px_20px_rgba(var(--slate-900),0.10)]"
               >
                 <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--brand-soft)]">
                   <Icon size={22} className="text-[var(--brand-strong)]" />

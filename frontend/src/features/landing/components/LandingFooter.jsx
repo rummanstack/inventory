@@ -1,4 +1,4 @@
-﻿import { Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { ArrowUp, Facebook, Instagram, Linkedin, MapPin, MessageCircle, Phone, Send, Twitter } from 'lucide-react';
 import { contactPhone, socialLinks, whatsappUrl } from '../constants.js';
 import { stockLedgerLogoIcon } from '../../../assets/brandAssets.js';
@@ -83,15 +83,15 @@ export default function LandingFooter({ t }) {
           <div className="flex flex-col gap-3">
             <FooterHeading>{t('landing.footer.contactLabel')}</FooterHeading>
             <a href={`tel:${contactPhone}`} className="inline-flex items-center gap-2.5 text-base font-black tracking-wide text-white transition hover:text-slate-200">
-              <Phone size={16} className="shrink-0 text-[rgb(var(--blue-200))]" />
+              <Phone size={16} className="shrink-0 text-[var(--brand-soft)]" />
               {contactPhone}
             </a>
             <a href={whatsappUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2.5 text-sm font-semibold text-slate-300 transition hover:text-white">
-              <MessageCircle size={16} className="shrink-0 text-[#25D366]" />
+              <MessageCircle size={16} className="shrink-0 text-[var(--landing-accent-success)]" />
               {t('landing.footer.whatsapp')}
             </a>
             <div className="inline-flex items-start gap-2.5 text-sm text-slate-400">
-              <MapPin size={15} className="mt-0.5 shrink-0 text-[rgb(var(--blue-200))]" />
+              <MapPin size={15} className="mt-0.5 shrink-0 text-[var(--brand-soft)]" />
               <address className="not-italic leading-6">
                 Middle Paikpara, Mirpur-1<br />
                 Dhaka - 1216, Bangladesh

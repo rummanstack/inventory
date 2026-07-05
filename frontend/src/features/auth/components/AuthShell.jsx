@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+﻿import { Link } from 'react-router-dom';
 import { stockLedgerLogoHorizontal, stockLedgerLogoIcon } from '../../../assets/brandAssets.js';
 
 // Shared layout for the public auth pages (login + register): dark brand panel on
@@ -14,11 +14,11 @@ export default function AuthShell({ brand, eyebrow, title, points = [], footnote
           <div className="grid w-full max-w-5xl overflow-hidden rounded-[28px] shadow-[0_30px_90px_rgba(8,17,31,0.22)] lg:grid-cols-[2fr_3fr]">
 
             {/* Brand panel */}
-            <div className="relative hidden flex-col justify-between overflow-hidden bg-[linear-gradient(150deg,#08111f_0%,#101b36_45%,#425bf6_130%)] p-10 lg:flex">
+            <div className="relative hidden flex-col justify-between overflow-hidden bg-[var(--bg-dark)] p-10 lg:flex">
               {/* Ambient glows */}
               <div className="pointer-events-none absolute inset-0">
-                <div className="absolute -left-24 -top-24 h-72 w-72 rounded-full bg-[rgba(144,159,250,0.22)] blur-[100px]" />
-                <div className="absolute -bottom-28 -right-16 h-80 w-80 rounded-full bg-[rgba(13,148,136,0.20)] blur-[110px]" />
+                <div className="absolute -left-24 -top-24 h-72 w-72 rounded-full bg-[rgba(60,42,134,0.14)] blur-[100px]" />
+                <div className="absolute -bottom-28 -right-16 h-80 w-80 rounded-full bg-[rgba(60,42,134,0.22)] blur-[110px]" />
               </div>
 
               <div className="relative">
@@ -27,13 +27,13 @@ export default function AuthShell({ brand, eyebrow, title, points = [], footnote
                     <img src={stockLedgerLogoIcon} alt="" className="h-9 w-9 object-contain" />
                   </span>
                   <span>
-                    <span className="block text-lg font-black leading-none tracking-tight text-[#ffffff]">StockLedger</span>
-                    <span className="mt-1 block text-[10px] font-bold uppercase tracking-[0.2em] text-[#ffffff80]">{brand}</span>
+                    <span className="block text-lg font-black leading-none tracking-tight text-white">StockLedger</span>
+                    <span className="mt-1 block text-[10px] font-bold uppercase tracking-[0.2em] text-[#e9e2ff]/75">{brand}</span>
                   </span>
                 </Link>
 
-                <p className="mt-12 text-[11px] font-black uppercase tracking-[0.24em] text-[#a3b0fc]">{eyebrow}</p>
-                <h2 className="mt-4 max-w-xs text-[28px] font-black leading-[1.15] tracking-tight text-[#ffffff]">
+                <p className="mt-12 text-[11px] font-black uppercase tracking-[0.24em] text-[#ddd2ff]">{eyebrow}</p>
+                <h2 className="mt-4 max-w-xs text-[28px] font-black leading-[1.15] tracking-tight text-white">
                   {title}
                 </h2>
               </div>
@@ -41,15 +41,15 @@ export default function AuthShell({ brand, eyebrow, title, points = [], footnote
               <ul className="relative mt-10 space-y-5">
                 {points.map(({ icon: Icon, text }) => (
                   <li key={text} className="flex items-start gap-3.5">
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#ffffff1a] bg-[#ffffff12] text-[#a3b0fc] backdrop-blur">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-[rgba(60,42,134,0.16)] text-[#ddd2ff] backdrop-blur">
                       <Icon size={18} />
                     </span>
-                    <span className="pt-2 text-sm font-semibold leading-6 text-[#ffffffcc]">{text}</span>
+                    <span className="pt-2 text-sm font-semibold leading-6 text-white/80">{text}</span>
                   </li>
                 ))}
               </ul>
 
-              <p className="relative mt-10 text-xs font-semibold leading-5 text-[#ffffff66]">
+              <p className="relative mt-10 text-xs font-semibold leading-5 text-white/50">
                 {footnote}
               </p>
             </div>

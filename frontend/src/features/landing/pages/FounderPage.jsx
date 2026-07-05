@@ -63,13 +63,13 @@ export default function FounderPage() {
       <section
         className="relative overflow-hidden pb-0 pt-28 sm:pt-36"
         style={{
-          background: 'linear-gradient(160deg, var(--bg-dark) 0%, #1a1048 50%, #0d1f3c 100%)',
+          background: 'linear-gradient(160deg, var(--bg-dark) 0%, var(--landing-founder-hero-mid) 50%, var(--landing-founder-hero-end) 100%)',
         }}
       >
         {/* Decorative glows */}
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
           <div className="absolute left-1/3 top-0 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/4 rounded-full bg-[var(--brand)] opacity-10 blur-[140px]" />
-          <div className="absolute right-0 top-1/2 h-[300px] w-[300px] rounded-full bg-teal-500 opacity-8 blur-[100px]" />
+          <div className="absolute right-0 top-1/2 h-[300px] w-[300px] rounded-full bg-[var(--landing-accent-teal)] opacity-8 blur-[100px]" />
         </div>
         {/* Grid texture */}
         <div
@@ -94,11 +94,11 @@ export default function FounderPage() {
 
             {/* Copy */}
             <div className="max-w-xl lg:pb-16">
-              <span className="landing-eyebrow !text-[var(--teal)]">{t('landing.founder.eyebrow')}</span>
+              <span className="landing-eyebrow !text-[var(--landing-accent-teal)]">{t('landing.founder.eyebrow')}</span>
               <h1 className="mt-3 text-4xl font-black leading-[1.06] tracking-[-0.03em] text-white sm:text-5xl lg:text-6xl">
                 {t('landing.founder.name')}
               </h1>
-              <p className="mt-2 text-base font-bold text-[var(--teal)]">{t('landing.founder.title')}</p>
+              <p className="mt-2 text-base font-bold text-[var(--landing-accent-teal)]">{t('landing.founder.title')}</p>
               <p className="mt-5 text-base font-medium leading-7 text-slate-300 sm:text-lg">
                 {t('landing.founder.tagline')}
               </p>
@@ -135,7 +135,7 @@ export default function FounderPage() {
                   href={whatsappUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex h-10 items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/15 px-4 text-sm font-bold text-emerald-300 transition duration-200 hover:-translate-y-0.5 hover:bg-emerald-500/25"
+                  className="inline-flex h-10 items-center gap-2 rounded-full border border-[var(--landing-tone-success-border)] bg-[var(--landing-accent-success-soft)] px-4 text-sm font-bold text-[var(--landing-accent-success)] transition duration-200 hover:-translate-y-0.5 hover:bg-[var(--landing-accent-success-soft)]"
                 >
                   <MessageCircle size={15} />
                   {t('landing.founder.whatsapp')}
@@ -152,7 +152,7 @@ export default function FounderPage() {
               <div
                 className="relative h-[340px] w-[280px] overflow-hidden rounded-[32px] sm:h-[400px] sm:w-[320px]"
                 style={{
-                  background: 'linear-gradient(145deg,var(--brand),var(--brand-strong) 40%,var(--teal))',
+                  background: 'linear-gradient(145deg,var(--brand),var(--brand-strong) 40%,var(--landing-accent-teal))',
                   padding: '3px',
                 }}
               >
@@ -182,7 +182,7 @@ export default function FounderPage() {
       </section>
 
       {/* ── Pullquote ── */}
-      <section className="border-b border-slate-100 bg-[linear-gradient(180deg,#f8f7ff_0%,#ffffff_100%)]">
+      <section className="border-b border-slate-100 bg-[linear-gradient(180deg,var(--landing-surface-tint-start)_0%,var(--landing-surface-tint-end)_100%)]">
         <div className="landing-container py-12 sm:py-16">
           <div className="mx-auto max-w-3xl text-center">
             <Quote size={36} className="mx-auto text-[var(--brand)]/30" />
@@ -218,7 +218,7 @@ export default function FounderPage() {
                   href={whatsappUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="landing-primary-btn !bg-[#25D366] !shadow-[0_16px_32px_rgba(37,211,102,0.28)] hover:!bg-[#1ebe5d]"
+                  className="landing-primary-btn !bg-[var(--landing-accent-success)] !shadow-[0_16px_32px_var(--landing-accent-success-shadow)] hover:!bg-[var(--landing-accent-success-strong)]"
                 >
                   <MessageCircle size={18} />
                   {t('landing.founder.talkWhatsApp')}
@@ -242,7 +242,7 @@ export default function FounderPage() {
                     {/* Spine */}
                     <div className="flex flex-col items-center">
                       <div
-                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[11px] font-black text-white shadow-[0_8px_20px_rgba(var(--blue-700),0.28)]"
+                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[11px] font-black text-white shadow-[0_8px_20px_rgba(var(--slate-900),0.18)]"
                         style={{
                           background: 'linear-gradient(135deg,var(--brand),var(--brand-strong))',
                         }}
@@ -289,7 +289,7 @@ export default function FounderPage() {
               return (
                 <div
                   key={title}
-                  className="rounded-[22px] border border-blue-100 bg-white p-6 shadow-[0_4px_16px_rgba(var(--blue-700),0.06)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_32px_rgba(var(--blue-700),0.1)]"
+                  className="rounded-[22px] border border-slate-200 bg-white p-6 shadow-[0_4px_16px_var(--landing-shadow-brand-soft)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_32px_var(--landing-shadow-brand)]"
                 >
                   <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-[var(--brand-soft)]">
                     <Icon size={20} className="text-[var(--brand-strong)]" />
@@ -306,11 +306,11 @@ export default function FounderPage() {
       {/* ── Personal note / CTA ── */}
       <section className="landing-section">
         <div className="landing-container">
-          <div className="relative overflow-hidden rounded-[32px] bg-[linear-gradient(145deg,var(--brand-strong)_0%,#1a1048_55%,#0d1f3c_100%)] p-8 sm:p-12 lg:p-16">
+          <div className="relative overflow-hidden rounded-[32px] bg-[linear-gradient(145deg,var(--brand-strong)_0%,var(--landing-founder-hero-mid)_55%,var(--landing-founder-hero-end)_100%)] p-8 sm:p-12 lg:p-16">
             {/* Decorative glows */}
             <div className="pointer-events-none absolute inset-0 overflow-hidden">
               <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-[var(--brand)] opacity-15 blur-[80px]" />
-              <div className="absolute -bottom-10 left-10 h-48 w-48 rounded-full bg-teal-500 opacity-10 blur-[60px]" />
+              <div className="absolute -bottom-10 left-10 h-48 w-48 rounded-full bg-[var(--landing-accent-teal)] opacity-10 blur-[60px]" />
             </div>
 
             <div className="relative flex flex-col gap-8 lg:flex-row lg:items-center lg:gap-14">
@@ -319,7 +319,7 @@ export default function FounderPage() {
                 <div
                   className="h-24 w-24 overflow-hidden rounded-full sm:h-28 sm:w-28"
                   style={{
-                    background: 'linear-gradient(135deg,var(--brand),var(--teal))',
+                    background: 'linear-gradient(135deg,var(--brand),var(--landing-accent-teal))',
                     padding: '2px',
                   }}
                 >
@@ -335,11 +335,11 @@ export default function FounderPage() {
 
               {/* Message */}
               <div className="flex-1">
-                <p className="landing-eyebrow !text-[var(--teal)]">{t('landing.founder.noteEyebrow')}</p>
+                <p className="landing-eyebrow !text-[var(--landing-accent-teal)]">{t('landing.founder.noteEyebrow')}</p>
                 <p className="mt-3 text-lg font-bold leading-7 text-white sm:text-xl">
                   {t('landing.founder.noteText')}
                 </p>
-                <p className="mt-3 text-sm font-bold text-[var(--teal)]">{t('landing.founder.noteBy')}</p>
+                <p className="mt-3 text-sm font-bold text-[var(--landing-accent-teal)]">{t('landing.founder.noteBy')}</p>
               </div>
 
               {/* Actions */}
@@ -348,7 +348,7 @@ export default function FounderPage() {
                   href={whatsappUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-[#25D366] px-5 text-sm font-black text-white shadow-[0_12px_28px_rgba(37,211,102,0.3)] transition hover:-translate-y-0.5"
+                  className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-[var(--landing-accent-success)] px-5 text-sm font-black text-white shadow-[0_12px_28px_var(--landing-accent-success-shadow)] transition hover:-translate-y-0.5"
                 >
                   <MessageCircle size={16} />
                   {t('landing.founder.whatsappMe')}

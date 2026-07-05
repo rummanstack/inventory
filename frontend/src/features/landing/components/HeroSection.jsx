@@ -1,6 +1,6 @@
 import { ArrowRight, MessageCircle } from 'lucide-react';
 import ImagePlaceholder from './shared/ImagePlaceholder.jsx';
-import { heroDashboardImage, whatsappUrl } from '../constants.js';
+import { heroDashboardImage } from '../constants.js';
 
 export default function HeroSection({ t }) {
   const heroImage = {
@@ -17,14 +17,9 @@ export default function HeroSection({ t }) {
           <p className="landing-hero-subtitle">{t('landing.hero.subtitle')}</p>
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <a
-              href={whatsappUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="landing-primary-btn"
-            >
+            <a href="#contact-form" className="landing-primary-btn">
               <MessageCircle size={18} />
-              {t('landing.whatsappUs')}
+              Book Demo
             </a>
             <a href="#pricing" className="landing-secondary-btn">
               {t('landing.hero.seePricing')}

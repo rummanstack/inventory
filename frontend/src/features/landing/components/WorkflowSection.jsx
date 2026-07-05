@@ -18,7 +18,7 @@ export default function WorkflowSection({ t }) {
             const Icon = workflowIcons[index];
             return (
               <article key={step.title} className="workflow-card">
-                <span className="workflow-number">{index + 1}</span>
+
                 <Icon size={24} className="mt-5 text-[var(--brand)]" />
                 <h3 className="mt-4 text-base font-black text-slate-950">{step.title}</h3>
                 <p className="mt-2 text-sm font-medium leading-6 text-slate-600">{step.description}</p>

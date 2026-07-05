@@ -3022,7 +3022,7 @@ const en = {
       },
       login: 'Login',
       registerNow: 'Register Free',
-      whatsappUs: 'Book WhatsApp Demo',
+      whatsappUs: 'Book Demo',
       tagline: 'Inventory System',
       homeAriaLabel: 'StockLedger home',
       navAriaLabel: 'Landing navigation',
@@ -3394,7 +3394,7 @@ const en = {
         cta: {
           title: 'Ready to get started?',
           text: 'Your data is safe with us. Talk to our team anytime.',
-          whatsapp: 'Book WhatsApp Demo',
+          whatsapp: 'Book Demo',
           explore: 'Explore StockLedger',
         },
       },
@@ -3613,7 +3613,7 @@ const en = {
         cta: {
           title: 'Questions about these terms?',
           text: 'Our team is happy to clarify anything before you commit.',
-          whatsapp: 'Book WhatsApp Demo',
+          whatsapp: 'Book Demo',
           explore: 'Explore StockLedger',
         },
       },
@@ -3766,7 +3766,7 @@ const en = {
       },
       workflow: {
         label: 'How It Works',
-        title: 'From purchase to profit, step by step',
+        title: 'From purchase to profit',
         description: 'A simple flow that matches how your business already runs.',
         steps: [
           { title: 'Purchase Receive', description: 'Record what you buy from suppliers.' },
@@ -3786,7 +3786,7 @@ const en = {
         title: 'Ready to get started with StockLedger?',
         text: 'Call {phone} or log in to set up your business in minutes.',
         callNow: 'Call Now',
-        whatsapp: 'Book WhatsApp Demo',
+        whatsapp: 'Book Demo',
       },
       pricing: {
         label: 'Pricing',
@@ -3852,7 +3852,7 @@ const en = {
           {
             name: 'Custom',
             label: 'For multi-branch teams',
-            price: 'Custom',
+            price: 'Contact Sales',
             cadence: '',
             description: 'For multi-branch operations that need custom setup, advanced modules, training and priority support.',
             included: [true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true],
@@ -3883,7 +3883,7 @@ const en = {
         company: 'Company',
         aboutFounder: 'About the Founder',
         contactLabel: 'Contact',
-        whatsapp: 'Book WhatsApp Demo',
+        whatsapp: 'Book Demo',
         backToTop: 'Back to top',
         copyright: 'Copyright © 2026 StockLedger. All rights reserved.',
       },

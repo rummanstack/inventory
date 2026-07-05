@@ -32,10 +32,10 @@ function RichText({ text, email, t }) {
 }
 
 const CARD_TONES = {
-  blue: 'border-blue-100 bg-blue-50/70 text-blue-900',
-  amber: 'border-amber-100 bg-amber-50/70 text-amber-900',
-  rose: 'border-rose-100 bg-rose-50/70 text-rose-900',
-  teal: 'border-teal-100 bg-teal-50/70 text-teal-900',
+  blue: 'border-[var(--landing-tone-info-border)] bg-[var(--landing-tone-info-bg)] text-[var(--landing-tone-info-text)]',
+  amber: 'border-[var(--landing-tone-warning-border)] bg-[var(--landing-tone-warning-bg)] text-[var(--landing-tone-warning-text)]',
+  rose: 'border-[var(--landing-tone-danger-border)] bg-[var(--landing-tone-danger-bg)] text-[var(--landing-tone-danger-text)]',
+  teal: 'border-[var(--landing-tone-success-border)] bg-[var(--landing-tone-success-bg)] text-[var(--landing-tone-success-text)]',
 };
 
 function Block({ block, email, t }) {
@@ -122,13 +122,13 @@ function ContactCards({ contact, email }) {
           <p className="mt-1 text-xs text-slate-500">{contact.phoneNote}</p>
         </div>
       </a>
-      <a href={whatsappUrl} target="_blank" rel="noreferrer" className={`${cardClass} hover:border-emerald-200`}>
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-emerald-50">
-          <MessageCircle size={18} className="text-emerald-700" />
+      <a href={whatsappUrl} target="_blank" rel="noreferrer" className={`${cardClass} hover:border-[var(--landing-tone-success-border)]`}>
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[var(--landing-accent-success-soft)]">
+          <MessageCircle size={18} className="text-[var(--landing-accent-success)]" />
         </span>
         <div>
           <p className="font-black text-slate-950">{contact.whatsappTitle}</p>
-          <p className="mt-0.5 text-[13px] font-semibold text-emerald-700">{contact.whatsappAction}</p>
+          <p className="mt-0.5 text-[13px] font-semibold text-[var(--landing-accent-success)]">{contact.whatsappAction}</p>
           <p className="mt-1 text-xs text-slate-500">{contact.whatsappNote}</p>
         </div>
       </a>
@@ -191,7 +191,7 @@ export default function LegalPageLayout({ language, setLanguage, t, contentKey, 
       <section className="relative overflow-hidden pb-12 pt-32 sm:pb-16 sm:pt-40" style={{ background: heroGradient }}>
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
           <div className="absolute -left-20 -top-20 h-[440px] w-[440px] rounded-full bg-[var(--brand)] opacity-10 blur-[120px]" />
-          <div className="absolute -right-20 top-0 h-[320px] w-[320px] rounded-full bg-teal-500 opacity-8 blur-[100px]" />
+          <div className="absolute -right-20 top-0 h-[320px] w-[320px] rounded-full bg-[var(--landing-accent-teal)] opacity-8 blur-[100px]" />
         </div>
         <div
           className="pointer-events-none absolute inset-0"
@@ -209,11 +209,11 @@ export default function LegalPageLayout({ language, setLanguage, t, contentKey, 
           </div>
 
           <div className="mt-6 max-w-2xl">
-            <span className="landing-eyebrow !text-[var(--teal)]">{content.eyebrow}</span>
+            <span className="landing-eyebrow !text-[var(--landing-accent-teal)]">{content.eyebrow}</span>
             <h1 className="mt-3 text-4xl font-black leading-[1.06] tracking-[-0.03em] text-white sm:text-5xl">{content.title}</h1>
             <p className="mt-4 text-base font-medium leading-7 text-slate-300 sm:text-lg">{content.intro}</p>
             <p className="mt-5 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-semibold text-slate-300">
-              <Clock size={14} className="text-teal-400" />
+              <Clock size={14} className="text-[var(--landing-accent-teal)]" />
               {content.updated}
             </p>
           </div>
@@ -233,7 +233,7 @@ export default function LegalPageLayout({ language, setLanguage, t, contentKey, 
                 onClick={() => selectTab(id)}
                 className={`inline-flex shrink-0 items-center gap-2 rounded-full border px-4 py-2 text-[13px] font-bold transition duration-150 ${
                   activeTab?.id === id
-                    ? 'border-transparent bg-[var(--brand-strong)] text-white shadow-[0_8px_20px_rgba(var(--blue-700),0.25)]'
+                    ? 'border-transparent bg-[var(--brand-strong)] text-white shadow-[0_8px_20px_var(--landing-shadow-brand)]'
                     : 'border-slate-200 bg-white text-slate-600'
                 }`}
               >
@@ -272,7 +272,7 @@ export default function LegalPageLayout({ language, setLanguage, t, contentKey, 
           <article className="min-w-0 flex-1">
             <div key={activeTab?.id} className="page-enter">
               <div className="mb-5 flex items-center gap-3">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,var(--brand-soft),color-mix(in_srgb,var(--teal)_12%,white))]">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,var(--brand-soft),color-mix(in_srgb,var(--landing-accent-teal)_12%,white))]">
                   <TabIcon id={activeTab?.id} size={18} />
                 </span>
                 <h2 className="text-xl font-black tracking-tight text-slate-950 sm:text-2xl">{activeTab?.label}</h2>
@@ -335,7 +335,7 @@ export default function LegalPageLayout({ language, setLanguage, t, contentKey, 
                   href={whatsappUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-[#25D366] px-6 text-sm font-black text-white shadow-[0_14px_30px_rgba(37,211,102,0.3)] transition hover:-translate-y-0.5"
+                  className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-[var(--landing-accent-success)] px-6 text-sm font-black text-white shadow-[0_14px_30px_var(--landing-accent-success-shadow)] transition hover:-translate-y-0.5"
                 >
                   <MessageCircle size={16} />
                   {content.cta?.whatsapp}

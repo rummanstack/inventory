@@ -52,7 +52,7 @@ export const navLinks = [
   { key: 'contact', href: '#contact-form' },
 ];
 
-export const heroDashboardImage = dashboardSummaryImage;
+export const heroDashboardImage = heroDashboardImageFile;
 export const heroMobileImage = landingImage2;
 export const contactUsImage = supportCallImage;
 

@@ -176,7 +176,7 @@ export default function QuotationFormModal({ quotation, onClose, onSave }) {
             <label className="label">{t('quotations.validityDaysLabel')}</label>
             <input
               className="input"
-              type="number"
+              type="number" inputMode="decimal"
               min="1"
               value={form.validityDays}
               onChange={(e) => updateField('validityDays', e.target.value)}
@@ -241,7 +241,7 @@ export default function QuotationFormModal({ quotation, onClose, onSave }) {
                     <td className="px-2 py-1.5">
                       <input
                         className="input py-1 text-sm text-right"
-                        type="number"
+                        type="number" inputMode="decimal"
                         min="0.001"
                         step="any"
                         value={item.quantity}
@@ -251,7 +251,7 @@ export default function QuotationFormModal({ quotation, onClose, onSave }) {
                     <td className="px-2 py-1.5">
                       <input
                         className="input py-1 text-sm text-right"
-                        type="number"
+                        type="number" inputMode="decimal"
                         min="0"
                         step="any"
                         value={item.unitPrice}
@@ -261,7 +261,7 @@ export default function QuotationFormModal({ quotation, onClose, onSave }) {
                     <td className="px-2 py-1.5">
                       <input
                         className="input py-1 text-sm text-right"
-                        type="number"
+                        type="number" inputMode="decimal"
                         min="0"
                         step="any"
                         value={item.discountAmount}
@@ -296,7 +296,7 @@ export default function QuotationFormModal({ quotation, onClose, onSave }) {
               <label className="label">{t('quotations.discountLabel')}</label>
               <input
                 className="input"
-                type="number"
+                type="number" inputMode="decimal"
                 min="0"
                 step="any"
                 value={form.discountAmount}
@@ -307,7 +307,7 @@ export default function QuotationFormModal({ quotation, onClose, onSave }) {
               <label className="label">{t('quotations.taxRateLabel')}</label>
               <input
                 className="input"
-                type="number"
+                type="number" inputMode="decimal"
                 min="0"
                 step="any"
                 value={form.taxRate}

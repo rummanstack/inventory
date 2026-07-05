@@ -202,7 +202,7 @@ export default function QuotationViewModal({ quotation, onClose, onConverted }) 
                 <label className="label">{t('quotations.paidAmountLabel')}</label>
                 <input
                   className="input"
-                  type="number"
+                  type="number" inputMode="decimal"
                   min="0"
                   step="any"
                   value={paidAmount}

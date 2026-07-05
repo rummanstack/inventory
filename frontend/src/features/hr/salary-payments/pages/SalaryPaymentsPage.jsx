@@ -89,7 +89,7 @@ function ActiveDaysInput({ emp, month, onSaved, canManage, t }) {
     <span className="inline-flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
       <Calendar size={12} className="text-slate-400" />
       <input
-        type="number"
+        type="number" inputMode="decimal"
         min="0"
         max={emp.daysInMonth}
         step="1"

@@ -134,7 +134,7 @@ function PromotionFormModal({ promotion, products, categories, onClose, onSave }
           </div>
           <div>
             <label className="label">{t('retailer.promotions.priority')}</label>
-            <input className="input" type="number" min="1" step="1" value={form.priority} onChange={(event) => updateField('priority', event.target.value)} />
+            <input className="input" type="number" inputMode="decimal" min="1" step="1" value={form.priority} onChange={(event) => updateField('priority', event.target.value)} />
           </div>
           <div className="sm:col-span-2">
             <label className="label">{t('retailer.promotions.descriptionLabel')}</label>
@@ -175,15 +175,15 @@ function PromotionFormModal({ promotion, products, categories, onClose, onSave }
           </div>
           <div>
             <label className="label">{t('retailer.promotions.discountValue')}</label>
-            <input className="input" type="number" min="0" step="0.0001" value={form.discountValue} onChange={(event) => updateField('discountValue', event.target.value)} />
+            <input className="input" type="number" inputMode="decimal" min="0" step="0.0001" value={form.discountValue} onChange={(event) => updateField('discountValue', event.target.value)} />
           </div>
           <div>
             <label className="label">{t('retailer.promotions.minQuantity')}</label>
-            <input className="input" type="number" min="0" step="1" value={form.minQuantity} onChange={(event) => updateField('minQuantity', event.target.value)} />
+            <input className="input" type="number" inputMode="decimal" min="0" step="1" value={form.minQuantity} onChange={(event) => updateField('minQuantity', event.target.value)} />
           </div>
           <div>
             <label className="label">{t('retailer.promotions.minSubtotal')}</label>
-            <input className="input" type="number" min="0" step="0.0001" value={form.minSubtotal} onChange={(event) => updateField('minSubtotal', event.target.value)} />
+            <input className="input" type="number" inputMode="decimal" min="0" step="0.0001" value={form.minSubtotal} onChange={(event) => updateField('minSubtotal', event.target.value)} />
           </div>
           <div>
             <label className="label">{t('retailer.promotions.startDate')}</label>

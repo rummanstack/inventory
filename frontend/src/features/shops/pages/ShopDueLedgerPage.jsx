@@ -56,7 +56,7 @@ function EntryModal({ title, description, balance, balanceLabel, balanceNote, am
         </div>
         <div>
           <label className="label">{amountLabel}</label>
-          <input className="input" type="number" min="0" step="0.0001" value={amount} onChange={(e) => setAmount(e.target.value)} />
+          <input className="input" type="number" inputMode="decimal" min="0" step="0.0001" value={amount} onChange={(e) => setAmount(e.target.value)} />
         </div>
         <div>
           <label className="label">{noteLabel}</label>

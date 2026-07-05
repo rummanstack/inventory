@@ -72,7 +72,7 @@ export default function DsrFormModal({ dsr, onClose, onSave }) {
           </div>
           <div>
             <label className="label">{t('dsr.phoneLabel')}</label>
-            <input className="input" value={form.phone} onChange={(event) => updateField('phone', event.target.value)} placeholder={t('dsr.phonePlaceholder')} />
+            <input className="input" type="tel" inputMode="tel" value={form.phone} onChange={(event) => updateField('phone', event.target.value)} placeholder={t('dsr.phonePlaceholder')} />
           </div>
           <div>
             <label className="label">{t('dsr.areaLabel')}</label>
@@ -87,7 +87,7 @@ export default function DsrFormModal({ dsr, onClose, onSave }) {
           </div>
           <div>
             <label className="label">{t('dsr.openingDue')}</label>
-            <input className="input" type="number" min="0" step="0.0001" value={form.openingDue} onChange={(event) => updateField('openingDue', event.target.value)} placeholder="0.00" />
+            <input className="input" type="number" inputMode="decimal" min="0" step="0.0001" value={form.openingDue} onChange={(event) => updateField('openingDue', event.target.value)} placeholder="0.00" />
           </div>
           {openingDueChanged ? (
             <div className="sm:col-span-2">

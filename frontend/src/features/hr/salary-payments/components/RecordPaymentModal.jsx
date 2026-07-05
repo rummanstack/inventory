@@ -123,7 +123,7 @@ export default function RecordPaymentModal({ employee, onClose, onSaved }) {
           </div>
           <input
             className="input"
-            type="number"
+            type="number" inputMode="decimal"
             min="0.01"
             step="0.0001"
             value={amount}

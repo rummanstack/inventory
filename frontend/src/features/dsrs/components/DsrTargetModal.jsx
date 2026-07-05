@@ -80,7 +80,7 @@ export default function DsrTargetModal({ onClose, onSaved }) {
                 </div>
                 <p className="min-w-0 flex-1 truncate text-sm font-bold text-slate-800">{dsr.name}</p>
                 <input
-                  type="number"
+                  type="number" inputMode="decimal"
                   min="0"
                   step="1"
                   className="input w-36 text-right"

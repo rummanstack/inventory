@@ -66,7 +66,7 @@ export default function RetailCustomerFormModal({ retailCustomer, onClose, onSav
           </div>
           <div>
             <label className="label">{t('retailCustomers.phoneLabel')}</label>
-            <input className="input" value={form.phone} onChange={(event) => updateField('phone', event.target.value)} placeholder={t('retailCustomers.phoneLabel')} />
+            <input className="input" type="tel" inputMode="tel" value={form.phone} onChange={(event) => updateField('phone', event.target.value)} placeholder={t('retailCustomers.phoneLabel')} />
           </div>
           <div>
             <label className="label">{t('retailCustomers.status')}</label>

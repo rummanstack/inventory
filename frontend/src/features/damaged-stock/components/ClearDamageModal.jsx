@@ -55,12 +55,12 @@ export default function ClearDamageModal({ product, onClose, onSave }) {
           {!isElectronics ? (
             <div>
               <label className="label">{t('common.case')}</label>
-              <input className="input" type="number" min="0" value={caseQty} onChange={(event) => setCaseQty(event.target.value)} />
+              <input className="input" type="number" inputMode="decimal" min="0" value={caseQty} onChange={(event) => setCaseQty(event.target.value)} />
             </div>
           ) : null}
           <div>
             <label className="label">{t('common.piece')}</label>
-            <input className="input" type="number" min="0" value={pieceQty} onChange={(event) => setPieceQty(event.target.value)} />
+            <input className="input" type="number" inputMode="decimal" min="0" value={pieceQty} onChange={(event) => setPieceQty(event.target.value)} />
           </div>
         </div>
         <div>

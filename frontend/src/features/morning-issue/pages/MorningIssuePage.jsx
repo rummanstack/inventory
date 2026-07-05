@@ -138,10 +138,10 @@ export default function MorningIssuePage() {
                           <p className="text-xs text-slate-500">{formatNumber(row.availableStock)} {t('common.pcs')}</p>
                         </td>
                         <td className="table-cell">
-                          <input className="input h-9 w-24" type="number" min="0" value={quantity.caseQty || ''} onFocus={autoSelect} onChange={(event) => vm.updateQuantity(row.id, 'caseQty', event.target.value)} disabled={vm.saving} />
+                          <input className="input h-9 w-24" type="number" inputMode="decimal" min="0" value={quantity.caseQty || ''} onFocus={autoSelect} onChange={(event) => vm.updateQuantity(row.id, 'caseQty', event.target.value)} disabled={vm.saving} />
                         </td>
                         <td className="table-cell">
-                          <input className="input h-9 w-24" type="number" min="0" value={quantity.pieceQty || ''} onFocus={autoSelect} onChange={(event) => vm.updateQuantity(row.id, 'pieceQty', event.target.value)} disabled={vm.saving} />
+                          <input className="input h-9 w-24" type="number" inputMode="decimal" min="0" value={quantity.pieceQty || ''} onFocus={autoSelect} onChange={(event) => vm.updateQuantity(row.id, 'pieceQty', event.target.value)} disabled={vm.saving} />
                         </td>
                         <td className="table-cell">
                           <p className={cx('font-semibold', row.invalid ? 'text-rose-700' : 'text-slate-950')}>{formatCasePiece(row.issuedPieces, row.piecesPerCase)}</p>

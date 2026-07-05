@@ -119,16 +119,16 @@ export default function EveningSettlementPage() {
                       <td className="table-cell font-semibold text-slate-950">{row.productName}</td>
                       <td className="table-cell">{formatCasePiece(row.issuedPieces, row.piecesPerCase)}</td>
                       <td className="table-cell">
-                        <input className="input h-9 w-24" type="number" min="0" value={vm.returns[row.key]?.caseQty || ''} onChange={(event) => vm.updateReturn(row.key, 'caseQty', event.target.value)} disabled={vm.saving} />
+                        <input className="input h-9 w-24" type="number" inputMode="decimal" min="0" value={vm.returns[row.key]?.caseQty || ''} onChange={(event) => vm.updateReturn(row.key, 'caseQty', event.target.value)} disabled={vm.saving} />
                       </td>
                       <td className="table-cell">
-                        <input className="input h-9 w-24" type="number" min="0" value={vm.returns[row.key]?.pieceQty || ''} onChange={(event) => vm.updateReturn(row.key, 'pieceQty', event.target.value)} disabled={vm.saving} />
+                        <input className="input h-9 w-24" type="number" inputMode="decimal" min="0" value={vm.returns[row.key]?.pieceQty || ''} onChange={(event) => vm.updateReturn(row.key, 'pieceQty', event.target.value)} disabled={vm.saving} />
                       </td>
                       <td className="table-cell">
-                        <input className="input h-9 w-24" type="number" min="0" value={vm.returns[row.key]?.damagedCaseQty || ''} onChange={(event) => vm.updateReturn(row.key, 'damagedCaseQty', event.target.value)} disabled={vm.saving} />
+                        <input className="input h-9 w-24" type="number" inputMode="decimal" min="0" value={vm.returns[row.key]?.damagedCaseQty || ''} onChange={(event) => vm.updateReturn(row.key, 'damagedCaseQty', event.target.value)} disabled={vm.saving} />
                       </td>
                       <td className="table-cell">
-                        <input className="input h-9 w-24" type="number" min="0" value={vm.returns[row.key]?.damagedPieceQty || ''} onChange={(event) => vm.updateReturn(row.key, 'damagedPieceQty', event.target.value)} disabled={vm.saving} />
+                        <input className="input h-9 w-24" type="number" inputMode="decimal" min="0" value={vm.returns[row.key]?.damagedPieceQty || ''} onChange={(event) => vm.updateReturn(row.key, 'damagedPieceQty', event.target.value)} disabled={vm.saving} />
                       </td>
                       <td className="table-cell font-semibold">{formatCasePiece(row.soldPieces, row.piecesPerCase)}</td>
                       <td className="table-cell">{formatCurrency(row.rate)}</td>
@@ -175,19 +175,19 @@ export default function EveningSettlementPage() {
                         </div>
                         <div>
                           <label className="label">{t('settlement.returnCase')}</label>
-                          <input className="input" type="number" min="0" value={row.caseQty} onChange={(event) => vm.updateExtraReturn(row.id, 'caseQty', event.target.value)} />
+                          <input className="input" type="number" inputMode="decimal" min="0" value={row.caseQty} onChange={(event) => vm.updateExtraReturn(row.id, 'caseQty', event.target.value)} />
                         </div>
                         <div>
                           <label className="label">{t('settlement.returnPiece')}</label>
-                          <input className="input" type="number" min="0" value={row.pieceQty} onChange={(event) => vm.updateExtraReturn(row.id, 'pieceQty', event.target.value)} />
+                          <input className="input" type="number" inputMode="decimal" min="0" value={row.pieceQty} onChange={(event) => vm.updateExtraReturn(row.id, 'pieceQty', event.target.value)} />
                         </div>
                         <div>
                           <label className="label">{t('settlement.damagedCase')}</label>
-                          <input className="input" type="number" min="0" value={row.damagedCaseQty} onChange={(event) => vm.updateExtraReturn(row.id, 'damagedCaseQty', event.target.value)} />
+                          <input className="input" type="number" inputMode="decimal" min="0" value={row.damagedCaseQty} onChange={(event) => vm.updateExtraReturn(row.id, 'damagedCaseQty', event.target.value)} />
                         </div>
                         <div>
                           <label className="label">{t('settlement.damagedPiece')}</label>
-                          <input className="input" type="number" min="0" value={row.damagedPieceQty} onChange={(event) => vm.updateExtraReturn(row.id, 'damagedPieceQty', event.target.value)} />
+                          <input className="input" type="number" inputMode="decimal" min="0" value={row.damagedPieceQty} onChange={(event) => vm.updateExtraReturn(row.id, 'damagedPieceQty', event.target.value)} />
                         </div>
                         <div>
                           <label className="label">{t('settlement.extraReturnRowValue')}</label>
@@ -231,7 +231,7 @@ export default function EveningSettlementPage() {
                       </div>
                       <div>
                         <label className="label">{t('settlement.shopDueAmount')}</label>
-                        <input className="input" type="number" min="0" step="0.0001" value={sc.amount} onChange={(e) => vm.updateShopCollection(sc.id, 'amount', e.target.value)} disabled={vm.saving} />
+                        <input className="input" type="number" inputMode="decimal" min="0" step="0.0001" value={sc.amount} onChange={(e) => vm.updateShopCollection(sc.id, 'amount', e.target.value)} disabled={vm.saving} />
                       </div>
                       <div>
                         <label className="label">{t('settlement.shopDueNote')}</label>
@@ -284,7 +284,7 @@ export default function EveningSettlementPage() {
                       </div>
                       <div>
                         <label className="label">{t('settlement.srHandoverAmount')}</label>
-                        <input className="input" type="number" min="0" step="0.0001" value={h.amount} onChange={(e) => vm.updateSrHandover(h.id, 'amount', e.target.value)} disabled={vm.saving} />
+                        <input className="input" type="number" inputMode="decimal" min="0" step="0.0001" value={h.amount} onChange={(e) => vm.updateSrHandover(h.id, 'amount', e.target.value)} disabled={vm.saving} />
                       </div>
                       <div>
                         <label className="label">{t('settlement.srHandoverNote')}</label>
@@ -345,7 +345,7 @@ export default function EveningSettlementPage() {
                       <dt className="font-semibold text-slate-500">{t('settlement.discount')}</dt>
                       <dd className="flex items-center gap-1.5">
                         <span className="font-bold text-rose-600">−</span>
-                        <input className="input h-9 w-28 text-right" type="number" min="0" step="0.0001" value={vm.discountInput} onChange={(event) => vm.setDiscountInput(event.target.value)} disabled={vm.saving} />
+                        <input className="input h-9 w-28 text-right" type="number" inputMode="decimal" min="0" step="0.0001" value={vm.discountInput} onChange={(event) => vm.setDiscountInput(event.target.value)} disabled={vm.saving} />
                       </dd>
                     </div>
                     {vm.discount > 0 ? (
@@ -398,7 +398,7 @@ export default function EveningSettlementPage() {
                       <dt className="font-semibold text-slate-500">{t('settlement.cashReceived')}</dt>
                       <dd className="flex items-center gap-1.5">
                         <span className="font-bold text-emerald-600">−</span>
-                        <input className="input h-9 w-28 text-right" type="number" min="0" step="0.0001" value={vm.amountPaidInput} onChange={(event) => vm.setAmountPaidInput(event.target.value)} disabled={vm.saving} />
+                        <input className="input h-9 w-28 text-right" type="number" inputMode="decimal" min="0" step="0.0001" value={vm.amountPaidInput} onChange={(event) => vm.setAmountPaidInput(event.target.value)} disabled={vm.saving} />
                       </dd>
                     </div>
 

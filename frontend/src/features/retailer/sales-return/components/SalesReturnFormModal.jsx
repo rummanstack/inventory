@@ -97,7 +97,7 @@ export default function SalesReturnFormModal({ onClose, onSave }) {
                             {t('retailer.salesReturn.serialsSelectedCount', { count: row.selectedSerialIds.length })}
                           </span>
                         ) : (
-                          <input className="input h-9 w-24 text-right" type="number" min="0" max={row.originalQuantity} value={row.returnQuantity} onChange={(event) => vm.updateReturnQuantity(row.rowId, event.target.value)} disabled={saving} />
+                          <input className="input h-9 w-24 text-right" type="number" inputMode="decimal" min="0" max={row.originalQuantity} value={row.returnQuantity} onChange={(event) => vm.updateReturnQuantity(row.rowId, event.target.value)} disabled={saving} />
                         )}
                       </td>
                       <td className="px-3 py-2">

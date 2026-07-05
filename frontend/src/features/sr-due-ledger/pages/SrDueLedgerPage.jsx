@@ -65,7 +65,7 @@ function CollectModal({ balance, srName, onClose, onSave, t }) {
         </div>
         <div>
           <label className="label">{t('srDueLedgerPage.collectModal.amountCollectedLabel')}</label>
-          <input className="input" type="number" min="0" step="0.0001" value={amount} onChange={(e) => setAmount(e.target.value)} />
+          <input className="input" type="number" inputMode="decimal" min="0" step="0.0001" value={amount} onChange={(e) => setAmount(e.target.value)} />
         </div>
         <div>
           <label className="label">{t('srDueLedgerPage.collectModal.noteLabel')}</label>

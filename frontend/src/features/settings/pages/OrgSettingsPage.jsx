@@ -131,7 +131,7 @@ export default function OrgSettingsPage() {
           <span className="label">{t('retailer.shared.taxRateLabel')}</span>
           <input
             className="input"
-            type="number"
+            type="number" inputMode="decimal"
             min="0"
             max="100"
             step="0.0001"
@@ -166,7 +166,7 @@ export default function OrgSettingsPage() {
               <span className="label">{t('orgSettings.loyaltyPointsPer100')}</span>
               <input
                 className="input"
-                type="number"
+                type="number" inputMode="decimal"
                 min="0"
                 step="0.0001"
                 value={form.loyaltyPointsPer100}
@@ -178,7 +178,7 @@ export default function OrgSettingsPage() {
               <span className="label">{t('orgSettings.loyaltyPointValue')}</span>
               <input
                 className="input"
-                type="number"
+                type="number" inputMode="decimal"
                 min="0"
                 step="0.0001"
                 value={form.loyaltyPointValue}

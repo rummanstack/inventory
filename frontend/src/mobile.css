@@ -47,6 +47,24 @@
   }
 }
 
+/* Sticky submit bar inside mobile sheets (Day 9): the standard form footer
+   (`flex justify-end gap-2` as the form's last child, or `.row-actions`)
+   pins to the bottom of the sheet's scroll area so the primary action never
+   has to be hunted for. Scoped to .modal-enter so page-level footers and
+   table action cells are untouched. */
+@media (max-width: 767.98px) {
+  .modal-enter form > div[class*='justify-end']:last-child,
+  .modal-enter .row-actions {
+    position: sticky;
+    bottom: 0;
+    z-index: 1;
+    margin: 0.75rem -1.25rem calc(-1 * max(1.25rem, env(safe-area-inset-bottom)));
+    border-top: 1px solid rgba(148, 163, 184, 0.25);
+    background: rgb(var(--white));
+    padding: 0.75rem 1.25rem max(0.75rem, env(safe-area-inset-bottom));
+  }
+}
+
 /* Safe-area helpers (any breakpoint) */
 .pb-safe {
   padding-bottom: env(safe-area-inset-bottom);

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Plus, Tag, Trash2 } from 'lucide-react';
+import { Minus, Plus, Tag, Trash2 } from 'lucide-react';
 import { DatePickerField } from '../../../../components/DatePicker.jsx';
 import { formatCurrency } from '../../../../utils/calculations.js';
 import { inventoryApi } from '../../../../services/inventoryApi.js';
@@ -233,7 +233,7 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, retail
                       <input
                         ref={(el) => { searchRefs.current[row.rowId] = el; }}
                         data-role="product-search"
-                        className="input"
+                        className="input max-md:h-12"
                         value={pickerOpen ? productQuery : selectedProductName}
                         onFocus={() => {
                           setProductPickerRowId(row.rowId);
@@ -347,15 +347,35 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, retail
                     {/* Quantity */}
                     <div>
                       <label className="label">{t('retailer.shared.quantityLabel')}</label>
-                      <input
-                        className="input"
-                        type="number"
-                        min="0"
-                        value={row.quantityPieces}
-                        onFocus={autoSelect}
-                        onChange={(e) => vm.updateItem(row.rowId, 'quantityPieces', e.target.value)}
-                        disabled={saving || row.serialRequired}
-                      />
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          className="icon-btn shrink-0 md:hidden"
+                          aria-label="-1"
+                          onClick={() => vm.updateItem(row.rowId, 'quantityPieces', String(Math.max(0, (Number(row.quantityPieces) || 0) - 1)))}
+                          disabled={saving || row.serialRequired}
+                        >
+                          <Minus size={18} />
+                        </button>
+                        <input
+                          className="input max-md:text-center"
+                          type="number" inputMode="decimal"
+                          min="0"
+                          value={row.quantityPieces}
+                          onFocus={autoSelect}
+                          onChange={(e) => vm.updateItem(row.rowId, 'quantityPieces', e.target.value)}
+                          disabled={saving || row.serialRequired}
+                        />
+                        <button
+                          type="button"
+                          className="icon-btn shrink-0 md:hidden"
+                          aria-label="+1"
+                          onClick={() => vm.updateItem(row.rowId, 'quantityPieces', String((Number(row.quantityPieces) || 0) + 1))}
+                          disabled={saving || row.serialRequired}
+                        >
+                          <Plus size={18} />
+                        </button>
+                      </div>
                       {row.serialRequired ? <p className="mt-1 text-xs font-semibold text-slate-500">{t('retailer.shared.serialQuantityHint')}</p> : null}
                     </div>
 
@@ -364,7 +384,7 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, retail
                       <label className="label">{t('retailer.shared.priceLabel')}</label>
                       <input
                         className={`input ${hasPromo ? 'border-emerald-300 bg-emerald-50 font-semibold text-emerald-800' : ''}`}
-                        type="number"
+                        type="number" inputMode="decimal"
                         min="0"
                         step="0.0001"
                         value={row.actualSalePrice}
@@ -379,7 +399,7 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, retail
                       <label className="label">{t('retailer.shared.lineDiscountLabel')}</label>
                       <input
                         className="input disabled:cursor-not-allowed disabled:opacity-50"
-                        type="number"
+                        type="number" inputMode="decimal"
                         min="0"
                         step="0.0001"
                         value={hasPromo ? 0 : row.lineDiscount}
@@ -473,7 +493,7 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, retail
             <div className="flex items-center justify-between gap-3">
               <dt className="font-semibold text-slate-600">{t('retailer.shared.discountLabel')}</dt>
               <dd className="flex items-center gap-2">
-                <input className="input h-9 w-28 text-right" type="number" min="0" step="0.0001" value={vm.discountInput} onFocus={autoSelect} onChange={(e) => vm.setDiscountInput(e.target.value)} disabled={saving} />
+                <input className="input h-9 w-28 text-right" type="number" inputMode="decimal" min="0" step="0.0001" value={vm.discountInput} onFocus={autoSelect} onChange={(e) => vm.setDiscountInput(e.target.value)} disabled={saving} />
               </dd>
             </div>
             {vm.loyaltyEligible ? (
@@ -483,7 +503,7 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, retail
                   <dd className="flex items-center gap-2">
                     <input
                       className="input h-9 w-28 text-right"
-                      type="number"
+                      type="number" inputMode="decimal"
                       min="0"
                       step="1"
                       value={vm.loyaltyRedeemPointsInput}
@@ -530,7 +550,7 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, retail
             <div className="flex items-center justify-between gap-3">
               <dt className="font-semibold text-slate-600">{t('retailer.shared.paidAmountLabel')}</dt>
               <dd className="flex items-center gap-2">
-                <input className="input h-9 w-28 text-right" type="number" min="0" step="0.0001" value={vm.paidAmountInput} onFocus={autoSelect} onChange={(e) => vm.setPaidAmountInput(e.target.value)} disabled={saving} />
+                <input className="input h-9 w-28 text-right" type="number" inputMode="decimal" min="0" step="0.0001" value={vm.paidAmountInput} onFocus={autoSelect} onChange={(e) => vm.setPaidAmountInput(e.target.value)} disabled={saving} />
                 <button type="button" className="btn-secondary h-9 px-2 text-xs" onClick={vm.markFullyPaid} disabled={saving}>
                   {t('retailer.shared.markFullyPaid')}
                 </button>

@@ -109,7 +109,7 @@ export default function SupplierPaymentFormModal({ payment, onClose, onSave }) {
           </div>
           <div>
             <label className="label">{t('supplierPayments.amountLabel')}</label>
-            <input className="input" type="number" min="0" step="0.0001" value={form.amount} onChange={(event) => updateField('amount', event.target.value)} placeholder="0.00" />
+            <input className="input" type="number" inputMode="decimal" min="0" step="0.0001" value={form.amount} onChange={(event) => updateField('amount', event.target.value)} placeholder="0.00" />
           </div>
           <div>
             <label className="label">{t('supplierPayments.paymentMethodLabel')}</label>

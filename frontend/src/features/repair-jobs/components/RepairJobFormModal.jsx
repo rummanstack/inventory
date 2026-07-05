@@ -202,7 +202,7 @@ export default function RepairJobFormModal({ job, onClose, onSave }) {
                 <label className="label">{t('repairJobs.estimatedCostLabel')}</label>
                 <input
                   className="input"
-                  type="number"
+                  type="number" inputMode="decimal"
                   min="0"
                   step="0.0001"
                   value={form.estimatedCost}
@@ -220,7 +220,7 @@ export default function RepairJobFormModal({ job, onClose, onSave }) {
                 <label className="label">{t('repairJobs.laborCostLabel')}</label>
                 <input
                   className="input"
-                  type="number"
+                  type="number" inputMode="decimal"
                   min="0"
                   step="0.0001"
                   value={form.laborCost}
@@ -231,7 +231,7 @@ export default function RepairJobFormModal({ job, onClose, onSave }) {
                 <label className="label">{t('repairJobs.actualCostLabel')}</label>
                 <input
                   className="input"
-                  type="number"
+                  type="number" inputMode="decimal"
                   min="0"
                   step="0.0001"
                   value={form.actualCost}

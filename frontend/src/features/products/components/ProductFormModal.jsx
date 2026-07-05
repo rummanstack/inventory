@@ -223,30 +223,30 @@ export default function ProductFormModal({ product, onClose, onSave }) {
           {!isElectronics ? (
             <div>
               <label className="label">{t('products.piecesPerCase')}</label>
-              <input className="input" type="number" min="1" value={form.piecesPerCase} onChange={(event) => updateField('piecesPerCase', event.target.value)} />
+              <input className="input" type="number" inputMode="decimal" min="1" value={form.piecesPerCase} onChange={(event) => updateField('piecesPerCase', event.target.value)} />
             </div>
           ) : null}
           <div>
             <label className="label">{t('products.purchasePrice')}</label>
-            <input className="input" type="number" min="0" step="0.0001" value={form.purchasePrice} onChange={(event) => updateField('purchasePrice', event.target.value)} />
+            <input className="input" type="number" inputMode="decimal" min="0" step="0.0001" value={form.purchasePrice} onChange={(event) => updateField('purchasePrice', event.target.value)} />
           </div>
           <div>
             <label className="label">{t('products.wholesalePrice')}</label>
-            <input className="input" type="number" min="0" step="0.0001" value={form.wholesalePrice} onChange={(event) => updateField('wholesalePrice', event.target.value)} />
+            <input className="input" type="number" inputMode="decimal" min="0" step="0.0001" value={form.wholesalePrice} onChange={(event) => updateField('wholesalePrice', event.target.value)} />
           </div>
           <div>
             <label className="label">{t('products.retailPrice')}</label>
-            <input className="input" type="number" min="0" step="0.0001" value={form.retailPrice} onChange={(event) => updateField('retailPrice', event.target.value)} />
+            <input className="input" type="number" inputMode="decimal" min="0" step="0.0001" value={form.retailPrice} onChange={(event) => updateField('retailPrice', event.target.value)} />
           </div>
           <div>
             <label className="label">{t('retailer.shared.taxRateLabel')}</label>
-            <input className="input" type="number" min="0" max="100" step="0.0001" value={form.taxRate} onChange={(event) => updateField('taxRate', event.target.value)} />
+            <input className="input" type="number" inputMode="decimal" min="0" max="100" step="0.0001" value={form.taxRate} onChange={(event) => updateField('taxRate', event.target.value)} />
             <p className="mt-1 text-xs text-slate-500">{t('products.taxRateHint')}</p>
           </div>
           {isElectronics ? (
             <div>
               <label className="label">{t('products.warrantyMonths')}</label>
-              <input className="input" type="number" min="0" step="1" value={form.warrantyMonths} onChange={(event) => updateField('warrantyMonths', event.target.value)} placeholder="0" />
+              <input className="input" type="number" inputMode="decimal" min="0" step="1" value={form.warrantyMonths} onChange={(event) => updateField('warrantyMonths', event.target.value)} placeholder="0" />
             </div>
           ) : null}
           <div>
@@ -288,11 +288,11 @@ export default function ProductFormModal({ product, onClose, onSave }) {
           ) : null}
           <div>
             <label className="label">{t('products.orderIndex')}</label>
-            <input className="input" type="number" min="0" step="1" value={form.orderIndex} onChange={(event) => updateField('orderIndex', event.target.value)} placeholder="0" />
+            <input className="input" type="number" inputMode="decimal" min="0" step="1" value={form.orderIndex} onChange={(event) => updateField('orderIndex', event.target.value)} placeholder="0" />
           </div>
           <div>
             <label className="label">{t('products.reorderLevel')}</label>
-            <input className="input" type="number" min="0" step="1" value={form.reorderLevel} onChange={(event) => updateField('reorderLevel', event.target.value)} placeholder={t('products.reorderLevelPlaceholder')} />
+            <input className="input" type="number" inputMode="decimal" min="0" step="1" value={form.reorderLevel} onChange={(event) => updateField('reorderLevel', event.target.value)} placeholder={t('products.reorderLevelPlaceholder')} />
             <p className="mt-1 text-xs text-slate-500">{t('products.reorderLevelHint')}</p>
           </div>
           {suppliers.length > 0 && (
@@ -385,7 +385,7 @@ export default function ProductFormModal({ product, onClose, onSave }) {
               </div>
               <div>
                 <label className="label">{t('products.packSize')}</label>
-                <input className="input" type="number" min="0" step="1" value={form.packSize || ''} onChange={(e) => updateField('packSize', e.target.value)} placeholder={t('products.packSizePlaceholder')} />
+                <input className="input" type="number" inputMode="decimal" min="0" step="1" value={form.packSize || ''} onChange={(e) => updateField('packSize', e.target.value)} placeholder={t('products.packSizePlaceholder')} />
                 <p className="mt-1 text-xs text-slate-500">{t('products.packSizeHint')}</p>
               </div>
               <div>

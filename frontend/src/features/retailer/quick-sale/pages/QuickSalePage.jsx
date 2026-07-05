@@ -103,7 +103,7 @@ function CashSessionAmountModal({
           <span className="label">{label}</span>
           <input
             className="input"
-            type="number"
+            type="number" inputMode="decimal"
             min="0"
             step="0.0001"
             value={value}
@@ -225,12 +225,16 @@ function QuickSaleForm({ onSaved }) {
     <form ref={formRef} className="space-y-4" onSubmit={submitForm}>
       {error ? <Alert type="error">{error}</Alert> : null}
       <SalesInvoiceFormFields vm={vm} t={t} productDirectory={productDirectory} retailCustomerDirectory={retailCustomerDirectory} saving={saving} saveRetailCustomer={saveRetailCustomer} />
-      <div className="flex items-center justify-between pt-2">
-        <p className="text-xs text-slate-400 select-none">
+      <div className="flex items-center justify-between gap-3 pt-2 max-lg:sticky max-lg:bottom-[calc(3.75rem+env(safe-area-inset-bottom))] max-lg:z-10 max-lg:-mx-5 max-lg:mt-2 max-lg:border-t max-lg:border-slate-200 max-lg:bg-[rgb(var(--white))] max-lg:px-4 max-lg:py-3">
+        <p className="text-xs text-slate-400 select-none max-lg:hidden">
           <kbd className="rounded border border-slate-200 bg-slate-100 px-1.5 py-0.5 font-mono text-[10px] text-slate-500">/</kbd> search &nbsp;
           <kbd className="rounded border border-slate-200 bg-slate-100 px-1.5 py-0.5 font-mono text-[10px] text-slate-500">Ctrl+↵</kbd> submit
         </p>
-        <button type="submit" className="btn-primary" disabled={saving}>
+        <div className="min-w-0 lg:hidden">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">{t('retailer.shared.totalAmount')}</p>
+          <p className="truncate text-xl font-bold tabular-nums text-slate-950">{formatCurrency(vm.totalAmount)}</p>
+        </div>
+        <button type="submit" className="btn-primary max-lg:h-12 max-lg:flex-1 max-lg:justify-center" disabled={saving}>
           <Save size={18} />
           {saving ? t('common.saving') : t('retailer.quickSale.save')}
         </button>

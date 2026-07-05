@@ -357,7 +357,7 @@ export default function TradeInFormModal({ onClose, onSave }) {
                       <td className="px-2 py-1.5">
                         <input
                           className="input py-1 text-sm text-right"
-                          type="number"
+                          type="number" inputMode="decimal"
                           min="0.001"
                           step="any"
                           value={item.quantity}
@@ -367,7 +367,7 @@ export default function TradeInFormModal({ onClose, onSave }) {
                       <td className="px-2 py-1.5">
                         <input
                           className="input py-1 text-sm text-right"
-                          type="number"
+                          type="number" inputMode="decimal"
                           min="0"
                           step="any"
                           value={item.tradeInValue}
@@ -443,7 +443,7 @@ export default function TradeInFormModal({ onClose, onSave }) {
                         <td className="px-2 py-1.5">
                           <input
                             className="input py-1 text-sm text-right"
-                            type="number"
+                            type="number" inputMode="decimal"
                             min="0.001"
                             step="any"
                             value={item.quantity}
@@ -453,7 +453,7 @@ export default function TradeInFormModal({ onClose, onSave }) {
                         <td className="px-2 py-1.5">
                           <input
                             className="input py-1 text-sm text-right"
-                            type="number"
+                            type="number" inputMode="decimal"
                             min="0"
                             step="any"
                             value={item.unitPrice}

@@ -39,7 +39,7 @@ import { getCssVar } from "../../../utils/theme.js";
 
 function MetricPill({ label, value, sub, icon: Icon, iconClass = "bg-slate-100 text-slate-500" }) {
   return (
-    <div className="flex flex-col gap-1.5 rounded-[22px] bg-white/60 px-5 py-4 shadow-[0_4px_20px_rgba(0,0,0,0.04)] ring-1 ring-slate-200/60">
+    <div className="flex flex-col gap-1.5 rounded-card bg-white px-5 py-4 shadow-card ring-1 ring-slate-200/60">
       <div className={cx("w-fit rounded-xl p-2", iconClass)}>
         <Icon size={15} />
       </div>
@@ -52,7 +52,7 @@ function MetricPill({ label, value, sub, icon: Icon, iconClass = "bg-slate-100 t
 
 function DueRow({ icon: Icon, iconClass, label, sub, value, valueClass = "text-slate-950" }) {
   return (
-    <div className="flex items-center gap-4 rounded-card bg-white/70 px-5 py-4 shadow-card ring-1 ring-slate-200/50">
+    <div className="flex items-center gap-4 rounded-card bg-white px-5 py-4 shadow-card ring-1 ring-slate-200/50">
       <div className={cx("shrink-0 rounded-xl p-2.5", iconClass)}>
         <Icon size={17} />
       </div>
@@ -124,7 +124,7 @@ export default function DashboardPage() {
 
       {/* ── 1. FINANCIAL HEALTH ── */}
       {financeDashboard ? (
-        <div className="overflow-hidden rounded-[32px] border border-slate-200/80 bg-white shadow-[0_24px_60px_rgba(var(--slate-900),0.07)] ring-1 ring-[color-mix(in_srgb,var(--brand)_8%,transparent)]">
+        <div className="overflow-hidden rounded-card border border-slate-200/80 bg-white shadow-card ring-1 ring-slate-900/[0.03]">
           <div className="px-7 pb-4 pt-6">
             <div className="flex items-center gap-2">
               <div className="rounded-lg bg-[var(--secondary-soft)] p-1.5">
@@ -261,7 +261,7 @@ export default function DashboardPage() {
       )}
 
       {/* ── 2. TODAY'S PROFIT REPORT ── */}
-      <div className="overflow-hidden rounded-[32px] border border-slate-200/80 bg-white shadow-[0_24px_60px_rgba(var(--slate-900),0.07)] ring-1 ring-[color-mix(in_srgb,var(--brand)_8%,transparent)]">
+      <div className="overflow-hidden rounded-card border border-slate-200/80 bg-white shadow-card ring-1 ring-slate-900/[0.03]">
         <div className="px-7 pb-4 pt-6">
           <div className="flex items-center gap-2">
             <div className="rounded-lg bg-emerald-50 p-1.5">
@@ -438,7 +438,7 @@ export default function DashboardPage() {
                 valueClass="text-rose-600"
               />
             </div>
-            <div className="mt-4 rounded-[18px] bg-slate-50 px-5 py-3">
+            <div className="mt-4 rounded-xl bg-slate-50 px-5 py-3">
               <div className="flex items-center justify-between">
                 <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-600">
                   {t("dashboard.netPosition")}
@@ -587,7 +587,7 @@ export default function DashboardPage() {
               return (
                 <div className="space-y-2.5">
                   {rows.map((r) => (
-                    <div key={r.label} className="flex items-center gap-3 rounded-[18px] bg-slate-50/60 px-4 py-2.5 ring-1 ring-slate-200/40">
+                    <div key={r.label} className="flex items-center gap-3 rounded-xl bg-slate-50/60 px-4 py-2.5 ring-1 ring-slate-200/40">
                       <div className={cx('flex h-8 w-8 shrink-0 items-center justify-center rounded-xl', r.cls)}>
                         <r.icon size={14} />
                       </div>
@@ -597,7 +597,7 @@ export default function DashboardPage() {
                       </p>
                     </div>
                   ))}
-                  <div className="mt-2 flex items-center justify-between rounded-[18px] bg-slate-100 px-5 py-3">
+                  <div className="mt-2 flex items-center justify-between rounded-xl bg-slate-100 px-5 py-3">
                     <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">{t("dashboard.netCashPosition")}</p>
                     <p className={cx('text-sm font-semibold', net >= 0 ? 'text-emerald-600' : 'text-rose-500')}>
                       {formatCurrency(net, language)}
@@ -622,7 +622,7 @@ export default function DashboardPage() {
                 <div className="flex flex-col gap-3">
                   <div className="space-y-1.5">
                     {pageItems.map((p) => (
-                      <div key={p.id} className="flex items-center gap-2.5 rounded-[16px] bg-slate-50/70 px-3.5 py-2.5 ring-1 ring-slate-200/40">
+                      <div key={p.id} className="flex items-center gap-2.5 rounded-xl bg-slate-50/70 px-3.5 py-2.5 ring-1 ring-slate-200/40">
                         <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-rose-50">
                           <PackageX size={13} className="text-rose-400" />
                         </div>

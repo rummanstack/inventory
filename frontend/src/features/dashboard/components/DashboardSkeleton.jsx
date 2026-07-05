@@ -6,7 +6,7 @@ function PulseBlock({ className }) {
 
 function FinancialHealthSkeleton() {
   return (
-    <div className="overflow-hidden rounded-[32px] border border-slate-200/80 bg-white shadow-[0_24px_60px_rgba(0,0,0,0.06)]">
+    <div className="overflow-hidden rounded-card border border-slate-200/80 bg-white shadow-card ring-1 ring-slate-900/[0.03]">
       {/* header */}
       <div className="px-7 pb-4 pt-6">
         <div className="flex items-center gap-2">

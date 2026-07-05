@@ -1,4 +1,4 @@
-import { CheckCircle2 } from 'lucide-react';
+﻿import { CheckCircle2 } from 'lucide-react';
 import ImagePlaceholder from './shared/ImagePlaceholder.jsx';
 import SectionHeader from './shared/SectionHeader.jsx';
 import { featureStoryImages } from '../constants.js';
@@ -26,7 +26,7 @@ export default function FeatureStorySection({ t }) {
                 <h3 className="text-2xl font-black text-slate-950">{group.title}</h3>
                 <div className="mt-5 space-y-3">
                   {group.items.map((item) => (
-                    <p key={item} className="flex items-center gap-4 text-sm font-bold leading-6 text-slate-700">
+                    <p key={item} className="flex items-center gap-4 text-sm font-medium leading-6 text-slate-700">
                       <span className="problem-item-icon">
                         <CheckCircle2 size={18} />
                       </span>

@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+﻿import { Link } from 'react-router-dom';
 import { ArrowRight, MessageCircle, Phone } from 'lucide-react';
 import { contactPhone, whatsappUrl } from '../constants.js';
 
@@ -9,7 +9,7 @@ export default function CtaSection({ t }) {
         <div className="cta-panel">
           <div>
             <p className="landing-eyebrow">{t('landing.cta.eyebrow')}</p>
-            <h2 className="mt-4 max-w-3xl text-3xl font-black leading-tight text-white sm:text-4xl">{t('landing.cta.title')}</h2>
+            <h2 className="mt-4 max-w-3xl text-3xl font-black leading-tight text-slate-950 sm:text-4xl">{t('landing.cta.title')}</h2>
           </div>
 
           <div className="flex flex-col gap-3 sm:flex-row lg:flex-col xl:flex-row">

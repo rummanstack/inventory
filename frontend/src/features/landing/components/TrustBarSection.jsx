@@ -14,11 +14,11 @@ export default function TrustBarSection({ t }) {
             return (
               <div
                 key={label}
-                className="flex flex-col items-center gap-2 rounded-[18px] bg-[linear-gradient(135deg,#24205a,#5550a8)] px-4 py-4 text-center"
+                className="flex flex-col items-center gap-2 rounded-[18px] border border-slate-200 bg-white px-4 py-4 text-center shadow-[0_8px_22px_rgba(var(--slate-900),0.05)] ring-1 ring-slate-200/60"
               >
-                <Icon size={20} className="text-blue-300" />
-                <span className="text-xl font-black text-white">{value}</span>
-                <span className="text-[12px] font-medium text-slate-300/85">{label}</span>
+                <Icon size={20} className="text-[var(--brand-strong)]" />
+                <span className="text-xl font-black text-slate-950">{value}</span>
+                <span className="text-[12px] font-medium text-slate-500">{label}</span>
               </div>
             );
           })}

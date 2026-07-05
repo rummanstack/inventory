@@ -1,4 +1,4 @@
-const en = {
+﻿const en = {
     app: {
       brand: 'Stock Ledger',
       subtitle: '',
@@ -3217,7 +3217,7 @@ const en = {
             id: 'introduction',
             label: 'Introduction',
             blocks: [
-              { type: 'p', text: 'Welcome to **StockLedger (Arinda)** — a multi-tenant inventory, retail POS, dealer-distribution, and finance management platform built for businesses across Bangladesh and beyond.' },
+              { type: 'p', text: 'Welcome to **StockLedger (Arinda)** — a complete multi-tenant business management, retail POS, dealer-distribution, and finance platform built for businesses across Bangladesh and beyond.' },
               { type: 'p', text: 'This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our software-as-a-service (SaaS) platform. By accessing or using StockLedger, you agree to the practices described in this policy.' },
               { type: 'card', tone: 'blue', text: '**Who does this apply to?** This policy applies to all users of the StockLedger platform — platform administrators, tenant business owners, managers, operators, and any other individuals whose data is processed through our system.' },
               { type: 'p', text: 'We operate under a multi-tenant architecture. Each business (tenant) has its own isolated data environment. StockLedger platform staff can access tenant data only for support and operational purposes, always in accordance with this policy.' },
@@ -3234,7 +3234,7 @@ const en = {
                 rows: [
                   ['Account data', 'Name, email address, phone number, role, password hash'],
                   ['Business data', 'Tenant name, business type, org settings, subscription tier'],
-                  ['Operational data', 'Products, inventory movements, invoices, purchases, payments'],
+                  ['Operational data', 'Products, stock movements, invoices, purchases, payments'],
                   ['Financial data', 'Finance account balances, expense records, profit reports'],
                   ['People data', 'Customer names/phones, supplier details, DSR profiles, employee payroll'],
                   ['Usage data', 'Activity logs, audit trail, page views, session tokens'],
@@ -3637,8 +3637,8 @@ const en = {
       hero: {
         seePricing: 'See Pricing',
         eyebrow: 'For shops, wholesalers and DSR teams',
-        title: 'Run stock, sales and due from one view.',
-        subtitle: 'One dashboard for sales, stock, due, settlement and profit.',
+        title: 'Run your business from one place.',
+        subtitle: 'One dashboard for sales, stock, due, settlement, accounts and profit.',
         callLabel: 'Call',
         liveView: 'Live view',
         liveViewText: 'Everything the owner needs, in one clean view.',

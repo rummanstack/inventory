@@ -1,0 +1,40 @@
+/*
+ * Mobile touch & type foundation (Day 5 of MOBILE-15-DAY-PLAN.md).
+ * Everything here applies below the lg breakpoint only — desktop is untouched.
+ *
+ * These rules are intentionally UNLAYERED so they outrank Tailwind's layered
+ * utilities (h-9, h-8, text-xs, ...) that pages use as desktop-oriented size
+ * tweaks: on a phone no tappable control may be under 44px tall and no text
+ * input may render under 16px (16px is what stops iOS Safari's focus auto-zoom).
+ */
+
+@media (max-width: 1023.98px) {
+  .input {
+    height: 2.75rem; /* 44px touch floor */
+    font-size: 1rem; /* 16px — kills iOS focus zoom */
+  }
+
+  /* Textareas size by content/min-height, not the fixed input height */
+  textarea.input {
+    height: auto;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    min-height: 2.75rem;
+  }
+
+  .icon-btn {
+    min-height: 2.75rem;
+    min-width: 2.75rem;
+  }
+}
+
+/* Safe-area helpers (any breakpoint) */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.pt-safe {
+  padding-top: env(safe-area-inset-top);
+}

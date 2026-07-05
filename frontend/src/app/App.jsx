@@ -9,6 +9,7 @@ import { stockLedgerLogoHorizontal, stockLedgerLogoIcon } from '../assets/brandA
 
 const AppLayout = lazy(() => import('./AppLayout'));
 const LoginPage = lazy(() => import('../features/auth/pages/LoginPage'));
+const RegisterPage = lazy(() => import('../features/auth/pages/RegisterPage'));
 const LandingPage = lazy(() => import('../features/landing/pages/LandingPage'));
 const PrivacyPolicyPage = lazy(() => import('../features/landing/pages/PrivacyPolicyPage'));
 const TermsPage = lazy(() => import('../features/landing/pages/TermsPage'));
@@ -145,6 +146,7 @@ function AppRoutes() {
       <Route path="/terms" element={<TermsPage />} />
       <Route path="/founder" element={<FounderPage />} />
       <Route path="/login" element={<PublicOnlyRoute><LoginPage /></PublicOnlyRoute>} />
+      <Route path="/register" element={<PublicOnlyRoute><RegisterPage /></PublicOnlyRoute>} />
       <Route element={<ProtectedLayout />}>
         {APP_ROUTES.map((route) => (
           <Route

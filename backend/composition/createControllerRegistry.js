@@ -29,6 +29,7 @@ import { ProductSerialController } from "../controllers/productSerialController.
 import { ProfitController } from "../controllers/profitController.js";
 import { PurchaseReceiveController } from "../controllers/purchaseReceiveController.js";
 import { QuotationController } from "../controllers/quotationController.js";
+import { RegistrationController } from "../controllers/registrationController.js";
 import { RepairJobController } from "../controllers/repairJobController.js";
 import { RetailCashSessionController } from "../controllers/retailCashSessionController.js";
 import { RetailCustomerController } from "../controllers/retailCustomerController.js";
@@ -59,6 +60,7 @@ export function createControllerRegistry({ services, env, databaseManager }) {
     public: {
       authController: new AuthController(services.operations.authService, env, services.platform.tenantService),
       contactMessageController: new ContactMessageController(services.customers.contactMessageService),
+      registrationController: new RegistrationController(services.platform.registrationService),
       visitorChatController: new VisitorChatController(services.customers.visitorChatService),
     },
     platform: {

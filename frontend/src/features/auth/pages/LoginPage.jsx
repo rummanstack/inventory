@@ -1,11 +1,11 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, KeyRound, Loader2, Lock, Mail } from 'lucide-react';
+import { ArrowLeft, BarChart3, KeyRound, Lock, Mail, ShieldCheck, Smartphone } from 'lucide-react';
 import { Alert } from '../../../components/ui';
 import PasswordInput from '../../../components/PasswordInput.jsx';
+import AuthShell from '../components/AuthShell.jsx';
+import AuthSubmitButton from '../components/AuthSubmitButton.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
-import loginHero from '../../../assets/login-hero.png';
-import { stockLedgerLogoHorizontal } from '../../../assets/brandAssets.js';
 
 export default function LoginPage() {
   const { login, forgotPassword, resetPassword, t } = useInventoryApp();
@@ -13,42 +13,39 @@ export default function LoginPage() {
   const resetToken = searchParams.get('token') || '';
   const [view, setView] = useState(resetToken ? 'reset' : 'login');
 
+  const points = [
+    { icon: BarChart3, text: t('auth.register.heroPoint1') },
+    { icon: Smartphone, text: t('auth.loginPointDevices') },
+    { icon: ShieldCheck, text: t('auth.register.heroPoint3') },
+  ];
+
   return (
-    <div className="page-shell">
-      <div className="flex min-h-screen items-center justify-center bg-slate-100 px-4 py-8">
-        <div className="grid w-full max-w-4xl overflow-hidden rounded-card shadow-modal lg:grid-cols-2">
+    <AuthShell
+      brand={t('app.brand')}
+      eyebrow={t('auth.loginEyebrow')}
+      title={t('auth.loginTitle')}
+      points={points}
+      footnote={t('auth.register.heroFootnote')}
+    >
+      <div className="mx-auto w-full max-w-md">
+        <h1 className="text-3xl font-black tracking-tight text-slate-950">
+          {view === 'login' ? t('auth.signIn') : view === 'forgot' ? t('auth.forgotPasswordTitle') : t('auth.resetPasswordTitle')}
+        </h1>
+        {view === 'login' ? (
+          <p className="mt-2 text-sm font-medium leading-6 text-slate-500">{t('auth.loginHint')}</p>
+        ) : null}
 
-          {/* Hero image */}
-          <div className="hidden bg-[var(--login-hero-bg)] lg:block">
-            <img src={loginHero} alt="" className="h-full w-full object-cover object-center" />
-          </div>
-
-          {/* Form */}
-          <div className="flex flex-col justify-center bg-white px-8 py-10">
-            <div className="mb-8 flex items-center gap-3">
-              <Link to="/" className="logo-chip flex h-12 items-center rounded-control px-2 transition hover:opacity-80">
-                <img src={stockLedgerLogoHorizontal} alt="StockLedger" className="h-full w-auto object-contain" />
-              </Link>
-              <div>
-                <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400">{t('app.brand')}</p>
-                <h1 className="text-lg font-semibold text-slate-950">
-                  {view === 'login' ? t('auth.loginTitle') : view === 'forgot' ? t('auth.forgotPasswordTitle') : t('auth.resetPasswordTitle')}
-                </h1>
-              </div>
-            </div>
-
-            {view === 'login' ? (
-              <LoginForm login={login} t={t} onForgot={() => setView('forgot')} />
-            ) : view === 'forgot' ? (
-              <ForgotPasswordForm forgotPassword={forgotPassword} t={t} onBack={() => setView('login')} />
-            ) : (
-              <ResetPasswordForm resetPassword={resetPassword} t={t} token={resetToken} onBack={() => setView('login')} />
-            )}
-          </div>
-
+        <div className="mt-6">
+          {view === 'login' ? (
+            <LoginForm login={login} t={t} onForgot={() => setView('forgot')} />
+          ) : view === 'forgot' ? (
+            <ForgotPasswordForm forgotPassword={forgotPassword} t={t} onBack={() => setView('login')} />
+          ) : (
+            <ResetPasswordForm resetPassword={resetPassword} t={t} token={resetToken} onBack={() => setView('login')} />
+          )}
         </div>
       </div>
-    </div>
+    </AuthShell>
   );
 }
 
@@ -71,7 +68,7 @@ function LoginForm({ login, t, onForgot }) {
         <span className="relative block">
           <Mail className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
           <input
-            className="input pl-9"
+            className="input h-11 pl-9"
             type="email"
             autoComplete="email"
             value={email}
@@ -86,7 +83,7 @@ function LoginForm({ login, t, onForgot }) {
         <span className="label">{t('auth.password')}</span>
         <PasswordInput
           leftIcon={<Lock size={16} />}
-          className="input pl-9"
+          className="input h-11 pl-9"
           autoComplete="current-password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
@@ -95,14 +92,21 @@ function LoginForm({ login, t, onForgot }) {
         />
       </label>
 
-      <button type="submit" className="btn-primary mt-2 w-full" disabled={submitting}>
-        {submitting ? <Loader2 size={17} className="animate-spin" /> : <KeyRound size={17} />}
-        {submitting ? t('auth.signingIn') : t('auth.signIn')}
-      </button>
+      <AuthSubmitButton submitting={submitting} busyLabel={t('auth.signingIn')}>
+        <KeyRound size={17} />
+        {t('auth.signIn')}
+      </AuthSubmitButton>
 
       <button type="button" className="block w-full text-center text-xs font-bold text-[var(--secondary-strong)] hover:underline" onClick={onForgot}>
         {t('auth.forgotPassword')}
       </button>
+
+      <p className="text-center text-xs font-semibold text-slate-500">
+        {t('auth.noAccount')}{' '}
+        <Link to="/register" className="font-black text-[var(--secondary-strong)] hover:underline">
+          {t('auth.registerNow')}
+        </Link>
+      </p>
     </form>
   );
 }
@@ -149,7 +153,7 @@ function ForgotPasswordForm({ forgotPassword, t, onBack }) {
         <span className="relative block">
           <Mail className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
           <input
-            className="input pl-9"
+            className="input h-11 pl-9"
             type="email"
             autoComplete="email"
             value={email}
@@ -160,10 +164,10 @@ function ForgotPasswordForm({ forgotPassword, t, onBack }) {
         </span>
       </label>
 
-      <button type="submit" className="btn-primary mt-2 w-full" disabled={submitting}>
-        {submitting ? <Loader2 size={17} className="animate-spin" /> : <Mail size={17} />}
-        {submitting ? t('auth.sending') : t('auth.sendResetLink')}
-      </button>
+      <AuthSubmitButton submitting={submitting} busyLabel={t('auth.sending')}>
+        <Mail size={17} />
+        {t('auth.sendResetLink')}
+      </AuthSubmitButton>
 
       <button type="button" className="flex w-full items-center justify-center gap-2 text-xs font-bold text-[var(--secondary-strong)] hover:underline" onClick={onBack}>
         <ArrowLeft size={14} />
@@ -221,7 +225,7 @@ function ResetPasswordForm({ resetPassword, t, token, onBack }) {
         <span className="label">{t('auth.newPassword')}</span>
         <PasswordInput
           leftIcon={<Lock size={16} />}
-          className="input pl-9"
+          className="input h-11 pl-9"
           autoComplete="new-password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
@@ -234,7 +238,7 @@ function ResetPasswordForm({ resetPassword, t, token, onBack }) {
         <span className="label">{t('auth.confirmPassword')}</span>
         <PasswordInput
           leftIcon={<Lock size={16} />}
-          className="input pl-9"
+          className="input h-11 pl-9"
           autoComplete="new-password"
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
@@ -242,10 +246,10 @@ function ResetPasswordForm({ resetPassword, t, token, onBack }) {
         />
       </label>
 
-      <button type="submit" className="btn-primary mt-2 w-full" disabled={submitting}>
-        {submitting ? <Loader2 size={17} className="animate-spin" /> : <KeyRound size={17} />}
-        {submitting ? t('auth.resetting') : t('auth.resetPassword')}
-      </button>
+      <AuthSubmitButton submitting={submitting} busyLabel={t('auth.resetting')}>
+        <KeyRound size={17} />
+        {t('auth.resetPassword')}
+      </AuthSubmitButton>
 
       <button type="button" className="flex w-full items-center justify-center gap-2 text-xs font-bold text-[var(--secondary-strong)] hover:underline" onClick={onBack}>
         <ArrowLeft size={14} />

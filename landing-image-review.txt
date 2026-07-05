@@ -1,68 +1,86 @@
-Landing Page Image Review
+Landing Image Review
 
-Goal
-- Current landing page needs 20 non-testimonial image slots.
-- Your list has 26 non-testimonial images.
-- Best approach: keep the strongest 20, remove duplicates, replace a few with missing content-specific shots.
+Current decision
+- Testimonials are excluded from AI generation. Testimonial photos will be real images.
+- Repeated visual slots should reuse the strongest existing generated image instead of asking for another duplicate generation.
+- The only remaining AI images needed are: 1.png, 15.png, 17.png, 18.png, and 23.png.
+- Put the next batch in the project root folder named new-land with exactly these filenames.
+
+Generation command
+Generate exactly five StockLedger landing page images. Use clean premium SaaS/commercial photography style, realistic Bangladeshi/South Asian retail context, no watermark, no logo imitation, no gibberish text, no distorted hands, no duplicate product rows, and no extra testimonial headshots. Keep the blue/navy brand direction consistent with the existing landing page.
+
+1. Filename: 1.png
+   Size: 1536x1024 landscape
+   Use for: frontend/src/assets/landing/dashboard-summary.png
+   Purpose: main hero dashboard screenshot
+   Prompt: Create a crisp StockLedger-style SaaS analytics dashboard screenshot, no people, dark-blue sidebar, white main panel, clean premium interface. Show sales, purchases, cash-in-due, SR due, discount, daily report due, print/PDF action, profit, and top-selling products. Include Mojo as a top-selling product only once, not twice. Realistic UI layout, sharp cards, modern tables and charts, no watermark.
+
+15. Filename: 15.png
+   Size: 1672x941 landscape
+   Use for: frontend/src/assets/landing/hero-dashboard.png
+   Purpose: executive dashboard / analytics control collage tile
+   Prompt: Create a premium office analytics scene with a South Asian woman in a dark navy hijab and navy blazer seated at a desk with laptop, monitor dashboard, paperwork, and pen. She is in a three-quarter view, focused and confident. The scene should feel like business control, reporting, and decision-making. Clean blue-accented office, realistic commercial photography, no watermark.
+
+17. Filename: 17.png
+   Size: 1672x941 landscape
+   Use for: frontend/src/assets/landing/profit-report.png
+   Purpose: profit report collage tile
+   Prompt: Create a cinematic profit report workspace with a South Asian woman in a royal blue hijab and blue outfit seated at a desk, looking down at a laptop and notebook while reviewing sales, expense, and profit numbers. Include a clean dashboard on the laptop with profit/report cards, calculator, receipt papers, and a calm focused finance-review mood. Realistic business photography, no watermark.
+
+18. Filename: 18.png
+   Size: 1672x941 landscape
+   Use for: frontend/src/assets/landing/support-call.png
+   Purpose: contact/support section and repeated support slots
+   Prompt: Create a friendly customer support helpdesk scene with a South Asian woman in a royal blue hijab and matching blue top wearing a headset at a desk with a laptop. She is looking at the camera with a calm trustworthy expression. Clean modern office, subtle dark-blue brand accents, professional support vibe, realistic commercial photography, no watermark.
+
+23. Filename: 23.png
+   Size: 1672x941 landscape
+   Use for: frontend/src/assets/landing/dsr-route.png
+   Purpose: DSR route / field-sales collage tile
+   Prompt: Create a realistic field-sales and DSR route scene with a South Asian woman in a bright royal blue hijab and blue dress holding a smartphone toward the camera in a small retail shop or mobile sales stop. The phone should suggest order entry, route sales, SR/DSR collection, and stock delivery workflow. Energetic but professional route-sales vibe, realistic commercial photography, no watermark.
+
+Codex placement instructions when the files are ready
+- Copy new-land/1.png to frontend/src/assets/landing/dashboard-summary.png
+- Copy new-land/15.png to frontend/src/assets/landing/hero-dashboard.png
+- Copy new-land/17.png to frontend/src/assets/landing/profit-report.png
+- Copy new-land/18.png to frontend/src/assets/landing/support-call.png
+- Copy new-land/23.png to frontend/src/assets/landing/dsr-route.png
+- Verify copied file hashes match the source files.
+- Delete the new-land folder after successful copy.
+- Run npm --prefix frontend run build.
+
+Already supplied and placed
+- 2.png -> frontend/src/assets/landing/2.png
+- 3.png -> frontend/src/assets/landing/retail-counter.png
+- 4.png -> frontend/src/assets/landing/evening-settlement.png
+- 5.png -> frontend/src/assets/landing/warehouse-stock.png
+- 6.png -> frontend/src/assets/landing/supplier-purchase.png
+- 7.png -> frontend/src/assets/landing/owner-laptop.png
+- 8.png -> frontend/src/assets/landing/due-collection.png
+- 9.png -> frontend/src/assets/landing/showing.png
+- 10.png -> frontend/src/assets/landing/traders.png
+- 11.png -> frontend/src/assets/landing/grocery.png
+- 12.png -> frontend/src/assets/landing/pharmacy.png
+- 13.png -> frontend/src/assets/landing/dealer.png
+- 14.png -> frontend/src/assets/landing/purchase-receive.png
+
+Repeated slot reuse rule
+- 16 reuses warehouse-stock.png from image 5.
+- 19 reuses retail-counter.png from image 3.
+- 20 reuses due-collection.png from image 8.
+- 21 reuses evening-settlement.png from image 4.
+- 22 reuses purchase-receive.png from image 14.
+- 24 reuses supplier-purchase.png from image 6.
+- 25 and 26 reuse support-call.png after image 18 is supplied.
+- Do not generate 16, 19, 20, 21, 22, 24, 25, or 26 unless a future design explicitly needs a different visual.
+
+Removed unused generated asset files
+- frontend/src/assets/landing/contact-support.png
+- frontend/src/assets/landing/delivery-truck.png
+- frontend/src/assets/landing/mobile-dashboard.png
+- frontend/src/assets/landing/retail-counter-2.png
+- frontend/src/assets/landing/shop-counter-2.png
 
 Keep
-- 1. Hero dashboard screenshot
-- 2. Mobile phone promo portrait
-- 3. Retail POS / receipt handoff
-- 4. Evening settlement desk scene
-- 5. Warehouse / inventory office portrait
-- 6. Supplier purchase / invoice review
-- 8. Due collection at counter
-- 10. DSR / wholesale desk discussion
-- 11. Grocery store dashboard moment
-- 12. Pharmacy checkout handoff
-- 13. Dealer / distributor office meeting
-- 14. Purchase receiving with boxes and invoice
-- 15. Executive dashboard / analytics control
-- 17. Profit report workspace
-- 18. Support / helpdesk scene
-- 23. DSR route mobile sale scene
-- 24. Supplier purchase / payment control
-
-Remove
-- 7. Too similar to 3
-- 9. Too similar to 2
-- 16. Too similar to 5
-- 19. Too similar to 3
-- 20. Too similar to 8
-- 21. Too similar to 4
-- 22. Too similar to 14
-- 25. Too similar to 18
-- 26. Too similar to 18
-
-Replace With Better Content-Specific Images
-- Replace one duplicate slot with a Print / PDF report image
-- Replace one duplicate slot with a Discount / promo at checkout image
-- Replace one duplicate slot with a Daily report with due visible image
-
-Recommended Final 20 for Current Landing Page
-- 1. Hero dashboard screenshot
-- 2. Mobile phone promo portrait
-- 3. Retail POS / receipt handoff
-- 4. Evening settlement desk scene
-- 5. Warehouse / inventory office portrait
-- 6. Supplier purchase / invoice review
-- 8. Due collection at counter
-- 10. DSR / wholesale desk discussion
-- 11. Grocery store dashboard moment
-- 12. Pharmacy checkout handoff
-- 13. Dealer / distributor office meeting
-- 14. Purchase receiving with boxes and invoice
-- 15. Executive dashboard / analytics control
-- 17. Profit report workspace
-- 18. Support / helpdesk scene
-- 23. DSR route mobile sale scene
-- 24. Supplier purchase / payment control
-- NEW. Print / PDF report scene
-- NEW. Discount / promo checkout scene
-- NEW. Daily report with due visible scene
-
-Notes
-- Top selling should not be added twice unless two different landing sections explicitly need it.
-- Cash in due is partly covered by due collection, but a stronger cash reconciliation image would be better than another receipt-handoff duplicate.
-- SR is partly covered by DSR / route / settlement imagery, so it does not need a completely separate duplicate visual unless the page copy becomes more SR-specific.
+- frontend/src/assets/landing/business-owner.png is still used by the founder page.
+- frontend/src/assets/landing/testimonial-1.jpg through testimonial-6.jpg stay because testimonials will use real photos.

@@ -93,4 +93,5 @@ export const TENANT_FEATURES = [
   'error-logs',
   'visitor-chats',
   'contact-messages',
+  'registration-requests',
 ];

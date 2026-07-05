@@ -1,22 +1,16 @@
-import businessOwnerImage from '../../assets/landing/business-owner.png';
 import landingImage2 from '../../assets/landing/2.png';
-import contactSupportImage from '../../assets/landing/contact-support.png';
 import dashboardSummaryImage from '../../assets/landing/dashboard-summary.png';
 import dealerImage from '../../assets/landing/dealer.png';
-import deliveryTruckImage from '../../assets/landing/delivery-truck.png';
 import dsrRouteImage from '../../assets/landing/dsr-route.png';
 import dueCollectionImage from '../../assets/landing/due-collection.png';
 import eveningSettlementImage from '../../assets/landing/evening-settlement.png';
 import groceryImage from '../../assets/landing/grocery.png';
 import heroDashboardImageFile from '../../assets/landing/hero-dashboard.png';
-import mobileDashboardImage from '../../assets/landing/mobile-dashboard.png';
 import ownerLaptopImage from '../../assets/landing/owner-laptop.png';
 import pharmacyImage from '../../assets/landing/pharmacy.png';
 import profitReportImage from '../../assets/landing/profit-report.png';
 import purchaseReceiveImage from '../../assets/landing/purchase-receive.png';
 import retailCounterImage from '../../assets/landing/retail-counter.png';
-import retailCounter2Image from '../../assets/landing/retail-counter-2.png';
-import shopCounter2Image from '../../assets/landing/shop-counter-2.png';
 import showingImage from '../../assets/landing/showing.png';
 import supplierPurchaseImage from '../../assets/landing/supplier-purchase.png';
 import supportCallImage from '../../assets/landing/support-call.png';
@@ -77,33 +71,7 @@ export const featureHighlightImages = [
   pharmacyImage,
 ];
 
-export const featureShowcaseImage = showingImage;
 
-export const landingImageAssets = {
-  businessOwner: businessOwnerImage,
-  contactSupport: contactSupportImage,
-  dashboardSummary: dashboardSummaryImage,
-  dealer: dealerImage,
-  deliveryTruck: deliveryTruckImage,
-  dsrRoute: dsrRouteImage,
-  dueCollection: dueCollectionImage,
-  eveningSettlement: eveningSettlementImage,
-  grocery: groceryImage,
-  heroDashboard: heroDashboardImageFile,
-  mobileDashboard: mobileDashboardImage,
-  ownerLaptop: ownerLaptopImage,
-  pharmacy: pharmacyImage,
-  profitReport: profitReportImage,
-  purchaseReceive: purchaseReceiveImage,
-  retailCounter: retailCounterImage,
-  retailCounter2: retailCounter2Image,
-  shopCounter2: shopCounter2Image,
-  showing: showingImage,
-  supplierPurchase: supplierPurchaseImage,
-  supportCall: supportCallImage,
-  traders: tradersImage,
-  warehouseStock: warehouseStockImage,
-};
 
 export const featureCardIcons = [ShoppingBag, ReceiptText, WalletCards, Warehouse, Boxes, BarChart3, RefreshCw, Printer];
 
@@ -124,7 +92,7 @@ export const showcaseImages = [
   { src: ownerLaptopImage, key: 'ownerLaptop', fit: 'cover' },
   { src: heroDashboardImageFile, key: 'heroDashboard', fit: 'cover' },
   { src: profitReportImage, key: 'profitReport', fit: 'cover' },
-  { src: retailCounter2Image, key: 'retailCounter', fit: 'cover', position: 'top' },
+  { src: retailCounterImage, key: 'retailCounter', fit: 'cover', position: 'top' },
   { src: dsrRouteImage, key: 'dsrRoute', fit: 'cover' },
   { src: purchaseReceiveImage, key: 'purchaseReceive', fit: 'cover' },
 ];

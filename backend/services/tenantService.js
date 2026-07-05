@@ -82,7 +82,7 @@ const DEALER_DISTRIBUTION_FEATURES = ["dsrs", "customers", "morning-issue", "set
 const ELECTRONICS_ONLY_FEATURES = ["product-serials", "warranty-claims", "repair-jobs", "trade-ins"];
 const PHARMACY_EXCLUDED_FEATURES = ["product-serials", "warranty-claims", "repair-jobs", "trade-ins"];
 
-function defaultFeaturesForBusinessType(businessType) {
+export function defaultFeaturesForBusinessType(businessType) {
   let excluded = DEALER_DISTRIBUTION_FEATURES;
   if (businessType === BUSINESS_TYPES.GROCERY) excluded = ELECTRONICS_ONLY_FEATURES;
   if (businessType === BUSINESS_TYPES.DRUG_PHARMACY) excluded = PHARMACY_EXCLUDED_FEATURES;

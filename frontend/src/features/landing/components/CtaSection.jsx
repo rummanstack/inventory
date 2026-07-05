@@ -21,8 +21,8 @@ export default function CtaSection({ t }) {
               <span className="demo-btn-icon"><Phone size={15} /></span>
               {t('landing.cta.callNow')}
             </a>
-            <Link to="/login" className="demo-white-btn group">
-              {t('landing.login')}
+            <Link to="/register" className="demo-white-btn group">
+              {t('landing.registerNow')}
               <ArrowRight size={18} className="transition duration-200 group-hover:translate-x-1" />
             </Link>
           </div>

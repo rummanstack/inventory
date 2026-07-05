@@ -46,6 +46,7 @@ import { SupplierDueLedgerService } from "../services/supplierDueLedgerService.j
 import { SupplierPaymentService } from "../services/supplierPaymentService.js";
 import { SupplierService } from "../services/supplierService.js";
 import { SystemService } from "../services/systemService.js";
+import { RegistrationService } from "../services/registrationService.js";
 import { TenantService } from "../services/tenantService.js";
 import { TradeInService } from "../services/tradeInService.js";
 import { UserService } from "../services/userService.js";
@@ -60,6 +61,7 @@ export function createServiceRegistry({ databaseManager, env }) {
     invariantService: null,
     reportExportService: null,
     permissionService: null,
+    registrationService: null,
     systemService: null,
     tenantService: null,
     userService: null,
@@ -189,6 +191,9 @@ export function createServiceRegistry({ databaseManager, env }) {
   };
 
   platform.tenantService = new TenantService(databaseManager, {
+    auditService: platform.auditService,
+  });
+  platform.registrationService = new RegistrationService(databaseManager, {
     auditService: platform.auditService,
   });
   platform.userService = new UserService(databaseManager, { auditService: platform.auditService });

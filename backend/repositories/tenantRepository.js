@@ -15,6 +15,7 @@ export function mapTenant(row) {
     loyaltyPointValue: Number(row.loyalty_point_value || 0),
     businessType: row.business_type || 'ELECTRONICS',
     sellerType: row.seller_type || 'DEALER',
+    phone: row.phone || '',
     createdAt: row.created_at,
   };
 }
@@ -41,8 +42,8 @@ export async function countTenants(client) {
 
 export async function insertTenant(client, tenant) {
   const result = await client.query(
-    `INSERT INTO tenants (id, name, slug, email, plan, status, logo_url, address, tax_rate, loyalty_enabled, loyalty_points_per_100, loyalty_point_value, business_type, seller_type)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+    `INSERT INTO tenants (id, name, slug, email, plan, status, logo_url, address, tax_rate, loyalty_enabled, loyalty_points_per_100, loyalty_point_value, business_type, seller_type, phone)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
      RETURNING *`,
     [
       tenant.id,
@@ -59,6 +60,7 @@ export async function insertTenant(client, tenant) {
       tenant.loyaltyPointValue ?? 1,
       tenant.businessType || "ELECTRONICS",
       tenant.sellerType || "DEALER",
+      tenant.phone || "",
     ],
   );
   return mapTenant(result.rows[0]);
@@ -88,6 +90,29 @@ export async function updateTenant(client, tenant) {
     ],
   );
   return mapTenant(result.rows[0]);
+}
+
+// Self-service registrations are tenants in 'pending'/'rejected' status; the owner
+// user (first super_admin) is joined in so the platform admin can contact them.
+export async function listRegistrationTenants(client) {
+  const result = await client.query(
+    `SELECT t.*, owner.name AS owner_name, owner.email AS owner_email
+     FROM tenants t
+     LEFT JOIN LATERAL (
+       SELECT u.name, u.email
+       FROM users u
+       WHERE u.tenant_id = t.id AND u.role = 'super_admin' AND u.deleted_at IS NULL
+       ORDER BY u.created_at ASC
+       LIMIT 1
+     ) owner ON TRUE
+     WHERE t.status IN ('pending', 'rejected')
+     ORDER BY t.created_at DESC`,
+  );
+  return result.rows.map((row) => ({
+    ...mapTenant(row),
+    ownerName: row.owner_name || '',
+    ownerEmail: row.owner_email || '',
+  }));
 }
 
 export async function setTenantStatus(client, tenantId, status) {

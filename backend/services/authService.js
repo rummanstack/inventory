@@ -67,6 +67,7 @@ export class AuthService {
       if (orgSlug) {
         tenant = await findTenantBySlug(client, orgSlug);
         assert(tenant, "Organization not found. Check your organization code.", 401);
+        assert(tenant.status !== "pending", "Your registration is awaiting approval. We will contact you shortly.", 403);
         assert(tenant.status === "active", "This organization subscription is inactive. Contact support.", 403);
       }
 
@@ -118,6 +119,7 @@ export class AuthService {
 
       if (!tenant && userRow.tenant_id) {
         tenant = await findTenantById(client, userRow.tenant_id);
+        assert(tenant?.status !== "pending", "Your registration is awaiting approval. We will contact you shortly.", 403);
         assert(tenant?.status === "active", "This organization subscription is inactive. Contact support.", 403);
       }
 

@@ -48,6 +48,7 @@ import { employeesApi } from './api/employeesApi.js';
 import { salaryPaymentsApi } from './api/salaryPaymentsApi.js';
 import { stockMovementsApi } from './api/stockMovementsApi.js';
 import { contactApi } from './api/contactApi.js';
+import { registrationApi } from './api/registrationApi.js';
 import { drugBatchApi } from './api/drugBatchApi.js';
 
 export const inventoryApi = {
@@ -101,5 +102,6 @@ export const inventoryApi = {
   ...salaryPaymentsApi,
   ...stockMovementsApi,
   ...contactApi,
+  ...registrationApi,
   ...drugBatchApi,
 };

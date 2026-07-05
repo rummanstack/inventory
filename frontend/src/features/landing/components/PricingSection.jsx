@@ -66,7 +66,7 @@ function PricingCard({ plan, features, expanded, onToggle, hiddenCount, t }) {
           {t('landing.pricing.contactUs')}
         </a>
         <p className="mt-3 text-center text-[11px] font-semibold text-slate-400">
-          Free setup &nbsp;·&nbsp; No long-term contract &nbsp;·&nbsp; Data export anytime
+          {t('landing.pricing.note')}
         </p>
       </div>
     </article>
@@ -87,6 +87,9 @@ export default function PricingSection({ t }) {
           title={t('landing.pricing.title')}
           description={t('landing.pricing.description')}
         />
+        <p className="mx-auto mt-4 max-w-2xl text-center text-xs font-semibold text-slate-500">
+          {t('landing.pricing.disclaimer')}
+        </p>
 
         <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {plans.map((plan) => (

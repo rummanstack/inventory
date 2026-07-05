@@ -184,6 +184,9 @@ export const TENANT_ACTIONS = {
   UPDATE: "tenant.update",
   STATUS_UPDATE: "tenant.status_update",
   FEATURES_UPDATE: "tenant.features_update",
+  REGISTER: "tenant.register",
+  REGISTRATION_APPROVE: "tenant.registration_approve",
+  REGISTRATION_REJECT: "tenant.registration_reject",
 };
 
 export const DSR_TARGET_ACTIONS = {

@@ -43,6 +43,7 @@ import { createCustomerDueLedgerRoutes } from "./customerDueLedger.routes.js";
 import { createCustomerPaymentsRoutes } from "./customerPayments.routes.js";
 import { createSalesReturnsRoutes } from "./salesReturns.routes.js";
 import { createContactRoutes } from "./contact.routes.js";
+import { createPublicRegistrationRoutes, createPlatformRegistrationsRoutes } from "./registration.routes.js";
 import { createVisitorChatRoutes } from "./visitorChat.routes.js";
 import { createVisitorChatAdminRoutes } from "./visitorChatAdmin.routes.js";
 import { createContactMessagesRoutes } from "./contactMessages.routes.js";
@@ -64,7 +65,7 @@ import { createDrugBatchesRoutes } from "./drugBatches.routes.js";
 export function createApiRouter({ controllers, authService, env, auditService }) {
   const router = Router();
   const {
-    public: { authController, contactMessageController, visitorChatController },
+    public: { authController, contactMessageController, registrationController, visitorChatController },
     platform: { backupController, systemController, tenantController, visitorChatAdminController },
     tenant: {
       activityLogController,
@@ -130,6 +131,7 @@ export function createApiRouter({ controllers, authService, env, auditService })
   const loginRateLimiter = createRateLimiter({ name: "auth-login", windowMs: 15 * 60 * 1000, max: 20 });
   const authRateLimiter = createRateLimiter({ name: "auth-recovery", windowMs: 15 * 60 * 1000, max: 20 });
   const contactRateLimiter = createRateLimiter({ name: "contact-submit", windowMs: 15 * 60 * 1000, max: 10 });
+  const registerRateLimiter = createRateLimiter({ name: "public-register", windowMs: 15 * 60 * 1000, max: 5 });
   const visitorChatRateLimiter = createRateLimiter({
     name: "visitor-chat-post",
     windowMs: 15 * 60 * 1000,
@@ -140,6 +142,9 @@ export function createApiRouter({ controllers, authService, env, auditService })
 
   // Public contact form - no auth required
   router.use("/contact", createContactRoutes(contactMessageController, { contactRateLimiter }));
+
+  // Public business self-registration - creates a pending tenant awaiting platform approval
+  router.use("/register", createPublicRegistrationRoutes(registrationController, { registerRateLimiter }));
 
   // Public visitor chat widget - no auth required
   router.use("/visitor-chat", createVisitorChatRoutes(visitorChatController, { visitorChatRateLimiter }));
@@ -155,6 +160,7 @@ export function createApiRouter({ controllers, authService, env, auditService })
   router.use("/platform/backup", createPlatformBackupRoutes(backupController));
   router.use("/platform/visitor-chats", createVisitorChatAdminRoutes(visitorChatAdminController));
   router.use("/platform/contact-messages", createContactMessagesRoutes(contactMessageAdminController));
+  router.use("/platform/registrations", createPlatformRegistrationsRoutes(registrationController));
 
   // System developer routes - no tenant required, system_developer only
   router.use("/system", createSystemRoutes(systemController));

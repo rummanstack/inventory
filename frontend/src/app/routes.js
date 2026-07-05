@@ -22,6 +22,7 @@ import {
   Trash2,
   Truck,
   Users,
+  UserCheck,
   UserCog,
   Database,
   Activity,
@@ -56,6 +57,7 @@ const UsersPage = lazy(() => import('../features/users/pages/UsersPage'));
 const PlatformAdminPage = lazy(() => import('../features/platform/pages/PlatformAdminPage'));
 const VisitorChatsPage = lazy(() => import('../features/platform/pages/VisitorChatsPage'));
 const ContactMessagesPage = lazy(() => import('../features/platform/pages/ContactMessagesPage'));
+const RegistrationRequestsPage = lazy(() => import('../features/platform/pages/RegistrationRequestsPage'));
 const ProfilePage = lazy(() => import('../features/profile/pages/ProfilePage'));
 const SecurityPage = lazy(() => import('../features/security/pages/SecurityPage'));
 const SystemHealthPage = lazy(() => import('../features/system/pages/SystemHealthPage'));
@@ -177,6 +179,7 @@ export const APP_ROUTES = [
   { id: 'database-backup', path: '/database-backup', labelKey: 'nav.databaseBackup', icon: Database, component: DatabaseBackupPage, group: 'system', permission: 'manage_backups', feature: 'database-backup' },
   { id: 'visitor-chats', path: '/platform/visitor-chats', labelKey: 'nav.visitorChats', icon: MessageCircle, component: VisitorChatsPage, group: 'developer', role: 'system_developer', feature: 'visitor-chats' },
   { id: 'contact-messages', path: '/platform/contact-messages', labelKey: 'nav.contactMessages', icon: Inbox, component: ContactMessagesPage, group: 'developer', role: 'system_developer', feature: 'contact-messages' },
+  { id: 'registration-requests', path: '/platform/registrations', labelKey: 'nav.registrationRequests', icon: UserCheck, component: RegistrationRequestsPage, group: 'developer', role: 'system_developer', feature: 'registration-requests' },
 ];
 
 export const SIDEBAR_SECTIONS = ['overview', 'pos', 'customers', 'inventory', 'dsr', 'shops', 'purchases', 'warranty', 'finance', 'reports', 'hr', 'system', 'developer'];

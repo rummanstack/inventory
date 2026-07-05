@@ -32,7 +32,7 @@ export default function LandingPage() {
   return (
     <main className="landing-page">
       <LandingHeader language={language} setLanguage={setLanguage} t={t} />
-      <HeroSection t={t} />
+      <HeroSection t={t} language={language} />
       <TrustBarSection t={t} />
       <ProofSection t={t} />
       <WhoIsItForSection t={t} />

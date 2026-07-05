@@ -1,10 +1,10 @@
 import { ArrowRight, MessageCircle } from 'lucide-react';
 import ImagePlaceholder from './shared/ImagePlaceholder.jsx';
-import { heroDashboardImage } from '../constants.js';
+import { heroDashboardImages } from '../constants.js';
 
-export default function HeroSection({ t }) {
+export default function HeroSection({ t, language }) {
   const heroImage = {
-    src: heroDashboardImage,
+    src: heroDashboardImages[language] || heroDashboardImages.en,
     alt: t('landing.images.heroDashboard'),
   };
 

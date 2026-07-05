@@ -6,6 +6,7 @@ import dueCollectionImage from '../../assets/landing/due-collection.png';
 import eveningSettlementImage from '../../assets/landing/evening-settlement.png';
 import groceryImage from '../../assets/landing/grocery.png';
 import heroDashboardImageFile from '../../assets/landing/hero-dashboard.png';
+import heroDashboardImageEnFile from '../../assets/landing/hero-dashboard-en.png';
 import ownerLaptopImage from '../../assets/landing/owner-laptop.png';
 import pharmacyImage from '../../assets/landing/pharmacy.png';
 import profitReportImage from '../../assets/landing/profit-report.png';
@@ -53,6 +54,8 @@ export const navLinks = [
 ];
 
 export const heroDashboardImage = heroDashboardImageFile;
+export const heroDashboardImageEn = heroDashboardImageEnFile;
+export const heroDashboardImages = { en: heroDashboardImageEnFile, bn: heroDashboardImageFile };
 export const heroMobileImage = landingImage2;
 export const contactUsImage = supportCallImage;
 

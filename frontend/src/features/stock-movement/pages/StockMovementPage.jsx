@@ -7,8 +7,8 @@ export default function StockMovementPage() {
 
   return (
     <div>
-      <SectionHeader eyebrow={t('nav.stockMovement')} title={t('nav.stockMovement')} description={t('stockMovement.description')} />
-      <StockLedgerPanel products={productDirectory} t={t} printTarget />
+      <SectionHeader eyebrow={t('stockLedger.eyebrow')} title={t('nav.stockMovement')} description={t('stockMovement.description')} />
+      <StockLedgerPanel products={productDirectory} t={t} printTarget hideHeader />
     </div>
   );
 }

@@ -38,7 +38,7 @@ function formatReference(movement) {
   return `${movement.referenceType || 'reference'} / ${shortId}`;
 }
 
-export default function StockLedgerPanel({ products, t, refreshKey = 0, fixedType, sectionTitle, sectionDescription, printTarget = false }) {
+export default function StockLedgerPanel({ products, t, refreshKey = 0, fixedType, sectionTitle, sectionDescription, printTarget = false, hideHeader = false }) {
   const today = todayISO();
   const [productId, setProductId] = useState('');
   const [dateFrom, setDateFrom] = useState(subtractDays(today, 29));
@@ -119,12 +119,14 @@ export default function StockLedgerPanel({ products, t, refreshKey = 0, fixedTyp
   return (
     <section id={printTarget ? STOCK_LEDGER_PRINT_ID : undefined} className={`surface mt-6 overflow-hidden ${printTarget ? 'print-target' : ''}`}>
       <div className={`border-b border-slate-100 px-5 py-4 ${printTarget ? 'no-print' : ''}`}>
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div>
-            <p className="brand-chip">{t('stockLedger.eyebrow')}</p>
-            <h2 className="mt-3 text-lg font-bold tracking-tight text-slate-950">{sectionTitle || t('stockLedger.title')}</h2>
-            <p className="mt-1 max-w-3xl text-sm font-medium leading-6 text-slate-500">{sectionDescription || t('stockLedger.description')}</p>
-          </div>
+        <div className={`flex flex-col gap-4 lg:flex-row lg:items-start ${hideHeader ? 'lg:justify-end' : 'lg:justify-between'}`}>
+          {hideHeader ? null : (
+            <div>
+              <p className="brand-chip">{t('stockLedger.eyebrow')}</p>
+              <h2 className="mt-3 text-lg font-bold tracking-tight text-slate-950">{sectionTitle || t('stockLedger.title')}</h2>
+              <p className="mt-1 max-w-3xl text-sm font-medium leading-6 text-slate-500">{sectionDescription || t('stockLedger.description')}</p>
+            </div>
+          )}
           <div className="flex flex-wrap gap-2">
             {printTarget ? (
               <button

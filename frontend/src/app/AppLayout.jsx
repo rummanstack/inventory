@@ -5,6 +5,7 @@ import { Alert, ConfirmationDialog, PageLoadingState } from '../components/ui';
 import { useInventoryApp } from './useInventoryApp.jsx';
 import AppSidebar from './AppSidebar';
 import CommandPalette from './CommandPalette.jsx';
+import MobileTabBar from './MobileTabBar.jsx';
 import MustChangePasswordModal from '../features/auth/pages/MustChangePasswordModal.jsx';
 import { getRouteLabel } from './routes';
 import TopHeader from './TopHeader';
@@ -77,7 +78,7 @@ export default function AppLayout() {
       <div className={`flex h-screen min-h-0 flex-col transition-[padding-left] duration-300 ${sidebarCollapsed ? 'lg:pl-[68px]' : 'lg:pl-72'}`}>
         <TopHeader title={getRouteLabel(location.pathname, t)} today={today} user={user} tenant={tenant} tenantOptions={tenantOptions} onSwitchTenant={switchTenant} onLogout={logout} onOpenMenu={() => setMobileOpen(true)} language={language} onLanguageChange={setLanguage} t={t} products={productDirectory} />
         <div ref={scrollContainerRef} className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
-          <main key={location.pathname} className="mx-auto max-w-[1680px] px-3 py-6 pb-10 sm:px-6 lg:px-8 page-enter">
+          <main key={location.pathname} className="mx-auto max-w-[1680px] px-3 py-6 pb-10 max-lg:pb-[calc(5.5rem+env(safe-area-inset-bottom))] sm:px-6 lg:px-8 page-enter">
             {loadError ? (
               <div className="mb-6">
                 <Alert type="error">{loadError}</Alert>
@@ -86,6 +87,7 @@ export default function AppLayout() {
             <Outlet />
           </main>
         </div>
+        <MobileTabBar onOpenMenu={() => setMobileOpen(true)} menuOpen={mobileOpen} />
       </div>
       <ConfirmationDialog
         open={Boolean(confirmation)}
@@ -106,7 +108,7 @@ export default function AppLayout() {
       {location.pathname !== '/help-desk' && (
         <button
           onClick={() => navigate('/help-desk')}
-          className="fixed bottom-6 right-6 z-50 flex h-13 w-13 items-center justify-center rounded-full bg-[var(--secondary)] text-white shadow-lg hover:bg-[var(--secondary-strong)] active:scale-95 transition-all"
+          className="fixed bottom-6 right-6 z-50 flex h-13 w-13 items-center justify-center rounded-full bg-[var(--secondary)] text-white shadow-lg hover:bg-[var(--secondary-strong)] active:scale-95 transition-all max-lg:bottom-[calc(4.5rem+env(safe-area-inset-bottom))]"
           title={t('nav.helpDesk')}
         >
           <HelpCircle className="h-6 w-6" />

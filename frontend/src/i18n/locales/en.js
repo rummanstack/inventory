@@ -1,4 +1,4 @@
-﻿const en = {
+const en = {
     app: {
       brand: 'Stock Ledger',
       subtitle: '',
@@ -193,6 +193,13 @@
       system: 'System & Settings',
       developer: 'Developer',
       misc: 'Other',
+    },
+    mobileNav: {
+      home: 'Home',
+      sell: 'Sell',
+      stock: 'Stock',
+      reports: 'Reports',
+      menu: 'Menu',
     },
     permissions: {
       title: 'Permissions',
@@ -3387,7 +3394,7 @@
         cta: {
           title: 'Ready to get started?',
           text: 'Your data is safe with us. Talk to our team anytime.',
-          whatsapp: 'WhatsApp Us',
+          whatsapp: 'Book WhatsApp Demo',
           explore: 'Explore StockLedger',
         },
       },
@@ -3606,7 +3613,7 @@
         cta: {
           title: 'Questions about these terms?',
           text: 'Our team is happy to clarify anything before you commit.',
-          whatsapp: 'WhatsApp Us',
+          whatsapp: 'Book WhatsApp Demo',
           explore: 'Explore StockLedger',
         },
       },

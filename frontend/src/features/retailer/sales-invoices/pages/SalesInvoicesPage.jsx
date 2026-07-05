@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Download, Eye, FileSpreadsheet, Plus, Printer, Receipt, Search, Trash2 } from 'lucide-react';
-import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton, Select } from '../../../../components/ui.jsx';
+import { Alert, Badge, EmptyState, MobileCardList, MobileListCard, Pagination, SectionHeader, TableSkeleton, Select } from '../../../../components/ui.jsx';
 import { DatePickerField } from '../../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../../services/printService.js';
@@ -131,7 +131,25 @@ export default function SalesInvoicesPage() {
             <Alert type="error">{vm.error}</Alert>
           </div>
         ) : (
-        <div className="overflow-x-auto">
+        <>
+        <MobileCardList>
+          {vm.items.map((invoice) => (
+            <MobileListCard
+              key={invoice.id}
+              onClick={() => setViewInvoice(invoice)}
+              title={invoice.invoiceNumber}
+              badge={
+                <Badge tone={paymentStatusTone(paymentStatusOf(invoice))}>
+                  {t(`purchaseReceive.paymentStatuses.${paymentStatusOf(invoice)}`)}
+                </Badge>
+              }
+              subtitle={`${invoice.customerName || t('retailer.shared.customerTypes.WALK_IN')} · ${formatDateTime(invoice.invoiceDate)}`}
+              value={formatCurrency(invoice.totalAmount)}
+              valueSub={Number(invoice.dueAmount) > 0 ? formatCurrency(invoice.dueAmount) : null}
+            />
+          ))}
+        </MobileCardList>
+        <div className="hidden overflow-x-auto md:block">
           <table className="w-full">
             <thead className="table-head">
               <tr>
@@ -178,6 +196,7 @@ export default function SalesInvoicesPage() {
             </tbody>
           </table>
         </div>
+        </>
         )}
         {!vm.loading && !vm.error && !vm.items.length ? (
           <div className="p-5">

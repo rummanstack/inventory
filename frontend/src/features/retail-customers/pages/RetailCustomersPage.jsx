@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Download, FileSpreadsheet, Pencil, Phone, Plus, Printer, Search, Trash2, Users } from 'lucide-react';
-import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton, Select } from '../../../components/ui.jsx';
+import { Alert, Badge, EmptyState, MobileCardList, MobileListCard, Pagination, SectionHeader, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { statusTone } from '../../../models/inventoryViewData.js';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../services/printService.js';
@@ -146,7 +146,24 @@ export default function RetailCustomersPage() {
             <Alert type="error">{vm.error}</Alert>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+          <MobileCardList>
+            {vm.items.map((customer) => (
+              <MobileListCard
+                key={customer.id}
+                onClick={canManage ? () => setFormModal({ mode: 'edit', retailCustomer: customer }) : undefined}
+                title={customer.name}
+                badge={customer.status !== 'ACTIVE' ? (
+                  <Badge tone={statusTone('Inactive')}>{t('retailCustomers.statusInactive')}</Badge>
+                ) : null}
+                subtitle={customer.phone || customer.address || '-'}
+                value={formatCurrency(customer.currentDue || 0)}
+                valueClass={Number(customer.currentDue) > 0 ? 'text-rose-700' : 'text-slate-500'}
+                valueSub={Number(customer.loyaltyPointsBalance || 0) > 0 ? `${Number(customer.loyaltyPointsBalance)} pts` : null}
+              />
+            ))}
+          </MobileCardList>
+          <div className="hidden overflow-x-auto md:block">
             <table className="w-full">
               <thead className="table-head">
                 <tr>
@@ -200,6 +217,7 @@ export default function RetailCustomersPage() {
               </tbody>
             </table>
           </div>
+          </>
         )}
 
         {!vm.loading && !vm.error && !vm.items.length ? (

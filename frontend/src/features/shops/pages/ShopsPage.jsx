@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Download, Eye, FileSpreadsheet, Pencil, Phone, Plus, Printer, Search, Store, Trash2 } from 'lucide-react';
-import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton, Select } from '../../../components/ui.jsx';
+import { Alert, Badge, EmptyState, MobileCardList, MobileListCard, Pagination, SectionHeader, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { statusTone } from '../../../models/inventoryViewData.js';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../services/printService.js';
@@ -103,7 +103,29 @@ export default function ShopsPage() {
             <Alert type="error">{vm.error}</Alert>
           </div>
         ) : (
-        <div className="overflow-x-auto">
+        <>
+        <MobileCardList>
+          {vm.items.map((shop) => (
+            <MobileListCard
+              key={shop.id}
+              onClick={() => setViewShop(shop)}
+              title={shop.shopName}
+              badge={shop.status !== 'ACTIVE' ? (
+                <Badge tone={statusTone('Inactive')}>{t('shops.statusInactive')}</Badge>
+              ) : null}
+              subtitle={[shop.phone, shop.market].filter(Boolean).join(' · ') || shop.ownerName}
+              value={formatCurrency(shop.currentDue)}
+              valueClass={Number(shop.currentDue) > 0 ? 'text-rose-700' : undefined}
+              valueSub={shop.assignedDsrName || t('shops.unassigned')}
+              action={canManageShops ? (
+                <button type="button" className="icon-btn" title={t('common.edit')} onClick={() => setFormModal({ mode: 'edit', shop })}>
+                  <Pencil size={18} />
+                </button>
+              ) : null}
+            />
+          ))}
+        </MobileCardList>
+        <div className="hidden overflow-x-auto md:block">
           <table className="w-full">
             <thead className="table-head">
               <tr>
@@ -163,6 +185,7 @@ export default function ShopsPage() {
             </tbody>
           </table>
         </div>
+        </>
         )}
         {!vm.loading && !vm.error && !vm.items.length ? (
           <div className="p-5">

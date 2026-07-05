@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Download, Eye, FileSpreadsheet, FileText, Pencil, Phone, Plus, Printer, Search, Truck, Trash2 } from 'lucide-react';
-import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton, Select } from '../../../components/ui.jsx';
+import { Alert, Badge, EmptyState, MobileCardList, MobileListCard, Pagination, SectionHeader, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { statusTone } from '../../../models/inventoryViewData.js';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
@@ -109,7 +109,28 @@ export default function SuppliersPage() {
             <Alert type="error">{vm.error}</Alert>
           </div>
         ) : (
-        <div className="overflow-x-auto">
+        <>
+        <MobileCardList>
+          {vm.items.map((supplier) => (
+            <MobileListCard
+              key={supplier.id}
+              onClick={() => setViewSupplier(supplier)}
+              title={supplier.name}
+              badge={supplier.status !== 'ACTIVE' ? (
+                <Badge tone={statusTone('Inactive')}>{t('suppliers.statusInactive')}</Badge>
+              ) : null}
+              subtitle={[supplier.phone, supplier.address].filter(Boolean).join(' · ') || '-'}
+              value={formatCurrency(supplier.currentDue)}
+              valueClass={Number(supplier.currentDue) > 0 ? 'text-rose-700' : undefined}
+              action={canManageSuppliers ? (
+                <button type="button" className="icon-btn" title={t('common.edit')} onClick={() => setFormModal({ mode: 'edit', supplier })}>
+                  <Pencil size={18} />
+                </button>
+              ) : null}
+            />
+          ))}
+        </MobileCardList>
+        <div className="hidden overflow-x-auto md:block">
           <table className="w-full">
             <thead className="table-head">
               <tr>
@@ -167,6 +188,7 @@ export default function SuppliersPage() {
             </tbody>
           </table>
         </div>
+        </>
         )}
         {!vm.loading && !vm.error && !vm.items.length ? (
           <div className="p-5">

@@ -286,8 +286,8 @@ export default function FinanceDashboardPage() {
                 </div>
                 <div className="divide-y divide-slate-100">
                   {[
-                    { label: t('financeDashboard.grossMargin'), pct: rr.data.revenue > 0 ? (rr.data.grossProfit / rr.data.revenue) * 100 : 0, positive: rr.data.grossProfit >= 0 },
-                    { label: t('financeDashboard.netMargin'), pct: rr.data.revenue > 0 ? (rr.data.netProfit / rr.data.revenue) * 100 : 0, positive: rr.data.netProfit >= 0 },
+                    { label: t('financeDashboard.grossMargin'), pct: rr.data.cogs > 0 ? (rr.data.grossProfit / rr.data.cogs) * 100 : 0, positive: rr.data.grossProfit >= 0 },
+                    { label: t('financeDashboard.netMargin'), pct: rr.data.cogs > 0 ? (rr.data.netProfit / rr.data.cogs) * 100 : 0, positive: rr.data.netProfit >= 0 },
                     { label: t('financeDashboard.expenseRatio'), pct: rr.data.revenue > 0 ? (rr.data.totalExpenses / rr.data.revenue) * 100 : 0, positive: false },
                     { label: t('financeDashboard.cogsRatio'), pct: rr.data.revenue > 0 ? (rr.data.cogs / rr.data.revenue) * 100 : 0, positive: false },
                   ].map(({ label, pct, positive }) => (

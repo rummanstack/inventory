@@ -31,9 +31,10 @@ function getPeriodLabel(row, view) {
   return formatDate(row.date);
 }
 
+// Markup on cost (profit ÷ cost), not margin on revenue.
 function marginOf(row) {
-  if (!row.revenue) return 0;
-  return (row.grossProfit / row.revenue) * 100;
+  if (!row.cost) return 0;
+  return (row.grossProfit / row.cost) * 100;
 }
 
 function BreakdownTable({ t, language, columns, rows, emptyIcon, exportFileName, pdfFileName, sheetName, printId }) {

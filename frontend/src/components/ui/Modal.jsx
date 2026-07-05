@@ -25,23 +25,30 @@ export function Modal({ title, description, children, onClose, width = 'max-w-2x
 
   return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-[rgb(var(--black)/0.45)] p-4 backdrop-blur-[10px] no-print"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-[rgb(var(--black)/0.45)] backdrop-blur-[10px] no-print md:items-center md:p-4"
       onClick={onClose}
     >
       <div
-        className={cx('panel-strong modal-enter w-full overflow-hidden shadow-modal', width)}
+        className={cx(
+          'panel-strong modal-enter w-full overflow-hidden shadow-modal',
+          'max-md:flex max-md:max-h-[92dvh] max-md:flex-col max-md:rounded-b-none max-md:rounded-t-[20px] max-md:border-b-0',
+          width,
+        )}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-start justify-between border-b border-slate-100 bg-slate-50/80 px-5 py-4">
+        <div className="flex justify-center bg-slate-50/80 pt-2.5 md:hidden">
+          <span className="h-1 w-10 rounded-full bg-slate-300" />
+        </div>
+        <div className="flex shrink-0 items-start justify-between border-b border-slate-100 bg-slate-50/80 px-5 py-4">
           <div>
             <h2 className="text-lg font-bold text-slate-950">{title}</h2>
-            {description ? <p className="mt-1 text-sm text-slate-500">{description}</p> : null}
+            {description ? <p className="mt-1 text-sm text-slate-500 max-md:hidden">{description}</p> : null}
           </div>
           <button type="button" className="icon-btn" title={t('common.close')} onClick={onClose}>
             <X size={18} />
           </button>
         </div>
-        <div className="max-h-[calc(100vh-10rem)] overflow-y-auto p-5">{children}</div>
+        <div className="max-h-[calc(100vh-10rem)] overflow-y-auto p-5 max-md:min-h-0 max-md:flex-1 max-md:max-h-none max-md:pb-[max(1.25rem,env(safe-area-inset-bottom))]">{children}</div>
       </div>
     </div>,
     document.body,
@@ -132,14 +139,17 @@ export function ConfirmationDialog({
 
   return (
     <div
-      className="fixed inset-0 z-[60] flex items-center justify-center bg-[rgb(var(--black)/0.45)] p-4 backdrop-blur-[10px] no-print"
+      className="fixed inset-0 z-[60] flex items-end justify-center bg-[rgb(var(--black)/0.45)] backdrop-blur-[10px] no-print md:items-center md:p-4"
       onClick={onCancel}
     >
       <div
-        className="panel-strong modal-enter w-full max-w-lg overflow-hidden shadow-modal"
+        className="panel-strong modal-enter w-full max-w-lg overflow-hidden shadow-modal max-md:max-h-[92dvh] max-md:overflow-y-auto max-md:rounded-b-none max-md:rounded-t-[20px] max-md:border-b-0"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="border-b border-slate-100 bg-slate-50/80 px-5 py-5">
+        <div className="flex justify-center bg-slate-50/80 pt-2.5 md:hidden">
+          <span className="h-1 w-10 rounded-full bg-slate-300" />
+        </div>
+        <div className="border-b border-slate-100 bg-slate-50/80 px-5 py-5 max-md:py-4">
           <div className="flex items-start gap-3">
             <div className={cx('rounded-2xl p-2.5', tones[tone] || tones.rose)}>
               <Icon size={18} />
@@ -184,7 +194,7 @@ export function ConfirmationDialog({
             </div>
           ) : null}
         </div>
-        <div className="flex flex-col-reverse gap-2 px-5 py-4 sm:flex-row sm:items-center sm:justify-end">
+        <div className="flex flex-col-reverse gap-2 px-5 py-4 max-md:pb-[max(1rem,env(safe-area-inset-bottom))] sm:flex-row sm:items-center sm:justify-end">
           <button type="button" className="btn-secondary" onClick={onCancel}>
             {resolvedCancelLabel}
           </button>

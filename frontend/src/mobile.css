@@ -30,6 +30,23 @@
   }
 }
 
+/* Bottom sheets (Day 8): below md, modals slide up from the bottom edge
+   instead of using the desktop scale/fade entrance. */
+@media (max-width: 767.98px) {
+  .modal-enter {
+    animation: sheet-slide-up 280ms cubic-bezier(0.32, 0.72, 0, 1);
+  }
+}
+
+@keyframes sheet-slide-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
 /* Safe-area helpers (any breakpoint) */
 .pb-safe {
   padding-bottom: env(safe-area-inset-bottom);

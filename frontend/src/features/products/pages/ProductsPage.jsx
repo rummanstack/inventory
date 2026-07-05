@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Boxes, Download, FileSpreadsheet, ImageOff, LayoutGrid, List, ListTree, PackagePlus, Pencil, Plus, Printer, Search, Trash2 } from 'lucide-react';
-import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton, cx, Select } from '../../../components/ui.jsx';
+import { Alert, Badge, EmptyState, MobileCardList, MobileListCard, Pagination, SectionHeader, TableSkeleton, cx, Select } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { formatCasePiece, formatCurrency, formatNumber } from '../../../utils/calculations.js';
 import ProductFormModal from '../components/ProductFormModal';
@@ -254,7 +254,49 @@ export default function ProductsPage() {
           ))}
         </div>
         ) : (
-        <div className="overflow-x-auto">
+        <>
+        <MobileCardList>
+          {vm.items.map((product) => (
+            <MobileListCard
+              key={product.id}
+              onClick={canManageProducts ? () => setProductModal({ mode: 'edit', product }) : undefined}
+              leading={
+                <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-lg border border-slate-200 bg-slate-50">
+                  {product.imageUrl ? (
+                    <img src={product.imageUrl} alt="" className="h-full w-full object-cover" />
+                  ) : (
+                    <ImageOff size={16} className="text-slate-300" />
+                  )}
+                </div>
+              }
+              title={product.name}
+              badge={
+                product.stockPieces === 0 ? (
+                  <Badge tone="rose">{t('products.outShort')}</Badge>
+                ) : product.stockPieces <= product.piecesPerCase ? (
+                  <Badge tone="amber">{t('products.lowShort')}</Badge>
+                ) : null
+              }
+              subtitle={product.category}
+              value={isElectronics
+                ? `${formatNumber(product.stockPieces, language)} ${t('common.pcs')}`
+                : formatCasePiece(product.stockPieces, product.piecesPerCase, language)}
+              valueClass={product.stockPieces === 0 ? 'text-rose-600' : undefined}
+              valueSub={formatCurrency(product.retailPrice, language)}
+              action={canManageProducts && !product.serialRequired ? (
+                <button
+                  type="button"
+                  className="icon-btn"
+                  title={t('products.stockActions')}
+                  onClick={() => { setStockModalMode('add'); setStockModalProduct(product); }}
+                >
+                  <PackagePlus size={18} />
+                </button>
+              ) : null}
+            />
+          ))}
+        </MobileCardList>
+        <div className="hidden overflow-x-auto md:block">
           <table className="w-full">
             <thead className="table-head">
               <tr>
@@ -341,6 +383,7 @@ export default function ProductsPage() {
             </tbody>
           </table>
         </div>
+        </>
         )}
         {!vm.loading && !vm.error && !vm.items.length ? (
           <div className="p-5">

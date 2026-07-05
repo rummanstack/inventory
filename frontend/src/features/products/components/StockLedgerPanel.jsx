@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ClipboardList, Download, FileSpreadsheet, Printer, RefreshCw } from 'lucide-react';
-import { Alert, Badge, EmptyState, Pagination, TableSkeleton, Select } from '../../../components/ui.jsx';
+import { Alert, Badge, EmptyState, MobileCardList, MobileListCard, Pagination, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import { downloadSheetPdf } from '../../../services/printService.js';
@@ -186,7 +186,26 @@ export default function StockLedgerPanel({ products, t, refreshKey = 0, fixedTyp
         </div>
       ) : null}
 
-      <div className="overflow-x-auto">
+      {!loading && !error ? (
+        <MobileCardList>
+          {movements.map((movement) => (
+            <MobileListCard
+              key={movement.id}
+              title={movement.productName || movement.productId}
+              badge={<Badge tone={movementTone(movement.type)}>{t(`stockLedger.types.${movement.type}`)}</Badge>}
+              subtitle={formatDateTime(movement.createdAt)}
+              value={movement.quantityIn
+                ? `+${formatNumber(movement.quantityIn)}`
+                : movement.quantityOut
+                  ? `-${formatNumber(movement.quantityOut)}`
+                  : '-'}
+              valueClass={movement.quantityIn ? 'text-emerald-700' : movement.quantityOut ? 'text-rose-700' : undefined}
+              valueSub={`= ${formatNumber(movement.balanceAfter)}`}
+            />
+          ))}
+        </MobileCardList>
+      ) : null}
+      <div className="hidden overflow-x-auto md:block">
         <table className="w-full">
           <thead className="table-head">
             <tr>
@@ -234,12 +253,12 @@ export default function StockLedgerPanel({ products, t, refreshKey = 0, fixedTyp
             </tbody>
           )}
         </table>
-        {loading ? (
-          <div className="p-5">
-            <TableSkeleton columns={8} showHeader={false} />
-          </div>
-        ) : null}
       </div>
+      {loading ? (
+        <div className="p-5">
+          <TableSkeleton columns={8} showHeader={false} />
+        </div>
+      ) : null}
 
       {!loading && !error && !movements.length ? (
         <div className="p-5">

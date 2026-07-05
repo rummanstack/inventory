@@ -94,7 +94,17 @@ export default function DailyReportsPage() {
             <StatCard title={t('reports.returned')} value={formatCurrency(vm.totals.returnValue)} helper={`${formatNumber(vm.totals.returnedPieces, language)} ${t('common.pcs')}`} icon={RotateCcw} tone="slate" />
             <StatCard title={t('reports.sold')} value={formatCurrency(vm.totals.totalPayable)} helper={`${formatNumber(vm.totals.soldPieces, language)} ${t('common.pcs')}`} icon={PackageCheck} tone="emerald" />
             <StatCard title={t('reports.paid')} value={formatCurrency(vm.totals.amountPaid)} helper={`${formatNumber(vm.rows.length)} ${t('common.dsr')}`} icon={CircleDollarSign} tone="blue" />
-            <StatCard title={t('reports.due')} value={formatCurrency(vm.dueTotal)} icon={Wallet} tone="rose" />
+            <StatCard
+              title={t('reports.due')}
+              value={formatCurrency(vm.dueBreakdown.total)}
+              helper={t('reports.dueBreakdown', {
+                dsr: formatCurrency(vm.dueBreakdown.dsrDue),
+                sr: formatCurrency(vm.dueBreakdown.srDue),
+                customer: formatCurrency(vm.dueBreakdown.customerDue),
+              })}
+              icon={Wallet}
+              tone="rose"
+            />
             <StatCard title={t('reports.srHandover')} value={formatCurrency(vm.totals.srHandover)} icon={Users} tone="indigo" />
             <StatCard title={t('reports.discount')} value={formatCurrency(vm.totals.discount)} icon={Percent} tone="amber" />
             <StatCard title={t('reports.profit')} value={vm.profitTotals ? formatCurrency(vm.profitTotals.profit) : '-'} icon={TrendingUp} tone={vm.profitTotals && vm.profitTotals.profit >= 0 ? 'emerald' : 'rose'} />

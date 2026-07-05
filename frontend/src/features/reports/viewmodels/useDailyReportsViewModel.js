@@ -18,6 +18,7 @@ export function useDailyReportsViewModel({ products, dsrs, today, t, tenantName 
   const [salaryRows, setSalaryRows] = useState([]);
   const [profitTotals, setProfitTotals] = useState(null);
   const [dsrDueBalances, setDsrDueBalances] = useState([]);
+  const [rangeSalesInvoices, setRangeSalesInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -71,6 +72,10 @@ export function useDailyReportsViewModel({ products, dsrs, today, t, tenantName 
       inventoryApi.getProfitReport({ dateFrom, dateTo })
         .then((r) => { if (!cancelled) setProfitTotals(r.totals || null); })
         .catch(() => { if (!cancelled) setProfitTotals(null); });
+
+      inventoryApi.listSalesInvoices({ dateFrom, dateTo, pageSize: 2000 })
+        .then((r) => { if (!cancelled) setRangeSalesInvoices(r.items || []); })
+        .catch(() => { if (!cancelled) setRangeSalesInvoices([]); });
     }
 
     load();
@@ -163,8 +168,6 @@ export function useDailyReportsViewModel({ products, dsrs, today, t, tenantName 
     { issuedPieces: 0, issuedValue: 0, returnedPieces: 0, returnValue: 0, damagedPieces: 0, soldPieces: 0, totalPayable: 0, amountPaid: 0, discount: 0, srHandover: 0 },
   ), [rows]);
 
-  const dueTotal = Math.max(0, totals.totalPayable - totals.discount - totals.amountPaid);
-
   const srRows = useMemo(() => {
     const srMap = new Map();
     for (const e of srLedgerEntries) {
@@ -175,6 +178,19 @@ export function useDailyReportsViewModel({ products, dsrs, today, t, tenantName 
     }
     return [...srMap.values()].sort((a, b) => b.handover - a.handover);
   }, [srLedgerEntries]);
+
+  // Due created within the selected range, split by who owes it. The DSR and
+  // SR parts are netted straight from their due ledgers (debit − credit over
+  // the range) so the card always reconciles with the ledger tables on this
+  // page — settlement arithmetic misses opening dues, edit adjustments, and
+  // extra returns. Customer part is unpaid balance on the range's invoices.
+  const dueBreakdown = useMemo(() => {
+    const net = (entries) => entries.reduce((sum, e) => sum + Number(e.debit || 0) - Number(e.credit || 0), 0);
+    const dsrDue = Math.max(0, net(rangeDueLedger));
+    const srDue = Math.max(0, net(srLedgerEntries));
+    const customerDue = rangeSalesInvoices.reduce((sum, inv) => sum + Math.max(0, Number(inv.dueAmount || 0)), 0);
+    return { dsrDue, srDue, customerDue, total: dsrDue + srDue + customerDue };
+  }, [rangeDueLedger, srLedgerEntries, rangeSalesInvoices]);
 
   const expenseRows = useMemo(
     () => expenseSummary?.byCategory || [],
@@ -269,7 +285,7 @@ export function useDailyReportsViewModel({ products, dsrs, today, t, tenantName 
     error,
     rows,
     totals,
-    dueTotal,
+    dueBreakdown,
     srRows,
     expenseRows,
     salaryRows,

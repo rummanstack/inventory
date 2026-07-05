@@ -2878,6 +2878,7 @@ const bn = {
       payable: 'প্রাপ্য',
       paid: 'পরিশোধিত',
       due: 'বকেয়া',
+      dueBreakdown: 'ডিএসআর {dsr} · এসআর {sr} · কাস্টমার {customer}',
       routeReport: '{date} তারিখের রুট রিপোর্ট',
       routeReportDescription: 'প্রথমে প্রতিটি সারি না পড়ে ডিএসআরের পারফরম্যান্স ও মুভমেন্ট তুলনা করুন।',
       noRouteTitle: 'এই তারিখে কোনো রুট মুভমেন্ট নেই',

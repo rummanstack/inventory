@@ -2873,6 +2873,7 @@ const en = {
       payable: 'Payable',
       paid: 'Paid',
       due: 'Due',
+      dueBreakdown: 'DSR {dsr} · SR {sr} · Customer {customer}',
       routeReport: 'Route Report for {date}',
       routeReportDescription: 'Compare DSR performance and movement without reading every row first.',
       noRouteTitle: 'No route movement on this date',

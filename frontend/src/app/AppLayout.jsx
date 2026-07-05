@@ -5,6 +5,7 @@ import { Alert, ConfirmationDialog, PageLoadingState } from '../components/ui';
 import { useInventoryApp } from './useInventoryApp.jsx';
 import AppSidebar from './AppSidebar';
 import CommandPalette from './CommandPalette.jsx';
+import MobileMenu from './MobileMenu.jsx';
 import MobileTabBar from './MobileTabBar.jsx';
 import MustChangePasswordModal from '../features/auth/pages/MustChangePasswordModal.jsx';
 import { getRouteLabel } from './routes';
@@ -18,6 +19,7 @@ export default function AppLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     try { return localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === 'true'; }
@@ -27,6 +29,7 @@ export default function AppLayout() {
 
   useEffect(() => {
     scrollContainerRef.current?.scrollTo({ top: 0, behavior: 'instant' });
+    setMenuOpen(false);
   }, [location.pathname]);
 
   useEffect(() => {
@@ -76,7 +79,7 @@ export default function AppLayout() {
         onToggleCollapsed={() => setSidebarCollapsed((v) => !v)}
       />
       <div className={`flex h-screen min-h-0 flex-col transition-[padding-left] duration-300 ${sidebarCollapsed ? 'lg:pl-[68px]' : 'lg:pl-72'}`}>
-        <TopHeader title={getRouteLabel(location.pathname, t)} today={today} user={user} tenant={tenant} tenantOptions={tenantOptions} onSwitchTenant={switchTenant} onLogout={logout} onOpenMenu={() => setMobileOpen(true)} language={language} onLanguageChange={setLanguage} t={t} products={productDirectory} />
+        <TopHeader title={getRouteLabel(location.pathname, t)} today={today} user={user} tenant={tenant} tenantOptions={tenantOptions} onSwitchTenant={switchTenant} onLogout={logout} language={language} onLanguageChange={setLanguage} t={t} products={productDirectory} />
         <div ref={scrollContainerRef} className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
           <main key={location.pathname} className="mx-auto max-w-[1680px] px-3 py-6 pb-10 max-lg:pb-[calc(5.5rem+env(safe-area-inset-bottom))] sm:px-6 lg:px-8 page-enter">
             {loadError ? (
@@ -87,7 +90,7 @@ export default function AppLayout() {
             <Outlet />
           </main>
         </div>
-        <MobileTabBar onOpenMenu={() => setMobileOpen(true)} menuOpen={mobileOpen} />
+        <MobileTabBar onOpenMenu={() => setMenuOpen((open) => !open)} menuOpen={menuOpen} />
       </div>
       <ConfirmationDialog
         open={Boolean(confirmation)}
@@ -103,9 +106,10 @@ export default function AppLayout() {
         onConfirm={(reason) => closeConfirmation(true, reason)}
         onCancel={() => closeConfirmation(false)}
       />
+      <MobileMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
       <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
       {user?.mustChangePassword ? <MustChangePasswordModal /> : null}
-      {location.pathname !== '/help-desk' && (
+      {location.pathname !== '/help-desk' && !menuOpen && (
         <button
           onClick={() => navigate('/help-desk')}
           className="fixed bottom-6 right-6 z-50 flex h-13 w-13 items-center justify-center rounded-full bg-[var(--secondary)] text-white shadow-lg hover:bg-[var(--secondary-strong)] active:scale-95 transition-all max-lg:bottom-[calc(4.5rem+env(safe-area-inset-bottom))]"

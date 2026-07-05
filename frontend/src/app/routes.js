@@ -184,6 +184,31 @@ export const APP_ROUTES = [
 
 export const SIDEBAR_SECTIONS = ['overview', 'pos', 'customers', 'inventory', 'dsr', 'shops', 'purchases', 'warranty', 'finance', 'reports', 'hr', 'system', 'developer'];
 
+export function canAccessRoute(route, { user, can, hasFeature }) {
+  if (!route) return false;
+  if (route.group === 'developer') {
+    if (user?.role === 'system_developer') return true;
+    if (route.role) return user?.role === route.role;
+    if (route.roles) return route.roles.includes(user?.role);
+    if (route.permission) return can(route.permission);
+    return false;
+  }
+  if (user?.role === 'system_developer') return route.id !== 'org-settings';
+  if (route.permission && !can(route.permission)) return false;
+  if (route.role && user?.role !== route.role) return false;
+  if (route.roles && !route.roles.includes(user?.role)) return false;
+  return hasFeature(route.feature);
+}
+
+export function buildGroupedRoutes(access) {
+  return SIDEBAR_SECTIONS
+    .map((section) => ({
+      section,
+      routes: APP_ROUTES.filter((route) => route.group === section && canAccessRoute(route, access)),
+    }))
+    .filter((group) => group.routes.length > 0);
+}
+
 export function getRouteLabel(pathname, t = (key) => key) {
   const matchedRoute = [...APP_ROUTES]
     .sort((left, right) => right.path.length - left.path.length)

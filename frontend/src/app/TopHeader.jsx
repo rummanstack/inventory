@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Bell, CalendarDays, CheckCircle2, Clock3, LogOut, Menu, MessageCircle, Moon, PackageX, ShieldCheck, Sun, UserCircle } from 'lucide-react';
+import { Bell, CalendarDays, CheckCircle2, Clock3, LogOut, MessageCircle, Moon, PackageX, ShieldCheck, Sun, UserCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useInventoryApp } from './useInventoryApp.jsx';
 import { formatDate, getLowStockProducts, getLowStockThreshold } from '../utils/calculations';
@@ -8,7 +8,7 @@ import LanguageSwitcher from '../components/LanguageSwitcher';
 import { inventoryApi } from '../services/inventoryApi.js';
 import { usePolling } from '../hooks/usePolling.js';
 
-export default function TopHeader({ title, today, user, tenant, tenantOptions, onSwitchTenant, onLogout, onOpenMenu, language, onLanguageChange, t, products = [] }) {
+export default function TopHeader({ title, today, user, tenant, tenantOptions, onSwitchTenant, onLogout, language, onLanguageChange, t, products = [] }) {
   const { theme, toggleTheme } = useInventoryApp();
   const [notifOpen, setNotifOpen] = useState(false);
   const [now, setNow] = useState(() => new Date());
@@ -62,15 +62,8 @@ export default function TopHeader({ title, today, user, tenant, tenantOptions, o
   return (
     <header className="sticky top-0 z-20 border-b border-[var(--sidebar-line)] bg-[color-mix(in_srgb,var(--sidebar-bg)_95%,transparent)] shadow-card backdrop-blur-xl no-print">
       <div className="mx-auto flex min-h-20 max-w-[1600px] items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            className="icon-btn lg:hidden"
-            title={t('common.openMenu')}
-            onClick={onOpenMenu}
-          >
-            <Menu size={20} />
-          </button>
+        <div className="flex min-w-0 items-center gap-3">
+          <h1 className="truncate text-base font-bold text-slate-950 sm:hidden">{title}</h1>
         </div>
         <div className="hidden items-center gap-3 sm:flex">
           {user?.isPlatformUser ? (

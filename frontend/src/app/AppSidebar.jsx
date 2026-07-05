@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { ChevronDown, LogOut, PanelLeftClose, PanelLeftOpen, X } from 'lucide-react';
 import { Avatar, cx } from '../components/ui';
-import { APP_ROUTES, SIDEBAR_SECTIONS } from './routes';
+import { buildGroupedRoutes } from './routes';
 import { stockLedgerLogoIcon } from '../assets/brandAssets.js';
 
 const COLLAPSED_GROUPS_STORAGE_KEY = 'stockledger.sidebarCollapsedGroups';
@@ -48,28 +48,9 @@ export default function AppSidebar({ mobileOpen, setMobileOpen, user, tenant, la
   const location = useLocation();
   const [collapsedGroups, setCollapsedGroups] = useState(loadCollapsedGroups);
 
-  // Build grouped routes
-  const groupedRoutes = SIDEBAR_SECTIONS
-    .map((section) => {
-      const routes = APP_ROUTES.filter((route) => {
-        if (route.group !== section) return false;
-        if (section === 'developer') {
-          if (user?.role === 'system_developer') return true;
-          if (route.role) return user?.role === route.role;
-          if (route.roles) return route.roles.includes(user?.role);
-          if (route.permission) return can(route.permission);
-          return false;
-        }
-        if (user?.role === 'system_developer') return route.id !== 'org-settings';
-        if (route.permission && !can(route.permission)) return false;
-        if (route.role && user?.role !== route.role) return false;
-        if (route.roles && !route.roles.includes(user?.role)) return false;
-        if (!hasFeature(route.feature)) return false;
-        return true;
-      });
-      return { section, label: t(`navGroups.${section}`), routes };
-    })
-    .filter((g) => g.routes.length > 0);
+  // Build grouped routes (shared with the mobile menu/tab bar)
+  const groupedRoutes = buildGroupedRoutes({ user, can, hasFeature })
+    .map((group) => ({ ...group, label: t(`navGroups.${group.section}`) }));
 
   // Auto-expand group when navigating to one of its routes
   useEffect(() => {

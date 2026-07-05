@@ -1,18 +1,8 @@
 import { NavLink, useLocation } from 'react-router-dom';
 import { Boxes, FileText, House, Menu, ShoppingBag, Truck } from 'lucide-react';
 import { cx } from '../components/ui';
-import { APP_ROUTES } from './routes';
+import { APP_ROUTES, canAccessRoute } from './routes';
 import { useInventoryApp } from './useInventoryApp.jsx';
-
-// Same access semantics as AppSidebar's non-developer sections.
-function canAccessRoute(route, { user, can, hasFeature }) {
-  if (!route) return false;
-  if (user?.role === 'system_developer') return route.id !== 'org-settings';
-  if (route.permission && !can(route.permission)) return false;
-  if (route.role && user?.role !== route.role) return false;
-  if (route.roles && !route.roles.includes(user?.role)) return false;
-  return hasFeature(route.feature);
-}
 
 function TabIcon({ icon: Icon, active }) {
   return (
@@ -46,7 +36,7 @@ export default function MobileTabBar({ onOpenMenu, menuOpen }) {
 
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-20 border-t border-[var(--sidebar-line)] bg-[color-mix(in_srgb,var(--sidebar-bg)_94%,transparent)] pb-[env(safe-area-inset-bottom)] backdrop-blur-xl no-print lg:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-[var(--sidebar-line)] bg-[color-mix(in_srgb,var(--sidebar-bg)_94%,transparent)] pb-[env(safe-area-inset-bottom)] backdrop-blur-xl no-print lg:hidden"
       aria-label={t('mobileNav.menu')}
     >
       <div className="flex">

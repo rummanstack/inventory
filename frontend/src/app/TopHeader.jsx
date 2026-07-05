@@ -61,14 +61,14 @@ export default function TopHeader({ title, today, user, tenant, tenantOptions, o
 
   return (
     <header className="sticky top-0 z-20 border-b border-[var(--sidebar-line)] bg-[color-mix(in_srgb,var(--sidebar-bg)_95%,transparent)] shadow-card backdrop-blur-xl no-print">
-      <div className="mx-auto flex min-h-20 max-w-[1600px] items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
+      <div className="mx-auto flex min-h-20 max-w-[1600px] items-center justify-between gap-4 px-4 py-3 max-lg:min-h-14 max-lg:py-2 sm:px-6 lg:px-8">
         <div className="flex min-w-0 items-center gap-3">
-          <h1 className="truncate text-base font-bold text-slate-950 sm:hidden">{title}</h1>
+          <h1 className="truncate text-base font-bold text-slate-950 lg:hidden">{title}</h1>
         </div>
-        <div className="hidden items-center gap-3 sm:flex">
+        <div className="flex items-center gap-3">
           {user?.isPlatformUser ? (
             <Select
-              className="input w-48"
+              className="input w-48 max-lg:hidden"
               value={tenant?.id || ''}
               onChange={(event) => onSwitchTenant(event.target.value)}
               title={t('organizations.switchOrganization')}
@@ -79,7 +79,7 @@ export default function TopHeader({ title, today, user, tenant, tenantOptions, o
               ))}
             </Select>
           ) : null}
-          <div className="inline-flex items-center gap-2 rounded-full border border-[var(--sidebar-line-strong)] bg-white/70 px-3.5 py-2 text-sm font-bold text-slate-700">
+          <div className="inline-flex items-center gap-2 rounded-full border border-[var(--sidebar-line-strong)] bg-white/70 px-3.5 py-2 text-sm font-bold text-slate-700 max-lg:hidden">
             <CalendarDays size={17} className="text-slate-400" />
             {formatDate(today)}
             <span className="mx-0.5 text-slate-300">•</span>
@@ -89,7 +89,7 @@ export default function TopHeader({ title, today, user, tenant, tenantOptions, o
           <Link
             to="/profile"
             title={t('nav.profile')}
-            className="inline-flex items-center gap-2 rounded-full border border-[var(--sidebar-line-strong)] bg-white/70 px-3.5 py-2 text-sm font-bold text-slate-700 transition hover:border-[var(--sidebar-line-hover)] hover:bg-white"
+            className="inline-flex items-center gap-2 rounded-full border border-[var(--sidebar-line-strong)] bg-white/70 px-3.5 py-2 text-sm font-bold text-slate-700 transition hover:border-[var(--sidebar-line-hover)] hover:bg-white max-lg:hidden"
           >
             <UserCircle size={17} className="text-slate-400" />
             <span className="max-w-44 truncate">{user?.name}</span>
@@ -98,7 +98,7 @@ export default function TopHeader({ title, today, user, tenant, tenantOptions, o
             <Link
               to="/platform/visitor-chats"
               title={t('visitorChats.title')}
-              className="icon-btn relative"
+              className="icon-btn relative max-lg:hidden"
             >
               <MessageCircle size={17} />
               {visitorChatUnread > 0 ? (
@@ -106,13 +106,13 @@ export default function TopHeader({ title, today, user, tenant, tenantOptions, o
               ) : null}
             </Link>
           ) : null}
-          <button type="button" className="icon-btn" title={t('theme.toggle')} onClick={toggleTheme}>
+          <button type="button" className="icon-btn max-lg:hidden" title={t('theme.toggle')} onClick={toggleTheme}>
             {theme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
           </button>
           <div className="relative" ref={notifWrapperRef}>
             <button
               type="button"
-              className="icon-btn relative"
+              className="icon-btn relative max-lg:h-11 max-lg:w-11"
               title={t('notifications.title')}
               aria-expanded={notifOpen}
               onClick={() => setNotifOpen((open) => !open)}
@@ -169,14 +169,16 @@ export default function TopHeader({ title, today, user, tenant, tenantOptions, o
           <Link
             to="/security"
             title={t('nav.security')}
-            className="icon-btn"
+            className="icon-btn max-lg:hidden"
           >
             <ShieldCheck size={17} />
           </Link>
-          <LanguageSwitcher language={language} onChange={onLanguageChange} t={t} tone="light" />
+          <div className="max-lg:hidden">
+            <LanguageSwitcher language={language} onChange={onLanguageChange} t={t} tone="light" />
+          </div>
           <button
             type="button"
-            className="icon-btn"
+            className="icon-btn max-lg:hidden"
             title={t('auth.logout')}
             onClick={onLogout}
           >

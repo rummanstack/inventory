@@ -8,6 +8,7 @@ import { buildPdfFileName, downloadSheetPdf } from '../../../services/printServi
 import { inventoryApi } from '../../../services/inventoryApi';
 import { formatCurrency, formatDate, formatNumber } from '../../../utils/calculations.js';
 import { useDailyReportsViewModel } from '../viewmodels/useDailyReportsViewModel';
+import DailyClosePanel from '../components/DailyClosePanel.jsx';
 
 export default function DailyReportsPage() {
   const { productDirectory, dsrDirectory, today, t, tenant, language } = useInventoryApp();
@@ -87,6 +88,18 @@ export default function DailyReportsPage() {
         <Alert type="error">{vm.error}</Alert>
       ) : (
         <>
+          {/* Daily Close — single-day only */}
+          {vm.isSingleDay && (
+            <DailyClosePanel
+              close={vm.dailyClose}
+              totals={vm.totals}
+              profitTotals={vm.profitTotals}
+              date={vm.dateFrom}
+              t={t}
+              language={language}
+            />
+          )}
+
           {/* 8 stat cards */}
           <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <StatCard title={t('reports.issued')} value={formatCurrency(vm.totals.issuedValue)} helper={`${formatNumber(vm.totals.issuedPieces, language)} ${t('common.pcs')}`} icon={Truck} tone="amber" />

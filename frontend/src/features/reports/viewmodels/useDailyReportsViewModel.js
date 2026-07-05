@@ -13,6 +13,7 @@ export function useDailyReportsViewModel({ products, dsrs, today, t, tenantName 
   const [rangeSettlements, setRangeSettlements] = useState([]);
   const [rangeDueLedger, setRangeDueLedger] = useState([]);
   const [srLedgerEntries, setSrLedgerEntries] = useState([]);
+  const [purchaseRows, setPurchaseRows] = useState([]);
   const [expenseSummary, setExpenseSummary] = useState(null);
   const [salaryRows, setSalaryRows] = useState([]);
   const [profitTotals, setProfitTotals] = useState(null);
@@ -55,6 +56,10 @@ export function useDailyReportsViewModel({ products, dsrs, today, t, tenantName 
         .then((r) => { if (!cancelled) setSrLedgerEntries(r.items || []); })
         .catch(() => { if (!cancelled) setSrLedgerEntries([]); });
 
+      inventoryApi.getPurchaseReport({ dateFrom, dateTo })
+        .then((r) => { if (!cancelled) setPurchaseRows(r.rows || []); })
+        .catch(() => { if (!cancelled) setPurchaseRows([]); });
+
       inventoryApi.getExpenseRangeReport({ dateFrom, dateTo })
         .then((r) => { if (!cancelled) setExpenseSummary(r.summary || null); })
         .catch(() => { if (!cancelled) setExpenseSummary(null); });
@@ -93,6 +98,7 @@ export function useDailyReportsViewModel({ products, dsrs, today, t, tenantName 
           issuedValue: 0,
           returnedPieces: 0,
           returnValue: 0,
+          damagedPieces: 0,
           soldPieces: 0,
           totalPayable: 0,
           amountPaid: 0,
@@ -119,6 +125,7 @@ export function useDailyReportsViewModel({ products, dsrs, today, t, tenantName 
         const ret = Number(item.returnedPieces || 0) + Number(item.damagedPieces || 0);
         row.returnedPieces += Number(item.returnedPieces || 0);
         row.returnValue += ret * Number(item.rate || 0);
+        row.damagedPieces += Number(item.damagedPieces || 0);
         row.soldPieces += Number(item.soldPieces || 0);
       }
       row.totalPayable += Number(s.totalPayable || 0);
@@ -146,13 +153,14 @@ export function useDailyReportsViewModel({ products, dsrs, today, t, tenantName 
       issuedValue: sum.issuedValue + row.issuedValue,
       returnedPieces: sum.returnedPieces + row.returnedPieces,
       returnValue: sum.returnValue + row.returnValue,
+      damagedPieces: sum.damagedPieces + row.damagedPieces,
       soldPieces: sum.soldPieces + row.soldPieces,
       totalPayable: sum.totalPayable + row.totalPayable,
       amountPaid: sum.amountPaid + row.amountPaid,
       discount: sum.discount + row.discount,
       srHandover: sum.srHandover + row.srHandover,
     }),
-    { issuedPieces: 0, issuedValue: 0, returnedPieces: 0, returnValue: 0, soldPieces: 0, totalPayable: 0, amountPaid: 0, discount: 0, srHandover: 0 },
+    { issuedPieces: 0, issuedValue: 0, returnedPieces: 0, returnValue: 0, damagedPieces: 0, soldPieces: 0, totalPayable: 0, amountPaid: 0, discount: 0, srHandover: 0 },
   ), [rows]);
 
   const dueTotal = Math.max(0, totals.totalPayable - totals.discount - totals.amountPaid);
@@ -189,6 +197,55 @@ export function useDailyReportsViewModel({ products, dsrs, today, t, tenantName 
     return [...byDsr.values()].sort((a, b) => b.total - a.total);
   }, [rangeDueLedger]);
 
+  // Everything the single-day "Daily Close" panel needs, derived from data the
+  // page already fetches. Cash figures are kept separate from `totals.amountPaid`,
+  // which mixes settlement cash with manual due collections.
+  const dailyClose = useMemo(() => {
+    const settlementCash = rangeSettlements.reduce((sum, s) => sum + Number(s.amountPaid || 0), 0);
+    const dueCollected = dueCollectionRows.reduce((sum, r) => sum + r.total, 0);
+    const srCollected = srRows.reduce((sum, r) => sum + r.collected, 0);
+    const expensesTotal = (expenseSummary?.byCategory || []).reduce((sum, r) => sum + Number(r.totalAmount || 0), 0);
+    const salaryTotal = salaryRows.reduce((sum, r) => sum + Number(r.totalPaid || 0), 0);
+    const purchasesTotal = purchaseRows.reduce((sum, r) => sum + Number(r.totalAmount || 0), 0);
+    const purchasesPaid = purchaseRows.reduce((sum, r) => sum + Number(r.paidAmount || 0), 0);
+
+    const cashIn = settlementCash + dueCollected + srCollected;
+    const cashOut = expensesTotal + salaryTotal + purchasesPaid;
+
+    const newDue = Math.max(0, totals.totalPayable - totals.discount - settlementCash);
+    const outstandingDue = dsrDueBalances.reduce((sum, r) => sum + Math.max(0, Number(r.balance || 0)), 0);
+
+    const settledDsrIds = new Set(rangeSettlements.map((s) => s.dsrId));
+    const unsettledDsrs = rows.filter((r) => r.issuedPieces > 0 && !settledDsrIds.has(r.dsrId));
+
+    const settlementsWithDue = rangeSettlements.filter(
+      (s) => Number(s.totalPayable || 0) - Number(s.discount || 0) - Number(s.amountPaid || 0) > 0,
+    ).length;
+
+    const stockPiecesNow = products.reduce((sum, p) => sum + Number(p.stockPieces || 0), 0);
+    const stockValueNow = products.reduce((sum, p) => sum + Number(p.stockPieces || 0) * Number(p.purchasePrice || 0), 0);
+
+    return {
+      settlementCash,
+      dueCollected,
+      srCollected,
+      expensesTotal,
+      salaryTotal,
+      purchasesTotal,
+      purchasesPaid,
+      cashIn,
+      cashOut,
+      netCash: cashIn - cashOut,
+      newDue,
+      outstandingDue,
+      unsettledDsrs,
+      settlementsWithDue,
+      stockPiecesNow,
+      stockValueNow,
+      allClear: unsettledDsrs.length === 0 && settlementsWithDue === 0 && totals.damagedPieces === 0,
+    };
+  }, [rangeSettlements, dueCollectionRows, srRows, expenseSummary, salaryRows, purchaseRows, totals, dsrDueBalances, rows, products]);
+
   function viewSheet(row) {
     if (dateFrom !== dateTo) return;
     setSelectedSheet(buildSheetData({
@@ -221,5 +278,6 @@ export function useDailyReportsViewModel({ products, dsrs, today, t, tenantName 
     viewSheet,
     dueCollectionRows,
     dsrDueBalanceRows,
+    dailyClose,
   };
 }

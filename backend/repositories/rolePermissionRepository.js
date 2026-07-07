@@ -26,6 +26,18 @@ export async function replaceRolePermissions(client, role, tenantId, permissions
   }
 }
 
+// Mirrors getCachedPermissions' runtime fallback: a tenant with no scoped rows
+// inherits the GLOBAL_SCOPE bucket. The Permissions page must read through the
+// same rule, otherwise it shows an empty matrix for a role that actually has
+// inherited permissions — and saving from that view wipes them.
+export async function listEffectiveRolePermissions(client, role, tenantId) {
+  const scoped = await listRolePermissions(client, role, tenantId);
+  if (scoped.length > 0 || scopeFor(tenantId) === GLOBAL_SCOPE) {
+    return scoped;
+  }
+  return listRolePermissions(client, role, null);
+}
+
 export async function hasAnyRolePermissions(client, role, tenantId) {
   const scope = scopeFor(tenantId);
   const result = await client.query("SELECT 1 FROM role_permissions WHERE role = $1 AND tenant_id = $2 LIMIT 1", [

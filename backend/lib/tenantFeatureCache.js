@@ -1,27 +1,30 @@
+import { NO_FEATURES_SENTINEL } from "../repositories/tenantFeatureRepository.js";
+import { refreshAccessCachesIfStale } from "./accessCacheRefresh.js";
+
 const cache = new Map();
 
 export function getCachedFeatures(tenantId) {
   if (!tenantId) {
     return null;
   }
+  refreshAccessCachesIfStale();
 
   return cache.has(tenantId) ? cache.get(tenantId) : null;
 }
 
-// Mirrors tenantFeatureRepository's hasTenantFeatureConfig: zero rows means
-// "never configured", which getTenantFeatures() treats as all-enabled — so an
-// explicit empty list must drop the cache entry rather than cache `[]`.
+// An explicitly-empty feature set is cached as [] (deny everything), which is
+// different from no entry at all (never configured -> requireFeature fails
+// open). The DB-level marker for "explicitly empty" is the sentinel row; it
+// must never leak into the cached list.
 export function setCachedFeatures(tenantId, features) {
   if (!tenantId) {
     return;
   }
 
-  if (!features || features.length === 0) {
-    cache.delete(tenantId);
-    return;
-  }
-
-  cache.set(tenantId, features);
+  cache.set(
+    tenantId,
+    (features || []).filter((feature) => feature !== NO_FEATURES_SENTINEL),
+  );
 }
 
 export async function loadFeatureCache(pool) {
@@ -32,7 +35,9 @@ export async function loadFeatureCache(pool) {
     if (!grouped.has(row.tenant_id)) {
       grouped.set(row.tenant_id, []);
     }
-    grouped.get(row.tenant_id).push(row.feature);
+    if (row.feature !== NO_FEATURES_SENTINEL) {
+      grouped.get(row.tenant_id).push(row.feature);
+    }
   }
 
   cache.clear();

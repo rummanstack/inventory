@@ -2,7 +2,7 @@ import { assert } from "../lib/errors.js";
 import { TENANT_BUSINESS_PERMISSIONS } from "../lib/permissions.js";
 import { setCachedPermissions } from "../lib/permissionCache.js";
 import { USER_ROLES } from "../lib/roles.js";
-import { listRolePermissions, replaceRolePermissions } from "../repositories/rolePermissionRepository.js";
+import { listEffectiveRolePermissions, replaceRolePermissions } from "../repositories/rolePermissionRepository.js";
 import { findTenantById } from "../repositories/tenantRepository.js";
 
 const ALL_PERMISSIONS = TENANT_BUSINESS_PERMISSIONS;
@@ -112,7 +112,7 @@ export class PermissionService {
     try {
       const result = [];
       for (const role of roles) {
-        const stored = await listRolePermissions(client, role, tenantId);
+        const stored = await listEffectiveRolePermissions(client, role, tenantId);
         result.push({ role, permissions: stored });
       }
       return { roles: result, allPermissions: ALL_PERMISSIONS, permissionRequiredFeatures: PERMISSION_REQUIRED_FEATURES, tenantId };
@@ -134,8 +134,16 @@ export class PermissionService {
     }
 
     if (actor.role === USER_ROLES.SUPER_ADMIN) {
+      // Only gate permissions being ADDED by this save. Permissions the role
+      // already holds may map to features that were since disabled — they are
+      // hidden on the page but still ride along in the payload, and rejecting
+      // them would make every save fail.
+      const existing = await this.databaseManager.withClient((client) =>
+        listEffectiveRolePermissions(client, role, tenantId),
+      );
+      const added = cleanPermissions.filter((permission) => !existing.includes(permission));
       const tenantFeatures = await this.tenantService.getTenantFeatures(actor.tenantId);
-      for (const permission of cleanPermissions) {
+      for (const permission of added) {
         const requiredFeature = PERMISSION_REQUIRED_FEATURES[permission];
         assert(
           !requiredFeature || tenantFeatures.includes(requiredFeature),

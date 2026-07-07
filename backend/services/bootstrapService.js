@@ -3,6 +3,7 @@ import { createId } from "../lib/ids.js";
 import { hashPassword } from "../lib/passwords.js";
 import { loadPermissionCache } from "../lib/permissionCache.js";
 import { loadFeatureCache } from "../lib/tenantFeatureCache.js";
+import { registerAccessCacheLoader, registerAccessCachePool } from "../lib/accessCacheRefresh.js";
 import { USER_ROLES } from "../lib/roles.js";
 import { findUserByRole, insertUser } from "../repositories/userRepository.js";
 
@@ -62,4 +63,10 @@ export async function initializeDatabase(databaseManager, env) {
 
   await loadPermissionCache(databaseManager.getPool());
   await loadFeatureCache(databaseManager.getPool());
+
+  // Keep both caches converging across instances: any cache read after the
+  // TTL triggers a background re-read from the DB (see accessCacheRefresh.js).
+  registerAccessCacheLoader(loadPermissionCache);
+  registerAccessCacheLoader(loadFeatureCache);
+  registerAccessCachePool(databaseManager.getPool());
 }

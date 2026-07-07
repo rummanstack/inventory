@@ -1,3 +1,5 @@
+import { refreshAccessCachesIfStale } from "./accessCacheRefresh.js";
+
 const cache = new Map();
 
 export const GLOBAL_SCOPE = "global";
@@ -14,6 +16,7 @@ function cacheKey(role, scope) {
 }
 
 export function getCachedPermissions(role, tenantId) {
+  refreshAccessCachesIfStale();
   const scope = scopeFor(tenantId);
   const scoped = cache.get(cacheKey(role, scope));
   if (scoped) return scoped;

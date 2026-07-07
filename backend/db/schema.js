@@ -1,3 +1,16 @@
+// One-time data backfills (permission/feature splits for pre-existing tenants).
+// Each runs exactly once per database, tracked in schema_backfills — re-running
+// them on every boot silently re-grants permissions and features that admins
+// have since revoked ("menus coming back after a server restart").
+async function runBackfillOnce(pool, key, sql) {
+  const done = await pool.query("SELECT 1 FROM schema_backfills WHERE key = $1", [key]);
+  if (done.rows.length > 0) {
+    return;
+  }
+  await pool.query(sql);
+  await pool.query("INSERT INTO schema_backfills (key) VALUES ($1) ON CONFLICT (key) DO NOTHING", [key]);
+}
+
 export async function createSchema(pool) {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS tenants (
@@ -1229,6 +1242,13 @@ export async function createSchema(pool) {
 
     CREATE INDEX IF NOT EXISTS idx_visitor_chat_messages_chat_id_id ON visitor_chat_messages(visitor_chat_id, id);
 
+    CREATE TABLE IF NOT EXISTS schema_backfills (
+      key        TEXT PRIMARY KEY,
+      applied_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await runBackfillOnce(pool, "retail-permission-split", `
     -- Per-menu-item permission split: expand any existing role_permissions row
     -- that referenced a retired shared permission into all of its granular
     -- successors, for the same (role, tenant_id) scope, so no tenant silently
@@ -1262,7 +1282,9 @@ export async function createSchema(pool) {
     ON CONFLICT (role, tenant_id, permission) DO NOTHING;
 
     DELETE FROM role_permissions WHERE permission = 'manage_retailers';
+  `);
 
+  await runBackfillOnce(pool, "menu-feature-split", `
     -- Per-menu-item tenant feature split: backfill the new feature keys onto
     -- every tenant that already has an explicit tenant_features config, so
     -- they don't lose access to previously-always-on items (Dashboard, etc.)
@@ -1654,7 +1676,7 @@ export async function createSchema(pool) {
 
   // Backfill HR features onto all tenants that already have explicit feature rows
   // (tenants with zero rows are untouched â€” "no rows" already means "all enabled").
-  await pool.query(`
+  await runBackfillOnce(pool, "hr-feature-backfill", `
     DO $$
     DECLARE
       new_feature TEXT;
@@ -1670,7 +1692,7 @@ export async function createSchema(pool) {
 
   // Split Issue Center from Activity Logs without changing current tenant access:
   // any tenant that had Activity Logs enabled already should get Issue Center too.
-  await pool.query(`
+  await runBackfillOnce(pool, "issue-center-split", `
     INSERT INTO tenant_features (tenant_id, feature)
     SELECT tenant_id, 'issue-center'
     FROM tenant_features
@@ -1678,7 +1700,7 @@ export async function createSchema(pool) {
     ON CONFLICT (tenant_id, feature) DO NOTHING;
   `);
   // Backfill HR permissions onto admin/manager roles that already have custom permission rows.
-  await pool.query(`
+  await runBackfillOnce(pool, "hr-permission-backfill", `
     INSERT INTO role_permissions (role, tenant_id, permission)
     SELECT role, tenant_id, 'view_employees'
     FROM role_permissions
@@ -1700,7 +1722,7 @@ export async function createSchema(pool) {
 
   // Backfill the new read permissions so existing custom role rows keep the
   // same effective access after read/write permissions are split.
-  await pool.query(`
+  await runBackfillOnce(pool, "read-write-permission-split", `
     INSERT INTO role_permissions (role, tenant_id, permission)
     SELECT role, tenant_id, 'view_products'
     FROM role_permissions

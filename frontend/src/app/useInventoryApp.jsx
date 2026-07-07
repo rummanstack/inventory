@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { inventoryApi } from '../services/inventoryApi';
 import { getActiveTenantId, setActiveTenantId } from '../services/api/client.js';
 import { formatCurrency, formatDate, todayISO } from '../utils/calculations';
@@ -212,6 +212,36 @@ export function InventoryAppProvider({ children }) {
     loadAuthenticatedSession();
     return () => {
       cancelled = true;
+    };
+  }, []);
+
+  // Permissions and tenant features are granted/revoked by an admin in a
+  // DIFFERENT session — this one only learns about it at login. Re-pull the
+  // session (throttled) whenever the tab regains focus so changes land
+  // without forcing the user to log out and back in.
+  const lastSessionRefreshRef = useRef(0);
+  useEffect(() => {
+    async function refreshSessionOnFocus() {
+      if (document.visibilityState !== 'visible') return;
+      if (Date.now() - lastSessionRefreshRef.current < 30_000) return;
+      lastSessionRefreshRef.current = Date.now();
+      try {
+        const result = await inventoryApi.getCurrentUser();
+        setUser(result.user);
+        setTenant(result.tenant || null);
+        setPermissions(result.permissions || []);
+      } catch (error) {
+        if (error?.status === 401) {
+          handleUnauthorized();
+        }
+      }
+    }
+
+    window.addEventListener('focus', refreshSessionOnFocus);
+    document.addEventListener('visibilitychange', refreshSessionOnFocus);
+    return () => {
+      window.removeEventListener('focus', refreshSessionOnFocus);
+      document.removeEventListener('visibilitychange', refreshSessionOnFocus);
     };
   }, []);
 

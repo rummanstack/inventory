@@ -45,6 +45,8 @@ const PERMISSION_REQUIRED_FEATURES = {
   manage_supplier_payments: "supplier-payments",
   view_supplier_payments: "supplier-payments",
   view_supplier_statement: "supplier-statement",
+  view_purchase_returns: "purchase-returns",
+  manage_purchase_returns: "purchase-returns",
   manage_retail_quick_sale: "retailer-quick-sale",
   view_retail_sales_invoices: "retailer-sales-invoices",
   manage_retail_sales_invoices: "retailer-sales-invoices",

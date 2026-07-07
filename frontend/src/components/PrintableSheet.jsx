@@ -134,46 +134,46 @@ export default function PrintableSheet({ sheet, printTarget = false, targetId, t
         </table>
       </div>
 
-      <div className="mt-6 flex flex-nowrap items-center justify-between gap-x-2 border-b border-slate-200 pb-3 text-sm">
+      <div className="mt-6 flex flex-wrap items-center justify-between gap-x-1.5 gap-y-2 border-b border-slate-200 pb-3 text-xs">
         <div className="text-center">
-          <p className="whitespace-nowrap text-[9px] font-bold uppercase text-slate-500">{t('settlement.todaySales')}</p>
+          <p className="whitespace-nowrap text-[8px] font-bold uppercase text-slate-500">{t('settlement.todaySales')}</p>
           <p className="whitespace-nowrap font-bold text-slate-950">{saleTotal < 0 ? `- ${formatCurrency(Math.abs(saleTotal), language)}` : formatCurrency(saleTotal, language)}</p>
         </div>
         <span className="text-slate-300">|</span>
         <div className="text-center">
-          <p className="whitespace-nowrap text-[9px] font-bold uppercase text-slate-500">{t('settlement.discount')}</p>
+          <p className="whitespace-nowrap text-[8px] font-bold uppercase text-slate-500">{t('settlement.discount')}</p>
           <p className="whitespace-nowrap font-bold text-slate-950">- {formatCurrency(sheet.discount || 0, language)}</p>
         </div>
         <span className="text-slate-300">|</span>
         <div className="text-center">
-          <p className="whitespace-nowrap text-[9px] font-bold uppercase text-slate-500">{t('settlement.todayPayable')}</p>
+          <p className="whitespace-nowrap text-[8px] font-bold uppercase text-slate-500">{t('settlement.todayPayable')}</p>
           <p className="whitespace-nowrap font-bold text-slate-950">{formatCurrency(Math.max(0, saleTotal - (sheet.discount || 0)), language)}</p>
         </div>
         <span className="text-slate-300">|</span>
         <div className="text-center">
-          <p className="whitespace-nowrap text-[9px] font-bold uppercase text-slate-500">{t('settlement.previousDue')}</p>
+          <p className="whitespace-nowrap text-[8px] font-bold uppercase text-slate-500">{t('settlement.previousDue')}</p>
           <p className="whitespace-nowrap font-bold text-slate-950">+ {formatCurrency(sheet.previousDue || 0, language)}</p>
         </div>
         <span className="text-slate-300">|</span>
         <div className="text-center">
-          <p className="whitespace-nowrap text-[9px] font-bold uppercase text-slate-500">{t('settlement.totalReceivable')}</p>
+          <p className="whitespace-nowrap text-[8px] font-bold uppercase text-slate-500">{t('settlement.totalReceivable')}</p>
           <p className="whitespace-nowrap font-bold text-slate-950">{formatCurrency(sheet.totalReceivable || 0, language)}</p>
         </div>
         <span className="text-slate-300">|</span>
         <div className="text-center">
-          <p className="whitespace-nowrap text-[9px] font-bold uppercase text-slate-500">{t('settlement.amountPaid')}</p>
+          <p className="whitespace-nowrap text-[8px] font-bold uppercase text-slate-500">{t('settlement.amountPaid')}</p>
           <p className="whitespace-nowrap font-black text-slate-950">- {formatCurrency(sheet.amountPaid || 0, language)}</p>
         </div>
         <span className="text-slate-300">|</span>
         <div className="text-center">
-          <p className="whitespace-nowrap text-[9px] font-bold uppercase text-slate-500">{t('settlement.todayDue')}</p>
+          <p className="whitespace-nowrap text-[8px] font-bold uppercase text-slate-500">{t('settlement.todayDue')}</p>
           <p className="whitespace-nowrap font-bold text-rose-600">{formatCurrency(sheet.todayDue || 0, language)}</p>
         </div>
         {sheet.srHandovers && sheet.srHandovers.length > 0 ? (
           <>
             <span className="text-slate-300">|</span>
             <div className="text-center">
-              <p className="whitespace-nowrap text-[9px] font-bold uppercase text-slate-500">{t('settlement.srHandoverTitle')}</p>
+              <p className="whitespace-nowrap text-[8px] font-bold uppercase text-slate-500">{t('settlement.srHandoverTitle')}</p>
               <p className="whitespace-nowrap font-bold text-slate-950">- {formatCurrency(sheet.srHandovers.reduce((sum, h) => sum + Number(h.amount || 0), 0), language)}</p>
             </div>
           </>

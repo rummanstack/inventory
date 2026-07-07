@@ -52,6 +52,8 @@ const PERMISSION_GROUPS = [
       'view_supplier_payments',
       'manage_supplier_payments',
       'view_supplier_statement',
+      'view_purchase_returns',
+      'manage_purchase_returns',
     ],
   },
   {
@@ -140,6 +142,22 @@ export default function PermissionsPage() {
           ...entry,
           permissions: has ? entry.permissions.filter((item) => item !== permission) : [...entry.permissions, permission],
         };
+      }),
+    );
+  }
+
+  // Selects every permission in the group if any are still unchecked, otherwise
+  // clears the whole group — same "select all / clear all" convention as a
+  // table header checkbox.
+  function toggleGroupPermissions(role, groupPermissions) {
+    setRolePermissions((current) =>
+      current.map((entry) => {
+        if (entry.role !== role) return entry;
+        const allSelected = groupPermissions.every((permission) => entry.permissions.includes(permission));
+        const permissions = allSelected
+          ? entry.permissions.filter((permission) => !groupPermissions.includes(permission))
+          : [...new Set([...entry.permissions, ...groupPermissions])];
+        return { ...entry, permissions };
       }),
     );
   }
@@ -275,9 +293,26 @@ export default function PermissionsPage() {
             </div>
 
             <div className="space-y-4">
-              {permissionGroups.map(({ section, permissions }) => (
+              {permissionGroups.map(({ section, permissions }) => {
+                const allSelected = permissions.every((permission) => entry.permissions.includes(permission));
+                const someSelected = !allSelected && permissions.some((permission) => entry.permissions.includes(permission));
+                return (
                 <div key={section}>
-                  <p className="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-slate-400">{t(`navGroups.${section}`)}</p>
+                  <div className="mb-2 flex items-center justify-between gap-3">
+                    <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-400">{t(`navGroups.${section}`)}</p>
+                    <label className="flex cursor-pointer items-center gap-1.5 text-xs font-semibold text-brand hover:text-brand-strong">
+                      <input
+                        type="checkbox"
+                        className="h-3.5 w-3.5 shrink-0 rounded border-slate-300"
+                        checked={allSelected}
+                        ref={(node) => {
+                          if (node) node.indeterminate = someSelected;
+                        }}
+                        onChange={() => toggleGroupPermissions(entry.role, permissions)}
+                      />
+                      {allSelected ? t('common.clearAll') : t('common.selectAll')}
+                    </label>
+                  </div>
                   <div className="grid gap-2 sm:grid-cols-2">
                     {permissions.map((permission) => {
                       const Icon = iconByPermission[permission];
@@ -299,7 +334,8 @@ export default function PermissionsPage() {
                     })}
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         ))}

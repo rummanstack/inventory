@@ -79,6 +79,9 @@ const PERMISSION_REQUIRED_FEATURES = {
   manage_batch_tracking: "batch-tracking",
   manage_backups: "database-backup",
   view_general_ledger: "general-ledger",
+  view_trial_balance: "trial-balance",
+  view_balance_sheet: "balance-sheet",
+  view_profit_and_loss: "profit-and-loss",
 };
 
 function editableRolesFor(actor) {

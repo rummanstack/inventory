@@ -106,6 +106,8 @@ const bn = {
       profit: 'মুনাফা / ক্ষতি',
       generalLedger: 'জেনারেল লেজার',
       trialBalance: 'ট্রায়াল ব্যালেন্স',
+      balanceSheet: 'ব্যালেন্স শীট',
+      profitAndLoss: 'লাভ-ক্ষতি',
       dsrDueStatement: 'ডিএসআর বকেয়া বিবরণী',
       activityLogs: 'কার্যকলাপ লগ',
       issueCenter: 'ইস্যু সেন্টার',
@@ -263,7 +265,10 @@ const bn = {
         manage_payroll: 'বেতন পরিশোধ পরিচালনা করুন',
         view_expiry_alerts: 'মেয়াদ উত্তীর্ণ অ্যালার্ট দেখুন',
         manage_batch_tracking: 'ব্যাচ বিক্রয় রিপোর্টে প্রবেশাধিকার',
-        view_general_ledger: 'জেনারেল লেজার ও ট্রায়াল ব্যালেন্স দেখুন',
+        view_trial_balance: 'ট্রায়াল ব্যালেন্স দেখুন',
+        view_general_ledger: 'জেনারেল লেজার দেখুন',
+        view_balance_sheet: 'ব্যালেন্স শীট দেখুন',
+        view_profit_and_loss: 'লাভ-ক্ষতি দেখুন',
       },
     },
     common: {
@@ -2086,7 +2091,6 @@ const bn = {
     },
     journal: {
       eyebrow: 'অ্যাকাউন্টিং',
-      title: 'অ্যাকাউন্টিং রিপোর্ট',
       description: 'বিক্রয়, ক্রয়, পেমেন্ট, খরচ এবং নগদ/ব্যাংক কার্যক্রমের পেছনে স্বয়ংক্রিয়ভাবে পোস্ট হওয়া ডাবল-এন্ট্রি লেজার থেকে তৈরি রিড-ওনলি রিপোর্ট।',
       tabTrialBalance: 'ট্রায়াল ব্যালেন্স',
       tabGeneralLedger: 'জেনারেল লেজার',

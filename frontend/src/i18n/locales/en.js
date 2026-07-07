@@ -101,6 +101,8 @@ const en = {
       profit: 'Profit / Loss',
       generalLedger: 'General Ledger',
       trialBalance: 'Trial Balance',
+      balanceSheet: 'Balance Sheet',
+      profitAndLoss: 'Profit & Loss',
       dsrDueStatement: 'DSR Due Statement',
       activityLogs: 'Activity Logs',
       issueCenter: 'Issue Center',
@@ -280,7 +282,10 @@ const en = {
         manage_payroll: 'Manage Salary Payments',
         view_expiry_alerts: 'View Expiry Alerts',
         manage_batch_tracking: 'Access Batch Sales Report',
-        view_general_ledger: 'View General Ledger & Trial Balance',
+        view_trial_balance: 'View Trial Balance',
+        view_general_ledger: 'View General Ledger',
+        view_balance_sheet: 'View Balance Sheet',
+        view_profit_and_loss: 'View Profit & Loss',
       },
     },
     common: {
@@ -2103,7 +2108,6 @@ const en = {
     },
     journal: {
       eyebrow: 'Accounting',
-      title: 'Accounting Reports',
       description: 'Read-only reports fed by the double-entry ledger posted automatically behind sales, purchases, payments, expenses, and cash/bank activity.',
       tabTrialBalance: 'Trial Balance',
       tabGeneralLedger: 'General Ledger',

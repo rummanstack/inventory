@@ -61,6 +61,12 @@ const FEATURE_DESCRIPTIONS = {
   expenses: 'Record daily operating expenses by category for P&L calculation.',
   profit: 'Profit and loss report based on sales cost snapshots minus expenses.',
 
+  // Accounting
+  'general-ledger': 'Double-entry ledger of every account touched by sales, purchases, payments, and expenses.',
+  'trial-balance': 'Debit/credit totals and closing balance for every account as of a chosen date.',
+  'balance-sheet': 'Assets, liabilities, and equity as of a chosen date, with computed retained earnings.',
+  'profit-and-loss': 'Revenue, cost of goods sold, and expenses for a date range, ending in net profit.',
+
   // Reports
   'retailer-daily-sales-report': 'Daily retail POS summary with invoice count, revenue, and session data.',
   reports: 'DSR daily route summary with per-rep settlement sheets, charts, and print.',

@@ -40,6 +40,7 @@ import {
   Vault,
   Wrench,
   BookOpen,
+  Scale,
 } from 'lucide-react';
 const DashboardPage = lazy(() => import('../features/dashboard/pages/DashboardPage'));
 const ActivityLogsPage = lazy(() => import('../features/activity-logs/pages/ActivityLogsPage'));
@@ -48,7 +49,10 @@ const DsrPage = lazy(() => import('../features/dsrs/pages/DsrPage'));
 const ExpensesPage = lazy(() => import('../features/expenses/pages/ExpensesPage'));
 const DsrFinancePage = lazy(() => import('../features/dsr-finance/pages/DsrFinancePage'));
 const ProfitPage = lazy(() => import('../features/profit/pages/ProfitPage'));
-const JournalPage = lazy(() => import('../features/journal/pages/JournalPage'));
+const TrialBalancePage = lazy(() => import('../features/journal/pages/TrialBalancePage'));
+const GeneralLedgerPage = lazy(() => import('../features/journal/pages/GeneralLedgerPage'));
+const BalanceSheetPage = lazy(() => import('../features/journal/pages/BalanceSheetPage'));
+const ProfitAndLossPage = lazy(() => import('../features/journal/pages/ProfitAndLossPage'));
 const MorningIssuePage = lazy(() => import('../features/morning-issue/pages/MorningIssuePage'));
 const ProductsPage = lazy(() => import('../features/products/pages/ProductsPage'));
 const DailyReportsPage = lazy(() => import('../features/reports/pages/DailyReportsPage'));
@@ -157,7 +161,10 @@ export const APP_ROUTES = [
   { id: 'profit', path: '/profit', labelKey: 'nav.profit', icon: TrendingUp, component: ProfitPage, group: 'finance', permission: 'manage_profit_report', feature: 'profit' },
 
   // Accounting
-  { id: 'general-ledger', path: '/general-ledger', labelKey: 'nav.generalLedger', icon: BookOpen, component: JournalPage, group: 'accounting', permission: 'view_general_ledger', feature: 'general-ledger' },
+  { id: 'general-ledger', path: '/general-ledger', labelKey: 'nav.generalLedger', icon: BookOpen, component: GeneralLedgerPage, group: 'accounting', permission: 'view_general_ledger', feature: 'general-ledger' },
+  { id: 'trial-balance', path: '/trial-balance', labelKey: 'nav.trialBalance', icon: Scale, component: TrialBalancePage, group: 'accounting', permission: 'view_trial_balance', feature: 'trial-balance' },
+  { id: 'balance-sheet', path: '/balance-sheet', labelKey: 'nav.balanceSheet', icon: Landmark, component: BalanceSheetPage, group: 'accounting', permission: 'view_balance_sheet', feature: 'balance-sheet' },
+  { id: 'profit-and-loss', path: '/profit-and-loss', labelKey: 'nav.profitAndLoss', icon: TrendingUp, component: ProfitAndLossPage, group: 'accounting', permission: 'view_profit_and_loss', feature: 'profit-and-loss' },
 
   // 9. Reports
   { id: 'retailer-daily-sales-report', path: '/retailer/daily-sales-report', labelKey: 'nav.retailerDailySalesReport', icon: FileText, component: DailySalesReportPage, group: 'reports', permission: 'manage_retail_daily_sales_report', feature: 'retailer-daily-sales-report' },
@@ -190,7 +197,7 @@ export const APP_ROUTES = [
   { id: 'registration-requests', path: '/platform/registrations', labelKey: 'nav.registrationRequests', icon: UserCheck, component: RegistrationRequestsPage, group: 'developer', role: 'system_developer', feature: 'registration-requests' },
 ];
 
-export const SIDEBAR_SECTIONS = ['overview', 'pos', 'customers', 'inventory', 'dsr', 'shops', 'purchases', 'warranty', 'finance', 'reports', 'hr', 'system', 'developer'];
+export const SIDEBAR_SECTIONS = ['overview', 'pos', 'customers', 'inventory', 'dsr', 'shops', 'purchases', 'warranty', 'finance', 'accounting', 'reports', 'hr', 'system', 'developer'];
 
 export function canAccessRoute(route, { user, can, hasFeature }) {
   if (!route) return false;

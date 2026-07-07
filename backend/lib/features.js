@@ -58,6 +58,9 @@ export const TENANT_FEATURES = [
 
   // Accounting
   'general-ledger',
+  'trial-balance',
+  'balance-sheet',
+  'profit-and-loss',
 
   // Reports
   'retailer-daily-sales-report',

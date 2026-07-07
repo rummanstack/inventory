@@ -64,6 +64,9 @@ export const PERMISSIONS = {
   VIEW_EXPIRY_ALERTS: "view_expiry_alerts",
   MANAGE_BATCH_TRACKING: "manage_batch_tracking",
   VIEW_GENERAL_LEDGER: "view_general_ledger",
+  VIEW_TRIAL_BALANCE: "view_trial_balance",
+  VIEW_BALANCE_SHEET: "view_balance_sheet",
+  VIEW_PROFIT_AND_LOSS: "view_profit_and_loss",
 };
 
 // The full catalog of permissions that can be assigned to any tenant-facing
@@ -133,6 +136,9 @@ export const TENANT_BUSINESS_PERMISSIONS = [
   PERMISSIONS.VIEW_EXPIRY_ALERTS,
   PERMISSIONS.MANAGE_BATCH_TRACKING,
   PERMISSIONS.VIEW_GENERAL_LEDGER,
+  PERMISSIONS.VIEW_TRIAL_BALANCE,
+  PERMISSIONS.VIEW_BALANCE_SHEET,
+  PERMISSIONS.VIEW_PROFIT_AND_LOSS,
 ];
 
 // system_developer is the platform root: unconditional, full access, never

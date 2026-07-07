@@ -2766,6 +2766,8 @@ const en = {
       totalDueHelper: 'DSR + customer receivables',
       totalOwe: 'Total Owe',
       totalOweHelper: 'Outstanding to suppliers',
+      totalOweAdvance: 'Supplier Advance',
+      totalOweAdvanceHelper: 'Advance held by suppliers',
       financePermissionRequired: 'Finance dashboard permission required to view financial data.',
       todaysProfitReport: "Today's Profit Report",
       todaysSales: "Today's Sales",

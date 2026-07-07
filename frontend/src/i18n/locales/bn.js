@@ -2771,6 +2771,8 @@ const bn = {
       totalDueHelper: 'ডিএসআর + কাস্টমার প্রাপ্য',
       totalOwe: 'মোট দেনা',
       totalOweHelper: 'সাপ্লায়ারদের কাছে বকেয়া',
+      totalOweAdvance: 'সাপ্লায়ার অগ্রিম',
+      totalOweAdvanceHelper: 'সাপ্লায়ারদের কাছে জমা অগ্রিম',
       financePermissionRequired: 'আর্থিক তথ্য দেখতে ফাইন্যান্স ড্যাশবোর্ড পারমিশন প্রয়োজন।',
       todaysProfitReport: 'আজকের লাভের রিপোর্ট',
       todaysSales: 'আজকের বিক্রয়',

@@ -221,12 +221,12 @@ export default function DashboardPage() {
                 valueClass: "text-emerald-700",
               },
               {
-                label: t("dashboard.totalOwe"),
-                value: formatCurrency(totalOwe, language),
-                sub: t("dashboard.totalOweHelper"),
-                icon: TrendingDown,
-                iconClass: "bg-rose-50 text-rose-600",
-                valueClass: totalOwe > 0 ? "text-rose-600" : "text-slate-950",
+                label: totalOwe < 0 ? t("dashboard.totalOweAdvance") : t("dashboard.totalOwe"),
+                value: formatCurrency(Math.abs(totalOwe), language),
+                sub: totalOwe < 0 ? t("dashboard.totalOweAdvanceHelper") : t("dashboard.totalOweHelper"),
+                icon: totalOwe < 0 ? TrendingUp : TrendingDown,
+                iconClass: totalOwe < 0 ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-600",
+                valueClass: totalOwe > 0 ? "text-rose-600" : totalOwe < 0 ? "text-emerald-700" : "text-slate-950",
               },
             ].map((item) => {
               const Icon = item.icon;

@@ -7,6 +7,7 @@ import { normalizeLoyaltySettings, calculateEarnedLoyaltyPoints, calculateRedeem
 import { STOCK_MOVEMENT_TYPES } from "../lib/stockMovements.js";
 import { CUSTOMER_DUE_LEDGER_TYPES } from "../lib/customerDueLedger.js";
 import { SALES_INVOICE_ACTIONS } from "../lib/auditActions.js";
+import { JOURNAL_SOURCE_TYPES } from "../lib/journalSourceTypes.js";
 import { nextInvoiceNumber } from "../lib/salesNumber.js";
 import { findRetailCustomerForUpdate, updateRetailCustomerCurrentDue, updateRetailCustomerLoyaltyBalance } from "../repositories/retailCustomerRepository.js";
 import { findTenantById } from "../repositories/tenantRepository.js";
@@ -373,10 +374,11 @@ async function seedOpeningCustomerLedgerIfNeeded(client, customer, tenantId, act
 }
 
 export class SalesInvoiceService {
-  constructor(databaseManager, { auditService, financeAccountService }) {
+  constructor(databaseManager, { auditService, financeAccountService, journalService }) {
     this.databaseManager = databaseManager;
     this.auditService = auditService;
     this.financeAccountService = financeAccountService;
+    this.journalService = journalService;
   }
 
   recordActivity(client, actor, payload) {
@@ -441,6 +443,7 @@ export class SalesInvoiceService {
     const promotions = await listActiveRetailPromotionsForDate(client, actor.tenantId, base.invoiceDate);
 
     let totalProfit = -base.discount;
+    let cogsAmount = 0;
     for (const item of base.items) {
       const product = productMap.get(item.productId);
       assert(
@@ -470,6 +473,7 @@ export class SalesInvoiceService {
       item.lineTotal = Math.max(0, Number(item.actualSalePrice || 0) * item.quantityPieces - Number(item.lineDiscount || 0));
       item.costPriceSnapshot = costPriceSnapshot;
       totalProfit += item.lineTotal - costPriceSnapshot * item.quantityPieces;
+      cogsAmount += costPriceSnapshot * item.quantityPieces;
     }
 
     validateSerialSelections(base.items, productMap);
@@ -611,6 +615,19 @@ export class SalesInvoiceService {
         },
         actor,
       );
+    }
+
+    if (this.journalService) {
+      await this.journalService.postSalesInvoice(client, actor, {
+        invoiceId: base.id,
+        invoiceDate: base.invoiceDate,
+        invoiceNumber,
+        paidAmount: base.paidAmount,
+        dueAmount: base.dueAmount,
+        totalAmount: base.totalAmount,
+        taxAmount: base.taxAmount,
+        cogsAmount,
+      });
     }
 
     for (const item of base.items) {
@@ -776,6 +793,16 @@ export class SalesInvoiceService {
         );
       }
 
+      if (this.journalService) {
+        await this.journalService.reverse(client, {
+          tenantId: actor.tenantId,
+          sourceType: JOURNAL_SOURCE_TYPES.SALES_INVOICE,
+          sourceId: invoiceId,
+          reason,
+          createdById: actor.id,
+        });
+      }
+
       await this.recordActivity(client, actor, {
         actionType: SALES_INVOICE_ACTIONS.DELETE,
         entityType: "sales_invoice",
@@ -901,6 +928,14 @@ export class SalesInvoiceService {
           },
           actor,
         );
+      }
+
+      if (this.journalService) {
+        await this.journalService.unreverse(client, {
+          tenantId: actor.tenantId,
+          sourceType: JOURNAL_SOURCE_TYPES.SALES_INVOICE,
+          sourceId: invoiceId,
+        });
       }
 
       await this.recordActivity(client, actor, {

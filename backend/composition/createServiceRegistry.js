@@ -16,6 +16,7 @@ import { EmployeeService } from "../services/employeeService.js";
 import { ErrorLogService } from "../services/errorLogService.js";
 import { ExpenseService } from "../services/expenseService.js";
 import { FinanceAccountService } from "../services/financeAccountService.js";
+import { JournalService } from "../services/journalService.js";
 import { FinanceDashboardService } from "../services/financeDashboardService.js";
 import { GenericMedicineService } from "../services/genericMedicineService.js";
 import { HelpDeskService } from "../services/helpDeskService.js";
@@ -68,11 +69,18 @@ export function createServiceRegistry({ databaseManager, env }) {
     userService: null,
   };
 
+  // Constructed before the `finance` object it lives in because
+  // financeAccountService (below) and every other domain service that posts
+  // to the general ledger need a reference to it.
+  const journalService = new JournalService(databaseManager);
+
   const finance = {
     financeAccountService: new FinanceAccountService(databaseManager, {
       auditService: platform.auditService,
+      journalService,
     }),
     financeDashboardService: null,
+    journalService,
     profitService: new ProfitService(databaseManager),
   };
 
@@ -95,6 +103,7 @@ export function createServiceRegistry({ databaseManager, env }) {
     customerPaymentService: new CustomerPaymentService(databaseManager, {
       auditService: platform.auditService,
       financeAccountService: finance.financeAccountService,
+      journalService,
     }),
     customerService: new CustomerService(databaseManager, { auditService: platform.auditService }),
     retailCustomerService: new RetailCustomerService(databaseManager, { auditService: platform.auditService }),
@@ -136,6 +145,7 @@ export function createServiceRegistry({ databaseManager, env }) {
     purchaseReceiveService: new PurchaseReceiveService(databaseManager, {
       auditService: platform.auditService,
       financeAccountService: finance.financeAccountService,
+      journalService,
     }),
     purchaseReturnService: new PurchaseReturnService(databaseManager, {
       auditService: platform.auditService,
@@ -148,6 +158,7 @@ export function createServiceRegistry({ databaseManager, env }) {
     supplierPaymentService: new SupplierPaymentService(databaseManager, {
       auditService: platform.auditService,
       financeAccountService: finance.financeAccountService,
+      journalService,
     }),
     supplierService: new SupplierService(databaseManager, { auditService: platform.auditService }),
   };
@@ -166,6 +177,7 @@ export function createServiceRegistry({ databaseManager, env }) {
     expenseService: new ExpenseService(databaseManager, {
       auditService: platform.auditService,
       financeAccountService: finance.financeAccountService,
+      journalService,
     }),
     helpDeskService: new HelpDeskService(databaseManager, { auditService: platform.auditService }),
     quotationService: new QuotationService(databaseManager, { auditService: platform.auditService }),
@@ -176,6 +188,7 @@ export function createServiceRegistry({ databaseManager, env }) {
     salesInvoiceService: new SalesInvoiceService(databaseManager, {
       auditService: platform.auditService,
       financeAccountService: finance.financeAccountService,
+      journalService,
     }),
     salesReturnService: new SalesReturnService(databaseManager, {
       auditService: platform.auditService,

@@ -56,6 +56,9 @@ export const TENANT_FEATURES = [
   'expenses',
   'profit',
 
+  // Accounting
+  'general-ledger',
+
   // Reports
   'retailer-daily-sales-report',
   'reports',

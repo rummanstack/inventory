@@ -2045,4 +2045,75 @@ export async function createSchema(pool) {
     CREATE INDEX IF NOT EXISTS idx_purchase_return_items_return ON purchase_return_items(tenant_id, purchase_return_id);
     CREATE INDEX IF NOT EXISTS idx_purchase_return_items_product ON purchase_return_items(product_id);
   `);
+
+  // ── General Ledger: fixed chart of accounts (global — identical for every
+  // tenant, no per-tenant customization yet) plus a tenant-scoped double-entry
+  // journal. Existing modules (sales, purchases, payments, expenses, finance
+  // accounts) keep their own tables as the source of truth for their own
+  // pages; the journal is an additive layer fed by JournalService so General
+  // Ledger / Trial Balance reports can exist without changing anything else. ──
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS chart_of_accounts (
+      code            TEXT PRIMARY KEY,
+      name            TEXT NOT NULL,
+      type            TEXT NOT NULL,
+      normal_balance  TEXT NOT NULL,
+      is_active       BOOLEAN NOT NULL DEFAULT true
+    );
+
+    CREATE TABLE IF NOT EXISTS journal_entries (
+      id                    TEXT PRIMARY KEY,
+      tenant_id             TEXT NOT NULL REFERENCES tenants(id),
+      entry_date            DATE NOT NULL,
+      source_type           TEXT NOT NULL,
+      source_id             TEXT NOT NULL,
+      memo                  TEXT NOT NULL DEFAULT '',
+      created_by            TEXT REFERENCES users(id) ON DELETE SET NULL,
+      created_at            TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      reversed_at           TIMESTAMPTZ,
+      reversal_of_entry_id  TEXT REFERENCES journal_entries(id)
+    );
+
+    -- One live (non-reversal) entry per business event — the app-level
+    -- correctness guard against double-posting is backed by this constraint.
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_journal_entries_source
+      ON journal_entries(tenant_id, source_type, source_id)
+      WHERE reversal_of_entry_id IS NULL;
+    CREATE INDEX IF NOT EXISTS idx_journal_entries_tenant_date
+      ON journal_entries(tenant_id, entry_date DESC);
+
+    CREATE TABLE IF NOT EXISTS journal_lines (
+      id                TEXT PRIMARY KEY,
+      tenant_id         TEXT NOT NULL REFERENCES tenants(id),
+      journal_entry_id  TEXT NOT NULL REFERENCES journal_entries(id),
+      account_code      TEXT NOT NULL REFERENCES chart_of_accounts(code),
+      debit             NUMERIC NOT NULL DEFAULT 0,
+      credit            NUMERIC NOT NULL DEFAULT 0,
+      CHECK (debit >= 0 AND credit >= 0 AND (debit = 0 OR credit = 0))
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_journal_lines_entry ON journal_lines(journal_entry_id);
+    CREATE INDEX IF NOT EXISTS idx_journal_lines_tenant_account
+      ON journal_lines(tenant_id, account_code, id);
+
+    INSERT INTO chart_of_accounts (code, name, type, normal_balance) VALUES
+      ('1000', 'Cash in Hand',           'ASSET',     'DEBIT'),
+      ('1010', 'Bank',                   'ASSET',     'DEBIT'),
+      ('1100', 'Accounts Receivable',    'ASSET',     'DEBIT'),
+      ('1110', 'DSR Receivable',         'ASSET',     'DEBIT'),
+      ('1120', 'SR Receivable',          'ASSET',     'DEBIT'),
+      ('1200', 'Inventory',              'ASSET',     'DEBIT'),
+      ('2000', 'Accounts Payable',       'LIABILITY', 'CREDIT'),
+      ('2100', 'Tax Payable',            'LIABILITY', 'CREDIT'),
+      ('3000', 'Owner''s Equity',        'EQUITY',    'CREDIT'),
+      ('4000', 'Sales Revenue',          'REVENUE',   'CREDIT'),
+      ('4010', 'Sales Returns',          'REVENUE',   'DEBIT'),
+      ('4020', 'Discounts Given',        'REVENUE',   'DEBIT'),
+      ('5000', 'Cost of Goods Sold',     'EXPENSE',   'DEBIT'),
+      ('5010', 'Purchase Returns',       'EXPENSE',   'CREDIT'),
+      ('6000', 'Operating Expenses',     'EXPENSE',   'DEBIT'),
+      ('6010', 'Salary Expense',         'EXPENSE',   'DEBIT'),
+      ('7000', 'Stock Adjustment',       'EXPENSE',   'DEBIT')
+    ON CONFLICT (code) DO NOTHING;
+  `);
 }

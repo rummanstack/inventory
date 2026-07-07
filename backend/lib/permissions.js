@@ -63,6 +63,7 @@ export const PERMISSIONS = {
   MANAGE_PAYROLL: "manage_payroll",
   VIEW_EXPIRY_ALERTS: "view_expiry_alerts",
   MANAGE_BATCH_TRACKING: "manage_batch_tracking",
+  VIEW_GENERAL_LEDGER: "view_general_ledger",
 };
 
 // The full catalog of permissions that can be assigned to any tenant-facing
@@ -131,6 +132,7 @@ export const TENANT_BUSINESS_PERMISSIONS = [
   PERMISSIONS.MANAGE_PAYROLL,
   PERMISSIONS.VIEW_EXPIRY_ALERTS,
   PERMISSIONS.MANAGE_BATCH_TRACKING,
+  PERMISSIONS.VIEW_GENERAL_LEDGER,
 ];
 
 // system_developer is the platform root: unconditional, full access, never

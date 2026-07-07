@@ -4,6 +4,7 @@ import { cleanMoney } from "../lib/normalizers.js";
 import { normalizeIsoDate } from "../lib/dateRanges.js";
 import { parsePagination, buildPageResult } from "../lib/pagination.js";
 import { FINANCE_ACCOUNT_ACTIONS } from "../lib/auditActions.js";
+import { JOURNAL_SOURCE_TYPES } from "../lib/journalSourceTypes.js";
 import {
   listAccounts as listAccountsRepo,
   findAccountByType,
@@ -35,9 +36,10 @@ function computeAmounts(type, amount, currentBalance) {
 }
 
 export class FinanceAccountService {
-  constructor(databaseManager, { auditService }) {
+  constructor(databaseManager, { auditService, journalService }) {
     this.databaseManager = databaseManager;
     this.auditService = auditService;
+    this.journalService = journalService;
   }
 
   recordActivity(client, actor, payload) {
@@ -129,6 +131,17 @@ export class FinanceAccountService {
 
       await updateAccountBalance(client, account.id, actor.tenantId, balanceAfter);
 
+      if (this.journalService) {
+        await this.journalService.postFinanceManualTransaction(client, actor, {
+          transactionId: row.id,
+          date,
+          accountType,
+          type,
+          amount,
+          note,
+        });
+      }
+
       await this.recordActivity(client, actor, {
         actionType: type === "DEPOSIT" ? FINANCE_ACCOUNT_ACTIONS.DEPOSIT : FINANCE_ACCOUNT_ACTIONS.WITHDRAWAL,
         entityType: "finance_account_transaction",
@@ -201,6 +214,17 @@ export class FinanceAccountService {
       await updateAccountBalance(client, fromAccount.id, actor.tenantId, fromBalanceAfter);
       await updateAccountBalance(client, toAccount.id, actor.tenantId, toBalanceAfter);
 
+      if (this.journalService) {
+        await this.journalService.postFinanceTransfer(client, actor, {
+          transferId,
+          date,
+          fromAccountType: fromType,
+          toAccountType: toType,
+          amount,
+          note,
+        });
+      }
+
       await this.recordActivity(client, actor, {
         actionType: FINANCE_ACCOUNT_ACTIONS.TRANSFER,
         entityType: "finance_account_transaction",
@@ -254,6 +278,20 @@ export class FinanceAccountService {
       await this.reverseTransaction(client, transaction, actor, reason);
       if (related) {
         await this.reverseTransaction(client, related, actor, reason);
+      }
+
+      if (this.journalService) {
+        // A transfer posted ONE journal entry for the pair — reverse it once,
+        // keyed by transferId, regardless of which leg's id was passed in.
+        await this.journalService.reverse(client, {
+          tenantId: actor.tenantId,
+          sourceType: transaction.transferId
+            ? JOURNAL_SOURCE_TYPES.FINANCE_TRANSFER
+            : JOURNAL_SOURCE_TYPES.FINANCE_MANUAL_TRANSACTION,
+          sourceId: transaction.transferId || transaction.id,
+          reason,
+          createdById: actor.id,
+        });
       }
 
       await this.recordActivity(client, actor, {

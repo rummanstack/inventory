@@ -17,6 +17,7 @@ import { createAuditRoutes } from "./audit.routes.js";
 import { createExpensesRoutes } from "./expenses.routes.js";
 import { createDsrAdvancesRoutes } from "./dsrAdvances.routes.js";
 import { createProfitReportRoutes } from "./profitReport.routes.js";
+import { createJournalRoutes } from "./journal.routes.js";
 import { createDatabaseBackupRoutes } from "./databaseBackup.routes.js";
 import { createProductsRoutes } from "./products.routes.js";
 import { createCategoriesRoutes } from "./categories.routes.js";
@@ -126,7 +127,7 @@ export function createApiRouter({ controllers, authService, env, auditService })
       supplierDueLedgerController,
       supplierPaymentController,
     },
-    finance: { financeAccountController, financeDashboardController },
+    finance: { financeAccountController, financeDashboardController, journalController },
     hr: { employeeController, salaryPaymentController },
   } = controllers;
 
@@ -179,6 +180,7 @@ export function createApiRouter({ controllers, authService, env, auditService })
   router.use("/expenses", createExpensesRoutes(expenseController));
   router.use("/dsr-advances", createDsrAdvancesRoutes(dsrFinanceController));
   router.use("/profit-report", createProfitReportRoutes(profitController));
+  router.use("/journal", createJournalRoutes(journalController));
   router.use("/database-backup", createDatabaseBackupRoutes(backupController));
   router.use("/products", createProductsRoutes(productController));
   router.use("/categories", createCategoriesRoutes(categoryController));

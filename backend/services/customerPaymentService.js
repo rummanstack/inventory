@@ -5,6 +5,7 @@ import { parsePagination, buildPageResult } from "../lib/pagination.js";
 import { normalizeCustomerPayment } from "../lib/normalizers.js";
 import { CUSTOMER_DUE_LEDGER_TYPES } from "../lib/customerDueLedger.js";
 import { CUSTOMER_PAYMENT_ACTIONS } from "../lib/auditActions.js";
+import { JOURNAL_SOURCE_TYPES } from "../lib/journalSourceTypes.js";
 import { findRetailCustomerForUpdate, updateRetailCustomerCurrentDue } from "../repositories/retailCustomerRepository.js";
 import { getLatestCustomerDueLedgerEntry } from "../repositories/customerDueLedgerRepository.js";
 import {
@@ -25,10 +26,11 @@ import { logActivity, recordCustomerDueLedgerEntry } from "./shared/inventoryHel
 const DATE_ERROR = "Payment date must be in YYYY-MM-DD format.";
 
 export class CustomerPaymentService {
-  constructor(databaseManager, { auditService, financeAccountService }) {
+  constructor(databaseManager, { auditService, financeAccountService, journalService }) {
     this.databaseManager = databaseManager;
     this.auditService = auditService;
     this.financeAccountService = financeAccountService;
+    this.journalService = journalService;
   }
 
   recordActivity(client, actor, payload) {
@@ -128,6 +130,15 @@ export class CustomerPaymentService {
       );
     }
 
+    if (this.journalService) {
+      await this.journalService.postCustomerPayment(client, actor, {
+        paymentId: base.id,
+        paymentDate: base.paymentDate,
+        amount: base.amount,
+        memo: base.note || `Customer payment from ${customer.name}`,
+      });
+    }
+
     await this.recordActivity(client, actor, {
       actionType: CUSTOMER_PAYMENT_ACTIONS.CREATE,
       entityType: "customer_payment",
@@ -194,6 +205,15 @@ export class CustomerPaymentService {
           },
           actor,
         );
+      }
+
+      if (this.journalService) {
+        await this.journalService.postCustomerPaymentAdjustment(client, actor, {
+          paymentId: base.id,
+          paymentDate: base.paymentDate,
+          amountDelta,
+          memo: `Payment adjusted for ${customer.name}`,
+        });
       }
     }
 
@@ -276,6 +296,17 @@ export class CustomerPaymentService {
         );
       }
 
+      if (this.journalService) {
+        await this.journalService.reverseAllForSource(client, {
+          tenantId: actor.tenantId,
+          sourceType: JOURNAL_SOURCE_TYPES.CUSTOMER_PAYMENT,
+          sourceId: paymentId,
+          adjustmentSourceType: JOURNAL_SOURCE_TYPES.CUSTOMER_PAYMENT_ADJUSTMENT,
+          reason,
+          createdById: actor.id,
+        });
+      }
+
       await this.recordActivity(client, actor, {
         actionType: CUSTOMER_PAYMENT_ACTIONS.DELETE,
         entityType: "customer_payment",
@@ -330,6 +361,15 @@ export class CustomerPaymentService {
           },
           actor,
         );
+      }
+
+      if (this.journalService) {
+        await this.journalService.unreverseAllForSource(client, {
+          tenantId: actor.tenantId,
+          sourceType: JOURNAL_SOURCE_TYPES.CUSTOMER_PAYMENT,
+          sourceId: paymentId,
+          adjustmentSourceType: JOURNAL_SOURCE_TYPES.CUSTOMER_PAYMENT_ADJUSTMENT,
+        });
       }
 
       await this.recordActivity(client, actor, {

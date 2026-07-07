@@ -2,7 +2,18 @@
   "permissions": {
     "allow": [
       "Bash(node -e ' *)",
-      "Bash(node --check /c/Users/ASUS/Desktop/inventory/backend/db/schema.js)"
+      "Bash(node --check /c/Users/ASUS/Desktop/inventory/backend/db/schema.js)",
+      "Bash(node --check /c/Users/ASUS/Desktop/inventory/backend/services/journalService.js)",
+      "Bash(node --check /c/Users/ASUS/Desktop/inventory/backend/repositories/journalRepository.js)",
+      "Bash(node --check /c/Users/ASUS/Desktop/inventory/backend/lib/chartOfAccounts.js)",
+      "Bash(node --check /c/Users/ASUS/Desktop/inventory/backend/lib/journalSourceTypes.js)",
+      "Bash(node --check /c/Users/ASUS/Desktop/inventory/backend/services/salesInvoiceService.js)",
+      "Bash(node --check /c/Users/ASUS/Desktop/inventory/backend/services/purchaseReceiveService.js)",
+      "Bash(node --check /c/Users/ASUS/Desktop/inventory/backend/services/customerPaymentService.js)",
+      "Bash(node --check /c/Users/ASUS/Desktop/inventory/backend/services/supplierPaymentService.js)",
+      "Bash(node --check /c/Users/ASUS/Desktop/inventory/backend/services/expenseService.js)",
+      "Bash(node --check /c/Users/ASUS/Desktop/inventory/backend/services/financeAccountService.js)",
+      "Bash(npx vite *)"
     ]
   }
 }

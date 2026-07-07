@@ -77,6 +77,7 @@ const PERMISSION_GROUPS = [
     section: 'finance',
     permissions: ['view_finance_dashboard', 'manage_finance_accounts', 'manage_expenses', 'manage_profit_report'],
   },
+  { section: 'accounting', permissions: ['view_general_ledger'] },
   { section: 'reports', permissions: ['view_activity_logs', 'manage_batch_tracking'] },
   { section: 'hr', permissions: ['view_employees', 'manage_employees', 'manage_payroll'] },
   { section: 'system', permissions: ['manage_users', 'manage_org', 'permanent_delete', 'manage_backups'] },

@@ -39,6 +39,7 @@ import {
   Fingerprint,
   Vault,
   Wrench,
+  BookOpen,
 } from 'lucide-react';
 const DashboardPage = lazy(() => import('../features/dashboard/pages/DashboardPage'));
 const ActivityLogsPage = lazy(() => import('../features/activity-logs/pages/ActivityLogsPage'));
@@ -47,6 +48,7 @@ const DsrPage = lazy(() => import('../features/dsrs/pages/DsrPage'));
 const ExpensesPage = lazy(() => import('../features/expenses/pages/ExpensesPage'));
 const DsrFinancePage = lazy(() => import('../features/dsr-finance/pages/DsrFinancePage'));
 const ProfitPage = lazy(() => import('../features/profit/pages/ProfitPage'));
+const JournalPage = lazy(() => import('../features/journal/pages/JournalPage'));
 const MorningIssuePage = lazy(() => import('../features/morning-issue/pages/MorningIssuePage'));
 const ProductsPage = lazy(() => import('../features/products/pages/ProductsPage'));
 const DailyReportsPage = lazy(() => import('../features/reports/pages/DailyReportsPage'));
@@ -153,6 +155,9 @@ export const APP_ROUTES = [
   { id: 'finance-accounts', path: '/finance-accounts', labelKey: 'nav.financeAccounts', icon: Landmark, component: FinanceAccountsPage, group: 'finance', permission: 'manage_finance_accounts', feature: 'finance-accounts' },
   { id: 'expenses', path: '/expenses', labelKey: 'nav.expenses', icon: CircleDollarSign, component: ExpensesPage, group: 'finance', permission: 'manage_expenses', feature: 'expenses' },
   { id: 'profit', path: '/profit', labelKey: 'nav.profit', icon: TrendingUp, component: ProfitPage, group: 'finance', permission: 'manage_profit_report', feature: 'profit' },
+
+  // Accounting
+  { id: 'general-ledger', path: '/general-ledger', labelKey: 'nav.generalLedger', icon: BookOpen, component: JournalPage, group: 'accounting', permission: 'view_general_ledger', feature: 'general-ledger' },
 
   // 9. Reports
   { id: 'retailer-daily-sales-report', path: '/retailer/daily-sales-report', labelKey: 'nav.retailerDailySalesReport', icon: FileText, component: DailySalesReportPage, group: 'reports', permission: 'manage_retail_daily_sales_report', feature: 'retailer-daily-sales-report' },

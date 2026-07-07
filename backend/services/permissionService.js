@@ -78,6 +78,7 @@ const PERMISSION_REQUIRED_FEATURES = {
   view_expiry_alerts: "batch-tracking",
   manage_batch_tracking: "batch-tracking",
   manage_backups: "database-backup",
+  view_general_ledger: "general-ledger",
 };
 
 function editableRolesFor(actor) {

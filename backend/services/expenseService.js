@@ -4,6 +4,7 @@ import { diffFields } from "../lib/auditDiff.js";
 import { summarizeByAmount } from "../lib/aggregation.js";
 import { addDays, normalizeIsoDate, normalizeIsoMonth, startOfMonth, startOfNextMonth } from "../lib/dateRanges.js";
 import { buildPageResult, parsePagination } from "../lib/pagination.js";
+import { JOURNAL_SOURCE_TYPES } from "../lib/journalSourceTypes.js";
 import {
   countTrashedExpenses,
   listTrashedExpenses,
@@ -57,10 +58,11 @@ function aggregateExpenses(expenses) {
 }
 
 export class ExpenseService {
-  constructor(databaseManager, { auditService, financeAccountService }) {
+  constructor(databaseManager, { auditService, financeAccountService, journalService }) {
     this.databaseManager = databaseManager;
     this.auditService = auditService;
     this.financeAccountService = financeAccountService;
+    this.journalService = journalService;
   }
 
   async getExpenseRangeReport({ dateFrom, dateTo }, actor) {
@@ -129,6 +131,16 @@ export class ExpenseService {
           );
         }
 
+        if (this.journalService && amountDelta !== 0) {
+          await this.journalService.postExpenseAdjustment(client, actor, {
+            expenseId: expense.id,
+            date: expense.date,
+            amountDelta,
+            category: expense.category,
+            memo: `Expense adjustment — ${expense.category}: ${expense.note}`,
+          });
+        }
+
         const { before, after } = diffFields(existingExpense, expense, ["date", "category", "amount", "note"]);
 
         await this.auditService.record(client, {
@@ -160,6 +172,16 @@ export class ExpenseService {
             },
             actor,
           );
+        }
+
+        if (this.journalService) {
+          await this.journalService.postExpense(client, actor, {
+            expenseId: expense.id,
+            date: expense.date,
+            amount: expense.amount,
+            category: expense.category,
+            memo: `Expense — ${expense.category}: ${expense.note}`,
+          });
         }
 
         await this.auditService.record(client, {
@@ -201,6 +223,17 @@ export class ExpenseService {
         );
       }
 
+      if (this.journalService) {
+        await this.journalService.reverseAllForSource(client, {
+          tenantId: actor.tenantId,
+          sourceType: JOURNAL_SOURCE_TYPES.EXPENSE,
+          sourceId: expenseId,
+          adjustmentSourceType: JOURNAL_SOURCE_TYPES.EXPENSE_ADJUSTMENT,
+          reason,
+          createdById: actor.id,
+        });
+      }
+
       await this.auditService.record(client, {
         tenantId: actor.tenantId,
         userId: actor.id,
@@ -234,6 +267,15 @@ export class ExpenseService {
           },
           actor,
         );
+      }
+
+      if (this.journalService) {
+        await this.journalService.unreverseAllForSource(client, {
+          tenantId: actor.tenantId,
+          sourceType: JOURNAL_SOURCE_TYPES.EXPENSE,
+          sourceId: expenseId,
+          adjustmentSourceType: JOURNAL_SOURCE_TYPES.EXPENSE_ADJUSTMENT,
+        });
       }
 
       await this.auditService.record(client, {

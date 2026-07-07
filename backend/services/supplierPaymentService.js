@@ -6,6 +6,7 @@ import { normalizeSupplierPayment } from "../lib/normalizers.js";
 import { accountTypeForPaymentMethod } from "../lib/financeAccounts.js";
 import { SUPPLIER_DUE_LEDGER_TYPES } from "../lib/supplierDueLedger.js";
 import { SUPPLIER_PAYMENT_ACTIONS } from "../lib/auditActions.js";
+import { JOURNAL_SOURCE_TYPES } from "../lib/journalSourceTypes.js";
 import { findSupplierForUpdate, updateSupplierCurrentDue } from "../repositories/supplierRepository.js";
 import { getLatestSupplierDueLedgerEntry } from "../repositories/supplierDueLedgerRepository.js";
 import {
@@ -27,10 +28,11 @@ import { logActivity, recordSupplierDueLedgerEntry } from "./shared/inventoryHel
 const DATE_ERROR = "Payment date must be in YYYY-MM-DD format.";
 
 export class SupplierPaymentService {
-  constructor(databaseManager, { auditService, financeAccountService }) {
+  constructor(databaseManager, { auditService, financeAccountService, journalService }) {
     this.databaseManager = databaseManager;
     this.auditService = auditService;
     this.financeAccountService = financeAccountService;
+    this.journalService = journalService;
   }
 
   recordActivity(client, actor, payload) {
@@ -131,6 +133,16 @@ export class SupplierPaymentService {
       );
     }
 
+    if (this.journalService) {
+      await this.journalService.postSupplierPayment(client, actor, {
+        paymentId: base.id,
+        paymentDate: base.paymentDate,
+        amount: base.amount,
+        paymentMethod: base.paymentMethod,
+        memo: base.note || `Payment to ${supplier.name}`,
+      });
+    }
+
     await this.recordActivity(client, actor, {
       actionType: SUPPLIER_PAYMENT_ACTIONS.CREATE,
       entityType: "supplier_payment",
@@ -196,6 +208,16 @@ export class SupplierPaymentService {
           },
           actor,
         );
+      }
+
+      if (this.journalService) {
+        await this.journalService.postSupplierPaymentAdjustment(client, actor, {
+          paymentId: base.id,
+          paymentDate: base.paymentDate,
+          amountDelta,
+          paymentMethod: base.paymentMethod,
+          memo: `Payment adjusted for ${supplier.name}`,
+        });
       }
     }
 
@@ -278,6 +300,17 @@ export class SupplierPaymentService {
         );
       }
 
+      if (this.journalService) {
+        await this.journalService.reverseAllForSource(client, {
+          tenantId: actor.tenantId,
+          sourceType: JOURNAL_SOURCE_TYPES.SUPPLIER_PAYMENT,
+          sourceId: paymentId,
+          adjustmentSourceType: JOURNAL_SOURCE_TYPES.SUPPLIER_PAYMENT_ADJUSTMENT,
+          reason,
+          createdById: actor.id,
+        });
+      }
+
       await this.recordActivity(client, actor, {
         actionType: SUPPLIER_PAYMENT_ACTIONS.DELETE,
         entityType: "supplier_payment",
@@ -332,6 +365,15 @@ export class SupplierPaymentService {
           },
           actor,
         );
+      }
+
+      if (this.journalService) {
+        await this.journalService.unreverseAllForSource(client, {
+          tenantId: actor.tenantId,
+          sourceType: JOURNAL_SOURCE_TYPES.SUPPLIER_PAYMENT,
+          sourceId: paymentId,
+          adjustmentSourceType: JOURNAL_SOURCE_TYPES.SUPPLIER_PAYMENT_ADJUSTMENT,
+        });
       }
 
       await this.recordActivity(client, actor, {

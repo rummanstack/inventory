@@ -1,0 +1,46 @@
+// Mirrors the seed data in db/schema.js — keep the two in sync. Fixed set,
+// identical for every tenant; no per-tenant customization yet.
+export const ACCOUNTS = {
+  CASH: "1000",
+  BANK: "1010",
+  ACCOUNTS_RECEIVABLE: "1100",
+  DSR_RECEIVABLE: "1110",
+  SR_RECEIVABLE: "1120",
+  INVENTORY: "1200",
+  ACCOUNTS_PAYABLE: "2000",
+  TAX_PAYABLE: "2100",
+  OWNERS_EQUITY: "3000",
+  SALES_REVENUE: "4000",
+  SALES_RETURNS: "4010",
+  DISCOUNTS_GIVEN: "4020",
+  COST_OF_GOODS_SOLD: "5000",
+  PURCHASE_RETURNS: "5010",
+  OPERATING_EXPENSES: "6000",
+  SALARY_EXPENSE: "6010",
+  STOCK_ADJUSTMENT: "7000",
+};
+
+// account type -> which side (debit or credit) increases that account's balance
+export const ACCOUNT_NORMAL_BALANCE = {
+  [ACCOUNTS.CASH]: "DEBIT",
+  [ACCOUNTS.BANK]: "DEBIT",
+  [ACCOUNTS.ACCOUNTS_RECEIVABLE]: "DEBIT",
+  [ACCOUNTS.DSR_RECEIVABLE]: "DEBIT",
+  [ACCOUNTS.SR_RECEIVABLE]: "DEBIT",
+  [ACCOUNTS.INVENTORY]: "DEBIT",
+  [ACCOUNTS.ACCOUNTS_PAYABLE]: "CREDIT",
+  [ACCOUNTS.TAX_PAYABLE]: "CREDIT",
+  [ACCOUNTS.OWNERS_EQUITY]: "CREDIT",
+  [ACCOUNTS.SALES_REVENUE]: "CREDIT",
+  [ACCOUNTS.SALES_RETURNS]: "DEBIT",
+  [ACCOUNTS.DISCOUNTS_GIVEN]: "DEBIT",
+  [ACCOUNTS.COST_OF_GOODS_SOLD]: "DEBIT",
+  [ACCOUNTS.PURCHASE_RETURNS]: "CREDIT",
+  [ACCOUNTS.OPERATING_EXPENSES]: "DEBIT",
+  [ACCOUNTS.SALARY_EXPENSE]: "DEBIT",
+  [ACCOUNTS.STOCK_ADJUSTMENT]: "DEBIT",
+};
+
+export function accountForFinanceType(financeAccountType) {
+  return String(financeAccountType || "").trim().toUpperCase() === "BANK" ? ACCOUNTS.BANK : ACCOUNTS.CASH;
+}

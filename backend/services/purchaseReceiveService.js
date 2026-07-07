@@ -7,6 +7,7 @@ import { accountTypeForPaymentMethod } from "../lib/financeAccounts.js";
 import { STOCK_MOVEMENT_TYPES } from "../lib/stockMovements.js";
 import { SUPPLIER_DUE_LEDGER_TYPES } from "../lib/supplierDueLedger.js";
 import { PURCHASE_ACTIONS } from "../lib/auditActions.js";
+import { JOURNAL_SOURCE_TYPES } from "../lib/journalSourceTypes.js";
 import { nextPurchaseNumber } from "../lib/purchaseNumber.js";
 import { findSupplierForUpdate, updateSupplierCurrentDue } from "../repositories/supplierRepository.js";
 import {
@@ -391,10 +392,11 @@ async function seedOpeningSupplierLedgerIfNeeded(client, supplier, tenantId, act
 }
 
 export class PurchaseReceiveService {
-  constructor(databaseManager, { auditService, financeAccountService }) {
+  constructor(databaseManager, { auditService, financeAccountService, journalService }) {
     this.databaseManager = databaseManager;
     this.auditService = auditService;
     this.financeAccountService = financeAccountService;
+    this.journalService = journalService;
   }
 
   recordActivity(client, actor, payload) {
@@ -571,6 +573,18 @@ export class PurchaseReceiveService {
         },
         actor,
       );
+    }
+
+    if (this.journalService) {
+      await this.journalService.postPurchaseReceipt(client, actor, {
+        receiptId: base.id,
+        purchaseDate: base.purchaseDate,
+        purchaseNumber,
+        paymentMethod: base.paymentMethod,
+        paidAmount: base.paidAmount,
+        dueAmount: base.dueAmount,
+        totalAmount: base.totalAmount,
+      });
     }
 
     await this.recordActivity(client, actor, {
@@ -756,6 +770,17 @@ export class PurchaseReceiveService {
       }
     }
 
+    if (this.journalService && (totalDelta !== 0 || paidDelta !== 0)) {
+      await this.journalService.postPurchaseReceiptAdjustment(client, actor, {
+        receiptId: base.id,
+        purchaseDate: base.purchaseDate,
+        purchaseNumber: previousPurchase.purchase_number,
+        paymentMethod: base.paymentMethod,
+        totalDelta,
+        paidDelta,
+      });
+    }
+
     await updateSupplierCurrentDue(client, supplier.id, actor.tenantId, Math.max(0, currentBalance));
 
     const { before, after } = diffFields(
@@ -889,6 +914,17 @@ export class PurchaseReceiveService {
         );
       }
 
+      if (this.journalService) {
+        await this.journalService.reverseAllForSource(client, {
+          tenantId: actor.tenantId,
+          sourceType: JOURNAL_SOURCE_TYPES.PURCHASE_RECEIPT,
+          sourceId: purchaseId,
+          adjustmentSourceType: JOURNAL_SOURCE_TYPES.PURCHASE_RECEIPT_ADJUSTMENT,
+          reason,
+          createdById: actor.id,
+        });
+      }
+
       await this.recordActivity(client, actor, {
         actionType: PURCHASE_ACTIONS.DELETE,
         entityType: "purchase_receipt",
@@ -984,6 +1020,15 @@ export class PurchaseReceiveService {
           },
           actor,
         );
+      }
+
+      if (this.journalService) {
+        await this.journalService.unreverseAllForSource(client, {
+          tenantId: actor.tenantId,
+          sourceType: JOURNAL_SOURCE_TYPES.PURCHASE_RECEIPT,
+          sourceId: purchaseId,
+          adjustmentSourceType: JOURNAL_SOURCE_TYPES.PURCHASE_RECEIPT_ADJUSTMENT,
+        });
       }
 
       await this.recordActivity(client, actor, {

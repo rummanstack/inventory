@@ -17,6 +17,7 @@ import { EmployeeController } from "../controllers/employeeController.js";
 import { ExpenseController } from "../controllers/expenseController.js";
 import { FinanceAccountController } from "../controllers/financeAccountController.js";
 import { FinanceDashboardController } from "../controllers/financeDashboardController.js";
+import { JournalController } from "../controllers/journalController.js";
 import { GenericMedicineController } from "../controllers/genericMedicineController.js";
 import { HelpDeskController } from "../controllers/helpDeskController.js";
 import { IssueController } from "../controllers/issueController.js";
@@ -140,6 +141,7 @@ export function createControllerRegistry({ services, env, databaseManager }) {
     finance: {
       financeAccountController: new FinanceAccountController(services.finance.financeAccountService),
       financeDashboardController: new FinanceDashboardController(services.finance.financeDashboardService),
+      journalController: new JournalController(services.finance.journalService),
     },
     hr: {
       employeeController: new EmployeeController(services.hr.employeeService),

@@ -20,6 +20,7 @@ import { repairJobsApi } from './api/repairJobsApi.js';
 import { quotationsApi } from './api/quotationsApi.js';
 import { tradeInsApi } from './api/tradeInsApi.js';
 import { profitApi } from './api/profitApi.js';
+import { journalApi } from './api/journalApi.js';
 import { purchaseReceiveApi } from './api/purchaseReceiveApi.js';
 import { purchaseReturnsApi } from './api/purchaseReturnsApi.js';
 import { settingsApi } from './api/settingsApi.js';
@@ -61,6 +62,7 @@ export const inventoryApi = {
   ...uploadsApi,
   ...expensesApi,
   ...profitApi,
+  ...journalApi,
   ...dsrFinanceApi,
   ...databaseBackupApi,
   ...productsApi,

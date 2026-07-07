@@ -13,7 +13,9 @@
       "Bash(node --check /c/Users/ASUS/Desktop/inventory/backend/services/supplierPaymentService.js)",
       "Bash(node --check /c/Users/ASUS/Desktop/inventory/backend/services/expenseService.js)",
       "Bash(node --check /c/Users/ASUS/Desktop/inventory/backend/services/financeAccountService.js)",
-      "Bash(npx vite *)"
+      "Bash(npx vite *)",
+      "Bash(node --check /c/Users/ASUS/Desktop/inventory/backend/controllers/journalController.js)",
+      "Bash(node --check /c/Users/ASUS/Desktop/inventory/backend/routes/journal.routes.js)"
     ]
   }
 }

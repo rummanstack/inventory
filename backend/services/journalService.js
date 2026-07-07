@@ -373,4 +373,90 @@ export class JournalService {
     const totalCredit = rows.reduce((sum, row) => sum + row.totalCredit, 0);
     return { rows, totalDebit, totalCredit, balanced: Math.abs(totalDebit - totalCredit) < BALANCE_TOLERANCE };
   }
+
+  // A Balance Sheet needs Assets = Liabilities + Equity to actually hold, but
+  // revenue/expense postings never touch the Owner's Equity account directly
+  // (a sale debits Cash/AR and credits Sales Revenue — Equity is untouched).
+  // Retained Earnings is the standard bridge: cumulative (all-time, not
+  // period-bound) net profit, added to recorded Equity so the identity holds.
+  async getBalanceSheet({ dateTo }, actor) {
+    const rows = await this.databaseManager.withClient((client) =>
+      getTrialBalance(client, { tenantId: actor.tenantId, dateTo }),
+    );
+
+    const assets = rows.filter((row) => row.type === "ASSET");
+    const liabilities = rows.filter((row) => row.type === "LIABILITY");
+    const equity = rows.filter((row) => row.type === "EQUITY");
+
+    const totalAssets = assets.reduce((sum, row) => sum + row.closingBalance, 0);
+    const totalLiabilities = liabilities.reduce((sum, row) => sum + row.closingBalance, 0);
+    const recordedEquity = equity.reduce((sum, row) => sum + row.closingBalance, 0);
+    const retainedEarnings = computeProfitBreakdown(rows).netProfit;
+    const totalEquity = recordedEquity + retainedEarnings;
+
+    return {
+      asOfDate: dateTo || null,
+      assets,
+      liabilities,
+      equity,
+      retainedEarnings,
+      totalAssets,
+      totalLiabilities,
+      recordedEquity,
+      totalEquity,
+      balanced: Math.abs(totalAssets - (totalLiabilities + totalEquity)) < BALANCE_TOLERANCE,
+    };
+  }
+
+  // Revenue/expense accounts increase on their TYPE's canonical side (credit
+  // for revenue, debit for expense) regardless of an individual account's own
+  // normal_balance column — that column exists so contra accounts like Sales
+  // Returns display as a positive amount in the General Ledger, but summing a
+  // period's activity has to use the uniform direction so a contra account's
+  // activity subtracts from its type's total instead of adding to it.
+  async getProfitAndLoss({ dateFrom, dateTo }, actor) {
+    const rows = await this.databaseManager.withClient((client) =>
+      getTrialBalance(client, { tenantId: actor.tenantId, dateFrom, dateTo }),
+    );
+    return { dateFrom: dateFrom || null, dateTo: dateTo || null, ...computeProfitBreakdown(rows) };
+  }
+}
+
+// Shared by getProfitAndLoss and getBalanceSheet's Retained Earnings line —
+// activity-based (uniform per-type direction, not each account's own
+// normal_balance) so contra accounts like Sales Returns subtract from their
+// type's total instead of adding to it. See getProfitAndLoss's comment above.
+function computeProfitBreakdown(rows) {
+  const byCode = new Map(rows.map((row) => [row.code, row]));
+  const activity = (code, side) => {
+    const row = byCode.get(code);
+    if (!row) return 0;
+    return side === "CREDIT" ? row.totalCredit - row.totalDebit : row.totalDebit - row.totalCredit;
+  };
+
+  const salesRevenue = activity(ACCOUNTS.SALES_REVENUE, "CREDIT");
+  const salesReturns = activity(ACCOUNTS.SALES_RETURNS, "DEBIT");
+  const discountsGiven = activity(ACCOUNTS.DISCOUNTS_GIVEN, "DEBIT");
+  const netRevenue = salesRevenue - salesReturns - discountsGiven;
+
+  const costOfGoodsSold = activity(ACCOUNTS.COST_OF_GOODS_SOLD, "DEBIT");
+  const purchaseReturns = activity(ACCOUNTS.PURCHASE_RETURNS, "CREDIT");
+  const netCostOfGoodsSold = costOfGoodsSold - purchaseReturns;
+
+  const grossProfit = netRevenue - netCostOfGoodsSold;
+
+  const operatingExpenses = activity(ACCOUNTS.OPERATING_EXPENSES, "DEBIT");
+  const salaryExpense = activity(ACCOUNTS.SALARY_EXPENSE, "DEBIT");
+  const stockAdjustment = activity(ACCOUNTS.STOCK_ADJUSTMENT, "DEBIT");
+  const totalOperatingExpenses = operatingExpenses + salaryExpense + stockAdjustment;
+
+  const netProfit = grossProfit - totalOperatingExpenses;
+
+  return {
+    revenue: { salesRevenue, salesReturns, discountsGiven, netRevenue },
+    costOfGoodsSold: { costOfGoodsSold, purchaseReturns, netCostOfGoodsSold },
+    grossProfit,
+    expenses: { operatingExpenses, salaryExpense, stockAdjustment, totalOperatingExpenses },
+    netProfit,
+  };
 }

@@ -26,4 +26,20 @@ export class JournalController {
       next(error);
     }
   };
+
+  balanceSheet = async (req, res, next) => {
+    try {
+      res.json(await this.journalService.getBalanceSheet(req.query, req.currentUser));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  profitAndLoss = async (req, res, next) => {
+    try {
+      res.json(await this.journalService.getProfitAndLoss(req.query, req.currentUser));
+    } catch (error) {
+      next(error);
+    }
+  };
 }

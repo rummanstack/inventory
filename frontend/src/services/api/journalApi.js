@@ -10,4 +10,10 @@ export const journalApi = {
   getTrialBalance({ dateTo } = {}) {
     return apiRequest(`/journal/trial-balance${buildQueryString({ dateTo })}`);
   },
+  getBalanceSheet({ dateTo } = {}) {
+    return apiRequest(`/journal/balance-sheet${buildQueryString({ dateTo })}`);
+  },
+  getProfitAndLoss({ dateFrom, dateTo } = {}) {
+    return apiRequest(`/journal/profit-and-loss${buildQueryString({ dateFrom, dateTo })}`);
+  },
 };

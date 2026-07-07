@@ -51,6 +51,32 @@ test("chart of accounts exposes the fixed starter set", async () => {
   }
 });
 
+test("trial balance's dateTo actually excludes activity dated after the cutoff", async () => {
+  const product = await createProduct(tenant.agent, { name: "Trial Balance Cutoff Widget", purchasePrice: 40, retailPrice: 100 });
+  await addStock(tenant.agent, product.id, 20);
+
+  const response = await tenant.agent.post("/api/sales-invoices").send({
+    customerType: "WALK_IN",
+    saleType: "RETAIL",
+    invoiceDate: "2021-08-15",
+    items: [{ productId: product.id, quantityPieces: 2, actualSalePrice: 100 }],
+    discount: 0,
+    paidAmount: 200,
+    paymentMethod: "CASH",
+  });
+  assert.equal(response.status, 201);
+
+  const before = await tenant.agent.get("/api/journal/trial-balance").query({ dateTo: "2021-08-01" });
+  assert.equal(before.status, 200);
+  const revenueRowBefore = before.body.rows.find((row) => row.code === "4000");
+  assert.equal(revenueRowBefore.totalCredit, 0, "a cutoff before the sale must not include it");
+
+  const after = await tenant.agent.get("/api/journal/trial-balance").query({ dateTo: "2021-08-31" });
+  assert.equal(after.status, 200);
+  const revenueRowAfter = after.body.rows.find((row) => row.code === "4000");
+  assert.equal(revenueRowAfter.totalCredit, 200, "a cutoff after the sale must include it");
+});
+
 test("a fully-paid walk-in sale posts a balanced entry across cash, revenue, COGS and inventory", async () => {
   const product = await createProduct(tenant.agent, { name: "Journal Widget", purchasePrice: 50, retailPrice: 90 });
   await addStock(tenant.agent, product.id, 20);
@@ -331,4 +357,53 @@ test("a cash-to-bank transfer posts once across both accounts, and deleting it r
   assert.equal(deleteDeltas["1000"], 500, "reversing once must restore cash fully, not double-reverse");
   assert.equal(deleteDeltas["1010"], -500);
   assert.ok(balanced);
+});
+
+test("profit and loss computes net profit from a sale and an expense within the requested period", async () => {
+  const product = await createProduct(tenant.agent, { name: "PnL Widget", purchasePrice: 40, retailPrice: 100 });
+  await addStock(tenant.agent, product.id, 20);
+
+  const saleResponse = await tenant.agent.post("/api/sales-invoices").send({
+    customerType: "WALK_IN",
+    saleType: "RETAIL",
+    invoiceDate: "2019-06-15",
+    items: [{ productId: product.id, quantityPieces: 5, actualSalePrice: 100 }],
+    discount: 0,
+    paidAmount: 500,
+    paymentMethod: "CASH",
+  });
+  assert.equal(saleResponse.status, 201);
+
+  const expenseResponse = await tenant.agent.post("/api/expenses").send({
+    date: "2019-06-20",
+    category: "Office",
+    amount: 50,
+    note: "PnL test expense",
+  });
+  assert.equal(expenseResponse.status, 201);
+
+  const inRange = await tenant.agent.get("/api/journal/profit-and-loss").query({ dateFrom: "2019-06-01", dateTo: "2019-06-30" });
+  assert.equal(inRange.status, 200);
+  assert.equal(inRange.body.revenue.salesRevenue, 500);
+  assert.equal(inRange.body.revenue.netRevenue, 500);
+  assert.equal(inRange.body.costOfGoodsSold.netCostOfGoodsSold, 200);
+  assert.equal(inRange.body.grossProfit, 300);
+  assert.equal(inRange.body.expenses.totalOperatingExpenses, 50);
+  assert.equal(inRange.body.netProfit, 250);
+
+  // The whole point of a period-bound P&L: activity outside the window must not appear,
+  // even though the journal itself keeps it forever for the General Ledger / Trial Balance.
+  const beforeRange = await tenant.agent.get("/api/journal/profit-and-loss").query({ dateFrom: "2019-07-01", dateTo: "2019-07-31" });
+  assert.equal(beforeRange.status, 200);
+  assert.equal(beforeRange.body.revenue.salesRevenue, 0, "a later period must not see June's sale");
+  assert.equal(beforeRange.body.netProfit, 0);
+});
+
+test("the balance sheet satisfies Assets = Liabilities + Equity after a mix of prior activity", async () => {
+  const response = await tenant.agent.get("/api/journal/balance-sheet");
+  assert.equal(response.status, 200);
+  assert.ok(response.body.balanced, "assets must equal liabilities + equity once retained earnings is included");
+  assert.ok(
+    Math.abs(response.body.totalAssets - (response.body.totalLiabilities + response.body.totalEquity)) < 0.01,
+  );
 });

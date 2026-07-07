@@ -176,21 +176,41 @@ export async function listGeneralLedgerLines(client, filters = {}) {
   return result.rows.map(mapJournalLine);
 }
 
-export async function getTrialBalance(client, { tenantId, dateTo }) {
+// Cumulative-to-date by default (omit dateFrom) — the correct basis for a
+// Trial Balance or Balance Sheet, since asset/liability/equity balances carry
+// forward from account inception. Passing dateFrom bounds it to a period
+// instead, which is what a Profit & Loss statement needs for its revenue and
+// expense accounts (a period total, not an all-time cumulative one).
+export async function getTrialBalance(client, { tenantId, dateFrom, dateTo }) {
   const params = [tenantId];
   let dateClause = "";
+  if (dateFrom) {
+    params.push(dateFrom);
+    dateClause += ` AND journal_entries.entry_date >= $${params.length}::date`;
+  }
   if (dateTo) {
     params.push(dateTo);
-    dateClause = `AND journal_entries.entry_date <= $${params.length}::date`;
+    dateClause += ` AND journal_entries.entry_date <= $${params.length}::date`;
   }
 
+  // The date filter must live in the WHERE clause of the CTE that actually
+  // produces the rows being summed — putting it on a LEFT JOIN's ON clause
+  // instead (a previous version of this query did) doesn't restrict the SUM
+  // at all, since unmatched rows are still kept (with NULLs) by a LEFT JOIN
+  // rather than dropped, and journal_lines.debit/credit come from the OTHER
+  // join either way.
   const result = await client.query(
-    `SELECT chart_of_accounts.code, chart_of_accounts.name, chart_of_accounts.type, chart_of_accounts.normal_balance,
-            COALESCE(SUM(journal_lines.debit), 0) AS total_debit,
-            COALESCE(SUM(journal_lines.credit), 0) AS total_credit
+    `WITH filtered_lines AS (
+       SELECT journal_lines.account_code, journal_lines.debit, journal_lines.credit
+       FROM journal_lines
+       JOIN journal_entries ON journal_entries.id = journal_lines.journal_entry_id
+       WHERE journal_lines.tenant_id = $1 ${dateClause}
+     )
+     SELECT chart_of_accounts.code, chart_of_accounts.name, chart_of_accounts.type, chart_of_accounts.normal_balance,
+            COALESCE(SUM(filtered_lines.debit), 0) AS total_debit,
+            COALESCE(SUM(filtered_lines.credit), 0) AS total_credit
      FROM chart_of_accounts
-     LEFT JOIN journal_lines ON journal_lines.account_code = chart_of_accounts.code AND journal_lines.tenant_id = $1
-     LEFT JOIN journal_entries ON journal_entries.id = journal_lines.journal_entry_id ${dateClause}
+     LEFT JOIN filtered_lines ON filtered_lines.account_code = chart_of_accounts.code
      WHERE chart_of_accounts.is_active = true
      GROUP BY chart_of_accounts.code, chart_of_accounts.name, chart_of_accounts.type, chart_of_accounts.normal_balance
      ORDER BY chart_of_accounts.code ASC`,

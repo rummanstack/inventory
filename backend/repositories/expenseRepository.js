@@ -1,3 +1,5 @@
+import { computeTransactionHash } from "../lib/transactionHash.js";
+
 function mapExpense(row) {
   if (!row) {
     return null;
@@ -9,6 +11,7 @@ function mapExpense(row) {
     category: row.category,
     amount: Number(row.amount),
     note: row.note,
+    transactionHash: row.transaction_hash || null,
     createdById: row.created_by,
     createdByName: row.created_by_name,
     createdByEmail: row.created_by_email,
@@ -29,10 +32,19 @@ function mapTrashedExpense(row) {
 }
 
 export function insertExpense(client, expense) {
+  const transactionHash = computeTransactionHash("expenses", {
+    id: expense.id,
+    tenantId: expense.tenantId,
+    date: expense.date,
+    category: expense.category,
+    amount: expense.amount,
+    note: expense.note,
+    createdById: expense.createdBy,
+  });
   return client.query(
-    `INSERT INTO expenses (id, tenant_id, expense_date, category, amount, note, created_by)
-     VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-    [expense.id, expense.tenantId, expense.date, expense.category, expense.amount, expense.note, expense.createdBy],
+    `INSERT INTO expenses (id, tenant_id, expense_date, category, amount, note, created_by, transaction_hash)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+    [expense.id, expense.tenantId, expense.date, expense.category, expense.amount, expense.note, expense.createdBy, transactionHash],
   );
 }
 

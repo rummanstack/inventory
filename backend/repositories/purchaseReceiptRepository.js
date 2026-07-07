@@ -1,3 +1,5 @@
+import { computeTransactionHash } from "../lib/transactionHash.js";
+
 export function mapPurchaseReceipt(row) {
   return {
     id: row.id,
@@ -15,6 +17,7 @@ export function mapPurchaseReceipt(row) {
     dueAmount: Number(row.due_amount || 0),
     paymentMethod: row.payment_method,
     note: row.note,
+    transactionHash: row.transaction_hash || null,
     items: Array.isArray(row.items) ? row.items : [],
     createdById: row.created_by,
     createdByName: row.created_by_name || null,
@@ -158,12 +161,29 @@ export function getPurchaseReceiptItems(client, purchaseId) {
 }
 
 export function insertPurchaseReceipt(client, purchase) {
+  const transactionHash = computeTransactionHash("purchase_receipts", {
+    id: purchase.id,
+    tenantId: purchase.tenantId,
+    purchaseNumber: purchase.purchaseNumber,
+    supplierId: purchase.supplierId,
+    supplierInvoiceNo: purchase.supplierInvoiceNo,
+    purchaseDate: purchase.purchaseDate,
+    discount: purchase.discount,
+    taxRate: purchase.taxRate,
+    taxAmount: purchase.taxAmount,
+    totalAmount: purchase.totalAmount,
+    paidAmount: purchase.paidAmount,
+    dueAmount: purchase.dueAmount,
+    paymentMethod: purchase.paymentMethod,
+    note: purchase.note,
+    createdById: purchase.createdById,
+  });
   return client.query(
     `INSERT INTO purchase_receipts (
        id, tenant_id, purchase_number, supplier_id, supplier_invoice_no, purchase_date,
-       discount, tax_rate, tax_amount, total_amount, paid_amount, due_amount, payment_method, note, created_by
+       discount, tax_rate, tax_amount, total_amount, paid_amount, due_amount, payment_method, note, created_by, transaction_hash
      )
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
      RETURNING *`,
     [
       purchase.id,
@@ -181,6 +201,7 @@ export function insertPurchaseReceipt(client, purchase) {
       purchase.paymentMethod,
       purchase.note,
       purchase.createdById,
+      transactionHash,
     ],
   );
 }

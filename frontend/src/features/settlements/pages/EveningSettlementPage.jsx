@@ -14,7 +14,8 @@ export default function EveningSettlementPage() {
   const vm = useSettlementViewModel({ products: productDirectory, dsrs: dsrDirectory, today, saveSettlementAction: saveSettlement, t, tenantName: tenant?.name });
   const canCreateSettlement = can('create_settlements');
   const canUpdateSettlement = can('update_settlements');
-  const canEditSettlement = vm.completedSettlement ? canUpdateSettlement : canCreateSettlement;
+  // Completed settlements can only be edited on the day they were made — backend enforces the same rule.
+  const canEditSettlement = vm.completedSettlement ? (canUpdateSettlement && vm.date === today) : canCreateSettlement;
   const issuedPiecesTotal = vm.displayRows.reduce((sum, row) => sum + Number(row.issuedPieces || 0), 0);
   const soldPiecesTotal = vm.displayRows.reduce((sum, row) => sum + Number(row.soldPieces || 0), 0);
   const returnedPiecesTotal = vm.displayRows.reduce((sum, row) => sum + Number(row.returnedPieces || 0), 0);

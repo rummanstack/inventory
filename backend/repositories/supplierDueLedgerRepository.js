@@ -1,3 +1,5 @@
+import { computeTransactionHash } from "../lib/transactionHash.js";
+
 function mapSupplierDueLedgerEntry(row) {
   return {
     id: row.id,
@@ -11,6 +13,7 @@ function mapSupplierDueLedgerEntry(row) {
     referenceType: row.reference_type,
     referenceId: row.reference_id,
     note: row.note,
+    transactionHash: row.transaction_hash || null,
     createdById: row.created_by,
     createdByName: row.created_by_name || null,
     createdByEmail: row.created_by_email || null,
@@ -86,6 +89,20 @@ function orderByBusinessDate(direction) {
 }
 
 export function insertSupplierDueLedgerEntry(client, entry) {
+  const transactionHash = computeTransactionHash("supplier_due_ledger", {
+    id: entry.id,
+    tenantId: entry.organizationId,
+    supplierId: entry.supplierId,
+    type: entry.type,
+    debit: entry.debit,
+    credit: entry.credit,
+    balanceAfter: entry.balanceAfter,
+    referenceType: entry.referenceType,
+    referenceId: entry.referenceId,
+    note: entry.note || "",
+    createdById: entry.createdById,
+    businessDate: entry.businessDate || null,
+  });
   return client.query(
     `INSERT INTO supplier_due_ledger (
        id,
@@ -100,9 +117,10 @@ export function insertSupplierDueLedgerEntry(client, entry) {
        note,
        created_by,
        business_date,
+       transaction_hash,
        created_at
      )
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, COALESCE($12::date, CURRENT_DATE), clock_timestamp())
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, COALESCE($12::date, CURRENT_DATE), $13, clock_timestamp())
      RETURNING *`,
     [
       entry.id,
@@ -117,6 +135,7 @@ export function insertSupplierDueLedgerEntry(client, entry) {
       entry.note || "",
       entry.createdById,
       entry.businessDate || null,
+      transactionHash,
     ],
   );
 }

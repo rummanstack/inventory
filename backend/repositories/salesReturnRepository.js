@@ -1,3 +1,5 @@
+import { computeTransactionHash } from "../lib/transactionHash.js";
+
 export function mapSalesReturn(row) {
   return {
     id: row.id,
@@ -13,6 +15,7 @@ export function mapSalesReturn(row) {
     totalProfitAdjustment: Number(row.total_profit_adjustment || 0),
     loyaltyPointsAdjustment: Number(row.loyalty_points_adjustment || 0),
     note: row.note,
+    transactionHash: row.transaction_hash || null,
     items: Array.isArray(row.items) ? row.items : [],
     createdById: row.created_by,
     createdByName: row.created_by_name || null,
@@ -102,12 +105,26 @@ export function findSalesReturnById(client, returnId, tenantId) {
 }
 
 export function insertSalesReturn(client, salesReturn) {
+  const transactionHash = computeTransactionHash("sales_returns", {
+    id: salesReturn.id,
+    tenantId: salesReturn.tenantId,
+    returnNumber: salesReturn.returnNumber,
+    returnDate: salesReturn.returnDate,
+    salesInvoiceId: salesReturn.salesInvoiceId,
+    customerId: salesReturn.customerId,
+    refundMethod: salesReturn.refundMethod || "DUE_ADJUSTMENT",
+    totalAmount: salesReturn.totalAmount,
+    totalProfitAdjustment: salesReturn.totalProfitAdjustment,
+    loyaltyPointsAdjustment: salesReturn.loyaltyPointsAdjustment ?? 0,
+    note: salesReturn.note,
+    createdById: salesReturn.createdById,
+  });
   return client.query(
     `INSERT INTO sales_returns (
        id, tenant_id, return_number, return_date, sales_invoice_id, customer_id,
-       refund_method, total_amount, total_profit_adjustment, loyalty_points_adjustment, note, created_by
+       refund_method, total_amount, total_profit_adjustment, loyalty_points_adjustment, note, created_by, transaction_hash
      )
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
      RETURNING *`,
     [
       salesReturn.id,
@@ -122,6 +139,7 @@ export function insertSalesReturn(client, salesReturn) {
       salesReturn.loyaltyPointsAdjustment ?? 0,
       salesReturn.note,
       salesReturn.createdById,
+      transactionHash,
     ],
   );
 }

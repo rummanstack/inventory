@@ -13,6 +13,7 @@ import {
   Inbox,
   Receipt,
   RotateCcw,
+  Undo2,
   Settings,
   ShieldCheck,
   ShoppingBag,
@@ -73,6 +74,7 @@ const TrashPage = lazy(() => import('../features/trash/pages/TrashPage'));
 const DamagedStockPage = lazy(() => import('../features/damaged-stock/pages/DamagedStockPage'));
 const SuppliersPage = lazy(() => import('../features/suppliers/pages/SuppliersPage'));
 const PurchaseReceivePage = lazy(() => import('../features/purchase-receive/pages/PurchaseReceivePage'));
+const PurchaseReturnsPage = lazy(() => import('../features/purchase-returns/pages/PurchaseReturnsPage'));
 const SupplierPaymentsPage = lazy(() => import('../features/supplier-payments/pages/SupplierPaymentsPage'));
 const SupplierDiscountsPage = lazy(() => import('../features/supplier-discounts/pages/SupplierDiscountsPage'));
 const SupplierStatementPage = lazy(() => import('../features/supplier-statement/pages/SupplierStatementPage'));
@@ -125,6 +127,7 @@ export const APP_ROUTES = [
   // 5. Purchases
   { id: 'suppliers', path: '/suppliers', labelKey: 'nav.suppliers', icon: Building2, component: SuppliersPage, group: 'purchases', permission: 'view_suppliers', feature: 'suppliers' },
   { id: 'purchase-receive', path: '/purchase-receive', labelKey: 'nav.purchaseReceive', icon: ShoppingCart, component: PurchaseReceivePage, group: 'purchases', permission: 'view_purchases', feature: 'purchase-receive' },
+  { id: 'purchase-returns', path: '/purchase-returns', labelKey: 'nav.purchaseReturns', icon: Undo2, component: PurchaseReturnsPage, group: 'purchases', permission: 'view_purchase_returns', feature: 'purchase-returns' },
   { id: 'supplier-payments', path: '/supplier-payments', labelKey: 'nav.supplierPayments', icon: Wallet, component: SupplierPaymentsPage, group: 'purchases', permission: 'view_supplier_payments', feature: 'supplier-payments' },
   { id: 'supplier-discounts', path: '/supplier-discounts', labelKey: 'nav.supplierDiscounts', icon: Tag, component: SupplierDiscountsPage, group: 'purchases', permission: 'view_supplier_payments', feature: 'supplier-discounts' },
   { id: 'supplier-statement', path: '/supplier-statement', labelKey: 'nav.supplierStatement', icon: FileText, component: SupplierStatementPage, group: 'purchases', permission: 'view_supplier_statement', feature: 'supplier-statement' },

@@ -96,8 +96,8 @@ export class SupplierPaymentService {
     const latestEntry = await getLatestSupplierDueLedgerEntry(client, supplier.id, actor.tenantId);
     const currentBalance = latestEntry ? latestEntry.balanceAfter : Math.max(0, Number(supplier.opening_due || 0));
 
-    assert(base.amount <= currentBalance, `Payment amount exceeds current due balance of ${currentBalance}.`, 400);
-
+    // Paying more than the current due is allowed: the negative ledger balance
+    // is an advance the supplier now holds (current_due itself stays clamped at 0).
     const insertResult = await insertSupplierPayment(client, { ...base, createdById: actor.id });
     const balanceAfter = currentBalance - base.amount;
 
@@ -166,7 +166,6 @@ export class SupplierPaymentService {
     if (amountDelta !== 0) {
       const latestEntry = await getLatestSupplierDueLedgerEntry(client, supplier.id, actor.tenantId);
       const currentBalance = latestEntry ? latestEntry.balanceAfter : Math.max(0, Number(supplier.opening_due || 0));
-      assert(amountDelta <= currentBalance, `Payment amount exceeds current due balance of ${currentBalance}.`, 400);
       const balanceAfter = currentBalance - amountDelta;
 
       await recordSupplierDueLedgerEntry(client, {

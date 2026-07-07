@@ -765,6 +765,46 @@ export function InventoryAppProvider({ children }) {
     }
   }
 
+  async function savePurchaseReturn(purchaseReturn) {
+    try {
+      const result = await inventoryApi.createPurchaseReturn(purchaseReturn);
+      await Promise.all([refreshProductDirectory(), refreshSupplierDirectory()]);
+      pushToast('success', t('purchaseReturns.addTitle'), `${result.purchaseReturn.returnNumber} ${t('alerts.created')}`);
+      return { ok: true, purchaseReturn: result.purchaseReturn };
+    } catch (error) {
+      const message = getFriendlyError(error, t);
+      pushToast('error', t('alerts.requestFailed'), message);
+      return { ok: false, message };
+    }
+  }
+
+  async function deletePurchaseReturn(purchaseReturn) {
+    const { confirmed, reason } = await confirm({
+      title: t('purchaseReturns.deleteTitle'),
+      description: t('purchaseReturns.deleteConfirm'),
+      confirmLabel: t('common.delete'),
+      tone: 'rose',
+      requireReason: true,
+      reasonLabel: t('common.deleteReasonLabel'),
+      reasonPlaceholder: t('common.deleteReasonPlaceholder'),
+      consequences: buildConsequences(t, 'purchaseReturns.deleteConsequences', ['danger', 'danger']),
+    });
+    if (!confirmed) {
+      return { ok: false };
+    }
+
+    try {
+      await inventoryApi.deletePurchaseReturn(purchaseReturn.id, reason);
+      await Promise.all([refreshProductDirectory(), refreshSupplierDirectory()]);
+      pushToast('success', t('common.delete'), `${purchaseReturn.returnNumber} ${t('alerts.deleted')}`);
+      return { ok: true };
+    } catch (error) {
+      const message = getFriendlyError(error, t);
+      pushToast('error', t('alerts.deleteFailed'), message);
+      return { ok: false, message };
+    }
+  }
+
   async function saveSupplierPayment(payment) {
     try {
       const result = payment.id ? await inventoryApi.updateSupplierPayment(payment) : await inventoryApi.createSupplierPayment(payment);
@@ -1286,6 +1326,8 @@ export function InventoryAppProvider({ children }) {
       savePurchaseReceipt,
       deletePurchaseReceipt,
       restorePurchaseReceipt,
+      savePurchaseReturn,
+      deletePurchaseReturn,
       saveSupplierPayment,
       deleteSupplierPayment,
       restoreSupplierPayment,

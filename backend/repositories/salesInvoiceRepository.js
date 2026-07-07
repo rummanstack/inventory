@@ -1,3 +1,5 @@
+import { computeTransactionHash } from "../lib/transactionHash.js";
+
 export function mapSalesInvoice(row) {
   return {
     id: row.id,
@@ -24,6 +26,7 @@ export function mapSalesInvoice(row) {
     paymentMethod: row.payment_method,
     totalProfit: Number(row.total_profit || 0),
     note: row.note,
+    transactionHash: row.transaction_hash || null,
     items: Array.isArray(row.items) ? row.items : [],
     createdById: row.created_by,
     createdByName: row.created_by_name || null,
@@ -183,6 +186,29 @@ export function getSalesInvoiceItems(client, invoiceId) {
 }
 
 export function insertSalesInvoice(client, invoice) {
+  const transactionHash = computeTransactionHash("sales_invoices", {
+    id: invoice.id,
+    tenantId: invoice.tenantId,
+    invoiceNumber: invoice.invoiceNumber,
+    invoiceDate: invoice.invoiceDate,
+    customerId: invoice.customerId,
+    customerType: invoice.customerType,
+    saleType: invoice.saleType,
+    subtotal: invoice.subtotal,
+    discount: invoice.discount,
+    taxRate: invoice.taxRate,
+    taxAmount: invoice.taxAmount,
+    totalAmount: invoice.totalAmount,
+    paidAmount: invoice.paidAmount,
+    dueAmount: invoice.dueAmount,
+    paymentMethod: invoice.paymentMethod,
+    totalProfit: invoice.totalProfit,
+    note: invoice.note,
+    createdById: invoice.createdById,
+    loyaltyPointsEarned: invoice.loyaltyPointsEarned ?? 0,
+    loyaltyPointsRedeemed: invoice.loyaltyPointsRedeemed ?? 0,
+    loyaltyRedeemAmount: invoice.loyaltyRedeemAmount ?? 0,
+  });
   return client.query(
     `INSERT INTO sales_invoices (
        id, tenant_id, invoice_number, invoice_date, customer_id, customer_type, sale_type,
@@ -190,8 +216,9 @@ export function insertSalesInvoice(client, invoice) {
        , loyalty_points_earned, loyalty_points_redeemed, loyalty_redeem_amount
        , customer_name_snapshot, customer_phone_snapshot
        , prescription_number
+       , transaction_hash
      )
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25)
      RETURNING *`,
     [
       invoice.id,
@@ -218,6 +245,7 @@ export function insertSalesInvoice(client, invoice) {
       invoice.customerNameSnapshot ?? '',
       invoice.customerPhoneSnapshot ?? '',
       invoice.prescriptionNumber ?? '',
+      transactionHash,
     ],
   );
 }

@@ -56,7 +56,7 @@ test("a payment within the due balance succeeds, reduces due, and withdraws cash
   assert.equal(cashAfter.balance, cashBefore.balance - 400);
 });
 
-test("a payment that exceeds the current due balance is rejected and leaves no partial writes", async () => {
+test("a payment exceeding the due becomes a supplier advance (negative ledger balance)", async () => {
   const supplier = await createSupplierWithDue(1000);
   await depositCash(tenant.agent, 5000);
   const cashBefore = await getCashAccount(tenant.agent);
@@ -68,14 +68,18 @@ test("a payment that exceeds the current due balance is rejected and leaves no p
     paymentMethod: "CASH",
   });
 
-  assert.equal(response.status, 400);
-  assert.match(response.body.message, /exceeds current due balance/);
+  assert.equal(response.status, 201);
 
+  // current_due is clamped at 0; the extra 200 lives on the ledger as an advance
   const supplierResponse = await tenant.agent.get(`/api/suppliers/${supplier.id}`);
-  assert.equal(supplierResponse.body.supplier.currentDue, 1000, "due balance must be unchanged after the rejected payment");
+  assert.equal(supplierResponse.body.supplier.currentDue, 0, "current due clamps to zero on overpayment");
+
+  const balanceResponse = await tenant.agent.get(`/api/supplier-due-ledger/balance?supplierId=${supplier.id}`);
+  assert.equal(balanceResponse.status, 200);
+  assert.equal(balanceResponse.body.balance, -200, "ledger balance must show the 200 advance as negative");
 
   const cashAfter = await getCashAccount(tenant.agent);
-  assert.equal(cashAfter.balance, cashBefore.balance, "cash balance must be unchanged after the rejected payment");
+  assert.equal(cashAfter.balance, cashBefore.balance - 1200, "the full payment leaves the cash account");
 });
 
 test("a payment within the due balance is still rejected if the cash account itself cannot cover it", async () => {

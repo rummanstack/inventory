@@ -1,3 +1,5 @@
+import { computeTransactionHash } from "../lib/transactionHash.js";
+
 function mapRecord(row) {
   if (!row) {
     return null;
@@ -12,6 +14,7 @@ function mapRecord(row) {
     dsrPhone: row.dsr_phone,
     amount: Number(row.amount),
     note: row.note,
+    transactionHash: row.transaction_hash || null,
     performedById: row.performed_by_id,
     performedByName: row.performed_by_name,
     performedByEmail: row.performed_by_email,
@@ -28,6 +31,7 @@ function buildSelect(config) {
       ${config.table}.dsr_id,
       ${config.table}.amount,
       ${config.table}.note,
+      ${config.table}.transaction_hash,
       ${config.table}.created_at,
       ${config.table}.updated_at,
       dsrs.name AS dsr_name,
@@ -77,10 +81,19 @@ export async function listRecordsInRange(client, config, startDate, endDate, dsr
 }
 
 export function insertRecord(client, config, record) {
+  const transactionHash = computeTransactionHash(config.table, {
+    id: record.id,
+    tenantId: record.tenantId,
+    date: record.date,
+    dsrId: record.dsrId,
+    amount: record.amount,
+    note: record.note,
+    createdById: record.performedBy,
+  });
   return client.query(
-    `INSERT INTO ${config.table} (id, tenant_id, ${config.dateColumn}, dsr_id, amount, note, ${config.ownerColumn})
-     VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-    [record.id, record.tenantId, record.date, record.dsrId, record.amount, record.note, record.performedBy],
+    `INSERT INTO ${config.table} (id, tenant_id, ${config.dateColumn}, dsr_id, amount, note, ${config.ownerColumn}, transaction_hash)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+    [record.id, record.tenantId, record.date, record.dsrId, record.amount, record.note, record.performedBy, transactionHash],
   );
 }
 

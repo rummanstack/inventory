@@ -71,6 +71,11 @@ export const SALES_RETURN_ACTIONS = {
   CREATE: "sales_return.create",
 };
 
+export const PURCHASE_RETURN_ACTIONS = {
+  CREATE: "purchase_return.create",
+  DELETE: "purchase_return.delete",
+};
+
 export const PROMOTION_ACTIONS = {
   CREATE: "retail_promotion.create",
   UPDATE: "retail_promotion.update",

@@ -28,6 +28,7 @@ import { ProductController } from "../controllers/productController.js";
 import { ProductSerialController } from "../controllers/productSerialController.js";
 import { ProfitController } from "../controllers/profitController.js";
 import { PurchaseReceiveController } from "../controllers/purchaseReceiveController.js";
+import { PurchaseReturnController } from "../controllers/purchaseReturnController.js";
 import { QuotationController } from "../controllers/quotationController.js";
 import { RegistrationController } from "../controllers/registrationController.js";
 import { RepairJobController } from "../controllers/repairJobController.js";
@@ -130,6 +131,7 @@ export function createControllerRegistry({ services, env, databaseManager }) {
     },
     suppliers: {
       purchaseReceiveController: new PurchaseReceiveController(services.suppliers.purchaseReceiveService),
+      purchaseReturnController: new PurchaseReturnController(services.suppliers.purchaseReturnService),
       supplierController: new SupplierController(services.suppliers.supplierService),
       supplierDiscountController: new SupplierDiscountController(services.suppliers.supplierDiscountService),
       supplierDueLedgerController: new SupplierDueLedgerController(services.suppliers.supplierDueLedgerService),

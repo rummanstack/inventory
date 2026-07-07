@@ -1,3 +1,5 @@
+import { computeTransactionHash } from "../lib/transactionHash.js";
+
 export function mapSalaryPayment(row) {
   return {
     id: row.id,
@@ -9,6 +11,7 @@ export function mapSalaryPayment(row) {
     amount: Number(row.amount || 0),
     paymentMethod: row.payment_method || 'CASH',
     note: row.note || '',
+    transactionHash: row.transaction_hash || null,
     createdById: row.created_by,
     createdByName: row.created_by_name || null,
     createdAt: row.created_at,
@@ -16,11 +19,22 @@ export function mapSalaryPayment(row) {
 }
 
 export function insertSalaryPayment(client, payment) {
+  const transactionHash = computeTransactionHash("salary_payments", {
+    id: payment.id,
+    tenantId: payment.tenantId,
+    employeeId: payment.employeeId,
+    paymentDate: payment.paymentDate,
+    paymentMonth: payment.paymentMonth,
+    amount: payment.amount,
+    paymentMethod: payment.paymentMethod,
+    note: payment.note,
+    createdById: payment.createdById,
+  });
   return client.query(
     `INSERT INTO salary_payments
       (id, tenant_id, employee_id, employee_name, payment_date, payment_month,
-       amount, payment_method, note, created_by)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
+       amount, payment_method, note, created_by, transaction_hash)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
     [
       payment.id,
       payment.tenantId,
@@ -32,6 +46,7 @@ export function insertSalaryPayment(client, payment) {
       payment.paymentMethod,
       payment.note,
       payment.createdById,
+      transactionHash,
     ],
   );
 }

@@ -1,3 +1,5 @@
+import { computeTransactionHash } from "../lib/transactionHash.js";
+
 function mapDueLedgerEntry(row) {
   return {
     id: row.id,
@@ -12,6 +14,7 @@ function mapDueLedgerEntry(row) {
     referenceType: row.reference_type,
     referenceId: row.reference_id,
     note: row.note,
+    transactionHash: row.transaction_hash || null,
     createdById: row.created_by,
     createdByName: row.created_by_name || null,
     createdByEmail: row.created_by_email || null,
@@ -88,6 +91,20 @@ function orderByBusinessDate(direction) {
 }
 
 export function insertDueLedgerEntry(client, entry) {
+  const transactionHash = computeTransactionHash("dsr_due_ledger", {
+    id: entry.id,
+    tenantId: entry.organizationId,
+    dsrId: entry.dsrId,
+    type: entry.type,
+    debit: entry.debit,
+    credit: entry.credit,
+    balanceAfter: entry.balanceAfter,
+    referenceType: entry.referenceType,
+    referenceId: entry.referenceId,
+    note: entry.note || "",
+    createdById: entry.createdById,
+    businessDate: entry.businessDate || null,
+  });
   return client.query(
     `INSERT INTO dsr_due_ledger (
        id,
@@ -102,9 +119,10 @@ export function insertDueLedgerEntry(client, entry) {
        note,
        created_by,
        business_date,
+       transaction_hash,
        created_at
      )
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, COALESCE($12::date, CURRENT_DATE), clock_timestamp())
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, COALESCE($12::date, CURRENT_DATE), $13, clock_timestamp())
      RETURNING *`,
     [
       entry.id,
@@ -119,6 +137,7 @@ export function insertDueLedgerEntry(client, entry) {
       entry.note || "",
       entry.createdById,
       entry.businessDate || null,
+      transactionHash,
     ],
   );
 }
@@ -146,6 +165,19 @@ export async function getFirstDueLedgerEntryForReference(client, { tenantId, dsr
     [tenantId, dsrId, referenceType, referenceId],
   );
   return result.rowCount > 0 ? mapDueLedgerEntry(result.rows[0]) : null;
+}
+
+export async function hasManualSettlementSince(client, { tenantId, dsrId, since }) {
+  const result = await client.query(
+    `SELECT 1 FROM dsr_due_ledger
+     WHERE tenant_id = $1
+       AND dsr_id = $2
+       AND reference_type = 'manual_settlement'
+       AND created_at > $3
+     LIMIT 1`,
+    [tenantId, dsrId, since],
+  );
+  return result.rowCount > 0;
 }
 
 export async function countDueLedgerEntries(client, filters = {}) {

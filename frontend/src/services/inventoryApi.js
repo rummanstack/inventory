@@ -21,6 +21,7 @@ import { quotationsApi } from './api/quotationsApi.js';
 import { tradeInsApi } from './api/tradeInsApi.js';
 import { profitApi } from './api/profitApi.js';
 import { purchaseReceiveApi } from './api/purchaseReceiveApi.js';
+import { purchaseReturnsApi } from './api/purchaseReturnsApi.js';
 import { settingsApi } from './api/settingsApi.js';
 import { settlementsApi } from './api/settlementsApi.js';
 import { supplierDueLedgerApi } from './api/supplierDueLedgerApi.js';
@@ -82,6 +83,7 @@ export const inventoryApi = {
   ...suppliersApi,
   ...purchaseReceiveApi,
   ...supplierDueLedgerApi,
+  ...purchaseReturnsApi,
   ...supplierPaymentsApi,
   ...supplierDiscountsApi,
   ...salesInvoicesApi,

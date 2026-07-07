@@ -41,6 +41,7 @@ export const TENANT_FEATURES = [
   // Purchases
   'suppliers',
   'purchase-receive',
+  'purchase-returns',
   'supplier-payments',
   'supplier-discounts',
   'supplier-statement',

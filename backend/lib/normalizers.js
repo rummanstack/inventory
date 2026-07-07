@@ -503,6 +503,34 @@ export function normalizeSalesReturn(input) {
   };
 }
 
+export function normalizePurchaseReturn(input) {
+  const items = Array.isArray(input.items)
+    ? input.items
+        .map((item) => {
+          const quantityPieces = cleanInteger(item.quantityPieces);
+          // null = "not provided" — the service defaults it to the product's purchase price
+          const hasUnitPrice = item.unitPrice !== undefined && item.unitPrice !== null && String(item.unitPrice).trim() !== "";
+          const unitPrice = hasUnitPrice ? Math.max(0, cleanMoney(item.unitPrice)) : null;
+
+          return {
+            id: item.id || createId("purchase-return-item"),
+            productId: String(item.productId || "").trim(),
+            quantityPieces,
+            unitPrice,
+          };
+        })
+        .filter((item) => item.productId && item.quantityPieces > 0)
+    : [];
+
+  return {
+    id: input.id || createId("purchase-return"),
+    supplierId: String(input.supplierId || "").trim(),
+    returnDate: String(input.returnDate || "").trim(),
+    items,
+    note: String(input.note || "").trim(),
+  };
+}
+
 export function normalizeRetailCustomer(input) {
   return {
     id: input.id || createId("rc"),

@@ -1,3 +1,5 @@
+import { computeTransactionHash } from "../lib/transactionHash.js";
+
 export function mapSettlement(row) {
   return {
     id: row.id,
@@ -19,6 +21,7 @@ export function mapSettlement(row) {
     shopCollections: row.shop_collections || [],
     srHandovers: row.sr_handovers || [],
     status: row.status,
+    transactionHash: row.transaction_hash || null,
   };
 }
 
@@ -65,9 +68,28 @@ export async function listSettlementsPage(client, { tenantId, dsrId, dateFrom, d
 }
 
 export function insertSettlement(client, settlement) {
+  const transactionHash = computeTransactionHash("settlements", {
+    id: settlement.id,
+    tenantId: settlement.tenantId,
+    date: settlement.date,
+    dsrId: settlement.dsrId,
+    issueIds: settlement.issueIds,
+    items: settlement.items,
+    extraReturns: settlement.extraReturns || [],
+    totalPayable: settlement.totalPayable,
+    previousDue: settlement.previousDue,
+    discount: settlement.discount,
+    discountSupplierId: settlement.discountSupplierId || null,
+    extraReturnValue: settlement.extraReturnValue,
+    amountPaid: settlement.amountPaid,
+    dueAmount: settlement.dueAmount,
+    shopCollections: settlement.shopCollections || [],
+    srHandovers: settlement.srHandovers || [],
+    status: settlement.status,
+  });
   return client.query(
-    `INSERT INTO settlements (id, tenant_id, settlement_date, dsr_id, dsr_name, area, phone, issue_ids, items, extra_returns, total_payable, previous_due, discount, discount_supplier_id, extra_return_value, amount_paid, due_amount, shop_collections, sr_handovers, status)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, $9::jsonb, $10::jsonb, $11, $12, $13, $14, $15, $16, $17, $18::jsonb, $19::jsonb, $20)
+    `INSERT INTO settlements (id, tenant_id, settlement_date, dsr_id, dsr_name, area, phone, issue_ids, items, extra_returns, total_payable, previous_due, discount, discount_supplier_id, extra_return_value, amount_paid, due_amount, shop_collections, sr_handovers, status, transaction_hash)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, $9::jsonb, $10::jsonb, $11, $12, $13, $14, $15, $16, $17, $18::jsonb, $19::jsonb, $20, $21)
      RETURNING *`,
     [
       settlement.id,
@@ -90,6 +112,7 @@ export function insertSettlement(client, settlement) {
       JSON.stringify(settlement.shopCollections || []),
       JSON.stringify(settlement.srHandovers || []),
       settlement.status,
+      transactionHash,
     ],
   );
 }

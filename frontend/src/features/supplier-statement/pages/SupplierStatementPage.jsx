@@ -113,7 +113,14 @@ export default function SupplierStatementPage() {
             <StatCard title={t('supplierStatement.openingBalance')} value={formatCurrency(vm.statement.openingBalance)} icon={Wallet} tone="slate" />
             <StatCard title={t('supplierStatement.totalDebit')} value={formatCurrency(vm.statement.totalDebit)} icon={Wallet} tone="rose" />
             <StatCard title={t('supplierStatement.totalCredit')} value={formatCurrency(vm.statement.totalCredit)} icon={Wallet} tone="emerald" />
-            <StatCard title={t('supplierStatement.closingBalance')} value={formatCurrency(vm.statement.closingBalance)} icon={Wallet} tone="blue" />
+            <StatCard
+              title={t('supplierStatement.closingBalance')}
+              value={vm.statement.closingBalance < 0
+                ? `${formatCurrency(Math.abs(vm.statement.closingBalance))} ${t('supplierStatement.advanceLabel')}`
+                : formatCurrency(vm.statement.closingBalance)}
+              icon={Wallet}
+              tone="blue"
+            />
           </div>
 
           <div className="surface mt-6 overflow-hidden">

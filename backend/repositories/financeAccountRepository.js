@@ -1,3 +1,5 @@
+import { computeTransactionHash } from "../lib/transactionHash.js";
+
 export function mapAccount(row) {
   return {
     id: row.id,
@@ -24,6 +26,7 @@ export function mapTransaction(row) {
     balanceAfter: Number(row.balance_after || 0),
     transferId: row.transfer_id,
     note: row.note,
+    transactionHash: row.transaction_hash || null,
     createdById: row.created_by,
     createdByName: row.created_by_name || null,
     createdAt: row.created_at,
@@ -115,6 +118,19 @@ export async function updateAccountBalance(client, accountId, tenantId, newBalan
 }
 
 export function insertTransaction(client, transaction) {
+  const transactionHash = computeTransactionHash("finance_account_transactions", {
+    id: transaction.id,
+    tenantId: transaction.tenantId,
+    accountId: transaction.accountId,
+    transactionDate: transaction.transactionDate,
+    type: transaction.type,
+    debit: transaction.debit,
+    credit: transaction.credit,
+    balanceAfter: transaction.balanceAfter,
+    transferId: transaction.transferId || null,
+    note: transaction.note || "",
+    createdById: transaction.createdById,
+  });
   return client.query(
     `INSERT INTO finance_account_transactions (
        id,
@@ -127,9 +143,10 @@ export function insertTransaction(client, transaction) {
        balance_after,
        transfer_id,
        note,
-       created_by
+       created_by,
+       transaction_hash
      )
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
      RETURNING *`,
     [
       transaction.id,
@@ -143,6 +160,7 @@ export function insertTransaction(client, transaction) {
       transaction.transferId || null,
       transaction.note || "",
       transaction.createdById,
+      transactionHash,
     ],
   );
 }

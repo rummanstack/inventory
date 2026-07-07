@@ -7,7 +7,7 @@ import { cleanInteger, cleanMoney, normalizeSettlementBase, finalizeSettlementAm
 import { DSR_DUE_LEDGER_TYPES } from "../lib/dsrDueLedger.js";
 import { SR_DUE_LEDGER_TYPES } from "../lib/srDueLedger.js";
 import { SETTLEMENT_ACTIONS } from "../lib/auditActions.js";
-import { getLatestDueLedgerEntry, getFirstDueLedgerEntryForReference } from "../repositories/dsrDueLedgerRepository.js";
+import { getLatestDueLedgerEntry, getFirstDueLedgerEntryForReference, hasManualSettlementSince } from "../repositories/dsrDueLedgerRepository.js";
 import { findDsrForUpdate } from "../repositories/dsrRepository.js";
 import { insertShopDueLedgerEntry, getLatestShopDueLedgerEntry } from "../repositories/shopDueLedgerRepository.js";
 import { updateCustomerCurrentDue } from "../repositories/customerRepository.js";
@@ -601,6 +601,24 @@ export class SettlementService {
 
     const previousSettlement = existingSettlement.rows[0];
     const previousItems = Array.isArray(previousSettlement.items) ? previousSettlement.items : [];
+
+    const today = new Date().toISOString().slice(0, 10);
+    assert(
+      String(previousSettlement.settlement_date) === today,
+      "Only today's settlement can be edited. Apply a manual due adjustment in the DSR Due Ledger for older dates.",
+      400,
+    );
+
+    const manualSettlementRecorded = await hasManualSettlementSince(client, {
+      tenantId,
+      dsrId: previousSettlement.dsr_id,
+      since: previousSettlement.created_at,
+    });
+    assert(
+      !manualSettlementRecorded,
+      "Cannot edit this settlement — a manual due settlement was recorded for this DSR after it. Apply a manual due adjustment in the DSR Due Ledger instead.",
+      400,
+    );
 
     const latestSettlement = await findLatestSettlementForDsr(client, previousSettlement.dsr_id, tenantId);
     assert(

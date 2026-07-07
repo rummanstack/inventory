@@ -15,7 +15,8 @@ export default function MorningIssuePage() {
   const vm = useMorningIssueViewModel({ products: productDirectory, dsrs: dsrDirectory, today, saveIssueAction: saveIssue, t });
   const canCreateIssue = can('create_issues');
   const canUpdateIssue = can('update_issues');
-  const canEditIssue = (vm.existingIssue ? canUpdateIssue : canCreateIssue) && !vm.existingSettlement;
+  // Existing issues can only be edited on their own day — backend enforces the same rule.
+  const canEditIssue = (vm.existingIssue ? (canUpdateIssue && vm.date === today) : canCreateIssue) && !vm.existingSettlement;
 
   useEffect(() => {
     function handleKeyDown(event) {

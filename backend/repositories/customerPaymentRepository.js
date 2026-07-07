@@ -1,3 +1,5 @@
+import { computeTransactionHash } from "../lib/transactionHash.js";
+
 export function mapCustomerPayment(row) {
   return {
     id: row.id,
@@ -8,6 +10,7 @@ export function mapCustomerPayment(row) {
     amount: Number(row.amount || 0),
     paymentMethod: row.payment_method,
     note: row.note,
+    transactionHash: row.transaction_hash || null,
     createdById: row.created_by,
     createdByName: row.created_by_name || null,
     createdAt: row.created_at,
@@ -89,11 +92,21 @@ export function findCustomerPaymentForUpdate(client, paymentId, tenantId) {
 }
 
 export function insertCustomerPayment(client, payment) {
+  const transactionHash = computeTransactionHash("customer_payments", {
+    id: payment.id,
+    tenantId: payment.tenantId,
+    customerId: payment.customerId,
+    paymentDate: payment.paymentDate,
+    amount: payment.amount,
+    paymentMethod: payment.paymentMethod,
+    note: payment.note,
+    createdById: payment.createdById,
+  });
   return client.query(
-    `INSERT INTO customer_payments (id, tenant_id, customer_id, payment_date, amount, payment_method, note, created_by)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+    `INSERT INTO customer_payments (id, tenant_id, customer_id, payment_date, amount, payment_method, note, created_by, transaction_hash)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
      RETURNING *`,
-    [payment.id, payment.tenantId, payment.customerId, payment.paymentDate, payment.amount, payment.paymentMethod, payment.note, payment.createdById],
+    [payment.id, payment.tenantId, payment.customerId, payment.paymentDate, payment.amount, payment.paymentMethod, payment.note, payment.createdById, transactionHash],
   );
 }
 

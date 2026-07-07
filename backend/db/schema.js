@@ -1953,4 +1953,74 @@ export async function createSchema(pool) {
     CREATE INDEX IF NOT EXISTS idx_siib_item ON sales_invoice_item_batches(sales_invoice_item_id);
     CREATE INDEX IF NOT EXISTS idx_siib_batch ON sales_invoice_item_batches(drug_batch_id);
   `);
+
+  // ── Transaction integrity: SHA-256 content hash on every money-movement row ──
+  // Computed at creation from the row's immutable business fields (see lib/transactionHash.js).
+  // Nullable: rows created before this feature have no hash.
+  await pool.query(`
+    ALTER TABLE finance_account_transactions ADD COLUMN IF NOT EXISTS transaction_hash TEXT;
+    ALTER TABLE customer_payments            ADD COLUMN IF NOT EXISTS transaction_hash TEXT;
+    ALTER TABLE supplier_payments            ADD COLUMN IF NOT EXISTS transaction_hash TEXT;
+    ALTER TABLE sales_invoices               ADD COLUMN IF NOT EXISTS transaction_hash TEXT;
+    ALTER TABLE purchase_receipts            ADD COLUMN IF NOT EXISTS transaction_hash TEXT;
+    ALTER TABLE sales_returns                ADD COLUMN IF NOT EXISTS transaction_hash TEXT;
+    ALTER TABLE settlements                  ADD COLUMN IF NOT EXISTS transaction_hash TEXT;
+    ALTER TABLE expenses                     ADD COLUMN IF NOT EXISTS transaction_hash TEXT;
+    ALTER TABLE salary_payments              ADD COLUMN IF NOT EXISTS transaction_hash TEXT;
+    ALTER TABLE dsr_advances                 ADD COLUMN IF NOT EXISTS transaction_hash TEXT;
+    ALTER TABLE customer_due_ledger          ADD COLUMN IF NOT EXISTS transaction_hash TEXT;
+    ALTER TABLE supplier_due_ledger          ADD COLUMN IF NOT EXISTS transaction_hash TEXT;
+    ALTER TABLE dsr_due_ledger               ADD COLUMN IF NOT EXISTS transaction_hash TEXT;
+    ALTER TABLE sr_due_ledger                ADD COLUMN IF NOT EXISTS transaction_hash TEXT;
+    ALTER TABLE shop_due_ledger              ADD COLUMN IF NOT EXISTS transaction_hash TEXT;
+  `);
+
+  // ── Purchase returns: free-form return of stock to a supplier ─────────────
+  // Not linked to a purchase receipt (FMCG returns of expired/unsold stock span
+  // many receipts). Credits the supplier due ledger; balance may go negative,
+  // which the UI surfaces as an advance held by the supplier.
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS purchase_return_counters (
+      tenant_id  TEXT NOT NULL REFERENCES tenants(id),
+      year       INTEGER NOT NULL,
+      last_value INTEGER NOT NULL DEFAULT 0,
+      PRIMARY KEY (tenant_id, year)
+    );
+
+    CREATE TABLE IF NOT EXISTS purchase_returns (
+      id               TEXT PRIMARY KEY,
+      tenant_id        TEXT NOT NULL REFERENCES tenants(id),
+      return_number    TEXT NOT NULL,
+      return_date      DATE NOT NULL,
+      supplier_id      TEXT NOT NULL REFERENCES suppliers(id),
+      total_amount     NUMERIC NOT NULL DEFAULT 0,
+      note             TEXT NOT NULL DEFAULT '',
+      transaction_hash TEXT,
+      created_by       TEXT REFERENCES users(id) ON DELETE SET NULL,
+      created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      deleted_at       TIMESTAMPTZ,
+      deleted_by_id    TEXT REFERENCES users(id) ON DELETE SET NULL,
+      delete_reason    TEXT NOT NULL DEFAULT ''
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_purchase_returns_tenant_date ON purchase_returns(tenant_id, return_date DESC);
+    CREATE INDEX IF NOT EXISTS idx_purchase_returns_tenant_supplier ON purchase_returns(tenant_id, supplier_id);
+    CREATE INDEX IF NOT EXISTS idx_purchase_returns_deleted_at ON purchase_returns(tenant_id, deleted_at);
+
+    CREATE TABLE IF NOT EXISTS purchase_return_items (
+      id                 TEXT PRIMARY KEY,
+      tenant_id          TEXT NOT NULL REFERENCES tenants(id),
+      purchase_return_id TEXT NOT NULL REFERENCES purchase_returns(id),
+      product_id         TEXT NOT NULL REFERENCES products(id),
+      product_name       TEXT NOT NULL DEFAULT '',
+      quantity_pieces    INTEGER NOT NULL DEFAULT 0,
+      unit_price         NUMERIC NOT NULL DEFAULT 0,
+      line_total         NUMERIC NOT NULL DEFAULT 0,
+      created_at         TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_purchase_return_items_return ON purchase_return_items(tenant_id, purchase_return_id);
+    CREATE INDEX IF NOT EXISTS idx_purchase_return_items_product ON purchase_return_items(product_id);
+  `);
 }

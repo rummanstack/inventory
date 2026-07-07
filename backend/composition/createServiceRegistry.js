@@ -27,6 +27,7 @@ import { ProductSerialService } from "../services/productSerialService.js";
 import { ProductService } from "../services/productService.js";
 import { ProfitService } from "../services/profitService.js";
 import { PurchaseReceiveService } from "../services/purchaseReceiveService.js";
+import { PurchaseReturnService } from "../services/purchaseReturnService.js";
 import { QuotationService } from "../services/quotationService.js";
 import { RepairJobService } from "../services/repairJobService.js";
 import { ReportExportService } from "../services/reportExportService.js";
@@ -135,6 +136,9 @@ export function createServiceRegistry({ databaseManager, env }) {
     purchaseReceiveService: new PurchaseReceiveService(databaseManager, {
       auditService: platform.auditService,
       financeAccountService: finance.financeAccountService,
+    }),
+    purchaseReturnService: new PurchaseReturnService(databaseManager, {
+      auditService: platform.auditService,
     }),
     supplierDiscountService: new SupplierDiscountService(databaseManager, {
       auditService: platform.auditService,

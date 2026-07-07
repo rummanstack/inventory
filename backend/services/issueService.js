@@ -275,6 +275,10 @@ export class IssueService {
       const targetSettlementCheck = await findSettlementByDateAndDsr(client, issue.date, issue.dsrId, tenantId);
       assert(targetSettlementCheck.rowCount === 0, "Settlement is already completed for this DSR and date.");
 
+      const today = new Date().toISOString().slice(0, 10);
+      assert(String(previousIssue.issue_date) === today, "Only today's morning issue can be edited.", 400);
+      assert(issue.date === today, "Morning issue date cannot be moved to another day.", 400);
+
       const duplicateIssue = await findDuplicateIssue(client, issue.date, issue.dsrId, issue.id, tenantId);
       assert(duplicateIssue.rowCount === 0, "Another morning issue already exists for this DSR and date.");
 

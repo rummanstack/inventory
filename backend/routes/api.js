@@ -36,6 +36,7 @@ import { createSettlementsRoutes } from "./settlements.routes.js";
 import { createSuppliersRoutes } from "./suppliers.routes.js";
 import { createSupplierDueLedgerRoutes } from "./supplierDueLedger.routes.js";
 import { createPurchaseReceiveRoutes } from "./purchaseReceive.routes.js";
+import { createPurchaseReturnsRoutes } from "./purchaseReturns.routes.js";
 import { createSupplierPaymentsRoutes } from "./supplierPayments.routes.js";
 import { createSupplierDiscountsRoutes } from "./supplierDiscounts.routes.js";
 import { createSalesInvoicesRoutes } from "./salesInvoices.routes.js";
@@ -119,6 +120,7 @@ export function createApiRouter({ controllers, authService, env, auditService })
     },
     suppliers: {
       purchaseReceiveController,
+      purchaseReturnController,
       supplierController,
       supplierDiscountController,
       supplierDueLedgerController,
@@ -200,6 +202,7 @@ export function createApiRouter({ controllers, authService, env, auditService })
   router.use("/suppliers", createSuppliersRoutes(supplierController));
   router.use("/supplier-due-ledger", createSupplierDueLedgerRoutes(supplierDueLedgerController));
   router.use("/purchase-receive", createPurchaseReceiveRoutes(purchaseReceiveController));
+  router.use("/purchase-returns", createPurchaseReturnsRoutes(purchaseReturnController));
   router.use("/supplier-payments", createSupplierPaymentsRoutes(supplierPaymentController));
   router.use("/supplier-discounts", createSupplierDiscountsRoutes(supplierDiscountController));
   router.use("/sales-invoices", createSalesInvoicesRoutes(salesInvoiceController));

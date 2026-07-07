@@ -2,7 +2,7 @@ import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { getTestApp, closeTestApp } from "./helpers/testApp.js";
 import { createTenantAndAdmin, cleanupTenant } from "./helpers/fixtures.js";
-import { createProduct, addStock, createSupplier, createRetailCustomer, depositCash } from "./helpers/seeders.js";
+import { createProduct, addStock, createSupplier, createRetailCustomer, createDsr, createSr, depositCash } from "./helpers/seeders.js";
 
 let databaseManager;
 let tenant;
@@ -406,4 +406,276 @@ test("the balance sheet satisfies Assets = Liabilities + Equity after a mix of p
   assert.ok(
     Math.abs(response.body.totalAssets - (response.body.totalLiabilities + response.body.totalEquity)) < 0.01,
   );
+});
+
+test("a due-adjustment sales return debits sales returns and accounts receivable, and restores cost to inventory", async () => {
+  const product = await createProduct(tenant.agent, { name: "SR Journal Widget A", purchasePrice: 50, retailPrice: 90 });
+  await addStock(tenant.agent, product.id, 20);
+  const customer = await createRetailCustomer(tenant.agent, { name: "SR Journal Customer A" });
+
+  const saleResponse = await tenant.agent.post("/api/sales-invoices").send({
+    customerId: customer.id,
+    customerType: "REGISTERED",
+    saleType: "RETAIL",
+    invoiceDate: "2026-02-01",
+    items: [{ productId: product.id, quantityPieces: 10, actualSalePrice: 90 }],
+    discount: 0,
+    paidAmount: 0,
+    paymentMethod: "CASH",
+  });
+  assert.equal(saleResponse.status, 201);
+  const invoice = saleResponse.body.invoice;
+
+  const { deltas, balanced } = await deltasAfter(["4010", "1100", "1200", "5000", "1000"], async () => {
+    const returnResponse = await tenant.agent.post("/api/sales-returns").send({
+      salesInvoiceId: invoice.id,
+      returnDate: "2026-02-02",
+      refundMethod: "DUE_ADJUSTMENT",
+      items: [{ salesInvoiceItemId: invoice.items[0].id, productId: product.id, quantityPieces: 5 }],
+    });
+    assert.equal(returnResponse.status, 201);
+  });
+
+  assert.equal(deltas["4010"], 450, "sales returns (contra-revenue) books the full return value");
+  assert.equal(deltas["1100"], -450, "accounts receivable drops by the same amount — no cash involved");
+  assert.equal(deltas["1200"], 250, "inventory gets the 5 pieces back at the 50 cost");
+  assert.equal(deltas["5000"], -250, "COGS is reversed by the same cost");
+  assert.equal(deltas["1000"], 0, "no cash moves for a pure due-adjustment refund");
+  assert.ok(balanced);
+});
+
+test("a cash-refund sales return on a fully-paid sale credits cash instead of accounts receivable", async () => {
+  const product = await createProduct(tenant.agent, { name: "SR Journal Widget B", purchasePrice: 50, retailPrice: 90 });
+  await addStock(tenant.agent, product.id, 20);
+  const customer = await createRetailCustomer(tenant.agent, { name: "SR Journal Customer B" });
+
+  const saleResponse = await tenant.agent.post("/api/sales-invoices").send({
+    customerId: customer.id,
+    customerType: "REGISTERED",
+    saleType: "RETAIL",
+    invoiceDate: "2026-02-01",
+    items: [{ productId: product.id, quantityPieces: 10, actualSalePrice: 90 }],
+    discount: 0,
+    paidAmount: 900,
+    paymentMethod: "CASH",
+  });
+  assert.equal(saleResponse.status, 201);
+  const invoice = saleResponse.body.invoice;
+
+  const { deltas, balanced } = await deltasAfter(["4010", "1100", "1000", "1200", "5000"], async () => {
+    const returnResponse = await tenant.agent.post("/api/sales-returns").send({
+      salesInvoiceId: invoice.id,
+      returnDate: "2026-02-02",
+      refundMethod: "CASH",
+      items: [{ salesInvoiceItemId: invoice.items[0].id, productId: product.id, quantityPieces: 3 }],
+    });
+    assert.equal(returnResponse.status, 201);
+  });
+
+  assert.equal(deltas["4010"], 270, "sales returns books the return value");
+  assert.equal(deltas["1000"], -270, "cash is refunded out");
+  assert.equal(deltas["1100"], 0, "receivable is untouched for a cash refund");
+  assert.equal(deltas["1200"], 150, "inventory restored at cost");
+  assert.equal(deltas["5000"], -150, "COGS reversed");
+  assert.ok(balanced);
+});
+
+test("a purchase return debits payable and credits inventory, and deleting it reverses both", async () => {
+  const supplier = await createSupplier(tenant.agent, { name: "PR Journal Supplier" });
+  const product = await createProduct(tenant.agent, { name: "PR Journal Widget", purchasePrice: 100 });
+
+  const receiveResponse = await tenant.agent.post("/api/purchase-receive").send({
+    supplierId: supplier.id,
+    purchaseDate: "2026-02-05",
+    items: [{ productId: product.id, quantityPieces: 10, purchasePrice: 100 }],
+    discount: 0,
+    paidAmount: 0,
+    paymentMethod: "CASH",
+  });
+  assert.equal(receiveResponse.status, 201);
+
+  let returnId;
+  const { deltas, balanced } = await deltasAfter(["2000", "1200"], async () => {
+    const returnResponse = await tenant.agent.post("/api/purchase-returns").send({
+      supplierId: supplier.id,
+      returnDate: "2026-02-06",
+      items: [{ productId: product.id, quantityPieces: 4, unitPrice: 100 }],
+    });
+    assert.equal(returnResponse.status, 201);
+    returnId = returnResponse.body.purchaseReturn.id;
+  });
+
+  assert.equal(deltas["2000"], -400, "accounts payable drops by the returned value");
+  assert.equal(deltas["1200"], -400, "inventory drops by the same value");
+  assert.ok(balanced);
+
+  const { deltas: deleteDeltas, balanced: deleteBalanced } = await deltasAfter(["2000", "1200"], async () => {
+    const deleteResponse = await tenant.agent.delete(`/api/purchase-returns/${returnId}`).send({ reason: "test reversal" });
+    assert.equal(deleteResponse.status, 200);
+  });
+
+  assert.equal(deleteDeltas["2000"], 400, "deleting the return restores the payable");
+  assert.equal(deleteDeltas["1200"], 400, "deleting the return restores inventory");
+  assert.ok(deleteBalanced);
+});
+
+test("a morning issue transfers cost from inventory to goods-with-dsr, and settlement recognizes revenue and COGS for what sold", async () => {
+  const product = await createProduct(tenant.agent, { name: "DSR Journal Widget", purchasePrice: 50, wholesalePrice: 70 });
+  await addStock(tenant.agent, product.id, 100);
+  const dsr = await createDsr(tenant.agent, { name: "Journal DSR" });
+
+  const { deltas: issueDeltas, balanced: issueBalanced } = await deltasAfter(["1130", "1200"], async () => {
+    const issueResponse = await tenant.agent.post("/api/issues").send({
+      date: "2026-02-10",
+      dsrId: dsr.id,
+      items: [{ productId: product.id, issuedPieces: 50 }],
+    });
+    assert.equal(issueResponse.status, 201);
+  });
+
+  assert.equal(issueDeltas["1130"], 2500, "goods-with-dsr picks up 50 pieces at the 50 cost");
+  assert.equal(issueDeltas["1200"], -2500, "inventory gives up the same cost");
+  assert.ok(issueBalanced);
+
+  // Sold = 50 - 5 (returned) - 5 (damaged) = 40 pieces @ 70 wholesale = 2800 payable.
+  const { deltas: settleDeltas, balanced: settleBalanced } = await deltasAfter(
+    ["4000", "5000", "1200", "1130", "1000", "1110"],
+    async () => {
+      const settleResponse = await tenant.agent.post("/api/settlements").send({
+        date: "2026-02-10",
+        dsrId: dsr.id,
+        items: [{ productId: product.id, returnedPieces: 5, damagedPieces: 5 }],
+        discount: 0,
+        extraReturnValue: 0,
+        amountPaid: 2800,
+      });
+      assert.equal(settleResponse.status, 201);
+    },
+  );
+
+  assert.equal(settleDeltas["4000"], 2800, "sales revenue books the full payable");
+  assert.equal(settleDeltas["5000"], 2000, "COGS books 40 sold pieces at the 50 cost");
+  assert.equal(settleDeltas["1200"], 500, "inventory gets the 10 returned+damaged pieces back at cost");
+  assert.equal(settleDeltas["1130"], -2500, "goods-with-dsr is fully cleared out (sold + returned + damaged cost)");
+  assert.equal(settleDeltas["1000"], 2800, "cash collected in full");
+  assert.equal(settleDeltas["1110"], 0, "DSR receivable nets to zero — fully paid same day");
+  assert.ok(settleBalanced);
+});
+
+test("a settlement discount attributed to a supplier debits accounts payable instead of discounts given", async () => {
+  const product = await createProduct(tenant.agent, { name: "DSR Discount Widget", purchasePrice: 50, wholesalePrice: 70 });
+  await addStock(tenant.agent, product.id, 100);
+  const dsr = await createDsr(tenant.agent, { name: "Discount DSR" });
+  const supplier = await createSupplier(tenant.agent, { name: "Discount Journal Supplier" });
+
+  const issueResponse = await tenant.agent.post("/api/issues").send({
+    date: "2026-02-11",
+    dsrId: dsr.id,
+    items: [{ productId: product.id, issuedPieces: 20 }],
+  });
+  assert.equal(issueResponse.status, 201);
+
+  // Sold = 20 pieces @ 70 = 1400 payable, minus a 100 discount funded by the supplier.
+  const { deltas, balanced } = await deltasAfter(["2000", "4020", "1110", "4000"], async () => {
+    const settleResponse = await tenant.agent.post("/api/settlements").send({
+      date: "2026-02-11",
+      dsrId: dsr.id,
+      items: [{ productId: product.id, returnedPieces: 0, damagedPieces: 0 }],
+      discount: 100,
+      discountSupplierId: supplier.id,
+      extraReturnValue: 0,
+      amountPaid: 0,
+    });
+    assert.equal(settleResponse.status, 201);
+  });
+
+  assert.equal(deltas["4000"], 1400, "gross revenue still books the full payable");
+  assert.equal(deltas["2000"], -100, "the supplier's payable absorbs the discount");
+  assert.equal(deltas["4020"], 0, "discounts given is untouched — the supplier funded it, not the tenant");
+  assert.equal(deltas["1110"], 1300, "DSR receivable only grows by payable minus the discount");
+  assert.ok(balanced);
+});
+
+test("editing a settlement replaces its journal entry instead of stacking a second one", async () => {
+  const product = await createProduct(tenant.agent, { name: "DSR Replace Widget", purchasePrice: 50, wholesalePrice: 70 });
+  await addStock(tenant.agent, product.id, 100);
+  const dsr = await createDsr(tenant.agent, { name: "Replace DSR" });
+
+  const issueResponse = await tenant.agent.post("/api/issues").send({
+    date: new Date().toISOString().slice(0, 10),
+    dsrId: dsr.id,
+    items: [{ productId: product.id, issuedPieces: 30 }],
+  });
+  assert.equal(issueResponse.status, 201);
+
+  let settlementId;
+  // First cut: sold 30 @ 70 = 2100 revenue, nothing collected, all of it sits as DSR receivable.
+  const { deltas: createDeltas } = await deltasAfter(["4000", "1110", "1000"], async () => {
+    const createResponse = await tenant.agent.post("/api/settlements").send({
+      date: issueResponse.body.issue.date,
+      dsrId: dsr.id,
+      items: [{ productId: product.id, returnedPieces: 0, damagedPieces: 0 }],
+      discount: 0,
+      extraReturnValue: 0,
+      amountPaid: 0,
+    });
+    assert.equal(createResponse.status, 201);
+    settlementId = createResponse.body.settlement.id;
+  });
+  assert.equal(createDeltas["4000"], 2100);
+  assert.equal(createDeltas["1110"], 2100);
+  assert.equal(createDeltas["1000"], 0);
+
+  // Edit to record the full collection — the journal must land on the *new* totals
+  // (revenue unchanged, receivable fully cleared, cash now collected), not stack a
+  // second entry on top of the first.
+  const { deltas: updateDeltas, balanced } = await deltasAfter(["4000", "1110", "1000"], async () => {
+    const updateResponse = await tenant.agent.put(`/api/settlements/${settlementId}`).send({
+      date: issueResponse.body.issue.date,
+      dsrId: dsr.id,
+      items: [{ productId: product.id, returnedPieces: 0, damagedPieces: 0 }],
+      discount: 0,
+      extraReturnValue: 0,
+      amountPaid: 2100,
+    });
+    assert.equal(updateResponse.status, 200);
+  });
+
+  assert.equal(updateDeltas["4000"], 0, "revenue must not double up after the edit — same 30 pieces, same payable");
+  assert.equal(updateDeltas["1110"], -2100, "DSR receivable drops back to zero once the edit records full payment");
+  assert.equal(updateDeltas["1000"], 2100, "cash now reflects the newly-recorded collection");
+  assert.ok(balanced);
+});
+
+test("an SR handover moves the receivable from the DSR to the SR", async () => {
+  const product = await createProduct(tenant.agent, { name: "SR Handover Widget", purchasePrice: 50, wholesalePrice: 70 });
+  await addStock(tenant.agent, product.id, 100);
+  const dsr = await createDsr(tenant.agent, { name: "Handover DSR" });
+  const sr = await createSr(tenant.agent, { name: "Handover SR" });
+
+  const issueResponse = await tenant.agent.post("/api/issues").send({
+    date: "2026-02-15",
+    dsrId: dsr.id,
+    items: [{ productId: product.id, issuedPieces: 10 }],
+  });
+  assert.equal(issueResponse.status, 201);
+
+  // Sold 10 @ 70 = 700 payable; 300 handed over to the SR instead of collected in cash.
+  const { deltas, balanced } = await deltasAfter(["1110", "1120", "1000"], async () => {
+    const settleResponse = await tenant.agent.post("/api/settlements").send({
+      date: "2026-02-15",
+      dsrId: dsr.id,
+      items: [{ productId: product.id, returnedPieces: 0, damagedPieces: 0 }],
+      discount: 0,
+      extraReturnValue: 0,
+      amountPaid: 0,
+      srHandovers: [{ srId: sr.id, amount: 300 }],
+    });
+    assert.equal(settleResponse.status, 201);
+  });
+
+  assert.equal(deltas["1110"], 400, "DSR receivable only grows by payable minus what was handed to the SR");
+  assert.equal(deltas["1120"], 300, "SR receivable picks up the handed-over amount");
+  assert.equal(deltas["1000"], 0, "no cash changed hands");
+  assert.ok(balanced);
 });

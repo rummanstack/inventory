@@ -188,6 +188,7 @@ function syncSettlementItemsWithIssue(issueItems, settlementItems) {
       soldPieces,
       rate,
       payable: soldPieces * rate,
+      costPrice: Number(issueItem.costPrice || 0),
     };
   });
 }
@@ -214,6 +215,7 @@ async function buildTrustedExtraReturns(client, extraReturns, tenantId) {
       damagedPieces,
       rate,
       returnValue,
+      costPrice: Number(product.purchase_price || 0),
     };
   });
 }
@@ -455,15 +457,42 @@ async function recordSettlementDueLedgerChanges(client, settlement, tenantId, ac
 }
 
 export class SettlementService {
-  constructor(databaseManager, { auditService, financeAccountService, supplierDiscountService }) {
+  constructor(databaseManager, { auditService, financeAccountService, supplierDiscountService, journalService }) {
     this.databaseManager = databaseManager;
     this.auditService = auditService;
     this.financeAccountService = financeAccountService;
     this.supplierDiscountService = supplierDiscountService;
+    this.journalService = journalService;
   }
 
   recordActivity(client, actor, payload) {
     return logActivity(this.auditService, client, actor, payload);
+  }
+
+  async postSettlementJournal(client, actor, settlement) {
+    if (!this.journalService) return;
+    const soldCost = settlement.items.reduce((sum, item) => sum + item.soldPieces * Number(item.costPrice || 0), 0);
+    const returnedCost = settlement.items.reduce(
+      (sum, item) => sum + (item.returnedPieces + item.damagedPieces) * Number(item.costPrice || 0),
+      0,
+    ) + (settlement.extraReturns || []).reduce(
+      (sum, item) => sum + (item.returnedPieces + item.damagedPieces) * Number(item.costPrice || 0),
+      0,
+    );
+
+    await this.journalService.postSettlement(client, actor, {
+      settlementId: settlement.id,
+      settlementDate: settlement.date,
+      dsrName: settlement.dsrName,
+      totalPayable: settlement.totalPayable,
+      discount: settlement.discount,
+      discountSupplierId: settlement.discountSupplierId,
+      extraReturnValue: settlement.extraReturnValue,
+      soldCost,
+      returnedCost,
+      amountPaid: settlement.amountPaid,
+      srHandoverTotal: settlement.totalSrHandovers,
+    });
   }
 
   async listSettlements(query = {}, actor) {
@@ -541,6 +570,7 @@ export class SettlementService {
 
     const settlement = finalizeSettlementAmountsStrict(trustedBase, latestBalance);
     const insertResult = await insertSettlement(client, settlement);
+    await this.postSettlementJournal(client, actor, settlement);
 
     const totalSrHandovers = (settlement.srHandovers || []).reduce((sum, h) => sum + Number(h.amount || 0), 0);
 
@@ -683,6 +713,7 @@ export class SettlementService {
     const settlement = finalizeSettlementAmountsStrict(trustedBase, previousDueForNew);
 
     const settlementResult = await updateSettlement(client, settlement);
+    await this.postSettlementJournal(client, actor, settlement);
 
     const newSaleDue = settlement.totalPayable - settlement.discount - settlement.extraReturnValue;
     const newCollection = settlement.amountPaid;

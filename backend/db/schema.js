@@ -2102,6 +2102,7 @@ export async function createSchema(pool) {
       ('1100', 'Accounts Receivable',    'ASSET',     'DEBIT'),
       ('1110', 'DSR Receivable',         'ASSET',     'DEBIT'),
       ('1120', 'SR Receivable',          'ASSET',     'DEBIT'),
+      ('1130', 'Goods with DSR',         'ASSET',     'DEBIT'),
       ('1200', 'Inventory',              'ASSET',     'DEBIT'),
       ('2000', 'Accounts Payable',       'LIABILITY', 'CREDIT'),
       ('2100', 'Tax Payable',            'LIABILITY', 'CREDIT'),
@@ -2115,5 +2116,13 @@ export async function createSchema(pool) {
       ('6010', 'Salary Expense',         'EXPENSE',   'DEBIT'),
       ('7000', 'Stock Adjustment',       'EXPENSE',   'DEBIT')
     ON CONFLICT (code) DO NOTHING;
+
+    -- Purchase returns turned out to have no P&L effect under this app's
+    -- perpetual-inventory model (COGS is only ever recognized at the point of
+    -- sale, never derived from a periodic Purchases-less-Returns formula) —
+    -- a purchase return is booked straight against Inventory instead (see
+    -- JournalService.postPurchaseReturn). This account is retired rather than
+    -- deleted, so historical rows (if any were ever posted) stay queryable.
+    UPDATE chart_of_accounts SET is_active = false WHERE code = '5010';
   `);
 }

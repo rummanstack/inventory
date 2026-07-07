@@ -41,10 +41,7 @@ export default function ProfitAndLossPage() {
               <PnlLine label={t('journal.discountsGiven')} value={-vm.profitAndLoss.revenue.discountsGiven} language={language} indent />
               <PnlLine label={t('journal.netRevenue')} value={vm.profitAndLoss.revenue.netRevenue} language={language} bold />
 
-              <p className="mb-2 mt-5 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">{t('journal.costOfGoodsSold')}</p>
-              <PnlLine label={t('journal.costOfGoodsSold')} value={vm.profitAndLoss.costOfGoodsSold.costOfGoodsSold} language={language} indent />
-              <PnlLine label={t('journal.purchaseReturns')} value={-vm.profitAndLoss.costOfGoodsSold.purchaseReturns} language={language} indent />
-              <PnlLine label={t('journal.netCostOfGoodsSold')} value={vm.profitAndLoss.costOfGoodsSold.netCostOfGoodsSold} language={language} bold />
+              <PnlLine label={t('journal.costOfGoodsSold')} value={vm.profitAndLoss.costOfGoodsSold.costOfGoodsSold} language={language} bold />
 
               <PnlLine label={t('journal.grossProfit')} value={vm.profitAndLoss.grossProfit} language={language} bold />
 

@@ -2130,8 +2130,6 @@ const bn = {
       discountsGiven: 'বাদ: প্রদত্ত ছাড়',
       netRevenue: 'নিট রাজস্ব',
       costOfGoodsSold: 'বিক্রীত পণ্যের ব্যয়',
-      purchaseReturns: 'বাদ: ক্রয় ফেরত',
-      netCostOfGoodsSold: 'নিট বিক্রীত পণ্যের ব্যয়',
       grossProfit: 'মোট মুনাফা',
       expenses: 'ব্যয়',
       operatingExpenses: 'পরিচালন ব্যয়',

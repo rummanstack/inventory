@@ -15,7 +15,9 @@
       "Bash(node --check /c/Users/ASUS/Desktop/inventory/backend/services/financeAccountService.js)",
       "Bash(npx vite *)",
       "Bash(node --check /c/Users/ASUS/Desktop/inventory/backend/controllers/journalController.js)",
-      "Bash(node --check /c/Users/ASUS/Desktop/inventory/backend/routes/journal.routes.js)"
+      "Bash(node --check /c/Users/ASUS/Desktop/inventory/backend/routes/journal.routes.js)",
+      "Bash(npm_lifecycle_event=test node --test --test-concurrency=1 backend/tests/journal.test.js)",
+      "Bash(npm_lifecycle_event=test node --test --test-concurrency=1)"
     ]
   }
 }

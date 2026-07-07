@@ -4,6 +4,7 @@ import { parsePagination, buildPageResult } from "../lib/pagination.js";
 import { normalizePurchaseReturn } from "../lib/normalizers.js";
 import { STOCK_MOVEMENT_TYPES } from "../lib/stockMovements.js";
 import { SUPPLIER_DUE_LEDGER_TYPES } from "../lib/supplierDueLedger.js";
+import { JOURNAL_SOURCE_TYPES } from "../lib/journalSourceTypes.js";
 import { PURCHASE_RETURN_ACTIONS } from "../lib/auditActions.js";
 import { nextPurchaseReturnNumber } from "../lib/purchaseNumber.js";
 import { findSupplierForUpdate, updateSupplierCurrentDue } from "../repositories/supplierRepository.js";
@@ -31,9 +32,10 @@ import {
 const DATE_ERROR = "Return date must be in YYYY-MM-DD format.";
 
 export class PurchaseReturnService {
-  constructor(databaseManager, { auditService }) {
+  constructor(databaseManager, { auditService, journalService }) {
     this.databaseManager = databaseManager;
     this.auditService = auditService;
+    this.journalService = journalService;
   }
 
   recordActivity(client, actor, payload) {
@@ -174,6 +176,16 @@ export class PurchaseReturnService {
 
       await updateSupplierCurrentDue(client, supplier.id, actor.tenantId, Math.max(0, balanceAfter));
 
+      if (this.journalService) {
+        await this.journalService.postPurchaseReturn(client, actor, {
+          returnId: base.id,
+          returnDate: base.returnDate,
+          returnNumber,
+          totalAmount: base.totalAmount,
+          supplierName: supplier.name,
+        });
+      }
+
       await this.recordActivity(client, actor, {
         actionType: PURCHASE_RETURN_ACTIONS.CREATE,
         entityType: "purchase_return",
@@ -253,6 +265,16 @@ export class PurchaseReturnService {
       });
 
       await updateSupplierCurrentDue(client, purchaseReturn.supplier_id, actor.tenantId, Math.max(0, balanceAfter));
+
+      if (this.journalService) {
+        await this.journalService.reverse(client, {
+          tenantId: actor.tenantId,
+          sourceType: JOURNAL_SOURCE_TYPES.PURCHASE_RETURN,
+          sourceId: returnId,
+          reason,
+          createdById: actor.id,
+        });
+      }
 
       await this.recordActivity(client, actor, {
         actionType: PURCHASE_RETURN_ACTIONS.DELETE,

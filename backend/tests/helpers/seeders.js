@@ -78,6 +78,18 @@ export async function createDsr(agent, overrides = {}) {
   return response.body.dsr;
 }
 
+export async function createSr(agent, overrides = {}) {
+  const response = await agent.post("/api/srs").send({
+    name: "Test SR",
+    phone: "0199000000",
+    ...overrides,
+  });
+  if (response.status !== 201) {
+    throw new Error(`createSr failed (${response.status}): ${JSON.stringify(response.body)}`);
+  }
+  return response.body.sr;
+}
+
 export async function depositCash(agent, amount, overrides = {}) {
   const response = await agent.post("/api/finance-accounts/transactions").send({
     accountType: "CASH",

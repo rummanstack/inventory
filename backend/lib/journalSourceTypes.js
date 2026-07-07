@@ -14,4 +14,8 @@ export const JOURNAL_SOURCE_TYPES = {
   EXPENSE_ADJUSTMENT: "expense_adjustment",
   FINANCE_MANUAL_TRANSACTION: "finance_manual_transaction",
   FINANCE_TRANSFER: "finance_transfer",
+  SALES_RETURN: "sales_return",
+  PURCHASE_RETURN: "purchase_return",
+  MORNING_ISSUE: "morning_issue",
+  SETTLEMENT: "settlement",
 };

@@ -128,7 +128,7 @@ export function createServiceRegistry({ databaseManager, env }) {
     dsrTargetService: new DsrTargetService(databaseManager, {
       auditService: platform.auditService,
     }),
-    issueService: new IssueService(databaseManager, { auditService: platform.auditService }),
+    issueService: new IssueService(databaseManager, { auditService: platform.auditService, journalService }),
     settlementService: null,
     shopDueLedgerService: new ShopDueLedgerService(databaseManager, {
       auditService: platform.auditService,
@@ -149,6 +149,7 @@ export function createServiceRegistry({ databaseManager, env }) {
     }),
     purchaseReturnService: new PurchaseReturnService(databaseManager, {
       auditService: platform.auditService,
+      journalService,
     }),
     supplierDiscountService: new SupplierDiscountService(databaseManager, {
       auditService: platform.auditService,
@@ -167,6 +168,7 @@ export function createServiceRegistry({ databaseManager, env }) {
     auditService: platform.auditService,
     financeAccountService: finance.financeAccountService,
     supplierDiscountService: suppliers.supplierDiscountService,
+    journalService,
   });
 
   const operations = {
@@ -193,6 +195,7 @@ export function createServiceRegistry({ databaseManager, env }) {
     salesReturnService: new SalesReturnService(databaseManager, {
       auditService: platform.auditService,
       financeAccountService: finance.financeAccountService,
+      journalService,
     }),
     warrantyClaimService: new WarrantyClaimService(databaseManager, {
       auditService: platform.auditService,

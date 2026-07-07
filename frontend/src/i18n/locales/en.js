@@ -2147,8 +2147,6 @@ const en = {
       discountsGiven: 'Less: Discounts Given',
       netRevenue: 'Net Revenue',
       costOfGoodsSold: 'Cost of Goods Sold',
-      purchaseReturns: 'Less: Purchase Returns',
-      netCostOfGoodsSold: 'Net Cost of Goods Sold',
       grossProfit: 'Gross Profit',
       expenses: 'Expenses',
       operatingExpenses: 'Operating Expenses',

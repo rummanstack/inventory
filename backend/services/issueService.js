@@ -36,6 +36,7 @@ async function buildTrustedIssueItems(client, inputItems, previousItems, tenantI
         piecesPerCase: cleanInteger(product.pieces_per_case),
         issuedPieces,
         rate: previousRate > 0 ? previousRate : Number(product.wholesale_price || 0),
+        costPrice: Number(product.purchase_price || 0),
       };
     });
 }
@@ -122,13 +123,25 @@ async function applyIssueInventoryDelta(client, previousItems, nextItems, tenant
 }
 
 export class IssueService {
-  constructor(databaseManager, { auditService }) {
+  constructor(databaseManager, { auditService, journalService }) {
     this.databaseManager = databaseManager;
     this.auditService = auditService;
+    this.journalService = journalService;
   }
 
   recordActivity(client, actor, payload) {
     return logActivity(this.auditService, client, actor, payload);
+  }
+
+  async postIssueJournal(client, actor, issue) {
+    if (!this.journalService) return;
+    const totalCost = issue.items.reduce((sum, item) => sum + Number(item.costPrice || 0) * item.issuedPieces, 0);
+    await this.journalService.postMorningIssue(client, actor, {
+      issueId: issue.id,
+      issueDate: issue.date,
+      dsrName: issue.dsrName,
+      totalCost,
+    });
   }
 
   async listIssues(query = {}, actor) {
@@ -199,6 +212,7 @@ export class IssueService {
           businessDate: issue.date,
         });
         const issueResult = await updateIssue(client, issue);
+        await this.postIssueJournal(client, actor, issue);
 
         await this.recordActivity(client, actor, {
           actionType: ISSUE_ACTIONS.UPDATE,
@@ -237,6 +251,7 @@ export class IssueService {
         businessDate: issue.date,
       });
       const issueResult = await insertIssue(client, issue);
+      await this.postIssueJournal(client, actor, issue);
       await this.recordActivity(client, actor, {
         actionType: ISSUE_ACTIONS.CREATE,
         entityType: "issue",
@@ -297,6 +312,7 @@ export class IssueService {
         businessDate: issue.date,
       });
       const issueResult = await updateIssue(client, issue);
+      await this.postIssueJournal(client, actor, issue);
       await this.recordActivity(client, actor, {
         actionType: ISSUE_ACTIONS.UPDATE,
         entityType: "issue",

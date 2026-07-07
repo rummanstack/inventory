@@ -157,6 +157,31 @@ export class JournalService {
     }
   }
 
+  // For entities with create+update but no delete (morning issue, evening
+  // settlement): hard-deletes whatever is currently live for this sourceId and
+  // posts the freshly computed full state in its place. Unlike an adjustment
+  // posting (which posts only the delta), this lets the caller always compute
+  // from the current record's total state rather than tracking deltas itself —
+  // appropriate here because neither entity has a stored "previous financial
+  // state" to diff against once edited (no delete/restore is possible for
+  // them either, so there is nothing else that needs the old entry preserved).
+  // No-ops (posts nothing) when every line nets to zero, e.g. a morning issue
+  // whose products have no purchase_price recorded — better than crashing the
+  // enclosing business transaction over an entry with nothing to post.
+  async replace(client, { tenantId, entryDate, sourceType, sourceId, memo, createdById, lines }) {
+    const existing = await findLiveJournalEntry(client, tenantId, sourceType, sourceId);
+    if (existing) {
+      await deleteJournalEntry(client, tenantId, existing.id);
+    }
+
+    const hasAmount = (lines || []).some((line) => (line.debit || 0) > 0 || (line.credit || 0) > 0);
+    if (!hasAmount) {
+      return null;
+    }
+
+    return this.post(client, { tenantId, entryDate, sourceType, sourceId, memo, createdById, lines });
+  }
+
   // ── Source-specific posting (Phase 1 flows) ─────────────────────────
 
   async postSalesInvoice(client, actor, { invoiceId, invoiceDate, invoiceNumber, paidAmount, dueAmount, totalAmount, taxAmount, cogsAmount }) {
@@ -353,6 +378,128 @@ export class JournalService {
     });
   }
 
+  // Refund is split by the caller into a due-adjustment portion (reduces the
+  // customer's AR) and a cash portion (an overpayment refunded in cash even
+  // when the overall refund method is DUE_ADJUSTMENT) — the two always sum to
+  // totalAmount by construction, so this balances regardless of the split.
+  // costAmount is the returned items' combined cost basis (all conditions —
+  // GOOD, DAMAGED, WARRANTY — treated alike, matching the existing
+  // totalProfitAdjustment calculation on the sales return record itself, so
+  // this entry's effect on Net Profit never disagrees with the Profit Report
+  // for the same period).
+  async postSalesReturn(client, actor, { returnId, returnDate, returnNumber, totalAmount, costAmount, dueAdjustmentAmount, cashRefundAmount }) {
+    const lines = [
+      { accountCode: ACCOUNTS.SALES_RETURNS, debit: totalAmount },
+      { accountCode: ACCOUNTS.ACCOUNTS_RECEIVABLE, credit: dueAdjustmentAmount },
+      { accountCode: ACCOUNTS.CASH, credit: cashRefundAmount },
+      { accountCode: ACCOUNTS.INVENTORY, debit: costAmount },
+      { accountCode: ACCOUNTS.COST_OF_GOODS_SOLD, credit: costAmount },
+    ];
+    return this.post(client, {
+      tenantId: actor.tenantId,
+      entryDate: returnDate,
+      sourceType: JOURNAL_SOURCE_TYPES.SALES_RETURN,
+      sourceId: returnId,
+      memo: `Sales return ${returnNumber}`,
+      createdById: actor.id,
+      lines,
+    });
+  }
+
+  // Reversal (removePurchaseReturn) reuses the generic reverse() primitive
+  // directly from purchaseReturnService — a delete mirrors this entry exactly
+  // (stock comes back in, supplier payable is debited back), so no separate
+  // reversal method is needed here.
+  async postPurchaseReturn(client, actor, { returnId, returnDate, returnNumber, totalAmount, supplierName }) {
+    return this.post(client, {
+      tenantId: actor.tenantId,
+      entryDate: returnDate,
+      sourceType: JOURNAL_SOURCE_TYPES.PURCHASE_RETURN,
+      sourceId: returnId,
+      memo: `Purchase return ${returnNumber}${supplierName ? ` to ${supplierName}` : ""}`,
+      createdById: actor.id,
+      lines: [
+        { accountCode: ACCOUNTS.ACCOUNTS_PAYABLE, debit: totalAmount },
+        { accountCode: ACCOUNTS.INVENTORY, credit: totalAmount },
+      ],
+    });
+  }
+
+  // A morning issue is a transfer between two ASSET accounts — goods leave the
+  // shop's own sellable Inventory and become goods carried by the DSR, at cost.
+  // No revenue or COGS is recognized yet; that only happens at evening
+  // settlement (postSettlement) once the DSR reports what actually sold.
+  async postMorningIssue(client, actor, { issueId, issueDate, dsrName, totalCost }) {
+    return this.replace(client, {
+      tenantId: actor.tenantId,
+      entryDate: issueDate,
+      sourceType: JOURNAL_SOURCE_TYPES.MORNING_ISSUE,
+      sourceId: issueId,
+      memo: `Morning issue — ${dsrName}`,
+      createdById: actor.id,
+      lines: [
+        { accountCode: ACCOUNTS.GOODS_WITH_DSR, debit: totalCost },
+        { accountCode: ACCOUNTS.INVENTORY, credit: totalCost },
+      ],
+    });
+  }
+
+  // Evening settlement is where revenue and COGS are actually recognized for a
+  // DSR's day: soldCost moves from Goods-with-DSR to COGS (goods sold), while
+  // returnedCost (good + damaged items from today's issue, plus any
+  // extraReturns not tied to today's issue) moves back into Inventory. The
+  // discount is either absorbed by a supplier (debits Accounts Payable — the
+  // supplier's own payable balance drops, per supplierDiscountService's
+  // "credit reduces balance" convention for that ledger) or, with no supplier
+  // attached, comes straight off net revenue (Discounts Given). extraReturns
+  // are valued at the DSR's wholesale rate (not cost) because they reverse
+  // revenue recognized on some earlier day, exactly like a sales return.
+  // amountPaid (cash collected) and srHandoverTotal (handed to a Sales Rep
+  // instead of collected directly) both reduce what the DSR still owes,
+  // matching recordSettlementDueLedgerChanges' own due-ledger math exactly —
+  // this single entry replaces that entire multi-step balance walk with one
+  // balanced set of lines. Deliberately excludes shopCollections: cash the DSR
+  // collects on a retail shop's own due is never actually deposited into any
+  // finance account by settlementService today, so posting it here would
+  // invent cash the rest of the app doesn't believe exists — a known,
+  // pre-existing gap, not something this entry should paper over.
+  async postSettlement(client, actor, {
+    settlementId,
+    settlementDate,
+    dsrName,
+    totalPayable,
+    discount,
+    discountSupplierId,
+    extraReturnValue,
+    soldCost,
+    returnedCost,
+    amountPaid,
+    srHandoverTotal,
+  }) {
+    const saleDueAmount = totalPayable - discount - extraReturnValue;
+    const discountAccount = discountSupplierId ? ACCOUNTS.ACCOUNTS_PAYABLE : ACCOUNTS.DISCOUNTS_GIVEN;
+    const lines = [
+      { accountCode: ACCOUNTS.SALES_REVENUE, credit: totalPayable },
+      { accountCode: ACCOUNTS.SALES_RETURNS, debit: extraReturnValue },
+      { accountCode: discountAccount, debit: discount },
+      { accountCode: ACCOUNTS.COST_OF_GOODS_SOLD, debit: soldCost },
+      { accountCode: ACCOUNTS.INVENTORY, debit: returnedCost },
+      { accountCode: ACCOUNTS.GOODS_WITH_DSR, credit: soldCost + returnedCost },
+      signedLine(ACCOUNTS.DSR_RECEIVABLE, saleDueAmount - amountPaid - srHandoverTotal, "debit"),
+      { accountCode: ACCOUNTS.CASH, debit: amountPaid },
+      { accountCode: ACCOUNTS.SR_RECEIVABLE, debit: srHandoverTotal },
+    ];
+    return this.replace(client, {
+      tenantId: actor.tenantId,
+      entryDate: settlementDate,
+      sourceType: JOURNAL_SOURCE_TYPES.SETTLEMENT,
+      sourceId: settlementId,
+      memo: `Evening settlement — ${dsrName}`,
+      createdById: actor.id,
+      lines,
+    });
+  }
+
   // ── Reports ──────────────────────────────────────────────────────────
 
   async getChartOfAccounts() {
@@ -439,9 +586,13 @@ function computeProfitBreakdown(rows) {
   const discountsGiven = activity(ACCOUNTS.DISCOUNTS_GIVEN, "DEBIT");
   const netRevenue = salesRevenue - salesReturns - discountsGiven;
 
+  // Purchase returns have no P&L line here: under this app's perpetual-inventory
+  // model, a purchase return is booked straight against Inventory (see
+  // postPurchaseReturn) since COGS is only ever recognized at the point of
+  // sale — there is no periodic Purchases-less-Returns formula for it to net
+  // against.
   const costOfGoodsSold = activity(ACCOUNTS.COST_OF_GOODS_SOLD, "DEBIT");
-  const purchaseReturns = activity(ACCOUNTS.PURCHASE_RETURNS, "CREDIT");
-  const netCostOfGoodsSold = costOfGoodsSold - purchaseReturns;
+  const netCostOfGoodsSold = costOfGoodsSold;
 
   const grossProfit = netRevenue - netCostOfGoodsSold;
 
@@ -454,7 +605,7 @@ function computeProfitBreakdown(rows) {
 
   return {
     revenue: { salesRevenue, salesReturns, discountsGiven, netRevenue },
-    costOfGoodsSold: { costOfGoodsSold, purchaseReturns, netCostOfGoodsSold },
+    costOfGoodsSold: { costOfGoodsSold, netCostOfGoodsSold },
     grossProfit,
     expenses: { operatingExpenses, salaryExpense, stockAdjustment, totalOperatingExpenses },
     netProfit,

@@ -155,10 +155,11 @@ async function processReturnedSerials(client, items, productMap, tenantId) {
 }
 
 export class SalesReturnService {
-  constructor(databaseManager, { auditService, financeAccountService }) {
+  constructor(databaseManager, { auditService, financeAccountService, journalService }) {
     this.databaseManager = databaseManager;
     this.auditService = auditService;
     this.financeAccountService = financeAccountService;
+    this.journalService = journalService;
   }
 
   recordActivity(client, actor, payload) {
@@ -428,6 +429,22 @@ export class SalesReturnService {
           },
           actor,
         );
+      }
+
+      if (this.journalService) {
+        const dueAdjustmentAmount = base.customerId && base.refundMethod === "DUE_ADJUSTMENT"
+          ? base.totalAmount - dueAdjustmentOverflow
+          : 0;
+        const costAmount = base.items.reduce((sum, item) => sum + item.costPriceSnapshot * item.quantityPieces, 0);
+        await this.journalService.postSalesReturn(client, actor, {
+          returnId: base.id,
+          returnDate: base.returnDate,
+          returnNumber,
+          totalAmount: base.totalAmount,
+          costAmount,
+          dueAdjustmentAmount,
+          cashRefundAmount,
+        });
       }
 
       await this.recordActivity(client, actor, {

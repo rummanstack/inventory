@@ -124,6 +124,9 @@ export function buildSheetData({ date, dsrId, dsrs, issues, settlements, product
   const issuedReturnValue = items.reduce((sum, item) => sum + Number(item.returnValue || 0), 0);
   const extraReturnValue = settlement ? settlement.extraReturnValue || 0 : 0;
   const totalPayable = settlement ? settlement.totalPayable : 0;
+  const totalSrHandovers = settlement
+    ? (settlement.srHandovers || []).reduce((sum, h) => sum + Number(h.amount || 0), 0)
+    : 0;
 
   return {
     businessName: tenantName || 'Arinda Enterprise',
@@ -144,9 +147,9 @@ export function buildSheetData({ date, dsrId, dsrs, issues, settlements, product
     totalReturnValue: issuedReturnValue + extraReturnValue,
     amountPaid: settlement ? settlement.amountPaid || 0 : 0,
     srHandovers: settlement ? (settlement.srHandovers || []) : [],
-    todayDue: settlement ? Math.max(0, (settlement.totalPayable || 0) - (settlement.discount || 0) - extraReturnValue - (settlement.amountPaid || 0)) : 0,
+    todayDue: settlement ? Math.max(0, (settlement.totalPayable || 0) - (settlement.discount || 0) - extraReturnValue - totalSrHandovers - (settlement.amountPaid || 0)) : 0,
     totalReceivable: settlement
-      ? Math.max(0, (settlement.totalPayable || 0) + (settlement.previousDue || 0) - (settlement.discount || 0) - extraReturnValue)
+      ? Math.max(0, (settlement.totalPayable || 0) + (settlement.previousDue || 0) - (settlement.discount || 0) - extraReturnValue - totalSrHandovers)
       : 0,
     dueAmount: settlement ? settlement.dueAmount || 0 : 0,
   };

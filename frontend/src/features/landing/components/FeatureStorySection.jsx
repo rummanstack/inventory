@@ -3,6 +3,15 @@ import ImagePlaceholder from './shared/ImagePlaceholder.jsx';
 import SectionHeader from './shared/SectionHeader.jsx';
 import { featureStoryImages } from '../constants.js';
 
+const IMAGE_SETTINGS = [
+  { fit: 'cover', position: 'center', heightClass: 'aspect-[4/3]' },
+  { fit: 'fill', position: 'center', heightClass: 'aspect-[16/10]' },
+  { fit: 'fill', position: 'center', heightClass: 'aspect-[16/10]' },
+  { fit: 'cover', position: 'center', heightClass: 'aspect-[4/3]' },
+  { fit: 'fill', position: 'center', heightClass: 'aspect-[16/10]' },
+  { fit: 'fill', position: 'center', heightClass: 'aspect-[16/10]' },
+];
+
 export default function FeatureStorySection({ t }) {
   const copy = t('landing.featureStory');
 
@@ -19,7 +28,7 @@ export default function FeatureStorySection({ t }) {
           {copy.groups.map((group, index) => (
             <article key={group.title} className={`feature-story ${index % 2 === 1 ? 'lg:grid-flow-col-dense' : ''}`}>
               <div className={index % 2 === 1 ? 'lg:col-start-2' : ''}>
-                <ImagePlaceholder data={{ src: featureStoryImages[index], alt: group.title }} heightClass="aspect-[4/3]" fit="cover" position={index === 5 ? "center 22%" : undefined} />
+                <ImagePlaceholder data={{ src: featureStoryImages[index], alt: group.title }} heightClass={IMAGE_SETTINGS[index]?.heightClass ?? "aspect-[4/3]"} fit={IMAGE_SETTINGS[index]?.fit ?? "cover"} position={IMAGE_SETTINGS[index]?.position} />
               </div>
               <div className="feature-story-content">
                 <p className="brand-chip inline-flex">{group.badge}</p>
@@ -42,3 +51,7 @@ export default function FeatureStorySection({ t }) {
     </section>
   );
 }
+
+
+
+

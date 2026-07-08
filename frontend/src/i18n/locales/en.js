@@ -3817,11 +3817,11 @@ const en = {
       featureStory: {
         label: 'Business pillars',
         title: 'Everything your business needs in one connected system',
-        description: 'This is no longer just inventory. Sales, purchasing, distribution, finance, accounting, reporting, and operational control work from the same data.',
+        description: 'Sales, purchasing, distribution, dues, finance, accounting, reporting, and control work from the same business records.',
         groups: [
           {
             badge: 'Sales & POS',
-            title: 'Serve faster at the counter and keep every sale accountable',
+            title: 'Serve faster at the counter while every sale updates the business',
             items: [
               'Quick sale, quotations, invoices, promotions, trade-ins, and sales returns',
               'Cash sessions, daily closing, printed receipts, and customer-facing workflows',
@@ -3830,7 +3830,7 @@ const en = {
           },
           {
             badge: 'Distribution & Field Sales',
-            title: 'Run DSR, route, issue, collection, and settlement work from one system',
+            title: 'Track DSR routes, issue, collections, returns, and settlement clearly',
             items: [
               'Morning issue, evening settlement, shop relationships, and SR/DSR finance',
               'Cash, returns, and due reconciliation stay visible for every field rep',
@@ -3839,7 +3839,7 @@ const en = {
           },
           {
             badge: 'Inventory & Purchasing',
-            title: 'Control products, stock movement, serials, and supplier purchasing',
+            title: 'Receive purchases, update stock, and keep supplier accounts aligned',
             items: [
               'Products, categories, low stock alerts, damaged stock, and stock history',
               'Purchase receive, purchase return, supplier discounts, and supplier statements',
@@ -3848,7 +3848,7 @@ const en = {
           },
           {
             badge: 'Customer Due & Collections',
-            title: 'Track receivables and payables without manual ledgers',
+            title: 'Collect dues and keep customer and shop ledgers accurate',
             items: [
               'Retail customer due, collection, shop due ledger, and supplier balances',
               'Collection teams can record payments while finance sees the same truth',
@@ -3866,11 +3866,11 @@ const en = {
           },
           {
             badge: 'Service, HR & Control',
-            title: 'Support repair, warranty, team, security, and reporting in the same platform',
+            title: 'Control service, team activity, security, backups, and reports together',
             items: [
               'Warranty claims, repair jobs, employees, salary payments, and user permissions',
               'Activity logs, backups, org settings, issue center, and security controls',
-              'The platform scales from the sales counter to back-office administration',
+              'Management gets visibility from the sales counter to back-office administration',
             ],
           },
         ],
@@ -3927,7 +3927,7 @@ const en = {
       roles: {
         eyebrow: 'Built for every role',
         title: 'Designed for the people who run the business',
-        text: 'From the owner reviewing performance to the teams handling counters, accounts, collections, distribution, and support, every role works from the same business records.',
+        text: 'From gadget stores and groceries to pharmacies, collections, dealers, and support workflows, every business role works from the same records.',
         items: [
           { title: 'For Gadgets', description: 'Manage mobile, electronics, accessories, serial numbers, warranties, sales returns, customer dues, and profit from one system.', chips: ['Serials', 'Warranty', 'Profit'] },
           { title: 'For Groceries', description: 'Run grocery and general-store counters with fast billing, returns, customer dues, supplier purchases, and daily sales visibility.', chips: ['POS', 'Stock', 'Due'] },
@@ -4083,7 +4083,7 @@ const en = {
         dueCollection: 'Business owner checking customer due and payment record',
         profitReport: 'Business owner reviewing daily sales and profit dashboard',
         mobileView: 'StockLedger responsive software view on tablet or mobile',
-        contactUs: 'Woman on a phone call with StockLedger support',
+        contactUs: 'Support team helping a business customer',
         showing: 'StockLedger showcase image beside the feature cards',
       },
     },
@@ -4212,6 +4212,9 @@ const en = {
 };
 
 export default en;
+
+
+
 
 
 

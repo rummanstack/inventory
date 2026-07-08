@@ -22,8 +22,8 @@ export default function SolutionsSection({ t }) {
             <ImagePlaceholder
               data={{ src: solutionShowcaseImage, alt: copy.showcaseAlt }}
               heightClass="aspect-[16/10]"
-              fit="cover"
-              position="top"
+              fit="fill"
+              position="center"
             />
             <div className="p-6">
               <Landmark size={28} className="text-[var(--brand)] transition-transform duration-300 group-hover:-rotate-6" />
@@ -40,7 +40,7 @@ export default function SolutionsSection({ t }) {
                 <ImagePlaceholder
                   data={{ src: image.src, alt: item.title }}
                   heightClass="aspect-[16/10]"
-                  fit="cover"
+                  fit={image.fit ?? "cover"}
                   position={image.position}
                 />
                 <div className="p-6">
@@ -56,4 +56,8 @@ export default function SolutionsSection({ t }) {
     </section>
   );
 }
+
+
+
+
 

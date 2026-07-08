@@ -748,7 +748,11 @@
   }
 
   .landing-image-contain {
-    @apply h-full w-full object-contain bg-slate-50 p-4;
+    @apply h-full w-full object-contain bg-slate-50;
+  }
+
+  .landing-image-fill {
+    @apply h-full w-full object-fill bg-slate-50;
   }
 
   .demo-panel {
@@ -1452,5 +1456,7 @@ body.landing-page-active .page-shell {
     font-size: 0.86rem;
   }
 }
+
+
 
 

@@ -1,9 +1,9 @@
 ﻿import { useState } from 'react';
-import { CheckCircle2, Loader2, Lock, Send, Server, ShieldCheck } from 'lucide-react';
+import { CheckCircle2, Loader2, Lock, Mail, Send, Server, ShieldCheck } from 'lucide-react';
 import ImagePlaceholder from './shared/ImagePlaceholder.jsx';
 import SectionHeader from './shared/SectionHeader.jsx';
 import { contactApi } from '../../../services/api/contactApi.js';
-import { contactUsImage } from '../constants.js';
+import { contactUsImage, supportEmail } from '../constants.js';
 
 export default function ContactSection({ t }) {
   const [form, setForm] = useState({ name: '', phone: '', message: '' });
@@ -94,6 +94,13 @@ export default function ContactSection({ t }) {
                 <ShieldCheck size={12} className="text-[var(--success)]" /> Daily backups
               </span>
             </div>
+
+            <a
+              href={`mailto:${supportEmail}`}
+              className="mt-3 inline-flex items-center gap-1.5 text-[12px] font-semibold text-[var(--brand)] hover:underline"
+            >
+              <Mail size={12} /> Or email us at {supportEmail}
+            </a>
 
             <button type="submit" className="btn-primary mt-4 rounded-2xl" disabled={status === 'sending'}>
               {status === 'sending' ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}

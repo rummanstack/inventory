@@ -1,13 +1,17 @@
 import businessOwnerImage from '../../assets/landing/business-owner.png';
+import accountingStatementImage from '../../assets/landing/accounting-statement.png';
+import dashboardSummaryImage from '../../assets/landing/dashboard-summary.png';
 import dealerImage from '../../assets/landing/dealer.png';
 import dsrRouteImage from '../../assets/landing/dsr-route.png';
 import dueCollectionImage from '../../assets/landing/due-collection.png';
 import eveningSettlementImage from '../../assets/landing/evening-settlement.png';
 import groceryImage from '../../assets/landing/grocery.png';
+import heroDashboardImage from '../../assets/landing/hero-dashboard.png';
 import ownerLaptopImage from '../../assets/landing/owner-laptop.png';
 import pharmacyImage from '../../assets/landing/pharmacy.png';
 import profitReportImage from '../../assets/landing/profit-report.png';
 import purchaseReceiveImage from '../../assets/landing/purchase-receive.png';
+import reportsVisibilityImage from '../../assets/landing/reports-visibility.png';
 import retailCounterImage from '../../assets/landing/retail-counter.png';
 import supplierPurchaseImage from '../../assets/landing/supplier-purchase.png';
 import supportCallImage from '../../assets/landing/support-call.png';
@@ -30,6 +34,8 @@ import {
 
 export const contactPhone = '01678560660';
 export const whatsappUrl = 'https://wa.me/8801678560660';
+export const contactEmail = 'info@stockledger.pro';
+export const supportEmail = 'support@stockledger.pro';
 
 // TODO: replace '#' with your real profile URLs for each platform.
 export const socialLinks = {
@@ -49,16 +55,16 @@ export const navLinks = [
   { key: 'contact', href: '#contact-form' },
 ];
 
-export const heroPortraitImage = businessOwnerImage;
+export const heroPortraitImage = heroDashboardImage;
 export const contactUsImage = supportCallImage;
 
 export const featureStoryImages = [
-  retailCounterImage,
-  eveningSettlementImage,
-  warehouseStockImage,
-  supplierPurchaseImage,
-  ownerLaptopImage,
-  dueCollectionImage,
+  dashboardSummaryImage,
+  dsrRouteImage,
+  purchaseReceiveImage,
+  reportsVisibilityImage,
+  accountingStatementImage,
+  profitReportImage,
 ];
 
 export const featureHighlightImages = [
@@ -70,7 +76,7 @@ export const featureHighlightImages = [
 export const featureCardIcons = [ShoppingBag, ReceiptText, WalletCards, Warehouse, Boxes, BarChart3, RefreshCw, Printer];
 
 export const solutionIcons = [Store, PackageCheck, Truck, Route];
-export const solutionShowcaseImage = businessOwnerImage;
+export const solutionShowcaseImage = dashboardSummaryImage;
 export const solutionHighlightImages = [
   { src: tradersImage },
   { src: groceryImage },
@@ -91,16 +97,17 @@ export const roleStoryImages = [
 
 export const financeSpotlightImages = [
   { src: profitReportImage, key: 'profitReport', position: 'top' },
-  { src: ownerLaptopImage, key: 'ownerLaptop' },
-  { src: purchaseReceiveImage, key: 'purchaseReceive' },
-  { src: dsrRouteImage, key: 'dsrRoute' },
+  { src: accountingStatementImage, key: 'accountingStatement', position: 'top' },
+  { src: purchaseReceiveImage, key: 'purchaseReceive', position: 'top' },
+  { src: dsrRouteImage, key: 'dsrRoute', position: 'top' },
 ];
 
 export const showcaseImages = [
-  { src: ownerLaptopImage, key: 'ownerLaptop', fit: 'cover' },
-  { src: warehouseStockImage, key: 'warehouseStock', fit: 'cover' },
-  { src: profitReportImage, key: 'profitReport', fit: 'cover' },
-  { src: retailCounterImage, key: 'retailCounter', fit: 'cover', position: 'top' },
-  { src: dsrRouteImage, key: 'dsrRoute', fit: 'cover' },
-  { src: purchaseReceiveImage, key: 'purchaseReceive', fit: 'cover' },
+  { src: heroDashboardImage, key: 'heroDashboard', fit: 'cover', position: 'top' },
+  { src: dashboardSummaryImage, key: 'dashboardSummary', fit: 'cover', position: 'top' },
+  { src: profitReportImage, key: 'profitReport', fit: 'cover', position: 'top' },
+  { src: purchaseReceiveImage, key: 'purchaseReceive', fit: 'cover', position: 'top' },
+  { src: dsrRouteImage, key: 'dsrRoute', fit: 'cover', position: 'top' },
+  { src: reportsVisibilityImage, key: 'reportsVisibility', fit: 'cover', position: 'top' },
+  { src: accountingStatementImage, key: 'accountingStatement', fit: 'cover', position: 'top' },
 ];

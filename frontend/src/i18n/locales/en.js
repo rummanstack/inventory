@@ -3798,7 +3798,7 @@ const en = {
       proof: {
         eyebrow: 'Customer Proof',
         title: 'Real businesses in Bangladesh already run on StockLedger.',
-        text: 'Grocery wholesalers, pharmacy owners, electronics retailers and DSR teams use it for sales, due, settlement and profit.',
+        text: 'Grocery wholesalers, pharmacy owners, electronics retailers and DSR teams use it for operations, accounting, dues, settlement, reporting and profit.',
       },      problem: {
         eyebrow: 'The Problem',
         title: 'Running a business is hard when records are everywhere.',
@@ -3946,12 +3946,16 @@ const en = {
           'Visual proof that the product is retail, distribution, finance, and accounting together',
         ],
         imageAlts: {
+          heroDashboard: 'Unified business management dashboard screenshot',
+          dashboardSummary: 'Dashboard summary with sales, stock, finance and accounting KPIs',
           ownerLaptop: 'Business owner reviewing business performance',
           warehouseStock: 'Inventory and warehouse control visual',
           profitReport: 'Profit and finance reporting placeholder',
           retailCounter: 'Retail sales workflow visual',
           dsrRoute: 'Distribution and field operations placeholder',
           purchaseReceive: 'Purchase and receiving workflow placeholder',
+          reportsVisibility: 'Analytics and reporting dashboard placeholder',
+          accountingStatement: 'Accounting statements workspace placeholder',
         },
       },
       cta: {
@@ -3964,9 +3968,9 @@ const en = {
       pricing: {
         label: 'Pricing',
         title: 'Choose the right plan for your workflow',
-        description: 'Start with basic stock control. Add retail, DSR and team tools when your business needs them.',
+        description: 'Choose the right operations, finance, accounting and team workflow for your business stage.',
         featuredBadge: 'Popular',
-        featuredNote: 'Best for dealers, wholesalers and distributors.',
+        featuredNote: 'Best for growing businesses that need connected operations, finance and accounting.',
         contactUs: 'Book Demo',
         note: 'Setup support available. No long-term contract. Data export on request.',
         disclaimer: 'Final plan depends on users, branches and modules.',

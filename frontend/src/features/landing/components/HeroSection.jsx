@@ -1,4 +1,4 @@
-﻿import { ArrowRight, MessageCircle } from 'lucide-react';
+import { ArrowRight, MessageCircle } from 'lucide-react';
 import ImagePlaceholder from './shared/ImagePlaceholder.jsx';
 import { heroPortraitImage } from '../constants.js';
 
@@ -38,8 +38,9 @@ export default function HeroSection({ t }) {
           <div className="hero-portrait-shell">
             <ImagePlaceholder
               data={{ src: heroPortraitImage, alt: t('landing.hero.imageAlt') }}
-              heightClass="h-[360px] sm:h-[460px] lg:h-[620px]"
-              fit="cover"
+              heightClass="aspect-[16/10]"
+              variant="dashboard"
+              fit="contain"
               position="center top"
               priority
             />

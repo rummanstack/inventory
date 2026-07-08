@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
-import { ArrowUp, Facebook, Instagram, Linkedin, MapPin, MessageCircle, Phone, Send, Twitter } from 'lucide-react';
-import { contactPhone, socialLinks, whatsappUrl } from '../constants.js';
+import { ArrowUp, Facebook, Instagram, Linkedin, Mail, MapPin, MessageCircle, Phone, Send, Twitter } from 'lucide-react';
+import { contactEmail, contactPhone, socialLinks, whatsappUrl } from '../constants.js';
 import { stockLedgerLogoIcon } from '../../../assets/brandAssets.js';
 
 // Placeholder '#' entries in constants.js are filtered out â€” icons appear
@@ -85,6 +85,10 @@ export default function LandingFooter({ t }) {
             <a href={`tel:${contactPhone}`} className="inline-flex items-center gap-2.5 text-base font-black tracking-wide text-white transition hover:text-slate-200">
               <Phone size={16} className="shrink-0 text-[var(--brand-soft)]" />
               {contactPhone}
+            </a>
+            <a href={`mailto:${contactEmail}`} className="inline-flex items-center gap-2.5 text-sm font-semibold text-slate-300 transition hover:text-white">
+              <Mail size={16} className="shrink-0 text-[var(--brand-soft)]" />
+              {contactEmail}
             </a>
             <a href={whatsappUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2.5 text-sm font-semibold text-slate-300 transition hover:text-white">
               <MessageCircle size={16} className="shrink-0 text-[var(--landing-accent-success)]" />

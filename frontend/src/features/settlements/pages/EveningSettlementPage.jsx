@@ -484,9 +484,7 @@ export default function EveningSettlementPage() {
                 </>
               ) : null}
           </div>
-          <div className="absolute -left-[10000px] top-0">
-            <PrintableSheet sheet={vm.sheet} printTarget targetId="settlement-print-sheet" t={t} language={language} />
-          </div>
+          <PrintableSheet sheet={vm.sheet} printTarget targetId="settlement-print-sheet" t={t} language={language} />
           <div className="surface mt-4 p-5">
             <AuditHistory entityType="settlement" entityId={vm.completedSettlement.id} />
           </div>

@@ -1,43 +1,52 @@
-﻿import ImagePlaceholder from './shared/ImagePlaceholder.jsx';
+﻿import { ArrowRightLeft, BookOpenText, Landmark, Wallet } from 'lucide-react';
+import ImagePlaceholder from './shared/ImagePlaceholder.jsx';
 import SectionHeader from './shared/SectionHeader.jsx';
-import { solutionHighlightImages, solutionIcons, solutionShowcaseImage } from '../constants.js';
+import { financeSpotlightImages, solutionShowcaseImage } from '../constants.js';
+
+const ICONS = [Wallet, BookOpenText, ArrowRightLeft, Landmark];
 
 export default function SolutionsSection({ t }) {
-  const items = t('landing.solutions.items');
+  const copy = t('landing.finance');
 
   return (
     <section id="solutions" className="landing-section landing-section-brand">
       <div className="landing-container">
         <SectionHeader
-          label={t('landing.solutions.label')}
-          title={t('landing.solutions.title')}
-          description={t('landing.solutions.description')}
+          label={copy.label}
+          title={copy.title}
+          description={copy.description}
         />
 
         <div className="solutions-layout mt-6">
-          <div className="solutions-showcase">
-            <ImagePlaceholder data={{ src: solutionShowcaseImage, alt: t('landing.images.showing') }} heightClass="aspect-[4/4]" fit="cover" position="top" />
+          <div className="solutions-showcase finance-showcase-panel">
+            <ImagePlaceholder
+              data={{ src: solutionShowcaseImage, alt: copy.showcaseAlt }}
+              heightClass="aspect-[4/5]"
+              fit="cover"
+              position="top"
+            />
+            <div className="finance-showcase-copy">
+              <h3 className="text-2xl font-black text-slate-950">{copy.showcaseTitle}</h3>
+              <p className="mt-3 text-sm font-medium leading-6 text-slate-600">{copy.showcaseText}</p>
+            </div>
           </div>
 
           <div className="grid gap-5 md:grid-cols-2">
-            {items.map((solution, index) => {
-              const Icon = solutionIcons[index];
-              const image = solutionHighlightImages[index];
+            {copy.items.map((item, index) => {
+              const Icon = ICONS[index];
+              const image = financeSpotlightImages[index];
               return (
-                <article key={solution.title} className="solution-card group">
-                  {image ? (
-                    <ImagePlaceholder data={{ src: image.src, alt: solution.title }} heightClass="aspect-[3/2]" fit="cover" position={image.position} />
-                  ) : (
-                    <div className="flex aspect-[3/2] items-center justify-center bg-slate-50">
-                      <span className="feature-card-icon">
-                        <Icon size={22} />
-                      </span>
-                    </div>
-                  )}
+                <article key={item.title} className="solution-card group">
+                  <ImagePlaceholder
+                    data={{ src: image.src, alt: item.title }}
+                    heightClass="aspect-[16/10]"
+                    fit="cover"
+                    position={image.position}
+                  />
                   <div className="p-6">
                     <Icon size={28} className="text-[var(--brand)] transition-transform duration-300 group-hover:-rotate-6" />
-                    <h3 className="mt-5 text-xl font-black text-slate-950">{solution.title}</h3>
-                    <p className="mt-3 text-sm font-medium leading-6 text-slate-600">{solution.description}</p>
+                    <h3 className="mt-5 text-xl font-black text-slate-950">{item.title}</h3>
+                    <p className="mt-3 text-sm font-medium leading-6 text-slate-600">{item.description}</p>
                   </div>
                 </article>
               );

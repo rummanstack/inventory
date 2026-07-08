@@ -48,14 +48,14 @@ export class RetailCashSessionService {
         return { session: null };
       }
 
-      const session = mapRetailCashSession(result.rows[0]);
+      const row = result.rows[0];
       const summary = await getRetailCashSessionSalesSummary(client, {
         tenantId: actor.tenantId,
-        startedAt: session.startedAt,
+        startedAt: row.started_at,
         endedAt: new Date().toISOString(),
       });
 
-      return { session: toSessionResult(session, summary) };
+      return { session: toSessionResult(row, summary) };
     });
   }
 

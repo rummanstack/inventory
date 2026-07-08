@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+﻿import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import LanguageSwitcher from '../../../components/LanguageSwitcher.jsx';
 import { navLinks } from '../constants.js';

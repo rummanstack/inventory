@@ -2,6 +2,7 @@ import { assert } from "../lib/errors.js";
 import { normalizeSupplier } from "../lib/normalizers.js";
 import { buildPageResult, parsePagination } from "../lib/pagination.js";
 import { SUPPLIER_ACTIONS } from "../lib/auditActions.js";
+import { SUPPLIER_DUE_LEDGER_TYPES } from "../lib/supplierDueLedger.js";
 import {
   countSuppliers,
   countTrashedSuppliers,
@@ -16,6 +17,7 @@ import {
   mapSupplier,
   updateSupplier,
 } from "../repositories/supplierRepository.js";
+import { recordSupplierDueLedgerEntry } from "./shared/inventoryHelpers.js";
 
 export class SupplierService {
   constructor(databaseManager, { auditService } = {}) {
@@ -110,6 +112,21 @@ export class SupplierService {
       } else {
         supplier.createdById = actor.id;
         result = await insertSupplier(client, supplier);
+
+        if (supplier.openingDue > 0) {
+          await recordSupplierDueLedgerEntry(client, {
+            tenantId: actor.tenantId,
+            supplierId: supplier.id,
+            type: SUPPLIER_DUE_LEDGER_TYPES.OPENING,
+            debit: supplier.openingDue,
+            credit: 0,
+            balanceAfter: supplier.openingDue,
+            referenceType: "supplier",
+            referenceId: supplier.id,
+            note: `Opening due for ${supplier.name}`,
+            createdById: actor.id,
+          });
+        }
 
         await this.recordActivity(client, actor, {
           actionType: SUPPLIER_ACTIONS.CREATE,

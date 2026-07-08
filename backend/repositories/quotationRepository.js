@@ -161,7 +161,7 @@ export async function deleteQuotationItems(client, quotationId) {
 
 export async function listQuotationItems(client, quotationId) {
   const result = await client.query(
-    `SELECT qi.*, p.name AS product_db_name, p.retail_price, p.cost_price, p.stock_pieces
+    `SELECT qi.*, p.name AS product_db_name, p.retail_price, p.purchase_price AS cost_price, p.stock_pieces
      FROM quotation_items qi
      LEFT JOIN products p ON p.id = qi.product_id
      WHERE qi.quotation_id = $1

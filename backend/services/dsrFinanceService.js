@@ -248,6 +248,20 @@ export class DsrFinanceService {
           createdById: actor.id,
           businessDate: existingRecord.date,
         });
+
+        if (this.financeAccountService) {
+          await this.financeAccountService.recordTransactionInClient(
+            client,
+            {
+              accountType: "CASH",
+              type: "DEPOSIT",
+              amount: existingRecord.amount,
+              date: existingRecord.date,
+              note: `Advance deleted — ${existingRecord.dsrName}: ${existingRecord.note}`,
+            },
+            actor,
+          );
+        }
       }
 
       await this.recordActivity(client, actor, {

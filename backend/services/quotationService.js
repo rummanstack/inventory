@@ -317,7 +317,7 @@ export class QuotationService {
           productName: item.product_name,
           quantityPieces: Number(item.quantity),
           actualSalePrice: Number(item.unit_price),
-          costPriceSnapshot: product ? Number(product.cost_price || 0) : 0,
+          costPriceSnapshot: product ? Number(product.purchase_price || 0) : 0,
           lineDiscount: Number(item.discount_amount),
           lineTotal: Number(item.line_total),
           taxRate: 0,

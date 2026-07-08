@@ -1,0 +1,92 @@
+STOCKLEDGER — FEATURE TEST CHECKLIST
+Generated 2026-07-08. Covers all routes in frontend/src/app/routes.js (APP_ROUTES).
+Excludes dead code: Manufacturers page (now a modal in Products), and HR payroll/payslips/salary-reports/salary-structure (no routes).
+
+OVERVIEW
+[ ] Dashboard — KPIs, sparklines, quick links load correctly
+
+POS
+[ ] Quick Sale (POS terminal) — add items, discounts, payment, receipt
+[ ] Cash Session History — open/close session, cash reconciliation
+[ ] Quotations — create, convert to sale
+[ ] Retail Promotions — create/apply promo & loyalty rules
+[ ] Trade-Ins — valuation -> trade-in sale flow
+[ ] Sales Invoices — full invoice creation/edit/void
+[ ] Sales Returns — return against invoice, stock/ledger reversal
+
+CUSTOMERS
+[ ] Retail Customers — CRUD, search
+[ ] Customer Retention report
+[ ] Customer Due (ledger) — balances correct
+[ ] Due Collection — payment recording, ledger update
+
+INVENTORY
+[ ] Products — CRUD, categories, manufacturer modal
+[ ] Stock Movement — history accuracy vs stock_pieces
+[ ] Low Stock Alerts — threshold triggers
+[ ] Product Serials — serial assignment/tracking
+[ ] Damaged Stock — record damage, stock deduction
+
+PURCHASES
+[ ] Suppliers — CRUD
+[ ] Purchase Receive — stock-in, cost updates
+[ ] Purchase Returns — return-to-supplier, stock/ledger reversal
+[ ] Supplier Payments — payment recording
+[ ] Supplier Discounts
+[ ] Supplier Statement — accuracy of running balance
+
+DSR (DEALER/DISTRIBUTION)
+[ ] DSRs — CRUD
+[ ] Morning Issue — stock-out to DSR
+[ ] Evening Settlement — reconciliation math (returns + cash + due)
+[ ] DSR Finance — advances/due ledger
+
+SHOPS & SRS
+[ ] Shops (customers) — CRUD
+[ ] Shop Due Ledger
+[ ] SRs — CRUD
+[ ] SR Due Ledger
+
+WARRANTY & REPAIR
+[ ] Warranty Claims — creation, linkage to repair jobs
+[ ] Repair Jobs — kanban stage transitions (Received -> Diagnosing -> Awaiting Parts -> In Repair -> Ready -> Delivered)
+
+FINANCE
+[ ] Finance Dashboard — sparklines/trends accuracy
+[ ] Finance Accounts — cash/bank balances
+[ ] Expenses — CRUD, account impact
+[ ] Profit report — markup-on-cost % correct (profit / cost, not profit / revenue)
+
+ACCOUNTING
+[ ] General Ledger
+[ ] Trial Balance
+[ ] Balance Sheet
+[ ] Profit & Loss
+
+REPORTS
+[ ] Daily Sales Report (retailer)
+[ ] Daily Reports (DSR/SR/Customer — check "Due" is range-scoped, not all-time)
+[ ] Activity Logs
+
+HR (only these two are actually reachable)
+[ ] Employees — CRUD
+[ ] Salary Payments
+
+SYSTEM / SETTINGS
+[ ] Users — CRUD, role assignment
+[ ] Permissions — role/permission matrix edits
+[ ] Org Settings
+[ ] Security page (check permission gate is actually enforced)
+[ ] Issue Center
+[ ] Trash — restore/permanent delete
+[ ] Database Backup (check manage_backups permission is wired for tenant roles)
+[ ] Profile (reachable only via avatar dropdown)
+[ ] Help Desk (reachable only via floating button)
+
+DEVELOPER / PLATFORM (system_developer role only)
+[ ] Platform Admin (tenant management)
+[ ] System Health
+[ ] Error Logs
+[ ] Visitor Chats
+[ ] Contact Messages
+[ ] Registration Requests

@@ -1,41 +1,42 @@
-import {
-  ShoppingCart,
-  Pill,
-  Cpu,
-  Shirt,
-  Wrench,
-  Package,
-  Wheat,
-  Building2,
-} from 'lucide-react';
+﻿import { BadgeDollarSign, BriefcaseBusiness, Calculator, Headset, ScanLine, Users } from 'lucide-react';
+import ImagePlaceholder from './shared/ImagePlaceholder.jsx';
+import { roleStoryImages } from '../constants.js';
 
-const TYPE_ICONS = [ShoppingCart, Pill, Cpu, Shirt, Wrench, Package, Wheat, Building2];
+const ICONS = [BriefcaseBusiness, ScanLine, Calculator, BadgeDollarSign, Users, Headset];
 
 export default function WhoIsItForSection({ t }) {
-  const types = t('landing.whoIsItFor.types') || [];
+  const copy = t('landing.roles');
 
   return (
     <section className="landing-section landing-section-brand">
       <div className="landing-container">
-        <div className="text-center mb-10">
-          <p className="landing-eyebrow">{t('landing.whoIsItFor.eyebrow')}</p>
-          <h2 className="landing-section-title mt-4">{t('landing.whoIsItFor.title')}</h2>
-          <p className="landing-section-text mx-auto max-w-xl mt-4">{t('landing.whoIsItFor.text')}</p>
+        <div className="mb-10 text-center">
+          <p className="landing-eyebrow">{copy.eyebrow}</p>
+          <h2 className="landing-section-title mt-4">{copy.title}</h2>
+          <p className="landing-section-text mx-auto mt-4 max-w-3xl">{copy.text}</p>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-4">
-          {types.map((label, index) => {
-            const Icon = TYPE_ICONS[index % TYPE_ICONS.length];
+        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+          {copy.items.map((role, index) => {
+            const Icon = ICONS[index];
             return (
-              <div
-                key={label}
-                className="flex flex-col items-center gap-3 rounded-[20px] border border-slate-200 bg-white px-4 py-6 text-center shadow-[0_2px_12px_rgba(var(--slate-900),0.06)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_6px_20px_rgba(var(--slate-900),0.10)]"
-              >
-                <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--brand-soft)]">
-                  <Icon size={22} className="text-[var(--brand-strong)]" />
-                </span>
-                <span className="text-sm font-medium leading-6 text-slate-700">{label}</span>
-              </div>
+              <article key={role.title} className="role-story-card">
+                <ImagePlaceholder data={{ src: roleStoryImages[index], alt: role.title }} heightClass="aspect-[4/5]" fit="cover" position="top" />
+                <div className="role-story-copy">
+                  <div className="flex items-center gap-3">
+                    <span className="hero-metric-icon">
+                      <Icon size={18} />
+                    </span>
+                    <h3 className="text-lg font-black text-slate-950">{role.title}</h3>
+                  </div>
+                  <p className="mt-3 text-sm font-medium leading-6 text-slate-600">{role.description}</p>
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {role.chips.map((chip) => (
+                      <span key={chip} className="role-chip">{chip}</span>
+                    ))}
+                  </div>
+                </div>
+              </article>
             );
           })}
         </div>

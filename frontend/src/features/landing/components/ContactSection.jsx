@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { CheckCircle2, Loader2, Lock, Mail, Send, Server, ShieldCheck } from 'lucide-react';
 import ImagePlaceholder from './shared/ImagePlaceholder.jsx';
 import SectionHeader from './shared/SectionHeader.jsx';
@@ -95,17 +95,20 @@ export default function ContactSection({ t }) {
               </span>
             </div>
 
-            <a
-              href={`mailto:${supportEmail}`}
-              className="mt-3 inline-flex items-center gap-1.5 text-[12px] font-semibold text-[var(--brand)] hover:underline"
-            >
-              <Mail size={12} /> Or email us at {supportEmail}
-            </a>
+            <div className="mt-4 flex flex-col items-start gap-4">
+              <a
+                href={`mailto:${supportEmail}`}
+                className="inline-flex max-w-full items-center gap-1.5 text-[12px] font-semibold leading-5 text-[var(--brand)] hover:underline"
+              >
+                <Mail size={12} className="shrink-0" />
+                <span className="break-words">Or email us at {supportEmail}</span>
+              </a>
 
-            <button type="submit" className="btn-primary mt-4 rounded-2xl" disabled={status === 'sending'}>
-              {status === 'sending' ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
-              {status === 'sending' ? t('landing.contact.sending') : t('landing.contact.submit')}
-            </button>
+              <button type="submit" className="btn-primary rounded-2xl" disabled={status === 'sending'}>
+                {status === 'sending' ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
+                {status === 'sending' ? t('landing.contact.sending') : t('landing.contact.submit')}
+              </button>
+            </div>
 
             {status === 'success' ? (
               <p className="contact-feedback contact-feedback-success">
@@ -122,3 +125,4 @@ export default function ContactSection({ t }) {
     </section>
   );
 }
+

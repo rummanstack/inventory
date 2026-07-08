@@ -386,11 +386,11 @@
   }
 
   .landing-hero-layout {
-    @apply grid items-center gap-10 lg:grid-cols-[minmax(0,0.86fr)_minmax(0,1.14fr)] xl:gap-14;
+    @apply grid items-center gap-10 lg:grid-cols-2 xl:gap-12;
   }
 
   .landing-hero-copy {
-    @apply relative z-10 flex h-full max-w-2xl flex-col px-0 py-0 sm:pr-4 lg:pr-12;
+    @apply relative z-10 flex h-full max-w-xl flex-col px-0 py-0 sm:pr-4 lg:pr-8;
   }
 
   .landing-eyebrow {
@@ -402,11 +402,11 @@
   }
 
   .landing-hero-title {
-    @apply mt-4 max-w-3xl text-5xl font-black leading-[0.95] tracking-normal text-slate-950 sm:text-6xl lg:text-7xl;
+    @apply mt-4 max-w-2xl text-4xl font-black leading-[1.04] tracking-normal text-slate-950 sm:text-5xl lg:text-[3.1rem];
   }
 
   .landing-hero-subtitle {
-    @apply mt-4 max-w-xl text-[15px] font-normal leading-7 text-[var(--text-soft)] sm:text-base;
+    @apply mt-4 max-w-lg text-[15px] font-normal leading-7 text-[var(--text-soft)] sm:text-base;
   }
 
   .landing-hero .landing-hero-subtitle {
@@ -446,7 +446,7 @@
   }
 
   .landing-hero-media {
-    @apply relative flex min-h-[420px] h-full items-center lg:min-h-[560px];
+    @apply relative flex min-h-[340px] h-full items-center lg:min-h-[480px];
   }
 
   .landing-section {
@@ -1251,8 +1251,24 @@ body.landing-page-active .page-shell {
 
 .hero-portrait-shell {
   position: relative;
+  width: 100%;
+  max-width: 680px;
+  margin-left: auto;
 }
 
+@media (min-width: 1280px) {
+  .hero-portrait-shell {
+    max-width: 720px;
+  }
+}
+
+
+@media (min-width: 1024px) {
+  .landing-hero-copy .hero-proof-pill {
+    padding: 0.72rem 0.85rem;
+    font-size: 0.82rem;
+  }
+}
 .hero-proof-pill {
   display: flex;
   align-items: center;
@@ -1278,10 +1294,9 @@ body.landing-page-active .page-shell {
 }
 
 .hero-image-badge-wrap {
-  position: absolute;
-  left: 1rem;
-  right: 1rem;
-  bottom: 1rem;
+  margin-top: 0.85rem;
+  display: flex;
+  justify-content: flex-end;
 }
 
 .hero-image-badge {
@@ -1420,9 +1435,8 @@ body.landing-page-active .page-shell {
 
 @media (max-width: 639px) {
   .hero-image-badge-wrap {
-    left: 0.75rem;
-    right: 0.75rem;
-    bottom: 0.75rem;
+    margin-top: 0.75rem;
+    justify-content: flex-start;
   }
 
   .hero-image-badge {

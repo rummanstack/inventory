@@ -40,7 +40,7 @@ export default function HeroSection({ t }) {
               data={{ src: heroPortraitImage, alt: t('landing.hero.imageAlt') }}
               heightClass="aspect-[16/10]"
               variant="dashboard"
-              fit="contain"
+              fit="cover"
               position="center top"
               priority
             />

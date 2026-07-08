@@ -1,8 +1,16 @@
-﻿import { BadgeDollarSign, BriefcaseBusiness, Calculator, Headset, ScanLine, Users } from 'lucide-react';
+import { BadgeDollarSign, BriefcaseBusiness, Calculator, Headset, ScanLine, Users } from 'lucide-react';
 import ImagePlaceholder from './shared/ImagePlaceholder.jsx';
 import { roleStoryImages } from '../constants.js';
 
 const ICONS = [BriefcaseBusiness, ScanLine, Calculator, BadgeDollarSign, Users, Headset];
+const IMAGE_SETTINGS = [
+  { fit: 'cover', position: 'center' },
+  { fit: 'cover', position: 'center' },
+  { fit: 'cover', position: 'center' },
+  { fit: 'cover', position: 'center' },
+  { fit: 'cover', position: 'center' },
+  { fit: 'cover', position: 'center' },
+];
 
 export default function WhoIsItForSection({ t }) {
   const copy = t('landing.roles');
@@ -19,9 +27,10 @@ export default function WhoIsItForSection({ t }) {
         <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
           {copy.items.map((role, index) => {
             const Icon = ICONS[index];
+            const image = IMAGE_SETTINGS[index] ?? IMAGE_SETTINGS[0];
             return (
               <article key={role.title} className="role-story-card">
-                <ImagePlaceholder data={{ src: roleStoryImages[index], alt: role.title }} heightClass="aspect-[4/5]" fit="cover" position="top" />
+                <ImagePlaceholder data={{ src: roleStoryImages[index], alt: role.title }} heightClass="aspect-[16/10]" fit={image.fit} position={image.position} />
                 <div className="role-story-copy">
                   <div className="flex items-center gap-3">
                     <span className="hero-metric-icon">
@@ -44,3 +53,5 @@ export default function WhoIsItForSection({ t }) {
     </section>
   );
 }
+
+

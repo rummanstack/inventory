@@ -159,7 +159,7 @@
   }
 
   .landing-hero-layout {
-    @apply grid items-center gap-12 lg:grid-cols-[minmax(0,0.95fr)_minmax(390px,1fr)] xl:gap-16;
+    @apply grid items-center gap-10 lg:grid-cols-[minmax(0,0.74fr)_minmax(520px,1.26fr)] xl:gap-16;
   }
 
   .landing-eyebrow {
@@ -167,7 +167,7 @@
   }
 
   .landing-hero-title {
-    @apply mt-5 max-w-4xl text-4xl font-black leading-[1.04] tracking-[-0.035em] text-slate-950 sm:text-5xl lg:text-6xl;
+    @apply mt-5 max-w-3xl text-4xl font-black leading-[1.04] tracking-normal text-slate-950 sm:text-5xl lg:text-6xl;
   }
 
   .landing-hero-subtitle {

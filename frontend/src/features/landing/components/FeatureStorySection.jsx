@@ -1,4 +1,4 @@
-﻿import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle2 } from 'lucide-react';
 import ImagePlaceholder from './shared/ImagePlaceholder.jsx';
 import SectionHeader from './shared/SectionHeader.jsx';
 import { featureStoryImages } from '../constants.js';
@@ -19,7 +19,7 @@ export default function FeatureStorySection({ t }) {
           {copy.groups.map((group, index) => (
             <article key={group.title} className={`feature-story ${index % 2 === 1 ? 'lg:grid-flow-col-dense' : ''}`}>
               <div className={index % 2 === 1 ? 'lg:col-start-2' : ''}>
-                <ImagePlaceholder data={{ src: featureStoryImages[index], alt: group.title }} heightClass="aspect-[4/3]" fit="cover" />
+                <ImagePlaceholder data={{ src: featureStoryImages[index], alt: group.title }} heightClass="aspect-[4/3]" fit="cover" position={index === 5 ? "center 22%" : undefined} />
               </div>
               <div className="feature-story-content">
                 <p className="brand-chip inline-flex">{group.badge}</p>

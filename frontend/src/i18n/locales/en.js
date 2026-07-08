@@ -3921,19 +3921,20 @@ const en = {
           { title: 'Ledger to final statements', description: 'General ledger, trial balance, balance sheet, and profit and loss give accountants and owners the same financial reality.' },
           { title: 'Operations feeding accounts', description: 'Purchases, sales, returns, due collections, and settlements all contribute to a cleaner accounting trail.' },
           { title: 'Multi-team financial visibility', description: 'Owners, managers, accountants, and route teams can work from one financial picture instead of passing files around.' },
+          { title: 'Reports and visibility', description: 'Track sales, dues, expenses, stock alerts, activity logs, and financial statements from one reporting view.' },
         ],
       },
       roles: {
         eyebrow: 'Built for every role',
         title: 'Designed for the people who run the business',
-        text: 'The people in your current visuals can stay on the page because they now represent real work inside the platform: ownership, sales, accounting, collections, field execution, and support.',
+        text: 'From the owner reviewing performance to the teams handling counters, accounts, collections, distribution, and support, every role works from the same business records.',
         items: [
-          { title: 'For Owners', description: 'See sales, due, stock value, cash flow, and profitability from one operating view.', chips: ['Dashboard', 'Profit', 'Control'] },
-          { title: 'For Sales Teams', description: 'Move faster with POS, quotations, invoices, returns, and customer handling tools.', chips: ['POS', 'Invoices', 'Returns'] },
-          { title: 'For Accountants', description: 'Track expenses, ledgers, balances, and final statements using the same live business data.', chips: ['Ledger', 'P&L', 'Balance Sheet'] },
-          { title: 'For Collection Teams', description: 'Record customer and shop collections while management keeps due visibility in real time.', chips: ['Due', 'Collection', 'Ledger'] },
-          { title: 'For Field Representatives', description: 'Handle issue, settlement, due, and route activity with a structure that matches daily operations.', chips: ['DSR', 'Settlement', 'Route'] },
-          { title: 'For Service & Support', description: 'Manage warranty claims, repair progress, and support conversations inside the same business platform.', chips: ['Warranty', 'Repair', 'Support'] },
+          { title: 'For Gadgets', description: 'Manage mobile, electronics, accessories, serial numbers, warranties, sales returns, customer dues, and profit from one system.', chips: ['Serials', 'Warranty', 'Profit'] },
+          { title: 'For Groceries', description: 'Run grocery and general-store counters with fast billing, returns, customer dues, supplier purchases, and daily sales visibility.', chips: ['POS', 'Stock', 'Due'] },
+          { title: 'For Pharmacies', description: 'Manage medicine sales, supplier purchases, stock checks, customer dues, and daily cash with accounting records behind every transaction.', chips: ['Medicine', 'Stock', 'Accounts'] },
+          { title: 'For Due Collection', description: 'Record customer and shop collections, reduce missed follow-ups, and keep ledgers updated in real time.', chips: ['Due', 'Collection', 'Ledger'] },
+          { title: 'For Dealers & Field Teams', description: 'Manage route activity, dealer supply, morning issue, evening settlement, returns, and cash collection.', chips: ['DSR', 'Settlement', 'Route'] },
+          { title: 'For Service & Support', description: 'Handle warranty claims, repair progress, customer conversations, and after-sales follow-up without losing business context.', chips: ['Warranty', 'Repair', 'Support'] },
         ],
       },
       showcase: {
@@ -3949,7 +3950,11 @@ const en = {
           heroDashboard: 'Unified business management dashboard screenshot',
           dashboardSummary: 'Dashboard summary with sales, stock, finance and accounting KPIs',
           ownerLaptop: 'Business owner reviewing business performance',
-          warehouseStock: 'Inventory and warehouse control visual',
+          warehouseStock: 'Warehouse stock and inventory control visual',
+          grocery: 'Suitable for grocery and general store businesses',
+          pharmacy: 'Suitable for pharmacy and medical retail businesses',
+          traders: 'Suitable for wholesale trader businesses',
+          dealer: 'Suitable for dealer and distributor businesses',
           profitReport: 'Profit and finance reporting placeholder',
           retailCounter: 'Retail sales workflow visual',
           dsrRoute: 'Distribution and field operations placeholder',
@@ -4207,3 +4212,7 @@ const en = {
 };
 
 export default en;
+
+
+
+

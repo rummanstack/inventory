@@ -1,4 +1,4 @@
-﻿import test from "node:test";
+import test from "node:test";
 import assert from "node:assert/strict";
 import { getTestApp, closeTestApp } from "./helpers/testApp.js";
 import { cleanupTenant, createTenantAndAdmin } from "./helpers/fixtures.js";
@@ -91,6 +91,16 @@ test("attendance enforces validation, duplicate daily rows, tenant isolation, an
   assert.equal(updateResponse.status, 200);
   assert.equal(updateResponse.body.attendance.overtimeMinutes, 60);
 
+  const auditResponse = await tenantA.agent.get(`/api/audit/entity/attendance/${presentResponse.body.attendance.id}`);
+  assert.equal(auditResponse.status, 200);
+  assert.deepEqual(
+    auditResponse.body.items.map((item) => item.actionType).sort(),
+    ["attendance.create", "attendance.update"],
+  );
+  const updateAudit = auditResponse.body.items.find((item) => item.actionType === "attendance.update");
+  assert.equal(updateAudit.beforeData.lateMinutes, 15);
+  assert.equal(updateAudit.afterData.overtimeMinutes, 60);
+
   const reportResponse = await tenantA.agent.get("/api/attendance/monthly").query({ month: "2026-07" });
   assert.equal(reportResponse.status, 200);
   assert.equal(reportResponse.body.month, "2026-07");
@@ -103,3 +113,4 @@ test("attendance enforces validation, duplicate daily rows, tenant isolation, an
   assert.equal(reportResponse.body.totals.lateMinutes, 0);
   assert.equal(reportResponse.body.totals.overtimeMinutes, 60);
 });
+

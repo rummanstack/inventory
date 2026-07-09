@@ -1,4 +1,5 @@
-﻿import { assert } from "../lib/errors.js";
+import { ATTENDANCE_ACTIONS } from "../lib/auditActions.js";
+import { assert } from "../lib/errors.js";
 import { createId } from "../lib/ids.js";
 import { findEmployeeById } from "../repositories/employeeRepository.js";
 import {
@@ -119,7 +120,18 @@ export class AttendanceService {
         ...data,
         actorId: actor.id,
       });
-      return findAttendanceById(client, actor.tenantId, inserted.id);
+      const attendance = await findAttendanceById(client, actor.tenantId, inserted.id);
+      await this.auditService?.record(client, {
+        tenantId: actor.tenantId,
+        userId: actor.id,
+        actionType: ATTENDANCE_ACTIONS.CREATE,
+        entityType: "attendance",
+        entityId: attendance.id,
+        module: "hr",
+        description: `${actor.name} recorded attendance for ${attendance.employeeName}`,
+        after: attendance,
+      });
+      return attendance;
     });
   }
 
@@ -144,7 +156,19 @@ export class AttendanceService {
         actorId: actor.id,
       });
       assert(updated, "Attendance record not found.", 404);
-      return findAttendanceById(client, actor.tenantId, id);
+      const attendance = await findAttendanceById(client, actor.tenantId, id);
+      await this.auditService?.record(client, {
+        tenantId: actor.tenantId,
+        userId: actor.id,
+        actionType: ATTENDANCE_ACTIONS.UPDATE,
+        entityType: "attendance",
+        entityId: id,
+        module: "hr",
+        description: `${actor.name} updated attendance for ${attendance.employeeName}`,
+        before: existing,
+        after: attendance,
+      });
+      return attendance;
     });
   }
 }

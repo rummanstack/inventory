@@ -172,6 +172,12 @@ export const DESIGNATION_ACTIONS = {
   UPDATE: "designation.update",
   DELETE: "designation.delete",
 };
+
+export const ATTENDANCE_ACTIONS = {
+  CREATE: "attendance.create",
+  UPDATE: "attendance.update",
+};
+
 export const LEAVE_TYPE_ACTIONS = {
   CREATE: "leave_type.create",
   UPDATE: "leave_type.update",
@@ -243,6 +249,4 @@ export const CONTACT_MESSAGE_ACTIONS = {
 export const UPLOAD_ACTIONS = {
   PHOTO_UPLOAD: "upload.photo_upload",
 };
-
-
 

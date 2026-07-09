@@ -209,7 +209,7 @@ export function createServiceRegistry({ databaseManager, env }) {
   };
 
   const hr = {
-    attendanceService: new AttendanceService(databaseManager),
+    attendanceService: new AttendanceService(databaseManager, { auditService: platform.auditService }),
     leaveService: new LeaveService(databaseManager, { auditService: platform.auditService }),
     departmentService: new DepartmentService(databaseManager, { auditService: platform.auditService }),
     designationService: new DesignationService(databaseManager, { auditService: platform.auditService }),
@@ -255,8 +255,4 @@ export function createServiceRegistry({ databaseManager, env }) {
     hr,
   };
 }
-
-
-
-
 

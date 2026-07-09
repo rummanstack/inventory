@@ -1695,10 +1695,43 @@ export async function createSchema(pool) {
     CREATE UNIQUE INDEX IF NOT EXISTS idx_designations_tenant_name ON designations(tenant_id, LOWER(name)) WHERE deleted_at IS NULL;
     CREATE INDEX IF NOT EXISTS idx_designations_tenant_status ON designations(tenant_id, status);
     CREATE INDEX IF NOT EXISTS idx_designations_deleted_at ON designations(tenant_id, deleted_at);
+
+    ALTER TABLE employees ADD COLUMN IF NOT EXISTS photo_url TEXT NOT NULL DEFAULT '';
     ALTER TABLE employees ADD COLUMN IF NOT EXISTS department_id TEXT REFERENCES departments(id) ON DELETE SET NULL;
     CREATE INDEX IF NOT EXISTS idx_employees_department_id ON employees(tenant_id, department_id);
     ALTER TABLE employees ADD COLUMN IF NOT EXISTS designation_id TEXT REFERENCES designations(id) ON DELETE SET NULL;
     CREATE INDEX IF NOT EXISTS idx_employees_designation_id ON employees(tenant_id, designation_id);
+    ALTER TABLE employees ADD COLUMN IF NOT EXISTS emergency_contact_name TEXT NOT NULL DEFAULT '';
+    ALTER TABLE employees ADD COLUMN IF NOT EXISTS emergency_contact_phone TEXT NOT NULL DEFAULT '';
+    ALTER TABLE employees ADD COLUMN IF NOT EXISTS emergency_contact_relation TEXT NOT NULL DEFAULT '';
+    ALTER TABLE employees ADD COLUMN IF NOT EXISTS national_id TEXT NOT NULL DEFAULT '';
+    ALTER TABLE employees ADD COLUMN IF NOT EXISTS date_of_birth DATE;
+    ALTER TABLE employees ADD COLUMN IF NOT EXISTS gender TEXT NOT NULL DEFAULT '';
+    ALTER TABLE employees ADD COLUMN IF NOT EXISTS blood_group TEXT NOT NULL DEFAULT '';
+    ALTER TABLE employees ADD COLUMN IF NOT EXISTS bank_name TEXT NOT NULL DEFAULT '';
+    ALTER TABLE employees ADD COLUMN IF NOT EXISTS bank_account_name TEXT NOT NULL DEFAULT '';
+    ALTER TABLE employees ADD COLUMN IF NOT EXISTS bank_account_number TEXT NOT NULL DEFAULT '';
+    ALTER TABLE employees ADD COLUMN IF NOT EXISTS bank_branch TEXT NOT NULL DEFAULT '';
+
+    CREATE TABLE IF NOT EXISTS employee_documents (
+      id                TEXT PRIMARY KEY,
+      tenant_id         TEXT NOT NULL REFERENCES tenants(id),
+      employee_id       TEXT NOT NULL REFERENCES employees(id) ON DELETE CASCADE,
+      document_type     TEXT NOT NULL,
+      title             TEXT NOT NULL DEFAULT '',
+      original_filename TEXT NOT NULL,
+      stored_filename   TEXT NOT NULL,
+      storage_path      TEXT NOT NULL,
+      mime_type         TEXT NOT NULL,
+      file_size         INTEGER NOT NULL DEFAULT 0,
+      uploaded_by       TEXT REFERENCES users(id) ON DELETE SET NULL,
+      created_at        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      deleted_at        TIMESTAMPTZ,
+      deleted_by_id     TEXT REFERENCES users(id) ON DELETE SET NULL,
+      delete_reason     TEXT NOT NULL DEFAULT ''
+    );
+    CREATE INDEX IF NOT EXISTS idx_employee_documents_employee ON employee_documents(tenant_id, employee_id, deleted_at);
+    CREATE INDEX IF NOT EXISTS idx_employee_documents_type ON employee_documents(tenant_id, document_type);
   `);
 
   // â”€â”€ DSR Monthly Targets â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€

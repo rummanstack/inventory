@@ -177,6 +177,9 @@ export const EMPLOYEE_ACTIONS = {
   UPDATE: "employee.update",
   DELETE: "employee.delete",
   RESTORE: "employee.restore",
+  DOCUMENT_UPLOAD: "employee.document_upload",
+  DOCUMENT_DELETE: "employee.document_delete",
+  DOCUMENT_DOWNLOAD: "employee.document_download",
 };
 
 export const SALARY_STRUCTURE_ACTIONS = {

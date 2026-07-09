@@ -1,8 +1,8 @@
-import { apiRequest, buildQueryString } from './client.js';
+﻿import { apiRequest, buildQueryString, uploadRequest, downloadRequest } from './client.js';
 
 export const employeesApi = {
-  listEmployees({ page, pageSize, search, status, department } = {}) {
-    return apiRequest(`/employees${buildQueryString({ page, pageSize, search, status, department })}`);
+  listEmployees({ page, pageSize, search, status, department, departmentId, designationId } = {}) {
+    return apiRequest(`/employees${buildQueryString({ page, pageSize, search, status, department, departmentId, designationId })}`);
   },
 
   getActiveEmployees() {
@@ -27,5 +27,25 @@ export const employeesApi = {
 
   restoreEmployee(id) {
     return apiRequest(`/employees/${id}/restore`, { method: 'POST' });
+  },
+
+  listEmployeeDocuments(employeeId) {
+    return apiRequest(`/employees/${employeeId}/documents`);
+  },
+
+  uploadEmployeeDocument(employeeId, { file, documentType, title }) {
+    const formData = new FormData();
+    formData.append('document', file);
+    formData.append('documentType', documentType || 'OTHER');
+    formData.append('title', title || '');
+    return uploadRequest(`/employees/${employeeId}/documents`, formData);
+  },
+
+  downloadEmployeeDocument(employeeId, documentId) {
+    return downloadRequest(`/employees/${employeeId}/documents/${documentId}/download`);
+  },
+
+  deleteEmployeeDocument(employeeId, documentId, reason) {
+    return apiRequest(`/employees/${employeeId}/documents/${documentId}`, { method: 'DELETE', body: JSON.stringify({ reason }) });
   },
 };

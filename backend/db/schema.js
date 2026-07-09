@@ -1677,8 +1677,28 @@ export async function createSchema(pool) {
     CREATE INDEX IF NOT EXISTS idx_departments_deleted_at ON departments(tenant_id, deleted_at);
     CREATE INDEX IF NOT EXISTS idx_departments_head_employee ON departments(head_employee_id);
 
+
+    CREATE TABLE IF NOT EXISTS designations (
+      id               TEXT PRIMARY KEY,
+      tenant_id        TEXT NOT NULL REFERENCES tenants(id),
+      name             TEXT NOT NULL,
+      code             TEXT NOT NULL DEFAULT '',
+      status           TEXT NOT NULL DEFAULT 'ACTIVE',
+      note             TEXT NOT NULL DEFAULT '',
+      created_by       TEXT REFERENCES users(id) ON DELETE SET NULL,
+      created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      deleted_at       TIMESTAMPTZ,
+      deleted_by_id    TEXT REFERENCES users(id) ON DELETE SET NULL,
+      delete_reason    TEXT NOT NULL DEFAULT ''
+    );
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_designations_tenant_name ON designations(tenant_id, LOWER(name)) WHERE deleted_at IS NULL;
+    CREATE INDEX IF NOT EXISTS idx_designations_tenant_status ON designations(tenant_id, status);
+    CREATE INDEX IF NOT EXISTS idx_designations_deleted_at ON designations(tenant_id, deleted_at);
     ALTER TABLE employees ADD COLUMN IF NOT EXISTS department_id TEXT REFERENCES departments(id) ON DELETE SET NULL;
     CREATE INDEX IF NOT EXISTS idx_employees_department_id ON employees(tenant_id, department_id);
+    ALTER TABLE employees ADD COLUMN IF NOT EXISTS designation_id TEXT REFERENCES designations(id) ON DELETE SET NULL;
+    CREATE INDEX IF NOT EXISTS idx_employees_designation_id ON employees(tenant_id, designation_id);
   `);
 
   // â”€â”€ DSR Monthly Targets â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -1702,7 +1722,7 @@ export async function createSchema(pool) {
     DO $$
     DECLARE
       new_feature TEXT;
-      new_features TEXT[] := ARRAY['employees','departments','salary-payments'];
+      new_features TEXT[] := ARRAY['employees','departments','designations','salary-payments'];
     BEGIN
       FOREACH new_feature IN ARRAY new_features LOOP
         INSERT INTO tenant_features (tenant_id, feature)
@@ -1737,6 +1757,13 @@ export async function createSchema(pool) {
 
     INSERT INTO role_permissions (role, tenant_id, permission)
     SELECT role, tenant_id, 'manage_departments'
+    FROM role_permissions
+    WHERE role IN ('admin','super_admin') AND permission = 'view_state'
+    ON CONFLICT (role, tenant_id, permission) DO NOTHING;
+
+
+    INSERT INTO role_permissions (role, tenant_id, permission)
+    SELECT role, tenant_id, 'manage_designations'
     FROM role_permissions
     WHERE role IN ('admin','super_admin') AND permission = 'view_state'
     ON CONFLICT (role, tenant_id, permission) DO NOTHING;

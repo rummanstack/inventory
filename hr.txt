@@ -439,3 +439,9 @@ After completing each module, provide:
 Do not proceed to the next module until the current one is complete and consistent.
 
 The final result should be a clean, production-ready HR module that is fully integrated with the existing ERP and accounting system.
+
+
+
+
+  Departments -> Designations -> Employee Management upgrade -> Employee Documents -> Attendance ->
+  Leave -> Payroll -> Advances -> Loans -> HR Reports.

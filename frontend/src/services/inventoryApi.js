@@ -47,6 +47,7 @@ import { shopDueLedgerApi } from './api/shopDueLedgerApi.js';
 import { srsApi } from './api/srsApi.js';
 import { dsrTargetsApi } from './api/dsrTargetsApi.js';
 import { departmentsApi } from './api/departmentsApi.js';
+import { designationsApi } from './api/designationsApi.js';
 import { employeesApi } from './api/employeesApi.js';
 import { salaryPaymentsApi } from './api/salaryPaymentsApi.js';
 import { stockMovementsApi } from './api/stockMovementsApi.js';
@@ -104,6 +105,7 @@ export const inventoryApi = {
   ...srsApi,
   ...dsrTargetsApi,
   ...departmentsApi,
+  ...designationsApi,
   ...employeesApi,
   ...salaryPaymentsApi,
   ...stockMovementsApi,

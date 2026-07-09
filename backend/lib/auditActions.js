@@ -166,6 +166,12 @@ export const DEPARTMENT_ACTIONS = {
   UPDATE: "department.update",
   DELETE: "department.delete",
 };
+
+export const DESIGNATION_ACTIONS = {
+  CREATE: "designation.create",
+  UPDATE: "designation.update",
+  DELETE: "designation.delete",
+};
 export const EMPLOYEE_ACTIONS = {
   CREATE: "employee.create",
   UPDATE: "employee.update",

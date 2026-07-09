@@ -43,6 +43,7 @@ const ENTITY_TYPE_MODULES = {
   help_desk_ticket: "support",
   contact_message: "support",
   department: "hr",
+  designation: "hr",
   employee: "hr",
   salary_payment: "hr",
   tenant: "system",

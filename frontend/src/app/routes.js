@@ -41,6 +41,7 @@ import {
   Wrench,
   BookOpen,
   Scale,
+  BriefcaseBusiness,
 } from 'lucide-react';
 const DashboardPage = lazy(() => import('../features/dashboard/pages/DashboardPage'));
 const ActivityLogsPage = lazy(() => import('../features/activity-logs/pages/ActivityLogsPage'));
@@ -102,6 +103,7 @@ const CashSessionsPage = lazy(() => import('../features/retailer/cash-sessions/p
 const QuotationsPage = lazy(() => import('../features/quotations/pages/QuotationsPage'));
 const TradeInsPage = lazy(() => import('../features/trade-ins/pages/TradeInsPage'));
 const DepartmentsPage = lazy(() => import('../features/hr/departments/pages/DepartmentsPage'));
+const DesignationsPage = lazy(() => import('../features/hr/designations/pages/DesignationsPage'));
 const EmployeesPage = lazy(() => import('../features/hr/employees/pages/EmployeesPage'));
 const SalaryPaymentsPage = lazy(() => import('../features/hr/salary-payments/pages/SalaryPaymentsPage'));
 
@@ -186,6 +188,7 @@ export const APP_ROUTES = [
 
   // 9.5 HR / Salary
   { id: 'departments', path: '/hr/departments', labelKey: 'nav.departments', icon: Building2, component: DepartmentsPage, group: 'hr', permission: 'manage_departments', feature: 'departments' },
+  { id: 'designations', path: '/hr/designations', labelKey: 'nav.designations', icon: BriefcaseBusiness, component: DesignationsPage, group: 'hr', permission: 'manage_designations', feature: 'designations' },
   { id: 'employees', path: '/hr/employees', labelKey: 'nav.employees', icon: Users, component: EmployeesPage, group: 'hr', permission: 'view_employees', feature: 'employees' },
   { id: 'salary-payments', path: '/hr/salary', labelKey: 'nav.salaryPayments', icon: Banknote, component: SalaryPaymentsPage, group: 'hr', permission: 'manage_payroll', feature: 'salary-payments' },
 

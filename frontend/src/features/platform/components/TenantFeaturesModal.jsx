@@ -89,6 +89,8 @@ const FEATURE_DESCRIPTIONS = {
   payroll: 'Salary structures, monthly payroll runs, approvals, payslips, and payroll register.',
   employee_advances: 'Employee advance requests, approvals, outstanding balances, and payroll recovery.',
   employee_loans: 'Employee loan requests, approvals, installments, outstanding balances, and payroll recovery.',
+  attendance: 'Manual daily attendance and monthly attendance reports.',
+  'hr-reports': 'Employee, attendance, leave, payroll, advance, loan, and department reports.',
 
   // System & Settings
   'user-management': 'Manage tenant user accounts, roles, and active/inactive status.',
@@ -310,4 +312,5 @@ export default function TenantFeaturesModal({ tenant, onClose, onSave }) {
     </Modal>
   );
 }
+
 

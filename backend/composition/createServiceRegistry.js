@@ -215,7 +215,7 @@ export function createServiceRegistry({ databaseManager, env }) {
     designationService: new DesignationService(databaseManager, { auditService: platform.auditService }),
     employeeService: new EmployeeService(databaseManager, { auditService: platform.auditService }),
     employeeFinanceService: new EmployeeFinanceService(databaseManager, { auditService: platform.auditService }),
-    payrollService: new PayrollService(databaseManager, { auditService: platform.auditService, journalService }),
+    payrollService: new PayrollService(databaseManager, { auditService: platform.auditService, journalService, financeAccountService: finance.financeAccountService }),
     salaryPaymentService: new SalaryPaymentService(databaseManager, {
       auditService: platform.auditService,
       financeAccountService: finance.financeAccountService,
@@ -255,6 +255,7 @@ export function createServiceRegistry({ databaseManager, env }) {
     hr,
   };
 }
+
 
 
 

@@ -19,4 +19,6 @@ export const JOURNAL_SOURCE_TYPES = {
   MORNING_ISSUE: "morning_issue",
   SETTLEMENT: "settlement",
   PAYROLL_RUN: "payroll_run",
+  PAYROLL_PAYMENT: "payroll_payment",
 };
+

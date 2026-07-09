@@ -1,4 +1,4 @@
-﻿export class PayrollController {
+export class PayrollController {
   constructor(payrollService) {
     this.payrollService = payrollService;
   }
@@ -54,6 +54,14 @@
     }
   };
 
+  pay = async (req, res, next) => {
+    try {
+      const run = await this.payrollService.payPayroll(req.params.id, req.body || {}, req.currentUser);
+      res.json({ run });
+    } catch (error) {
+      next(error);
+    }
+  };
   payslip = async (req, res, next) => {
     try {
       res.json(await this.payrollService.getPayslip(req.params.id, req.params.employeeId, req.currentUser));
@@ -70,3 +78,4 @@
     }
   };
 }
+

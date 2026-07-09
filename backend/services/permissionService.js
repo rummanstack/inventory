@@ -82,6 +82,7 @@ const PERMISSION_REQUIRED_FEATURES = {
   "payroll.approve": "payroll",
   "advance.manage": "employee_advances",
   "loan.manage": "employee_loans",
+  "hr.reports": "hr-reports",
   view_expiry_alerts: "batch-tracking",
   manage_batch_tracking: "batch-tracking",
   manage_backups: "database-backup",
@@ -185,4 +186,5 @@ export class PermissionService {
     return this.getPermissions(actor, tenantId);
   }
 }
+
 

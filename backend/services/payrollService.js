@@ -11,6 +11,7 @@ import {
   findSalaryStructureByEmployee,
   insertPayrollRun,
   insertPayrollRunItem,
+  markPayrollRunPaid,
   listPayrollAttendanceSummary,
   listPayrollLeaveSummary,
   listPayrollRunItems,
@@ -85,10 +86,11 @@ function normalizeSalaryStructure(input = {}) {
 }
 
 export class PayrollService {
-  constructor(databaseManager, { auditService, journalService }) {
+  constructor(databaseManager, { auditService, journalService, financeAccountService }) {
     this.databaseManager = databaseManager;
     this.auditService = auditService;
     this.journalService = journalService;
+    this.financeAccountService = financeAccountService;
   }
 
   async listSalaryStructures(actor) {
@@ -305,6 +307,65 @@ export class PayrollService {
     });
   }
 
+  async payPayroll(id, input = {}, actor) {
+    const paymentMethod = ["CASH", "BANK"].includes(String(input.paymentMethod || "").toUpperCase())
+      ? String(input.paymentMethod).toUpperCase()
+      : "CASH";
+    const paymentDate = String(input.paymentDate || new Date().toISOString().slice(0, 10)).slice(0, 10);
+    assert(/^\d{4}-\d{2}-\d{2}$/.test(paymentDate), "A valid payment date is required.", 400);
+
+    return this.databaseManager.withTransaction(async (client) => {
+      const existing = await findPayrollRunById(client, actor.tenantId, id);
+      assert(existing, "Payroll run not found.", 404);
+      assert(existing.status === "APPROVED", "Only approved payroll runs can be paid.", 400);
+      assert(existing.paymentStatus !== "PAID", "Payroll run has already been paid.", 400);
+      assert(existing.netTotal > 0, "Payroll net total must be greater than zero.", 400);
+
+      await this.financeAccountService.recordTransactionInClient(
+        client,
+        {
+          accountType: paymentMethod,
+          type: "WITHDRAWAL",
+          amount: existing.netTotal,
+          date: paymentDate,
+          note: `Payroll payment ${existing.payrollMonth}`,
+        },
+        actor,
+      );
+
+      const journalEntry = await this.journalService.postPayrollPayment(client, actor, {
+        payrollRunId: existing.id,
+        payrollMonth: existing.payrollMonth,
+        amount: existing.netTotal,
+        paymentDate,
+        paymentMethod,
+      });
+
+      const paid = await markPayrollRunPaid(client, {
+        tenantId: actor.tenantId,
+        id,
+        actorId: actor.id,
+        paymentMethod,
+        journalEntryId: journalEntry.id,
+      });
+      assert(paid, "Only unpaid approved payroll runs can be paid.", 400);
+
+      await this.auditService.record(client, {
+        tenantId: actor.tenantId,
+        userId: actor.id,
+        actionType: PAYROLL_ACTIONS.PAY,
+        entityType: "payroll_run",
+        entityId: id,
+        module: "hr",
+        description: `${actor.name} paid payroll for ${paid.payrollMonth}`,
+        before: existing,
+        after: paid,
+        metadata: { paymentMethod, journalEntryId: journalEntry.id },
+      });
+
+      return paid;
+    });
+  }
   async getPayslip(payrollRunId, employeeId, actor) {
     return this.databaseManager.withClient(async (client) => {
       const run = await findPayrollRunById(client, actor.tenantId, payrollRunId);
@@ -333,3 +394,4 @@ export class PayrollService {
     return { items: filtered, totals };
   }
 }
+

@@ -1842,6 +1842,11 @@ export async function createSchema(pool) {
       attendance_deduction_total NUMERIC(14,2) NOT NULL DEFAULT 0,
       net_total         NUMERIC(14,2) NOT NULL DEFAULT 0,
       journal_entry_id  TEXT REFERENCES journal_entries(id),
+      payment_journal_entry_id TEXT REFERENCES journal_entries(id),
+      payment_status   TEXT NOT NULL DEFAULT 'UNPAID',
+      payment_method   TEXT NOT NULL DEFAULT '',
+      paid_at          TIMESTAMPTZ,
+      paid_by          TEXT REFERENCES users(id) ON DELETE SET NULL,
       generated_by      TEXT REFERENCES users(id) ON DELETE SET NULL,
       approved_by       TEXT REFERENCES users(id) ON DELETE SET NULL,
       approved_at       TIMESTAMPTZ,
@@ -1851,6 +1856,11 @@ export async function createSchema(pool) {
       UNIQUE (tenant_id, payroll_month)
     );
     CREATE INDEX IF NOT EXISTS idx_payroll_runs_month ON payroll_runs(tenant_id, payroll_month, status);
+    ALTER TABLE payroll_runs ADD COLUMN IF NOT EXISTS payment_journal_entry_id TEXT REFERENCES journal_entries(id);
+    ALTER TABLE payroll_runs ADD COLUMN IF NOT EXISTS payment_status TEXT NOT NULL DEFAULT 'UNPAID';
+    ALTER TABLE payroll_runs ADD COLUMN IF NOT EXISTS payment_method TEXT NOT NULL DEFAULT '';
+    ALTER TABLE payroll_runs ADD COLUMN IF NOT EXISTS paid_at TIMESTAMPTZ;
+    ALTER TABLE payroll_runs ADD COLUMN IF NOT EXISTS paid_by TEXT REFERENCES users(id) ON DELETE SET NULL;
 
     CREATE TABLE IF NOT EXISTS payroll_run_items (
       id                TEXT PRIMARY KEY,
@@ -1950,7 +1960,7 @@ export async function createSchema(pool) {
     DO $$
     DECLARE
       new_feature TEXT;
-      new_features TEXT[] := ARRAY['employees','departments','designations','salary-payments','leave_management','payroll','employee_advances','employee_loans'];
+      new_features TEXT[] := ARRAY['employees','departments','designations','salary-payments','leave_management','payroll','employee_advances','employee_loans','attendance','hr-reports'];
     BEGIN
       FOREACH new_feature IN ARRAY new_features LOOP
         INSERT INTO tenant_features (tenant_id, feature)
@@ -2041,6 +2051,17 @@ export async function createSchema(pool) {
     SELECT role, tenant_id, 'loan.manage'
     FROM role_permissions
     WHERE role IN ('admin','super_admin') AND permission = 'view_state'
+    ON CONFLICT (role, tenant_id, permission) DO NOTHING;
+  `);
+  await runBackfillOnce(pool, "hr-reports-permission-backfill", `
+    INSERT INTO tenant_features (tenant_id, feature)
+    SELECT DISTINCT tenant_id, 'hr-reports' FROM tenant_features
+    ON CONFLICT (tenant_id, feature) DO NOTHING;
+
+    INSERT INTO role_permissions (role, tenant_id, permission)
+    SELECT role, tenant_id, 'hr.reports'
+    FROM role_permissions
+    WHERE role IN ('admin','manager','super_admin') AND permission = 'view_state'
     ON CONFLICT (role, tenant_id, permission) DO NOTHING;
   `);
   // Split Issue Center from Activity Logs without changing current tenant access:
@@ -2495,6 +2516,8 @@ export async function createSchema(pool) {
     UPDATE chart_of_accounts SET is_active = false WHERE code = '5010';
   `);
 }
+
+
 
 
 

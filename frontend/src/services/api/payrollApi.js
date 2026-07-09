@@ -19,6 +19,9 @@ export const payrollApi = {
   approvePayrollRun(id, note = '') {
     return apiRequest(`/payroll/runs/${id}/approve`, { method: 'POST', body: JSON.stringify({ note }) });
   },
+  payPayrollRun(id, data = {}) {
+    return apiRequest(`/payroll/runs/${id}/pay`, { method: 'POST', body: JSON.stringify(data) });
+  },
   getPayrollRegister(params = {}) {
     return apiRequest(`/payroll/register${buildQueryString(params)}`);
   },

@@ -157,6 +157,8 @@ const en = {
       payroll: 'Payroll',
       employeeAdvances: 'Advances',
       employeeLoans: 'Loans',
+      attendance: 'Attendance',
+      hrReports: 'HR Reports',
       purchaseReport: 'Purchase Report',
       stockMovementReport: 'Stock Movement Report',
       settlementReport: 'Settlement Report',
@@ -295,6 +297,9 @@ const en = {
         'payroll.approve': 'Approve Payroll',
         'advance.manage': 'Manage Employee Advances',
         'loan.manage': 'Manage Employee Loans',
+        'attendance.view': 'View Attendance',
+        'attendance.manage': 'Manage Attendance',
+        'hr.reports': 'HR Reports',
         view_expiry_alerts: 'View Expiry Alerts',
         manage_batch_tracking: 'Access Batch Sales Report',
         view_trial_balance: 'View Trial Balance',
@@ -4303,6 +4308,7 @@ const en = {
 };
 
 export default en;
+
 
 
 

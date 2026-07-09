@@ -93,6 +93,17 @@ export default function PayrollPage() {
     }
   }
 
+  async function pay(id, paymentMethod = 'CASH') {
+    try {
+      await inventoryApi.payPayrollRun(id, { paymentMethod });
+      pushToast('success', 'Payroll', 'Payroll paid and journal posted.');
+      await load();
+      await loadRun(id);
+    } catch (err) {
+      pushToast('error', 'Payroll', err?.message || t('alerts.requestFailed'));
+    }
+  }
+
   return (
     <div>
       <SectionHeader eyebrow="HR" title="Payroll" description="Manage salary structures, monthly payroll runs, approvals, and payslip data." />
@@ -155,6 +166,12 @@ export default function PayrollPage() {
             {selectedRun?.run?.status === 'DRAFT' && canApprove ? (
               <button type="button" className="btn-primary" onClick={() => approve(selectedRun.run.id)}><CheckCircle2 size={16} /> Approve</button>
             ) : null}
+            {selectedRun?.run?.status === 'APPROVED' && selectedRun?.run?.paymentStatus !== 'PAID' && canApprove ? (
+              <div className="flex gap-2">
+                <button type="button" className="btn-secondary" onClick={() => pay(selectedRun.run.id, 'CASH')}>Pay Cash</button>
+                <button type="button" className="btn-primary" onClick={() => pay(selectedRun.run.id, 'BANK')}>Pay Bank</button>
+              </div>
+            ) : null}
           </div>
           {!selectedRun ? (
             <div className="p-5"><EmptyState title="Select a payroll run" description="Run details and payslip rows will appear here." /></div>
@@ -182,3 +199,4 @@ export default function PayrollPage() {
     </div>
   );
 }
+

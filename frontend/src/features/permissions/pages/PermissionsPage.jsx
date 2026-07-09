@@ -82,7 +82,7 @@ const PERMISSION_GROUPS = [
     permissions: ['view_general_ledger', 'view_trial_balance', 'view_balance_sheet', 'view_profit_and_loss'],
   },
   { section: 'reports', permissions: ['view_activity_logs', 'manage_batch_tracking'] },
-  { section: 'hr', permissions: ['view_employees', 'manage_employees', 'manage_payroll', 'leave.manage', 'leave.approve', 'payroll.view', 'payroll.generate', 'payroll.approve', 'advance.manage', 'loan.manage'] },
+  { section: 'hr', permissions: ['view_employees', 'manage_employees', 'attendance.view', 'attendance.manage', 'manage_payroll', 'leave.manage', 'leave.approve', 'payroll.view', 'payroll.generate', 'payroll.approve', 'advance.manage', 'loan.manage', 'hr.reports'] },
   { section: 'system', permissions: ['manage_users', 'manage_org', 'permanent_delete', 'manage_backups'] },
 ];
 
@@ -347,4 +347,5 @@ export default function PermissionsPage() {
     </div>
   );
 }
+
 

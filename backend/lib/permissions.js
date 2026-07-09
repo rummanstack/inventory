@@ -71,6 +71,7 @@ export const PERMISSIONS = {
   APPROVE_PAYROLL: "payroll.approve",
   MANAGE_ADVANCES: "advance.manage",
   MANAGE_LOANS: "loan.manage",
+  HR_REPORTS: "hr.reports",
   MANAGE_PAYROLL: "manage_payroll",
   VIEW_EXPIRY_ALERTS: "view_expiry_alerts",
   MANAGE_BATCH_TRACKING: "manage_batch_tracking",
@@ -154,6 +155,7 @@ export const TENANT_BUSINESS_PERMISSIONS = [
   PERMISSIONS.APPROVE_PAYROLL,
   PERMISSIONS.MANAGE_ADVANCES,
   PERMISSIONS.MANAGE_LOANS,
+  PERMISSIONS.HR_REPORTS,
   PERMISSIONS.MANAGE_PAYROLL,
   PERMISSIONS.VIEW_EXPIRY_ALERTS,
   PERMISSIONS.MANAGE_BATCH_TRACKING,
@@ -188,6 +190,7 @@ export function hasPermission(role, permission, tenantId) {
 
   return getRolePermissions(role, tenantId).includes(permission);
 }
+
 
 
 

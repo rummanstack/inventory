@@ -517,6 +517,20 @@ export class JournalService {
     });
   }
 
+  async postPayrollPayment(client, actor, { payrollRunId, payrollMonth, amount, paymentDate, paymentMethod }) {
+    return this.post(client, {
+      tenantId: actor.tenantId,
+      entryDate: paymentDate,
+      sourceType: JOURNAL_SOURCE_TYPES.PAYROLL_PAYMENT,
+      sourceId: payrollRunId,
+      memo: `Payroll payment ${payrollMonth}`,
+      createdById: actor.id,
+      lines: [
+        { accountCode: ACCOUNTS.EMPLOYEE_PAYABLE, debit: amount },
+        { accountCode: accountForFinanceType(paymentMethod), credit: amount },
+      ],
+    });
+  }
   async getChartOfAccounts() {
     return this.databaseManager.withClient((client) => listChartOfAccounts(client));
   }
@@ -626,3 +640,5 @@ function computeProfitBreakdown(rows) {
     netProfit,
   };
 }
+
+

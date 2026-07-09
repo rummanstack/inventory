@@ -32,6 +32,11 @@ export function mapPayrollRun(row) {
     attendanceDeductionTotal: Number(row.attendance_deduction_total || 0),
     netTotal: Number(row.net_total || 0),
     journalEntryId: row.journal_entry_id || null,
+    paymentJournalEntryId: row.payment_journal_entry_id || null,
+    paymentStatus: row.payment_status || "UNPAID",
+    paymentMethod: row.payment_method || "",
+    paidAt: row.paid_at || null,
+    paidBy: row.paid_by || null,
     generatedBy: row.generated_by || null,
     approvedBy: row.approved_by || null,
     approvedAt: row.approved_at || null,
@@ -295,3 +300,14 @@ export async function listPayrollLeaveSummary(client, tenantId, month) {
 
 
 
+
+export async function markPayrollRunPaid(client, { tenantId, id, actorId, paymentMethod, journalEntryId }) {
+  const result = await client.query(
+    `UPDATE payroll_runs
+     SET payment_status='PAID', payment_method=$3, paid_by=$4, paid_at=NOW(), payment_journal_entry_id=$5, updated_at=NOW()
+     WHERE tenant_id=$1 AND id=$2 AND status='APPROVED' AND payment_status != 'PAID'
+     RETURNING *`,
+    [tenantId, id, paymentMethod || 'CASH', actorId || null, journalEntryId || null],
+  );
+  return result.rows[0] ? mapPayrollRun(result.rows[0]) : null;
+}

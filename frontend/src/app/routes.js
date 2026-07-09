@@ -101,6 +101,7 @@ const RepairJobsPage = lazy(() => import('../features/repair-jobs/pages/RepairJo
 const CashSessionsPage = lazy(() => import('../features/retailer/cash-sessions/pages/CashSessionsPage'));
 const QuotationsPage = lazy(() => import('../features/quotations/pages/QuotationsPage'));
 const TradeInsPage = lazy(() => import('../features/trade-ins/pages/TradeInsPage'));
+const DepartmentsPage = lazy(() => import('../features/hr/departments/pages/DepartmentsPage'));
 const EmployeesPage = lazy(() => import('../features/hr/employees/pages/EmployeesPage'));
 const SalaryPaymentsPage = lazy(() => import('../features/hr/salary-payments/pages/SalaryPaymentsPage'));
 
@@ -184,6 +185,7 @@ export const APP_ROUTES = [
   { id: 'help-desk', path: '/help-desk', labelKey: 'nav.helpDesk', icon: ShieldCheck, component: HelpDeskPage, group: 'hidden', feature: 'help-desk' },
 
   // 9.5 HR / Salary
+  { id: 'departments', path: '/hr/departments', labelKey: 'nav.departments', icon: Building2, component: DepartmentsPage, group: 'hr', permission: 'manage_departments', feature: 'departments' },
   { id: 'employees', path: '/hr/employees', labelKey: 'nav.employees', icon: Users, component: EmployeesPage, group: 'hr', permission: 'view_employees', feature: 'employees' },
   { id: 'salary-payments', path: '/hr/salary', labelKey: 'nav.salaryPayments', icon: Banknote, component: SalaryPaymentsPage, group: 'hr', permission: 'manage_payroll', feature: 'salary-payments' },
 
@@ -231,3 +233,4 @@ export function getRouteLabel(pathname, t = (key) => key) {
 
   return matchedRoute ? t(matchedRoute.labelKey) : t('nav.dashboard');
 }
+

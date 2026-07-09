@@ -149,6 +149,7 @@ const en = {
       shopDueLedger: 'Shop Due Ledger',
       srs: 'SRs',
       srDueLedger: 'SR Due Ledger',
+      departments: 'Departments',
       employees: 'Employees',
       salaryPayments: 'Salary',
       purchaseReport: 'Purchase Report',
@@ -279,6 +280,7 @@ const en = {
         manage_trade_ins: 'Manage Trade-Ins',
         view_employees: 'View Employees',
         manage_employees: 'Manage Employees',
+        manage_departments: 'Manage Departments',
         manage_payroll: 'Manage Salary Payments',
         view_expiry_alerts: 'View Expiry Alerts',
         manage_batch_tracking: 'Access Batch Sales Report',
@@ -4087,6 +4089,30 @@ const en = {
         showing: 'StockLedger showcase image beside the feature cards',
       },
     },
+    departments: {
+      eyebrow: 'HR',
+      title: 'Departments',
+      description: 'Manage company departments and reporting ownership.',
+      add: 'Add Department',
+      addTitle: 'Add Department',
+      editTitle: 'Edit Department',
+      modalDescription: 'Keep department names, status, and department heads organized.',
+      name: 'Department Name',
+      code: 'Code',
+      head: 'Department Head',
+      noHead: 'No department head',
+      status: 'Status',
+      active: 'Active',
+      inactive: 'Inactive',
+      allStatuses: 'All statuses',
+      employees: 'Employees',
+      note: 'Note',
+      nameRequired: 'Department name is required.',
+      noDepartments: 'No departments found',
+      noDepartmentsDesc: 'Add departments to organize employees and payroll reporting.',
+      deleteTitle: 'Delete Department',
+      deleteConfirm: 'Delete {name}? Departments with assigned employees cannot be deleted.',
+    },
     employees: {
       eyebrow: 'Employees',
       title: 'Employee Records',
@@ -4212,6 +4238,8 @@ const en = {
 };
 
 export default en;
+
+
 
 
 

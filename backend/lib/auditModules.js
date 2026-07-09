@@ -42,6 +42,7 @@ const ENTITY_TYPE_MODULES = {
   retail_promotion: "retailer",
   help_desk_ticket: "support",
   contact_message: "support",
+  department: "hr",
   employee: "hr",
   salary_payment: "hr",
   tenant: "system",
@@ -51,3 +52,4 @@ const ENTITY_TYPE_MODULES = {
 export function moduleForEntityType(entityType) {
   return ENTITY_TYPE_MODULES[entityType] || "system";
 }
+

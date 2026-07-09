@@ -12,6 +12,7 @@ import { DsrDueLedgerService } from "../services/dsrDueLedgerService.js";
 import { DsrFinanceService } from "../services/dsrFinanceService.js";
 import { DsrService } from "../services/dsrService.js";
 import { DsrTargetService } from "../services/dsrTargetService.js";
+import { DepartmentService } from "../services/departmentService.js";
 import { EmployeeService } from "../services/employeeService.js";
 import { ErrorLogService } from "../services/errorLogService.js";
 import { ExpenseService } from "../services/expenseService.js";
@@ -203,6 +204,7 @@ export function createServiceRegistry({ databaseManager, env }) {
   };
 
   const hr = {
+    departmentService: new DepartmentService(databaseManager, { auditService: platform.auditService }),
     employeeService: new EmployeeService(databaseManager, { auditService: platform.auditService }),
     salaryPaymentService: new SalaryPaymentService(databaseManager, {
       auditService: platform.auditService,
@@ -243,3 +245,5 @@ export function createServiceRegistry({ databaseManager, env }) {
     hr,
   };
 }
+
+

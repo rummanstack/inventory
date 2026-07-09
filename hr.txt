@@ -1,0 +1,441 @@
+# IMPLEMENT A PRODUCTION-READY HR MODULE
+
+You have full access to this codebase and have already analyzed the project.
+
+Your task is to replace the existing basic HR module with a professional HR module that integrates seamlessly into the current ERP.
+
+## VERY IMPORTANT
+
+This is **NOT** a standalone HR system.
+
+This HR module must become a native part of the existing ERP.
+
+Do NOT redesign the ERP.
+
+Do NOT change existing architecture.
+
+Do NOT duplicate existing code.
+
+Always extend existing functionality whenever possible.
+
+---
+
+# First Task (MANDATORY)
+
+Before writing any code:
+
+1. Analyze the current HR implementation.
+2. Identify all existing HR-related tables.
+3. Identify all HR APIs.
+4. Identify all HR pages.
+5. Identify reusable services.
+6. Identify reusable components.
+7. Identify existing permissions.
+8. Identify accounting integration points.
+
+Generate a short implementation plan.
+
+Only after understanding the current implementation should development begin.
+
+---
+
+# Objective
+
+Build a clean, professional HR module suitable for medium and large companies.
+
+The module must integrate with:
+
+- Existing Authentication
+- Existing RBAC
+- Existing Tenant System
+- Existing Audit Logs
+- Existing Accounting Module
+- Existing Reporting System
+- Existing UI Components
+
+Follow the project's coding standards and architecture exactly.
+
+---
+
+# Scope
+
+Keep the HR module focused.
+
+Only implement the following modules.
+
+---
+
+# 1. Departments
+
+Features
+
+- Create Department
+- Edit Department
+- Delete Department
+- Department Status
+- Department Head
+- Department List
+
+---
+
+# 2. Designations
+
+Features
+
+- Create Designation
+- Edit Designation
+- Delete Designation
+- Status
+
+---
+
+# 3. Employee Management
+
+Reuse the existing Employee table.
+
+Improve it professionally.
+
+Include:
+
+- Employee ID
+- Full Name
+- Photo
+- Department
+- Designation
+- Joining Date
+- Employment Status
+- Mobile
+- Email
+- Address
+- Emergency Contact
+- National ID
+- Date of Birth
+- Gender
+- Blood Group
+- Bank Information
+- Salary Information
+- Active / Inactive
+
+Create:
+
+employee_documents
+
+Store
+
+- NID
+- Appointment Letter
+- Contract
+- Other Documents
+
+Support upload and download.
+
+---
+
+# 4. Attendance
+
+Create one attendance table.
+
+Features
+
+- Daily Attendance
+- Check In
+- Check Out
+- Present
+- Absent
+- Leave
+- Holiday
+- Late
+- Overtime
+- Monthly Attendance Report
+
+No biometric integration.
+
+No device integration.
+
+Manual attendance only.
+
+---
+
+# 5. Leave Management
+
+Create
+
+leave_types
+
+leave_requests
+
+Features
+
+- Apply Leave
+- Approve Leave
+- Reject Leave
+- Leave History
+- Leave Calendar
+- Leave Reports
+
+Leave balance may be calculated dynamically.
+
+---
+
+# 6. Payroll
+
+Create
+
+salary_structures
+
+payroll_runs
+
+payroll_run_items
+
+Features
+
+Salary Structure
+
+Allowances
+
+Deductions
+
+Generate Monthly Payroll
+
+Approve Payroll
+
+Generate Payslip
+
+Salary Register
+
+Payroll History
+
+---
+
+# Accounting Integration (MANDATORY)
+
+Payroll must automatically create Journal Entries using the existing accounting engine.
+
+DO NOT create a new accounting system.
+
+Reuse existing services.
+
+Example
+
+Generate Payroll
+
+↓
+
+Journal Entry
+
+Salary Expense
+
+Employee Payable
+
+Salary Payment
+
+↓
+
+Cash/Bank
+
+This integration is mandatory.
+
+---
+
+# 7. Employee Advances
+
+Create
+
+employee_advances
+
+Features
+
+Advance Request
+
+Approval
+
+Outstanding Balance
+
+Settlement
+
+---
+
+# 8. Employee Loans
+
+Create
+
+employee_loans
+
+Features
+
+Loan Request
+
+Approval
+
+Installments
+
+Outstanding Balance
+
+Recovery through Payroll
+
+---
+
+# Database
+
+Create ONLY these new tables if they do not already exist.
+
+departments
+
+designations
+
+employee_documents
+
+attendance
+
+leave_types
+
+leave_requests
+
+salary_structures
+
+payroll_runs
+
+payroll_run_items
+
+employee_advances
+
+employee_loans
+
+Reuse every existing table whenever possible.
+
+Never duplicate employee information.
+
+---
+
+# Permissions
+
+Integrate with the existing RBAC.
+
+Create permissions such as:
+
+department.manage
+
+designation.manage
+
+employee.manage
+
+attendance.manage
+
+attendance.view
+
+leave.manage
+
+leave.approve
+
+payroll.generate
+
+payroll.approve
+
+payroll.view
+
+advance.manage
+
+loan.manage
+
+hr.reports
+
+Follow the existing permission architecture.
+
+---
+
+# Reports
+
+Build:
+
+Employee List
+
+Attendance Report
+
+Leave Report
+
+Payroll Register
+
+Salary Register
+
+Advance Report
+
+Loan Report
+
+Department Summary
+
+---
+
+# UI Requirements
+
+Follow the existing design system.
+
+Reuse:
+
+- Layout
+- Sidebar
+- Cards
+- Forms
+- Tables
+- Dialogs
+- Filters
+- Pagination
+- Print
+- Export
+
+The HR module should feel like it has always been part of the ERP.
+
+---
+
+# Audit Logging
+
+Every important action must be logged using the existing audit service.
+
+Examples:
+
+Employee Created
+
+Employee Updated
+
+Attendance Modified
+
+Leave Approved
+
+Payroll Generated
+
+Payroll Approved
+
+Advance Approved
+
+Loan Approved
+
+---
+
+# Quality Requirements
+
+- No duplicated code.
+- Reuse existing components.
+- Use database transactions where required.
+- Validate all input.
+- Respect tenant isolation.
+- Respect permissions.
+- Follow project architecture exactly.
+- Keep code clean and maintainable.
+
+---
+
+# Deliverables
+
+Implement the module incrementally.
+
+After completing each module, provide:
+
+- Features completed
+- Database changes
+- APIs created
+- Frontend pages created
+- Permissions added
+- Reports added
+
+Do not proceed to the next module until the current one is complete and consistent.
+
+The final result should be a clean, production-ready HR module that is fully integrated with the existing ERP and accounting system.

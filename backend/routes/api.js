@@ -60,6 +60,7 @@ import { createGenericMedicinesRoutes } from "./genericMedicines.routes.js";
 import { createSrsRoutes } from "./srs.routes.js";
 import { createSrDueLedgerRoutes } from "./srDueLedger.routes.js";
 import { createDsrTargetsRoutes } from "./dsrTargets.routes.js";
+import { createDepartmentsRoutes } from "./departments.routes.js";
 import { createEmployeesRoutes } from "./employees.routes.js";
 import { createSalaryPaymentsRoutes } from "./salaryPayments.routes.js";
 import { createDrugBatchesRoutes } from "./drugBatches.routes.js";
@@ -128,7 +129,7 @@ export function createApiRouter({ controllers, authService, env, auditService })
       supplierPaymentController,
     },
     finance: { financeAccountController, financeDashboardController, journalController },
-    hr: { employeeController, salaryPaymentController },
+    hr: { departmentController, employeeController, salaryPaymentController },
   } = controllers;
 
   const loginRateLimiter = createRateLimiter({ name: "auth-login", windowMs: 15 * 60 * 1000, max: 20 });
@@ -218,9 +219,11 @@ export function createApiRouter({ controllers, authService, env, auditService })
   router.use("/srs", createSrsRoutes(srController));
   router.use("/sr-due-ledger", createSrDueLedgerRoutes(srDueLedgerController));
   router.use("/dsr-targets", createDsrTargetsRoutes(dsrTargetController));
+  router.use("/departments", createDepartmentsRoutes(departmentController));
   router.use("/employees", createEmployeesRoutes(employeeController));
   router.use("/salary-payments", createSalaryPaymentsRoutes(salaryPaymentController));
   router.use("/drug-batches", createDrugBatchesRoutes(drugBatchController));
 
   return router;
 }
+

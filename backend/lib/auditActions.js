@@ -161,6 +161,11 @@ export const GENERIC_MEDICINE_ACTIONS = {
   DELETE: "generic_medicine.delete",
 };
 
+export const DEPARTMENT_ACTIONS = {
+  CREATE: "department.create",
+  UPDATE: "department.update",
+  DELETE: "department.delete",
+};
 export const EMPLOYEE_ACTIONS = {
   CREATE: "employee.create",
   UPDATE: "employee.update",
@@ -205,3 +210,4 @@ export const CONTACT_MESSAGE_ACTIONS = {
 export const UPLOAD_ACTIONS = {
   PHOTO_UPLOAD: "upload.photo_upload",
 };
+

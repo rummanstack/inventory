@@ -13,6 +13,7 @@ import { DsrController } from "../controllers/dsrController.js";
 import { DsrDueLedgerController } from "../controllers/dsrDueLedgerController.js";
 import { DsrFinanceController } from "../controllers/dsrFinanceController.js";
 import { DsrTargetController } from "../controllers/dsrTargetController.js";
+import { DepartmentController } from "../controllers/departmentController.js";
 import { EmployeeController } from "../controllers/employeeController.js";
 import { ExpenseController } from "../controllers/expenseController.js";
 import { FinanceAccountController } from "../controllers/financeAccountController.js";
@@ -144,8 +145,10 @@ export function createControllerRegistry({ services, env, databaseManager }) {
       journalController: new JournalController(services.finance.journalService),
     },
     hr: {
+      departmentController: new DepartmentController(services.hr.departmentService),
       employeeController: new EmployeeController(services.hr.employeeService),
       salaryPaymentController: new SalaryPaymentController(services.hr.salaryPaymentService),
     },
   };
 }
+

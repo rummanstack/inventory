@@ -1,4 +1,4 @@
-const bn = {
+﻿const bn = {
     app: {
       brand: 'Stock Ledger',
       subtitle: '',
@@ -154,6 +154,7 @@ const bn = {
       shopDueLedger: 'দোকান বকেয়া লেজার',
       srs: 'এসআর',
       srDueLedger: 'এসআর বকেয়া লেজার',
+      departments: 'Departments',
       employees: 'কর্মীবৃন্দ',
       salaryPayments: 'বেতন',
       purchaseReport: 'ক্রয় রিপোর্ট',
@@ -262,6 +263,7 @@ const bn = {
         manage_trade_ins: 'ট্রেড-ইন পরিচালনা করুন',
         view_employees: 'কর্মী দেখুন',
         manage_employees: 'কর্মী পরিচালনা করুন',
+        manage_departments: 'Manage Departments',
         manage_payroll: 'বেতন পরিশোধ পরিচালনা করুন',
         view_expiry_alerts: 'মেয়াদ উত্তীর্ণ অ্যালার্ট দেখুন',
         manage_batch_tracking: 'ব্যাচ বিক্রয় রিপোর্টে প্রবেশাধিকার',
@@ -4089,6 +4091,30 @@ const bn = {
         showing: 'ফিচার কার্ডের পাশে স্টকলেজার শোকেস ইমেজ',
       },
     },
+    departments: {
+      eyebrow: 'HR',
+      title: 'Departments',
+      description: 'Manage company departments and reporting ownership.',
+      add: 'Add Department',
+      addTitle: 'Add Department',
+      editTitle: 'Edit Department',
+      modalDescription: 'Keep department names, status, and department heads organized.',
+      name: 'Department Name',
+      code: 'Code',
+      head: 'Department Head',
+      noHead: 'No department head',
+      status: 'Status',
+      active: 'Active',
+      inactive: 'Inactive',
+      allStatuses: 'All statuses',
+      employees: 'Employees',
+      note: 'Note',
+      nameRequired: 'Department name is required.',
+      noDepartments: 'No departments found',
+      noDepartmentsDesc: 'Add departments to organize employees and payroll reporting.',
+      deleteTitle: 'Delete Department',
+      deleteConfirm: 'Delete {name}? Departments with assigned employees cannot be deleted.',
+    },
     employees: {
       eyebrow: 'কর্মীবৃন্দ',
       title: 'কর্মী রেকর্ড',
@@ -4214,3 +4240,6 @@ const bn = {
 };
 
 export default bn;
+
+
+

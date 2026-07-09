@@ -60,6 +60,7 @@ export const PERMISSIONS = {
   MANAGE_TRADE_INS: "manage_trade_ins",
   VIEW_EMPLOYEES: "view_employees",
   MANAGE_EMPLOYEES: "manage_employees",
+  MANAGE_DEPARTMENTS: "manage_departments",
   MANAGE_PAYROLL: "manage_payroll",
   VIEW_EXPIRY_ALERTS: "view_expiry_alerts",
   MANAGE_BATCH_TRACKING: "manage_batch_tracking",
@@ -132,6 +133,7 @@ export const TENANT_BUSINESS_PERMISSIONS = [
   PERMISSIONS.MANAGE_TRADE_INS,
   PERMISSIONS.VIEW_EMPLOYEES,
   PERMISSIONS.MANAGE_EMPLOYEES,
+  PERMISSIONS.MANAGE_DEPARTMENTS,
   PERMISSIONS.MANAGE_PAYROLL,
   PERMISSIONS.VIEW_EXPIRY_ALERTS,
   PERMISSIONS.MANAGE_BATCH_TRACKING,
@@ -166,3 +168,5 @@ export function hasPermission(role, permission, tenantId) {
 
   return getRolePermissions(role, tenantId).includes(permission);
 }
+
+

@@ -3780,25 +3780,25 @@ const en = {
         },
       },
       hero: {
-        eyebrow: 'Business operations, finance, and accounting',
-        title: 'Run sales, inventory, finance, and accounting in one place.',
-        subtitle: 'Manage POS, stock, purchases, customer dues, distribution, repair jobs, expenses, cash flow, ledger, and financial reports from a single connected platform.',
+        eyebrow: 'Complete business and accounting platform',
+        title: 'Run your business and accounts from one dashboard.',
+        subtitle: 'StockLedger connects sales, inventory, purchases, dues, suppliers, DSR, service, expenses, cash, bank, profit, ledgers, P&L, and balance sheet in one system.',
         points: [
-          'POS, quotations, invoices, returns, and collections',
-          'Inventory, purchasing, supplier balances, and stock control',
-          'Finance dashboard, cash and bank, expenses, and profitability',
-          'General ledger, trial balance, balance sheet, and P&L',
+          'Sales, purchases, stock, dues, and suppliers',
+          'DSR, service, HR, reports, and control',
+          'Cash, bank, expenses, profit, and finance reports',
+          'Ledger, trial balance, P&L, and balance sheet',
         ],
         bookDemo: 'Book Demo',
         seePricing: 'See Pricing',
-        badgeLabel: 'One platform',
-        badgeValue: 'Sales, stock, finance, and accounting together',
-        imageAlt: 'Business owner using StockLedger to monitor operations and accounts',
+        badgeLabel: 'Complete system',
+        badgeValue: 'Operations with built-in accounting',
+        imageAlt: 'StockLedger dashboard showing business operations, finance, and accounting together',
       },
       proof: {
         eyebrow: 'Customer Proof',
         title: 'Real businesses in Bangladesh already run on StockLedger.',
-        text: 'Grocery wholesalers, pharmacy owners, electronics retailers and DSR teams use it for operations, accounting, dues, settlement, reporting and profit.',
+        text: 'Grocery wholesalers, pharmacy owners, electronics retailers, and DSR teams use it for operations, accounting, dues, settlement, reporting, and profit.',
       },      problem: {
         eyebrow: 'The Problem',
         title: 'Running a business is hard when records are everywhere.',
@@ -3815,9 +3815,9 @@ const en = {
         ],
       },
       featureStory: {
-        label: 'Business pillars',
+        label: 'Complete business system',
         title: 'Everything your business needs in one connected system',
-        description: 'Sales, purchasing, distribution, dues, finance, accounting, reporting, and control work from the same business records.',
+        description: 'Sales, purchasing, distribution, dues, finance, accounting, reporting, and control all work from the same business records.',
         groups: [
           {
             badge: 'Sales & POS',
@@ -3830,9 +3830,9 @@ const en = {
           },
           {
             badge: 'Distribution & Field Sales',
-            title: 'Track DSR routes, issue, collections, returns, and settlement clearly',
+            title: 'Track DSR routes, stock issue, collections, returns, and settlement clearly',
             items: [
-              'Morning issue, evening settlement, shop relationships, and SR/DSR finance',
+              'Morning stock issue, evening settlement, shop relationships, and SR/DSR finance',
               'Cash, returns, and due reconciliation stay visible for every field rep',
               'Owners and managers can monitor route activity without chasing spreadsheets',
             ],
@@ -3861,7 +3861,7 @@ const en = {
             items: [
               'Cash and bank accounts, transfers, expenses, and finance dashboard reporting',
               'General ledger, trial balance, balance sheet, profit and loss, and profit reporting',
-              'Operational activity flows into the financial picture without double entry work',
+              'Operational activity flows into the financial picture without duplicate entry',
             ],
           },
           {
@@ -3899,7 +3899,7 @@ const en = {
       workflow: {
         label: 'Connected workflow',
         title: 'One action updates the whole business',
-        description: 'StockLedger connects operations and accounting so that sales, dues, cash flow, and reporting move together instead of living in separate tools.',
+        description: 'StockLedger connects operations and accounting, so sales, dues, cash flow, and reports move together instead of living in separate tools.',
         rail: ['Sale', 'Stock Update', 'Customer Ledger', 'Cash / Bank', 'Accounting Entry', 'Reports'],
         steps: [
           { title: 'Sell or Receive', description: 'Create a sale, receive a purchase, or record a service transaction from the right workflow.' },
@@ -3912,7 +3912,7 @@ const en = {
       finance: {
         label: 'Finance and accounting',
         title: 'Built-in finance and accounting, not an afterthought',
-        description: 'The platform does not stop at stock and selling. It helps the business understand cash, dues, profitability, and final statements with the same underlying data.',
+        description: 'The platform does not stop at stock and sales. It helps the business understand cash, dues, profitability, and final statements from the same data.',
         showcaseAlt: 'Professional business owner visual representing accounting confidence',
         showcaseTitle: 'From daily transactions to financial clarity',
         showcaseText: 'Every sale, purchase, expense, due movement, and settlement becomes part of the business story, so finance and accounting are always grounded in real operations.',
@@ -3927,20 +3927,20 @@ const en = {
       roles: {
         eyebrow: 'Built for every role',
         title: 'Designed for the people who run the business',
-        text: 'From gadget stores and groceries to pharmacies, collections, dealers, and support workflows, every business role works from the same records.',
+        text: 'From gadget shops and grocery stores to pharmacies, collection teams, dealers, and support workflows, every role works from the same records.',
         items: [
-          { title: 'For Gadgets', description: 'Manage mobile, electronics, accessories, serial numbers, warranties, sales returns, customer dues, and profit from one system.', chips: ['Serials', 'Warranty', 'Profit'] },
-          { title: 'For Groceries', description: 'Run grocery and general-store counters with fast billing, returns, customer dues, supplier purchases, and daily sales visibility.', chips: ['POS', 'Stock', 'Due'] },
+          { title: 'For Gadget Stores', description: 'Manage mobiles, electronics, accessories, serial numbers, warranties, sales returns, customer dues, and profit from one system.', chips: ['Serials', 'Warranty', 'Profit'] },
+          { title: 'For Grocery Stores', description: 'Run grocery and general-store counters with fast billing, returns, customer dues, supplier purchases, and daily sales visibility.', chips: ['POS', 'Stock', 'Due'] },
           { title: 'For Pharmacies', description: 'Manage medicine sales, supplier purchases, stock checks, customer dues, and daily cash with accounting records behind every transaction.', chips: ['Medicine', 'Stock', 'Accounts'] },
-          { title: 'For Due Collection', description: 'Record customer and shop collections, reduce missed follow-ups, and keep ledgers updated in real time.', chips: ['Due', 'Collection', 'Ledger'] },
-          { title: 'For Dealers & Field Teams', description: 'Manage route activity, dealer supply, morning issue, evening settlement, returns, and cash collection.', chips: ['DSR', 'Settlement', 'Route'] },
+          { title: 'For Collection Teams', description: 'Record customer and shop collections, reduce missed follow-ups, and keep ledgers updated in real time.', chips: ['Due', 'Collection', 'Ledger'] },
+          { title: 'For Dealers & Field Teams', description: 'Manage route activity, dealer supply, morning stock issue, evening settlement, returns, and cash collection.', chips: ['DSR', 'Settlement', 'Route'] },
           { title: 'For Service & Support', description: 'Handle warranty claims, repair progress, customer conversations, and after-sales follow-up without losing business context.', chips: ['Warranty', 'Repair', 'Support'] },
         ],
       },
       showcase: {
         eyebrow: 'Reports, control, and visibility',
         title: 'Know what is happening across the business',
-        text: 'Show visitors that the platform goes beyond data entry. It gives decision-makers live dashboards, due visibility, financial summaries, operational reports, and the control tools needed as the team grows.',
+        text: 'Show visitors that the platform goes beyond data entry, with live dashboards, due visibility, financial summaries, operational reports, and the control tools needed as the team grows.',
         bullets: [
           'Dashboard KPIs, daily sales, activity logs, due reports, and profit reporting',
           'User permissions, backups, security controls, and organization settings',
@@ -4212,6 +4212,8 @@ const en = {
 };
 
 export default en;
+
+
 
 
 

@@ -445,3 +445,11 @@ The final result should be a clean, production-ready HR module that is fully int
 
   Departments -> Designations -> Employee Management upgrade -> Employee Documents -> Attendance ->
   Leave -> Payroll -> Advances -> Loans -> HR Reports.
+
+    Recommended scope for the next increment:
+
+  - Add attendance table
+  - Add API endpoints for daily attendance, monthly report, create/update rows
+  - Integrate RBAC: attendance.manage, attendance.view
+  - Add backend tests for tenant isolation, validation, duplicate daily attendance prevention, and
+    monthly report totals

@@ -1732,6 +1732,27 @@ export async function createSchema(pool) {
     );
     CREATE INDEX IF NOT EXISTS idx_employee_documents_employee ON employee_documents(tenant_id, employee_id, deleted_at);
     CREATE INDEX IF NOT EXISTS idx_employee_documents_type ON employee_documents(tenant_id, document_type);
+
+    CREATE TABLE IF NOT EXISTS attendance (
+      id                TEXT PRIMARY KEY,
+      tenant_id         TEXT NOT NULL REFERENCES tenants(id),
+      employee_id       TEXT NOT NULL REFERENCES employees(id) ON DELETE CASCADE,
+      attendance_date   DATE NOT NULL,
+      status            TEXT NOT NULL,
+      check_in_time     TIME,
+      check_out_time    TIME,
+      late_minutes      INTEGER NOT NULL DEFAULT 0,
+      overtime_minutes  INTEGER NOT NULL DEFAULT 0,
+      note              TEXT NOT NULL DEFAULT '',
+      created_by        TEXT REFERENCES users(id) ON DELETE SET NULL,
+      updated_by        TEXT REFERENCES users(id) ON DELETE SET NULL,
+      created_at        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE (tenant_id, employee_id, attendance_date)
+    );
+    CREATE INDEX IF NOT EXISTS idx_attendance_tenant_date ON attendance(tenant_id, attendance_date);
+    CREATE INDEX IF NOT EXISTS idx_attendance_employee_month ON attendance(tenant_id, employee_id, attendance_date);
+    CREATE INDEX IF NOT EXISTS idx_attendance_status ON attendance(tenant_id, status);
   `);
 
   // â”€â”€ DSR Monthly Targets â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -1763,6 +1784,26 @@ export async function createSchema(pool) {
         ON CONFLICT (tenant_id, feature) DO NOTHING;
       END LOOP;
     END $$;
+  `);
+
+
+
+  await runBackfillOnce(pool, "attendance-feature-permission-backfill", `
+    INSERT INTO tenant_features (tenant_id, feature)
+    SELECT DISTINCT tenant_id, 'attendance' FROM tenant_features
+    ON CONFLICT (tenant_id, feature) DO NOTHING;
+
+    INSERT INTO role_permissions (role, tenant_id, permission)
+    SELECT role, tenant_id, 'attendance.view'
+    FROM role_permissions
+    WHERE role IN ('admin','manager','super_admin') AND permission = 'view_state'
+    ON CONFLICT (role, tenant_id, permission) DO NOTHING;
+
+    INSERT INTO role_permissions (role, tenant_id, permission)
+    SELECT role, tenant_id, 'attendance.manage'
+    FROM role_permissions
+    WHERE role IN ('admin','super_admin') AND permission = 'view_state'
+    ON CONFLICT (role, tenant_id, permission) DO NOTHING;
   `);
 
   // Split Issue Center from Activity Logs without changing current tenant access:

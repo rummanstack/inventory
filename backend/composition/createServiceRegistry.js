@@ -1,3 +1,4 @@
+import { AttendanceService } from "../services/attendanceService.js";
 import { AuditService } from "../services/auditService.js";
 import { AuthService } from "../services/authService.js";
 import { BackupService } from "../services/backupService.js";
@@ -205,6 +206,7 @@ export function createServiceRegistry({ databaseManager, env }) {
   };
 
   const hr = {
+    attendanceService: new AttendanceService(databaseManager),
     departmentService: new DepartmentService(databaseManager, { auditService: platform.auditService }),
     designationService: new DesignationService(databaseManager, { auditService: platform.auditService }),
     employeeService: new EmployeeService(databaseManager, { auditService: platform.auditService }),

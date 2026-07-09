@@ -3,6 +3,7 @@ import { requireAuth } from "../middleware/requireAuth.js";
 import { requireActiveTenant } from "../middleware/requireActiveTenant.js";
 import { createRateLimiter } from "../middleware/rateLimiter.js";
 import { createPublicAuthRoutes, createAuthenticatedAuthRoutes } from "./auth.routes.js";
+import { createAttendanceRoutes } from "./attendance.routes.js";
 import { createProfileRoutes } from "./profile.routes.js";
 import { createUploadsRoutes } from "./uploads.routes.js";
 import { createPlatformTenantsRoutes } from "./platformTenants.routes.js";
@@ -130,7 +131,7 @@ export function createApiRouter({ controllers, authService, env, auditService })
       supplierPaymentController,
     },
     finance: { financeAccountController, financeDashboardController, journalController },
-    hr: { departmentController, designationController, employeeController, salaryPaymentController },
+    hr: { attendanceController, departmentController, designationController, employeeController, salaryPaymentController },
   } = controllers;
 
   const loginRateLimiter = createRateLimiter({ name: "auth-login", windowMs: 15 * 60 * 1000, max: 20 });
@@ -220,6 +221,7 @@ export function createApiRouter({ controllers, authService, env, auditService })
   router.use("/srs", createSrsRoutes(srController));
   router.use("/sr-due-ledger", createSrDueLedgerRoutes(srDueLedgerController));
   router.use("/dsr-targets", createDsrTargetsRoutes(dsrTargetController));
+  router.use("/attendance", createAttendanceRoutes(attendanceController));
   router.use("/departments", createDepartmentsRoutes(departmentController));
   router.use("/designations", createDesignationsRoutes(designationController));
   router.use("/employees", createEmployeesRoutes(employeeController));

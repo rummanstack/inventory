@@ -1,4 +1,5 @@
 import { ActivityLogController } from "../controllers/activityLogController.js";
+import { AttendanceController } from "../controllers/attendanceController.js";
 import { AuditController } from "../controllers/auditController.js";
 import { AuthController } from "../controllers/authController.js";
 import { BackupController } from "../controllers/backupController.js";
@@ -146,6 +147,7 @@ export function createControllerRegistry({ services, env, databaseManager }) {
       journalController: new JournalController(services.finance.journalService),
     },
     hr: {
+      attendanceController: new AttendanceController(services.hr.attendanceService),
       departmentController: new DepartmentController(services.hr.departmentService),
       designationController: new DesignationController(services.hr.designationService),
       employeeController: new EmployeeController(services.hr.employeeService),

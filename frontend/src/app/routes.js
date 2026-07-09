@@ -106,6 +106,10 @@ const DepartmentsPage = lazy(() => import('../features/hr/departments/pages/Depa
 const DesignationsPage = lazy(() => import('../features/hr/designations/pages/DesignationsPage'));
 const EmployeesPage = lazy(() => import('../features/hr/employees/pages/EmployeesPage'));
 const SalaryPaymentsPage = lazy(() => import('../features/hr/salary-payments/pages/SalaryPaymentsPage'));
+const LeavePage = lazy(() => import('../features/hr/leave/pages/LeavePage'));
+const PayrollPage = lazy(() => import('../features/hr/payroll/pages/PayrollPage'));
+const AdvancesPage = lazy(() => import('../features/hr/employee-finance/pages/AdvancesPage'));
+const LoansPage = lazy(() => import('../features/hr/employee-finance/pages/LoansPage'));
 
 export const APP_ROUTES = [
   // 1. Dashboard
@@ -191,6 +195,10 @@ export const APP_ROUTES = [
   { id: 'designations', path: '/hr/designations', labelKey: 'nav.designations', icon: BriefcaseBusiness, component: DesignationsPage, group: 'hr', permission: 'manage_designations', feature: 'designations' },
   { id: 'employees', path: '/hr/employees', labelKey: 'nav.employees', icon: Users, component: EmployeesPage, group: 'hr', permission: 'view_employees', feature: 'employees' },
   { id: 'salary-payments', path: '/hr/salary', labelKey: 'nav.salaryPayments', icon: Banknote, component: SalaryPaymentsPage, group: 'hr', permission: 'manage_payroll', feature: 'salary-payments' },
+  { id: 'leave', path: '/hr/leave', labelKey: 'nav.leave', icon: ClipboardList, component: LeavePage, group: 'hr', permission: 'leave.manage', feature: 'leave_management' },
+  { id: 'payroll', path: '/hr/payroll', labelKey: 'nav.payroll', icon: Banknote, component: PayrollPage, group: 'hr', permission: 'payroll.view', feature: 'payroll' },
+  { id: 'employee-advances', path: '/hr/advances', labelKey: 'nav.employeeAdvances', icon: HandCoins, component: AdvancesPage, group: 'hr', permission: 'advance.manage', feature: 'employee_advances' },
+  { id: 'employee-loans', path: '/hr/loans', labelKey: 'nav.employeeLoans', icon: CreditCard, component: LoansPage, group: 'hr', permission: 'loan.manage', feature: 'employee_loans' },
 
   // 11. Developer
   { id: 'platform', path: '/platform', labelKey: 'nav.platform', icon: ShieldCheck, component: PlatformAdminPage, group: 'developer', role: 'system_developer', feature: 'platform' },
@@ -236,4 +244,5 @@ export function getRouteLabel(pathname, t = (key) => key) {
 
   return matchedRoute ? t(matchedRoute.labelKey) : t('nav.dashboard');
 }
+
 

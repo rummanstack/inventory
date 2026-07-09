@@ -1753,6 +1753,180 @@ export async function createSchema(pool) {
     CREATE INDEX IF NOT EXISTS idx_attendance_tenant_date ON attendance(tenant_id, attendance_date);
     CREATE INDEX IF NOT EXISTS idx_attendance_employee_month ON attendance(tenant_id, employee_id, attendance_date);
     CREATE INDEX IF NOT EXISTS idx_attendance_status ON attendance(tenant_id, status);
+
+    CREATE TABLE IF NOT EXISTS leave_types (
+      id                TEXT PRIMARY KEY,
+      tenant_id         TEXT NOT NULL REFERENCES tenants(id),
+      name              TEXT NOT NULL,
+      code              TEXT NOT NULL DEFAULT '',
+      status            TEXT NOT NULL DEFAULT 'ACTIVE',
+      paid              BOOLEAN NOT NULL DEFAULT TRUE,
+      annual_days       INTEGER NOT NULL DEFAULT 0,
+      carry_forward     BOOLEAN NOT NULL DEFAULT FALSE,
+      note              TEXT NOT NULL DEFAULT '',
+      created_by        TEXT REFERENCES users(id) ON DELETE SET NULL,
+      created_at        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      deleted_at        TIMESTAMPTZ,
+      deleted_by_id     TEXT REFERENCES users(id) ON DELETE SET NULL,
+      delete_reason     TEXT NOT NULL DEFAULT ''
+    );
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_leave_types_name_active ON leave_types(tenant_id, LOWER(name)) WHERE deleted_at IS NULL;
+    CREATE INDEX IF NOT EXISTS idx_leave_types_status ON leave_types(tenant_id, status, deleted_at);
+
+    CREATE TABLE IF NOT EXISTS leave_requests (
+      id                TEXT PRIMARY KEY,
+      tenant_id         TEXT NOT NULL REFERENCES tenants(id),
+      employee_id       TEXT NOT NULL REFERENCES employees(id) ON DELETE CASCADE,
+      leave_type_id     TEXT NOT NULL REFERENCES leave_types(id),
+      start_date        DATE NOT NULL,
+      end_date          DATE NOT NULL,
+      total_days        NUMERIC(10,2) NOT NULL,
+      status            TEXT NOT NULL DEFAULT 'PENDING',
+      reason            TEXT NOT NULL DEFAULT '',
+      decision_note     TEXT NOT NULL DEFAULT '',
+      requested_by      TEXT REFERENCES users(id) ON DELETE SET NULL,
+      approved_by       TEXT REFERENCES users(id) ON DELETE SET NULL,
+      approved_at       TIMESTAMPTZ,
+      rejected_by       TEXT REFERENCES users(id) ON DELETE SET NULL,
+      rejected_at       TIMESTAMPTZ,
+      created_at        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      CONSTRAINT chk_leave_requests_date_range CHECK (end_date >= start_date),
+      CONSTRAINT chk_leave_requests_total_days CHECK (total_days > 0)
+    );
+    CREATE INDEX IF NOT EXISTS idx_leave_requests_employee_dates ON leave_requests(tenant_id, employee_id, start_date, end_date);
+    CREATE INDEX IF NOT EXISTS idx_leave_requests_status ON leave_requests(tenant_id, status);
+    CREATE INDEX IF NOT EXISTS idx_leave_requests_type ON leave_requests(tenant_id, leave_type_id);
+
+    CREATE TABLE IF NOT EXISTS salary_structures (
+      id                TEXT PRIMARY KEY,
+      tenant_id         TEXT NOT NULL REFERENCES tenants(id),
+      employee_id       TEXT NOT NULL REFERENCES employees(id) ON DELETE CASCADE,
+      basic_salary      NUMERIC(14,2) NOT NULL DEFAULT 0,
+      allowances        NUMERIC(14,2) NOT NULL DEFAULT 0,
+      deductions        NUMERIC(14,2) NOT NULL DEFAULT 0,
+      gross_salary      NUMERIC(14,2) NOT NULL DEFAULT 0,
+      effective_from    DATE NOT NULL,
+      status            TEXT NOT NULL DEFAULT 'ACTIVE',
+      note              TEXT NOT NULL DEFAULT '',
+      created_by        TEXT REFERENCES users(id) ON DELETE SET NULL,
+      updated_by        TEXT REFERENCES users(id) ON DELETE SET NULL,
+      created_at        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE (tenant_id, employee_id)
+    );
+    ALTER TABLE salary_structures ADD COLUMN IF NOT EXISTS basic_salary NUMERIC(14,2) NOT NULL DEFAULT 0;
+    ALTER TABLE salary_structures ADD COLUMN IF NOT EXISTS allowances NUMERIC(14,2) NOT NULL DEFAULT 0;
+    ALTER TABLE salary_structures ADD COLUMN IF NOT EXISTS deductions NUMERIC(14,2) NOT NULL DEFAULT 0;
+    ALTER TABLE salary_structures ADD COLUMN IF NOT EXISTS gross_salary NUMERIC(14,2) NOT NULL DEFAULT 0;
+    ALTER TABLE salary_structures ADD COLUMN IF NOT EXISTS effective_from DATE NOT NULL DEFAULT CURRENT_DATE;
+    ALTER TABLE salary_structures ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'ACTIVE';
+    ALTER TABLE salary_structures ADD COLUMN IF NOT EXISTS note TEXT NOT NULL DEFAULT '';
+    ALTER TABLE salary_structures ADD COLUMN IF NOT EXISTS created_by TEXT REFERENCES users(id) ON DELETE SET NULL;
+    ALTER TABLE salary_structures ADD COLUMN IF NOT EXISTS updated_by TEXT REFERENCES users(id) ON DELETE SET NULL;
+    ALTER TABLE salary_structures ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
+    ALTER TABLE salary_structures ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_salary_structures_tenant_employee_unique ON salary_structures(tenant_id, employee_id);
+    CREATE INDEX IF NOT EXISTS idx_salary_structures_employee ON salary_structures(tenant_id, employee_id, status);
+
+    CREATE TABLE IF NOT EXISTS payroll_runs (
+      id                TEXT PRIMARY KEY,
+      tenant_id         TEXT NOT NULL REFERENCES tenants(id),
+      payroll_month     VARCHAR(7) NOT NULL,
+      status            TEXT NOT NULL DEFAULT 'DRAFT',
+      total_employees   INTEGER NOT NULL DEFAULT 0,
+      gross_total       NUMERIC(14,2) NOT NULL DEFAULT 0,
+      allowance_total   NUMERIC(14,2) NOT NULL DEFAULT 0,
+      deduction_total   NUMERIC(14,2) NOT NULL DEFAULT 0,
+      attendance_deduction_total NUMERIC(14,2) NOT NULL DEFAULT 0,
+      net_total         NUMERIC(14,2) NOT NULL DEFAULT 0,
+      journal_entry_id  TEXT REFERENCES journal_entries(id),
+      generated_by      TEXT REFERENCES users(id) ON DELETE SET NULL,
+      approved_by       TEXT REFERENCES users(id) ON DELETE SET NULL,
+      approved_at       TIMESTAMPTZ,
+      note              TEXT NOT NULL DEFAULT '',
+      created_at        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE (tenant_id, payroll_month)
+    );
+    CREATE INDEX IF NOT EXISTS idx_payroll_runs_month ON payroll_runs(tenant_id, payroll_month, status);
+
+    CREATE TABLE IF NOT EXISTS payroll_run_items (
+      id                TEXT PRIMARY KEY,
+      tenant_id         TEXT NOT NULL REFERENCES tenants(id),
+      payroll_run_id    TEXT NOT NULL REFERENCES payroll_runs(id) ON DELETE CASCADE,
+      employee_id       TEXT NOT NULL REFERENCES employees(id) ON DELETE CASCADE,
+      employee_name     TEXT NOT NULL DEFAULT '',
+      employee_number   TEXT NOT NULL DEFAULT '',
+      department_name   TEXT NOT NULL DEFAULT '',
+      designation_name  TEXT NOT NULL DEFAULT '',
+      basic_salary      NUMERIC(14,2) NOT NULL DEFAULT 0,
+      allowances        NUMERIC(14,2) NOT NULL DEFAULT 0,
+      fixed_deductions  NUMERIC(14,2) NOT NULL DEFAULT 0,
+      gross_salary      NUMERIC(14,2) NOT NULL DEFAULT 0,
+      present_days      INTEGER NOT NULL DEFAULT 0,
+      absent_days       INTEGER NOT NULL DEFAULT 0,
+      paid_leave_days   NUMERIC(10,2) NOT NULL DEFAULT 0,
+      unpaid_leave_days NUMERIC(10,2) NOT NULL DEFAULT 0,
+      payable_days      NUMERIC(10,2) NOT NULL DEFAULT 0,
+      attendance_deduction NUMERIC(14,2) NOT NULL DEFAULT 0,
+      advance_recovery NUMERIC(14,2) NOT NULL DEFAULT 0,
+      loan_recovery NUMERIC(14,2) NOT NULL DEFAULT 0,
+      net_pay           NUMERIC(14,2) NOT NULL DEFAULT 0,
+      created_at        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE (tenant_id, payroll_run_id, employee_id)
+    );
+    CREATE INDEX IF NOT EXISTS idx_payroll_run_items_run ON payroll_run_items(tenant_id, payroll_run_id);
+    CREATE INDEX IF NOT EXISTS idx_payroll_run_items_employee ON payroll_run_items(tenant_id, employee_id);
+    ALTER TABLE payroll_run_items ADD COLUMN IF NOT EXISTS advance_recovery NUMERIC(14,2) NOT NULL DEFAULT 0;
+    ALTER TABLE payroll_run_items ADD COLUMN IF NOT EXISTS loan_recovery NUMERIC(14,2) NOT NULL DEFAULT 0;
+
+    CREATE TABLE IF NOT EXISTS employee_advances (
+      id                TEXT PRIMARY KEY,
+      tenant_id         TEXT NOT NULL REFERENCES tenants(id),
+      employee_id       TEXT NOT NULL REFERENCES employees(id) ON DELETE CASCADE,
+      request_date      DATE NOT NULL DEFAULT CURRENT_DATE,
+      amount            NUMERIC(14,2) NOT NULL DEFAULT 0,
+      recovered_amount  NUMERIC(14,2) NOT NULL DEFAULT 0,
+      monthly_recovery  NUMERIC(14,2) NOT NULL DEFAULT 0,
+      status            TEXT NOT NULL DEFAULT 'PENDING',
+      reason            TEXT NOT NULL DEFAULT '',
+      decision_note     TEXT NOT NULL DEFAULT '',
+      requested_by      TEXT REFERENCES users(id) ON DELETE SET NULL,
+      approved_by       TEXT REFERENCES users(id) ON DELETE SET NULL,
+      approved_at       TIMESTAMPTZ,
+      rejected_by       TEXT REFERENCES users(id) ON DELETE SET NULL,
+      rejected_at       TIMESTAMPTZ,
+      created_at        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      CONSTRAINT chk_employee_advances_amount CHECK (amount >= 0),
+      CONSTRAINT chk_employee_advances_recovered CHECK (recovered_amount >= 0)
+    );
+    CREATE INDEX IF NOT EXISTS idx_employee_advances_employee ON employee_advances(tenant_id, employee_id, status);
+
+    CREATE TABLE IF NOT EXISTS employee_loans (
+      id                TEXT PRIMARY KEY,
+      tenant_id         TEXT NOT NULL REFERENCES tenants(id),
+      employee_id       TEXT NOT NULL REFERENCES employees(id) ON DELETE CASCADE,
+      request_date      DATE NOT NULL DEFAULT CURRENT_DATE,
+      principal_amount  NUMERIC(14,2) NOT NULL DEFAULT 0,
+      installment_amount NUMERIC(14,2) NOT NULL DEFAULT 0,
+      recovered_amount  NUMERIC(14,2) NOT NULL DEFAULT 0,
+      status            TEXT NOT NULL DEFAULT 'PENDING',
+      reason            TEXT NOT NULL DEFAULT '',
+      decision_note     TEXT NOT NULL DEFAULT '',
+      requested_by      TEXT REFERENCES users(id) ON DELETE SET NULL,
+      approved_by       TEXT REFERENCES users(id) ON DELETE SET NULL,
+      approved_at       TIMESTAMPTZ,
+      rejected_by       TEXT REFERENCES users(id) ON DELETE SET NULL,
+      rejected_at       TIMESTAMPTZ,
+      created_at        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      CONSTRAINT chk_employee_loans_principal CHECK (principal_amount >= 0),
+      CONSTRAINT chk_employee_loans_recovered CHECK (recovered_amount >= 0)
+    );
+    CREATE INDEX IF NOT EXISTS idx_employee_loans_employee ON employee_loans(tenant_id, employee_id, status);
   `);
 
   // â”€â”€ DSR Monthly Targets â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -1776,7 +1950,7 @@ export async function createSchema(pool) {
     DO $$
     DECLARE
       new_feature TEXT;
-      new_features TEXT[] := ARRAY['employees','departments','designations','salary-payments'];
+      new_features TEXT[] := ARRAY['employees','departments','designations','salary-payments','leave_management','payroll','employee_advances','employee_loans'];
     BEGIN
       FOREACH new_feature IN ARRAY new_features LOOP
         INSERT INTO tenant_features (tenant_id, feature)
@@ -1806,6 +1980,69 @@ export async function createSchema(pool) {
     ON CONFLICT (role, tenant_id, permission) DO NOTHING;
   `);
 
+  await runBackfillOnce(pool, "leave-feature-permission-backfill", `
+    INSERT INTO tenant_features (tenant_id, feature)
+    SELECT DISTINCT tenant_id, 'leave_management' FROM tenant_features
+    ON CONFLICT (tenant_id, feature) DO NOTHING;
+
+    INSERT INTO role_permissions (role, tenant_id, permission)
+    SELECT role, tenant_id, 'leave.manage'
+    FROM role_permissions
+    WHERE role IN ('admin','manager','super_admin') AND permission = 'view_state'
+    ON CONFLICT (role, tenant_id, permission) DO NOTHING;
+
+    INSERT INTO role_permissions (role, tenant_id, permission)
+    SELECT role, tenant_id, 'leave.approve'
+    FROM role_permissions
+    WHERE role IN ('admin','super_admin') AND permission = 'view_state'
+    ON CONFLICT (role, tenant_id, permission) DO NOTHING;
+  `);
+
+  await runBackfillOnce(pool, "payroll-permission-backfill", `
+    INSERT INTO tenant_features (tenant_id, feature)
+    SELECT DISTINCT tenant_id, 'payroll' FROM tenant_features
+    ON CONFLICT (tenant_id, feature) DO NOTHING;
+
+    INSERT INTO role_permissions (role, tenant_id, permission)
+    SELECT role, tenant_id, 'payroll.view'
+    FROM role_permissions
+    WHERE role IN ('admin','manager','super_admin') AND permission = 'view_state'
+    ON CONFLICT (role, tenant_id, permission) DO NOTHING;
+
+    INSERT INTO role_permissions (role, tenant_id, permission)
+    SELECT role, tenant_id, 'payroll.generate'
+    FROM role_permissions
+    WHERE role IN ('admin','super_admin') AND permission = 'view_state'
+    ON CONFLICT (role, tenant_id, permission) DO NOTHING;
+
+    INSERT INTO role_permissions (role, tenant_id, permission)
+    SELECT role, tenant_id, 'payroll.approve'
+    FROM role_permissions
+    WHERE role IN ('admin','super_admin') AND permission = 'view_state'
+    ON CONFLICT (role, tenant_id, permission) DO NOTHING;
+  `);
+
+  await runBackfillOnce(pool, "employee-finance-permission-backfill", `
+    INSERT INTO tenant_features (tenant_id, feature)
+    SELECT DISTINCT tenant_id, 'employee_advances' FROM tenant_features
+    ON CONFLICT (tenant_id, feature) DO NOTHING;
+
+    INSERT INTO tenant_features (tenant_id, feature)
+    SELECT DISTINCT tenant_id, 'employee_loans' FROM tenant_features
+    ON CONFLICT (tenant_id, feature) DO NOTHING;
+
+    INSERT INTO role_permissions (role, tenant_id, permission)
+    SELECT role, tenant_id, 'advance.manage'
+    FROM role_permissions
+    WHERE role IN ('admin','super_admin') AND permission = 'view_state'
+    ON CONFLICT (role, tenant_id, permission) DO NOTHING;
+
+    INSERT INTO role_permissions (role, tenant_id, permission)
+    SELECT role, tenant_id, 'loan.manage'
+    FROM role_permissions
+    WHERE role IN ('admin','super_admin') AND permission = 'view_state'
+    ON CONFLICT (role, tenant_id, permission) DO NOTHING;
+  `);
   // Split Issue Center from Activity Logs without changing current tenant access:
   // any tenant that had Activity Logs enabled already should get Issue Center too.
   await runBackfillOnce(pool, "issue-center-split", `
@@ -2235,6 +2472,7 @@ export async function createSchema(pool) {
       ('1200', 'Inventory',              'ASSET',     'DEBIT'),
       ('2000', 'Accounts Payable',       'LIABILITY', 'CREDIT'),
       ('2100', 'Tax Payable',            'LIABILITY', 'CREDIT'),
+      ('2200', 'Employee Payable',       'LIABILITY', 'CREDIT'),
       ('3000', 'Owner''s Equity',        'EQUITY',    'CREDIT'),
       ('4000', 'Sales Revenue',          'REVENUE',   'CREDIT'),
       ('4010', 'Sales Returns',          'REVENUE',   'DEBIT'),
@@ -2252,9 +2490,15 @@ export async function createSchema(pool) {
     -- a purchase return is booked straight against Inventory instead (see
     -- JournalService.postPurchaseReturn). This account is retired rather than
     -- deleted, so historical rows (if any were ever posted) stay queryable.
+    INSERT INTO chart_of_accounts (code, name, type, normal_balance) VALUES ('2200', 'Employee Payable', 'LIABILITY', 'CREDIT') ON CONFLICT (code) DO NOTHING;
+
     UPDATE chart_of_accounts SET is_active = false WHERE code = '5010';
   `);
 }
+
+
+
+
 
 
 

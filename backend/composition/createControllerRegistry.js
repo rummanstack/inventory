@@ -1,5 +1,7 @@
 import { ActivityLogController } from "../controllers/activityLogController.js";
 import { AttendanceController } from "../controllers/attendanceController.js";
+import { LeaveController } from "../controllers/leaveController.js";
+import { PayrollController } from "../controllers/payrollController.js";
 import { AuditController } from "../controllers/auditController.js";
 import { AuthController } from "../controllers/authController.js";
 import { BackupController } from "../controllers/backupController.js";
@@ -17,6 +19,7 @@ import { DsrTargetController } from "../controllers/dsrTargetController.js";
 import { DepartmentController } from "../controllers/departmentController.js";
 import { DesignationController } from "../controllers/designationController.js";
 import { EmployeeController } from "../controllers/employeeController.js";
+import { EmployeeFinanceController } from "../controllers/employeeFinanceController.js";
 import { ExpenseController } from "../controllers/expenseController.js";
 import { FinanceAccountController } from "../controllers/financeAccountController.js";
 import { FinanceDashboardController } from "../controllers/financeDashboardController.js";
@@ -148,11 +151,16 @@ export function createControllerRegistry({ services, env, databaseManager }) {
     },
     hr: {
       attendanceController: new AttendanceController(services.hr.attendanceService),
+      leaveController: new LeaveController(services.hr.leaveService),
       departmentController: new DepartmentController(services.hr.departmentService),
       designationController: new DesignationController(services.hr.designationService),
       employeeController: new EmployeeController(services.hr.employeeService),
+      employeeFinanceController: new EmployeeFinanceController(services.hr.employeeFinanceService),
+      payrollController: new PayrollController(services.hr.payrollService),
       salaryPaymentController: new SalaryPaymentController(services.hr.salaryPaymentService),
     },
   };
 }
+
+
 

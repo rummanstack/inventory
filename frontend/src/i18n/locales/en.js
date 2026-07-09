@@ -153,6 +153,10 @@ const en = {
       designations: 'Designations',
       employees: 'Employees',
       salaryPayments: 'Salary',
+      leave: 'Leave',
+      payroll: 'Payroll',
+      employeeAdvances: 'Advances',
+      employeeLoans: 'Loans',
       purchaseReport: 'Purchase Report',
       stockMovementReport: 'Stock Movement Report',
       settlementReport: 'Settlement Report',
@@ -284,6 +288,13 @@ const en = {
         manage_departments: 'Manage Departments',
         manage_designations: 'Manage Designations',
         manage_payroll: 'Manage Salary Payments',
+        'leave.manage': 'Manage Leave',
+        'leave.approve': 'Approve Leave',
+        'payroll.view': 'View Payroll',
+        'payroll.generate': 'Generate Payroll',
+        'payroll.approve': 'Approve Payroll',
+        'advance.manage': 'Manage Employee Advances',
+        'loan.manage': 'Manage Employee Loans',
         view_expiry_alerts: 'View Expiry Alerts',
         manage_batch_tracking: 'Access Batch Sales Report',
         view_trial_balance: 'View Trial Balance',
@@ -4292,6 +4303,7 @@ const en = {
 };
 
 export default en;
+
 
 
 

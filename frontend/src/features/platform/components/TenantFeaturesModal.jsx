@@ -85,6 +85,10 @@ const FEATURE_DESCRIPTIONS = {
   // HR & Salary
   employees: 'Employee directory with department, designation, and salary payment details.',
   'salary-payments': 'Record and track monthly salary payments to employees.',
+  leave_management: 'Leave types, leave requests, approvals, calendars, and reports.',
+  payroll: 'Salary structures, monthly payroll runs, approvals, payslips, and payroll register.',
+  employee_advances: 'Employee advance requests, approvals, outstanding balances, and payroll recovery.',
+  employee_loans: 'Employee loan requests, approvals, installments, outstanding balances, and payroll recovery.',
 
   // System & Settings
   'user-management': 'Manage tenant user accounts, roles, and active/inactive status.',
@@ -306,3 +310,4 @@ export default function TenantFeaturesModal({ tenant, onClose, onSave }) {
     </Modal>
   );
 }
+

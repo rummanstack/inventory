@@ -172,6 +172,18 @@ export const DESIGNATION_ACTIONS = {
   UPDATE: "designation.update",
   DELETE: "designation.delete",
 };
+export const LEAVE_TYPE_ACTIONS = {
+  CREATE: "leave_type.create",
+  UPDATE: "leave_type.update",
+  DELETE: "leave_type.delete",
+};
+
+export const LEAVE_REQUEST_ACTIONS = {
+  APPLY: "leave_request.apply",
+  APPROVE: "leave_request.approve",
+  REJECT: "leave_request.reject",
+};
+
 export const EMPLOYEE_ACTIONS = {
   CREATE: "employee.create",
   UPDATE: "employee.update",
@@ -191,6 +203,18 @@ export const PAYROLL_ACTIONS = {
   APPROVE: "payroll.approve",
   PAY: "payroll.pay",
   DELETE: "payroll.delete",
+};
+
+export const EMPLOYEE_ADVANCE_ACTIONS = {
+  REQUEST: "employee_advance.request",
+  APPROVE: "employee_advance.approve",
+  REJECT: "employee_advance.reject",
+};
+
+export const EMPLOYEE_LOAN_ACTIONS = {
+  REQUEST: "employee_loan.request",
+  APPROVE: "employee_loan.approve",
+  REJECT: "employee_loan.reject",
 };
 
 export const SALARY_PAYMENT_ACTIONS = {
@@ -219,4 +243,6 @@ export const CONTACT_MESSAGE_ACTIONS = {
 export const UPLOAD_ACTIONS = {
   PHOTO_UPLOAD: "upload.photo_upload",
 };
+
+
 

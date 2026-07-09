@@ -502,6 +502,21 @@ export class JournalService {
 
   // ── Reports ──────────────────────────────────────────────────────────
 
+  async postPayrollRun(client, actor, { payrollRunId, payrollMonth, netTotal }) {
+    return this.post(client, {
+      tenantId: actor.tenantId,
+      entryDate: `${payrollMonth}-01`,
+      sourceType: JOURNAL_SOURCE_TYPES.PAYROLL_RUN,
+      sourceId: payrollRunId,
+      memo: `Payroll ${payrollMonth}`,
+      createdById: actor.id,
+      lines: [
+        { accountCode: ACCOUNTS.SALARY_EXPENSE, debit: netTotal },
+        { accountCode: ACCOUNTS.EMPLOYEE_PAYABLE, credit: netTotal },
+      ],
+    });
+  }
+
   async getChartOfAccounts() {
     return this.databaseManager.withClient((client) => listChartOfAccounts(client));
   }

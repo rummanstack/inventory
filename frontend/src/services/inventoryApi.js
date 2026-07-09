@@ -49,6 +49,9 @@ import { dsrTargetsApi } from './api/dsrTargetsApi.js';
 import { departmentsApi } from './api/departmentsApi.js';
 import { designationsApi } from './api/designationsApi.js';
 import { employeesApi } from './api/employeesApi.js';
+import { leaveApi } from './api/leaveApi.js';
+import { payrollApi } from './api/payrollApi.js';
+import { employeeFinanceApi } from './api/employeeFinanceApi.js';
 import { salaryPaymentsApi } from './api/salaryPaymentsApi.js';
 import { stockMovementsApi } from './api/stockMovementsApi.js';
 import { contactApi } from './api/contactApi.js';
@@ -107,10 +110,14 @@ export const inventoryApi = {
   ...departmentsApi,
   ...designationsApi,
   ...employeesApi,
+  ...leaveApi,
+  ...payrollApi,
+  ...employeeFinanceApi,
   ...salaryPaymentsApi,
   ...stockMovementsApi,
   ...contactApi,
   ...registrationApi,
   ...drugBatchApi,
 };
+
 

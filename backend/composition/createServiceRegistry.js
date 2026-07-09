@@ -1,4 +1,6 @@
 import { AttendanceService } from "../services/attendanceService.js";
+import { LeaveService } from "../services/leaveService.js";
+import { PayrollService } from "../services/payrollService.js";
 import { AuditService } from "../services/auditService.js";
 import { AuthService } from "../services/authService.js";
 import { BackupService } from "../services/backupService.js";
@@ -16,6 +18,7 @@ import { DsrTargetService } from "../services/dsrTargetService.js";
 import { DepartmentService } from "../services/departmentService.js";
 import { DesignationService } from "../services/designationService.js";
 import { EmployeeService } from "../services/employeeService.js";
+import { EmployeeFinanceService } from "../services/employeeFinanceService.js";
 import { ErrorLogService } from "../services/errorLogService.js";
 import { ExpenseService } from "../services/expenseService.js";
 import { FinanceAccountService } from "../services/financeAccountService.js";
@@ -207,9 +210,12 @@ export function createServiceRegistry({ databaseManager, env }) {
 
   const hr = {
     attendanceService: new AttendanceService(databaseManager),
+    leaveService: new LeaveService(databaseManager, { auditService: platform.auditService }),
     departmentService: new DepartmentService(databaseManager, { auditService: platform.auditService }),
     designationService: new DesignationService(databaseManager, { auditService: platform.auditService }),
     employeeService: new EmployeeService(databaseManager, { auditService: platform.auditService }),
+    employeeFinanceService: new EmployeeFinanceService(databaseManager, { auditService: platform.auditService }),
+    payrollService: new PayrollService(databaseManager, { auditService: platform.auditService, journalService }),
     salaryPaymentService: new SalaryPaymentService(databaseManager, {
       auditService: platform.auditService,
       financeAccountService: finance.financeAccountService,
@@ -249,5 +255,7 @@ export function createServiceRegistry({ databaseManager, env }) {
     hr,
   };
 }
+
+
 
 

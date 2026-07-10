@@ -17,6 +17,7 @@ import {
   listGeneralLedgerLines,
   getTrialBalance,
 } from "../repositories/journalRepository.js";
+import { findPostingPeriodStatus } from "../repositories/accountingRepository.js";
 
 const BALANCE_TOLERANCE = 0.0001;
 
@@ -40,6 +41,14 @@ export class JournalService {
     this.databaseManager = databaseManager;
   }
 
+  async assertPostingAllowed(client, tenantId, entryDate) {
+    const period = await findPostingPeriodStatus(client, tenantId, entryDate);
+    if (!period) return;
+    assert(period.fiscal_year_status !== "CLOSED", `Posting is blocked because fiscal year ${period.fiscal_year_name} is closed.`, 400);
+    assert(period.period_status !== "CLOSED", `Posting is blocked because period ${period.period_name} is closed.`, 400);
+    assert(!period.period_locked, `Posting is blocked because period ${period.period_name} is locked.`, 400);
+  }
+
   // ── Core primitives ──────────────────────────────────────────────────
 
   // lines: [{ accountCode, debit?, credit? }, ...]. Throws if unbalanced —
@@ -47,6 +56,7 @@ export class JournalService {
   // mapping can never leave inconsistent business + accounting state.
   async post(client, { tenantId, entryDate, sourceType, sourceId, memo, createdById, reversalOfEntryId, lines }) {
     const cleanLines = (lines || []).filter((line) => (line.debit || 0) > 0 || (line.credit || 0) > 0);
+    await this.assertPostingAllowed(client, tenantId, entryDate);
     assert(cleanLines.length > 0, `Journal entry for ${sourceType}:${sourceId} has no lines.`);
 
     const totalDebit = cleanLines.reduce((sum, line) => sum + (line.debit || 0), 0);
@@ -640,5 +650,8 @@ function computeProfitBreakdown(rows) {
     netProfit,
   };
 }
+
+
+
 
 

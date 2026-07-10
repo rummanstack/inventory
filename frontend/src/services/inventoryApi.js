@@ -1,3 +1,4 @@
+import { accountingApi } from './api/accountingApi.js';
 import { activityLogsApi } from './api/activityLogsApi.js';
 import { auditApi } from './api/auditApi.js';
 import { authApi } from './api/authApi.js';
@@ -69,6 +70,7 @@ export const inventoryApi = {
   ...expensesApi,
   ...profitApi,
   ...journalApi,
+  ...accountingApi,
   ...dsrFinanceApi,
   ...databaseBackupApi,
   ...productsApi,
@@ -121,6 +123,7 @@ export const inventoryApi = {
   ...registrationApi,
   ...drugBatchApi,
 };
+
 
 
 

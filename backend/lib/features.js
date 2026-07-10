@@ -57,6 +57,11 @@ export const TENANT_FEATURES = [
   'profit',
 
   // Accounting
+  'accounting-dashboard',
+  'chart-of-accounts',
+  'fiscal-years',
+  'opening-balances',
+  'accounting-settings',
   'general-ledger',
   'trial-balance',
   'balance-sheet',
@@ -110,4 +115,7 @@ export const TENANT_FEATURES = [
   'contact-messages',
   'registration-requests',
 ];
+
+
+
 

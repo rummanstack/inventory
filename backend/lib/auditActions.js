@@ -228,6 +228,21 @@ export const SALARY_PAYMENT_ACTIONS = {
   DELETE: "salary_payment.delete",
 };
 
+export const ACCOUNTING_ACTIONS = {
+  ACCOUNT_CREATE: "accounting.account.create",
+  ACCOUNT_UPDATE: "accounting.account.update",
+  FISCAL_YEAR_CREATE: "accounting.fiscal_year.create",
+  FISCAL_YEAR_ACTIVATE: "accounting.fiscal_year.activate",
+  FISCAL_YEAR_CLOSE: "accounting.fiscal_year.close",
+  PERIOD_OPEN: "accounting.period.open",
+  PERIOD_CLOSE: "accounting.period.close",
+  PERIOD_LOCK: "accounting.period.lock",
+  PERIOD_REOPEN: "accounting.period.reopen",
+  OPENING_BALANCE_CREATE: "accounting.opening_balance.create",
+  OPENING_BALANCE_UPDATE: "accounting.opening_balance.update",
+  SETTINGS_UPDATE: "accounting.settings.update",
+};
+
 export const TENANT_ACTIONS = {
   CREATE: "tenant.create",
   UPDATE: "tenant.update",
@@ -249,4 +264,5 @@ export const CONTACT_MESSAGE_ACTIONS = {
 export const UPLOAD_ACTIONS = {
   PHOTO_UPLOAD: "upload.photo_upload",
 };
+
 

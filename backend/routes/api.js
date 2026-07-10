@@ -1,3 +1,4 @@
+import { createAccountingRoutes } from "./accounting.routes.js";
 import { Router } from "express";
 import { requireAuth } from "../middleware/requireAuth.js";
 import { requireActiveTenant } from "../middleware/requireActiveTenant.js";
@@ -133,7 +134,7 @@ export function createApiRouter({ controllers, authService, env, auditService })
       supplierDueLedgerController,
       supplierPaymentController,
     },
-    finance: { financeAccountController, financeDashboardController, journalController },
+    finance: { accountingController, financeAccountController, financeDashboardController, journalController },
     hr: { attendanceController, departmentController, designationController, employeeController, employeeFinanceController, leaveController, payrollController, salaryPaymentController },
   } = controllers;
 
@@ -187,6 +188,7 @@ export function createApiRouter({ controllers, authService, env, auditService })
   router.use("/dsr-advances", createDsrAdvancesRoutes(dsrFinanceController));
   router.use("/profit-report", createProfitReportRoutes(profitController));
   router.use("/journal", createJournalRoutes(journalController));
+  router.use("/accounting", createAccountingRoutes(accountingController));
   router.use("/database-backup", createDatabaseBackupRoutes(backupController));
   router.use("/products", createProductsRoutes(productController));
   router.use("/categories", createCategoriesRoutes(categoryController));
@@ -236,6 +238,8 @@ export function createApiRouter({ controllers, authService, env, auditService })
 
   return router;
 }
+
+
 
 
 

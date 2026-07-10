@@ -90,6 +90,14 @@ const PERMISSION_REQUIRED_FEATURES = {
   view_trial_balance: "trial-balance",
   view_balance_sheet: "balance-sheet",
   view_profit_and_loss: "profit-and-loss",
+  view_chart_of_accounts: "chart-of-accounts",
+  manage_chart_of_accounts: "chart-of-accounts",
+  view_accounting_dashboard: "accounting-dashboard",
+  manage_accounting_settings: "accounting-settings",
+  manage_fiscal_years: "fiscal-years",
+  manage_accounting_periods: "fiscal-years",
+  view_opening_balances: "opening-balances",
+  manage_opening_balances: "opening-balances",
 };
 
 function editableRolesFor(actor) {
@@ -186,5 +194,7 @@ export class PermissionService {
     return this.getPermissions(actor, tenantId);
   }
 }
+
+
 
 

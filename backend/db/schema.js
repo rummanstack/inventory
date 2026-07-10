@@ -2515,16 +2515,105 @@ export async function createSchema(pool) {
 
     UPDATE chart_of_accounts SET is_active = false WHERE code = '5010';
   `);
+
+  await pool.query(`
+    ALTER TABLE chart_of_accounts ADD COLUMN IF NOT EXISTS parent_code TEXT REFERENCES chart_of_accounts(code);
+    ALTER TABLE chart_of_accounts ADD COLUMN IF NOT EXISTS account_group TEXT NOT NULL DEFAULT '';
+    ALTER TABLE chart_of_accounts ADD COLUMN IF NOT EXISTS is_system BOOLEAN NOT NULL DEFAULT false;
+    ALTER TABLE chart_of_accounts ADD COLUMN IF NOT EXISTS is_cash_account BOOLEAN NOT NULL DEFAULT false;
+    ALTER TABLE chart_of_accounts ADD COLUMN IF NOT EXISTS is_bank_account BOOLEAN NOT NULL DEFAULT false;
+    ALTER TABLE chart_of_accounts ADD COLUMN IF NOT EXISTS is_receivable_account BOOLEAN NOT NULL DEFAULT false;
+    ALTER TABLE chart_of_accounts ADD COLUMN IF NOT EXISTS is_payable_account BOOLEAN NOT NULL DEFAULT false;
+
+    CREATE INDEX IF NOT EXISTS idx_chart_of_accounts_parent ON chart_of_accounts(parent_code);
+
+    UPDATE chart_of_accounts SET account_group = 'Current Assets', is_system = true, is_cash_account = true WHERE code = '1000';
+    UPDATE chart_of_accounts SET account_group = 'Current Assets', is_system = true, is_bank_account = true WHERE code = '1010';
+    UPDATE chart_of_accounts SET account_group = 'Current Assets', is_system = true, is_receivable_account = true WHERE code IN ('1100', '1110', '1120');
+    UPDATE chart_of_accounts SET account_group = 'Current Assets', is_system = true WHERE code IN ('1130', '1200');
+    UPDATE chart_of_accounts SET account_group = 'Current Liabilities', is_system = true, is_payable_account = true WHERE code IN ('2000', '2100', '2200');
+    UPDATE chart_of_accounts SET account_group = 'Equity', is_system = true WHERE code = '3000';
+    UPDATE chart_of_accounts SET account_group = 'Operating Income', is_system = true WHERE code IN ('4000', '4010', '4020');
+    UPDATE chart_of_accounts SET account_group = 'Cost of Sales', is_system = true WHERE code IN ('5000', '5010');
+    UPDATE chart_of_accounts SET account_group = 'Operating Expenses', is_system = true WHERE code IN ('6000', '6010', '7000');
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS fiscal_years (
+      id           TEXT PRIMARY KEY,
+      tenant_id    TEXT NOT NULL REFERENCES tenants(id),
+      name         TEXT NOT NULL,
+      start_date   DATE NOT NULL,
+      end_date     DATE NOT NULL,
+      status       TEXT NOT NULL DEFAULT 'OPEN',
+      is_active    BOOLEAN NOT NULL DEFAULT false,
+      closed_at    TIMESTAMPTZ,
+      closed_by    TEXT REFERENCES users(id) ON DELETE SET NULL,
+      created_by   TEXT REFERENCES users(id) ON DELETE SET NULL,
+      created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      CHECK (start_date <= end_date)
+    );
+
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_fiscal_years_active ON fiscal_years(tenant_id) WHERE is_active = true;
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_fiscal_years_name ON fiscal_years(tenant_id, name);
+
+    CREATE TABLE IF NOT EXISTS accounting_periods (
+      id              TEXT PRIMARY KEY,
+      tenant_id       TEXT NOT NULL REFERENCES tenants(id),
+      fiscal_year_id  TEXT NOT NULL REFERENCES fiscal_years(id) ON DELETE CASCADE,
+      name            TEXT NOT NULL,
+      start_date      DATE NOT NULL,
+      end_date        DATE NOT NULL,
+      status          TEXT NOT NULL DEFAULT 'OPEN',
+      locked          BOOLEAN NOT NULL DEFAULT false,
+      closed_at       TIMESTAMPTZ,
+      closed_by       TEXT REFERENCES users(id) ON DELETE SET NULL,
+      created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      CHECK (start_date <= end_date)
+    );
+
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_accounting_periods_name ON accounting_periods(fiscal_year_id, name);
+    CREATE INDEX IF NOT EXISTS idx_accounting_periods_range ON accounting_periods(tenant_id, start_date, end_date);
+
+    CREATE TABLE IF NOT EXISTS accounting_settings (
+      tenant_id                TEXT PRIMARY KEY REFERENCES tenants(id),
+      default_currency         TEXT NOT NULL DEFAULT 'BDT',
+      decimal_precision        INTEGER NOT NULL DEFAULT 2,
+      voucher_prefix           TEXT NOT NULL DEFAULT 'JV',
+      financial_year_start     TEXT NOT NULL DEFAULT '01-01',
+      negative_cash_policy     TEXT NOT NULL DEFAULT 'WARN',
+      auto_posting_enabled     BOOLEAN NOT NULL DEFAULT true,
+      created_by               TEXT REFERENCES users(id) ON DELETE SET NULL,
+      created_at               TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_by               TEXT REFERENCES users(id) ON DELETE SET NULL,
+      updated_at               TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    CREATE TABLE IF NOT EXISTS opening_balances (
+      id                    TEXT PRIMARY KEY,
+      tenant_id             TEXT NOT NULL REFERENCES tenants(id),
+      reference_key         TEXT NOT NULL,
+      reference_type        TEXT NOT NULL,
+      reference_id          TEXT,
+      account_code          TEXT NOT NULL REFERENCES chart_of_accounts(code),
+      offset_account_code   TEXT NOT NULL REFERENCES chart_of_accounts(code),
+      balance_date          DATE NOT NULL,
+      amount                NUMERIC NOT NULL DEFAULT 0,
+      balance_side          TEXT NOT NULL,
+      note                  TEXT NOT NULL DEFAULT '',
+      journal_entry_id      TEXT NOT NULL REFERENCES journal_entries(id),
+      created_by            TEXT REFERENCES users(id) ON DELETE SET NULL,
+      created_at            TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_by            TEXT REFERENCES users(id) ON DELETE SET NULL,
+      updated_at            TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE (tenant_id, reference_key),
+      UNIQUE (journal_entry_id),
+      CHECK (amount >= 0)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_opening_balances_tenant_date ON opening_balances(tenant_id, balance_date DESC, created_at DESC);
+  `);
 }
-
-
-
-
-
-
-
-
-
-
-
 

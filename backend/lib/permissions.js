@@ -79,6 +79,14 @@ export const PERMISSIONS = {
   VIEW_TRIAL_BALANCE: "view_trial_balance",
   VIEW_BALANCE_SHEET: "view_balance_sheet",
   VIEW_PROFIT_AND_LOSS: "view_profit_and_loss",
+  VIEW_CHART_OF_ACCOUNTS: "view_chart_of_accounts",
+  MANAGE_CHART_OF_ACCOUNTS: "manage_chart_of_accounts",
+  VIEW_ACCOUNTING_DASHBOARD: "view_accounting_dashboard",
+  MANAGE_ACCOUNTING_SETTINGS: "manage_accounting_settings",
+  MANAGE_FISCAL_YEARS: "manage_fiscal_years",
+  MANAGE_ACCOUNTING_PERIODS: "manage_accounting_periods",
+  VIEW_OPENING_BALANCES: "view_opening_balances",
+  MANAGE_OPENING_BALANCES: "manage_opening_balances",
 };
 
 // The full catalog of permissions that can be assigned to any tenant-facing
@@ -163,6 +171,14 @@ export const TENANT_BUSINESS_PERMISSIONS = [
   PERMISSIONS.VIEW_TRIAL_BALANCE,
   PERMISSIONS.VIEW_BALANCE_SHEET,
   PERMISSIONS.VIEW_PROFIT_AND_LOSS,
+  PERMISSIONS.VIEW_CHART_OF_ACCOUNTS,
+  PERMISSIONS.MANAGE_CHART_OF_ACCOUNTS,
+  PERMISSIONS.VIEW_ACCOUNTING_DASHBOARD,
+  PERMISSIONS.MANAGE_ACCOUNTING_SETTINGS,
+  PERMISSIONS.MANAGE_FISCAL_YEARS,
+  PERMISSIONS.MANAGE_ACCOUNTING_PERIODS,
+  PERMISSIONS.VIEW_OPENING_BALANCES,
+  PERMISSIONS.MANAGE_OPENING_BALANCES,
 ];
 
 // system_developer is the platform root: unconditional, full access, never
@@ -190,6 +206,8 @@ export function hasPermission(role, permission, tenantId) {
 
   return getRolePermissions(role, tenantId).includes(permission);
 }
+
+
 
 
 

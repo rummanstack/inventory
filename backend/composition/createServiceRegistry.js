@@ -1,3 +1,4 @@
+import { AccountingService } from "../services/accountingService.js";
 import { AttendanceService } from "../services/attendanceService.js";
 import { LeaveService } from "../services/leaveService.js";
 import { PayrollService } from "../services/payrollService.js";
@@ -243,6 +244,11 @@ export function createServiceRegistry({ databaseManager, env }) {
   platform.backupService = new BackupService(databaseManager, { auditService: platform.auditService });
   platform.reportExportService = new ReportExportService();
 
+  finance.accountingService = new AccountingService(databaseManager, {
+    auditService: platform.auditService,
+    journalService,
+  });
+
   finance.financeDashboardService = new FinanceDashboardService(databaseManager, {
     financeAccountService: finance.financeAccountService,
     profitService: finance.profitService,
@@ -259,4 +265,6 @@ export function createServiceRegistry({ databaseManager, env }) {
     hr,
   };
 }
+
+
 

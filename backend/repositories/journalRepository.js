@@ -4,6 +4,14 @@ export function mapAccount(row) {
     name: row.name,
     type: row.type,
     normalBalance: row.normal_balance,
+    isActive: row.is_active == null ? true : Boolean(row.is_active),
+    parentCode: row.parent_code || null,
+    accountGroup: row.account_group || "",
+    isSystem: Boolean(row.is_system),
+    isCashAccount: Boolean(row.is_cash_account),
+    isBankAccount: Boolean(row.is_bank_account),
+    isReceivableAccount: Boolean(row.is_receivable_account),
+    isPayableAccount: Boolean(row.is_payable_account),
   };
 }
 
@@ -38,10 +46,9 @@ export function mapJournalLine(row) {
   };
 }
 
-export async function listChartOfAccounts(client) {
-  const result = await client.query(
-    `SELECT * FROM chart_of_accounts WHERE is_active = true ORDER BY code ASC`,
-  );
+export async function listChartOfAccounts(client, { activeOnly = true } = {}) {
+  const where = activeOnly ? "WHERE is_active = true" : "";
+  const result = await client.query(`SELECT * FROM chart_of_accounts ${where} ORDER BY code ASC`);
   return result.rows.map(mapAccount);
 }
 
@@ -89,10 +96,6 @@ export async function findLiveJournalEntry(client, tenantId, sourceType, sourceI
   return result.rowCount > 0 ? mapJournalEntry(result.rows[0]) : null;
 }
 
-// Finds every live (non-reversed-away) adjustment entry posted against a
-// source, e.g. all "${receiptId}:adj:..." entries for one purchase receipt —
-// used so a delete/restore can undo every adjustment made since creation, not
-// just the original entry.
 export async function listLiveJournalEntriesBySourceIdPrefix(client, tenantId, sourceType, sourceIdPrefix) {
   const result = await client.query(
     `SELECT * FROM journal_entries
@@ -176,11 +179,6 @@ export async function listGeneralLedgerLines(client, filters = {}) {
   return result.rows.map(mapJournalLine);
 }
 
-// Cumulative-to-date by default (omit dateFrom) — the correct basis for a
-// Trial Balance or Balance Sheet, since asset/liability/equity balances carry
-// forward from account inception. Passing dateFrom bounds it to a period
-// instead, which is what a Profit & Loss statement needs for its revenue and
-// expense accounts (a period total, not an all-time cumulative one).
 export async function getTrialBalance(client, { tenantId, dateFrom, dateTo }) {
   const params = [tenantId];
   let dateClause = "";
@@ -193,12 +191,6 @@ export async function getTrialBalance(client, { tenantId, dateFrom, dateTo }) {
     dateClause += ` AND journal_entries.entry_date <= $${params.length}::date`;
   }
 
-  // The date filter must live in the WHERE clause of the CTE that actually
-  // produces the rows being summed — putting it on a LEFT JOIN's ON clause
-  // instead (a previous version of this query did) doesn't restrict the SUM
-  // at all, since unmatched rows are still kept (with NULLs) by a LEFT JOIN
-  // rather than dropped, and journal_lines.debit/credit come from the OTHER
-  // join either way.
   const result = await client.query(
     `WITH filtered_lines AS (
        SELECT journal_lines.account_code, journal_lines.debit, journal_lines.credit
@@ -211,7 +203,6 @@ export async function getTrialBalance(client, { tenantId, dateFrom, dateTo }) {
             COALESCE(SUM(filtered_lines.credit), 0) AS total_credit
      FROM chart_of_accounts
      LEFT JOIN filtered_lines ON filtered_lines.account_code = chart_of_accounts.code
-     WHERE chart_of_accounts.is_active = true
      GROUP BY chart_of_accounts.code, chart_of_accounts.name, chart_of_accounts.type, chart_of_accounts.normal_balance
      ORDER BY chart_of_accounts.code ASC`,
     params,

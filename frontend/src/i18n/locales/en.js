@@ -103,6 +103,11 @@ const en = {
       trialBalance: 'Trial Balance',
       balanceSheet: 'Balance Sheet',
       profitAndLoss: 'Profit & Loss',
+      accountingDashboard: 'Accounting Dashboard',
+      chartOfAccounts: 'Chart of Accounts',
+      fiscalYears: 'Fiscal Years',
+      openingBalances: 'Opening Balances',
+      accountingSettings: 'Accounting Settings',
       dsrDueStatement: 'DSR Due Statement',
       activityLogs: 'Activity Logs',
       issueCenter: 'Issue Center',
@@ -4310,6 +4315,7 @@ const en = {
 };
 
 export default en;
+
 
 
 

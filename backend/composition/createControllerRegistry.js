@@ -1,3 +1,4 @@
+import { AccountingController } from "../controllers/accountingController.js";
 import { ActivityLogController } from "../controllers/activityLogController.js";
 import { AttendanceController } from "../controllers/attendanceController.js";
 import { LeaveController } from "../controllers/leaveController.js";
@@ -145,6 +146,7 @@ export function createControllerRegistry({ services, env, databaseManager }) {
       supplierPaymentController: new SupplierPaymentController(services.suppliers.supplierPaymentService),
     },
     finance: {
+      accountingController: new AccountingController(services.finance.accountingService),
       financeAccountController: new FinanceAccountController(services.finance.financeAccountService),
       financeDashboardController: new FinanceDashboardController(services.finance.financeDashboardService),
       journalController: new JournalController(services.finance.journalService),
@@ -161,6 +163,10 @@ export function createControllerRegistry({ services, env, databaseManager }) {
     },
   };
 }
+
+
+
+
 
 
 

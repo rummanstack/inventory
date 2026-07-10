@@ -54,6 +54,11 @@ const TrialBalancePage = lazy(() => import('../features/journal/pages/TrialBalan
 const GeneralLedgerPage = lazy(() => import('../features/journal/pages/GeneralLedgerPage'));
 const BalanceSheetPage = lazy(() => import('../features/journal/pages/BalanceSheetPage'));
 const ProfitAndLossPage = lazy(() => import('../features/journal/pages/ProfitAndLossPage'));
+const AccountingDashboardPage = lazy(() => import('../features/accounting-foundation/pages/AccountingDashboardPage'));
+const ChartOfAccountsPage = lazy(() => import('../features/accounting-foundation/pages/ChartOfAccountsPage'));
+const FiscalYearsPage = lazy(() => import('../features/accounting-foundation/pages/FiscalYearsPage'));
+const OpeningBalancesPage = lazy(() => import('../features/accounting-foundation/pages/OpeningBalancesPage'));
+const AccountingSettingsPage = lazy(() => import('../features/accounting-foundation/pages/AccountingSettingsPage'));
 const MorningIssuePage = lazy(() => import('../features/morning-issue/pages/MorningIssuePage'));
 const ProductsPage = lazy(() => import('../features/products/pages/ProductsPage'));
 const DailyReportsPage = lazy(() => import('../features/reports/pages/DailyReportsPage'));
@@ -170,6 +175,11 @@ export const APP_ROUTES = [
   { id: 'profit', path: '/profit', labelKey: 'nav.profit', icon: TrendingUp, component: ProfitPage, group: 'finance', permission: 'manage_profit_report', feature: 'profit' },
 
   // Accounting
+  { id: 'accounting-dashboard', path: '/accounting/dashboard', labelKey: 'nav.accountingDashboard', icon: LayoutDashboard, component: AccountingDashboardPage, group: 'accounting', permission: 'view_accounting_dashboard', feature: 'accounting-dashboard' },
+  { id: 'chart-of-accounts', path: '/accounting/chart-of-accounts', labelKey: 'nav.chartOfAccounts', icon: BookOpen, component: ChartOfAccountsPage, group: 'accounting', permission: 'view_chart_of_accounts', feature: 'chart-of-accounts' },
+  { id: 'fiscal-years', path: '/accounting/fiscal-years', labelKey: 'nav.fiscalYears', icon: BriefcaseBusiness, component: FiscalYearsPage, group: 'accounting', permission: 'manage_fiscal_years', feature: 'fiscal-years' },
+  { id: 'opening-balances', path: '/accounting/opening-balances', labelKey: 'nav.openingBalances', icon: Wallet, component: OpeningBalancesPage, group: 'accounting', permission: 'view_opening_balances', feature: 'opening-balances' },
+  { id: 'accounting-settings', path: '/accounting/settings', labelKey: 'nav.accountingSettings', icon: Settings, component: AccountingSettingsPage, group: 'accounting', permission: 'manage_accounting_settings', feature: 'accounting-settings' },
   { id: 'general-ledger', path: '/general-ledger', labelKey: 'nav.generalLedger', icon: BookOpen, component: GeneralLedgerPage, group: 'accounting', permission: 'view_general_ledger', feature: 'general-ledger' },
   { id: 'trial-balance', path: '/trial-balance', labelKey: 'nav.trialBalance', icon: Scale, component: TrialBalancePage, group: 'accounting', permission: 'view_trial_balance', feature: 'trial-balance' },
   { id: 'balance-sheet', path: '/balance-sheet', labelKey: 'nav.balanceSheet', icon: Landmark, component: BalanceSheetPage, group: 'accounting', permission: 'view_balance_sheet', feature: 'balance-sheet' },
@@ -248,6 +258,8 @@ export function getRouteLabel(pathname, t = (key) => key) {
 
   return matchedRoute ? t(matchedRoute.labelKey) : t('nav.dashboard');
 }
+
+
 
 
 

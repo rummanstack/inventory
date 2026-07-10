@@ -22,3 +22,4 @@ export const JOURNAL_SOURCE_TYPES = {
   PAYROLL_PAYMENT: "payroll_payment",
 };
 
+

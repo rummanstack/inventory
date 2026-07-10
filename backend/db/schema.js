@@ -2615,5 +2615,9 @@ export async function createSchema(pool) {
 
     CREATE INDEX IF NOT EXISTS idx_opening_balances_tenant_date ON opening_balances(tenant_id, balance_date DESC, created_at DESC);
   `);
+
+  await pool.query(`
+    ALTER TABLE purchase_receipts ADD COLUMN IF NOT EXISTS invoice_photo_url TEXT NOT NULL DEFAULT '';
+  `);
 }
 

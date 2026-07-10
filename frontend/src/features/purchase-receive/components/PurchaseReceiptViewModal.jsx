@@ -121,6 +121,15 @@ export default function PurchaseReceiptViewModal({ purchaseReceipt, onClose }) {
           </div>
         ) : null}
 
+        {purchaseReceipt.invoicePhotoUrl ? (
+          <div className="mt-4 border-t border-slate-200 pt-3 text-sm no-print">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">{t('purchaseReceive.invoicePhotoLabel')}</p>
+            <a href={purchaseReceipt.invoicePhotoUrl} target="_blank" rel="noreferrer" className="mt-2 block h-32 w-32 overflow-hidden rounded-xl border border-slate-200">
+              <img src={purchaseReceipt.invoicePhotoUrl} alt={t('purchaseReceive.invoicePhotoLabel')} className="h-full w-full object-cover" />
+            </a>
+          </div>
+        ) : null}
+
         <div className="mt-4 flex flex-wrap gap-2">
           <button
             type="button"

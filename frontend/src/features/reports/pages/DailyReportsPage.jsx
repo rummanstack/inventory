@@ -1,4 +1,4 @@
-import { CircleDollarSign, Download, Eye, FileSpreadsheet, FileText, Loader2, PackageCheck, Printer, RotateCcw, Truck, TrendingUp, Percent, Users, ReceiptText, Wallet, BadgeDollarSign } from 'lucide-react';
+import { CircleDollarSign, Download, Eye, FileSpreadsheet, FileText, Loader2, Package, PackageCheck, Printer, RotateCcw, Truck, TrendingUp, Percent, Users, ReceiptText, Wallet, BadgeDollarSign } from 'lucide-react';
 import PrintableSheet from '../../../components/PrintableSheet.jsx';
 import TableReportActions from '../../../components/TableReportActions.jsx';
 import { Alert, EmptyState, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton } from '../../../components/ui.jsx';
@@ -197,6 +197,56 @@ export default function DailyReportsPage() {
                 </tbody>
               </table>
             </div>
+          </div>
+
+          {/* Product Wise Sell */}
+          <div id="daily-reports-product-table" className="surface mt-6 overflow-hidden">
+            <div className="border-b border-slate-100 px-5 py-4">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <h2 className="section-title">{t('reports.productWiseTable')}</h2>
+                  <p className="mt-0.5 text-xs text-slate-400">{t('reports.productWiseTableDescription')}</p>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <TableReportActions
+                    targetId="daily-reports-product-table"
+                    title={t('reports.productWiseTable')}
+                    subtitle={reportSubtitle}
+                    fileName={`daily-reports-products-${reportFileSuffix}`}
+                    entityType="daily_reports_products"
+                    t={t}
+                    className="flex flex-wrap gap-2 no-print"
+                  />
+                  {vm.productRows.length > 0 && <span className="muted-chip">{formatNumber(vm.productRows.length)} {t('products.product')}</span>}
+                </div>
+              </div>
+            </div>
+            {vm.productRows.length === 0 ? (
+              <EmptyState title={t('reports.noProductSales')} description={t('reports.noProductSalesDescription')} icon={Package} />
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="table-head">
+                    <tr>
+                      <th className="px-4 py-3">{t('products.product')}</th>
+                      <th className="px-4 py-3 text-right">{t('reports.quantitySold')}</th>
+                      <th className="px-4 py-3 text-right">{t('reports.revenue')}</th>
+                      <th className="px-4 py-3 text-right hidden sm:table-cell">{t('reports.profit')}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {vm.productRows.map((row) => (
+                      <tr key={row.productId} className="hover:bg-slate-50">
+                        <td className="table-cell font-semibold text-slate-950">{row.productName}</td>
+                        <td className="table-cell text-right">{formatNumber(row.quantitySold)} {t('common.pcs')}</td>
+                        <td className="table-cell text-right font-semibold text-slate-950">{formatCurrency(row.revenue)}</td>
+                        <td className={`table-cell text-right hidden sm:table-cell font-semibold ${row.profit >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>{formatCurrency(row.profit)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
 
           {/* SR Table */}

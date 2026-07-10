@@ -202,6 +202,52 @@ export function useDailyReportsViewModel({ products, dsrs, today, t, tenantName 
     [dsrDueBalances],
   );
 
+  // Product-wise sell for the selected range — combines DSR settlement items
+  // (soldPieces/rate/payable, no per-item cost snapshot so cost falls back to
+  // the product's current purchase price) with retail sales invoice items
+  // (which do carry a costPriceSnapshot from time of sale).
+  const productRows = useMemo(() => {
+    const productMap = new Map(products.map((p) => [p.id, p]));
+    const rowsByProduct = new Map();
+
+    const ensureRow = (productId, productName) => {
+      if (!rowsByProduct.has(productId)) {
+        rowsByProduct.set(productId, {
+          productId,
+          productName: productName || productMap.get(productId)?.name || '-',
+          quantitySold: 0,
+          revenue: 0,
+          cost: 0,
+        });
+      }
+      return rowsByProduct.get(productId);
+    };
+
+    for (const settlement of rangeSettlements) {
+      for (const item of settlement.items || []) {
+        if (!item.productId) continue;
+        const row = ensureRow(item.productId, item.productName);
+        row.quantitySold += Number(item.soldPieces || 0);
+        row.revenue += Number(item.payable || 0);
+        row.cost += Number(item.soldPieces || 0) * Number(productMap.get(item.productId)?.purchasePrice || 0);
+      }
+    }
+
+    for (const invoice of rangeSalesInvoices) {
+      for (const item of invoice.items || []) {
+        if (!item.productId) continue;
+        const row = ensureRow(item.productId, item.productName);
+        row.quantitySold += Number(item.quantityPieces || 0);
+        row.revenue += Number(item.lineTotal || 0);
+        row.cost += Number(item.quantityPieces || 0) * Number(item.costPriceSnapshot ?? productMap.get(item.productId)?.purchasePrice ?? 0);
+      }
+    }
+
+    return [...rowsByProduct.values()]
+      .map((row) => ({ ...row, profit: row.revenue - row.cost }))
+      .sort((a, b) => b.revenue - a.revenue);
+  }, [rangeSettlements, rangeSalesInvoices, products]);
+
   const dueCollectionRows = useMemo(() => {
     const collections = rangeDueLedger.filter((e) => e.type === 'COLLECTION' && e.referenceType === 'manual_settlement');
     const byDsr = new Map();
@@ -289,6 +335,7 @@ export function useDailyReportsViewModel({ products, dsrs, today, t, tenantName 
     srRows,
     expenseRows,
     salaryRows,
+    productRows,
     profitTotals,
     selectedSheet,
     viewSheet,

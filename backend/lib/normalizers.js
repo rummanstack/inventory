@@ -360,6 +360,7 @@ export function normalizePurchaseReceipt(input) {
     dueAmount,
     paymentMethod: String(input.paymentMethod || "CASH").trim().toUpperCase() || "CASH",
     note: String(input.note || "").trim(),
+    invoicePhotoUrl: String(input.invoicePhotoUrl || "").trim(),
   };
 }
 

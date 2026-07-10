@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { Plus, Save, Trash2 } from 'lucide-react';
 import { Alert, Modal, Select } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
+import PhotoUploadField from '../../../components/PhotoUploadField.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { formatCurrency } from '../../../utils/calculations.js';
 import AuditHistory from '../../../components/AuditHistory.jsx';
@@ -245,6 +246,13 @@ export default function PurchaseReceiveFormModal({ purchaseReceipt, onClose, onS
               <label className="label">{t('purchaseReceive.noteLabel')}</label>
               <textarea className="input min-h-28" value={vm.note} onChange={(event) => vm.setNote(event.target.value)} placeholder={t('purchaseReceive.noteLabel')} />
             </div>
+            <PhotoUploadField
+              label={t('purchaseReceive.invoicePhotoLabel')}
+              value={vm.invoicePhotoUrl}
+              onChange={vm.setInvoicePhotoUrl}
+              shape="square"
+              disabled={saving}
+            />
             {vm.isEdit ? (
               <div>
                 <label className="label">{t('common.editReasonLabel')}</label>

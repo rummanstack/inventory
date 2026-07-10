@@ -17,6 +17,7 @@ export function mapPurchaseReceipt(row) {
     dueAmount: Number(row.due_amount || 0),
     paymentMethod: row.payment_method,
     note: row.note,
+    invoicePhotoUrl: row.invoice_photo_url || '',
     transactionHash: row.transaction_hash || null,
     items: Array.isArray(row.items) ? row.items : [],
     createdById: row.created_by,
@@ -181,9 +182,9 @@ export function insertPurchaseReceipt(client, purchase) {
   return client.query(
     `INSERT INTO purchase_receipts (
        id, tenant_id, purchase_number, supplier_id, supplier_invoice_no, purchase_date,
-       discount, tax_rate, tax_amount, total_amount, paid_amount, due_amount, payment_method, note, created_by, transaction_hash
+       discount, tax_rate, tax_amount, total_amount, paid_amount, due_amount, payment_method, note, invoice_photo_url, created_by, transaction_hash
      )
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
      RETURNING *`,
     [
       purchase.id,
@@ -200,6 +201,7 @@ export function insertPurchaseReceipt(client, purchase) {
       purchase.dueAmount,
       purchase.paymentMethod,
       purchase.note,
+      purchase.invoicePhotoUrl || '',
       purchase.createdById,
       transactionHash,
     ],
@@ -210,7 +212,7 @@ export function updatePurchaseReceipt(client, purchase) {
   return client.query(
     `UPDATE purchase_receipts
      SET supplier_invoice_no = $3, purchase_date = $4, discount = $5, tax_rate = $6, tax_amount = $7,
-         total_amount = $8, paid_amount = $9, due_amount = $10, payment_method = $11, note = $12, updated_at = NOW()
+         total_amount = $8, paid_amount = $9, due_amount = $10, payment_method = $11, note = $12, invoice_photo_url = $13, updated_at = NOW()
      WHERE id = $1 AND tenant_id = $2
      RETURNING *`,
     [
@@ -226,6 +228,7 @@ export function updatePurchaseReceipt(client, purchase) {
       purchase.dueAmount,
       purchase.paymentMethod,
       purchase.note,
+      purchase.invoicePhotoUrl || '',
     ],
   );
 }

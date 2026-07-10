@@ -69,6 +69,7 @@ export function usePurchaseReceiptFormViewModel({ purchaseReceipt, products, def
   const [paidAmountInput, setPaidAmountInputState] = useState(String(Number(purchaseReceipt?.paidAmount || 0)));
   const [paymentMethod, setPaymentMethod] = useState(purchaseReceipt?.paymentMethod || 'CASH');
   const [note, setNote] = useState(purchaseReceipt?.note || '');
+  const [invoicePhotoUrl, setInvoicePhotoUrl] = useState(purchaseReceipt?.invoicePhotoUrl || '');
   const [reasonInput, setReasonInput] = useState('');
 
   function addItem() {
@@ -296,6 +297,7 @@ export function usePurchaseReceiptFormViewModel({ purchaseReceipt, products, def
       paidAmount,
       paymentMethod,
       note: note.trim(),
+      invoicePhotoUrl,
       ...(isEdit ? { reason: reasonInput.trim() } : {}),
     };
   }
@@ -324,6 +326,8 @@ export function usePurchaseReceiptFormViewModel({ purchaseReceipt, products, def
     setPaymentMethod,
     note,
     setNote,
+    invoicePhotoUrl,
+    setInvoicePhotoUrl,
     reasonInput,
     setReasonInput,
     grossTotal,

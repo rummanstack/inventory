@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { requirePermission } from "../middleware/requireRole.js";
+import { requirePermission, requireAnyPermission } from "../middleware/requireRole.js";
 import { requireFeature } from "../middleware/requireFeature.js";
 import { PERMISSIONS } from "../lib/permissions.js";
 
@@ -8,7 +8,7 @@ export function createExpensesRoutes(expenseController) {
 
   router.use(requireFeature("expenses"));
 
-  router.get("/", requirePermission(PERMISSIONS.MANAGE_EXPENSES), expenseController.report);
+  router.get("/", requireAnyPermission(PERMISSIONS.MANAGE_EXPENSES, PERMISSIONS.VIEW_STATE), expenseController.report);
   router.get("/range", requirePermission(PERMISSIONS.MANAGE_EXPENSES), expenseController.range);
   router.get("/trash", requirePermission(PERMISSIONS.MANAGE_EXPENSES), expenseController.listTrash);
   router.post("/", requirePermission(PERMISSIONS.MANAGE_EXPENSES), expenseController.create);

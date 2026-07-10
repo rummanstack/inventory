@@ -1,9 +1,10 @@
-import { BadgeDollarSign, Download, FileSpreadsheet, PiggyBank, Printer, TrendingDown, TrendingUp, Wallet } from 'lucide-react';
+import { BadgeDollarSign, Download, FileSpreadsheet, Loader2, PiggyBank, Printer, TrendingDown, TrendingUp, Wallet } from 'lucide-react';
 import { Alert, ChartPanel, ChartPanelSkeleton, EmptyState, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton, TrendChart } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../services/printService.js';
 import { inventoryApi } from '../../../services/inventoryApi';
+import { useAsyncAction } from '../../../hooks/useAsyncAction.js';
 import { formatCurrency, formatDate, formatNumber } from '../../../utils/calculations.js';
 import { getCssVar } from '../../../utils/theme.js';
 import { useProfitViewModel } from '../viewmodels/useProfitViewModel';
@@ -38,6 +39,8 @@ function marginOf(row) {
 }
 
 function BreakdownTable({ t, language, columns, rows, emptyIcon, exportFileName, pdfFileName, sheetName, printId }) {
+  const [downloadingBreakdownPdf, downloadBreakdownPdf] = useAsyncAction();
+
   async function handleExportExcel() {
     const { utils, writeFile } = await import('xlsx');
     const header = columns.map((column) => column.label);
@@ -57,10 +60,11 @@ function BreakdownTable({ t, language, columns, rows, emptyIcon, exportFileName,
           <div className="flex items-center gap-2 no-print">
             <button
               type="button"
-              className="btn-secondary py-1.5 text-xs"
-              onClick={() => { inventoryApi.recordPrint({ entityType: 'profit_breakdown', entityId: null, label: 'pdf' }).catch(() => {}); downloadSheetPdf(printId, pdfFileName); }}
+              className="btn-secondary py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-60"
+              onClick={() => downloadBreakdownPdf(async () => { await inventoryApi.recordPrint({ entityType: 'profit_breakdown', entityId: null, label: 'pdf' }).catch(() => {}); await downloadSheetPdf(printId, pdfFileName); })}
+              disabled={downloadingBreakdownPdf}
             >
-              <Download size={14} />
+              {downloadingBreakdownPdf ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
               {t('purchaseReceive.downloadPdf')}
             </button>
             <button type="button" className="btn-secondary py-1.5 text-xs" onClick={handleExportExcel}>
@@ -115,6 +119,7 @@ function BreakdownTable({ t, language, columns, rows, emptyIcon, exportFileName,
 export default function ProfitPage() {
   const { t, language, hasFeature } = useInventoryApp();
   const vm = useProfitViewModel();
+  const [downloadingReportPdf, downloadReportPdf] = useAsyncAction();
 
   const tabs = [
     { key: 'overview', labelKey: 'profit.tabOverview' },
@@ -160,8 +165,10 @@ export default function ProfitPage() {
   }));
 
   function handleDownloadPdf() {
-    inventoryApi.recordPrint({ entityType: 'report', entityId: `${vm.dateFrom}_to_${vm.dateTo}`, label: `profit ${vm.dateFrom} to ${vm.dateTo}` }).catch(() => {});
-    return downloadSheetPdf('profit-report-table', `profit-report-${vm.dateFrom}-to-${vm.dateTo}.pdf`);
+    return downloadReportPdf(async () => {
+      await inventoryApi.recordPrint({ entityType: 'report', entityId: `${vm.dateFrom}_to_${vm.dateTo}`, label: `profit ${vm.dateFrom} to ${vm.dateTo}` }).catch(() => {});
+      await downloadSheetPdf('profit-report-table', `profit-report-${vm.dateFrom}-to-${vm.dateTo}.pdf`);
+    });
   }
 
   function handlePrintOverview() {
@@ -208,8 +215,8 @@ export default function ProfitPage() {
       {vm.tab === 'overview' ? (
         <>
           <div className="mb-6 flex justify-end gap-2">
-            <button type="button" className="btn-secondary" onClick={handleDownloadPdf}>
-              <Download size={18} />
+            <button type="button" className="btn-secondary disabled:cursor-not-allowed disabled:opacity-60" onClick={handleDownloadPdf} disabled={downloadingReportPdf}>
+              {downloadingReportPdf ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />}
               {t('profit.downloadPdf')}
             </button>
             <button type="button" className="btn-secondary" onClick={handlePrintOverview}>

@@ -1,4 +1,4 @@
-import { Download, FileSpreadsheet, Printer, Vault } from 'lucide-react';
+import { Download, FileSpreadsheet, Loader2, Printer, Vault } from 'lucide-react';
 import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton } from '../../../../components/ui.jsx';
 import { DatePickerField } from '../../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
@@ -6,6 +6,7 @@ import { inventoryApi } from '../../../../services/inventoryApi.js';
 import { downloadSheetPdf } from '../../../../services/printService.js';
 import { formatCurrency, formatDateTime, formatNumber } from '../../../../utils/calculations.js';
 import { useCashSessionsViewModel } from '../viewmodels/useCashSessionsViewModel';
+import { useAsyncAction } from '../../../../hooks/useAsyncAction.js';
 
 const PRINT_ID = 'cash-sessions-print';
 
@@ -24,6 +25,7 @@ export default function CashSessionsPage() {
   const { t } = useInventoryApp();
   const vm = useCashSessionsViewModel();
   const sessions = vm.items || [];
+  const [downloadingPdf, downloadPdf] = useAsyncAction();
 
   const totals = sessions.reduce(
     (acc, s) => {
@@ -91,10 +93,11 @@ export default function CashSessionsPage() {
           <div className="flex gap-2">
             <button
               type="button"
-              className="btn-secondary py-1.5 text-xs"
-              onClick={() => { inventoryApi.recordPrint({ entityType: 'cash_sessions', entityId: null, label: 'pdf' }).catch(() => {}); downloadSheetPdf(PRINT_ID, 'cash-sessions.pdf'); }}
+              className="btn-secondary py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-60"
+              onClick={() => downloadPdf(async () => { await inventoryApi.recordPrint({ entityType: 'cash_sessions', entityId: null, label: 'pdf' }).catch(() => {}); await downloadSheetPdf(PRINT_ID, 'cash-sessions.pdf'); })}
+              disabled={downloadingPdf}
             >
-              <Download size={14} />
+              {downloadingPdf ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
               {t('purchaseReceive.downloadPdf')}
             </button>
             <button type="button" className="btn-secondary py-1.5 text-xs" onClick={handleExportExcel}>

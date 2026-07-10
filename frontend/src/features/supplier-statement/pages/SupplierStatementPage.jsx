@@ -1,4 +1,4 @@
-import { Download, FileSpreadsheet, Printer, RefreshCw, Wallet } from 'lucide-react';
+import { Download, FileSpreadsheet, Loader2, Printer, RefreshCw, Wallet } from 'lucide-react';
 import { Badge, EmptyState, SectionHeader, StatCard, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
@@ -7,6 +7,7 @@ import { inventoryApi } from '../../../services/inventoryApi';
 import { formatCurrency, formatDateTime } from '../../../utils/calculations.js';
 import SupplierStatementPrintSheet from '../components/SupplierStatementPrintSheet';
 import { useSupplierStatementViewModel } from '../viewmodels/useSupplierStatementViewModel';
+import { useAsyncAction } from '../../../hooks/useAsyncAction.js';
 
 function ledgerTone(type) {
   if (type === 'PAYMENT') return 'emerald';
@@ -21,6 +22,7 @@ export default function SupplierStatementPage() {
   const vm = useSupplierStatementViewModel({ suppliers: supplierDirectory });
   const entries = vm.statement?.entries || [];
   const printTargetId = 'supplier-statement-print-sheet';
+  const [downloadingPdf, downloadPdf] = useAsyncAction();
 
   function recordStatementPrint(label) {
     if (!vm.supplierId) return;
@@ -72,10 +74,11 @@ export default function SupplierStatementPage() {
             <>
               <button
                 type="button"
-                className="btn-secondary"
-                onClick={() => { recordStatementPrint('pdf'); downloadSheetPdf(printTargetId, `supplier-statement-${vm.statement.supplier?.name || vm.supplierId}.pdf`); }}
+                className="btn-secondary disabled:cursor-not-allowed disabled:opacity-60"
+                onClick={() => downloadPdf(async () => { recordStatementPrint('pdf'); await downloadSheetPdf(printTargetId, `supplier-statement-${vm.statement.supplier?.name || vm.supplierId}.pdf`); })}
+                disabled={downloadingPdf}
               >
-                <Download size={18} />
+                {downloadingPdf ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />}
                 {t('supplierStatement.downloadPdf')}
               </button>
               <button

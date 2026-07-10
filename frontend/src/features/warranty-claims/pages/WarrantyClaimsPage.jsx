@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Download, FileSpreadsheet, Pencil, Plus, Printer, Receipt, Search, Trash2, Wrench } from 'lucide-react';
+import { Download, FileSpreadsheet, Loader2, Pencil, Plus, Printer, Receipt, Search, Trash2, Wrench } from 'lucide-react';
 import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
@@ -10,6 +10,7 @@ import { formatDate, formatDateTime, formatNumber } from '../../../utils/calcula
 import { warrantyClaimStatusTone } from '../../../models/inventoryViewData.js';
 import WarrantyClaimFormModal from '../components/WarrantyClaimFormModal';
 import { useWarrantyClaimsViewModel } from '../viewmodels/useWarrantyClaimsViewModel';
+import { useAsyncAction } from '../../../hooks/useAsyncAction.js';
 
 const STATUS_VALUES = ['RECEIVED', 'SENT_TO_SUPPLIER', 'REPAIRED', 'REPLACED', 'REJECTED', 'DELIVERED'];
 const WARRANTY_CLAIMS_PRINT_ID = 'warranty-claims-print';
@@ -20,6 +21,7 @@ export default function WarrantyClaimsPage() {
   const vm = useWarrantyClaimsViewModel();
   const [formModal, setFormModal] = useState(null);
   const canManage = can('manage_warranty_claims');
+  const [downloadingPdf, downloadPdf] = useAsyncAction();
 
   async function handleExportExcel() {
     const result = await inventoryApi.listWarrantyClaims({
@@ -70,10 +72,14 @@ export default function WarrantyClaimsPage() {
           <div className="flex gap-2">
             <button
               type="button"
-              className="btn-secondary py-1.5 text-xs"
-              onClick={() => { inventoryApi.recordPrint({ entityType: 'warranty_claims', entityId: null, label: 'pdf' }).catch(() => {}); downloadSheetPdf(WARRANTY_CLAIMS_PRINT_ID, 'warranty-claims.pdf'); }}
+              className="btn-secondary py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-60"
+              onClick={() => downloadPdf(async () => {
+                await inventoryApi.recordPrint({ entityType: 'warranty_claims', entityId: null, label: 'pdf' }).catch(() => {});
+                await downloadSheetPdf(WARRANTY_CLAIMS_PRINT_ID, 'warranty-claims.pdf');
+              })}
+              disabled={downloadingPdf}
             >
-              <Download size={14} />
+              {downloadingPdf ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
               {t('purchaseReceive.downloadPdf')}
             </button>
             <button type="button" className="btn-secondary py-1.5 text-xs" onClick={handleExportExcel}>

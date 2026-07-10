@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeftRight, Boxes, Download, FileSpreadsheet, HandCoins, Landmark, Plus, Printer, Scale, Trash2, Wallet } from 'lucide-react';
+import { ArrowLeftRight, Boxes, Download, FileSpreadsheet, HandCoins, Landmark, Loader2, Plus, Printer, Scale, Trash2, Wallet } from 'lucide-react';
 import { Alert, Badge, EmptyState, Pagination, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
@@ -7,6 +7,7 @@ import { downloadSheetPdf } from '../../../services/printService.js';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import { formatCurrency, formatDate, formatDateTime } from '../../../utils/calculations.js';
 import { useFinanceAccountsViewModel } from '../viewmodels/useFinanceAccountsViewModel';
+import { useAsyncAction } from '../../../hooks/useAsyncAction.js';
 import AccountTransactionFormModal from '../components/AccountTransactionFormModal';
 import AccountTransferFormModal from '../components/AccountTransferFormModal';
 
@@ -25,6 +26,7 @@ export default function FinanceAccountsPage() {
   const vm = useFinanceAccountsViewModel({ confirm });
   const [modal, setModal] = useState(null);
   const canManage = can('manage_finance_accounts');
+  const [downloadingPdf, downloadPdf] = useAsyncAction();
 
   const cashBalance = vm.accounts.find((a) => a.type === 'CASH')?.balance || 0;
   const bankBalance = vm.accounts.find((a) => a.type === 'BANK')?.balance || 0;
@@ -140,10 +142,14 @@ export default function FinanceAccountsPage() {
           <div className="mt-3 flex flex-wrap gap-2">
             <button
               type="button"
-              className="btn-secondary py-1.5 text-xs"
-              onClick={() => { inventoryApi.recordPrint({ entityType: 'finance_accounts', entityId: null, label: 'pdf' }).catch(() => {}); downloadSheetPdf(FINANCE_ACCOUNTS_PRINT_ID, 'finance-accounts.pdf'); }}
+              className="btn-secondary py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-60"
+              onClick={() => downloadPdf(async () => {
+                await inventoryApi.recordPrint({ entityType: 'finance_accounts', entityId: null, label: 'pdf' }).catch(() => {});
+                await downloadSheetPdf(FINANCE_ACCOUNTS_PRINT_ID, 'finance-accounts.pdf');
+              })}
+              disabled={downloadingPdf}
             >
-              <Download size={14} />
+              {downloadingPdf ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
               {t('purchaseReceive.downloadPdf')}
             </button>
             <button type="button" className="btn-secondary py-1.5 text-xs" onClick={handleExportExcel}>

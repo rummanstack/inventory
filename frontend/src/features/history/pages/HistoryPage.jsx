@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Download, FileSpreadsheet, FileText, Printer, RotateCcw, Search, Truck } from 'lucide-react';
+import { Download, FileSpreadsheet, FileText, Loader2, Printer, RotateCcw, Search, Truck } from 'lucide-react';
 import { Alert, Badge, EmptyState, Pagination, SectionHeader, StatCard, TableSkeleton } from '../../../components/ui.jsx';
 import { statusTone } from '../../../models/inventoryViewData.js';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
@@ -7,6 +7,7 @@ import { downloadSheetPdf } from '../../../services/printService.js';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import { formatCurrency, formatDate, formatNumber } from '../../../utils/calculations.js';
 import { useHistoryViewModel } from '../viewmodels/useHistoryViewModel';
+import { useAsyncAction } from '../../../hooks/useAsyncAction.js';
 
 const TABS = [
   { key: 'issues', labelKey: 'history.issuesTab', icon: Truck },
@@ -21,6 +22,7 @@ export default function HistoryPage() {
   const issuesVm = useHistoryViewModel('issues');
   const settlementsVm = useHistoryViewModel('settlements');
   const vm = activeTab === 'issues' ? issuesVm : settlementsVm;
+  const [downloadingPdf, downloadPdf] = useAsyncAction();
 
   async function handleExportExcel() {
     const { utils, writeFile } = await import('xlsx');
@@ -79,10 +81,14 @@ export default function HistoryPage() {
           <div className="mt-3 flex flex-wrap gap-2">
             <button
               type="button"
-              className="btn-secondary py-1.5 text-xs"
-              onClick={() => { inventoryApi.recordPrint({ entityType: 'history', entityId: null, label: 'pdf' }).catch(() => {}); downloadSheetPdf(HISTORY_PRINT_ID, `history-${activeTab}.pdf`); }}
+              className="btn-secondary py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-60"
+              onClick={() => downloadPdf(async () => {
+                await inventoryApi.recordPrint({ entityType: 'history', entityId: null, label: 'pdf' }).catch(() => {});
+                await downloadSheetPdf(HISTORY_PRINT_ID, `history-${activeTab}.pdf`);
+              })}
+              disabled={downloadingPdf}
             >
-              <Download size={14} />
+              {downloadingPdf ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
               {t('purchaseReceive.downloadPdf')}
             </button>
             <button type="button" className="btn-secondary py-1.5 text-xs" onClick={handleExportExcel}>

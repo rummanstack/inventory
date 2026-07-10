@@ -1,9 +1,10 @@
-import { Download, Printer } from 'lucide-react';
+import { Download, Loader2, Printer } from 'lucide-react';
 import { Badge, Modal } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import AuditHistory from '../../../components/AuditHistory.jsx';
 import { downloadSheetPdf, printElementById } from '../../../services/printService.js';
 import { inventoryApi } from '../../../services/inventoryApi';
+import { useAsyncAction } from '../../../hooks/useAsyncAction.js';
 import { formatCasePiece, formatCurrency, formatDate, formatNumber } from '../../../utils/calculations.js';
 import { paymentStatusOf, paymentStatusTone } from '../../../models/inventoryViewData.js';
 import PurchaseReceiptPrintSheet from './PurchaseReceiptPrintSheet';
@@ -23,6 +24,7 @@ export default function PurchaseReceiptViewModal({ purchaseReceipt, onClose }) {
   const isPharmacy = tenant?.businessType === 'DRUG_PHARMACY';
   const items = purchaseReceipt.items || [];
   const printTargetId = `purchase-receipt-print-${purchaseReceipt.id}`;
+  const [downloadingPdf, downloadPdf] = useAsyncAction();
 
   function recordPurchasePrint(label) {
     inventoryApi.recordPrint({ entityType: 'purchase_receipt', entityId: purchaseReceipt.id, label }).catch(() => {});
@@ -120,10 +122,11 @@ export default function PurchaseReceiptViewModal({ purchaseReceipt, onClose }) {
         <div className="mt-4 flex flex-wrap gap-2">
           <button
             type="button"
-            className="btn-secondary"
-            onClick={() => { recordPurchasePrint('pdf'); downloadSheetPdf(printTargetId, `purchase-${purchaseReceipt.purchaseNumber}.pdf`); }}
+            className="btn-secondary disabled:cursor-not-allowed disabled:opacity-60"
+            onClick={() => downloadPdf(async () => { recordPurchasePrint('pdf'); await downloadSheetPdf(printTargetId, `purchase-${purchaseReceipt.purchaseNumber}.pdf`); })}
+            disabled={downloadingPdf}
           >
-            <Download size={18} />
+            {downloadingPdf ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />}
             {t('purchaseReceive.downloadPdf')}
           </button>
           <button

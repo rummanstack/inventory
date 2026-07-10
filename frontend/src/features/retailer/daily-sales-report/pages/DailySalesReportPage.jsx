@@ -1,4 +1,4 @@
-import { Download, FileSpreadsheet, Printer, Wallet } from 'lucide-react';
+import { Download, FileSpreadsheet, Loader2, Printer, Wallet } from 'lucide-react';
 import { Alert, EmptyState, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton, Select } from '../../../../components/ui.jsx';
 import { DatePickerField } from '../../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
@@ -6,12 +6,14 @@ import { downloadSheetPdf } from '../../../../services/printService.js';
 import { inventoryApi } from '../../../../services/inventoryApi.js';
 import { formatCurrency, formatDate, formatNumber } from '../../../../utils/calculations.js';
 import { useDailySalesReportViewModel } from '../viewmodels/useDailySalesReportViewModel';
+import { useAsyncAction } from '../../../../hooks/useAsyncAction.js';
 
 export default function DailySalesReportPage() {
   const { t, language } = useInventoryApp();
   const vm = useDailySalesReportViewModel();
   const printTargetId = 'daily-sales-report-print';
   const rows = vm.report?.rows || [];
+  const [downloadingPdf, downloadPdf] = useAsyncAction();
 
   async function handleExportExcel() {
     const { utils, writeFile } = await import('xlsx');
@@ -98,10 +100,11 @@ export default function DailySalesReportPage() {
           <div className="mb-4 flex flex-wrap gap-2 no-print">
             <button
               type="button"
-              className="btn-secondary"
-              onClick={() => { inventoryApi.recordPrint({ entityType: 'daily_sales_report', entityId: null, label: 'pdf' }).catch(() => {}); downloadSheetPdf(printTargetId, `daily-sales-report-${vm.dateFrom}-${vm.dateTo}.pdf`); }}
+              className="btn-secondary disabled:cursor-not-allowed disabled:opacity-60"
+              onClick={() => downloadPdf(async () => { await inventoryApi.recordPrint({ entityType: 'daily_sales_report', entityId: null, label: 'pdf' }).catch(() => {}); await downloadSheetPdf(printTargetId, `daily-sales-report-${vm.dateFrom}-${vm.dateTo}.pdf`); })}
+              disabled={downloadingPdf}
             >
-              <Download size={18} />
+              {downloadingPdf ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />}
               {t('purchaseReceive.downloadPdf')}
             </button>
             <button type="button" className="btn-secondary" onClick={handleExportExcel}>

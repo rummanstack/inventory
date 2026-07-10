@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { CheckCircle2, Download, FileSpreadsheet, MapPin, Pencil, Phone, Plus, Printer, Search, Target, Trash2, Users } from 'lucide-react';
+import { CheckCircle2, Download, FileSpreadsheet, Loader2, MapPin, Pencil, Phone, Plus, Printer, Search, Target, Trash2, Users } from 'lucide-react';
 import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
 import { statusTone } from '../../../models/inventoryViewData.js';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
@@ -9,6 +9,7 @@ import { formatCurrency, formatNumber } from '../../../utils/calculations.js';
 import DsrFormModal from '../components/DsrFormModal';
 import DsrTargetModal from '../components/DsrTargetModal';
 import { useDsrViewModel } from '../viewmodels/useDsrViewModel';
+import { useAsyncAction } from '../../../hooks/useAsyncAction.js';
 
 const DSR_PRINT_ID = 'dsr-print';
 
@@ -19,6 +20,7 @@ export default function DsrPage() {
   const [targetModal, setTargetModal] = useState(false);
   const [targetSummary, setTargetSummary] = useState([]);
   const canManageDsrs = can('manage_dsrs');
+  const [downloadingPdf, downloadPdf] = useAsyncAction();
 
   const currentMonth = today ? today.slice(0, 7) : new Date().toISOString().slice(0, 7);
 
@@ -75,10 +77,14 @@ export default function DsrPage() {
               <span className="muted-chip">{formatNumber(vm.total)} {t('common.dsr')}</span>
               <button
                 type="button"
-                className="btn-secondary no-print py-1.5 text-xs"
-                onClick={() => { inventoryApi.recordPrint({ entityType: 'dsr', entityId: null, label: 'pdf' }).catch(() => {}); downloadSheetPdf(DSR_PRINT_ID, 'dsr-directory.pdf'); }}
+                className="btn-secondary no-print py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-60"
+                onClick={() => downloadPdf(async () => {
+                  await inventoryApi.recordPrint({ entityType: 'dsr', entityId: null, label: 'pdf' }).catch(() => {});
+                  await downloadSheetPdf(DSR_PRINT_ID, 'dsr-directory.pdf');
+                })}
+                disabled={downloadingPdf}
               >
-                <Download size={14} />
+                {downloadingPdf ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
                 {t('purchaseReceive.downloadPdf')}
               </button>
               <button type="button" className="btn-secondary no-print py-1.5 text-xs" onClick={handleExportExcel}>

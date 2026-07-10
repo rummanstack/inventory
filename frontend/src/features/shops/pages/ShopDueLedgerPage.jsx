@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { Download, FileSpreadsheet, HandCoins, Plus, Printer, RefreshCw, Wallet } from 'lucide-react';
+import { Download, FileSpreadsheet, HandCoins, Loader2, Plus, Printer, RefreshCw, Wallet } from 'lucide-react';
 import { Alert, Badge, EmptyState, Modal, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../services/printService.js';
 import { inventoryApi } from '../../../services/inventoryApi.js';
+import { useAsyncAction } from '../../../hooks/useAsyncAction.js';
 import { formatCurrency, formatDate, formatDateTime, reverseEntries } from '../../../utils/calculations.js';
 import { useShopDueStatementViewModel } from '../viewmodels/useShopDueStatementViewModel.js';
 
@@ -81,6 +82,7 @@ export default function ShopDueLedgerPage() {
   const vm = useShopDueStatementViewModel({ shops: shopDirectory });
   const entries = reverseEntries(vm.statement?.entries);
   const [modal, setModal] = useState(null); // 'due' | 'collect' | null
+  const [downloadingPdf, downloadPdf] = useAsyncAction();
 
   const selectedShop = shopDirectory.find((s) => s.id === vm.shopId);
   const canManage = can('manage_customers');
@@ -177,13 +179,14 @@ export default function ShopDueLedgerPage() {
             <>
               <button
                 type="button"
-                className="btn-secondary"
-                onClick={() => {
-                  inventoryApi.recordPrint({ entityType: 'shop_due_statement', entityId: vm.shopId, label: 'pdf' }).catch(() => {});
-                  downloadSheetPdf(PRINT_ID, `shop-due-${selectedShop?.shopName || vm.shopId}.pdf`);
-                }}
+                className="btn-secondary disabled:cursor-not-allowed disabled:opacity-60"
+                onClick={() => downloadPdf(async () => {
+                  await inventoryApi.recordPrint({ entityType: 'shop_due_statement', entityId: vm.shopId, label: 'pdf' }).catch(() => {});
+                  await downloadSheetPdf(PRINT_ID, `shop-due-${selectedShop?.shopName || vm.shopId}.pdf`);
+                })}
+                disabled={downloadingPdf}
               >
-                <Download size={18} />
+                {downloadingPdf ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />}
                 {t('purchaseReceive.downloadPdf')}
               </button>
               <button type="button" className="btn-secondary" onClick={handleExportExcel}>

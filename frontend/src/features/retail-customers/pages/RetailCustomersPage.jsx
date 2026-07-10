@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Download, FileSpreadsheet, Pencil, Phone, Plus, Printer, Search, Trash2, Users } from 'lucide-react';
+import { Download, FileSpreadsheet, Loader2, Pencil, Phone, Plus, Printer, Search, Trash2, Users } from 'lucide-react';
 import { Alert, Badge, EmptyState, MobileCardList, MobileListCard, Pagination, SectionHeader, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { statusTone } from '../../../models/inventoryViewData.js';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
@@ -9,6 +9,7 @@ import { inventoryApi } from '../../../services/inventoryApi.js';
 import { formatCurrency } from '../../../utils/calculations.js';
 import RetailCustomerFormModal from '../components/RetailCustomerFormModal.jsx';
 import { useRetailCustomersViewModel } from '../viewmodels/useRetailCustomersViewModel';
+import { useAsyncAction } from '../../../hooks/useAsyncAction.js';
 
 const RETAIL_CUSTOMERS_PRINT_ID = 'retail-customers-print';
 
@@ -18,6 +19,7 @@ export default function RetailCustomersPage() {
   const vm = useRetailCustomersViewModel();
   const [formModal, setFormModal] = useState(null);
   const canManage = can('manage_retail_customers_write');
+  const [downloadingPdf, downloadPdf] = useAsyncAction();
 
   async function handleExportExcel() {
     const result = await inventoryApi.listRetailCustomers({ search: vm.search || undefined, status: vm.status || undefined, page: 1, pageSize: 10000 });
@@ -104,10 +106,11 @@ export default function RetailCustomersPage() {
               <span className="muted-chip">{vm.total} {t('retailCustomers.count')}</span>
               <button
                 type="button"
-                className="btn-secondary no-print py-1.5 text-xs"
-                onClick={() => { inventoryApi.recordPrint({ entityType: 'retail_customers', entityId: null, label: 'pdf' }).catch(() => {}); downloadSheetPdf(RETAIL_CUSTOMERS_PRINT_ID, 'retail-customers.pdf'); }}
+                className="btn-secondary no-print py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-60"
+                onClick={() => downloadPdf(async () => { await inventoryApi.recordPrint({ entityType: 'retail_customers', entityId: null, label: 'pdf' }).catch(() => {}); await downloadSheetPdf(RETAIL_CUSTOMERS_PRINT_ID, 'retail-customers.pdf'); })}
+                disabled={downloadingPdf}
               >
-                <Download size={14} />
+                {downloadingPdf ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
                 {t('purchaseReceive.downloadPdf')}
               </button>
               <button type="button" className="btn-secondary no-print py-1.5 text-xs" onClick={handleExportExcel}>

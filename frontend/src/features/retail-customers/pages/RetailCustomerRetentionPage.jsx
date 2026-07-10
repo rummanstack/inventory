@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ArrowRight, Download, FileSpreadsheet, Printer, RefreshCw, Sparkles, TrendingUp, Users, UserRound } from 'lucide-react';
+import { ArrowRight, Download, FileSpreadsheet, Loader2, Printer, RefreshCw, Sparkles, TrendingUp, Users, UserRound } from 'lucide-react';
 import { Alert, Badge, EmptyState, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../services/printService.js';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import { formatCurrency, formatDate, formatNumber } from '../../../utils/calculations.js';
+import { useAsyncAction } from '../../../hooks/useAsyncAction.js';
 
 const RETENTION_PRINT_ID = 'retail-customer-retention-print';
 
@@ -42,6 +43,7 @@ export default function RetailCustomerRetentionPage() {
   const [error, setError] = useState('');
   const [response, setResponse] = useState(null);
   const [selectedCustomerId, setSelectedCustomerId] = useState('');
+  const [downloadingPdf, downloadPdf] = useAsyncAction();
 
   const customers = response?.customers || [];
   const repeatCustomers = response?.repeatCustomers || [];
@@ -191,10 +193,11 @@ export default function RetailCustomerRetentionPage() {
             </button>
             <button
               type="button"
-              className="btn-secondary"
-              onClick={() => { inventoryApi.recordPrint({ entityType: 'retail_customer_retention', entityId: null, label: 'pdf' }).catch(() => {}); downloadSheetPdf(RETENTION_PRINT_ID, 'retail-customer-retention.pdf'); }}
+              className="btn-secondary disabled:cursor-not-allowed disabled:opacity-60"
+              onClick={() => downloadPdf(async () => { await inventoryApi.recordPrint({ entityType: 'retail_customer_retention', entityId: null, label: 'pdf' }).catch(() => {}); await downloadSheetPdf(RETENTION_PRINT_ID, 'retail-customer-retention.pdf'); })}
+              disabled={downloadingPdf}
             >
-              <Download size={16} />
+              {downloadingPdf ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
               {t('purchaseReceive.downloadPdf')}
             </button>
             <button type="button" className="btn-secondary" onClick={handleExportExcel}>

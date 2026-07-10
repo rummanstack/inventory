@@ -1,4 +1,4 @@
-import { CircleDollarSign, Download, Eye, FileSpreadsheet, FileText, PackageCheck, Printer, RotateCcw, Truck, TrendingUp, Percent, Users, ReceiptText, Wallet, BadgeDollarSign } from 'lucide-react';
+import { CircleDollarSign, Download, Eye, FileSpreadsheet, FileText, Loader2, PackageCheck, Printer, RotateCcw, Truck, TrendingUp, Percent, Users, ReceiptText, Wallet, BadgeDollarSign } from 'lucide-react';
 import PrintableSheet from '../../../components/PrintableSheet.jsx';
 import TableReportActions from '../../../components/TableReportActions.jsx';
 import { Alert, EmptyState, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton } from '../../../components/ui.jsx';
@@ -9,10 +9,12 @@ import { inventoryApi } from '../../../services/inventoryApi';
 import { formatCurrency, formatDate, formatNumber } from '../../../utils/calculations.js';
 import { useDailyReportsViewModel } from '../viewmodels/useDailyReportsViewModel';
 import DailyClosePanel from '../components/DailyClosePanel.jsx';
+import { useAsyncAction } from '../../../hooks/useAsyncAction.js';
 
 export default function DailyReportsPage() {
   const { productDirectory, dsrDirectory, today, t, tenant, language } = useInventoryApp();
   const vm = useDailyReportsViewModel({ products: productDirectory, dsrs: dsrDirectory, today, t, tenantName: tenant?.name });
+  const [downloadingSheetPdf, downloadSheetPdfAction] = useAsyncAction();
   const dueCollectedTotal = vm.dueCollectionRows.reduce((sum, r) => sum + r.total, 0);
   const reportFileSuffix = vm.isSingleDay ? vm.dateFrom : `${vm.dateFrom}-to-${vm.dateTo}`;
   const reportSubtitle = vm.isSingleDay ? vm.dateFrom : `${vm.dateFrom} to ${vm.dateTo}`;
@@ -466,8 +468,16 @@ export default function DailyReportsPage() {
                   <p className="text-sm text-slate-500">{vm.selectedSheet.dsrName} - {formatDate(vm.selectedSheet.date)}</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <button type="button" className="btn-secondary" onClick={() => { recordReportPrint('pdf'); downloadSheetPdf('report-print-sheet', buildPdfFileName(vm.selectedSheet)); }}>
-                    <Download size={18} />
+                  <button
+                    type="button"
+                    className="btn-secondary disabled:cursor-not-allowed disabled:opacity-60"
+                    onClick={() => downloadSheetPdfAction(async () => {
+                      recordReportPrint('pdf');
+                      await downloadSheetPdf('report-print-sheet', buildPdfFileName(vm.selectedSheet));
+                    })}
+                    disabled={downloadingSheetPdf}
+                  >
+                    {downloadingSheetPdf ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />}
                     {t('reports.downloadPdf')}
                   </button>
                   <button type="button" className="btn-secondary" onClick={handleExportSheetExcel}>

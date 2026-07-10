@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Download, FileSpreadsheet, Plus, Printer, RotateCcw } from 'lucide-react';
+import { Download, FileSpreadsheet, Loader2, Plus, Printer, RotateCcw } from 'lucide-react';
 import { Alert, EmptyState, Pagination, SectionHeader, TableSkeleton, Select } from '../../../../components/ui.jsx';
 import { DatePickerField } from '../../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
@@ -8,12 +8,14 @@ import { inventoryApi } from '../../../../services/inventoryApi.js';
 import { formatCurrency, formatDate, formatDateTime, formatNumber } from '../../../../utils/calculations.js';
 import SalesReturnFormModal from '../components/SalesReturnFormModal';
 import { useSalesReturnsViewModel } from '../viewmodels/useSalesReturnsViewModel';
+import { useAsyncAction } from '../../../../hooks/useAsyncAction.js';
 
 export default function SalesReturnPage() {
   const { saveSalesReturn, t, can, retailCustomerDirectory, language } = useInventoryApp();
   const vm = useSalesReturnsViewModel();
   const [showFormModal, setShowFormModal] = useState(false);
   const canManageRetailers = can('manage_retail_sales_returns');
+  const [downloadingPdf, downloadPdf] = useAsyncAction();
 
   async function handleExportExcel() {
     const result = await inventoryApi.listSalesReturns({
@@ -56,10 +58,11 @@ export default function SalesReturnPage() {
               <span className="muted-chip">{formatNumber(vm.total, language)} {t('retailer.salesReturn.returnCount')}</span>
               <button
                 type="button"
-                className="btn-secondary no-print py-1.5 text-xs"
-                onClick={() => { inventoryApi.recordPrint({ entityType: 'sales_return', entityId: null, label: 'pdf' }).catch(() => {}); downloadSheetPdf('sales-return-print', `sales-return-report.pdf`); }}
+                className="btn-secondary no-print py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-60"
+                onClick={() => downloadPdf(async () => { await inventoryApi.recordPrint({ entityType: 'sales_return', entityId: null, label: 'pdf' }).catch(() => {}); await downloadSheetPdf('sales-return-print', `sales-return-report.pdf`); })}
+                disabled={downloadingPdf}
               >
-                <Download size={14} />
+                {downloadingPdf ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
                 {t('purchaseReceive.downloadPdf')}
               </button>
               <button type="button" className="btn-secondary no-print py-1.5 text-xs" onClick={handleExportExcel}>

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Download, FileSpreadsheet, Pencil, Plus, Printer, Trash2, Wallet } from 'lucide-react';
+import { Download, FileSpreadsheet, Loader2, Pencil, Plus, Printer, Trash2, Wallet } from 'lucide-react';
 import { Alert, EmptyState, Pagination, SectionHeader, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
@@ -8,6 +8,7 @@ import { downloadSheetPdf } from '../../../services/printService.js';
 import { formatCurrency, formatDate, formatDateTime, formatNumber } from '../../../utils/calculations.js';
 import SupplierPaymentFormModal from '../components/SupplierPaymentFormModal';
 import { useSupplierPaymentsViewModel } from '../viewmodels/useSupplierPaymentsViewModel';
+import { useAsyncAction } from '../../../hooks/useAsyncAction.js';
 
 const SUPPLIER_PAYMENTS_PRINT_ID = 'supplier-payments-print';
 
@@ -16,6 +17,7 @@ export default function SupplierPaymentsPage() {
   const vm = useSupplierPaymentsViewModel();
   const [formModal, setFormModal] = useState(null);
   const canManagePayments = can('manage_supplier_payments');
+  const [downloadingPdf, downloadPdf] = useAsyncAction();
 
   async function handleExportExcel() {
     const result = await inventoryApi.listSupplierPayments({
@@ -62,10 +64,11 @@ export default function SupplierPaymentsPage() {
           <div className="flex gap-2">
             <button
               type="button"
-              className="btn-secondary py-1.5 text-xs"
-              onClick={() => { inventoryApi.recordPrint({ entityType: 'supplier_payments', entityId: null, label: 'pdf' }).catch(() => {}); downloadSheetPdf(SUPPLIER_PAYMENTS_PRINT_ID, 'supplier-payments.pdf'); }}
+              className="btn-secondary py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-60"
+              onClick={() => downloadPdf(async () => { await inventoryApi.recordPrint({ entityType: 'supplier_payments', entityId: null, label: 'pdf' }).catch(() => {}); await downloadSheetPdf(SUPPLIER_PAYMENTS_PRINT_ID, 'supplier-payments.pdf'); })}
+              disabled={downloadingPdf}
             >
-              <Download size={14} />
+              {downloadingPdf ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
               {t('purchaseReceive.downloadPdf')}
             </button>
             <button type="button" className="btn-secondary py-1.5 text-xs" onClick={handleExportExcel}>

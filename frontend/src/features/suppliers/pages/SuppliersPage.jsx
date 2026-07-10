@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Download, Eye, FileSpreadsheet, FileText, Pencil, Phone, Plus, Printer, Search, Truck, Trash2 } from 'lucide-react';
+import { Download, Eye, FileSpreadsheet, FileText, Loader2, Pencil, Phone, Plus, Printer, Search, Truck, Trash2 } from 'lucide-react';
 import { Alert, Badge, EmptyState, MobileCardList, MobileListCard, Pagination, SectionHeader, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { statusTone } from '../../../models/inventoryViewData.js';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
@@ -10,6 +10,7 @@ import { formatCurrency, formatNumber } from '../../../utils/calculations.js';
 import SupplierFormModal from '../components/SupplierFormModal';
 import SupplierViewModal from '../components/SupplierViewModal';
 import { useSuppliersViewModel } from '../viewmodels/useSuppliersViewModel';
+import { useAsyncAction } from '../../../hooks/useAsyncAction.js';
 
 const SUPPLIERS_PRINT_ID = 'suppliers-print';
 
@@ -20,6 +21,7 @@ export default function SuppliersPage() {
   const [formModal, setFormModal] = useState(null);
   const [viewSupplier, setViewSupplier] = useState(null);
   const canManageSuppliers = can('manage_suppliers');
+  const [downloadingPdf, downloadPdf] = useAsyncAction();
 
   async function handleExportExcel() {
     const result = await inventoryApi.listSuppliers({ page: 1, pageSize: 10000, search: vm.search || undefined, status: vm.status || undefined });
@@ -61,10 +63,11 @@ export default function SuppliersPage() {
           <div className="flex gap-2">
             <button
               type="button"
-              className="btn-secondary py-1.5 text-xs"
-              onClick={() => { inventoryApi.recordPrint({ entityType: 'suppliers', entityId: null, label: 'pdf' }).catch(() => {}); downloadSheetPdf(SUPPLIERS_PRINT_ID, 'suppliers.pdf'); }}
+              className="btn-secondary py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-60"
+              onClick={() => downloadPdf(async () => { await inventoryApi.recordPrint({ entityType: 'suppliers', entityId: null, label: 'pdf' }).catch(() => {}); await downloadSheetPdf(SUPPLIERS_PRINT_ID, 'suppliers.pdf'); })}
+              disabled={downloadingPdf}
             >
-              <Download size={14} />
+              {downloadingPdf ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
               {t('purchaseReceive.downloadPdf')}
             </button>
             <button type="button" className="btn-secondary py-1.5 text-xs" onClick={handleExportExcel}>

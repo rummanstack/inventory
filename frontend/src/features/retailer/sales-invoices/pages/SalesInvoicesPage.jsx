@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Download, Eye, FileSpreadsheet, Plus, Printer, Receipt, Search, Trash2 } from 'lucide-react';
+import { Download, Eye, FileSpreadsheet, Loader2, Plus, Printer, Receipt, Search, Trash2 } from 'lucide-react';
 import { Alert, Badge, EmptyState, MobileCardList, MobileListCard, Pagination, SectionHeader, TableSkeleton, Select } from '../../../../components/ui.jsx';
 import { DatePickerField } from '../../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
@@ -10,6 +10,7 @@ import SalesInvoiceFormModal from '../components/SalesInvoiceFormModal';
 import SalesInvoiceViewModal from '../components/SalesInvoiceViewModal';
 import { useSalesInvoicesViewModel } from '../viewmodels/useSalesInvoicesViewModel';
 import { paymentStatusOf, paymentStatusTone } from '../../../../models/inventoryViewData.js';
+import { useAsyncAction } from '../../../../hooks/useAsyncAction.js';
 
 const SALES_INVOICES_PRINT_ID = 'sales-invoices-print';
 
@@ -19,6 +20,7 @@ export default function SalesInvoicesPage() {
   const [showFormModal, setShowFormModal] = useState(false);
   const [viewInvoice, setViewInvoice] = useState(null);
   const canManageRetailers = can('manage_retail_sales_invoices');
+  const [downloadingPdf, downloadPdf] = useAsyncAction();
 
   async function handleExportExcel() {
     const result = await inventoryApi.listSalesInvoices({
@@ -73,10 +75,11 @@ export default function SalesInvoicesPage() {
               <span className="muted-chip">{formatNumber(vm.total)} {t('retailer.salesInvoices.invoiceCount')}</span>
               <button
                 type="button"
-                className="btn-secondary no-print py-1.5 text-xs"
-                onClick={() => { inventoryApi.recordPrint({ entityType: 'sales_invoices', entityId: null, label: 'pdf' }).catch(() => {}); downloadSheetPdf(SALES_INVOICES_PRINT_ID, 'sales-invoices-report.pdf'); }}
+                className="btn-secondary no-print py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-60"
+                onClick={() => downloadPdf(async () => { await inventoryApi.recordPrint({ entityType: 'sales_invoices', entityId: null, label: 'pdf' }).catch(() => {}); await downloadSheetPdf(SALES_INVOICES_PRINT_ID, 'sales-invoices-report.pdf'); })}
+                disabled={downloadingPdf}
               >
-                <Download size={14} />
+                {downloadingPdf ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
                 {t('purchaseReceive.downloadPdf')}
               </button>
               <button type="button" className="btn-secondary no-print py-1.5 text-xs" onClick={handleExportExcel}>

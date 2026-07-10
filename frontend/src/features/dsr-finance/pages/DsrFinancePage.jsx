@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Download, HandCoins, Printer, RefreshCw, Wallet } from 'lucide-react';
+import { Download, HandCoins, Loader2, Printer, RefreshCw, Wallet } from 'lucide-react';
 import { Alert, Badge, EmptyState, SectionHeader, StatCard, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
@@ -8,6 +8,7 @@ import { inventoryApi } from '../../../services/inventoryApi.js';
 import { formatCurrency, formatDateTime } from '../../../utils/calculations.js';
 import { useDsrDueStatementViewModel } from '../viewmodels/useDsrDueStatementViewModel';
 import SettleDueModal from '../components/SettleDueModal';
+import { useAsyncAction } from '../../../hooks/useAsyncAction.js';
 
 function ledgerTone(type) {
   if (type === 'COLLECTION' || type === 'ADVANCE_ADJUSTMENT') return 'emerald';
@@ -26,6 +27,7 @@ export default function DsrFinancePage() {
   const { t, dsrDirectory, pushToast } = useInventoryApp();
   const dueVm = useDsrDueStatementViewModel({ dsrs: dsrDirectory });
   const [showSettleModal, setShowSettleModal] = useState(false);
+  const [downloadingPdf, downloadPdf] = useAsyncAction();
 
   async function handleSettleDue(payload) {
     const result = await dueVm.settleDue(payload);
@@ -87,10 +89,14 @@ export default function DsrFinancePage() {
               <div className="flex items-center gap-2 no-print">
                 <button
                   type="button"
-                  className="btn-secondary"
-                  onClick={() => { inventoryApi.recordPrint({ entityType: 'dsr_due_statement', entityId: dueVm.dsrId, label: 'pdf' }).catch(() => {}); downloadSheetPdf('dsr-due-statement-print', `dsr-due-statement.pdf`); }}
+                  className="btn-secondary disabled:cursor-not-allowed disabled:opacity-60"
+                  onClick={() => downloadPdf(async () => {
+                    await inventoryApi.recordPrint({ entityType: 'dsr_due_statement', entityId: dueVm.dsrId, label: 'pdf' }).catch(() => {});
+                    await downloadSheetPdf('dsr-due-statement-print', `dsr-due-statement.pdf`);
+                  })}
+                  disabled={downloadingPdf}
                 >
-                  <Download size={16} />
+                  {downloadingPdf ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
                   {t('purchaseReceive.downloadPdf')}
                 </button>
                 <button

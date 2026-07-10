@@ -1,4 +1,4 @@
-import { Download, FileSpreadsheet, Printer, RefreshCw, Wallet } from 'lucide-react';
+import { Download, FileSpreadsheet, Loader2, Printer, RefreshCw, Wallet } from 'lucide-react';
 import { Badge, EmptyState, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton, Select } from '../../../../components/ui.jsx';
 import { DatePickerField } from '../../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
@@ -7,6 +7,7 @@ import { inventoryApi } from '../../../../services/inventoryApi.js';
 import { formatCurrency, formatDateTime, formatNumber } from '../../../../utils/calculations.js';
 import { useCustomerStatementViewModel } from '../viewmodels/useCustomerStatementViewModel';
 import CustomerDuePrintSheet from '../components/CustomerDuePrintSheet.jsx';
+import { useAsyncAction } from '../../../../hooks/useAsyncAction.js';
 
 function ledgerTone(type) {
   if (type === 'COLLECTION') return 'emerald';
@@ -23,6 +24,7 @@ export default function CustomerDuePage() {
   const printTargetId = 'customer-due-statement-print';
   const businessName = tenant?.name || '';
   const selectedCustomer = retailCustomerDirectory.find((c) => c.id === vm.customerId);
+  const [downloadingPdf, downloadPdf] = useAsyncAction();
 
   function recordDuePrint(label) {
     inventoryApi.recordPrint({ entityType: 'customer_due_statement', entityId: vm.customerId, label }).catch(() => {});
@@ -80,10 +82,11 @@ export default function CustomerDuePage() {
             <>
               <button
                 type="button"
-                className="btn-secondary"
-                onClick={() => { recordDuePrint('pdf'); downloadSheetPdf(printTargetId, `customer-due-${selectedCustomer?.name || vm.customerId}.pdf`); }}
+                className="btn-secondary disabled:cursor-not-allowed disabled:opacity-60"
+                onClick={() => downloadPdf(async () => { recordDuePrint('pdf'); await downloadSheetPdf(printTargetId, `customer-due-${selectedCustomer?.name || vm.customerId}.pdf`); })}
+                disabled={downloadingPdf}
               >
-                <Download size={18} />
+                {downloadingPdf ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />}
                 {t('purchaseReceive.downloadPdf')}
               </button>
               <button type="button" className="btn-secondary" onClick={handleExportExcel}>

@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { Download, Eye, FileSpreadsheet, Fingerprint, Pencil, Plus, Printer, Search, Trash2 } from 'lucide-react';
+import { Download, Eye, FileSpreadsheet, Fingerprint, Loader2, Pencil, Plus, Printer, Search, Trash2 } from 'lucide-react';
 import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import { downloadSheetPdf } from '../../../services/printService.js';
+import { useAsyncAction } from '../../../hooks/useAsyncAction.js';
 import { formatNumber } from '../../../utils/calculations.js';
 import { productSerialStatusTone } from '../../../models/inventoryViewData.js';
 import ProductSerialFormModal from '../components/ProductSerialFormModal';
@@ -19,6 +20,7 @@ export default function ProductSerialsPage() {
   const [formModal, setFormModal] = useState(null);
   const [viewSerial, setViewSerial] = useState(null);
   const canManage = can('manage_product_serials');
+  const [downloadingPdf, downloadPdf] = useAsyncAction();
 
   async function handleExportExcel() {
     const result = await inventoryApi.listProductSerials({
@@ -66,10 +68,11 @@ export default function ProductSerialsPage() {
           <div className="flex gap-2">
             <button
               type="button"
-              className="btn-secondary py-1.5 text-xs"
-              onClick={() => { inventoryApi.recordPrint({ entityType: 'product_serials', entityId: null, label: 'pdf' }).catch(() => {}); downloadSheetPdf(PRODUCT_SERIALS_PRINT_ID, 'product-serials.pdf'); }}
+              className="btn-secondary py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-60"
+              onClick={() => downloadPdf(async () => { await inventoryApi.recordPrint({ entityType: 'product_serials', entityId: null, label: 'pdf' }).catch(() => {}); await downloadSheetPdf(PRODUCT_SERIALS_PRINT_ID, 'product-serials.pdf'); })}
+              disabled={downloadingPdf}
             >
-              <Download size={14} />
+              {downloadingPdf ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
               {t('purchaseReceive.downloadPdf')}
             </button>
             <button type="button" className="btn-secondary py-1.5 text-xs" onClick={handleExportExcel}>

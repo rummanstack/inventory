@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Boxes, Download, FileSpreadsheet, ImageOff, LayoutGrid, List, ListTree, PackagePlus, Pencil, Plus, Printer, Search, Trash2 } from 'lucide-react';
+import { Boxes, Download, FileSpreadsheet, ImageOff, LayoutGrid, List, ListTree, Loader2, PackagePlus, Pencil, Plus, Printer, Search, Trash2 } from 'lucide-react';
 import { Alert, Badge, EmptyState, MobileCardList, MobileListCard, Pagination, SectionHeader, TableSkeleton, cx, Select } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { formatCasePiece, formatCurrency, formatNumber } from '../../../utils/calculations.js';
@@ -14,6 +14,7 @@ import GenericMedicinesManagerModal from '../components/GenericMedicinesManagerM
 import { useProductsViewModel } from '../viewmodels/useProductsViewModel';
 import { downloadSheetPdf, printElementById } from '../../../services/printService.js';
 import { inventoryApi } from '../../../services/inventoryApi.js';
+import { useAsyncAction } from '../../../hooks/useAsyncAction.js';
 
 const PRODUCTS_PRINT_ID = 'products-report-print';
 const VIEW_MODE_STORAGE_KEY = 'products-view-mode';
@@ -29,6 +30,7 @@ export default function ProductsPage() {
   const [showManufacturersModal, setShowManufacturersModal] = useState(false);
   const [showGenericMedicinesModal, setShowGenericMedicinesModal] = useState(false);
   const [ledgerRefreshKey, setLedgerRefreshKey] = useState(0);
+  const [downloadingPdf, downloadPdf] = useAsyncAction();
   const [viewMode, setViewMode] = useState(() => {
     if (typeof window === 'undefined') return 'list';
     return window.localStorage.getItem(VIEW_MODE_STORAGE_KEY) === 'grid' ? 'grid' : 'list';
@@ -54,8 +56,10 @@ export default function ProductsPage() {
   }, [productDirectory]);
 
   async function handleDownloadPdf() {
-    await inventoryApi.recordPrint({ entityType: 'products_report', entityId: 'all', label: t('products.reportPdfLabel') });
-    downloadSheetPdf(PRODUCTS_PRINT_ID, 'products-report.pdf');
+    await downloadPdf(async () => {
+      await inventoryApi.recordPrint({ entityType: 'products_report', entityId: 'all', label: t('products.reportPdfLabel') });
+      await downloadSheetPdf(PRODUCTS_PRINT_ID, 'products-report.pdf');
+    });
   }
 
   async function handleExportExcel() {
@@ -133,8 +137,8 @@ export default function ProductsPage() {
                 <span className="muted-chip">{formatNumber(outOfStockCount, language)} {t('products.outShort')}</span>
                 <span className="muted-chip">{formatNumber(veryLowCount, language)} {t('products.lowShort')}</span>
               </div>
-              <button type="button" className="btn-secondary h-8 gap-1.5 px-3 py-1.5 text-xs" onClick={handleDownloadPdf}>
-                <Download size={14} />
+              <button type="button" className="btn-secondary h-8 gap-1.5 px-3 py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-60" onClick={handleDownloadPdf} disabled={downloadingPdf}>
+                {downloadingPdf ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
                 {t('purchaseReceive.downloadPdf')}
               </button>
               <button type="button" className="btn-secondary h-8 gap-1.5 px-3 py-1.5 text-xs" onClick={handleExportExcel}>

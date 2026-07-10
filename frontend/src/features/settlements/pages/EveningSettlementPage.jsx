@@ -1,4 +1,4 @@
-import { AlertTriangle, CheckCircle2, ClipboardList, Download, Plus, Printer, Trash2 } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, ClipboardList, Download, Loader2, Plus, Printer, Trash2 } from 'lucide-react';
 import PrintableSheet from '../../../components/PrintableSheet.jsx';
 import { Alert, Badge, EmptyState, SectionHeader, TableSkeleton, cx, Select } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
@@ -6,6 +6,7 @@ import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import AuditHistory from '../../../components/AuditHistory.jsx';
 import { buildPdfFileName, downloadSheetPdf, printElementById } from '../../../services/printService.js';
 import { inventoryApi } from '../../../services/inventoryApi';
+import { useAsyncAction } from '../../../hooks/useAsyncAction.js';
 import { formatCasePiece, formatCurrency, formatNumber, toPieces } from '../../../utils/calculations.js';
 import { useSettlementViewModel } from '../viewmodels/useSettlementViewModel';
 
@@ -16,6 +17,7 @@ export default function EveningSettlementPage() {
   const canUpdateSettlement = can('update_settlements');
   // Completed settlements can only be edited on the day they were made — backend enforces the same rule.
   const canEditSettlement = vm.completedSettlement ? (canUpdateSettlement && vm.date === today) : canCreateSettlement;
+  const [downloadingPdf, downloadPdf] = useAsyncAction();
   const issuedPiecesTotal = vm.displayRows.reduce((sum, row) => sum + Number(row.issuedPieces || 0), 0);
   const soldPiecesTotal = vm.displayRows.reduce((sum, row) => sum + Number(row.soldPieces || 0), 0);
   const returnedPiecesTotal = vm.displayRows.reduce((sum, row) => sum + Number(row.returnedPieces || 0), 0);
@@ -473,8 +475,13 @@ export default function EveningSettlementPage() {
           <div className="mb-3 flex items-center justify-end gap-2 no-print">
               {canUpdateSettlement ? (
                 <>
-                  <button type="button" className="btn-secondary" onClick={() => { recordSettlementPrint('pdf'); downloadSheetPdf('settlement-print-sheet', buildPdfFileName(vm.sheet)); }}>
-                    <Download size={18} />
+                  <button
+                    type="button"
+                    className="btn-secondary disabled:cursor-not-allowed disabled:opacity-60"
+                    onClick={() => downloadPdf(async () => { recordSettlementPrint('pdf'); await downloadSheetPdf('settlement-print-sheet', buildPdfFileName(vm.sheet)); })}
+                    disabled={downloadingPdf}
+                  >
+                    {downloadingPdf ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />}
                     {t('settlement.downloadPdf')}
                   </button>
                   <button type="button" className="btn-secondary" onClick={() => { recordSettlementPrint('print'); printElementById('settlement-print-sheet'); }}>

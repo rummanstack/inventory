@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { ArrowLeftRight, Download, Eye, FileSpreadsheet, Plus, Printer, Search, Trash2 } from 'lucide-react';
+import { ArrowLeftRight, Download, Eye, FileSpreadsheet, Loader2, Plus, Printer, Search, Trash2 } from 'lucide-react';
 import { Alert, EmptyState, Pagination, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import { downloadSheetPdf } from '../../../services/printService.js';
+import { useAsyncAction } from '../../../hooks/useAsyncAction.js';
 import TradeInFormModal from '../components/TradeInFormModal';
 import TradeInViewModal from '../components/TradeInViewModal';
 import { useTradeInsViewModel } from '../viewmodels/useTradeInsViewModel';
@@ -18,6 +19,7 @@ export default function TradeInsPage() {
   const [showForm, setShowForm] = useState(false);
   const [viewModal, setViewModal] = useState(null);
   const canManage = can('manage_trade_ins');
+  const [downloadingPdf, downloadPdf] = useAsyncAction();
 
   async function handleExportExcel() {
     const result = await inventoryApi.listTradeIns({
@@ -104,10 +106,11 @@ export default function TradeInsPage() {
               <span className="muted-chip">{formatNumber(vm.total ?? 0)} {t('tradeIns.tradeInCount')}</span>
               <button
                 type="button"
-                className="btn-secondary no-print py-1.5 text-xs"
-                onClick={() => { inventoryApi.recordPrint({ entityType: 'trade_ins', entityId: null, label: 'pdf' }).catch(() => {}); downloadSheetPdf(TRADEIN_PRINT_ID, `${t('tradeIns.sheetName')}.pdf`); }}
+                className="btn-secondary no-print py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-60"
+                onClick={() => downloadPdf(async () => { await inventoryApi.recordPrint({ entityType: 'trade_ins', entityId: null, label: 'pdf' }).catch(() => {}); await downloadSheetPdf(TRADEIN_PRINT_ID, `${t('tradeIns.sheetName')}.pdf`); })}
+                disabled={downloadingPdf}
               >
-                <Download size={14} />
+                {downloadingPdf ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
                 {t('purchaseReceive.downloadPdf')}
               </button>
               <button type="button" className="btn-secondary no-print py-1.5 text-xs" onClick={handleExportExcel}>

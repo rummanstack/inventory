@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
-import { ClipboardList, Download, FileSpreadsheet, Printer, RefreshCw } from 'lucide-react';
+import { ClipboardList, Download, FileSpreadsheet, Loader2, Printer, RefreshCw } from 'lucide-react';
 import { Alert, Badge, EmptyState, MobileCardList, MobileListCard, Pagination, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import { downloadSheetPdf } from '../../../services/printService.js';
+import { useAsyncAction } from '../../../hooks/useAsyncAction.js';
 import { formatDateTime, formatNumber, todayISO } from '../../../utils/calculations.js';
 import { usePagination } from '../../../hooks/usePagination.js';
 
@@ -50,6 +51,7 @@ export default function StockLedgerPanel({ products, t, refreshKey = 0, fixedTyp
   const [error, setError] = useState('');
   const [version, setVersion] = useState(0);
   const { page, setPage, resetPage } = usePagination({ pageSize: LEDGER_PAGE_SIZE });
+  const [downloadingPdf, downloadPdf] = useAsyncAction();
 
   useEffect(() => {
     resetPage();
@@ -131,10 +133,11 @@ export default function StockLedgerPanel({ products, t, refreshKey = 0, fixedTyp
             {printTarget ? (
               <button
                 type="button"
-                className="btn-secondary"
-                onClick={() => { inventoryApi.recordPrint({ entityType: 'stock_ledger', entityId: null, label: 'pdf' }).catch(() => {}); downloadSheetPdf(STOCK_LEDGER_PRINT_ID, `stock-ledger-${dateFrom}-${dateTo}.pdf`); }}
+                className="btn-secondary disabled:cursor-not-allowed disabled:opacity-60"
+                onClick={() => downloadPdf(async () => { await inventoryApi.recordPrint({ entityType: 'stock_ledger', entityId: null, label: 'pdf' }).catch(() => {}); await downloadSheetPdf(STOCK_LEDGER_PRINT_ID, `stock-ledger-${dateFrom}-${dateTo}.pdf`); })}
+                disabled={downloadingPdf}
               >
-                <Download size={16} />
+                {downloadingPdf ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
                 {t('purchaseReceive.downloadPdf')}
               </button>
             ) : null}

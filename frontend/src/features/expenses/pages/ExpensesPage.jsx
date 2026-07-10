@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { CircleDollarSign, Download, FileSpreadsheet, Pencil, Plus, Trash2 } from 'lucide-react';
+import { CircleDollarSign, Download, FileSpreadsheet, Loader2, Pencil, Plus, Trash2 } from 'lucide-react';
 import { Alert, Badge, ChartPanel, ChartPanelSkeleton, EmptyState, Pagination, SectionHeader, HorizontalBarChart, StatCard, TableSkeleton } from '../../../components/ui.jsx';
 import { DatePickerField, MonthPickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
@@ -9,6 +9,7 @@ import { formatCurrency, formatDate, formatNumber, todayISO } from '../../../uti
 import { toBarChartData } from '../../../utils/charts.js';
 import { useExpenseViewModel } from '../viewmodels/useExpenseViewModel';
 import ExpenseFormModal from '../components/ExpenseFormModal';
+import { useAsyncAction } from '../../../hooks/useAsyncAction.js';
 
 const CATEGORY_CHART_FIELDS = { labelField: 'category', valueField: 'totalAmount' };
 const PAGE_SIZE = 20;
@@ -31,6 +32,8 @@ export default function ExpensesPage() {
   const [dailyPage, setDailyPage] = useState(1);
   const [monthlyPage, setMonthlyPage] = useState(1);
   const canManageExpenses = can('manage_expenses');
+  const [downloadingDailyPdf, downloadDailyPdf] = useAsyncAction();
+  const [downloadingMonthlyPdf, downloadMonthlyPdf] = useAsyncAction();
 
   useEffect(() => { setDailyPage(1); }, [vm.date]);
   useEffect(() => { setMonthlyPage(1); }, [vm.month]);
@@ -175,10 +178,14 @@ export default function ExpensesPage() {
                     <span className="muted-chip">{formatNumber(dailyAll.length)} {t('common.records')}</span>
                     <button
                       type="button"
-                      className="btn-secondary no-print py-1.5 text-xs"
-                      onClick={() => { inventoryApi.recordPrint({ entityType: 'expenses_daily', entityId: null, label: 'pdf' }).catch(() => {}); downloadSheetPdf('expenses-daily-print', `expenses-daily-${vm.date}.pdf`); }}
+                      className="btn-secondary no-print py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-60"
+                      onClick={() => downloadDailyPdf(async () => {
+                        await inventoryApi.recordPrint({ entityType: 'expenses_daily', entityId: null, label: 'pdf' }).catch(() => {});
+                        await downloadSheetPdf('expenses-daily-print', `expenses-daily-${vm.date}.pdf`);
+                      })}
+                      disabled={downloadingDailyPdf}
                     >
-                      <Download size={14} />
+                      {downloadingDailyPdf ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
                       {t('purchaseReceive.downloadPdf')}
                     </button>
                     <button type="button" className="btn-secondary no-print py-1.5 text-xs" onClick={handleExportDailyExcel}>
@@ -251,10 +258,14 @@ export default function ExpensesPage() {
                     <span className="muted-chip">{formatNumber(monthlyAll.length)} {t('common.records')}</span>
                     <button
                       type="button"
-                      className="btn-secondary no-print py-1.5 text-xs"
-                      onClick={() => { inventoryApi.recordPrint({ entityType: 'expenses_monthly', entityId: null, label: 'pdf' }).catch(() => {}); downloadSheetPdf('expenses-monthly-print', `expenses-monthly-${vm.month}.pdf`); }}
+                      className="btn-secondary no-print py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-60"
+                      onClick={() => downloadMonthlyPdf(async () => {
+                        await inventoryApi.recordPrint({ entityType: 'expenses_monthly', entityId: null, label: 'pdf' }).catch(() => {});
+                        await downloadSheetPdf('expenses-monthly-print', `expenses-monthly-${vm.month}.pdf`);
+                      })}
+                      disabled={downloadingMonthlyPdf}
                     >
-                      <Download size={14} />
+                      {downloadingMonthlyPdf ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
                       {t('purchaseReceive.downloadPdf')}
                     </button>
                     <button type="button" className="btn-secondary no-print py-1.5 text-xs" onClick={handleExportMonthlyExcel}>

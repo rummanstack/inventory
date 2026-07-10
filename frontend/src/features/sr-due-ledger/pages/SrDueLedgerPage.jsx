@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { Download, FileSpreadsheet, HandCoins, Printer, RefreshCw, Wallet } from 'lucide-react';
+import { Download, FileSpreadsheet, HandCoins, Loader2, Printer, RefreshCw, Wallet } from 'lucide-react';
 import { Alert, Badge, EmptyState, Modal, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../services/printService.js';
 import { inventoryApi } from '../../../services/inventoryApi.js';
+import { useAsyncAction } from '../../../hooks/useAsyncAction.js';
 import { formatCurrency, formatDate, formatDateTime } from '../../../utils/calculations.js';
 import { useSrDueStatementViewModel } from '../viewmodels/useSrDueStatementViewModel.js';
 
@@ -88,6 +89,7 @@ export default function SrDueLedgerPage() {
   const vm = useSrDueStatementViewModel({ srs: srDirectory });
   const entries = vm.statement?.entries || [];
   const [showCollect, setShowCollect] = useState(false);
+  const [downloadingPdf, downloadPdf] = useAsyncAction();
 
   const selectedSr = srDirectory.find((s) => s.id === vm.srId);
   const canManage = can('manage_srs');
@@ -163,13 +165,14 @@ export default function SrDueLedgerPage() {
             <>
               <button
                 type="button"
-                className="btn-secondary"
-                onClick={() => {
-                  inventoryApi.recordPrint({ entityType: 'sr_due_statement', entityId: vm.srId, label: 'pdf' }).catch(() => {});
-                  downloadSheetPdf(PRINT_ID, `sr-due-${selectedSr?.name || vm.srId}.pdf`);
-                }}
+                className="btn-secondary disabled:cursor-not-allowed disabled:opacity-60"
+                onClick={() => downloadPdf(async () => {
+                  await inventoryApi.recordPrint({ entityType: 'sr_due_statement', entityId: vm.srId, label: 'pdf' }).catch(() => {});
+                  await downloadSheetPdf(PRINT_ID, `sr-due-${selectedSr?.name || vm.srId}.pdf`);
+                })}
+                disabled={downloadingPdf}
               >
-                <Download size={18} />
+                {downloadingPdf ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />}
                 {t('srDueLedgerPage.downloadPdf')}
               </button>
               <button type="button" className="btn-secondary" onClick={handleExportExcel}>

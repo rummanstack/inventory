@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Building2, CircleDollarSign, Download, FileSpreadsheet, HandCoins, Landmark, Printer, RotateCcw, Scale, ShoppingBag, Store, TrendingDown, TrendingUp, Wallet } from 'lucide-react';
+import { Building2, CircleDollarSign, Download, FileSpreadsheet, HandCoins, Landmark, Loader2, Printer, RotateCcw, Scale, ShoppingBag, Store, TrendingDown, TrendingUp, Wallet } from 'lucide-react';
 import { Alert, cx, EmptyState, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
@@ -8,6 +8,7 @@ import { inventoryApi } from '../../../services/inventoryApi.js';
 import { formatCurrency, formatDate, formatNumber } from '../../../utils/calculations.js';
 import { useFinanceDashboardViewModel } from '../viewmodels/useFinanceDashboardViewModel';
 import { useRangeReportViewModel } from '../viewmodels/useRangeReportViewModel';
+import { useAsyncAction } from '../../../hooks/useAsyncAction.js';
 
 const RANGE_REPORT_PRINT_ID = 'finance-dashboard-range-report';
 const RECENT_TRANSACTIONS_PRINT_ID = 'finance-dashboard-recent-transactions';
@@ -77,6 +78,8 @@ export default function FinanceDashboardPage() {
   // (`.print-target`) shows every matching element regardless of which button was
   // clicked — so only the section currently being printed gets the class.
   const [printingSection, setPrintingSection] = useState(null);
+  const [downloadingRangePdf, downloadRangePdf] = useAsyncAction();
+  const [downloadingTransactionsPdf, downloadTransactionsPdf] = useAsyncAction();
 
   useEffect(() => {
     const resetPrintingSection = () => setPrintingSection(null);
@@ -194,10 +197,14 @@ export default function FinanceDashboardPage() {
             <div className="flex justify-end gap-2 no-print">
               <button
                 type="button"
-                className="btn-secondary py-1.5 text-xs"
-                onClick={() => { inventoryApi.recordPrint({ entityType: 'finance_dashboard', entityId: null, label: 'pdf' }).catch(() => {}); downloadSheetPdf(RANGE_REPORT_PRINT_ID, `finance-dashboard-${rr.dateFrom}-${rr.dateTo}.pdf`); }}
+                className="btn-secondary py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-60"
+                onClick={() => downloadRangePdf(async () => {
+                  await inventoryApi.recordPrint({ entityType: 'finance_dashboard', entityId: null, label: 'pdf' }).catch(() => {});
+                  await downloadSheetPdf(RANGE_REPORT_PRINT_ID, `finance-dashboard-${rr.dateFrom}-${rr.dateTo}.pdf`);
+                })}
+                disabled={downloadingRangePdf}
               >
-                <Download size={14} />
+                {downloadingRangePdf ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
                 {t('purchaseReceive.downloadPdf')}
               </button>
               <button type="button" className="btn-secondary py-1.5 text-xs" onClick={handleExportRangeReportExcel}>
@@ -438,10 +445,14 @@ export default function FinanceDashboardPage() {
                 <div className="flex justify-end gap-2 border-b border-slate-100 px-4 py-3 no-print">
                   <button
                     type="button"
-                    className="btn-secondary py-1.5 text-xs"
-                    onClick={() => { inventoryApi.recordPrint({ entityType: 'finance_dashboard_transactions', entityId: null, label: 'pdf' }).catch(() => {}); downloadSheetPdf(RECENT_TRANSACTIONS_PRINT_ID, 'finance-dashboard-recent-transactions.pdf'); }}
+                    className="btn-secondary py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-60"
+                    onClick={() => downloadTransactionsPdf(async () => {
+                      await inventoryApi.recordPrint({ entityType: 'finance_dashboard_transactions', entityId: null, label: 'pdf' }).catch(() => {});
+                      await downloadSheetPdf(RECENT_TRANSACTIONS_PRINT_ID, 'finance-dashboard-recent-transactions.pdf');
+                    })}
+                    disabled={downloadingTransactionsPdf}
                   >
-                    <Download size={14} />
+                    {downloadingTransactionsPdf ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
                     {t('purchaseReceive.downloadPdf')}
                   </button>
                   <button type="button" className="btn-secondary py-1.5 text-xs" onClick={handleExportTransactionsExcel}>

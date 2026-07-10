@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Download, PackageX, RefreshCw } from 'lucide-react';
+import { Download, Loader2, PackageX, RefreshCw } from 'lucide-react';
 import { Alert, EmptyState, Pagination, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
@@ -7,6 +7,7 @@ import { downloadSheetPdf } from '../../../services/printService.js';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import { formatDate, formatDateTime, formatNumber, todayISO } from '../../../utils/calculations.js';
 import { usePagination } from '../../../hooks/usePagination.js';
+import { useAsyncAction } from '../../../hooks/useAsyncAction.js';
 
 const PAGE_SIZE = 15;
 
@@ -29,6 +30,7 @@ export default function DamageClearHistoryPanel({ products, refreshKey = 0 }) {
   const [error, setError] = useState('');
   const [version, setVersion] = useState(0);
   const { page, setPage, resetPage } = usePagination({ pageSize: PAGE_SIZE });
+  const [downloadingPdf, downloadPdf] = useAsyncAction();
 
   useEffect(() => {
     resetPage();
@@ -89,13 +91,14 @@ export default function DamageClearHistoryPanel({ products, refreshKey = 0 }) {
             </button>
             <button
               type="button"
-              className="btn-secondary no-print"
-              onClick={() => {
-                inventoryApi.recordPrint({ entityType: 'damage_clear_history', entityId: null, label: 'pdf' }).catch(() => {});
-                downloadSheetPdf('damage-clear-history-print', `damage-clear-history-${dateFrom}-${dateTo}.pdf`);
-              }}
+              className="btn-secondary no-print disabled:cursor-not-allowed disabled:opacity-60"
+              onClick={() => downloadPdf(async () => {
+                await inventoryApi.recordPrint({ entityType: 'damage_clear_history', entityId: null, label: 'pdf' }).catch(() => {});
+                await downloadSheetPdf('damage-clear-history-print', `damage-clear-history-${dateFrom}-${dateTo}.pdf`);
+              })}
+              disabled={downloadingPdf}
             >
-              <Download size={16} />
+              {downloadingPdf ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
               {t('purchaseReceive.downloadPdf')}
             </button>
           </div>

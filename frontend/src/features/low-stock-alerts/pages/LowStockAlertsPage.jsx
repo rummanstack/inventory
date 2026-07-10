@@ -1,9 +1,10 @@
-import { AlertTriangle, Download, FileSpreadsheet, Printer } from 'lucide-react';
+import { AlertTriangle, Download, FileSpreadsheet, Loader2, Printer } from 'lucide-react';
 import { Alert, Badge, EmptyState, SectionHeader } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../services/printService.js';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import { formatCasePiece, formatNumber, getLowStockProducts, getLowStockThreshold } from '../../../utils/calculations.js';
+import { useAsyncAction } from '../../../hooks/useAsyncAction.js';
 
 const LOW_STOCK_PRINT_ID = 'low-stock-alerts-print';
 
@@ -13,6 +14,7 @@ export default function LowStockAlertsPage() {
   const isPharmacy = tenant?.businessType === 'DRUG_PHARMACY';
   const lowStockProducts = [...getLowStockProducts(productDirectory)].sort((a, b) => a.stockPieces - b.stockPieces);
   const outOfStockCount = lowStockProducts.filter((product) => product.stockPieces === 0).length;
+  const [downloadingPdf, downloadPdf] = useAsyncAction();
 
   function formatStock(pieces, piecesPerCase) {
     return isElectronics ? `${formatNumber(pieces, language)} ${t('common.pcs')}` : formatCasePiece(pieces, piecesPerCase, language);
@@ -54,10 +56,14 @@ export default function LowStockAlertsPage() {
             <div className="flex gap-2 no-print">
               <button
                 type="button"
-                className="btn-secondary py-1.5 text-xs"
-                onClick={() => { inventoryApi.recordPrint({ entityType: 'low_stock_alerts', entityId: null, label: 'pdf' }).catch(() => {}); downloadSheetPdf(LOW_STOCK_PRINT_ID, 'low-stock-alerts.pdf'); }}
+                className="btn-secondary py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-60"
+                onClick={() => downloadPdf(async () => {
+                  await inventoryApi.recordPrint({ entityType: 'low_stock_alerts', entityId: null, label: 'pdf' }).catch(() => {});
+                  await downloadSheetPdf(LOW_STOCK_PRINT_ID, 'low-stock-alerts.pdf');
+                })}
+                disabled={downloadingPdf}
               >
-                <Download size={14} />
+                {downloadingPdf ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
                 {t('purchaseReceive.downloadPdf')}
               </button>
               <button type="button" className="btn-secondary py-1.5 text-xs" onClick={handleExportExcel}>

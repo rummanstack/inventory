@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { Download, Eye, FileSpreadsheet, Pencil, Plus, Printer, Search, ShoppingCart, Trash2 } from 'lucide-react';
+import { Download, Eye, FileSpreadsheet, Loader2, Pencil, Plus, Printer, Search, ShoppingCart, Trash2 } from 'lucide-react';
 import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi';
 import { downloadSheetPdf, printElementById } from '../../../services/printService.js';
+import { useAsyncAction } from '../../../hooks/useAsyncAction.js';
 import { formatCurrency, formatDate, formatDateTime, formatNumber } from '../../../utils/calculations.js';
 import PurchaseReceiveFormModal from '../components/PurchaseReceiveFormModal';
 import PurchaseReceiptViewModal from '../components/PurchaseReceiptViewModal';
@@ -19,6 +20,7 @@ export default function PurchaseReceivePage() {
   const [formModal, setFormModal] = useState(null);
   const [viewReceipt, setViewReceipt] = useState(null);
   const canManagePurchases = can('manage_purchases');
+  const [downloadingPdf, downloadPdf] = useAsyncAction();
 
   async function handleExportExcel() {
     const result = await inventoryApi.listPurchaseReceipts({
@@ -70,10 +72,11 @@ export default function PurchaseReceivePage() {
           <div className="flex gap-2">
             <button
               type="button"
-              className="btn-secondary py-1.5 text-xs"
-              onClick={() => { inventoryApi.recordPrint({ entityType: 'purchase_receive_list', entityId: null, label: 'pdf' }).catch(() => {}); downloadSheetPdf(PURCHASE_RECEIVE_PRINT_ID, 'purchase-receive.pdf'); }}
+              className="btn-secondary py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-60"
+              onClick={() => downloadPdf(async () => { await inventoryApi.recordPrint({ entityType: 'purchase_receive_list', entityId: null, label: 'pdf' }).catch(() => {}); await downloadSheetPdf(PURCHASE_RECEIVE_PRINT_ID, 'purchase-receive.pdf'); })}
+              disabled={downloadingPdf}
             >
-              <Download size={14} />
+              {downloadingPdf ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
               {t('purchaseReceive.downloadPdf')}
             </button>
             <button type="button" className="btn-secondary py-1.5 text-xs" onClick={handleExportExcel}>

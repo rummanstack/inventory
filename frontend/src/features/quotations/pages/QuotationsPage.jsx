@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { Download, Eye, FileSpreadsheet, Pencil, Plus, Printer, Search, Tag, Trash2 } from 'lucide-react';
+import { Download, Eye, FileSpreadsheet, Loader2, Pencil, Plus, Printer, Search, Tag, Trash2 } from 'lucide-react';
 import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import { downloadSheetPdf } from '../../../services/printService.js';
+import { useAsyncAction } from '../../../hooks/useAsyncAction.js';
 import { quotationStatusTone } from '../../../models/inventoryViewData.js';
 import QuotationFormModal from '../components/QuotationFormModal';
 import QuotationViewModal from '../components/QuotationViewModal';
@@ -20,6 +21,7 @@ export default function QuotationsPage() {
   const [formModal, setFormModal] = useState(null);
   const [viewModal, setViewModal] = useState(null);
   const canManage = can('manage_quotations');
+  const [downloadingPdf, downloadPdf] = useAsyncAction();
 
   async function handleExportExcel() {
     const result = await inventoryApi.listQuotations({
@@ -111,10 +113,11 @@ export default function QuotationsPage() {
               <span className="muted-chip">{formatNumber(vm.total ?? 0)} {t('quotations.quoteCount')}</span>
               <button
                 type="button"
-                className="btn-secondary no-print py-1.5 text-xs"
-                onClick={() => { inventoryApi.recordPrint({ entityType: 'quotations', entityId: null, label: 'pdf' }).catch(() => {}); downloadSheetPdf(QUOTATIONS_PRINT_ID, `${t('quotations.sheetName')}.pdf`); }}
+                className="btn-secondary no-print py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-60"
+                onClick={() => downloadPdf(async () => { await inventoryApi.recordPrint({ entityType: 'quotations', entityId: null, label: 'pdf' }).catch(() => {}); await downloadSheetPdf(QUOTATIONS_PRINT_ID, `${t('quotations.sheetName')}.pdf`); })}
+                disabled={downloadingPdf}
               >
-                <Download size={14} />
+                {downloadingPdf ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
                 {t('purchaseReceive.downloadPdf')}
               </button>
               <button type="button" className="btn-secondary no-print py-1.5 text-xs" onClick={handleExportExcel}>

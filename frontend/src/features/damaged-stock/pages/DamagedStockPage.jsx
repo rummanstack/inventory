@@ -1,9 +1,10 @@
-import { Download, FileSpreadsheet, PackageX, Printer } from 'lucide-react';
+import { Download, FileSpreadsheet, Loader2, PackageX, Printer } from 'lucide-react';
 import { EmptyState, SectionHeader } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../services/printService.js';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import { formatCasePiece, formatNumber } from '../../../utils/calculations.js';
+import { useAsyncAction } from '../../../hooks/useAsyncAction.js';
 import ClearDamageModal from '../components/ClearDamageModal';
 import DamageFromSettlementsPanel from '../components/DamageFromSettlementsPanel';
 import DamageClearHistoryPanel from '../components/DamageClearHistoryPanel';
@@ -15,6 +16,7 @@ export default function DamagedStockPage() {
   const isPharmacy = tenant?.businessType === 'DRUG_PHARMACY';
   const vm = useDamagedStockViewModel({ products: productDirectory });
   const canManageProducts = can('manage_products');
+  const [downloadingPdf, downloadPdf] = useAsyncAction();
 
   async function handleExportExcel() {
     const { utils, writeFile } = await import('xlsx');
@@ -43,10 +45,14 @@ export default function DamagedStockPage() {
           <div className="flex gap-2">
             <button
               type="button"
-              className="btn-secondary no-print py-1.5 text-xs"
-              onClick={() => { inventoryApi.recordPrint({ entityType: 'damaged_stock', entityId: null, label: 'pdf' }).catch(() => {}); downloadSheetPdf('damaged-stock-print', 'damaged-stock-report.pdf'); }}
+              className="btn-secondary no-print py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-60"
+              onClick={() => downloadPdf(async () => {
+                await inventoryApi.recordPrint({ entityType: 'damaged_stock', entityId: null, label: 'pdf' }).catch(() => {});
+                await downloadSheetPdf('damaged-stock-print', 'damaged-stock-report.pdf');
+              })}
+              disabled={downloadingPdf}
             >
-              <Download size={14} />
+              {downloadingPdf ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
               {t('purchaseReceive.downloadPdf')}
             </button>
             <button type="button" className="btn-secondary no-print py-1.5 text-xs" onClick={handleExportExcel}>

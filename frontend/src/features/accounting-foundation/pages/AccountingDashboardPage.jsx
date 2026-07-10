@@ -1,12 +1,16 @@
 import { useEffect, useState } from 'react';
-import { BriefcaseBusiness, Building2, Landmark, PiggyBank, Receipt, Scale, Wallet, TrendingUp } from 'lucide-react';
-import { Alert, SectionHeader, StatCard } from '../../../components/ui.jsx';
-import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
+import { Link } from 'react-router-dom';
+import { BriefcaseBusiness, Building2, CalendarRange, Landmark, Lock, PiggyBank, Receipt, Scale, Wallet, TrendingUp } from 'lucide-react';
+import { Alert, Badge, SectionHeader, StatCard } from '../../../components/ui.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import { formatCurrency } from '../../../utils/calculations.js';
 
+function formatDateTime(value) {
+  if (!value) return '-';
+  return new Date(value).toLocaleString();
+}
+
 export default function AccountingDashboardPage() {
-  const { language } = useInventoryApp();
   const [data, setData] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
@@ -20,25 +24,116 @@ export default function AccountingDashboardPage() {
     return () => { cancelled = true; };
   }, []);
 
-  const title = language === 'bn' ? '???????????? ??????????' : 'Accounting Dashboard';
-  const description = language === 'bn'
-    ? '??????? ???? ???? ?????, ???, ??????, ?? ? ?????? ??????? ??????'
-    : 'Current asset, liability, equity, income, and expense totals computed from journal data.';
-
   return (
-    <div>
-      <SectionHeader eyebrow="Accounting" title={title} description={description} />
+    <div className="space-y-6">
+      <SectionHeader
+        eyebrow="Accounting"
+        title="Accounting Dashboard"
+        description="Journal-driven financial totals, posting window status, and close-control visibility for accountants."
+      />
       {error ? <Alert type="error">{error}</Alert> : null}
+
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <StatCard title={language === 'bn' ? '??? ?????' : 'Total Assets'} rawValue={data?.totalAssets || 0} value={loading ? '...' : formatCurrency(data?.totalAssets || 0, language)} formatter={(v) => formatCurrency(v, language)} icon={Landmark} tone="indigo" />
-        <StatCard title={language === 'bn' ? '??? ???' : 'Total Liabilities'} rawValue={data?.totalLiabilities || 0} value={loading ? '...' : formatCurrency(data?.totalLiabilities || 0, language)} formatter={(v) => formatCurrency(v, language)} icon={BriefcaseBusiness} tone="rose" />
-        <StatCard title={language === 'bn' ? '??????' : 'Equity'} rawValue={data?.equity || 0} value={loading ? '...' : formatCurrency(data?.equity || 0, language)} formatter={(v) => formatCurrency(v, language)} icon={Scale} tone="emerald" />
-        <StatCard title={language === 'bn' ? '??' : 'Income'} rawValue={data?.income || 0} value={loading ? '...' : formatCurrency(data?.income || 0, language)} formatter={(v) => formatCurrency(v, language)} icon={TrendingUp} tone="blue" />
-        <StatCard title={language === 'bn' ? '????' : 'Expenses'} rawValue={data?.expenses || 0} value={loading ? '...' : formatCurrency(data?.expenses || 0, language)} formatter={(v) => formatCurrency(v, language)} icon={Receipt} tone="amber" />
-        <StatCard title={language === 'bn' ? '????? ?????????' : 'Current Cash'} rawValue={data?.currentCash || 0} value={loading ? '...' : formatCurrency(data?.currentCash || 0, language)} formatter={(v) => formatCurrency(v, language)} icon={Wallet} tone="slate" />
-        <StatCard title={language === 'bn' ? '?????? ?????????' : 'Current Bank Balance'} rawValue={data?.currentBankBalance || 0} value={loading ? '...' : formatCurrency(data?.currentBankBalance || 0, language)} formatter={(v) => formatCurrency(v, language)} icon={Building2} tone="indigo" />
-        <StatCard title={language === 'bn' ? '???????? / ??????' : 'Receivable / Payable'} value={loading ? '...' : `${formatCurrency(data?.currentReceivable || 0, language)} / ${formatCurrency(data?.currentPayable || 0, language)}`} icon={PiggyBank} tone="slate" />
+        <StatCard title="Total Assets" rawValue={data?.totalAssets || 0} value={loading ? '...' : formatCurrency(data?.totalAssets || 0)} formatter={(v) => formatCurrency(v)} icon={Landmark} tone="indigo" />
+        <StatCard title="Total Liabilities" rawValue={data?.totalLiabilities || 0} value={loading ? '...' : formatCurrency(data?.totalLiabilities || 0)} formatter={(v) => formatCurrency(v)} icon={BriefcaseBusiness} tone="rose" />
+        <StatCard title="Equity" rawValue={data?.equity || 0} value={loading ? '...' : formatCurrency(data?.equity || 0)} formatter={(v) => formatCurrency(v)} icon={Scale} tone="emerald" />
+        <StatCard title="Income" rawValue={data?.income || 0} value={loading ? '...' : formatCurrency(data?.income || 0)} formatter={(v) => formatCurrency(v)} icon={TrendingUp} tone="blue" />
+        <StatCard title="Expenses" rawValue={data?.expenses || 0} value={loading ? '...' : formatCurrency(data?.expenses || 0)} formatter={(v) => formatCurrency(v)} icon={Receipt} tone="amber" />
+        <StatCard title="Current Cash" rawValue={data?.currentCash || 0} value={loading ? '...' : formatCurrency(data?.currentCash || 0)} formatter={(v) => formatCurrency(v)} icon={Wallet} tone="slate" />
+        <StatCard title="Current Bank Balance" rawValue={data?.currentBankBalance || 0} value={loading ? '...' : formatCurrency(data?.currentBankBalance || 0)} formatter={(v) => formatCurrency(v)} icon={Building2} tone="indigo" />
+        <StatCard title="Receivable / Payable" value={loading ? '...' : `${formatCurrency(data?.currentReceivable || 0)} / ${formatCurrency(data?.currentPayable || 0)}`} icon={PiggyBank} tone="slate" />
       </div>
+
+      <div className="grid gap-4 xl:grid-cols-[1.3fr_1fr]">
+        <section className="surface px-5 py-5">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h2 className="text-base font-semibold text-slate-950">Posting Window</h2>
+              <p className="text-sm text-slate-500">Current fiscal year, current period, and queue status.</p>
+            </div>
+            <CalendarRange className="h-5 w-5 text-slate-400" />
+          </div>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <div className="rounded-lg border border-slate-200 px-4 py-3">
+              <div className="text-xs font-medium uppercase tracking-wide text-slate-500">Fiscal Year</div>
+              <div className="mt-1 text-sm font-semibold text-slate-950">{data?.currentFiscalYear?.name || '-'}</div>
+              <div className="mt-2"><Badge tone={data?.currentFiscalYear?.status === 'CLOSED' ? 'rose' : 'emerald'}>{data?.currentFiscalYear?.status || 'Unknown'}</Badge></div>
+            </div>
+            <div className="rounded-lg border border-slate-200 px-4 py-3">
+              <div className="text-xs font-medium uppercase tracking-wide text-slate-500">Accounting Period</div>
+              <div className="mt-1 text-sm font-semibold text-slate-950">{data?.currentAccountingPeriod?.name || '-'}</div>
+              <div className="mt-2 flex gap-2">
+                <Badge tone={data?.currentAccountingPeriod?.status === 'CLOSED' ? 'rose' : 'blue'}>{data?.currentAccountingPeriod?.status || 'Unknown'}</Badge>
+                {data?.currentAccountingPeriod?.locked ? <Badge tone="amber">Locked</Badge> : <Badge tone="emerald">Unlocked</Badge>}
+              </div>
+            </div>
+            <div className="rounded-lg border border-slate-200 px-4 py-3">
+              <div className="text-xs font-medium uppercase tracking-wide text-slate-500">Open Periods</div>
+              <div className="mt-1 text-2xl font-semibold text-slate-950">{loading ? '...' : data?.openPeriods ?? 0}</div>
+            </div>
+            <div className="rounded-lg border border-slate-200 px-4 py-3">
+              <div className="text-xs font-medium uppercase tracking-wide text-slate-500">Locked Periods</div>
+              <div className="mt-1 flex items-center gap-2 text-2xl font-semibold text-slate-950"><Lock className="h-4 w-4 text-slate-400" />{loading ? '...' : data?.lockedPeriods ?? 0}</div>
+            </div>
+            <div className="rounded-lg border border-slate-200 px-4 py-3">
+              <div className="text-xs font-medium uppercase tracking-wide text-slate-500">Draft Journals</div>
+              <div className="mt-1 text-2xl font-semibold text-slate-950">{loading ? '...' : data?.draftJournals ?? 0}</div>
+            </div>
+            <div className="rounded-lg border border-slate-200 px-4 py-3">
+              <div className="text-xs font-medium uppercase tracking-wide text-slate-500">Pending Approvals</div>
+              <div className="mt-1 text-2xl font-semibold text-slate-950">{loading ? '...' : data?.pendingApprovals ?? 0}</div>
+            </div>
+          </div>
+        </section>
+
+        <section className="surface px-5 py-5">
+          <div>
+            <h2 className="text-base font-semibold text-slate-950">Quick Links</h2>
+            <p className="text-sm text-slate-500">Common accounting control entry points.</p>
+          </div>
+          <div className="mt-4 grid gap-2">
+            {(data?.quickLinks || []).map((item) => (
+              <Link key={item.route} to={item.route} className="rounded-lg border border-slate-200 px-4 py-3 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50">
+                {item.label}
+              </Link>
+            ))}
+          </div>
+        </section>
+      </div>
+
+      <section className="surface px-5 py-5">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <h2 className="text-base font-semibold text-slate-950">Recent Accounting Activity</h2>
+            <p className="text-sm text-slate-500">Recent period, fiscal year, opening balance, voucher, and report actions.</p>
+          </div>
+        </div>
+        <div className="mt-4 overflow-x-auto">
+          <table className="w-full">
+            <thead className="table-head">
+              <tr>
+                <th className="px-4 py-3">Action</th>
+                <th className="px-4 py-3">Entity</th>
+                <th className="px-4 py-3">Time</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {(data?.recentActivities || []).map((item) => (
+                <tr key={item.id} className="hover:bg-slate-50">
+                  <td className="table-cell text-slate-950">{item.description || item.actionType}</td>
+                  <td className="table-cell text-slate-600">{item.entityType || '-'}</td>
+                  <td className="table-cell text-slate-600">{formatDateTime(item.createdAt)}</td>
+                </tr>
+              ))}
+              {!loading && !(data?.recentActivities || []).length ? (
+                <tr>
+                  <td className="table-cell text-slate-500" colSpan={3}>No recent accounting activity.</td>
+                </tr>
+              ) : null}
+            </tbody>
+          </table>
+        </div>
+      </section>
     </div>
   );
 }

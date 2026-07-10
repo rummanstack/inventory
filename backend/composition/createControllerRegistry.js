@@ -1,3 +1,5 @@
+import { VoucherController } from "../controllers/voucherController.js";
+import { FinancialReportingController } from "../controllers/financialReportingController.js";
 import { AccountingController } from "../controllers/accountingController.js";
 import { ActivityLogController } from "../controllers/activityLogController.js";
 import { AttendanceController } from "../controllers/attendanceController.js";
@@ -58,6 +60,9 @@ import { SupplierPaymentController } from "../controllers/supplierPaymentControl
 import { SystemController } from "../controllers/systemController.js";
 import { TenantController } from "../controllers/tenantController.js";
 import { TradeInController } from "../controllers/tradeInController.js";
+import { TradePromotionRuleController } from "../controllers/tradePromotionRuleController.js";
+import { TradePromotionEarningController } from "../controllers/tradePromotionEarningController.js";
+import { TradePromotionSettlementController } from "../controllers/tradePromotionSettlementController.js";
 import { UploadController } from "../controllers/uploadController.js";
 import { UserController } from "../controllers/userController.js";
 import { VisitorChatAdminController } from "../controllers/visitorChatAdminController.js";
@@ -146,7 +151,12 @@ export function createControllerRegistry({ services, env, databaseManager }) {
       supplierPaymentController: new SupplierPaymentController(services.suppliers.supplierPaymentService),
     },
     finance: {
-      accountingController: new AccountingController(services.finance.accountingService),
+      accountingController: new AccountingController(
+        services.finance.accountingService,
+        services.finance.accountingControlService,
+      ),
+      voucherController: new VoucherController(services.finance.voucherService),
+      financialReportingController: new FinancialReportingController(services.finance.financialReportingService),
       financeAccountController: new FinanceAccountController(services.finance.financeAccountService),
       financeDashboardController: new FinanceDashboardController(services.finance.financeDashboardService),
       journalController: new JournalController(services.finance.journalService),
@@ -160,6 +170,11 @@ export function createControllerRegistry({ services, env, databaseManager }) {
       employeeFinanceController: new EmployeeFinanceController(services.hr.employeeFinanceService),
       payrollController: new PayrollController(services.hr.payrollService),
       salaryPaymentController: new SalaryPaymentController(services.hr.salaryPaymentService),
+    },
+    tradePromotions: {
+      tradePromotionRuleController: new TradePromotionRuleController(services.tradePromotions.tradePromotionRuleService),
+      tradePromotionEarningController: new TradePromotionEarningController(services.tradePromotions.tradePromotionEngineService),
+      tradePromotionSettlementController: new TradePromotionSettlementController(services.tradePromotions.tradePromotionSettlementService),
     },
   };
 }

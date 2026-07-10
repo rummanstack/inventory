@@ -6,7 +6,7 @@ export function mapAccount(row) {
     normalBalance: row.normal_balance,
     isActive: row.is_active == null ? true : Boolean(row.is_active),
     parentCode: row.parent_code || null,
-    accountGroup: row.account_group || "",
+    accountGroup: row.account_group || '',
     isSystem: Boolean(row.is_system),
     isCashAccount: Boolean(row.is_cash_account),
     isBankAccount: Boolean(row.is_bank_account),
@@ -47,7 +47,7 @@ export function mapJournalLine(row) {
 }
 
 export async function listChartOfAccounts(client, { activeOnly = true } = {}) {
-  const where = activeOnly ? "WHERE is_active = true" : "";
+  const where = activeOnly ? 'WHERE is_active = true' : '';
   const result = await client.query(`SELECT * FROM chart_of_accounts ${where} ORDER BY code ASC`);
   return result.rows.map(mapAccount);
 }
@@ -68,7 +68,7 @@ export async function insertJournalEntry(client, entry) {
       entry.entryDate,
       entry.sourceType,
       entry.sourceId,
-      entry.memo || "",
+      entry.memo || '',
       entry.createdById || null,
       entry.reversalOfEntryId || null,
     ],
@@ -84,6 +84,11 @@ export async function insertJournalLine(client, line) {
     [line.id, line.tenantId, line.journalEntryId, line.accountCode, line.debit || 0, line.credit || 0],
   );
   return mapJournalLine(result.rows[0]);
+}
+
+export async function findJournalEntryById(client, tenantId, entryId) {
+  const result = await client.query(`SELECT * FROM journal_entries WHERE tenant_id = $1 AND id = $2 LIMIT 1`, [tenantId, entryId]);
+  return result.rowCount > 0 ? mapJournalEntry(result.rows[0]) : null;
 }
 
 export async function findLiveJournalEntry(client, tenantId, sourceType, sourceId) {
@@ -123,17 +128,11 @@ export async function listJournalLinesForEntry(client, tenantId, journalEntryId)
 }
 
 export async function markJournalEntryReversed(client, tenantId, entryId) {
-  await client.query(`UPDATE journal_entries SET reversed_at = NOW() WHERE id = $1 AND tenant_id = $2`, [
-    entryId,
-    tenantId,
-  ]);
+  await client.query(`UPDATE journal_entries SET reversed_at = NOW() WHERE id = $1 AND tenant_id = $2`, [entryId, tenantId]);
 }
 
 export async function clearJournalEntryReversed(client, tenantId, entryId) {
-  await client.query(`UPDATE journal_entries SET reversed_at = NULL WHERE id = $1 AND tenant_id = $2`, [
-    entryId,
-    tenantId,
-  ]);
+  await client.query(`UPDATE journal_entries SET reversed_at = NULL WHERE id = $1 AND tenant_id = $2`, [entryId, tenantId]);
 }
 
 export async function deleteJournalEntry(client, tenantId, entryId) {
@@ -160,7 +159,7 @@ function buildLedgerFilterClause({ tenantId, accountCode, dateFrom, dateTo }, pa
     conditions.push(`journal_entries.entry_date <= $${params.length}::date`);
   }
 
-  return `WHERE ${conditions.join(" AND ")}`;
+  return `WHERE ${conditions.join(' AND ')}`;
 }
 
 export async function listGeneralLedgerLines(client, filters = {}) {
@@ -181,7 +180,7 @@ export async function listGeneralLedgerLines(client, filters = {}) {
 
 export async function getTrialBalance(client, { tenantId, dateFrom, dateTo }) {
   const params = [tenantId];
-  let dateClause = "";
+  let dateClause = '';
   if (dateFrom) {
     params.push(dateFrom);
     dateClause += ` AND journal_entries.entry_date >= $${params.length}::date`;
@@ -211,7 +210,7 @@ export async function getTrialBalance(client, { tenantId, dateFrom, dateTo }) {
   return result.rows.map((row) => {
     const totalDebit = Number(row.total_debit || 0);
     const totalCredit = Number(row.total_credit || 0);
-    const closingBalance = row.normal_balance === "DEBIT" ? totalDebit - totalCredit : totalCredit - totalDebit;
+    const closingBalance = row.normal_balance === 'DEBIT' ? totalDebit - totalCredit : totalCredit - totalDebit;
     return {
       code: row.code,
       name: row.name,

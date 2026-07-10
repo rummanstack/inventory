@@ -1,4 +1,6 @@
+import { createVoucherRoutes } from "./vouchers.routes.js";
 import { createAccountingRoutes } from "./accounting.routes.js";
+import { createFinancialReportingRoutes } from "./financialReporting.routes.js";
 import { Router } from "express";
 import { requireAuth } from "../middleware/requireAuth.js";
 import { requireActiveTenant } from "../middleware/requireActiveTenant.js";
@@ -57,6 +59,9 @@ import { createFinanceAccountsRoutes } from "./financeAccounts.routes.js";
 import { createFinanceDashboardRoutes } from "./financeDashboard.routes.js";
 import { createRetailCashSessionsRoutes } from "./retailCashSessions.routes.js";
 import { createQuotationsRoutes } from "./quotations.routes.js";
+import { createTradePromotionRulesRoutes } from "./tradePromotionRules.routes.js";
+import { createTradePromotionEarningsRoutes } from "./tradePromotionEarnings.routes.js";
+import { createTradePromotionSettlementsRoutes } from "./tradePromotionSettlements.routes.js";
 import { createTradeInsRoutes } from "./tradeIns.routes.js";
 import { createBrandsRoutes } from "./brands.routes.js";
 import { createManufacturersRoutes } from "./manufacturers.routes.js";
@@ -134,8 +139,9 @@ export function createApiRouter({ controllers, authService, env, auditService })
       supplierDueLedgerController,
       supplierPaymentController,
     },
-    finance: { accountingController, financeAccountController, financeDashboardController, journalController },
+    finance: { accountingController, financeAccountController, financeDashboardController, journalController, voucherController, financialReportingController },
     hr: { attendanceController, departmentController, designationController, employeeController, employeeFinanceController, leaveController, payrollController, salaryPaymentController },
+    tradePromotions: { tradePromotionRuleController, tradePromotionEarningController, tradePromotionSettlementController },
   } = controllers;
 
   const loginRateLimiter = createRateLimiter({ name: "auth-login", windowMs: 15 * 60 * 1000, max: 20 });
@@ -188,7 +194,9 @@ export function createApiRouter({ controllers, authService, env, auditService })
   router.use("/dsr-advances", createDsrAdvancesRoutes(dsrFinanceController));
   router.use("/profit-report", createProfitReportRoutes(profitController));
   router.use("/journal", createJournalRoutes(journalController));
+  router.use("/financial-reports", createFinancialReportingRoutes(financialReportingController));
   router.use("/accounting", createAccountingRoutes(accountingController));
+  router.use("/vouchers", createVoucherRoutes(voucherController));
   router.use("/database-backup", createDatabaseBackupRoutes(backupController));
   router.use("/products", createProductsRoutes(productController));
   router.use("/categories", createCategoriesRoutes(categoryController));
@@ -235,6 +243,9 @@ export function createApiRouter({ controllers, authService, env, auditService })
   router.use("/employee-finance", createEmployeeFinanceRoutes(employeeFinanceController));
   router.use("/salary-payments", createSalaryPaymentsRoutes(salaryPaymentController));
   router.use("/drug-batches", createDrugBatchesRoutes(drugBatchController));
+  router.use("/trade-promotion-rules", createTradePromotionRulesRoutes(tradePromotionRuleController));
+  router.use("/trade-promotion-earnings", createTradePromotionEarningsRoutes(tradePromotionEarningController));
+  router.use("/trade-promotion-settlements", createTradePromotionSettlementsRoutes(tradePromotionSettlementController));
 
   return router;
 }

@@ -26,6 +26,12 @@ function mapFiscalYear(row) {
     isActive: Boolean(row.is_active),
     closedAt: row.closed_at,
     closedBy: row.closed_by,
+    closingJournalEntryId: row.closing_journal_entry_id || null,
+    closedChecklist: row.closed_checklist || {},
+    reopenedAt: row.reopened_at,
+    reopenedBy: row.reopened_by || null,
+    openingGeneratedAt: row.opening_generated_at,
+    openingSourceFiscalYearId: row.opening_source_fiscal_year_id || null,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     periodCount: Number(row.period_count || 0),
@@ -53,6 +59,9 @@ function mapOpeningBalance(row) {
   return {
     id: row.id,
     tenantId: row.tenant_id,
+    fiscalYearId: row.fiscal_year_id || null,
+    generatedFromFiscalYearId: row.generated_from_fiscal_year_id || null,
+    isSystemGenerated: Boolean(row.is_system_generated),
     referenceKey: row.reference_key,
     referenceType: row.reference_type,
     referenceId: row.reference_id,
@@ -76,6 +85,10 @@ function mapSettings(row) {
     defaultCurrency: row.default_currency,
     decimalPrecision: Number(row.decimal_precision || 2),
     voucherPrefix: row.voucher_prefix,
+    journalVoucherPrefix: row.journal_voucher_prefix || row.voucher_prefix || 'JV',
+    receiptVoucherPrefix: row.receipt_voucher_prefix || 'RV',
+    paymentVoucherPrefix: row.payment_voucher_prefix || 'PV',
+    contraVoucherPrefix: row.contra_voucher_prefix || 'CV',
     financialYearStart: row.financial_year_start,
     negativeCashPolicy: row.negative_cash_policy,
     autoPostingEnabled: Boolean(row.auto_posting_enabled),
@@ -172,6 +185,14 @@ export async function findFiscalYearById(client, id, tenantId) {
   return result.rowCount ? mapFiscalYear(result.rows[0]) : null;
 }
 
+export async function findFiscalYearByDate(client, tenantId, entryDate) {
+  const result = await client.query(
+    `SELECT * FROM fiscal_years WHERE tenant_id = $1 AND $2::date BETWEEN start_date AND end_date ORDER BY start_date DESC LIMIT 1`,
+    [tenantId, entryDate],
+  );
+  return result.rowCount ? mapFiscalYear(result.rows[0]) : null;
+}
+
 export async function deactivateFiscalYears(client, tenantId, exceptId = null) {
   if (exceptId) {
     await client.query(`UPDATE fiscal_years SET is_active = false, updated_at = NOW() WHERE tenant_id = $1 AND id <> $2`, [tenantId, exceptId]);
@@ -190,17 +211,47 @@ export async function insertFiscalYear(client, year) {
   return mapFiscalYear(result.rows[0]);
 }
 
-export async function updateFiscalYearState(client, { id, tenantId, status, isActive, closedBy = null }) {
+export async function updateFiscalYearState(client, {
+  id,
+  tenantId,
+  status,
+  isActive,
+  closedBy = null,
+  closingJournalEntryId = undefined,
+  closedChecklist = undefined,
+  reopenedBy = undefined,
+  openingGeneratedAt = undefined,
+  openingSourceFiscalYearId = undefined,
+} = {}) {
   const result = await client.query(
     `UPDATE fiscal_years
      SET status = $3,
          is_active = $4,
-         closed_at = CASE WHEN $3 = 'CLOSED' THEN NOW() ELSE NULL END,
-         closed_by = CASE WHEN $3 = 'CLOSED' THEN $5 ELSE NULL END,
+         closed_at = CASE WHEN $3 = 'CLOSED' THEN NOW() WHEN $3 = 'OPEN' THEN NULL ELSE closed_at END,
+         closed_by = CASE WHEN $3 = 'CLOSED' THEN $5 ELSE CASE WHEN $3 = 'OPEN' THEN NULL ELSE closed_by END END,
+         closing_journal_entry_id = COALESCE($6, closing_journal_entry_id),
+         closed_checklist = COALESCE($7, closed_checklist),
+         reopened_at = CASE WHEN $8 IS NULL THEN reopened_at ELSE NOW() END,
+         reopened_by = COALESCE($8, reopened_by),
+         opening_generated_at = COALESCE($9, opening_generated_at),
+         opening_source_fiscal_year_id = COALESCE($10, opening_source_fiscal_year_id),
          updated_at = NOW()
      WHERE id = $1 AND tenant_id = $2
      RETURNING *`,
-    [id, tenantId, status, isActive, closedBy],
+    [id, tenantId, status, isActive, closedBy, closingJournalEntryId ?? null, closedChecklist ?? null, reopenedBy ?? null, openingGeneratedAt ?? null, openingSourceFiscalYearId ?? null],
+  );
+  return result.rowCount ? mapFiscalYear(result.rows[0]) : null;
+}
+
+export async function markFiscalYearOpeningGenerated(client, { id, tenantId, sourceFiscalYearId }) {
+  const result = await client.query(
+    `UPDATE fiscal_years
+     SET opening_generated_at = NOW(),
+         opening_source_fiscal_year_id = $3,
+         updated_at = NOW()
+     WHERE id = $1 AND tenant_id = $2
+     RETURNING *`,
+    [id, tenantId, sourceFiscalYearId],
   );
   return result.rowCount ? mapFiscalYear(result.rows[0]) : null;
 }
@@ -233,8 +284,8 @@ export async function updatePeriodState(client, { id, tenantId, status, locked, 
     `UPDATE accounting_periods
      SET status = $3,
          locked = $4,
-         closed_at = CASE WHEN $3 = 'CLOSED' THEN NOW() ELSE NULL END,
-         closed_by = CASE WHEN $3 = 'CLOSED' THEN $5 ELSE NULL END,
+         closed_at = CASE WHEN $3 = 'CLOSED' THEN NOW() WHEN $3 = 'OPEN' THEN NULL ELSE closed_at END,
+         closed_by = CASE WHEN $3 = 'CLOSED' THEN $5 ELSE CASE WHEN $3 = 'OPEN' THEN NULL ELSE closed_by END END,
          updated_at = NOW()
      WHERE id = $1 AND tenant_id = $2
      RETURNING *`,
@@ -252,11 +303,22 @@ export async function closeAllPeriodsForFiscalYear(client, fiscalYearId, tenantI
   );
 }
 
+export async function reopenAllPeriodsForFiscalYear(client, fiscalYearId, tenantId) {
+  await client.query(
+    `UPDATE accounting_periods
+     SET status = 'OPEN', locked = false, closed_at = NULL, closed_by = NULL, updated_at = NOW()
+     WHERE fiscal_year_id = $1 AND tenant_id = $2`,
+    [fiscalYearId, tenantId],
+  );
+}
+
 export async function findPostingPeriodStatus(client, tenantId, entryDate) {
   const result = await client.query(
     `SELECT fiscal_years.id AS fiscal_year_id,
             fiscal_years.name AS fiscal_year_name,
             fiscal_years.status AS fiscal_year_status,
+            fiscal_years.start_date AS fiscal_year_start_date,
+            fiscal_years.end_date AS fiscal_year_end_date,
             accounting_periods.id AS period_id,
             accounting_periods.name AS period_name,
             accounting_periods.status AS period_status,
@@ -272,6 +334,31 @@ export async function findPostingPeriodStatus(client, tenantId, entryDate) {
   return result.rowCount ? result.rows[0] : null;
 }
 
+export async function countVouchersByStatuses(client, { tenantId, fiscalYearId, statuses = [] }) {
+  const result = await client.query(
+    `SELECT COUNT(*)::INTEGER AS count
+     FROM vouchers
+     WHERE tenant_id = $1
+       AND fiscal_year_id = $2
+       AND deleted_at IS NULL
+       AND status = ANY($3::text[])`,
+    [tenantId, fiscalYearId, statuses],
+  );
+  return Number(result.rows[0]?.count || 0);
+}
+
+export async function countOpeningBalancesForFiscalYear(client, { tenantId, fiscalYearId, systemGeneratedOnly = false }) {
+  const result = await client.query(
+    `SELECT COUNT(*)::INTEGER AS count
+     FROM opening_balances
+     WHERE tenant_id = $1
+       AND fiscal_year_id = $2
+       ${systemGeneratedOnly ? 'AND is_system_generated = true' : ''}`,
+    [tenantId, fiscalYearId],
+  );
+  return Number(result.rows[0]?.count || 0);
+}
+
 export async function getAccountingSettings(client, tenantId) {
   const result = await client.query(`SELECT * FROM accounting_settings WHERE tenant_id = $1 LIMIT 1`, [tenantId]);
   return result.rowCount ? mapSettings(result.rows[0]) : null;
@@ -281,13 +368,18 @@ export async function upsertAccountingSettings(client, settings) {
   const result = await client.query(
     `INSERT INTO accounting_settings (
       tenant_id, default_currency, decimal_precision, voucher_prefix,
+      journal_voucher_prefix, receipt_voucher_prefix, payment_voucher_prefix, contra_voucher_prefix,
       financial_year_start, negative_cash_policy, auto_posting_enabled,
       created_by, updated_by
-    ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$8)
+    ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$12)
     ON CONFLICT (tenant_id) DO UPDATE SET
       default_currency = EXCLUDED.default_currency,
       decimal_precision = EXCLUDED.decimal_precision,
       voucher_prefix = EXCLUDED.voucher_prefix,
+      journal_voucher_prefix = EXCLUDED.journal_voucher_prefix,
+      receipt_voucher_prefix = EXCLUDED.receipt_voucher_prefix,
+      payment_voucher_prefix = EXCLUDED.payment_voucher_prefix,
+      contra_voucher_prefix = EXCLUDED.contra_voucher_prefix,
       financial_year_start = EXCLUDED.financial_year_start,
       negative_cash_policy = EXCLUDED.negative_cash_policy,
       auto_posting_enabled = EXCLUDED.auto_posting_enabled,
@@ -299,6 +391,10 @@ export async function upsertAccountingSettings(client, settings) {
       settings.defaultCurrency,
       settings.decimalPrecision,
       settings.voucherPrefix,
+      settings.journalVoucherPrefix,
+      settings.receiptVoucherPrefix,
+      settings.paymentVoucherPrefix,
+      settings.contraVoucherPrefix,
       settings.financialYearStart,
       settings.negativeCashPolicy,
       settings.autoPostingEnabled,
@@ -308,15 +404,21 @@ export async function upsertAccountingSettings(client, settings) {
   return mapSettings(result.rows[0]);
 }
 
-export async function listOpeningBalances(client, tenantId) {
+export async function listOpeningBalances(client, tenantId, { fiscalYearId = null } = {}) {
+  const params = [tenantId];
+  let where = `WHERE ob.tenant_id = $1`;
+  if (fiscalYearId) {
+    params.push(fiscalYearId);
+    where += ` AND ob.fiscal_year_id = $${params.length}`;
+  }
   const result = await client.query(
     `SELECT ob.*, a.name AS account_name, oa.name AS offset_account_name
      FROM opening_balances ob
      JOIN chart_of_accounts a ON a.code = ob.account_code
      JOIN chart_of_accounts oa ON oa.code = ob.offset_account_code
-     WHERE ob.tenant_id = $1
+     ${where}
      ORDER BY ob.balance_date DESC, ob.created_at DESC`,
-    [tenantId],
+    params,
   );
   return result.rows.map(mapOpeningBalance);
 }
@@ -334,22 +436,34 @@ export async function findOpeningBalanceById(client, id, tenantId) {
   return result.rowCount ? mapOpeningBalance(result.rows[0]) : null;
 }
 
-export async function findOpeningBalanceByReferenceKey(client, tenantId, referenceKey) {
-  const result = await client.query(`SELECT * FROM opening_balances WHERE tenant_id = $1 AND reference_key = $2 LIMIT 1`, [tenantId, referenceKey]);
+export async function findOpeningBalanceByReferenceKey(client, tenantId, referenceKey, fiscalYearId = null) {
+  const params = [tenantId, referenceKey];
+  let where = `tenant_id = $1 AND reference_key = $2`;
+  if (fiscalYearId) {
+    params.push(fiscalYearId);
+    where += ` AND fiscal_year_id = $${params.length}`;
+  } else {
+    where += ` AND fiscal_year_id IS NULL`;
+  }
+  const result = await client.query(`SELECT * FROM opening_balances WHERE ${where} LIMIT 1`, params);
   return result.rowCount ? mapOpeningBalance(result.rows[0]) : null;
 }
 
 export async function insertOpeningBalance(client, item) {
   const result = await client.query(
     `INSERT INTO opening_balances (
-      id, tenant_id, reference_key, reference_type, reference_id, account_code,
+      id, tenant_id, fiscal_year_id, generated_from_fiscal_year_id, is_system_generated,
+      reference_key, reference_type, reference_id, account_code,
       offset_account_code, balance_date, amount, balance_side, note, journal_entry_id,
       created_by, updated_by
-    ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$13)
+    ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$16)
     RETURNING *`,
     [
       item.id,
       item.tenantId,
+      item.fiscalYearId,
+      item.generatedFromFiscalYearId || null,
+      Boolean(item.isSystemGenerated),
       item.referenceKey,
       item.referenceType,
       item.referenceId,
@@ -369,23 +483,29 @@ export async function insertOpeningBalance(client, item) {
 export async function updateOpeningBalance(client, item) {
   const result = await client.query(
     `UPDATE opening_balances
-     SET reference_key = $3,
-         reference_type = $4,
-         reference_id = $5,
-         account_code = $6,
-         offset_account_code = $7,
-         balance_date = $8,
-         amount = $9,
-         balance_side = $10,
-         note = $11,
-         journal_entry_id = $12,
-         updated_by = $13,
+     SET fiscal_year_id = $3,
+         generated_from_fiscal_year_id = $4,
+         is_system_generated = $5,
+         reference_key = $6,
+         reference_type = $7,
+         reference_id = $8,
+         account_code = $9,
+         offset_account_code = $10,
+         balance_date = $11,
+         amount = $12,
+         balance_side = $13,
+         note = $14,
+         journal_entry_id = $15,
+         updated_by = $16,
          updated_at = NOW()
      WHERE id = $1 AND tenant_id = $2
      RETURNING *`,
     [
       item.id,
       item.tenantId,
+      item.fiscalYearId,
+      item.generatedFromFiscalYearId || null,
+      Boolean(item.isSystemGenerated),
       item.referenceKey,
       item.referenceType,
       item.referenceId,

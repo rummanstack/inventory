@@ -1,11 +1,12 @@
 export class AccountingController {
-  constructor(accountingService) {
+  constructor(accountingService, accountingControlService) {
     this.accountingService = accountingService;
+    this.accountingControlService = accountingControlService;
   }
 
   dashboard = async (req, res, next) => {
     try {
-      res.json(await this.accountingService.getDashboard(req.currentUser));
+      res.json(await this.accountingControlService.getDashboard(req.currentUser));
     } catch (error) {
       next(error);
     }
@@ -59,9 +60,25 @@ export class AccountingController {
     }
   };
 
+  closeFiscalYearPreview = async (req, res, next) => {
+    try {
+      res.json({ preview: await this.accountingControlService.previewCloseFiscalYear(req.params.id, req.currentUser) });
+    } catch (error) {
+      next(error);
+    }
+  };
+
   closeFiscalYear = async (req, res, next) => {
     try {
-      res.json({ fiscalYear: await this.accountingService.closeFiscalYear(req.params.id, req.currentUser) });
+      res.json({ fiscalYear: await this.accountingControlService.closeFiscalYear(req.params.id, req.currentUser) });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  reopenFiscalYear = async (req, res, next) => {
+    try {
+      res.json({ fiscalYear: await this.accountingControlService.reopenFiscalYear(req.params.id, req.body || {}, req.currentUser) });
     } catch (error) {
       next(error);
     }
@@ -99,6 +116,14 @@ export class AccountingController {
     }
   };
 
+  unlockPeriod = async (req, res, next) => {
+    try {
+      res.json({ period: await this.accountingControlService.unlockPeriod(req.params.id, req.currentUser) });
+    } catch (error) {
+      next(error);
+    }
+  };
+
   listOpeningBalances = async (req, res, next) => {
     try {
       res.json({ openingBalances: await this.accountingService.listOpeningBalances(req.currentUser) });
@@ -118,6 +143,22 @@ export class AccountingController {
   updateOpeningBalance = async (req, res, next) => {
     try {
       res.json({ openingBalance: await this.accountingService.updateOpeningBalance(req.params.id, req.body || {}, req.currentUser) });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  generateYearOpening = async (req, res, next) => {
+    try {
+      res.json(await this.accountingControlService.generateYearOpening(req.params.id, req.body || {}, req.currentUser));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  reverseJournal = async (req, res, next) => {
+    try {
+      res.json(await this.accountingControlService.reverseJournal(req.params.id, req.body || {}, req.currentUser));
     } catch (error) {
       next(error);
     }

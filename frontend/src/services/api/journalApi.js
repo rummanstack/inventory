@@ -1,19 +1,40 @@
-import { apiRequest, buildQueryString } from './client.js';
+﻿import { apiRequest, buildQueryString } from './client.js';
 
 export const journalApi = {
+  getReportReferenceData() {
+    return apiRequest('/financial-reports/reference-data');
+  },
   getChartOfAccounts() {
     return apiRequest('/journal/accounts');
   },
-  getGeneralLedger({ accountCode, dateFrom, dateTo } = {}) {
-    return apiRequest(`/journal/general-ledger${buildQueryString({ accountCode, dateFrom, dateTo })}`);
+  getGeneralLedger(filters = {}) {
+    return apiRequest(`/financial-reports/general-ledger${buildQueryString(filters)}`);
   },
-  getTrialBalance({ dateTo } = {}) {
-    return apiRequest(`/journal/trial-balance${buildQueryString({ dateTo })}`);
+  getAccountLedger(filters = {}) {
+    return apiRequest(`/financial-reports/account-ledger${buildQueryString(filters)}`);
   },
-  getBalanceSheet({ dateTo } = {}) {
-    return apiRequest(`/journal/balance-sheet${buildQueryString({ dateTo })}`);
+  getTrialBalance(filters = {}) {
+    return apiRequest(`/financial-reports/trial-balance${buildQueryString(filters)}`);
   },
-  getProfitAndLoss({ dateFrom, dateTo } = {}) {
-    return apiRequest(`/journal/profit-and-loss${buildQueryString({ dateFrom, dateTo })}`);
+  getCustomerLedger(filters = {}) {
+    return apiRequest(`/financial-reports/customer-ledger${buildQueryString(filters)}`);
+  },
+  getSupplierLedger(filters = {}) {
+    return apiRequest(`/financial-reports/supplier-ledger${buildQueryString(filters)}`);
+  },
+  getCashBook(filters = {}) {
+    return apiRequest(`/financial-reports/cash-book${buildQueryString(filters)}`);
+  },
+  getBankBook(filters = {}) {
+    return apiRequest(`/financial-reports/bank-book${buildQueryString(filters)}`);
+  },
+  getBalanceSheet(filters = {}) {
+    return apiRequest(`/financial-reports/balance-sheet${buildQueryString(filters)}`);
+  },
+  getProfitAndLoss(filters = {}) {
+    return apiRequest(`/financial-reports/profit-and-loss${buildQueryString(filters)}`);
+  },
+  getCashFlow(filters = {}) {
+    return apiRequest(`/financial-reports/cash-flow${buildQueryString(filters)}`);
   },
 };

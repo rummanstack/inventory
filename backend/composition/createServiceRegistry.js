@@ -1,4 +1,7 @@
+import { VoucherService } from "../services/voucherService.js";
+import { FinancialReportingService } from "../services/financialReportingService.js";
 import { AccountingService } from "../services/accountingService.js";
+import { AccountingControlService } from "../services/accountingControlService.js";
 import { AttendanceService } from "../services/attendanceService.js";
 import { LeaveService } from "../services/leaveService.js";
 import { PayrollService } from "../services/payrollService.js";
@@ -58,6 +61,9 @@ import { SystemService } from "../services/systemService.js";
 import { RegistrationService } from "../services/registrationService.js";
 import { TenantService } from "../services/tenantService.js";
 import { TradeInService } from "../services/tradeInService.js";
+import { TradePromotionRuleService } from "../services/tradePromotionRuleService.js";
+import { TradePromotionEngineService } from "../services/tradePromotionEngineService.js";
+import { TradePromotionSettlementService } from "../services/tradePromotionSettlementService.js";
 import { UserService } from "../services/userService.js";
 import { VisitorChatService } from "../services/visitorChatService.js";
 import { WarrantyClaimService } from "../services/warrantyClaimService.js";
@@ -87,6 +93,8 @@ export function createServiceRegistry({ databaseManager, env }) {
       journalService,
     }),
     financeDashboardService: null,
+    voucherService: null,
+    financialReportingService: null,
     journalService,
     profitService: new ProfitService(databaseManager),
   };
@@ -148,11 +156,31 @@ export function createServiceRegistry({ databaseManager, env }) {
     srService: new SrService(databaseManager, { auditService: platform.auditService }),
   };
 
+  // Constructed before `suppliers` (mirrors why journalService itself is built
+  // early) because purchaseReceiveService below needs a live reference to
+  // tradePromotionEngineService so it can evaluate promotion rules whenever a
+  // purchase is created/edited/deleted/restored. tradePromotionEngineService
+  // and tradePromotionSettlementService are filled in below, once
+  // journalService/financeAccountService are available to inject into them.
+  const tradePromotions = {
+    tradePromotionRuleService: new TradePromotionRuleService(databaseManager, { auditService: platform.auditService }),
+    tradePromotionEngineService: new TradePromotionEngineService(databaseManager, {
+      auditService: platform.auditService,
+      journalService,
+    }),
+    tradePromotionSettlementService: new TradePromotionSettlementService(databaseManager, {
+      auditService: platform.auditService,
+      journalService,
+      financeAccountService: finance.financeAccountService,
+    }),
+  };
+
   const suppliers = {
     purchaseReceiveService: new PurchaseReceiveService(databaseManager, {
       auditService: platform.auditService,
       financeAccountService: finance.financeAccountService,
       journalService,
+      tradePromotionEngineService: tradePromotions.tradePromotionEngineService,
     }),
     purchaseReturnService: new PurchaseReturnService(databaseManager, {
       auditService: platform.auditService,
@@ -249,6 +277,20 @@ export function createServiceRegistry({ databaseManager, env }) {
     journalService,
   });
 
+  finance.accountingControlService = new AccountingControlService(databaseManager, {
+    auditService: platform.auditService,
+    journalService,
+  });
+
+  finance.voucherService = new VoucherService(databaseManager, {
+    auditService: platform.auditService,
+    journalService,
+  });
+
+  finance.financialReportingService = new FinancialReportingService(databaseManager, {
+    auditService: platform.auditService,
+  });
+
   finance.financeDashboardService = new FinanceDashboardService(databaseManager, {
     financeAccountService: finance.financeAccountService,
     profitService: finance.profitService,
@@ -263,6 +305,7 @@ export function createServiceRegistry({ databaseManager, env }) {
     suppliers,
     operations,
     hr,
+    tradePromotions,
   };
 }
 

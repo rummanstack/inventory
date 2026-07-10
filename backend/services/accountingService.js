@@ -127,6 +127,10 @@ function normalizeSettings(input = {}) {
     defaultCurrency: String(input.defaultCurrency || "BDT").trim().toUpperCase() || "BDT",
     decimalPrecision: Number.isFinite(Number(input.decimalPrecision)) ? Number(input.decimalPrecision) : 2,
     voucherPrefix: String(input.voucherPrefix || "JV").trim().toUpperCase() || "JV",
+    journalVoucherPrefix: String(input.journalVoucherPrefix || input.voucherPrefix || "JV").trim().toUpperCase() || "JV",
+    receiptVoucherPrefix: String(input.receiptVoucherPrefix || "RV").trim().toUpperCase() || "RV",
+    paymentVoucherPrefix: String(input.paymentVoucherPrefix || "PV").trim().toUpperCase() || "PV",
+    contraVoucherPrefix: String(input.contraVoucherPrefix || "CV").trim().toUpperCase() || "CV",
     financialYearStart: String(input.financialYearStart || "01-01").trim() || "01-01",
     negativeCashPolicy: String(input.negativeCashPolicy || "WARN").trim().toUpperCase() || "WARN",
     autoPostingEnabled: input.autoPostingEnabled !== false,
@@ -564,3 +568,4 @@ export class AccountingService {
     });
   }
 }
+

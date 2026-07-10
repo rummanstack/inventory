@@ -52,6 +52,9 @@ export const PERMISSIONS = {
   MANAGE_PRODUCT_SERIALS: "manage_product_serials",
   VIEW_WARRANTY_CLAIMS: "view_warranty_claims",
   MANAGE_WARRANTY_CLAIMS: "manage_warranty_claims",
+  VIEW_TRADE_PROMOTIONS: "view_trade_promotions",
+  MANAGE_TRADE_PROMOTION_RULES: "manage_trade_promotion_rules",
+  MANAGE_TRADE_PROMOTION_SETTLEMENTS: "manage_trade_promotion_settlements",
   VIEW_REPAIR_JOBS: "view_repair_jobs",
   MANAGE_REPAIR_JOBS: "manage_repair_jobs",
   VIEW_QUOTATIONS: "view_quotations",
@@ -87,10 +90,37 @@ export const PERMISSIONS = {
   MANAGE_ACCOUNTING_PERIODS: "manage_accounting_periods",
   VIEW_OPENING_BALANCES: "view_opening_balances",
   MANAGE_OPENING_BALANCES: "manage_opening_balances",
+  JOURNAL_CREATE: "journal.create",
+  JOURNAL_EDIT: "journal.edit",
+  JOURNAL_APPROVE: "journal.approve",
+  JOURNAL_POST: "journal.post",
+  JOURNAL_REVERSE: "journal.reverse",
+  JOURNAL_OVERRIDE: "journal.override",
+  FISCAL_YEAR_CLOSE: "fiscal_year.close",
+  FISCAL_YEAR_REOPEN: "fiscal_year.reopen",
+  PERIOD_LOCK: "period.lock",
+  PERIOD_UNLOCK: "period.unlock",
+  CLOSING_EXECUTE: "closing.execute",
+  OPENING_BALANCE_GENERATE: "opening_balance.generate",
+  ACCOUNTING_ADMIN: "accounting.admin",
+  VOUCHER_VIEW: "voucher.view",
+  VOUCHER_RECEIPT: "voucher.receipt",
+  VOUCHER_PAYMENT: "voucher.payment",
+  VOUCHER_CONTRA: "voucher.contra",
+  REPORT_TRIAL_BALANCE: "report.trial_balance",
+  REPORT_GENERAL_LEDGER: "report.general_ledger",
+  REPORT_ACCOUNT_LEDGER: "report.account_ledger",
+  REPORT_CUSTOMER_LEDGER: "report.customer_ledger",
+  REPORT_SUPPLIER_LEDGER: "report.supplier_ledger",
+  REPORT_CASH_BOOK: "report.cash_book",
+  REPORT_BANK_BOOK: "report.bank_book",
+  REPORT_BALANCE_SHEET: "report.balance_sheet",
+  REPORT_PROFIT_LOSS: "report.profit_loss",
+  REPORT_CASH_FLOW: "report.cash_flow",
 };
 
 // The full catalog of permissions that can be assigned to any tenant-facing
-// role. This is a vocabulary, not a grant — system_developer owns it in
+// role. This is a vocabulary, not a grant Ã¢â‚¬â€ system_developer owns it in
 // code; who actually HAS which permission lives entirely in the
 // role_permissions table (see permissionService.js).
 export const TENANT_BUSINESS_PERMISSIONS = [
@@ -144,6 +174,9 @@ export const TENANT_BUSINESS_PERMISSIONS = [
   PERMISSIONS.MANAGE_PRODUCT_SERIALS,
   PERMISSIONS.VIEW_WARRANTY_CLAIMS,
   PERMISSIONS.MANAGE_WARRANTY_CLAIMS,
+  PERMISSIONS.VIEW_TRADE_PROMOTIONS,
+  PERMISSIONS.MANAGE_TRADE_PROMOTION_RULES,
+  PERMISSIONS.MANAGE_TRADE_PROMOTION_SETTLEMENTS,
   PERMISSIONS.VIEW_REPAIR_JOBS,
   PERMISSIONS.MANAGE_REPAIR_JOBS,
   PERMISSIONS.VIEW_QUOTATIONS,
@@ -179,11 +212,38 @@ export const TENANT_BUSINESS_PERMISSIONS = [
   PERMISSIONS.MANAGE_ACCOUNTING_PERIODS,
   PERMISSIONS.VIEW_OPENING_BALANCES,
   PERMISSIONS.MANAGE_OPENING_BALANCES,
+  PERMISSIONS.JOURNAL_CREATE,
+  PERMISSIONS.JOURNAL_EDIT,
+  PERMISSIONS.JOURNAL_APPROVE,
+  PERMISSIONS.JOURNAL_POST,
+  PERMISSIONS.JOURNAL_REVERSE,
+  PERMISSIONS.JOURNAL_OVERRIDE,
+  PERMISSIONS.FISCAL_YEAR_CLOSE,
+  PERMISSIONS.FISCAL_YEAR_REOPEN,
+  PERMISSIONS.PERIOD_LOCK,
+  PERMISSIONS.PERIOD_UNLOCK,
+  PERMISSIONS.CLOSING_EXECUTE,
+  PERMISSIONS.OPENING_BALANCE_GENERATE,
+  PERMISSIONS.ACCOUNTING_ADMIN,
+  PERMISSIONS.VOUCHER_VIEW,
+  PERMISSIONS.VOUCHER_RECEIPT,
+  PERMISSIONS.VOUCHER_PAYMENT,
+  PERMISSIONS.VOUCHER_CONTRA,
+  PERMISSIONS.REPORT_TRIAL_BALANCE,
+  PERMISSIONS.REPORT_GENERAL_LEDGER,
+  PERMISSIONS.REPORT_ACCOUNT_LEDGER,
+  PERMISSIONS.REPORT_CUSTOMER_LEDGER,
+  PERMISSIONS.REPORT_SUPPLIER_LEDGER,
+  PERMISSIONS.REPORT_CASH_BOOK,
+  PERMISSIONS.REPORT_BANK_BOOK,
+  PERMISSIONS.REPORT_BALANCE_SHEET,
+  PERMISSIONS.REPORT_PROFIT_LOSS,
+  PERMISSIONS.REPORT_CASH_FLOW,
 ];
 
 // system_developer is the platform root: unconditional, full access, never
 // configured by anyone. Every other role (including super_admin) has no
-// grant of its own in code — what each role can do lives entirely in the
+// grant of its own in code Ã¢â‚¬â€ what each role can do lives entirely in the
 // role_permissions table, assigned by system_developer (any role) or
 // super_admin (admin/manager/operator, within their own tenant). A role
 // with no rows in that table has zero permissions until configured.

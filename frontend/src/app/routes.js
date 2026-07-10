@@ -42,6 +42,7 @@ import {
   BookOpen,
   Scale,
   BriefcaseBusiness,
+  Gift,
 } from 'lucide-react';
 const DashboardPage = lazy(() => import('../features/dashboard/pages/DashboardPage'));
 const ActivityLogsPage = lazy(() => import('../features/activity-logs/pages/ActivityLogsPage'));
@@ -52,13 +53,25 @@ const DsrFinancePage = lazy(() => import('../features/dsr-finance/pages/DsrFinan
 const ProfitPage = lazy(() => import('../features/profit/pages/ProfitPage'));
 const TrialBalancePage = lazy(() => import('../features/journal/pages/TrialBalancePage'));
 const GeneralLedgerPage = lazy(() => import('../features/journal/pages/GeneralLedgerPage'));
+const AccountLedgerPage = lazy(() => import('../features/journal/pages/AccountLedgerPage'));
+const CustomerLedgerPage = lazy(() => import('../features/journal/pages/CustomerLedgerPage'));
+const SupplierLedgerPage = lazy(() => import('../features/journal/pages/SupplierLedgerPage'));
+const CashBookPage = lazy(() => import('../features/journal/pages/CashBookPage'));
+const BankBookPage = lazy(() => import('../features/journal/pages/BankBookPage'));
 const BalanceSheetPage = lazy(() => import('../features/journal/pages/BalanceSheetPage'));
 const ProfitAndLossPage = lazy(() => import('../features/journal/pages/ProfitAndLossPage'));
+const CashFlowPage = lazy(() => import('../features/journal/pages/CashFlowPage'));
 const AccountingDashboardPage = lazy(() => import('../features/accounting-foundation/pages/AccountingDashboardPage'));
 const ChartOfAccountsPage = lazy(() => import('../features/accounting-foundation/pages/ChartOfAccountsPage'));
 const FiscalYearsPage = lazy(() => import('../features/accounting-foundation/pages/FiscalYearsPage'));
 const OpeningBalancesPage = lazy(() => import('../features/accounting-foundation/pages/OpeningBalancesPage'));
 const AccountingSettingsPage = lazy(() => import('../features/accounting-foundation/pages/AccountingSettingsPage'));
+const JournalVouchersPage = lazy(() => import('../features/vouchers/pages/JournalVouchersPage.jsx'));
+const ReceiptVouchersPage = lazy(() => import('../features/vouchers/pages/ReceiptVouchersPage.jsx'));
+const PaymentVouchersPage = lazy(() => import('../features/vouchers/pages/PaymentVouchersPage.jsx'));
+const ContraVouchersPage = lazy(() => import('../features/vouchers/pages/ContraVouchersPage.jsx'));
+const VoucherRegisterPage = lazy(() => import('../features/vouchers/pages/VoucherRegisterPage.jsx'));
+const JournalRegisterPage = lazy(() => import('../features/vouchers/pages/JournalRegisterPage.jsx'));
 const MorningIssuePage = lazy(() => import('../features/morning-issue/pages/MorningIssuePage'));
 const ProductsPage = lazy(() => import('../features/products/pages/ProductsPage'));
 const DailyReportsPage = lazy(() => import('../features/reports/pages/DailyReportsPage'));
@@ -90,6 +103,10 @@ const PurchaseReturnsPage = lazy(() => import('../features/purchase-returns/page
 const SupplierPaymentsPage = lazy(() => import('../features/supplier-payments/pages/SupplierPaymentsPage'));
 const SupplierDiscountsPage = lazy(() => import('../features/supplier-discounts/pages/SupplierDiscountsPage'));
 const SupplierStatementPage = lazy(() => import('../features/supplier-statement/pages/SupplierStatementPage'));
+const TradePromotionRulesPage = lazy(() => import('../features/trade-promotions/rules/pages/TradePromotionRulesPage'));
+const TradePromotionEarningsPage = lazy(() => import('../features/trade-promotions/earnings/pages/TradePromotionEarningsPage'));
+const TradePromotionSettlementsPage = lazy(() => import('../features/trade-promotions/settlements/pages/TradePromotionSettlementsPage'));
+const TradePromotionReportsPage = lazy(() => import('../features/trade-promotions/reports/pages/TradePromotionReportsPage'));
 const QuickSalePage = lazy(() => import('../features/retailer/quick-sale/pages/QuickSalePage'));
 const SalesInvoicesPage = lazy(() => import('../features/retailer/sales-invoices/pages/SalesInvoicesPage'));
 const RetailPromotionsPage = lazy(() => import('../features/retailer/promotions/pages/RetailPromotionsPage'));
@@ -152,6 +169,12 @@ export const APP_ROUTES = [
   { id: 'supplier-discounts', path: '/supplier-discounts', labelKey: 'nav.supplierDiscounts', icon: Tag, component: SupplierDiscountsPage, group: 'purchases', permission: 'view_supplier_payments', feature: 'supplier-discounts' },
   { id: 'supplier-statement', path: '/supplier-statement', labelKey: 'nav.supplierStatement', icon: FileText, component: SupplierStatementPage, group: 'purchases', permission: 'view_supplier_statement', feature: 'supplier-statement' },
 
+  // 5.5 Trade Promotions
+  { id: 'trade-promotion-rules', path: '/trade-promotions/rules', labelKey: 'nav.tradePromotionRules', icon: Gift, component: TradePromotionRulesPage, group: 'trade-promotions', permission: 'manage_trade_promotion_rules', feature: 'trade-promotions' },
+  { id: 'trade-promotion-earnings', path: '/trade-promotions/earnings', labelKey: 'nav.tradePromotionEarnings', icon: HandCoins, component: TradePromotionEarningsPage, group: 'trade-promotions', permission: 'view_trade_promotions', feature: 'trade-promotions' },
+  { id: 'trade-promotion-settlements', path: '/trade-promotions/settlements', labelKey: 'nav.tradePromotionSettlements', icon: CircleDollarSign, component: TradePromotionSettlementsPage, group: 'trade-promotions', permission: 'manage_trade_promotion_settlements', feature: 'trade-promotions' },
+  { id: 'trade-promotion-reports', path: '/trade-promotions/reports', labelKey: 'nav.tradePromotionReports', icon: BarChart3, component: TradePromotionReportsPage, group: 'trade-promotions', permission: 'view_trade_promotions', feature: 'trade-promotions' },
+
   // 6a. DSR Operations
   { id: 'dsrs', path: '/dsrs', labelKey: 'nav.dsrs', icon: Users, component: DsrPage, group: 'dsr', permission: 'view_dsrs', feature: 'dsrs' },
   { id: 'morning-issue', path: '/morning-issue', labelKey: 'nav.morningIssue', icon: Truck, component: MorningIssuePage, group: 'dsr', permission: 'create_issues', feature: 'morning-issue' },
@@ -180,10 +203,22 @@ export const APP_ROUTES = [
   { id: 'fiscal-years', path: '/accounting/fiscal-years', labelKey: 'nav.fiscalYears', icon: BriefcaseBusiness, component: FiscalYearsPage, group: 'accounting', permission: 'manage_fiscal_years', feature: 'fiscal-years' },
   { id: 'opening-balances', path: '/accounting/opening-balances', labelKey: 'nav.openingBalances', icon: Wallet, component: OpeningBalancesPage, group: 'accounting', permission: 'view_opening_balances', feature: 'opening-balances' },
   { id: 'accounting-settings', path: '/accounting/settings', labelKey: 'nav.accountingSettings', icon: Settings, component: AccountingSettingsPage, group: 'accounting', permission: 'manage_accounting_settings', feature: 'accounting-settings' },
-  { id: 'general-ledger', path: '/general-ledger', labelKey: 'nav.generalLedger', icon: BookOpen, component: GeneralLedgerPage, group: 'accounting', permission: 'view_general_ledger', feature: 'general-ledger' },
-  { id: 'trial-balance', path: '/trial-balance', labelKey: 'nav.trialBalance', icon: Scale, component: TrialBalancePage, group: 'accounting', permission: 'view_trial_balance', feature: 'trial-balance' },
-  { id: 'balance-sheet', path: '/balance-sheet', labelKey: 'nav.balanceSheet', icon: Landmark, component: BalanceSheetPage, group: 'accounting', permission: 'view_balance_sheet', feature: 'balance-sheet' },
-  { id: 'profit-and-loss', path: '/profit-and-loss', labelKey: 'nav.profitAndLoss', icon: TrendingUp, component: ProfitAndLossPage, group: 'accounting', permission: 'view_profit_and_loss', feature: 'profit-and-loss' },
+  { id: 'journal-vouchers', path: '/accounting/journal-vouchers', labelKey: 'nav.journalVouchers', icon: BookOpen, component: JournalVouchersPage, group: 'accounting', permission: 'voucher.view', feature: 'journal-vouchers' },
+  { id: 'receipt-vouchers', path: '/accounting/receipt-vouchers', labelKey: 'nav.receiptVouchers', icon: Receipt, component: ReceiptVouchersPage, group: 'accounting', permission: 'voucher.view', feature: 'receipt-vouchers' },
+  { id: 'payment-vouchers', path: '/accounting/payment-vouchers', labelKey: 'nav.paymentVouchers', icon: Wallet, component: PaymentVouchersPage, group: 'accounting', permission: 'voucher.view', feature: 'payment-vouchers' },
+  { id: 'contra-vouchers', path: '/accounting/contra-vouchers', labelKey: 'nav.contraVouchers', icon: ArrowLeftRight, component: ContraVouchersPage, group: 'accounting', permission: 'voucher.view', feature: 'contra-vouchers' },
+  { id: 'voucher-register', path: '/accounting/voucher-register', labelKey: 'nav.voucherRegister', icon: ClipboardList, component: VoucherRegisterPage, group: 'accounting', permission: 'voucher.view', feature: 'voucher-register' },
+  { id: 'journal-register', path: '/accounting/journal-register', labelKey: 'nav.journalRegister', icon: BookOpen, component: JournalRegisterPage, group: 'accounting', permission: 'voucher.view', feature: 'journal-register' },
+  { id: 'general-ledger', path: '/general-ledger', labelKey: 'nav.generalLedger', icon: BookOpen, component: GeneralLedgerPage, group: 'accounting', permission: 'report.general_ledger', feature: 'general-ledger' },
+  { id: 'account-ledger', path: '/account-ledger', labelKey: 'nav.accountLedger', icon: BookOpen, component: AccountLedgerPage, group: 'accounting', permission: 'report.account_ledger', feature: 'account-ledger' },
+  { id: 'customer-ledger', path: '/customer-ledger', labelKey: 'nav.customerLedger', icon: Users, component: CustomerLedgerPage, group: 'accounting', permission: 'report.customer_ledger', feature: 'customer-ledger' },
+  { id: 'supplier-ledger', path: '/supplier-ledger', labelKey: 'nav.supplierLedger', icon: Building2, component: SupplierLedgerPage, group: 'accounting', permission: 'report.supplier_ledger', feature: 'supplier-ledger' },
+  { id: 'cash-book', path: '/cash-book', labelKey: 'nav.cashBook', icon: Wallet, component: CashBookPage, group: 'accounting', permission: 'report.cash_book', feature: 'cash-book' },
+  { id: 'bank-book', path: '/bank-book', labelKey: 'nav.bankBook', icon: Landmark, component: BankBookPage, group: 'accounting', permission: 'report.bank_book', feature: 'bank-book' },
+  { id: 'trial-balance', path: '/trial-balance', labelKey: 'nav.trialBalance', icon: Scale, component: TrialBalancePage, group: 'accounting', permission: 'report.trial_balance', feature: 'trial-balance' },
+  { id: 'balance-sheet', path: '/balance-sheet', labelKey: 'nav.balanceSheet', icon: Landmark, component: BalanceSheetPage, group: 'accounting', permission: 'report.balance_sheet', feature: 'balance-sheet' },
+  { id: 'profit-and-loss', path: '/profit-and-loss', labelKey: 'nav.profitAndLoss', icon: TrendingUp, component: ProfitAndLossPage, group: 'accounting', permission: 'report.profit_loss', feature: 'profit-and-loss' },
+  { id: 'cash-flow', path: '/cash-flow', labelKey: 'nav.cashFlow', icon: Activity, component: CashFlowPage, group: 'accounting', permission: 'report.cash_flow', feature: 'cash-flow' },
 
   // 9. Reports
   { id: 'retailer-daily-sales-report', path: '/retailer/daily-sales-report', labelKey: 'nav.retailerDailySalesReport', icon: FileText, component: DailySalesReportPage, group: 'reports', permission: 'manage_retail_daily_sales_report', feature: 'retailer-daily-sales-report' },
@@ -224,7 +259,7 @@ export const APP_ROUTES = [
   { id: 'registration-requests', path: '/platform/registrations', labelKey: 'nav.registrationRequests', icon: UserCheck, component: RegistrationRequestsPage, group: 'developer', role: 'system_developer', feature: 'registration-requests' },
 ];
 
-export const SIDEBAR_SECTIONS = ['overview', 'pos', 'customers', 'inventory', 'dsr', 'shops', 'purchases', 'warranty', 'finance', 'accounting', 'reports', 'hr', 'system', 'developer'];
+export const SIDEBAR_SECTIONS = ['overview', 'pos', 'customers', 'inventory', 'dsr', 'shops', 'purchases', 'trade-promotions', 'warranty', 'finance', 'accounting', 'reports', 'hr', 'system', 'developer'];
 
 export function canAccessRoute(route, { user, can, hasFeature }) {
   if (!route) return false;
@@ -258,6 +293,8 @@ export function getRouteLabel(pathname, t = (key) => key) {
 
   return matchedRoute ? t(matchedRoute.labelKey) : t('nav.dashboard');
 }
+
+
 
 
 

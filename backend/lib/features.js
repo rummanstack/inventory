@@ -45,6 +45,7 @@ export const TENANT_FEATURES = [
   'supplier-payments',
   'supplier-discounts',
   'supplier-statement',
+  'trade-promotions',
 
   // Warranty & Repair
   'warranty-claims',
@@ -66,6 +67,12 @@ export const TENANT_FEATURES = [
   'trial-balance',
   'balance-sheet',
   'profit-and-loss',
+  'account-ledger',
+  'customer-ledger',
+  'supplier-ledger',
+  'cash-book',
+  'bank-book',
+  'cash-flow',
 
   // Reports
   'retailer-daily-sales-report',

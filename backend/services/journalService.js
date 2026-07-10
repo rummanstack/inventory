@@ -7,6 +7,7 @@ import {
   listChartOfAccounts,
   insertJournalEntry,
   insertJournalLine,
+  findJournalEntryById,
   findLiveJournalEntry,
   findReversalEntry,
   listJournalLinesForEntry,
@@ -17,7 +18,7 @@ import {
   listGeneralLedgerLines,
   getTrialBalance,
 } from "../repositories/journalRepository.js";
-import { findPostingPeriodStatus } from "../repositories/accountingRepository.js";
+import { AccountingValidationService } from "./accountingValidationService.js";
 
 const BALANCE_TOLERANCE = 0.0001;
 
@@ -37,34 +38,30 @@ function signedLine(accountCode, delta, positiveSide) {
 // tables and nothing else in the app reads the journal back. It exists only
 // to feed General Ledger / Trial Balance reports.
 export class JournalService {
-  constructor(databaseManager) {
+  constructor(databaseManager, { accountingValidationService } = {}) {
     this.databaseManager = databaseManager;
+    this.accountingValidationService = accountingValidationService || new AccountingValidationService(databaseManager);
   }
 
-  async assertPostingAllowed(client, tenantId, entryDate) {
-    const period = await findPostingPeriodStatus(client, tenantId, entryDate);
-    if (!period) return;
-    assert(period.fiscal_year_status !== "CLOSED", `Posting is blocked because fiscal year ${period.fiscal_year_name} is closed.`, 400);
-    assert(period.period_status !== "CLOSED", `Posting is blocked because period ${period.period_name} is closed.`, 400);
-    assert(!period.period_locked, `Posting is blocked because period ${period.period_name} is locked.`, 400);
+  async assertPostingAllowed(client, tenantId, entryDate, purpose = "Posting") {
+    return this.accountingValidationService.assertPostingAllowed(client, { tenantId, entryDate, purpose });
   }
 
-  // ── Core primitives ──────────────────────────────────────────────────
+  // -- Core primitives --------------------------------------------------
 
-  // lines: [{ accountCode, debit?, credit? }, ...]. Throws if unbalanced —
-  // deliberately fails the WHOLE calling transaction so a bug in a posting
+  // lines: [{ accountCode, debit?, credit? }, ...]. Throws if unbalanced;
+  // deliberately fails the whole calling transaction so a bug in a posting
   // mapping can never leave inconsistent business + accounting state.
-  async post(client, { tenantId, entryDate, sourceType, sourceId, memo, createdById, reversalOfEntryId, lines }) {
+  async post(client, { tenantId, entryDate, sourceType, sourceId, memo, createdById, reversalOfEntryId, lines, allowInactiveAccounts = false }) {
     const cleanLines = (lines || []).filter((line) => (line.debit || 0) > 0 || (line.credit || 0) > 0);
-    await this.assertPostingAllowed(client, tenantId, entryDate);
-    assert(cleanLines.length > 0, `Journal entry for ${sourceType}:${sourceId} has no lines.`);
-
-    const totalDebit = cleanLines.reduce((sum, line) => sum + (line.debit || 0), 0);
-    const totalCredit = cleanLines.reduce((sum, line) => sum + (line.credit || 0), 0);
-    assert(
-      Math.abs(totalDebit - totalCredit) < BALANCE_TOLERANCE,
-      `Unbalanced journal entry for ${sourceType}:${sourceId} (debit ${totalDebit} != credit ${totalCredit}).`,
-    );
+    await this.accountingValidationService.validatePosting(client, {
+      tenantId,
+      entryDate,
+      lines: cleanLines,
+      purpose: `Posting ${sourceType}:${sourceId}`,
+      allowInactiveAccounts,
+      context: `Journal entry for ${sourceType}:${sourceId}`,
+    });
 
     const entry = await insertJournalEntry(client, {
       id: createId("journal"),
@@ -92,14 +89,15 @@ export class JournalService {
   }
 
   // Mirrors whatever was actually posted (swap debit/credit) rather than
-  // recomputing business amounts — guarantees an exact cancel even if the
+  // recomputing business amounts; guarantees an exact cancel even if the
   // posting logic for this source type changes later. No-op if the source
-  // was never posted (e.g. financeAccountService wasn't wired at the time).
+  // was never posted.
   async reverse(client, { tenantId, sourceType, sourceId, reason, createdById }) {
     const original = await findLiveJournalEntry(client, tenantId, sourceType, sourceId);
     if (!original) {
       return null;
     }
+    assert(!original.reversedAt, `Journal entry for ${sourceType}:${sourceId} is already reversed.`, 400);
 
     const originalLines = await listJournalLinesForEntry(client, tenantId, original.id);
     const reversalEntry = await this.post(client, {
@@ -107,7 +105,7 @@ export class JournalService {
       entryDate: new Date().toISOString().slice(0, 10),
       sourceType,
       sourceId: `${sourceId}:reversal:${createId("r")}`,
-      memo: reason ? `Reversal — ${reason}` : "Reversal",
+      memo: reason ? `Reversal - ${reason}` : "Reversal",
       createdById,
       reversalOfEntryId: original.id,
       lines: originalLines.map((line) => ({
@@ -115,14 +113,41 @@ export class JournalService {
         debit: line.credit,
         credit: line.debit,
       })),
+      allowInactiveAccounts: true,
     });
 
     await markJournalEntryReversed(client, tenantId, original.id);
-
     return reversalEntry;
   }
 
-  // Undoes a reverse() — used when a soft-deleted record is restored from
+  async reverseEntryById(client, { tenantId, entryId, reason, createdById }) {
+    const original = await findJournalEntryById(client, tenantId, entryId);
+    assert(original, "Journal entry not found.", 404);
+    assert(!original.reversalOfEntryId, "Reversal journals cannot be reversed directly.", 400);
+    assert(!original.reversedAt, "Journal entry is already reversed.", 400);
+
+    const originalLines = await listJournalLinesForEntry(client, tenantId, original.id);
+    const reversalEntry = await this.post(client, {
+      tenantId,
+      entryDate: new Date().toISOString().slice(0, 10),
+      sourceType: original.sourceType,
+      sourceId: `${original.sourceId}:reversal:${createId("r")}`,
+      memo: reason ? `Reversal - ${reason}` : "Reversal",
+      createdById,
+      reversalOfEntryId: original.id,
+      lines: originalLines.map((line) => ({
+        accountCode: line.accountCode,
+        debit: line.credit,
+        credit: line.debit,
+      })),
+      allowInactiveAccounts: true,
+    });
+
+    await markJournalEntryReversed(client, tenantId, original.id);
+    return { original, reversalEntry };
+  }
+
+  // Undoes a reverse() - used when a soft-deleted record is restored from
   // trash. Deletes the reversal entry outright rather than posting a second
   // mirror, so a restore leaves the ledger exactly as if the delete never
   // happened. No-op if the source was never reversed.
@@ -139,10 +164,7 @@ export class JournalService {
     await clearJournalEntryReversed(client, tenantId, original.id);
   }
 
-  // Reverses the original entry AND every adjustment posted against it since
-  // (e.g. a purchase receipt that was edited twice then deleted) — otherwise
-  // a delete after an edit would only undo the original amount, leaving the
-  // net effect of the edits stranded on the books.
+  // Reverses the original entry and every adjustment posted against it since.
   async reverseAllForSource(client, { tenantId, sourceType, sourceId, adjustmentSourceType, reason, createdById }) {
     await this.reverse(client, { tenantId, sourceType, sourceId, reason, createdById });
     if (!adjustmentSourceType) return;
@@ -166,17 +188,16 @@ export class JournalService {
       await this.unreverse(client, { tenantId, sourceType: adjustmentSourceType, sourceId: adjustment.sourceId });
     }
   }
-
   // For entities with create+update but no delete (morning issue, evening
   // settlement): hard-deletes whatever is currently live for this sourceId and
   // posts the freshly computed full state in its place. Unlike an adjustment
   // posting (which posts only the delta), this lets the caller always compute
-  // from the current record's total state rather than tracking deltas itself —
+  // from the current record's total state rather than tracking deltas itself ï¿½
   // appropriate here because neither entity has a stored "previous financial
   // state" to diff against once edited (no delete/restore is possible for
   // them either, so there is nothing else that needs the old entry preserved).
   // No-ops (posts nothing) when every line nets to zero, e.g. a morning issue
-  // whose products have no purchase_price recorded — better than crashing the
+  // whose products have no purchase_price recorded ï¿½ better than crashing the
   // enclosing business transaction over an entry with nothing to post.
   async replace(client, { tenantId, entryDate, sourceType, sourceId, memo, createdById, lines }) {
     const existing = await findLiveJournalEntry(client, tenantId, sourceType, sourceId);
@@ -192,7 +213,7 @@ export class JournalService {
     return this.post(client, { tenantId, entryDate, sourceType, sourceId, memo, createdById, lines });
   }
 
-  // ── Source-specific posting (Phase 1 flows) ─────────────────────────
+  // -- Source-specific posting (Phase 1 flows) -------------------------
 
   async postSalesInvoice(client, actor, { invoiceId, invoiceDate, invoiceNumber, paidAmount, dueAmount, totalAmount, taxAmount, cogsAmount }) {
     const lines = [
@@ -327,7 +348,7 @@ export class JournalService {
       entryDate: date,
       sourceType: JOURNAL_SOURCE_TYPES.EXPENSE,
       sourceId: expenseId,
-      memo: memo || `Expense — ${category}`,
+      memo: memo || `Expense ï¿½ ${category}`,
       createdById: actor.id,
       lines: [
         { accountCode: ACCOUNTS.OPERATING_EXPENSES, debit: amount },
@@ -347,13 +368,13 @@ export class JournalService {
       entryDate: date,
       sourceType: JOURNAL_SOURCE_TYPES.EXPENSE_ADJUSTMENT,
       sourceId: `${expenseId}:${createId("adj")}`,
-      memo: memo || `Expense adjustment — ${category}`,
+      memo: memo || `Expense adjustment ï¿½ ${category}`,
       createdById: actor.id,
       lines,
     });
   }
 
-  // Manual deposit/withdrawal made directly on the Finance Accounts page —
+  // Manual deposit/withdrawal made directly on the Finance Accounts page ï¿½
   // not a domain event, so the offsetting side is Owner's Equity.
   async postFinanceManualTransaction(client, actor, { transactionId, date, accountType, type, amount, note }) {
     const account = accountForFinanceType(accountType);
@@ -390,10 +411,10 @@ export class JournalService {
 
   // Refund is split by the caller into a due-adjustment portion (reduces the
   // customer's AR) and a cash portion (an overpayment refunded in cash even
-  // when the overall refund method is DUE_ADJUSTMENT) — the two always sum to
+  // when the overall refund method is DUE_ADJUSTMENT) ï¿½ the two always sum to
   // totalAmount by construction, so this balances regardless of the split.
-  // costAmount is the returned items' combined cost basis (all conditions —
-  // GOOD, DAMAGED, WARRANTY — treated alike, matching the existing
+  // costAmount is the returned items' combined cost basis (all conditions ï¿½
+  // GOOD, DAMAGED, WARRANTY ï¿½ treated alike, matching the existing
   // totalProfitAdjustment calculation on the sales return record itself, so
   // this entry's effect on Net Profit never disagrees with the Profit Report
   // for the same period).
@@ -417,7 +438,7 @@ export class JournalService {
   }
 
   // Reversal (removePurchaseReturn) reuses the generic reverse() primitive
-  // directly from purchaseReturnService — a delete mirrors this entry exactly
+  // directly from purchaseReturnService ï¿½ a delete mirrors this entry exactly
   // (stock comes back in, supplier payable is debited back), so no separate
   // reversal method is needed here.
   async postPurchaseReturn(client, actor, { returnId, returnDate, returnNumber, totalAmount, supplierName }) {
@@ -435,7 +456,7 @@ export class JournalService {
     });
   }
 
-  // A morning issue is a transfer between two ASSET accounts — goods leave the
+  // A morning issue is a transfer between two ASSET accounts ï¿½ goods leave the
   // shop's own sellable Inventory and become goods carried by the DSR, at cost.
   // No revenue or COGS is recognized yet; that only happens at evening
   // settlement (postSettlement) once the DSR reports what actually sold.
@@ -445,7 +466,7 @@ export class JournalService {
       entryDate: issueDate,
       sourceType: JOURNAL_SOURCE_TYPES.MORNING_ISSUE,
       sourceId: issueId,
-      memo: `Morning issue — ${dsrName}`,
+      memo: `Morning issue ï¿½ ${dsrName}`,
       createdById: actor.id,
       lines: [
         { accountCode: ACCOUNTS.GOODS_WITH_DSR, debit: totalCost },
@@ -458,7 +479,7 @@ export class JournalService {
   // DSR's day: soldCost moves from Goods-with-DSR to COGS (goods sold), while
   // returnedCost (good + damaged items from today's issue, plus any
   // extraReturns not tied to today's issue) moves back into Inventory. The
-  // discount is either absorbed by a supplier (debits Accounts Payable — the
+  // discount is either absorbed by a supplier (debits Accounts Payable ï¿½ the
   // supplier's own payable balance drops, per supplierDiscountService's
   // "credit reduces balance" convention for that ledger) or, with no supplier
   // attached, comes straight off net revenue (Discounts Given). extraReturns
@@ -466,12 +487,12 @@ export class JournalService {
   // revenue recognized on some earlier day, exactly like a sales return.
   // amountPaid (cash collected) and srHandoverTotal (handed to a Sales Rep
   // instead of collected directly) both reduce what the DSR still owes,
-  // matching recordSettlementDueLedgerChanges' own due-ledger math exactly —
+  // matching recordSettlementDueLedgerChanges' own due-ledger math exactly ï¿½
   // this single entry replaces that entire multi-step balance walk with one
   // balanced set of lines. Deliberately excludes shopCollections: cash the DSR
   // collects on a retail shop's own due is never actually deposited into any
   // finance account by settlementService today, so posting it here would
-  // invent cash the rest of the app doesn't believe exists — a known,
+  // invent cash the rest of the app doesn't believe exists ï¿½ a known,
   // pre-existing gap, not something this entry should paper over.
   async postSettlement(client, actor, {
     settlementId,
@@ -504,13 +525,13 @@ export class JournalService {
       entryDate: settlementDate,
       sourceType: JOURNAL_SOURCE_TYPES.SETTLEMENT,
       sourceId: settlementId,
-      memo: `Evening settlement — ${dsrName}`,
+      memo: `Evening settlement ï¿½ ${dsrName}`,
       createdById: actor.id,
       lines,
     });
   }
 
-  // ── Reports ──────────────────────────────────────────────────────────
+  // -- Reports ----------------------------------------------------------
 
   async postPayrollRun(client, actor, { payrollRunId, payrollMonth, netTotal }) {
     return this.post(client, {
@@ -562,7 +583,7 @@ export class JournalService {
 
   // A Balance Sheet needs Assets = Liabilities + Equity to actually hold, but
   // revenue/expense postings never touch the Owner's Equity account directly
-  // (a sale debits Cash/AR and credits Sales Revenue — Equity is untouched).
+  // (a sale debits Cash/AR and credits Sales Revenue ï¿½ Equity is untouched).
   // Retained Earnings is the standard bridge: cumulative (all-time, not
   // period-bound) net profit, added to recorded Equity so the identity holds.
   async getBalanceSheet({ dateTo }, actor) {
@@ -596,7 +617,7 @@ export class JournalService {
 
   // Revenue/expense accounts increase on their TYPE's canonical side (credit
   // for revenue, debit for expense) regardless of an individual account's own
-  // normal_balance column — that column exists so contra accounts like Sales
+  // normal_balance column ï¿½ that column exists so contra accounts like Sales
   // Returns display as a positive amount in the General Ledger, but summing a
   // period's activity has to use the uniform direction so a contra account's
   // activity subtracts from its type's total instead of adding to it.
@@ -608,7 +629,7 @@ export class JournalService {
   }
 }
 
-// Shared by getProfitAndLoss and getBalanceSheet's Retained Earnings line —
+// Shared by getProfitAndLoss and getBalanceSheet's Retained Earnings line ï¿½
 // activity-based (uniform per-type direction, not each account's own
 // normal_balance) so contra accounts like Sales Returns subtract from their
 // type's total instead of adding to it. See getProfitAndLoss's comment above.
@@ -628,7 +649,7 @@ function computeProfitBreakdown(rows) {
   // Purchase returns have no P&L line here: under this app's perpetual-inventory
   // model, a purchase return is booked straight against Inventory (see
   // postPurchaseReturn) since COGS is only ever recognized at the point of
-  // sale — there is no periodic Purchases-less-Returns formula for it to net
+  // sale ï¿½ there is no periodic Purchases-less-Returns formula for it to net
   // against.
   const costOfGoodsSold = activity(ACCOUNTS.COST_OF_GOODS_SOLD, "DEBIT");
   const netCostOfGoodsSold = costOfGoodsSold;

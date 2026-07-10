@@ -402,3 +402,19 @@ export async function exportTableElementToExcel(targetId, fileName, sheetName = 
   });
 }
 
+
+export async function exportTableElementToCsv(targetId, fileName, sheetName = 'Report', options = {}) {
+  const tables = extractTablesFromElement(targetId);
+  const title = toTitle(fileName);
+  await exportReportFile('excel', { title, sheetName, fileName, entityType: options.entityType, entityId: options.entityId, tables }, fileName, async () => {
+    const rows = tables.flatMap((table, tableIndex) => [
+      ...(tableIndex > 0 ? [[]] : []),
+      ...table.rows.map((row) => row.map((cell) => cell.text)),
+    ]);
+    const { utils } = await import('xlsx');
+    const worksheet = utils.aoa_to_sheet(rows.length ? rows : [['No rows available']]);
+    const csv = utils.sheet_to_csv(worksheet);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    await saveBlob(blob, fileName);
+  });
+}

@@ -62,10 +62,27 @@ const FEATURE_DESCRIPTIONS = {
   profit: 'Profit and loss report based on sales cost snapshots minus expenses.',
 
   // Accounting
+  'accounting-dashboard': 'Snapshot of assets, liabilities, equity, income, expenses, cash, bank, receivables, and payables from journal data.',
+  'chart-of-accounts': 'Hierarchical chart of accounts with account types, control flags, and protected system accounts.',
+  'fiscal-years': 'Create, activate, close, and lock fiscal years together with their accounting periods.',
+  'opening-balances': 'Opening balance register that posts seeded balances through the journal engine.',
+  'accounting-settings': 'Posting controls including currency, decimal precision, voucher prefixes, and auto-posting behavior.',
+  'journal-vouchers': 'Manual journal vouchers with multi-line debit and credit posting, approval, posting, and reversal.',
+  'receipt-vouchers': 'Receipt vouchers for customer collections, recoveries, and other incoming cash or bank transactions.',
+  'payment-vouchers': 'Payment vouchers for supplier payments, expenses, salaries, loans, and other outgoing cash or bank transactions.',
+  'contra-vouchers': 'Contra vouchers for cash deposits, withdrawals, and bank-to-bank transfers.',
+  'voucher-register': 'Consolidated register of all accounting vouchers with filters, export, and print support.',
+  'journal-register': 'Posted voucher register mapped to resulting journal entries for audit and review.',
   'general-ledger': 'Double-entry ledger of every account touched by sales, purchases, payments, and expenses.',
+  'account-ledger': 'Detailed running ledger for a single GL account with opening and closing balances.',
+  'customer-ledger': 'Receivable ledger by customer showing invoices, payments, returns, and outstanding balance.',
+  'supplier-ledger': 'Payable ledger by supplier showing purchases, payments, returns, and outstanding balance.',
+  'cash-book': 'Running cash ledger for all cash accounts based on posted journal activity.',
+  'bank-book': 'Running bank ledger for all bank accounts, including deposits, withdrawals, and transfers.',
   'trial-balance': 'Debit/credit totals and closing balance for every account as of a chosen date.',
   'balance-sheet': 'Assets, liabilities, and equity as of a chosen date, with computed retained earnings.',
   'profit-and-loss': 'Revenue, cost of goods sold, and expenses for a date range, ending in net profit.',
+  'cash-flow': 'Indirect cash flow statement generated from journal movement and profit activity.',
 
   // Reports
   'retailer-daily-sales-report': 'Daily retail POS summary with invoice count, revenue, and session data.',

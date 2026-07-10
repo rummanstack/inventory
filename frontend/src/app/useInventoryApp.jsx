@@ -1010,6 +1010,85 @@ export function InventoryAppProvider({ children }) {
     }
   }
 
+  async function saveTradePromotionRule(rule) {
+    try {
+      const result = rule.id
+        ? await inventoryApi.updateTradePromotionRule(rule)
+        : await inventoryApi.createTradePromotionRule(rule);
+      pushToast('success', rule.id ? t('tradePromotions.rules.editTitle') : t('tradePromotions.rules.addTitle'), `${result.name} ${rule.id ? t('alerts.updated') : t('alerts.created')}`);
+      return { ok: true, rule: result };
+    } catch (error) {
+      const message = getFriendlyError(error, t);
+      pushToast('error', t('alerts.requestFailed'), message);
+      return { ok: false, message };
+    }
+  }
+
+  async function deleteTradePromotionRule(rule) {
+    const confirmMessage = t('tradePromotions.rules.deleteConfirm', { name: rule.name });
+    const { confirmed, reason } = await confirm({
+      title: t('tradePromotions.rules.deleteTitle'),
+      description: interpolateConfirm(confirmMessage, { name: rule.name }),
+      confirmLabel: t('common.delete'),
+      tone: 'rose',
+      requireReason: true,
+      reasonLabel: t('common.deleteReasonLabel'),
+      reasonPlaceholder: t('common.deleteReasonPlaceholder'),
+      consequences: buildConsequences(t, 'tradePromotions.rules.deleteConsequences', ['safe', 'info']),
+    });
+    if (!confirmed) {
+      return { ok: false };
+    }
+
+    try {
+      await inventoryApi.deleteTradePromotionRule(rule.id, reason);
+      pushToast('success', t('common.delete'), `${rule.name} ${t('alerts.deleted')}`);
+      return { ok: true };
+    } catch (error) {
+      const message = getFriendlyError(error, t);
+      pushToast('error', t('alerts.deleteFailed'), message);
+      return { ok: false, message };
+    }
+  }
+
+  async function createTradePromotionSettlement(settlement) {
+    try {
+      const result = await inventoryApi.createTradePromotionSettlement(settlement);
+      pushToast('success', t('tradePromotions.settlements.addTitle'), t('alerts.created'));
+      return { ok: true, settlement: result };
+    } catch (error) {
+      const message = getFriendlyError(error, t);
+      pushToast('error', t('alerts.requestFailed'), message);
+      return { ok: false, message };
+    }
+  }
+
+  async function deleteTradePromotionSettlement(settlement) {
+    const { confirmed, reason } = await confirm({
+      title: t('tradePromotions.settlements.voidTitle'),
+      description: t('tradePromotions.settlements.voidConfirm'),
+      confirmLabel: t('tradePromotions.settlements.void'),
+      tone: 'rose',
+      requireReason: true,
+      reasonLabel: t('common.deleteReasonLabel'),
+      reasonPlaceholder: t('common.deleteReasonPlaceholder'),
+      consequences: buildConsequences(t, 'tradePromotions.settlements.deleteConsequences', ['danger', 'info']),
+    });
+    if (!confirmed) {
+      return { ok: false };
+    }
+
+    try {
+      await inventoryApi.deleteTradePromotionSettlement(settlement.id, reason);
+      pushToast('success', t('tradePromotions.settlements.void'), t('alerts.deleted'));
+      return { ok: true };
+    } catch (error) {
+      const message = getFriendlyError(error, t);
+      pushToast('error', t('alerts.deleteFailed'), message);
+      return { ok: false, message };
+    }
+  }
+
   async function restoreTrashedItem({ name, restoreFn, onRestored }) {
     const { confirmed } = await confirm({
       title: t('trash.restoreTitle'),
@@ -1141,6 +1220,27 @@ export function InventoryAppProvider({ children }) {
     return permanentlyDeleteTrashedItem({
       name: supplier.name,
       deleteFn: () => inventoryApi.permanentlyDeleteSupplier(supplier.id),
+    });
+  }
+
+  function restoreTradePromotionRule(rule) {
+    return restoreTrashedItem({
+      name: rule.name,
+      restoreFn: () => inventoryApi.restoreTradePromotionRule(rule.id),
+    });
+  }
+
+  function permanentlyDeleteTradePromotionRule(rule) {
+    return permanentlyDeleteTrashedItem({
+      name: rule.name,
+      deleteFn: () => inventoryApi.permanentlyDeleteTradePromotionRule(rule.id),
+    });
+  }
+
+  function restoreTradePromotionSettlement(settlement) {
+    return restoreTrashedItem({
+      name: settlement.id,
+      restoreFn: () => inventoryApi.restoreTradePromotionSettlement(settlement.id),
     });
   }
 
@@ -1376,6 +1476,13 @@ export function InventoryAppProvider({ children }) {
       saveSalesReturn,
       saveRetailPromotion,
       deleteRetailPromotion,
+      saveTradePromotionRule,
+      deleteTradePromotionRule,
+      createTradePromotionSettlement,
+      deleteTradePromotionSettlement,
+      restoreTradePromotionRule,
+      permanentlyDeleteTradePromotionRule,
+      restoreTradePromotionSettlement,
       saveIssue,
       saveSettlement,
       upsertPromotionDirectory,

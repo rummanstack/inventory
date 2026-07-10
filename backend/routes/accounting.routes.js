@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { requirePermission } from "../middleware/requireRole.js";
+import { requireAnyPermission, requirePermission } from "../middleware/requireRole.js";
 import { requireFeature } from "../middleware/requireFeature.js";
 import { PERMISSIONS } from "../lib/permissions.js";
 
@@ -50,11 +50,29 @@ export function createAccountingRoutes(accountingController) {
     requirePermission(PERMISSIONS.MANAGE_FISCAL_YEARS),
     accountingController.activateFiscalYear,
   );
+  router.get(
+    "/fiscal-years/:id/close-preview",
+    requireFeature("fiscal-years"),
+    requireAnyPermission(PERMISSIONS.FISCAL_YEAR_CLOSE, PERMISSIONS.ACCOUNTING_ADMIN),
+    accountingController.closeFiscalYearPreview,
+  );
   router.post(
     "/fiscal-years/:id/close",
     requireFeature("fiscal-years"),
-    requirePermission(PERMISSIONS.MANAGE_FISCAL_YEARS),
+    requireAnyPermission(PERMISSIONS.FISCAL_YEAR_CLOSE, PERMISSIONS.ACCOUNTING_ADMIN),
     accountingController.closeFiscalYear,
+  );
+  router.post(
+    "/fiscal-years/:id/reopen",
+    requireFeature("fiscal-years"),
+    requireAnyPermission(PERMISSIONS.FISCAL_YEAR_REOPEN, PERMISSIONS.ACCOUNTING_ADMIN),
+    accountingController.reopenFiscalYear,
+  );
+  router.post(
+    "/fiscal-years/:id/generate-openings",
+    requireFeature("opening-balances"),
+    requireAnyPermission(PERMISSIONS.OPENING_BALANCE_GENERATE, PERMISSIONS.ACCOUNTING_ADMIN),
+    accountingController.generateYearOpening,
   );
 
   router.post(
@@ -72,8 +90,14 @@ export function createAccountingRoutes(accountingController) {
   router.post(
     "/periods/:id/lock",
     requireFeature("fiscal-years"),
-    requirePermission(PERMISSIONS.MANAGE_ACCOUNTING_PERIODS),
+    requireAnyPermission(PERMISSIONS.PERIOD_LOCK, PERMISSIONS.ACCOUNTING_ADMIN),
     accountingController.lockPeriod,
+  );
+  router.post(
+    "/periods/:id/unlock",
+    requireFeature("fiscal-years"),
+    requireAnyPermission(PERMISSIONS.PERIOD_UNLOCK, PERMISSIONS.ACCOUNTING_ADMIN),
+    accountingController.unlockPeriod,
   );
   router.post(
     "/periods/:id/reopen",
@@ -99,6 +123,13 @@ export function createAccountingRoutes(accountingController) {
     requireFeature("opening-balances"),
     requirePermission(PERMISSIONS.MANAGE_OPENING_BALANCES),
     accountingController.updateOpeningBalance,
+  );
+
+  router.post(
+    "/journals/:id/reverse",
+    requireFeature("journal-register"),
+    requireAnyPermission(PERMISSIONS.JOURNAL_REVERSE, PERMISSIONS.ACCOUNTING_ADMIN),
+    accountingController.reverseJournal,
   );
 
   router.get(

@@ -1,7 +1,3 @@
-// One entry per (tenantId, sourceType, sourceId) is enforced at the DB level
-// (see idx_journal_entries_source). Adjustment/delta postings use their own
-// sourceType with a freshly generated sourceId so they never collide with the
-// original create-time entry.
 export const JOURNAL_SOURCE_TYPES = {
   SALES_INVOICE: "sales_invoice",
   PURCHASE_RECEIPT: "purchase_receipt",
@@ -20,6 +16,12 @@ export const JOURNAL_SOURCE_TYPES = {
   SETTLEMENT: "settlement",
   PAYROLL_RUN: "payroll_run",
   PAYROLL_PAYMENT: "payroll_payment",
+  PROMOTION_EARNING: "promotion_earning",
+  PROMOTION_SETTLEMENT: "promotion_settlement",
+  OPENING_BALANCE: "opening_balance",
+  JOURNAL_VOUCHER: "journal_voucher",
+  RECEIPT_VOUCHER: "receipt_voucher",
+  PAYMENT_VOUCHER: "payment_voucher",
+  CONTRA_VOUCHER: "contra_voucher",
+  FISCAL_YEAR_CLOSING: "fiscal_year_closing",
 };
-
-

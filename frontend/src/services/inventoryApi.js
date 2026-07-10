@@ -1,3 +1,4 @@
+import { vouchersApi } from './api/vouchersApi.js';
 import { accountingApi } from './api/accountingApi.js';
 import { activityLogsApi } from './api/activityLogsApi.js';
 import { auditApi } from './api/auditApi.js';
@@ -59,6 +60,9 @@ import { stockMovementsApi } from './api/stockMovementsApi.js';
 import { contactApi } from './api/contactApi.js';
 import { registrationApi } from './api/registrationApi.js';
 import { drugBatchApi } from './api/drugBatchApi.js';
+import { tradePromotionRulesApi } from './api/tradePromotionRulesApi.js';
+import { tradePromotionEarningsApi } from './api/tradePromotionEarningsApi.js';
+import { tradePromotionSettlementsApi } from './api/tradePromotionSettlementsApi.js';
 
 export const inventoryApi = {
   ...authApi,
@@ -70,6 +74,7 @@ export const inventoryApi = {
   ...expensesApi,
   ...profitApi,
   ...journalApi,
+  ...vouchersApi,
   ...accountingApi,
   ...dsrFinanceApi,
   ...databaseBackupApi,
@@ -122,6 +127,9 @@ export const inventoryApi = {
   ...contactApi,
   ...registrationApi,
   ...drugBatchApi,
+  ...tradePromotionRulesApi,
+  ...tradePromotionEarningsApi,
+  ...tradePromotionSettlementsApi,
 };
 
 

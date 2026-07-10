@@ -1,7 +1,7 @@
 import { Download, FileSpreadsheet, Loader2, Printer } from 'lucide-react';
 import { useInventoryApp } from '../app/useInventoryApp.jsx';
 import { inventoryApi } from '../services/inventoryApi.js';
-import { downloadSheetPdf, exportTableElementToExcel, printElementById } from '../services/printService.js';
+import { downloadSheetPdf, exportTableElementToCsv, exportTableElementToExcel, printElementById } from '../services/printService.js';
 import { useAsyncAction } from '../hooks/useAsyncAction.js';
 
 export default function TableReportActions({
@@ -19,6 +19,7 @@ export default function TableReportActions({
   const [downloadingPdf, downloadPdf] = useAsyncAction();
   const pdfFileName = fileName.endsWith('.pdf') ? fileName : `${fileName}.pdf`;
   const excelFileName = fileName.endsWith('.xlsx') ? fileName : `${fileName}.xlsx`;
+  const csvFileName = fileName.endsWith('.csv') ? fileName : `${fileName}.csv`;
 
   function record(label) {
     inventoryApi.recordPrint({ entityType, entityId, label }).catch(() => {});
@@ -58,6 +59,17 @@ export default function TableReportActions({
       >
         <FileSpreadsheet size={14} />
         {t?.('common.exportExcel') || 'Export as Excel'}
+      </button>
+      <button
+        type="button"
+        className="btn-secondary py-1.5 text-xs"
+        onClick={() => {
+          record('csv');
+          exportTableElementToCsv(targetId, csvFileName, title, { entityType, entityId });
+        }}
+      >
+        <FileSpreadsheet size={14} />
+        {t?.('common.exportCsv') || 'Export as CSV'}
       </button>
       {showPrint ? (
         <button

@@ -33,6 +33,18 @@ export const accountingApi = {
     return apiRequest(`/accounting/fiscal-years/${id}/close`, { method: 'POST' });
   },
 
+  previewFiscalYearClose(id) {
+    return apiRequest(`/accounting/fiscal-years/${id}/close-preview`);
+  },
+
+  reopenFiscalYear(id, data = {}) {
+    return apiRequest(`/accounting/fiscal-years/${id}/reopen`, { method: 'POST', body: JSON.stringify(data) });
+  },
+
+  generateYearOpening(id, data = {}) {
+    return apiRequest(`/accounting/fiscal-years/${id}/generate-openings`, { method: 'POST', body: JSON.stringify(data) });
+  },
+
   openAccountingPeriod(id) {
     return apiRequest(`/accounting/periods/${id}/open`, { method: 'POST' });
   },
@@ -43,6 +55,10 @@ export const accountingApi = {
 
   lockAccountingPeriod(id) {
     return apiRequest(`/accounting/periods/${id}/lock`, { method: 'POST' });
+  },
+
+  unlockAccountingPeriod(id) {
+    return apiRequest(`/accounting/periods/${id}/unlock`, { method: 'POST' });
   },
 
   reopenAccountingPeriod(id) {
@@ -67,5 +83,9 @@ export const accountingApi = {
 
   updateAccountingSettings(data) {
     return apiRequest('/accounting/settings', { method: 'PUT', body: JSON.stringify(data) });
+  },
+
+  reverseJournalEntry(id, data) {
+    return apiRequest(`/accounting/journals/${id}/reverse`, { method: 'POST', body: JSON.stringify(data) });
   },
 };

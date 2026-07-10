@@ -9,11 +9,11 @@ const ALL_PERMISSIONS = TENANT_BUSINESS_PERMISSIONS;
 
 const EDITABLE_ROLES_BY_ACTOR_ROLE = {
   // system_developer sets the ceiling for every tenant-facing role,
-  // including super_admin — a tenant's owner-level access is no longer
+  // including super_admin Ã¢â‚¬â€ a tenant's owner-level access is no longer
   // hardcoded, it's whatever the platform operator configures per tenant.
   [USER_ROLES.SYSTEM_DEVELOPER]: [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.MANAGER, USER_ROLES.OPERATOR],
   // super_admin can delegate to their own sub-roles but can't touch its
-  // own row — prevents a tenant from self-escalating past what
+  // own row Ã¢â‚¬â€ prevents a tenant from self-escalating past what
   // system_developer granted it.
   [USER_ROLES.SUPER_ADMIN]: [USER_ROLES.ADMIN, USER_ROLES.MANAGER, USER_ROLES.OPERATOR],
 };
@@ -98,6 +98,23 @@ const PERMISSION_REQUIRED_FEATURES = {
   manage_accounting_periods: "fiscal-years",
   view_opening_balances: "opening-balances",
   manage_opening_balances: "opening-balances",
+  "journal.create": "journal-vouchers",
+  "journal.edit": "journal-vouchers",
+  "journal.approve": "journal-vouchers",
+  "journal.post": "journal-vouchers",
+  "journal.reverse": "journal-vouchers",
+  "journal.override": "journal-vouchers",
+  "fiscal_year.close": "fiscal-years",
+  "fiscal_year.reopen": "fiscal-years",
+  "period.lock": "fiscal-years",
+  "period.unlock": "fiscal-years",
+  "closing.execute": "fiscal-years",
+  "opening_balance.generate": "opening-balances",
+  "accounting.admin": "accounting-dashboard",
+  "voucher.view": "voucher-register",
+  "voucher.receipt": "receipt-vouchers",
+  "voucher.payment": "payment-vouchers",
+  "voucher.contra": "contra-vouchers",
 };
 
 function editableRolesFor(actor) {
@@ -157,7 +174,7 @@ export class PermissionService {
 
     if (actor.role === USER_ROLES.SUPER_ADMIN) {
       // Only gate permissions being ADDED by this save. Permissions the role
-      // already holds may map to features that were since disabled — they are
+      // already holds may map to features that were since disabled Ã¢â‚¬â€ they are
       // hidden on the page but still ride along in the payload, and rejecting
       // them would make every save fail.
       const existing = await this.databaseManager.withClient((client) =>

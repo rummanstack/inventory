@@ -1,5 +1,5 @@
 // One-time data backfills (permission/feature splits for pre-existing tenants).
-// Each runs exactly once per database, tracked in schema_backfills — re-running
+// Each runs exactly once per database, tracked in schema_backfills â€” re-running
 // them on every boot silently re-grants permissions and features that admins
 // have since revoked ("menus coming back after a server restart").
 async function runBackfillOnce(pool, key, sql) {
@@ -897,12 +897,12 @@ export async function createSchema(pool) {
 
     -- Lock down tenant_id on every table that must always belong to exactly one tenant.
     -- Deliberately NOT included: users (system_developer has no home tenant), activity_logs
-    -- and error_logs (platform-level actions and errors can occur with no tenant context â€”
+    -- and error_logs (platform-level actions and errors can occur with no tenant context Ã¢â‚¬â€
     -- e.g. the tenant-switch and full-platform-backup audit entries record tenant_id = NULL
     -- on purpose), login_history and password_reset_tokens (same reasoning for platform users).
 
     -- Step 1: root tables with no better signal than "the tenant this row has always
-    -- implicitly belonged to" â€” backfill any leftover null to the oldest tenant.
+    -- implicitly belonged to" Ã¢â‚¬â€ backfill any leftover null to the oldest tenant.
     UPDATE products SET tenant_id = (SELECT id FROM tenants ORDER BY created_at ASC LIMIT 1) WHERE tenant_id IS NULL;
     UPDATE dsrs SET tenant_id = (SELECT id FROM tenants ORDER BY created_at ASC LIMIT 1) WHERE tenant_id IS NULL;
     UPDATE issues SET tenant_id = (SELECT id FROM tenants ORDER BY created_at ASC LIMIT 1) WHERE tenant_id IS NULL;
@@ -914,7 +914,7 @@ export async function createSchema(pool) {
     UPDATE retail_customers SET tenant_id = (SELECT id FROM tenants ORDER BY created_at ASC LIMIT 1) WHERE tenant_id IS NULL;
     UPDATE finance_accounts SET tenant_id = (SELECT id FROM tenants ORDER BY created_at ASC LIMIT 1) WHERE tenant_id IS NULL;
 
-    -- Step 2: tables one level down â€” infer tenant_id from the parent business record they
+    -- Step 2: tables one level down Ã¢â‚¬â€ infer tenant_id from the parent business record they
     -- reference (more accurate than guessing), then fall back to the oldest tenant for any
     -- row whose parent can't be resolved.
     UPDATE sales_invoices si SET tenant_id = rc.tenant_id
@@ -973,7 +973,7 @@ export async function createSchema(pool) {
       FROM sales_returns sr WHERE sr.id = sri.sales_return_id AND sri.tenant_id IS NULL AND sr.tenant_id IS NOT NULL;
     UPDATE sales_return_items SET tenant_id = (SELECT id FROM tenants ORDER BY created_at ASC LIMIT 1) WHERE tenant_id IS NULL;
 
-    -- Every row above now has a tenant_id (or the table is empty) â€” safe to enforce.
+    -- Every row above now has a tenant_id (or the table is empty) Ã¢â‚¬â€ safe to enforce.
     ALTER TABLE products ALTER COLUMN tenant_id SET NOT NULL;
     ALTER TABLE dsrs ALTER COLUMN tenant_id SET NOT NULL;
     ALTER TABLE issues ALTER COLUMN tenant_id SET NOT NULL;
@@ -1102,7 +1102,7 @@ export async function createSchema(pool) {
 
     -- Electronics retail: one row per non-blank serial_number/imei1/imei2 value, so a single
     -- unique index can enforce that an identifier value is never reused across *any* of those
-    -- three columns â€” not just within the same column (which per-column unique indexes can't do,
+    -- three columns Ã¢â‚¬â€ not just within the same column (which per-column unique indexes can't do,
     -- since a unique index only constrains the tuple of columns it covers, never a union of
     -- values drawn from different columns across different rows).
     CREATE TABLE IF NOT EXISTS product_serial_identifiers (
@@ -1289,7 +1289,7 @@ export async function createSchema(pool) {
     -- every tenant that already has an explicit tenant_features config, so
     -- they don't lose access to previously-always-on items (Dashboard, etc.)
     -- now that feature flags are enforced server-side. Tenants with zero rows
-    -- are left untouched on purpose â€” getTenantFeatures() already treats "no
+    -- are left untouched on purpose Ã¢â‚¬â€ getTenantFeatures() already treats "no
     -- rows" as "everything enabled", and inserting rows here would wrongly
     -- freeze them out of any future feature additions.
     DO $$
@@ -1624,7 +1624,7 @@ export async function createSchema(pool) {
     CREATE INDEX IF NOT EXISTS idx_supplier_discounts_reference ON supplier_discounts(reference_type, reference_id);
   `);
 
-  // â”€â”€ Salary Management â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // Ã¢â€â‚¬Ã¢â€â‚¬ Salary Management Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
   await pool.query(`
     CREATE TABLE IF NOT EXISTS employee_number_counters (
       tenant_id  TEXT NOT NULL REFERENCES tenants(id),
@@ -1939,7 +1939,7 @@ export async function createSchema(pool) {
     CREATE INDEX IF NOT EXISTS idx_employee_loans_employee ON employee_loans(tenant_id, employee_id, status);
   `);
 
-  // â”€â”€ DSR Monthly Targets â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // Ã¢â€â‚¬Ã¢â€â‚¬ DSR Monthly Targets Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
   await pool.query(`
     CREATE TABLE IF NOT EXISTS dsr_targets (
       id          TEXT PRIMARY KEY,
@@ -1955,7 +1955,7 @@ export async function createSchema(pool) {
   `);
 
   // Backfill HR features onto all tenants that already have explicit feature rows
-  // (tenants with zero rows are untouched â€” "no rows" already means "all enabled").
+  // (tenants with zero rows are untouched Ã¢â‚¬â€ "no rows" already means "all enabled").
   await runBackfillOnce(pool, "hr-feature-backfill", `
     DO $$
     DECLARE
@@ -2183,12 +2183,12 @@ export async function createSchema(pool) {
     ON CONFLICT (role, tenant_id, permission) DO NOTHING;
   `);
 
-  // â”€â”€ Trade-in conversion tracking â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // Ã¢â€â‚¬Ã¢â€â‚¬ Trade-in conversion tracking Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
   await pool.query(`
     ALTER TABLE trade_ins ADD COLUMN IF NOT EXISTS converted_invoice_id TEXT REFERENCES sales_invoices(id);
   `);
 
-  // â”€â”€ Simple Salary Payments â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // Ã¢â€â‚¬Ã¢â€â‚¬ Simple Salary Payments Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
   await pool.query(`
     ALTER TABLE employees ADD COLUMN IF NOT EXISTS salary_amount NUMERIC NOT NULL DEFAULT 0;
     ALTER TABLE employees ADD COLUMN IF NOT EXISTS pay_type TEXT NOT NULL DEFAULT 'MONTHLY';
@@ -2210,7 +2210,7 @@ export async function createSchema(pool) {
     CREATE INDEX IF NOT EXISTS idx_salary_payments_employee ON salary_payments(employee_id);
   `);
 
-  // â”€â”€ NOT NULL enforcement for tables created after the original enforcement block â”€â”€
+  // Ã¢â€â‚¬Ã¢â€â‚¬ NOT NULL enforcement for tables created after the original enforcement block Ã¢â€â‚¬Ã¢â€â‚¬
   // retail_cash_sessions, help_desk_tickets, help_desk_ticket_notes, and
   // retail_loyalty_ledger were added with nullable tenant_id and were not covered
   // by the earlier backfill+enforce block. Backfill any NULL rows, then lock down.
@@ -2272,7 +2272,7 @@ export async function createSchema(pool) {
     ALTER TABLE sales_invoice_items ADD COLUMN IF NOT EXISTS original_sale_price NUMERIC;
   `);
 
-  // â”€â”€ Drug & Pharmacy: product fields â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // Ã¢â€â‚¬Ã¢â€â‚¬ Drug & Pharmacy: product fields Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
   await pool.query(`
     ALTER TABLE products ADD COLUMN IF NOT EXISTS generic_name TEXT NOT NULL DEFAULT '';
     ALTER TABLE products ADD COLUMN IF NOT EXISTS drug_type TEXT NOT NULL DEFAULT '';
@@ -2292,7 +2292,7 @@ export async function createSchema(pool) {
     CREATE INDEX IF NOT EXISTS idx_products_manufacturer_id ON products(manufacturer_id) WHERE manufacturer_id IS NOT NULL;
   `);
 
-  // â”€â”€ Drug & Pharmacy: batch/lot/expiry on purchase receipt items â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // Ã¢â€â‚¬Ã¢â€â‚¬ Drug & Pharmacy: batch/lot/expiry on purchase receipt items Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
   await pool.query(`
     ALTER TABLE purchase_receipt_items ADD COLUMN IF NOT EXISTS batch_number TEXT NOT NULL DEFAULT '';
     ALTER TABLE purchase_receipt_items ADD COLUMN IF NOT EXISTS lot_number TEXT NOT NULL DEFAULT '';
@@ -2300,14 +2300,14 @@ export async function createSchema(pool) {
     ALTER TABLE purchase_receipt_items ADD COLUMN IF NOT EXISTS manufacture_date DATE;
   `);
 
-  // â”€â”€ Drug & Pharmacy: batch snapshot on sold line items â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // Ã¢â€â‚¬Ã¢â€â‚¬ Drug & Pharmacy: batch snapshot on sold line items Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
   await pool.query(`
     ALTER TABLE sales_invoice_items ADD COLUMN IF NOT EXISTS batch_number_snapshot TEXT NOT NULL DEFAULT '';
     ALTER TABLE sales_invoice_items ADD COLUMN IF NOT EXISTS expiry_date_snapshot DATE;
     ALTER TABLE sales_invoices ADD COLUMN IF NOT EXISTS prescription_number TEXT NOT NULL DEFAULT '';
   `);
 
-  // â”€â”€ Drug & Pharmacy: drug_batches â€” one row per received batch, tracks remaining qty â”€â”€
+  // Ã¢â€â‚¬Ã¢â€â‚¬ Drug & Pharmacy: drug_batches Ã¢â‚¬â€ one row per received batch, tracks remaining qty Ã¢â€â‚¬Ã¢â€â‚¬
   await pool.query(`
     CREATE TABLE IF NOT EXISTS drug_batches (
       id                      TEXT PRIMARY KEY,
@@ -2341,7 +2341,7 @@ export async function createSchema(pool) {
     ALTER TABLE sales_invoice_items ADD COLUMN IF NOT EXISTS drug_batch_id TEXT REFERENCES drug_batches(id) ON DELETE SET NULL;
   `);
 
-  // â”€â”€ Drug & Pharmacy: per-line-item batch allocation log â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // Ã¢â€â‚¬Ã¢â€â‚¬ Drug & Pharmacy: per-line-item batch allocation log Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
   // Tracks which drug_batches were consumed (FEFO) for each sales invoice line,
   // enabling a batch-level sales report and clean quantity restore on void.
   await pool.query(`
@@ -2363,7 +2363,7 @@ export async function createSchema(pool) {
     CREATE INDEX IF NOT EXISTS idx_siib_batch ON sales_invoice_item_batches(drug_batch_id);
   `);
 
-  // ── Transaction integrity: SHA-256 content hash on every money-movement row ──
+  // â”€â”€ Transaction integrity: SHA-256 content hash on every money-movement row â”€â”€
   // Computed at creation from the row's immutable business fields (see lib/transactionHash.js).
   // Nullable: rows created before this feature have no hash.
   await pool.query(`
@@ -2384,7 +2384,7 @@ export async function createSchema(pool) {
     ALTER TABLE shop_due_ledger              ADD COLUMN IF NOT EXISTS transaction_hash TEXT;
   `);
 
-  // ── Purchase returns: free-form return of stock to a supplier ─────────────
+  // â”€â”€ Purchase returns: free-form return of stock to a supplier â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // Not linked to a purchase receipt (FMCG returns of expired/unsold stock span
   // many receipts). Credits the supplier due ledger; balance may go negative,
   // which the UI surfaces as an advance held by the supplier.
@@ -2433,12 +2433,12 @@ export async function createSchema(pool) {
     CREATE INDEX IF NOT EXISTS idx_purchase_return_items_product ON purchase_return_items(product_id);
   `);
 
-  // ── General Ledger: fixed chart of accounts (global — identical for every
+  // â”€â”€ General Ledger: fixed chart of accounts (global â€” identical for every
   // tenant, no per-tenant customization yet) plus a tenant-scoped double-entry
   // journal. Existing modules (sales, purchases, payments, expenses, finance
   // accounts) keep their own tables as the source of truth for their own
   // pages; the journal is an additive layer fed by JournalService so General
-  // Ledger / Trial Balance reports can exist without changing anything else. ──
+  // Ledger / Trial Balance reports can exist without changing anything else. â”€â”€
   await pool.query(`
     CREATE TABLE IF NOT EXISTS chart_of_accounts (
       code            TEXT PRIMARY KEY,
@@ -2461,7 +2461,7 @@ export async function createSchema(pool) {
       reversal_of_entry_id  TEXT REFERENCES journal_entries(id)
     );
 
-    -- One live (non-reversal) entry per business event — the app-level
+    -- One live (non-reversal) entry per business event â€” the app-level
     -- correctness guard against double-posting is backed by this constraint.
     CREATE UNIQUE INDEX IF NOT EXISTS idx_journal_entries_source
       ON journal_entries(tenant_id, source_type, source_id)
@@ -2507,7 +2507,7 @@ export async function createSchema(pool) {
 
     -- Purchase returns turned out to have no P&L effect under this app's
     -- perpetual-inventory model (COGS is only ever recognized at the point of
-    -- sale, never derived from a periodic Purchases-less-Returns formula) —
+    -- sale, never derived from a periodic Purchases-less-Returns formula) â€”
     -- a purchase return is booked straight against Inventory instead (see
     -- JournalService.postPurchaseReturn). This account is retired rather than
     -- deleted, so historical rows (if any were ever posted) stay queryable.
@@ -2582,6 +2582,10 @@ export async function createSchema(pool) {
       default_currency         TEXT NOT NULL DEFAULT 'BDT',
       decimal_precision        INTEGER NOT NULL DEFAULT 2,
       voucher_prefix           TEXT NOT NULL DEFAULT 'JV',
+      journal_voucher_prefix   TEXT NOT NULL DEFAULT 'JV',
+      receipt_voucher_prefix   TEXT NOT NULL DEFAULT 'RV',
+      payment_voucher_prefix   TEXT NOT NULL DEFAULT 'PV',
+      contra_voucher_prefix    TEXT NOT NULL DEFAULT 'CV',
       financial_year_start     TEXT NOT NULL DEFAULT '01-01',
       negative_cash_policy     TEXT NOT NULL DEFAULT 'WARN',
       auto_posting_enabled     BOOLEAN NOT NULL DEFAULT true,
@@ -2617,7 +2621,234 @@ export async function createSchema(pool) {
   `);
 
   await pool.query(`
+    INSERT INTO chart_of_accounts (code, name, type, normal_balance) VALUES
+      ('3010', 'Retained Earnings', 'EQUITY', 'CREDIT'),
+      ('3990', 'Profit & Loss Summary', 'EQUITY', 'CREDIT')
+    ON CONFLICT (code) DO NOTHING;
+
+    UPDATE chart_of_accounts SET account_group = 'Equity', is_system = true WHERE code IN ('3000', '3010', '3990');
+
+    ALTER TABLE fiscal_years ADD COLUMN IF NOT EXISTS closing_journal_entry_id TEXT REFERENCES journal_entries(id) ON DELETE SET NULL;
+    ALTER TABLE fiscal_years ADD COLUMN IF NOT EXISTS closed_checklist JSONB NOT NULL DEFAULT '{}'::jsonb;
+    ALTER TABLE fiscal_years ADD COLUMN IF NOT EXISTS reopened_at TIMESTAMPTZ;
+    ALTER TABLE fiscal_years ADD COLUMN IF NOT EXISTS reopened_by TEXT REFERENCES users(id) ON DELETE SET NULL;
+    ALTER TABLE fiscal_years ADD COLUMN IF NOT EXISTS opening_generated_at TIMESTAMPTZ;
+    ALTER TABLE fiscal_years ADD COLUMN IF NOT EXISTS opening_source_fiscal_year_id TEXT REFERENCES fiscal_years(id) ON DELETE SET NULL;
+
+    ALTER TABLE opening_balances ADD COLUMN IF NOT EXISTS fiscal_year_id TEXT REFERENCES fiscal_years(id) ON DELETE SET NULL;
+    ALTER TABLE opening_balances ADD COLUMN IF NOT EXISTS generated_from_fiscal_year_id TEXT REFERENCES fiscal_years(id) ON DELETE SET NULL;
+    ALTER TABLE opening_balances ADD COLUMN IF NOT EXISTS is_system_generated BOOLEAN NOT NULL DEFAULT false;
+
+    ALTER TABLE opening_balances DROP CONSTRAINT IF EXISTS opening_balances_tenant_id_reference_key_key;
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_opening_balances_reference_scope
+      ON opening_balances(tenant_id, COALESCE(fiscal_year_id, ''), reference_key);
+    CREATE INDEX IF NOT EXISTS idx_opening_balances_fiscal_year ON opening_balances(tenant_id, fiscal_year_id, balance_date DESC);
+  `);
+
+  await pool.query(`
     ALTER TABLE purchase_receipts ADD COLUMN IF NOT EXISTS invoice_photo_url TEXT NOT NULL DEFAULT '';
+  `);
+
+  await pool.query(`
+    ALTER TABLE accounting_settings ADD COLUMN IF NOT EXISTS journal_voucher_prefix TEXT NOT NULL DEFAULT 'JV';
+    ALTER TABLE accounting_settings ADD COLUMN IF NOT EXISTS receipt_voucher_prefix TEXT NOT NULL DEFAULT 'RV';
+    ALTER TABLE accounting_settings ADD COLUMN IF NOT EXISTS payment_voucher_prefix TEXT NOT NULL DEFAULT 'PV';
+    ALTER TABLE accounting_settings ADD COLUMN IF NOT EXISTS contra_voucher_prefix  TEXT NOT NULL DEFAULT 'CV';
+
+    CREATE TABLE IF NOT EXISTS voucher_counters (
+      tenant_id     TEXT NOT NULL REFERENCES tenants(id),
+      voucher_type  TEXT NOT NULL,
+      last_value    INTEGER NOT NULL DEFAULT 0,
+      PRIMARY KEY (tenant_id, voucher_type)
+    );
+
+    CREATE TABLE IF NOT EXISTS vouchers (
+      id                     TEXT PRIMARY KEY,
+      tenant_id              TEXT NOT NULL REFERENCES tenants(id),
+      voucher_number         TEXT NOT NULL,
+      voucher_type           TEXT NOT NULL,
+      status                 TEXT NOT NULL DEFAULT 'DRAFT',
+      voucher_date           DATE NOT NULL,
+      fiscal_year_id         TEXT REFERENCES fiscal_years(id) ON DELETE SET NULL,
+      accounting_period_id   TEXT REFERENCES accounting_periods(id) ON DELETE SET NULL,
+      reference_number       TEXT NOT NULL DEFAULT '',
+      narration              TEXT NOT NULL DEFAULT '',
+      notes                  TEXT NOT NULL DEFAULT '',
+      counterparty_name      TEXT NOT NULL DEFAULT '',
+      cash_bank_account_code TEXT REFERENCES chart_of_accounts(code),
+      from_account_code      TEXT REFERENCES chart_of_accounts(code),
+      to_account_code        TEXT REFERENCES chart_of_accounts(code),
+      journal_entry_id       TEXT REFERENCES journal_entries(id),
+      reversal_journal_entry_id TEXT REFERENCES journal_entries(id),
+      reversal_of_voucher_id TEXT REFERENCES vouchers(id),
+      created_by             TEXT REFERENCES users(id) ON DELETE SET NULL,
+      created_at             TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at             TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      submitted_by           TEXT REFERENCES users(id) ON DELETE SET NULL,
+      submitted_at           TIMESTAMPTZ,
+      approved_by            TEXT REFERENCES users(id) ON DELETE SET NULL,
+      approved_at            TIMESTAMPTZ,
+      posted_by              TEXT REFERENCES users(id) ON DELETE SET NULL,
+      posted_at              TIMESTAMPTZ,
+      locked_at              TIMESTAMPTZ,
+      reversed_by            TEXT REFERENCES users(id) ON DELETE SET NULL,
+      reversed_at            TIMESTAMPTZ,
+      deleted_at             TIMESTAMPTZ,
+      deleted_by_id          TEXT REFERENCES users(id) ON DELETE SET NULL,
+      delete_reason          TEXT NOT NULL DEFAULT ''
+    );
+
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_vouchers_number ON vouchers(tenant_id, voucher_number) WHERE deleted_at IS NULL;
+    CREATE INDEX IF NOT EXISTS idx_vouchers_type_status ON vouchers(tenant_id, voucher_type, status, voucher_date DESC);
+    CREATE INDEX IF NOT EXISTS idx_vouchers_period ON vouchers(tenant_id, fiscal_year_id, accounting_period_id);
+
+    CREATE TABLE IF NOT EXISTS voucher_lines (
+      id              TEXT PRIMARY KEY,
+      tenant_id       TEXT NOT NULL REFERENCES tenants(id),
+      voucher_id      TEXT NOT NULL REFERENCES vouchers(id) ON DELETE CASCADE,
+      line_no         INTEGER NOT NULL,
+      account_code    TEXT NOT NULL REFERENCES chart_of_accounts(code),
+      side            TEXT NOT NULL,
+      amount          NUMERIC NOT NULL DEFAULT 0,
+      note            TEXT NOT NULL DEFAULT '',
+      reference_type  TEXT NOT NULL DEFAULT '',
+      reference_id    TEXT,
+      reference_name  TEXT NOT NULL DEFAULT '',
+      created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      CHECK (amount >= 0)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_voucher_lines_voucher ON voucher_lines(voucher_id, line_no);
+    CREATE INDEX IF NOT EXISTS idx_voucher_lines_account ON voucher_lines(tenant_id, account_code);
+    CREATE INDEX IF NOT EXISTS idx_voucher_lines_reference ON voucher_lines(tenant_id, reference_type, reference_id);
+
+    CREATE TABLE IF NOT EXISTS voucher_attachments (
+      id                TEXT PRIMARY KEY,
+      tenant_id         TEXT NOT NULL REFERENCES tenants(id),
+      voucher_id        TEXT NOT NULL REFERENCES vouchers(id) ON DELETE CASCADE,
+      title             TEXT NOT NULL DEFAULT '',
+      original_filename TEXT NOT NULL,
+      stored_filename   TEXT NOT NULL,
+      storage_path      TEXT NOT NULL,
+      mime_type         TEXT NOT NULL DEFAULT '',
+      file_size         INTEGER NOT NULL DEFAULT 0,
+      uploaded_by       TEXT REFERENCES users(id) ON DELETE SET NULL,
+      created_at        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      deleted_at        TIMESTAMPTZ,
+      deleted_by_id     TEXT REFERENCES users(id) ON DELETE SET NULL,
+      delete_reason     TEXT NOT NULL DEFAULT ''
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_voucher_attachments_voucher ON voucher_attachments(voucher_id, created_at DESC);
+  `);
+
+  // â”€â”€ Trade Promotion Engine â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // Generic, rule-driven supplier purchase-incentive engine. A rule is evaluated
+  // automatically whenever a purchase receipt is created/edited; every qualifying
+  // rule earns its own row (rules stack â€” no single "best match" winner). Earnings
+  // are settled later, in full or in part, via cash, free stock, or a credit note
+  // against the supplier's payable balance.
+  await pool.query(`
+    INSERT INTO chart_of_accounts (code, name, type, normal_balance) VALUES
+      ('1140', 'Purchase Incentive Receivable', 'ASSET',   'DEBIT'),
+      ('4030', 'Purchase Incentive Income',      'REVENUE', 'CREDIT')
+    ON CONFLICT (code) DO NOTHING;
+
+    UPDATE chart_of_accounts SET account_group = 'Current Assets', is_system = true, is_receivable_account = true WHERE code = '1140';
+    UPDATE chart_of_accounts SET account_group = 'Other Income', is_system = true WHERE code = '4030';
+
+    CREATE TABLE IF NOT EXISTS trade_promotion_rules (
+      id                 TEXT PRIMARY KEY,
+      tenant_id          TEXT NOT NULL REFERENCES tenants(id),
+      name               TEXT NOT NULL,
+      remarks            TEXT NOT NULL DEFAULT '',
+
+      supplier_scope     TEXT NOT NULL DEFAULT 'SPECIFIC',
+      supplier_id        TEXT REFERENCES suppliers(id) ON DELETE SET NULL,
+
+      target_type        TEXT NOT NULL DEFAULT 'PRODUCT',
+      target_id          TEXT,
+
+      buy_unit           TEXT NOT NULL DEFAULT 'PIECE',
+      buy_quantity       NUMERIC NOT NULL DEFAULT 0,
+
+      reward_type        TEXT NOT NULL DEFAULT 'FREE_QUANTITY',
+      reward_unit        TEXT,
+      reward_quantity    NUMERIC NOT NULL DEFAULT 0,
+      reward_amount      NUMERIC NOT NULL DEFAULT 0,
+      reward_percentage  NUMERIC NOT NULL DEFAULT 0,
+
+      settlement_method  TEXT NOT NULL DEFAULT 'MULTIPLE',
+      effective_from     DATE,
+      effective_to       DATE,
+      active             BOOLEAN NOT NULL DEFAULT TRUE,
+      priority           INTEGER NOT NULL DEFAULT 100,
+
+      created_by         TEXT REFERENCES users(id) ON DELETE SET NULL,
+      created_at         TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at         TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      deleted_at         TIMESTAMPTZ,
+      deleted_by_id      TEXT REFERENCES users(id) ON DELETE SET NULL,
+      delete_reason      TEXT NOT NULL DEFAULT ''
+    );
+    CREATE INDEX IF NOT EXISTS idx_trade_promotion_rules_tenant_id ON trade_promotion_rules(tenant_id);
+    CREATE INDEX IF NOT EXISTS idx_trade_promotion_rules_active ON trade_promotion_rules(tenant_id, active) WHERE deleted_at IS NULL;
+    CREATE INDEX IF NOT EXISTS idx_trade_promotion_rules_supplier ON trade_promotion_rules(tenant_id, supplier_id);
+    CREATE INDEX IF NOT EXISTS idx_trade_promotion_rules_target ON trade_promotion_rules(tenant_id, target_type, target_id);
+
+    CREATE TABLE IF NOT EXISTS trade_promotion_earnings (
+      id                        TEXT PRIMARY KEY,
+      tenant_id                 TEXT NOT NULL REFERENCES tenants(id),
+      rule_id                   TEXT NOT NULL REFERENCES trade_promotion_rules(id) ON DELETE RESTRICT,
+      purchase_receipt_id       TEXT NOT NULL REFERENCES purchase_receipts(id) ON DELETE RESTRICT,
+      supplier_id               TEXT NOT NULL REFERENCES suppliers(id) ON DELETE RESTRICT,
+      product_id                TEXT REFERENCES products(id) ON DELETE SET NULL,
+
+      matched_item_ids          JSONB NOT NULL DEFAULT '[]',
+      purchased_quantity_pieces NUMERIC NOT NULL DEFAULT 0,
+      qualifying_value          NUMERIC NOT NULL DEFAULT 0,
+
+      reward_kind               TEXT NOT NULL,
+      earned_quantity_pieces    NUMERIC NOT NULL DEFAULT 0,
+      earned_amount             NUMERIC NOT NULL DEFAULT 0,
+      settlement_method         TEXT NOT NULL,
+
+      status                    TEXT NOT NULL DEFAULT 'PENDING',
+      settled_quantity_pieces   NUMERIC NOT NULL DEFAULT 0,
+      settled_amount            NUMERIC NOT NULL DEFAULT 0,
+
+      earned_date               DATE NOT NULL,
+      created_by                TEXT REFERENCES users(id) ON DELETE SET NULL,
+      created_at                TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at                TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE (tenant_id, rule_id, purchase_receipt_id)
+    );
+    CREATE INDEX IF NOT EXISTS idx_trade_promotion_earnings_tenant_status ON trade_promotion_earnings(tenant_id, status);
+    CREATE INDEX IF NOT EXISTS idx_trade_promotion_earnings_purchase ON trade_promotion_earnings(tenant_id, purchase_receipt_id);
+    CREATE INDEX IF NOT EXISTS idx_trade_promotion_earnings_supplier ON trade_promotion_earnings(tenant_id, supplier_id);
+    CREATE INDEX IF NOT EXISTS idx_trade_promotion_earnings_product ON trade_promotion_earnings(tenant_id, product_id);
+    CREATE INDEX IF NOT EXISTS idx_trade_promotion_earnings_date ON trade_promotion_earnings(tenant_id, earned_date DESC);
+
+    CREATE TABLE IF NOT EXISTS trade_promotion_settlements (
+      id                    TEXT PRIMARY KEY,
+      tenant_id             TEXT NOT NULL REFERENCES tenants(id),
+      earning_id            TEXT NOT NULL REFERENCES trade_promotion_earnings(id) ON DELETE RESTRICT,
+      method                TEXT NOT NULL,
+      settlement_date       DATE NOT NULL,
+      quantity_pieces       NUMERIC NOT NULL DEFAULT 0,
+      amount                NUMERIC NOT NULL DEFAULT 0,
+      finance_account_type  TEXT,
+      note                  TEXT NOT NULL DEFAULT '',
+      created_by            TEXT REFERENCES users(id) ON DELETE SET NULL,
+      created_at            TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at            TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      deleted_at            TIMESTAMPTZ,
+      deleted_by_id         TEXT REFERENCES users(id) ON DELETE SET NULL,
+      delete_reason         TEXT NOT NULL DEFAULT ''
+    );
+    CREATE INDEX IF NOT EXISTS idx_trade_promotion_settlements_tenant_id ON trade_promotion_settlements(tenant_id);
+    CREATE INDEX IF NOT EXISTS idx_trade_promotion_settlements_earning ON trade_promotion_settlements(tenant_id, earning_id);
+    CREATE INDEX IF NOT EXISTS idx_trade_promotion_settlements_date ON trade_promotion_settlements(tenant_id, settlement_date DESC);
   `);
 }
 

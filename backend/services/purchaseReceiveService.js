@@ -392,11 +392,12 @@ async function seedOpeningSupplierLedgerIfNeeded(client, supplier, tenantId, act
 }
 
 export class PurchaseReceiveService {
-  constructor(databaseManager, { auditService, financeAccountService, journalService }) {
+  constructor(databaseManager, { auditService, financeAccountService, journalService, tradePromotionEngineService }) {
     this.databaseManager = databaseManager;
     this.auditService = auditService;
     this.financeAccountService = financeAccountService;
     this.journalService = journalService;
+    this.tradePromotionEngineService = tradePromotionEngineService;
   }
 
   recordActivity(client, actor, payload) {
@@ -521,6 +522,19 @@ export class PurchaseReceiveService {
       tenantId: actor.tenantId,
       purchaseReceiptId: base.id,
     });
+
+    // Trade promotion earnings: evaluated after items exist (needs their ids/lineTotal)
+    // but before the ledger/finance side effects below, so an earning failure rolls
+    // back the whole purchase transaction rather than leaving a half-posted purchase.
+    if (this.tradePromotionEngineService) {
+      await this.tradePromotionEngineService.evaluatePurchaseReceipt(client, {
+        purchaseReceiptId: base.id,
+        supplierId: supplier.id,
+        purchaseDate: base.purchaseDate,
+        items: base.items,
+        productMap,
+      }, actor);
+    }
 
     // Seed OPENING ledger entry on first-ever entry for this supplier.
     let currentBalance = await seedOpeningSupplierLedgerIfNeeded(client, supplier, actor.tenantId, actor, base.purchaseDate);
@@ -698,6 +712,16 @@ export class PurchaseReceiveService {
       createdBy: actor.id,
     });
 
+    if (this.tradePromotionEngineService) {
+      await this.tradePromotionEngineService.recomputeEarningsForPurchase(client, {
+        purchaseReceiptId: base.id,
+        supplierId: supplier.id,
+        purchaseDate: base.purchaseDate,
+        items: base.items,
+        productMap,
+      }, actor);
+    }
+
     const updateResult = await updatePurchaseReceipt(client, { ...base, purchaseNumber: previousPurchase.purchase_number });
 
     // Compute delta-based ledger changes.
@@ -842,6 +866,10 @@ export class PurchaseReceiveService {
 
       await findSupplierForUpdate(client, purchase.supplier_id, actor.tenantId);
 
+      if (this.tradePromotionEngineService) {
+        await this.tradePromotionEngineService.reverseEarningsForPurchase(client, purchaseId, actor, reason);
+      }
+
       await softDeletePurchaseSerials(client, purchaseId, actor.tenantId, actor, reason);
 
       await applyPurchaseInventoryDelta(client, purchaseItems, [], actor.tenantId, {
@@ -956,6 +984,10 @@ export class PurchaseReceiveService {
       await findSupplierForUpdate(client, purchase.supplier_id, actor.tenantId);
 
       await restorePurchaseSerials(client, purchaseId, actor.tenantId);
+
+      if (this.tradePromotionEngineService) {
+        await this.tradePromotionEngineService.restoreEarningsForPurchase(client, purchaseId, actor);
+      }
 
       await applyPurchaseInventoryDelta(client, [], purchaseItems, actor.tenantId, {
         referenceId: purchaseId,

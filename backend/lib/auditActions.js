@@ -233,14 +233,31 @@ export const ACCOUNTING_ACTIONS = {
   ACCOUNT_UPDATE: "accounting.account.update",
   FISCAL_YEAR_CREATE: "accounting.fiscal_year.create",
   FISCAL_YEAR_ACTIVATE: "accounting.fiscal_year.activate",
+  FISCAL_YEAR_CLOSE_PREVIEW: "accounting.fiscal_year.close_preview",
   FISCAL_YEAR_CLOSE: "accounting.fiscal_year.close",
+  FISCAL_YEAR_REOPEN: "accounting.fiscal_year.reopen",
   PERIOD_OPEN: "accounting.period.open",
   PERIOD_CLOSE: "accounting.period.close",
   PERIOD_LOCK: "accounting.period.lock",
+  PERIOD_UNLOCK: "accounting.period.unlock",
   PERIOD_REOPEN: "accounting.period.reopen",
   OPENING_BALANCE_CREATE: "accounting.opening_balance.create",
   OPENING_BALANCE_UPDATE: "accounting.opening_balance.update",
+  OPENING_BALANCE_GENERATE: "accounting.opening_balance.generate",
+  CLOSING_ENTRY_GENERATE: "accounting.closing_entry.generate",
+  JOURNAL_REVERSE: "accounting.journal.reverse",
+  JOURNAL_OVERRIDE: "accounting.journal.override",
   SETTINGS_UPDATE: "accounting.settings.update",
+  VOUCHER_CREATE: "voucher.create",
+  VOUCHER_UPDATE: "voucher.update",
+  VOUCHER_SUBMIT: "voucher.submit",
+  VOUCHER_APPROVE: "voucher.approve",
+  VOUCHER_POST: "voucher.post",
+  VOUCHER_REVERSE: "voucher.reverse",
+  VOUCHER_DELETE: "voucher.delete",
+  VOUCHER_ATTACHMENT_UPLOAD: "voucher.attachment_upload",
+  VOUCHER_ATTACHMENT_DELETE: "voucher.attachment_delete",
+  REPORT_GENERATED: "accounting.report.generated",
 };
 
 export const TENANT_ACTIONS = {
@@ -263,6 +280,26 @@ export const CONTACT_MESSAGE_ACTIONS = {
 
 export const UPLOAD_ACTIONS = {
   PHOTO_UPLOAD: "upload.photo_upload",
+};
+
+export const TRADE_PROMOTION_RULE_ACTIONS = {
+  CREATE: "trade_promotion_rule.create",
+  UPDATE: "trade_promotion_rule.update",
+  DELETE: "trade_promotion_rule.delete",
+  RESTORE: "trade_promotion_rule.restore",
+};
+
+export const TRADE_PROMOTION_EARNING_ACTIONS = {
+  EARN: "trade_promotion_earning.earn",
+  REVERSE: "trade_promotion_earning.reverse",
+  RESTORE: "trade_promotion_earning.restore",
+  RECOMPUTE: "trade_promotion_earning.recompute",
+};
+
+export const TRADE_PROMOTION_SETTLEMENT_ACTIONS = {
+  CREATE: "trade_promotion_settlement.create",
+  DELETE: "trade_promotion_settlement.delete",
+  RESTORE: "trade_promotion_settlement.restore",
 };
 
 

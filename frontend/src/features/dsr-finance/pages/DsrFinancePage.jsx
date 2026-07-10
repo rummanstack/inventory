@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Download, HandCoins, Loader2, Printer, RefreshCw, Wallet } from 'lucide-react';
-import { Alert, Badge, EmptyState, SectionHeader, StatCard, TableSkeleton, Select } from '../../../components/ui.jsx';
+import { Alert, Badge, CopyableText, EmptyState, SectionHeader, StatCard, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../services/printService.js';
@@ -153,7 +153,7 @@ export default function DsrFinancePage() {
                       <td className="table-cell text-right font-semibold text-emerald-700">{entry.credit ? formatCurrency(entry.credit) : '-'}</td>
                       <td className="table-cell text-right font-semibold text-slate-950">{formatCurrency(entry.balanceAfter)}</td>
                       <td className="hidden table-cell lg:table-cell">
-                        <p className="max-w-52 truncate text-xs font-semibold text-slate-600">{formatReference(entry)}</p>
+                        <CopyableText value={entry.referenceId ? `${entry.referenceType || 'reference'} / ${entry.referenceId}` : ''} copyLabel={t('dsrDueLedger.reference')} displayValue={formatReference(entry)} textClassName="max-w-52 text-xs font-semibold text-slate-600" buttonClassName="h-5 w-5" />
                       </td>
                       <td className="hidden table-cell xl:table-cell">
                         <p className="font-semibold text-slate-950">{entry.createdByName || '-'}</p>

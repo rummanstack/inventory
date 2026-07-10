@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ArrowLeftRight, Boxes, Download, FileSpreadsheet, HandCoins, Landmark, Loader2, Plus, Printer, Scale, Trash2, Wallet } from 'lucide-react';
-import { Alert, Badge, EmptyState, Pagination, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton, Select } from '../../../components/ui.jsx';
+import { Alert, Badge, CopyableText, EmptyState, Pagination, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../services/printService.js';
@@ -193,7 +193,10 @@ export default function FinanceAccountsPage() {
               <tbody className="divide-y divide-slate-100">
                 {vm.items.map((transaction) => (
                   <tr key={transaction.id} className="hover:bg-slate-50">
-                    <td className="table-cell">{formatDateTime(transaction.transactionDate)}</td>
+                    <td className="table-cell">
+                      <div>{formatDateTime(transaction.transactionDate)}</div>
+                      <div className="mt-1"><CopyableText value={transaction.id} copyLabel="transaction ID" displayValue={transaction.id.slice(0, 10)} textClassName="text-xs font-medium text-slate-500" buttonClassName="h-5 w-5" /></div>
+                    </td>
                     <td className="table-cell font-semibold text-slate-950">
                       {transaction.accountName}
                     </td>

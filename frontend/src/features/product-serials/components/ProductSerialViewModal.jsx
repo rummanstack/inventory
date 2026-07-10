@@ -1,15 +1,15 @@
 import { useNavigate } from 'react-router-dom';
 import { Receipt } from 'lucide-react';
-import { Badge, Modal } from '../../../components/ui.jsx';
+import { Badge, CopyableText, Modal } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { formatDate } from '../../../utils/calculations.js';
 import { productSerialStatusTone } from '../../../models/inventoryViewData.js';
 
-function Field({ label, value }) {
+function Field({ label, value, copyValue }) {
   return (
     <div>
       <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">{label}</p>
-      <p className="mt-1 text-sm font-semibold text-slate-950">{value || '-'}</p>
+      <div className="mt-1"><CopyableText value={copyValue ?? value} copyLabel={label} displayValue={value} textClassName="text-sm font-semibold text-slate-950" /></div>
     </div>
   );
 }
@@ -29,6 +29,7 @@ export default function ProductSerialViewModal({ serial, onClose }) {
         <Field label={t('productSerials.serialNumberLabel')} value={serial.serialNumber} />
         <Field label={t('productSerials.imei1Label')} value={serial.imei1} />
         <Field label={t('productSerials.imei2Label')} value={serial.imei2} />
+        <Field label="Serial ID" value={serial.id} />
         <Field label={t('productSerials.warrantyStartLabel')} value={formatDate(serial.warrantyStartDate)} />
         <Field label={t('productSerials.warrantyEndLabel')} value={formatDate(serial.warrantyEndDate)} />
         <div className="sm:col-span-2">

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Download, FileSpreadsheet, Loader2, Plus, Printer, RotateCcw } from 'lucide-react';
-import { Alert, EmptyState, Pagination, SectionHeader, TableSkeleton, Select } from '../../../../components/ui.jsx';
+import { Alert, CopyableText, EmptyState, Pagination, SectionHeader, TableSkeleton, Select } from '../../../../components/ui.jsx';
 import { DatePickerField } from '../../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../../services/printService.js';
@@ -115,9 +115,9 @@ export default function SalesReturnPage() {
               {vm.items.map((salesReturn, index) => (
                 <tr key={salesReturn.id} className="hover:bg-slate-50">
                   <td className="table-cell font-semibold text-slate-400">{formatNumber((vm.page - 1) * vm.pageSize + index + 1, language)}</td>
-                  <td className="table-cell font-semibold text-slate-950">{salesReturn.returnNumber}</td>
+                  <td className="table-cell"><CopyableText value={salesReturn.returnNumber} copyLabel={t('retailer.salesReturn.returnNumber')} displayValue={salesReturn.returnNumber} textClassName="font-semibold text-slate-950" /></td>
                   <td className="table-cell">{formatDateTime(salesReturn.returnDate, language)}</td>
-                  <td className="table-cell">{salesReturn.invoiceNumber || '-'}</td>
+                  <td className="table-cell"><CopyableText value={salesReturn.invoiceNumber} copyLabel={t('retailer.salesReturn.invoiceNumberLabel')} displayValue={salesReturn.invoiceNumber} /></td>
                   <td className="table-cell">{salesReturn.customerName || t('retailer.shared.customerTypes.WALK_IN')}</td>
                   <td className="table-cell text-right font-bold">{formatCurrency(salesReturn.totalAmount, language)}</td>
                 </tr>

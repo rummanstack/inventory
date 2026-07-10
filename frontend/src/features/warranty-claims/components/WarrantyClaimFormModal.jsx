@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Save, Search } from 'lucide-react';
-import { Alert, Modal, Select } from '../../../components/ui.jsx';
+import { Alert, CopyableText, Modal, Select } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { useFormState } from '../../../hooks/useFormState';
@@ -122,7 +122,7 @@ export default function WarrantyClaimFormModal({ claim, onClose, onSave, prefill
           <div className="grid gap-4 sm:grid-cols-2 rounded-2xl border border-slate-200 bg-slate-50 p-4">
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">{t('warrantyClaims.claimNumberLabel')}</p>
-              <p className="mt-1 text-sm font-semibold text-slate-950">{claim.claimNumber}</p>
+              <div className="mt-1"><CopyableText value={claim.claimNumber} copyLabel={t('warrantyClaims.claimNumberLabel')} displayValue={claim.claimNumber} textClassName="text-sm font-semibold text-slate-950" /></div>
             </div>
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">{t('products.product')}</p>
@@ -130,16 +130,16 @@ export default function WarrantyClaimFormModal({ claim, onClose, onSave, prefill
             </div>
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">{t('warrantyClaims.serialLabel')}</p>
-              <p className="mt-1 text-sm font-semibold text-slate-950">{claim.serialNumber || claim.imei1 || claim.imei2 || '-'}</p>
+              <div className="mt-1"><CopyableText value={claim.serialNumber || claim.imei1 || claim.imei2} copyLabel={t('warrantyClaims.serialLabel')} displayValue={claim.serialNumber || claim.imei1 || claim.imei2} textClassName="text-sm font-semibold text-slate-950" /></div>
             </div>
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">{t('retailer.shared.invoiceNumberLabel')}</p>
-              <p className="mt-1 text-sm font-semibold text-slate-950">{claim.invoiceNumber || '-'}</p>
+              <div className="mt-1"><CopyableText value={claim.invoiceNumber} copyLabel={t('retailer.shared.invoiceNumberLabel')} displayValue={claim.invoiceNumber} textClassName="text-sm font-semibold text-slate-950" /></div>
             </div>
             {linkedRepairJob ? (
               <div className="sm:col-span-2">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">{t('warrantyClaims.linkedRepairJobLabel')}</p>
-                <p className="mt-1 text-sm font-semibold text-indigo-700">{linkedRepairJob}</p>
+                <div className="mt-1"><CopyableText value={linkedRepairJob} copyLabel={t('warrantyClaims.linkedRepairJobLabel')} displayValue={linkedRepairJob} textClassName="text-sm font-semibold text-indigo-700" /></div>
               </div>
             ) : null}
           </div>
@@ -148,7 +148,7 @@ export default function WarrantyClaimFormModal({ claim, onClose, onSave, prefill
             {prefillRepairJobId ? (
               <div className="rounded-2xl border border-indigo-200 bg-indigo-50/60 px-4 py-3 flex items-center gap-3">
                 <span className="text-xs font-semibold uppercase tracking-widest text-indigo-500">{t('warrantyClaims.linkedRepairJobLabel')}</span>
-                <span className="text-sm font-bold text-indigo-900">{prefillRepairJobNumber}</span>
+                <CopyableText value={prefillRepairJobNumber} copyLabel={t('warrantyClaims.linkedRepairJobLabel')} displayValue={prefillRepairJobNumber} textClassName="text-sm font-bold text-indigo-900" />
               </div>
             ) : null}
             <div className="rounded-2xl border border-dashed border-indigo-300 bg-indigo-50/60 p-4">

@@ -41,15 +41,15 @@ export default function AuthShell({ brand, eyebrow, title, points = [], footnote
               <ul className="relative mt-10 space-y-5">
                 {points.map(({ icon: Icon, text }) => (
                   <li key={text} className="flex items-start gap-3.5">
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-[rgba(60,42,134,0.16)] text-[#ddd2ff] backdrop-blur">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[rgba(255,255,255,0.1)] bg-[rgba(60,42,134,0.16)] text-[#ddd2ff] backdrop-blur">
                       <Icon size={18} />
                     </span>
-                    <span className="pt-2 text-sm font-semibold leading-6 text-white/80">{text}</span>
+                    <span className="pt-2 text-sm font-semibold leading-6 text-[rgba(255,255,255,0.8)]">{text}</span>
                   </li>
                 ))}
               </ul>
 
-              <p className="relative mt-10 text-xs font-semibold leading-5 text-white/50">
+              <p className="relative mt-10 text-xs font-semibold leading-5 text-[rgba(255,255,255,0.5)]">
                 {footnote}
               </p>
             </div>

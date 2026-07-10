@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Download, FileSpreadsheet, Loader2, Pencil, Plus, Printer, Receipt, Search, Trash2, Wrench } from 'lucide-react';
-import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton, Select } from '../../../components/ui.jsx';
+import { Alert, Badge, CopyableText, EmptyState, Pagination, SectionHeader, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
@@ -158,11 +158,11 @@ export default function WarrantyClaimsPage() {
               {vm.items.map((claim) => (
                 <tr key={claim.id} className="hover:bg-slate-50">
                   <td className="table-cell">
-                    <div className="font-semibold text-slate-950">{claim.claimNumber}</div>
-                    {claim.rmaNumber ? <div className="text-xs text-amber-700 font-medium">{claim.rmaNumber}</div> : null}
+                    <CopyableText value={claim.claimNumber} copyLabel={t('warrantyClaims.claimNumberLabel')} displayValue={claim.claimNumber} textClassName="font-semibold text-slate-950" />
+                    {claim.rmaNumber ? <div className="text-xs text-amber-700 font-medium"><CopyableText value={claim.rmaNumber} copyLabel={t('warrantyClaims.rmaNumberLabel')} displayValue={claim.rmaNumber} textClassName="font-medium text-amber-700" buttonClassName="h-5 w-5" /></div> : null}
                   </td>
                   <td className="table-cell">{claim.productName || '-'}</td>
-                  <td className="hidden table-cell sm:table-cell">{claim.serialNumber || claim.imei1 || claim.imei2 || '-'}</td>
+                  <td className="hidden table-cell sm:table-cell"><CopyableText value={claim.serialNumber || claim.imei1 || claim.imei2} copyLabel={t('warrantyClaims.serialLabel')} displayValue={claim.serialNumber || claim.imei1 || claim.imei2} /></td>
                   <td className="hidden table-cell md:table-cell">{claim.customerName || '-'}</td>
                   <td className="table-cell">{formatDateTime(claim.receivedDate)}</td>
                   <td className="table-cell">

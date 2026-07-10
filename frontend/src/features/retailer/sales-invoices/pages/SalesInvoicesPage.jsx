@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Download, Eye, FileSpreadsheet, Loader2, Plus, Printer, Receipt, Search, Trash2 } from 'lucide-react';
-import { Alert, Badge, EmptyState, MobileCardList, MobileListCard, Pagination, SectionHeader, TableSkeleton, Select } from '../../../../components/ui.jsx';
+import { Alert, Badge, CopyableText, EmptyState, MobileCardList, MobileListCard, Pagination, SectionHeader, TableSkeleton, Select } from '../../../../components/ui.jsx';
 import { DatePickerField } from '../../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../../services/printService.js';
@@ -171,7 +171,7 @@ export default function SalesInvoicesPage() {
               {vm.items.map((invoice, index) => (
                 <tr key={invoice.id} className="hover:bg-slate-50">
                   <td className="table-cell font-medium text-slate-400">{(vm.page - 1) * vm.pageSize + index + 1}</td>
-                  <td className="table-cell font-semibold text-slate-950">{invoice.invoiceNumber}</td>
+                  <td className="table-cell"><CopyableText value={invoice.invoiceNumber} copyLabel={t('retailer.shared.invoiceNumberLabel')} displayValue={invoice.invoiceNumber} textClassName="font-semibold text-slate-950" /></td>
                   <td className="table-cell">{formatDateTime(invoice.invoiceDate)}</td>
                   <td className="table-cell">{invoice.customerName || t('retailer.shared.customerTypes.WALK_IN')}</td>
                   <td className="hidden table-cell lg:table-cell">{t(`retailer.shared.saleTypes.${invoice.saleType}`)}</td>

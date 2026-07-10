@@ -52,9 +52,11 @@ function calcTotals(items, discountAmount, taxRate) {
 }
 
 export class QuotationService {
-  constructor(databaseManager, { auditService }) {
+  constructor(databaseManager, { auditService, financeAccountService, journalService }) {
     this.databaseManager = databaseManager;
     this.auditService = auditService;
+    this.financeAccountService = financeAccountService;
+    this.journalService = journalService;
   }
 
   recordActivity(client, actor, payload) {
@@ -278,6 +280,19 @@ export class QuotationService {
         }
       }
 
+      // Same formula as the direct sales-invoice flow (createSalesInvoiceRecord):
+      // -discount + sum(lineTotal - cost * quantity). Quotation-converted
+      // invoices never carry loyalty redemption (hardcoded to 0 below), so
+      // there's no redeemAmount term to subtract here.
+      let totalProfit = -Number(existing.discount_amount);
+      let cogsAmount = 0;
+      for (const item of quotationItems) {
+        const product = item.product_id ? productMap.get(item.product_id) : null;
+        const costPriceSnapshot = product ? Number(product.purchase_price || 0) : 0;
+        totalProfit += Number(item.line_total) - costPriceSnapshot * Number(item.quantity);
+        cogsAmount += costPriceSnapshot * Number(item.quantity);
+      }
+
       // Insert sales invoice
       await insertSalesInvoice(client, {
         id: invoiceId,
@@ -295,7 +310,7 @@ export class QuotationService {
         paidAmount,
         dueAmount,
         paymentMethod,
-        totalProfit: 0,
+        totalProfit,
         note: invoiceNote,
         createdById: actor.id,
         loyaltyPointsEarned: 0,
@@ -304,6 +319,35 @@ export class QuotationService {
         customerNameSnapshot,
         customerPhoneSnapshot,
       });
+
+      // Sales invoices always land in the CASH account here, matching the
+      // convention used by the direct sales-invoice flow (createSalesInvoiceRecord).
+      if (this.financeAccountService && paidAmount > 0) {
+        await this.financeAccountService.recordTransactionInClient(
+          client,
+          {
+            accountType: "CASH",
+            type: "DEPOSIT",
+            amount: paidAmount,
+            date: invoiceDate,
+            note: `Sales invoice ${invoiceNumber}`,
+          },
+          actor,
+        );
+      }
+
+      if (this.journalService) {
+        await this.journalService.postSalesInvoice(client, actor, {
+          invoiceId,
+          invoiceDate,
+          invoiceNumber,
+          paidAmount,
+          dueAmount,
+          totalAmount,
+          taxAmount: Number(existing.tax_amount),
+          cogsAmount,
+        });
+      }
 
       // Insert invoice items and deduct stock
       for (const item of quotationItems) {

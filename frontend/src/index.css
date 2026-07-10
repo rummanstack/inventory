@@ -1095,6 +1095,57 @@
   }
 }
 
+/* Sonner toast theming — replace its default gray/HSL palette with our own
+   brand tokens so toasts match the rest of the UI in both themes. The
+   `html [data-sonner-toaster][data-sonner-theme]` selector is deliberately as
+   specific as sonner's own [data-sonner-toaster][data-sonner-theme=...] rule
+   plus one, so our variables win regardless of stylesheet order — sonner
+   injects its CSS at runtime via JS, which can land after ours in the DOM. */
+html [data-sonner-toaster][data-sonner-theme] {
+  --border-radius: var(--radius-card);
+  --normal-bg: var(--surface);
+  --normal-border: var(--surface-line);
+  --normal-text: var(--text-strong);
+  /* The -soft tokens (--success-soft etc.) are semi-transparent rgba() washes
+     designed for banners sitting on an already-opaque page — fine there, but
+     a toast floats over live content (e.g. the sticky header), so a
+     translucent background lets whatever is behind it show through. Blend
+     the solid color into the opaque --surface instead, so the card is fully
+     opaque while keeping the same soft-tint look. */
+  --success-bg: color-mix(in srgb, var(--success) 12%, var(--surface));
+  --success-border: var(--success-line);
+  --success-text: var(--success-strong);
+  --error-bg: color-mix(in srgb, var(--danger) 10%, var(--surface));
+  --error-border: var(--danger-line);
+  --error-text: var(--danger-strong);
+  --warning-bg: color-mix(in srgb, var(--warning) 12%, var(--surface));
+  --warning-border: var(--warning-line);
+  --warning-text: var(--warning-strong);
+  --info-bg: var(--brand-soft);
+  --info-border: color-mix(in srgb, var(--brand) 24%, transparent);
+  --info-text: var(--brand-strong);
+  font-family: inherit;
+}
+
+html [data-sonner-toaster] [data-sonner-toast][data-styled="true"] {
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px 16px;
+  box-shadow: var(--shadow-modal);
+}
+
+html [data-sonner-toaster] [data-sonner-toast] [data-icon] {
+  margin-top: 1px;
+}
+
+html [data-sonner-toaster] [data-sonner-toast] [data-title] {
+  font-weight: 700;
+}
+
+html [data-sonner-toaster] [data-sonner-toast] [data-description] {
+  color: var(--text-soft);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

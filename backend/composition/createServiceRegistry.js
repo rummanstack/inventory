@@ -188,7 +188,11 @@ export function createServiceRegistry({ databaseManager, env }) {
       journalService,
     }),
     helpDeskService: new HelpDeskService(databaseManager, { auditService: platform.auditService }),
-    quotationService: new QuotationService(databaseManager, { auditService: platform.auditService }),
+    quotationService: new QuotationService(databaseManager, {
+      auditService: platform.auditService,
+      financeAccountService: finance.financeAccountService,
+      journalService,
+    }),
     repairJobService: new RepairJobService(databaseManager, { auditService: platform.auditService }),
     retailCashSessionService: new RetailCashSessionService(databaseManager, {
       auditService: platform.auditService,

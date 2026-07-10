@@ -328,6 +328,8 @@ const en = {
       print: 'Print',
       downloadPdf: 'Download as PDF',
       download: 'Download',
+      copy: 'Copy',
+      copied: 'Copied',
       exportExcel: 'Export as Excel',
       view: 'View',
       reload: 'Reload',
@@ -2478,7 +2480,7 @@ const en = {
         modalDescription: 'Load the original invoice, choose returned quantities, and save.',
         save: 'Save Return',
         invoiceNumberLabel: 'Invoice Number',
-        loadInvoice: 'Load Invoice',
+        loadInvoice: 'Load',
         invoiceNotFound: 'Invoice not found.',
         refundMethodLabel: 'Refund Method',
         refundMethodDueAdjustment: 'Adjust Customer Due',
@@ -3803,10 +3805,10 @@ const en = {
       hero: {
         eyebrow: 'Complete business and accounting platform',
         title: 'Run your business and accounts from one dashboard.',
-        subtitle: 'StockLedger connects sales, inventory, purchases, dues, suppliers, DSR, service, expenses, cash, bank, profit, ledgers, P&L, and balance sheet in one system.',
+        subtitle: 'StockLedger connects sales, inventory, purchases, dues, suppliers, DSR, service, employees, payroll, leave, attendance, expenses, cash, bank, profit, ledgers, P&L, and balance sheet in one system.',
         points: [
           'Sales, purchases, stock, dues, and suppliers',
-          'DSR, service, HR, reports, and control',
+          'DSR, service, employees, payroll, leave, attendance, and control',
           'Cash, bank, expenses, profit, and finance reports',
           'Ledger, trial balance, P&L, and balance sheet',
         ],
@@ -3887,9 +3889,9 @@ const en = {
           },
           {
             badge: 'Service, HR & Control',
-            title: 'Control service, team activity, security, backups, and reports together',
+            title: 'Control service, HR, security, backups, and reports together',
             items: [
-              'Warranty claims, repair jobs, employees, salary payments, and user permissions',
+              'Warranty claims, repair jobs, employees, payroll, leave, attendance, and user permissions',
               'Activity logs, backups, org settings, issue center, and security controls',
               'Management gets visibility from the sales counter to back-office administration',
             ],

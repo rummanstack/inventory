@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Plus, Trash2, Undo2 } from 'lucide-react';
-import { Alert, EmptyState, Pagination, SectionHeader, TableSkeleton, Select } from '../../../components/ui.jsx';
+import { Alert, CopyableText, EmptyState, Pagination, SectionHeader, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { formatCurrency, formatDateTime, formatNumber } from '../../../utils/calculations.js';
@@ -71,7 +71,7 @@ export default function PurchaseReturnsPage() {
             <tbody className="divide-y divide-slate-100">
               {vm.items.map((purchaseReturn) => (
                 <tr key={purchaseReturn.id} className="hover:bg-slate-50">
-                  <td className="table-cell font-semibold text-slate-950">{purchaseReturn.returnNumber}</td>
+                  <td className="table-cell"><CopyableText value={purchaseReturn.returnNumber} copyLabel={t('purchaseReturns.number')} displayValue={purchaseReturn.returnNumber} textClassName="font-semibold text-slate-950" /></td>
                   <td className="table-cell">{formatDateTime(purchaseReturn.returnDate)}</td>
                   <td className="table-cell font-semibold text-slate-950">{purchaseReturn.supplierName || '-'}</td>
                   <td className="table-cell">

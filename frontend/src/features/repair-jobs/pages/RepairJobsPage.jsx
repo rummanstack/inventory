@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { AlertTriangle, CheckCircle2, Clock, LayoutGrid, Package, Pencil, Plus, Search, ShieldAlert, Table2, Trash2, Wrench } from 'lucide-react';
-import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton, Select } from '../../../components/ui.jsx';
+import { Alert, Badge, CopyableText, EmptyState, Pagination, SectionHeader, TableSkeleton, Select } from '../../../components/ui.jsx';
 import TableReportActions from '../../../components/TableReportActions.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
@@ -92,13 +92,14 @@ function JobCard({ job, canManage, accent, t, onEdit, onDelete, onEscalate, onDr
       <div className="pl-4 pr-3 pt-3 pb-3 space-y-2.5">
         {/* Row 1: job number + approval dot */}
         <div className="flex items-center justify-between gap-2">
-          <button
-            type="button"
-            onClick={() => onEdit(job)}
-            className="text-[10px] font-semibold tracking-widest text-slate-400 uppercase hover:text-indigo-600 transition-colors"
-          >
-            {job.jobNumber}
-          </button>
+          <CopyableText
+            value={job.jobNumber}
+            copyLabel={t('repairJobs.jobNumberLabel')}
+            displayValue={job.jobNumber}
+            className="max-w-full"
+            textClassName="text-[10px] font-semibold tracking-widest text-slate-400 uppercase"
+            buttonClassName="h-5 w-5"
+          />
           <span
             className={`h-2 w-2 shrink-0 rounded-full ${APPROVAL_DOT[job.approvalStatus] || 'bg-slate-300'}`}
             title={t(`repairJobs.approvalStatuses.${job.approvalStatus}`)}
@@ -459,12 +460,12 @@ export default function RepairJobsPage() {
                   <tbody className="divide-y divide-slate-100">
                     {vm.items.map((job) => (
                       <tr key={job.id} className="hover:bg-slate-50">
-                        <td className="table-cell font-semibold text-slate-950">{job.jobNumber}</td>
+                        <td className="table-cell"><CopyableText value={job.jobNumber} copyLabel={t('repairJobs.jobNumberLabel')} displayValue={job.jobNumber} textClassName="font-semibold text-slate-950" /></td>
                         <td className="table-cell no-print">
                           <div className="font-medium text-slate-900">{job.customerName || '-'}</div>
                           {job.customerPhone ? <div className="text-xs text-slate-500">{job.customerPhone}</div> : null}
                         </td>
-                        <td className="hidden table-cell sm:table-cell">{job.serialNumber || '-'}</td>
+                        <td className="hidden table-cell sm:table-cell"><CopyableText value={job.serialNumber} copyLabel={t('repairJobs.serialLabel')} displayValue={job.serialNumber} /></td>
                         <td className="table-cell">
                           <Badge tone={repairJobStatusTone(job.status)}>{t(`repairJobs.statuses.${job.status}`)}</Badge>
                         </td>

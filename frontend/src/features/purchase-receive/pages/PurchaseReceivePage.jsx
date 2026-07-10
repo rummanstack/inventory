@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Download, Eye, FileSpreadsheet, Loader2, Pencil, Plus, Printer, Search, ShoppingCart, Trash2 } from 'lucide-react';
-import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton, Select } from '../../../components/ui.jsx';
+import { Alert, Badge, CopyableText, EmptyState, Pagination, SectionHeader, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi';
@@ -152,7 +152,7 @@ export default function PurchaseReceivePage() {
               {vm.items.map((receipt, index) => (
                 <tr key={receipt.id} className="hover:bg-slate-50">
                   <td className="table-cell font-semibold text-slate-400">{(vm.page - 1) * vm.pageSize + index + 1}</td>
-                  <td className="table-cell font-semibold text-slate-950">{receipt.purchaseNumber}</td>
+                  <td className="table-cell"><CopyableText value={receipt.purchaseNumber} copyLabel={t('purchaseReceive.purchaseNumber')} displayValue={receipt.purchaseNumber} textClassName="font-semibold text-slate-950" /></td>
                   <td className="table-cell">{receipt.supplierName || '-'}</td>
                   <td className="table-cell">{formatDateTime(receipt.purchaseDate)}</td>
                   <td className="hidden table-cell lg:table-cell">{receipt.supplierInvoiceNo || '-'}</td>

@@ -170,7 +170,7 @@ export async function listGeneralLedgerLines(client, filters = {}) {
      JOIN journal_entries ON journal_entries.id = journal_lines.journal_entry_id
      JOIN chart_of_accounts ON chart_of_accounts.code = journal_lines.account_code
      ${where}
-     ORDER BY journal_entries.entry_date ASC, journal_entries.created_at ASC, journal_lines.id ASC`,
+     ORDER BY journal_entries.entry_date DESC, journal_entries.created_at DESC, journal_lines.id DESC`,
     params,
   );
   return result.rows.map(mapJournalLine);

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Copy, KeyRound, LogOut, ShieldCheck } from 'lucide-react';
-import { Alert, Badge, EmptyState, SectionHeader } from '../../../components/ui.jsx';
+import { Alert, Badge, CopyableText, EmptyState, SectionHeader } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import { formatDateTime } from '../../../utils/calculations.js';
@@ -135,16 +135,19 @@ export default function SecurityPage() {
                     <td className="table-cell whitespace-nowrap text-sm text-slate-700">{formatDateTime(session.createdAt)}</td>
                     <td className="table-cell whitespace-nowrap text-sm text-slate-700">{formatDateTime(session.lastSeenAt)}</td>
                     <td className="table-cell whitespace-nowrap text-right">
-                      {!session.current ? (
-                        <button
-                          type="button"
-                          className="btn-secondary"
-                          onClick={() => handleRevoke(session.id)}
-                          disabled={busyId === session.id}
-                        >
-                          {t('security.revoke')}
-                        </button>
-                      ) : null}
+                      <div className="flex justify-end gap-2">
+                        <CopyableText value={session.id} copyLabel="session ID" iconOnly buttonClassName="h-8 w-8 rounded-2xl border border-slate-200 bg-slate-50 text-slate-500 hover:bg-slate-100" />
+                        {!session.current ? (
+                          <button
+                            type="button"
+                            className="btn-secondary"
+                            onClick={() => handleRevoke(session.id)}
+                            disabled={busyId === session.id}
+                          >
+                            {t('security.revoke')}
+                          </button>
+                        ) : null}
+                      </div>
                     </td>
                   </tr>
                 ))}

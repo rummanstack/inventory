@@ -10,7 +10,14 @@ export default function GeneralLedgerPage() {
   const vm = useGeneralLedgerViewModel();
 
   const selectedAccount = vm.accounts.find((account) => account.code === vm.accountCode) || null;
-  let runningBalance = 0;
+  const signedAmounts = vm.accountCode && selectedAccount
+    ? vm.ledgerLines.map((line) => (
+      selectedAccount.normalBalance === 'DEBIT'
+        ? line.debit - line.credit
+        : line.credit - line.debit
+    ))
+    : [];
+  let runningBalance = signedAmounts.reduce((sum, amount) => sum + amount, 0);
 
   return (
     <div>
@@ -48,11 +55,10 @@ export default function GeneralLedgerPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {vm.ledgerLines.map((line) => {
+                {vm.ledgerLines.map((line, index) => {
+                  const balance = vm.accountCode && selectedAccount ? runningBalance : null;
                   if (vm.accountCode && selectedAccount) {
-                    runningBalance += selectedAccount.normalBalance === 'DEBIT'
-                      ? line.debit - line.credit
-                      : line.credit - line.debit;
+                    runningBalance -= signedAmounts[index] || 0;
                   }
                   return (
                     <tr key={line.id} className="hover:bg-slate-50">
@@ -63,8 +69,8 @@ export default function GeneralLedgerPage() {
                       <td className="table-cell text-right">{line.debit ? formatCurrency(line.debit, language) : '-'}</td>
                       <td className="table-cell text-right">{line.credit ? formatCurrency(line.credit, language) : '-'}</td>
                       {vm.accountCode ? (
-                        <td className={cx('table-cell text-right font-bold', runningBalance < 0 ? 'text-rose-600' : 'text-slate-950')}>
-                          {formatCurrency(runningBalance, language)}
+                        <td className={cx('table-cell text-right font-bold', balance < 0 ? 'text-rose-600' : 'text-slate-950')}>
+                          {formatCurrency(balance, language)}
                         </td>
                       ) : null}
                     </tr>

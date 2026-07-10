@@ -1,5 +1,5 @@
 import { Download, Loader2, Printer } from 'lucide-react';
-import { Badge, Modal } from '../../../components/ui.jsx';
+import { Badge, CopyableText, Modal } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import AuditHistory from '../../../components/AuditHistory.jsx';
 import { downloadSheetPdf, printElementById } from '../../../services/printService.js';
@@ -9,11 +9,11 @@ import { formatCasePiece, formatCurrency, formatDate, formatNumber } from '../..
 import { paymentStatusOf, paymentStatusTone } from '../../../models/inventoryViewData.js';
 import PurchaseReceiptPrintSheet from './PurchaseReceiptPrintSheet';
 
-function Field({ label, value }) {
+function Field({ label, value, copyValue }) {
   return (
     <div>
       <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">{label}</p>
-      <p className="mt-1 text-sm font-semibold text-slate-950">{value || '-'}</p>
+      <div className="mt-1"><CopyableText value={copyValue ?? value} copyLabel={label} displayValue={value} textClassName="text-sm font-semibold text-slate-950" /></div>
     </div>
   );
 }
@@ -34,6 +34,8 @@ export default function PurchaseReceiptViewModal({ purchaseReceipt, onClose }) {
     <>
       <Modal title={purchaseReceipt.purchaseNumber} description={t('purchaseReceive.viewDescription')} onClose={onClose} width="max-w-3xl">
         <div className="grid gap-4 sm:grid-cols-2">
+          <Field label={t('purchaseReceive.purchaseNumber')} value={purchaseReceipt.purchaseNumber} />
+          <Field label="Purchase ID" value={purchaseReceipt.id} />
           <Field label={t('purchaseReceive.supplier')} value={purchaseReceipt.supplierName} />
           <Field label={t('purchaseReceive.date')} value={formatDate(purchaseReceipt.purchaseDate)} />
           <Field label={t('purchaseReceive.supplierInvoiceNo')} value={purchaseReceipt.supplierInvoiceNo} />

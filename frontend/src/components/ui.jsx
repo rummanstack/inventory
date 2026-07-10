@@ -7,3 +7,5 @@ export * from './ui/ActivityHeatmap.jsx';
 export * from './ui/Feedback.jsx';
 export * from './ui/DataDisplay.jsx';
 export * from './ui/MobileList.jsx';
+
+export * from './ui/CopyableText.jsx';

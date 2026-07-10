@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Download, FileSpreadsheet, Loader2, Pencil, Plus, Printer, Trash2, Wallet } from 'lucide-react';
-import { Alert, EmptyState, Pagination, SectionHeader, TableSkeleton, Select } from '../../../../components/ui.jsx';
+import { Alert, CopyableText, EmptyState, Pagination, SectionHeader, TableSkeleton, Select } from '../../../../components/ui.jsx';
 import { DatePickerField } from '../../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../../services/printService.js';
@@ -116,7 +116,10 @@ export default function DueCollectionPage() {
               {vm.items.map((payment, index) => (
                 <tr key={payment.id} className="hover:bg-slate-50">
                   <td className="table-cell font-semibold text-slate-400">{(vm.page - 1) * vm.pageSize + index + 1}</td>
-                  <td className="table-cell">{formatDateTime(payment.paymentDate, language)}</td>
+                  <td className="table-cell">
+                    <div>{formatDateTime(payment.paymentDate, language)}</div>
+                    <div className="mt-1"><CopyableText value={payment.id} copyLabel="payment ID" displayValue={payment.id.slice(0, 10)} textClassName="text-xs font-medium text-slate-500" buttonClassName="h-5 w-5" /></div>
+                  </td>
                   <td className="table-cell font-semibold text-slate-950">{payment.customerName || '-'}</td>
                   <td className="table-cell text-right font-bold text-emerald-700">{formatCurrency(payment.amount, language)}</td>
                   <td className="table-cell">{t(`purchaseReceive.paymentMethods.${payment.paymentMethod}`)}</td>

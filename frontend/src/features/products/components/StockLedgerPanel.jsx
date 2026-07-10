@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ClipboardList, Download, FileSpreadsheet, Loader2, Printer, RefreshCw } from 'lucide-react';
-import { Alert, Badge, EmptyState, MobileCardList, MobileListCard, Pagination, TableSkeleton, Select } from '../../../components/ui.jsx';
+import { Alert, Badge, CopyableText, EmptyState, MobileCardList, MobileListCard, Pagination, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import { downloadSheetPdf } from '../../../services/printService.js';
@@ -247,7 +247,7 @@ export default function StockLedgerPanel({ products, t, refreshKey = 0, fixedTyp
                   </td>
                   <td className="table-cell text-right font-semibold text-slate-950">{formatNumber(movement.balanceAfter)}</td>
                   <td className="hidden table-cell lg:table-cell">
-                    <p className="max-w-52 truncate text-xs font-semibold text-slate-600">{formatReference(movement)}</p>
+                    <CopyableText value={movement.referenceId ? `${movement.referenceType || 'reference'} / ${movement.referenceId}` : ''} copyLabel={t('stockLedger.reference')} displayValue={formatReference(movement)} textClassName="max-w-52 text-xs font-semibold text-slate-600" buttonClassName="h-5 w-5" />
                   </td>
                   <td className="hidden table-cell xl:table-cell">
                     <p className="font-semibold text-slate-950">{movement.createdByName || '-'}</p>

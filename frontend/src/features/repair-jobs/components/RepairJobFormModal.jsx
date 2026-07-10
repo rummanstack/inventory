@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Save } from 'lucide-react';
-import { Alert, Modal, Select } from '../../../components/ui.jsx';
+import { Alert, CopyableText, Modal, Select } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { useFormState } from '../../../hooks/useFormState';
@@ -104,7 +104,7 @@ export default function RepairJobFormModal({ job, onClose, onSave }) {
           <div className="grid gap-4 sm:grid-cols-3 rounded-2xl border border-slate-200 bg-slate-50 p-4">
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">{t('repairJobs.jobNumberLabel')}</p>
-              <p className="mt-1 text-sm font-semibold text-slate-950">{job.jobNumber}</p>
+              <div className="mt-1"><CopyableText value={job.jobNumber} copyLabel={t('repairJobs.jobNumberLabel')} displayValue={job.jobNumber} textClassName="text-sm font-semibold text-slate-950" /></div>
             </div>
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">{t('repairJobs.customerLabel')}</p>

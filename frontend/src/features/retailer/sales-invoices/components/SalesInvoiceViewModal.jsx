@@ -1,6 +1,6 @@
 import { Fragment } from 'react';
 import { Download, Loader2, Printer } from 'lucide-react';
-import { Badge, Modal } from '../../../../components/ui.jsx';
+import { Badge, CopyableText, Modal } from '../../../../components/ui.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
 import AuditHistory from '../../../../components/AuditHistory.jsx';
 import { downloadSheetPdf } from '../../../../services/printService.js';
@@ -11,11 +11,11 @@ import { paymentStatusOf, paymentStatusTone } from '../../../../models/inventory
 import SalesInvoicePrintSheet from './SalesInvoicePrintSheet.jsx';
 import { useAsyncAction } from '../../../../hooks/useAsyncAction.js';
 
-function Field({ label, value }) {
+function Field({ label, value, copyValue }) {
   return (
     <div>
       <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">{label}</p>
-      <p className="mt-1 text-sm font-semibold text-slate-950">{value || '-'}</p>
+      <div className="mt-1"><CopyableText value={copyValue ?? value} copyLabel={label} displayValue={value} textClassName="text-sm font-semibold text-slate-950" /></div>
     </div>
   );
 }
@@ -62,6 +62,8 @@ export default function SalesInvoiceViewModal({ salesInvoice, onClose }) {
     <>
     <Modal title={salesInvoice.invoiceNumber} description={t('retailer.salesInvoices.viewDescription')} onClose={onClose} width="max-w-3xl">
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Field label={t('retailer.shared.invoiceNumberLabel')} value={salesInvoice.invoiceNumber} />
+        <Field label="Invoice ID" value={salesInvoice.id} />
         <Field label={t('retailer.shared.invoiceDateLabel')} value={formatDate(salesInvoice.invoiceDate, language)} />
         <Field label={t('retailer.shared.saleTypeLabel')} value={t(`retailer.shared.saleTypes.${salesInvoice.saleType}`)} />
         <Field label={t('retailer.shared.customerTypeLabel')} value={t(`retailer.shared.customerTypes.${salesInvoice.customerType}`)} />

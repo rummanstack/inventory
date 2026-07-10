@@ -170,11 +170,11 @@ export default function App() {
 }
 
 function AppShell() {
-  const { t } = useInventoryApp();
+  const { t, theme } = useInventoryApp();
 
   return (
     <ErrorBoundary t={t}>
-      <Toaster position="top-right" richColors expand closeButton duration={4000} />
+      <Toaster position="top-right" theme={theme} richColors expand closeButton duration={4000} />
       <BrowserRouter>
         <Suspense fallback={<SessionLoadingScreen />}>
           <AppRoutes />

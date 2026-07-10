@@ -1,5 +1,5 @@
 import { Download, FileSpreadsheet, Loader2, Printer, Vault } from 'lucide-react';
-import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton } from '../../../../components/ui.jsx';
+import { Alert, Badge, CopyableText, EmptyState, Pagination, SectionHeader, TableSkeleton } from '../../../../components/ui.jsx';
 import { DatePickerField } from '../../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../../services/inventoryApi.js';
@@ -163,6 +163,7 @@ export default function CashSessionsPage() {
                   <tr key={session.id} className="hover:bg-slate-50">
                     <td className="table-cell">
                       <div className="font-semibold text-slate-950">{formatDateTime(session.startedAt)}</div>
+                      <div className="mt-1"><CopyableText value={session.id} copyLabel="session ID" displayValue={session.id.slice(0, 10)} textClassName="text-xs font-medium text-slate-500" buttonClassName="h-5 w-5" /></div>
                       {session.openedByName ? <div className="text-xs text-slate-500">{session.openedByName}</div> : null}
                     </td>
                     <td className="hidden table-cell sm:table-cell text-slate-600">

@@ -96,6 +96,7 @@ export function InventoryAppProvider({ children }) {
   const [tenant, setTenant] = useState(null);
   const [permissions, setPermissions] = useState([]);
   const [authLoading, setAuthLoading] = useState(true);
+  const [loggingOut, setLoggingOut] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [tenantOptions, setTenantOptions] = useState([]);
@@ -1225,6 +1226,9 @@ export function InventoryAppProvider({ children }) {
   }
 
   async function logout() {
+    if (loggingOut) return;
+    setLoggingOut(true);
+
     try {
       const sessionResult = await inventoryApi.getCurrentRetailCashSession().catch(() => null);
       const openSession = sessionResult?.session;
@@ -1244,6 +1248,7 @@ export function InventoryAppProvider({ children }) {
     } finally {
       setActiveTenantId('');
       handleUnauthorized();
+      setLoggingOut(false);
     }
   }
 
@@ -1313,6 +1318,7 @@ export function InventoryAppProvider({ children }) {
       closeConfirmation,
       login,
       logout,
+      loggingOut,
       forgotPassword,
       resetPassword,
       saveProduct,
@@ -1377,7 +1383,7 @@ export function InventoryAppProvider({ children }) {
       refreshPromotionDirectory,
       updateProfile,
     }),
-    [today, language, theme, t, user, tenant, tenantOptions, permissions, authLoading, productDirectory, dsrDirectory, srDirectory, supplierDirectory, shopDirectory, retailCustomerDirectory, promotionDirectory, loading, loadError, confirmation],
+    [today, language, theme, t, user, tenant, tenantOptions, permissions, authLoading, productDirectory, dsrDirectory, srDirectory, supplierDirectory, shopDirectory, retailCustomerDirectory, promotionDirectory, loading, loadError, confirmation, loggingOut],
   );
 
   return <InventoryAppContext.Provider value={value}>{children}</InventoryAppContext.Provider>;

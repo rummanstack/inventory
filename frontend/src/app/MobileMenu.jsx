@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { Link, NavLink } from 'react-router-dom';
-import { LogOut, Moon, Sun } from 'lucide-react';
+import { Loader2, LogOut, Moon, Sun } from 'lucide-react';
 import { Avatar, Select, cx } from '../components/ui';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 import { buildGroupedRoutes } from './routes';
@@ -9,7 +9,7 @@ import { useInventoryApp } from './useInventoryApp.jsx';
 export default function MobileMenu({ open, onClose }) {
   const {
     user, tenant, tenantOptions, switchTenant, t, can, hasFeature,
-    language, setLanguage, logout, theme, toggleTheme,
+    language, setLanguage, logout, loggingOut, theme, toggleTheme,
   } = useInventoryApp();
 
   useEffect(() => {
@@ -109,10 +109,11 @@ export default function MobileMenu({ open, onClose }) {
           </div>
           <button
             type="button"
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-2xl border border-[var(--sidebar-line-strong)] bg-white/70 text-sm font-bold text-slate-950 transition active:scale-[0.98]"
+            className="flex h-12 w-full items-center justify-center gap-2 rounded-2xl border border-[var(--sidebar-line-strong)] bg-white/70 text-sm font-bold text-slate-950 transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
             onClick={logout}
+            disabled={loggingOut}
           >
-            <LogOut size={16} />
+            {loggingOut ? <Loader2 size={16} className="animate-spin" /> : <LogOut size={16} />}
             {t('auth.logout')}
           </button>
         </section>

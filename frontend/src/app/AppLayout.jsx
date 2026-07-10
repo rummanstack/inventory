@@ -47,7 +47,7 @@ export default function AppLayout() {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  const { today, user, tenant, tenantOptions, switchTenant, loading, loadError, logout, t, language, setLanguage, can, hasFeature, confirmation, closeConfirmation, productDirectory } = useInventoryApp();
+  const { today, user, tenant, tenantOptions, switchTenant, loading, loadError, logout, loggingOut, t, language, setLanguage, can, hasFeature, confirmation, closeConfirmation, productDirectory } = useInventoryApp();
 
   useEffect(() => {
     if (!user || !location.pathname || location.pathname === '/') return;
@@ -72,6 +72,7 @@ export default function AppLayout() {
         language={language}
         onLanguageChange={setLanguage}
         onLogout={logout}
+        loggingOut={loggingOut}
         t={t}
         can={can}
         hasFeature={hasFeature}
@@ -79,7 +80,7 @@ export default function AppLayout() {
         onToggleCollapsed={() => setSidebarCollapsed((v) => !v)}
       />
       <div className={`flex h-screen min-h-0 flex-col transition-[padding-left] duration-300 ${sidebarCollapsed ? 'lg:pl-[68px]' : 'lg:pl-72'}`}>
-        <TopHeader title={getRouteLabel(location.pathname, t)} today={today} user={user} tenant={tenant} tenantOptions={tenantOptions} onSwitchTenant={switchTenant} onLogout={logout} language={language} onLanguageChange={setLanguage} t={t} products={productDirectory} />
+        <TopHeader title={getRouteLabel(location.pathname, t)} today={today} user={user} tenant={tenant} tenantOptions={tenantOptions} onSwitchTenant={switchTenant} onLogout={logout} loggingOut={loggingOut} language={language} onLanguageChange={setLanguage} t={t} products={productDirectory} />
         <div ref={scrollContainerRef} className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
           <main key={location.pathname} className="mx-auto max-w-[1680px] px-3 py-6 pb-10 max-lg:pt-4 max-lg:pb-[calc(5.5rem+env(safe-area-inset-bottom))] sm:px-6 lg:px-8 page-enter">
             {loadError ? (

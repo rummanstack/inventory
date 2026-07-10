@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, NavLink, useLocation } from 'react-router-dom';
-import { ChevronDown, LogOut, PanelLeftClose, PanelLeftOpen, X } from 'lucide-react';
+import { ChevronDown, Loader2, LogOut, PanelLeftClose, PanelLeftOpen, X } from 'lucide-react';
 import { Avatar, cx } from '../components/ui';
 import { buildGroupedRoutes } from './routes';
 import { stockLedgerLogoIcon } from '../assets/brandAssets.js';
@@ -44,7 +44,7 @@ function SidebarTooltip({ label, show, children }) {
   );
 }
 
-export default function AppSidebar({ mobileOpen, setMobileOpen, user, tenant, language, onLanguageChange, onLogout, t, can, hasFeature, collapsed, onToggleCollapsed }) {
+export default function AppSidebar({ mobileOpen, setMobileOpen, user, tenant, language, onLanguageChange, onLogout, loggingOut = false, t, can, hasFeature, collapsed, onToggleCollapsed }) {
   const location = useLocation();
   const [collapsedGroups, setCollapsedGroups] = useState(loadCollapsedGroups);
 
@@ -235,12 +235,13 @@ export default function AppSidebar({ mobileOpen, setMobileOpen, user, tenant, la
           <button
             type="button"
             className={cx(
-              'mt-2 inline-flex h-10 w-full items-center gap-2 rounded-2xl border border-[var(--sidebar-line-strong)] bg-white/70 px-3 text-sm font-bold text-slate-950 transition hover:border-[var(--sidebar-line-hover)] hover:bg-white',
+              'mt-2 inline-flex h-10 w-full items-center gap-2 rounded-2xl border border-[var(--sidebar-line-strong)] bg-white/70 px-3 text-sm font-bold text-slate-950 transition hover:border-[var(--sidebar-line-hover)] hover:bg-white disabled:cursor-not-allowed disabled:opacity-60',
               collapsed ? 'lg:justify-center' : 'justify-center',
             )}
             onClick={onLogout}
+            disabled={loggingOut}
           >
-            <LogOut size={16} />
+            {loggingOut ? <Loader2 size={16} className="animate-spin" /> : <LogOut size={16} />}
             <span className={cx(collapsed && 'lg:hidden')}>{t('auth.logout')}</span>
           </button>
         </SidebarTooltip>

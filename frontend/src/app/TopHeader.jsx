@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Bell, CalendarDays, CheckCircle2, Clock3, LogOut, MessageCircle, Moon, PackageX, ShieldCheck, Sun, UserCircle } from 'lucide-react';
+import { Bell, CalendarDays, CheckCircle2, Clock3, Loader2, LogOut, MessageCircle, Moon, PackageX, ShieldCheck, Sun, UserCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useInventoryApp } from './useInventoryApp.jsx';
 import { formatDate, getLowStockProducts, getLowStockThreshold } from '../utils/calculations';
@@ -8,7 +8,7 @@ import LanguageSwitcher from '../components/LanguageSwitcher';
 import { inventoryApi } from '../services/inventoryApi.js';
 import { usePolling } from '../hooks/usePolling.js';
 
-export default function TopHeader({ title, today, user, tenant, tenantOptions, onSwitchTenant, onLogout, language, onLanguageChange, t, products = [] }) {
+export default function TopHeader({ title, today, user, tenant, tenantOptions, onSwitchTenant, onLogout, loggingOut = false, language, onLanguageChange, t, products = [] }) {
   const { theme, toggleTheme } = useInventoryApp();
   const [notifOpen, setNotifOpen] = useState(false);
   const [now, setNow] = useState(() => new Date());
@@ -178,11 +178,12 @@ export default function TopHeader({ title, today, user, tenant, tenantOptions, o
           </div>
           <button
             type="button"
-            className="icon-btn max-lg:hidden"
+            className="icon-btn max-lg:hidden disabled:cursor-not-allowed disabled:opacity-60"
             title={t('auth.logout')}
             onClick={onLogout}
+            disabled={loggingOut}
           >
-            <LogOut size={17} />
+            {loggingOut ? <Loader2 size={17} className="animate-spin" /> : <LogOut size={17} />}
           </button>
         </div>
       </div>

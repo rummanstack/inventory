@@ -78,8 +78,16 @@ export const TENANT_FEATURES = [
   'activity-logs',
 
   // HR & Payroll
+  'departments',
+  'designations',
   'employees',
   'salary-payments',
+  'attendance',
+  'leave_management',
+  'payroll',
+  'employee_advances',
+  'employee_loans',
+  'hr-reports',
 
   // System & Settings
   'user-management',
@@ -102,3 +110,4 @@ export const TENANT_FEATURES = [
   'contact-messages',
   'registration-requests',
 ];
+

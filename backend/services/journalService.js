@@ -440,13 +440,18 @@ export class JournalService {
   // Shared by early settlement and write-off: both clear the plan's entire
   // remaining Installment Receivable balance in one entry, just via different
   // combinations of debit lines. cashAmount is what's actually collected (0 for
-  // a pure write-off); waivedMarkup is the un-recognized (GRADUAL) or
-  // already-recognized (IMMEDIATE) markup that will never be collected,
-  // reversed out of whichever account it currently sits in; discount is a
-  // plain principal write-down; badDebtAmount is the remaining principal being
-  // written off as uncollectible (write-off only). The four always sum to
-  // outstandingAmount by construction at the call site, so this always balances.
-  async postInstallmentClosure(client, actor, { planId, planNumber, sourceType, date, memo, outstandingAmount, accountCode, cashAmount = 0, waivedMarkup = 0, discount = 0, badDebtAmount = 0, markupRecognitionMode }) {
+  // a pure write-off); waivedMarkup is markup that will never be collected —
+  // reversed out of whichever account it currently sits in (unearned income if
+  // GRADUAL, already-recognized revenue if IMMEDIATE); discount is a plain
+  // principal write-down; badDebtAmount is the remaining principal being
+  // written off as uncollectible (write-off only). Those four always sum to
+  // outstandingAmount by construction at the call site. recognizedMarkup is
+  // separate and self-balancing: when a settlement collects the remaining
+  // markup in cash under GRADUAL recognition (rather than waiving it), that
+  // slice needs to move from Unearned Markup Income to Markup Income exactly
+  // like a normal payment would — it doesn't affect the receivable-clearing
+  // amount at all, it only reclassifies income already accounted for above.
+  async postInstallmentClosure(client, actor, { planId, planNumber, sourceType, date, memo, outstandingAmount, accountCode, cashAmount = 0, waivedMarkup = 0, recognizedMarkup = 0, discount = 0, badDebtAmount = 0, markupRecognitionMode }) {
     if (outstandingAmount <= 0) return null;
 
     const lines = [{ accountCode: ACCOUNTS.INSTALLMENT_RECEIVABLE, credit: outstandingAmount }];
@@ -459,6 +464,10 @@ export class JournalService {
     }
     if (discount > 0) lines.push({ accountCode: ACCOUNTS.DISCOUNTS_GIVEN, debit: discount });
     if (badDebtAmount > 0) lines.push({ accountCode: ACCOUNTS.BAD_DEBT_EXPENSE, debit: badDebtAmount });
+    if (recognizedMarkup > 0 && markupRecognitionMode === "GRADUAL") {
+      lines.push({ accountCode: ACCOUNTS.UNEARNED_MARKUP_INCOME, debit: recognizedMarkup });
+      lines.push({ accountCode: ACCOUNTS.MARKUP_INCOME, credit: recognizedMarkup });
+    }
 
     return this.post(client, {
       tenantId: actor.tenantId,

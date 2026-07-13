@@ -31,6 +31,12 @@ export function mapInstallmentPlan(row) {
     createdById: row.created_by,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+    cancelledAt: row.cancelled_at || null,
+    cancelledBy: row.cancelled_by || null,
+    cancelReason: row.cancel_reason || null,
+    writtenOffAt: row.written_off_at || null,
+    writtenOffBy: row.written_off_by || null,
+    writeOffReason: row.write_off_reason || null,
   };
 }
 
@@ -177,6 +183,43 @@ export async function updateInstallmentPlanTotals(client, planId, tenantId, { to
      WHERE id = $1 AND tenant_id = $2
      RETURNING *`,
     [planId, tenantId, totalPaid, outstandingAmount, status],
+  );
+  return mapInstallmentPlan(result.rows[0]);
+}
+
+// A reschedule keeps the financed total unchanged — only the remaining
+// schedule's shape (month count, cadence, per-installment amount) changes.
+export async function updateInstallmentPlanReschedule(client, planId, tenantId, { numberOfMonths, firstPaymentDate, paymentDayOfMonth, monthlyInstallmentAmount }) {
+  const result = await client.query(
+    `UPDATE installment_plans
+     SET number_of_months = $3, first_payment_date = $4, payment_day_of_month = $5, monthly_installment_amount = $6, updated_at = NOW()
+     WHERE id = $1 AND tenant_id = $2
+     RETURNING *`,
+    [planId, tenantId, numberOfMonths, firstPaymentDate, paymentDayOfMonth, monthlyInstallmentAmount],
+  );
+  return mapInstallmentPlan(result.rows[0]);
+}
+
+export async function markInstallmentPlanWrittenOff(client, planId, tenantId, { writtenOffById, writeOffReason }) {
+  const result = await client.query(
+    `UPDATE installment_plans
+     SET status = 'WRITTEN_OFF', outstanding_amount = 0, overdue_amount = 0,
+         written_off_at = NOW(), written_off_by = $3, write_off_reason = $4, updated_at = NOW()
+     WHERE id = $1 AND tenant_id = $2
+     RETURNING *`,
+    [planId, tenantId, writtenOffById, writeOffReason],
+  );
+  return mapInstallmentPlan(result.rows[0]);
+}
+
+export async function markInstallmentPlanCancelled(client, planId, tenantId, { cancelledById, cancelReason }) {
+  const result = await client.query(
+    `UPDATE installment_plans
+     SET status = 'CANCELLED', outstanding_amount = 0, overdue_amount = 0,
+         cancelled_at = NOW(), cancelled_by = $3, cancel_reason = $4, updated_at = NOW()
+     WHERE id = $1 AND tenant_id = $2
+     RETURNING *`,
+    [planId, tenantId, cancelledById, cancelReason],
   );
   return mapInstallmentPlan(result.rows[0]);
 }

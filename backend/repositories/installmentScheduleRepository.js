@@ -80,7 +80,7 @@ export async function listDueSchedule(client, tenantId, { dateFrom, dateTo }) {
        AND retail_customers.tenant_id = installment_plans.tenant_id
      WHERE installment_schedule.tenant_id = $1
        AND installment_plans.status = 'ACTIVE'
-       AND installment_schedule.status != 'PAID'
+       AND installment_schedule.status IN ('PENDING', 'PARTIAL')
        AND installment_schedule.due_date BETWEEN $2 AND $3
      ORDER BY installment_schedule.due_date ASC, installment_plans.plan_number ASC`,
     [tenantId, dateFrom, dateTo],
@@ -109,7 +109,7 @@ export async function listOverdueSchedule(client, tenantId, asOfDate) {
        AND retail_customers.tenant_id = installment_plans.tenant_id
      WHERE installment_schedule.tenant_id = $1
        AND installment_plans.status = 'ACTIVE'
-       AND installment_schedule.status != 'PAID'
+       AND installment_schedule.status IN ('PENDING', 'PARTIAL')
        AND installment_schedule.due_date < $2
      ORDER BY days_overdue DESC, installment_plans.plan_number ASC`,
     [tenantId, asOfDate],

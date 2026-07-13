@@ -74,4 +74,40 @@ export class InstallmentController {
       next(error);
     }
   };
+
+  reschedulePlan = async (req, res, next) => {
+    try {
+      const result = await this.installmentPlanService.reschedulePlan({ ...req.body, planId: req.params.id }, req.currentUser);
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  settlePlan = async (req, res, next) => {
+    try {
+      const result = await this.installmentPlanService.settlePlan({ ...req.body, planId: req.params.id }, req.currentUser);
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  writeOffPlan = async (req, res, next) => {
+    try {
+      const result = await this.installmentPlanService.writeOffPlan({ ...req.body, planId: req.params.id }, req.currentUser);
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  cancelPlan = async (req, res, next) => {
+    try {
+      const result = await this.installmentPlanService.cancelPlan({ ...req.body, planId: req.params.id }, req.currentUser);
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  };
 }

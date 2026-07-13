@@ -18,6 +18,10 @@ export function createInstallmentRoutes(installmentController) {
   router.get("/", requirePermission(PERMISSIONS.VIEW_INSTALLMENT_PLANS), installmentController.listPlans);
   router.get("/:id", requirePermission(PERMISSIONS.VIEW_INSTALLMENT_PLANS), installmentController.getPlan);
   router.post("/", requirePermission(PERMISSIONS.MANAGE_INSTALLMENT_PLANS), installmentController.createPlan);
+  router.post("/:id/reschedule", requirePermission(PERMISSIONS.RESCHEDULE_INSTALLMENT_PLAN), installmentController.reschedulePlan);
+  router.post("/:id/settle", requirePermission(PERMISSIONS.MANAGE_INSTALLMENT_PLANS), installmentController.settlePlan);
+  router.post("/:id/write-off", requirePermission(PERMISSIONS.WRITE_OFF_INSTALLMENT_PLAN), installmentController.writeOffPlan);
+  router.post("/:id/cancel", requirePermission(PERMISSIONS.CANCEL_INSTALLMENT_PLAN), installmentController.cancelPlan);
 
   return router;
 }

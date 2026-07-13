@@ -16,6 +16,9 @@ import {
   listInstallmentPlansPage,
   countInstallmentPlans,
   updateInstallmentPlanTotals,
+  updateInstallmentPlanReschedule,
+  markInstallmentPlanWrittenOff,
+  markInstallmentPlanCancelled,
   listAllPlansForCustomer,
   mapInstallmentPlan,
 } from "../repositories/installmentPlanRepository.js";
@@ -33,7 +36,9 @@ import {
   listPaymentsByPlan,
   listPaymentsInRange,
 } from "../repositories/installmentPaymentRepository.js";
+import { insertInstallmentRescheduleLog, listRescheduleLogByPlan } from "../repositories/installmentRescheduleLogRepository.js";
 import { recordCustomerDueLedgerEntry } from "./shared/inventoryHelpers.js";
+import { JOURNAL_SOURCE_TYPES } from "../lib/journalSourceTypes.js";
 
 const DATE_ERROR = "Date must be in YYYY-MM-DD format.";
 const MARKUP_TYPES = ["PERCENT", "FIXED"];
@@ -79,6 +84,7 @@ export class InstallmentPlanService {
       entityId: payload.entityId,
       module: "installment-sales",
       description: payload.description,
+      reason: payload.reason,
       metadata: { actorName: actor.name, actorRole: actor.role, ...payload.metadata },
     });
   }
@@ -244,12 +250,13 @@ export class InstallmentPlanService {
       const result = await findInstallmentPlanById(client, planId, actor.tenantId);
       assert(result.rowCount > 0, "Installment plan not found.", 404);
 
-      const [schedule, payments] = await Promise.all([
+      const [schedule, payments, rescheduleLog] = await Promise.all([
         listScheduleByPlan(client, planId, actor.tenantId),
         listPaymentsByPlan(client, planId, actor.tenantId),
+        listRescheduleLogByPlan(client, planId, actor.tenantId),
       ]);
 
-      return { plan: mapInstallmentPlan(result.rows[0]), schedule, payments };
+      return { plan: mapInstallmentPlan(result.rows[0]), schedule, payments, rescheduleLog };
     });
   }
 
@@ -455,6 +462,360 @@ export class InstallmentPlanService {
         plans: plansWithSchedule,
         totals,
       };
+    });
+  }
+
+  // Never overwrites history: every remaining (PENDING/PARTIAL) row becomes
+  // RESTRUCTURED — not deleted — and a fresh set of rows is generated for the
+  // remaining balance under the new month count/cadence. installment_reschedule_log
+  // keeps a full before/after snapshot. The financed total is unchanged; only
+  // its shape over time is, so no journal entry is needed here.
+  async reschedulePlan(input, actor) {
+    const planId = String(input.planId || "").trim();
+    assert(planId, "Plan is required.", 400);
+    const reason = String(input.reason || "").trim();
+    assert(reason, "A reason is required to reschedule a plan.", 400);
+
+    const numberOfMonths = cleanInteger(input.numberOfMonths);
+    assert(numberOfMonths > 0, "Number of months must be greater than zero.", 400);
+
+    const firstPaymentDate = normalizeIsoDate(input.firstPaymentDate, "", DATE_ERROR);
+    assert(firstPaymentDate, "First payment date is required.", 400);
+
+    const paymentDayOfMonth = cleanInteger(input.paymentDayOfMonth) || Number(firstPaymentDate.split("-")[2]);
+
+    return this.databaseManager.withTransaction(async (client) => {
+      const plan = await findInstallmentPlanForUpdate(client, planId, actor.tenantId);
+      assert(plan, "Installment plan not found.", 404);
+      assert(plan.status === "ACTIVE", `Cannot reschedule a ${plan.status.toLowerCase()} plan.`, 400);
+
+      const oldRows = await listUnpaidScheduleForUpdate(client, planId, actor.tenantId);
+      assert(oldRows.length > 0, "There are no remaining installments to reschedule.", 400);
+
+      const remainingAmount = round2(oldRows.reduce((sum, row) => sum + row.remainingAmount, 0));
+      const lastInstallmentNo = Math.max(...oldRows.map((row) => row.installmentNo));
+
+      for (const row of oldRows) {
+        await updateInstallmentScheduleRow(client, row.id, actor.tenantId, {
+          paidAmount: row.paidAmount,
+          remainingAmount: 0,
+          status: "RESTRUCTURED",
+          paidDate: row.paidDate,
+        });
+      }
+
+      const baseInstallment = Math.floor((remainingAmount / numberOfMonths) * 100) / 100;
+      const newRows = [];
+      let allocatedSoFar = 0;
+      for (let i = 1; i <= numberOfMonths; i += 1) {
+        const isLast = i === numberOfMonths;
+        const dueAmount = isLast ? round2(remainingAmount - allocatedSoFar) : baseInstallment;
+        allocatedSoFar = round2(allocatedSoFar + dueAmount);
+        const dueDate = i === 1 ? firstPaymentDate : addCalendarMonths(firstPaymentDate, i - 1);
+        const row = await insertInstallmentScheduleRow(client, {
+          id: createId("instsch"),
+          tenantId: actor.tenantId,
+          planId,
+          installmentNo: lastInstallmentNo + i,
+          dueDate,
+          dueAmount,
+        });
+        newRows.push(row);
+      }
+
+      await insertInstallmentRescheduleLog(client, {
+        id: createId("instresch"),
+        tenantId: actor.tenantId,
+        planId,
+        reason,
+        oldSchedule: oldRows,
+        newSchedule: newRows,
+        createdById: actor.id,
+      });
+
+      const updatedPlan = await updateInstallmentPlanReschedule(client, planId, actor.tenantId, {
+        numberOfMonths,
+        firstPaymentDate,
+        paymentDayOfMonth,
+        monthlyInstallmentAmount: round2(remainingAmount / numberOfMonths),
+      });
+
+      await this.recordActivity(client, actor, {
+        actionType: "installment_plan.reschedule",
+        entityId: planId,
+        reason,
+        description: `${actor.name} rescheduled installment plan ${plan.plan_number}`,
+        metadata: { planId, numberOfMonths, firstPaymentDate, remainingAmount },
+      });
+
+      const schedule = await listScheduleByPlan(client, planId, actor.tenantId);
+      return { plan: updatedPlan, schedule };
+    });
+  }
+
+  // Pays off (or waives) the entire remaining balance in one shot. An optional
+  // discount writes down remaining principal; waiveMarkup additionally writes
+  // off whatever markup hasn't been recognized yet (GRADUAL) or reverses what
+  // was already recognized (IMMEDIATE) — see postInstallmentClosure for why
+  // these always sum to exactly outstandingAmount.
+  async settlePlan(input, actor) {
+    const planId = String(input.planId || "").trim();
+    assert(planId, "Plan is required.", 400);
+    const settlementDate = normalizeIsoDate(input.settlementDate, new Date().toISOString().slice(0, 10), DATE_ERROR);
+    const discount = cleanMoney(input.discount);
+    assert(discount >= 0, "Discount cannot be negative.", 400);
+    const waiveMarkup = input.waiveMarkup === true;
+    // Unlike a regular collectPayment call, settlement is scoped to CASH/BANK
+    // only for now — the journal entry always clears the receivable regardless
+    // of how (or whether) cash actually moves, and STORE_CREDIT/GIFT_VOUCHER
+    // would need the same deferred voucher-system integration noted in
+    // collectPayment before that combination can be booked correctly.
+    const paymentMethod = ["CASH", "BANK"].includes(String(input.paymentMethod || "").trim().toUpperCase())
+      ? String(input.paymentMethod).trim().toUpperCase()
+      : "CASH";
+
+    return this.databaseManager.withTransaction(async (client) => {
+      const plan = await findInstallmentPlanForUpdate(client, planId, actor.tenantId);
+      assert(plan, "Installment plan not found.", 404);
+      assert(plan.status === "ACTIVE", `Cannot settle a ${plan.status.toLowerCase()} plan.`, 400);
+
+      const outstandingAmount = Number(plan.outstanding_amount || 0);
+      assert(outstandingAmount > 0, "This plan has no remaining balance to settle.", 400);
+
+      const finalPayableAmount = Number(plan.final_payable_amount || 0);
+      const remainingMarkup = finalPayableAmount > 0
+        ? round2((outstandingAmount * Number(plan.markup_amount || 0)) / finalPayableAmount)
+        : 0;
+      const waivedMarkup = waiveMarkup ? remainingMarkup : 0;
+      // If the markup isn't waived, it's being collected in cashAmount below —
+      // under GRADUAL recognition that slice needs to move from unearned to
+      // earned income now, same as a normal payment would. Under IMMEDIATE
+      // recognition it was already booked as revenue at plan creation, so
+      // there's nothing left to recognize here.
+      const recognizedMarkup = !waiveMarkup && plan.markup_recognition_mode === "GRADUAL" ? remainingMarkup : 0;
+
+      assert(discount + waivedMarkup <= outstandingAmount + EPSILON, "Discount and waived markup cannot exceed the outstanding balance.", 400);
+      const cashAmount = round2(outstandingAmount - waivedMarkup - discount);
+
+      const unpaidRows = await listUnpaidScheduleForUpdate(client, planId, actor.tenantId);
+      for (const row of unpaidRows) {
+        await updateInstallmentScheduleRow(client, row.id, actor.tenantId, {
+          paidAmount: row.dueAmount,
+          remainingAmount: 0,
+          status: "PAID",
+          paidDate: settlementDate,
+        });
+      }
+
+      let payment = null;
+      if (cashAmount > 0) {
+        payment = await insertInstallmentPayment(client, {
+          id: createId("instpay"),
+          tenantId: actor.tenantId,
+          planId,
+          customerId: plan.customer_id,
+          paymentDate: settlementDate,
+          amount: cashAmount,
+          paymentMethod,
+          note: "Early settlement",
+          createdById: actor.id,
+        });
+
+        if (this.financeAccountService) {
+          await this.financeAccountService.recordTransactionInClient(
+            client,
+            {
+              accountType: paymentMethod === "CASH" ? "CASH" : "BANK",
+              type: "DEPOSIT",
+              amount: cashAmount,
+              date: settlementDate,
+              note: `Early settlement — plan ${plan.plan_number}`,
+            },
+            actor,
+          );
+        }
+      }
+
+      const updatedPlan = await updateInstallmentPlanTotals(client, planId, actor.tenantId, {
+        totalPaid: round2(Number(plan.total_paid || 0) + cashAmount),
+        outstandingAmount: 0,
+        status: "COMPLETED",
+      });
+
+      if (this.journalService) {
+        await this.journalService.postInstallmentSettlement(client, actor, {
+          planId,
+          planNumber: plan.plan_number,
+          date: settlementDate,
+          outstandingAmount,
+          accountCode: paymentMethod === "CASH" ? ACCOUNTS.CASH : ACCOUNTS.BANK,
+          cashAmount,
+          waivedMarkup,
+          recognizedMarkup,
+          discount,
+          markupRecognitionMode: plan.markup_recognition_mode,
+        });
+      }
+
+      await this.recordActivity(client, actor, {
+        actionType: "installment_plan.settle",
+        entityId: planId,
+        description: `${actor.name} early-settled installment plan ${plan.plan_number}`,
+        metadata: { planId, outstandingAmount, cashAmount, waivedMarkup, discount },
+      });
+
+      const schedule = await listScheduleByPlan(client, planId, actor.tenantId);
+      return { plan: updatedPlan, schedule, payment };
+    });
+  }
+
+  // Write-off is a settlement with $0 collected and the remaining markup
+  // always reversed — the remaining principal becomes a Bad Debt Expense
+  // instead of being collected or discounted. Unpaid rows become WAIVED (never
+  // PAID — they genuinely weren't), preserving the distinction for reporting.
+  async writeOffPlan(input, actor) {
+    const planId = String(input.planId || "").trim();
+    assert(planId, "Plan is required.", 400);
+    const reason = String(input.reason || "").trim();
+    assert(reason, "A reason is required to write off a plan.", 400);
+    const writeOffDate = normalizeIsoDate(input.writeOffDate, new Date().toISOString().slice(0, 10), DATE_ERROR);
+
+    return this.databaseManager.withTransaction(async (client) => {
+      const plan = await findInstallmentPlanForUpdate(client, planId, actor.tenantId);
+      assert(plan, "Installment plan not found.", 404);
+      assert(plan.status === "ACTIVE", `Cannot write off a ${plan.status.toLowerCase()} plan.`, 400);
+
+      const outstandingAmount = Number(plan.outstanding_amount || 0);
+      assert(outstandingAmount > 0, "This plan has no remaining balance to write off.", 400);
+
+      const finalPayableAmount = Number(plan.final_payable_amount || 0);
+      const remainingMarkup = finalPayableAmount > 0
+        ? round2((outstandingAmount * Number(plan.markup_amount || 0)) / finalPayableAmount)
+        : 0;
+      const badDebtAmount = round2(outstandingAmount - remainingMarkup);
+
+      const unpaidRows = await listUnpaidScheduleForUpdate(client, planId, actor.tenantId);
+      for (const row of unpaidRows) {
+        await updateInstallmentScheduleRow(client, row.id, actor.tenantId, {
+          paidAmount: row.paidAmount,
+          remainingAmount: 0,
+          status: "WAIVED",
+          paidDate: row.paidDate,
+        });
+      }
+
+      const updatedPlan = await markInstallmentPlanWrittenOff(client, planId, actor.tenantId, {
+        writtenOffById: actor.id,
+        writeOffReason: reason,
+      });
+
+      if (this.journalService) {
+        await this.journalService.postInstallmentWriteOff(client, actor, {
+          planId,
+          planNumber: plan.plan_number,
+          date: writeOffDate,
+          outstandingAmount,
+          reason,
+          waivedMarkup: remainingMarkup,
+          badDebtAmount,
+          markupRecognitionMode: plan.markup_recognition_mode,
+        });
+      }
+
+      await this.recordActivity(client, actor, {
+        actionType: "installment_plan.write_off",
+        entityId: planId,
+        reason,
+        description: `${actor.name} wrote off installment plan ${plan.plan_number}`,
+        metadata: { planId, outstandingAmount, badDebtAmount, remainingMarkup },
+      });
+
+      const schedule = await listScheduleByPlan(client, planId, actor.tenantId);
+      return { plan: updatedPlan, schedule };
+    });
+  }
+
+  // Only allowed before any installment payment has been collected (down
+  // payment only) — per the spec's own v1 recommendation, anything further
+  // goes through write-off instead so a real collection history is never
+  // silently discarded. Reverses both the plan's own journal entry (which
+  // hands the financed amount back to generic Accounts Receivable) and the
+  // Phase 1 compensating due-ledger entry (which restores it as an ordinary
+  // due-ledger receivable) — cancelling an installment plan converts the sale
+  // back into a normal credit sale, it does not touch stock or the invoice.
+  async cancelPlan(input, actor) {
+    const planId = String(input.planId || "").trim();
+    assert(planId, "Plan is required.", 400);
+    const reason = String(input.reason || "").trim();
+    assert(reason, "A reason is required to cancel a plan.", 400);
+
+    return this.databaseManager.withTransaction(async (client) => {
+      const plan = await findInstallmentPlanForUpdate(client, planId, actor.tenantId);
+      assert(plan, "Installment plan not found.", 404);
+      assert(plan.status === "ACTIVE", `Cannot cancel a ${plan.status.toLowerCase()} plan.`, 400);
+      assert(
+        Number(plan.total_paid || 0) <= EPSILON,
+        "This plan already has collected payments — cancel is only for plans with no installment payments yet. Use write-off instead.",
+        400,
+      );
+
+      const unpaidRows = await listUnpaidScheduleForUpdate(client, planId, actor.tenantId);
+      for (const row of unpaidRows) {
+        await updateInstallmentScheduleRow(client, row.id, actor.tenantId, {
+          paidAmount: row.paidAmount,
+          remainingAmount: 0,
+          status: "WAIVED",
+          paidDate: row.paidDate,
+        });
+      }
+
+      const updatedPlan = await markInstallmentPlanCancelled(client, planId, actor.tenantId, {
+        cancelledById: actor.id,
+        cancelReason: reason,
+      });
+
+      if (this.journalService) {
+        await this.journalService.reverse(client, {
+          tenantId: actor.tenantId,
+          sourceType: JOURNAL_SOURCE_TYPES.INSTALLMENT_PLAN,
+          sourceId: planId,
+          reason,
+          createdById: actor.id,
+        });
+      }
+
+      const financeAmount = Number(plan.finance_amount || 0);
+      if (financeAmount > 0) {
+        const latestEntry = await getLatestCustomerDueLedgerEntry(client, plan.customer_id, actor.tenantId);
+        const customerResult = await findRetailCustomerForUpdate(client, plan.customer_id, actor.tenantId);
+        const currentBalance = latestEntry ? latestEntry.balanceAfter : Number(customerResult.rows[0]?.opening_due || 0);
+        const balanceAfter = currentBalance + financeAmount;
+        await recordCustomerDueLedgerEntry(client, {
+          tenantId: actor.tenantId,
+          customerId: plan.customer_id,
+          type: CUSTOMER_DUE_LEDGER_TYPES.MANUAL_ADJUSTMENT,
+          debit: financeAmount,
+          credit: 0,
+          balanceAfter,
+          referenceType: "installment_plan",
+          referenceId: plan.plan_number,
+          note: `Installment plan ${plan.plan_number} cancelled — restored to the general due ledger`,
+          createdById: actor.id,
+          businessDate: new Date().toISOString().slice(0, 10),
+        });
+        await updateRetailCustomerCurrentDue(client, plan.customer_id, actor.tenantId, balanceAfter);
+      }
+
+      await this.recordActivity(client, actor, {
+        actionType: "installment_plan.cancel",
+        entityId: planId,
+        reason,
+        description: `${actor.name} cancelled installment plan ${plan.plan_number}`,
+        metadata: { planId, financeAmount },
+      });
+
+      const schedule = await listScheduleByPlan(client, planId, actor.tenantId);
+      return { plan: updatedPlan, schedule };
     });
   }
 }

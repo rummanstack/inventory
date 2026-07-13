@@ -11,7 +11,9 @@ dotenv.config({ path: `${backendRoot}/.env` });
 export async function createBackendApp() {
   const { env } = await import("./config/env.js");
   const databaseManager = new DatabaseManager(env.DATABASE_URL);
-  await initializeDatabase(databaseManager, env);
+  if (process.env.SKIP_DATABASE_INIT !== "1") {
+    await initializeDatabase(databaseManager, env);
+  }
 
   const services = createServiceRegistry({ databaseManager, env });
   const controllers = createControllerRegistry({ services, env, databaseManager });

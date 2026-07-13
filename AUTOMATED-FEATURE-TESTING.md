@@ -12,7 +12,7 @@ DEV_DATABASE_URL=postgres://USER:PASSWORD@HOST:PORT/DATABASE_NAME
 
 `backend/config/env.js` uses `DEV_DATABASE_URL` when running `npm test`; otherwise it falls back to `DATABASE_URL`.
 
-Use a disposable local or dedicated test database for testing because the schema bootstrap and tests create/update data. Avoid running the suite against a production/shared Supabase pooler URL, especially with connection_limit=1; schema initialization can lock or time out before the feature tests start.
+Use a disposable local or dedicated test database for testing because the tests create/update data. The dealer-check script skips schema bootstrap and disables rate limits for test fixture login, so it can run against an already-initialized remote database. A production/shared Supabase pooler URL is still risky for repeatable test runs.
 
 ## 2. Run Today's Feature Automation
 
@@ -28,7 +28,7 @@ Or from the backend folder:
 npm --prefix backend run test:dealer-check
 ```
 
-This runs focused backend tests for:
+This runs the focused backend tests sequentially for:
 
 - products, stock movement, low stock alerts, product serials, damaged stock
 - DSRs, morning issue, settlements, DSR due ledger settlement

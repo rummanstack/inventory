@@ -6,6 +6,10 @@ export function createRateLimiter({ name, windowMs, max }) {
   }
 
   return (req, res, next) => {
+    if (process.env.DISABLE_RATE_LIMITS === "1") {
+      next();
+      return;
+    }
     const now = Date.now();
     const ip = req.ip || "unknown";
     const key = `${name}:${ip}`;

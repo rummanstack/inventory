@@ -34,12 +34,13 @@ export async function listScheduleByPlan(client, planId, tenantId) {
   return result.rows.map(mapInstallmentScheduleRow);
 }
 
-// Locks every not-yet-fully-paid row for a plan, oldest installment first — the
-// order payments are applied in.
+// Locks every still-collectible row for a plan (PENDING or PARTIAL only —
+// RESTRUCTURED/WAIVED/PAID rows are settled history, never touched again),
+// oldest installment first — the order payments/closures are applied in.
 export async function listUnpaidScheduleForUpdate(client, planId, tenantId) {
   const result = await client.query(
     `SELECT * FROM installment_schedule
-     WHERE plan_id = $1 AND tenant_id = $2 AND status != 'PAID'
+     WHERE plan_id = $1 AND tenant_id = $2 AND status IN ('PENDING', 'PARTIAL')
      ORDER BY installment_no ASC
      FOR UPDATE`,
     [planId, tenantId],

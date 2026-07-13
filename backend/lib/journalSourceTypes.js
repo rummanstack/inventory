@@ -20,6 +20,8 @@ export const JOURNAL_SOURCE_TYPES = {
   PROMOTION_SETTLEMENT: "promotion_settlement",
   INSTALLMENT_PLAN: "installment_plan",
   INSTALLMENT_PAYMENT: "installment_payment",
+  INSTALLMENT_SETTLEMENT: "installment_settlement",
+  INSTALLMENT_WRITE_OFF: "installment_write_off",
   OPENING_BALANCE: "opening_balance",
   JOURNAL_VOUCHER: "journal_voucher",
   RECEIPT_VOUCHER: "receipt_voucher",

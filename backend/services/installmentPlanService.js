@@ -7,7 +7,12 @@ import { nextInstallmentPlanNumber } from "../lib/installmentNumber.js";
 import { CUSTOMER_DUE_LEDGER_TYPES } from "../lib/customerDueLedger.js";
 import { ACCOUNTS } from "../lib/chartOfAccounts.js";
 import { findTenantById } from "../repositories/tenantRepository.js";
-import { findRetailCustomerForUpdate, findRetailCustomerById, updateRetailCustomerCurrentDue } from "../repositories/retailCustomerRepository.js";
+import {
+  findRetailCustomerForUpdate,
+  findRetailCustomerById,
+  updateRetailCustomerCurrentDue,
+  updateRetailCustomerCreditSettings,
+} from "../repositories/retailCustomerRepository.js";
 import { getLatestCustomerDueLedgerEntry } from "../repositories/customerDueLedgerRepository.js";
 import {
   insertInstallmentPlan,
@@ -20,6 +25,8 @@ import {
   markInstallmentPlanWrittenOff,
   markInstallmentPlanCancelled,
   listAllPlansForCustomer,
+  sumActiveOutstandingForCustomer,
+  countPriorDefaultsForCustomer,
   mapInstallmentPlan,
 } from "../repositories/installmentPlanRepository.js";
 import {
@@ -29,6 +36,7 @@ import {
   updateInstallmentScheduleRow,
   listDueSchedule,
   listOverdueSchedule,
+  sumOverdueForCustomer,
 } from "../repositories/installmentScheduleRepository.js";
 import {
   insertInstallmentPayment,
@@ -37,14 +45,28 @@ import {
   listPaymentsInRange,
 } from "../repositories/installmentPaymentRepository.js";
 import { insertInstallmentRescheduleLog, listRescheduleLogByPlan } from "../repositories/installmentRescheduleLogRepository.js";
+import {
+  insertInstallmentGuarantor,
+  listGuarantorsByPlan,
+  findInstallmentGuarantorById,
+  softDeleteInstallmentGuarantor,
+} from "../repositories/installmentGuarantorRepository.js";
+import {
+  insertDocument,
+  listDocumentsForEntity,
+  findDocumentById,
+  softDeleteDocument,
+} from "../repositories/documentRepository.js";
 import { recordCustomerDueLedgerEntry } from "./shared/inventoryHelpers.js";
 import { JOURNAL_SOURCE_TYPES } from "../lib/journalSourceTypes.js";
+import { PERMISSIONS, hasPermission } from "../lib/permissions.js";
 
 const DATE_ERROR = "Date must be in YYYY-MM-DD format.";
 const MARKUP_TYPES = ["PERCENT", "FIXED"];
 const MARKUP_RECOGNITION_MODES = ["GRADUAL", "IMMEDIATE"];
 const PAYMENT_METHODS = ["CASH", "BANK", "MOBILE_BANKING", "CARD", "CHEQUE", "STORE_CREDIT", "GIFT_VOUCHER"];
 const CASH_MOVEMENT_METHODS = new Set(["CASH", "BANK", "MOBILE_BANKING", "CARD", "CHEQUE"]);
+const DOCUMENT_ENTITY_TYPE = "installment_plan";
 const EPSILON = 0.004;
 
 // Advances an ISO date by N calendar months, clamping to the shorter month's
@@ -118,6 +140,7 @@ export class InstallmentPlanService {
       const customerResult = await findRetailCustomerForUpdate(client, customerId, actor.tenantId);
       assert(customerResult.rowCount > 0, "Customer not found.", 404);
       const customer = customerResult.rows[0];
+      assert(customer.is_credit_blocked !== true, "This customer is blocked from new installment credit.", 400);
 
       const base = normalizeSalesInvoice({
         ...input,
@@ -146,6 +169,18 @@ export class InstallmentPlanService {
       const financeAmount = round2(invoice.dueAmount);
       const markupAmount = markupType === "PERCENT" ? round2((financeAmount * markupValue) / 100) : round2(markupValue);
       const finalPayableAmount = round2(financeAmount + markupAmount);
+
+      // Credit check runs after the invoice exists (so finalPayableAmount is the
+      // real, tax/promotion-adjusted figure, not an estimate) but everything so
+      // far — stock deduction included — is inside this same transaction, so a
+      // rejection here rolls all of it back, same as any other mid-transaction
+      // validation failure in this codebase.
+      const exposure = await this.computeCreditExposure(client, customer.id, actor.tenantId, finalPayableAmount);
+      if (exposure.overLimit) {
+        const canOverride = hasPermission(actor.role, PERMISSIONS.OVERRIDE_INSTALLMENT_CREDIT_LIMIT, actor.tenantId);
+        assert(canOverride, `This plan would push ${customer.name}'s exposure to ${exposure.totalExposure}, over their credit limit of ${exposure.creditLimit}.`, 400);
+        assert(input.overrideCreditLimit === true, "Exceeding the credit limit requires an explicit override confirmation.", 400);
+      }
 
       const year = new Date(`${base.invoiceDate}T00:00:00Z`).getUTCFullYear();
       const planNumber = await nextInstallmentPlanNumber(client, actor.tenantId, year);
@@ -238,10 +273,210 @@ export class InstallmentPlanService {
         actionType: "installment_plan.create",
         entityId: plan.id,
         description: `${actor.name} created installment plan ${planNumber} for ${customer.name}`,
-        metadata: { planNumber, customerId: customer.id, finalPayableAmount, numberOfMonths },
+        metadata: {
+          planNumber,
+          customerId: customer.id,
+          finalPayableAmount,
+          numberOfMonths,
+          creditLimitOverridden: exposure.overLimit,
+          totalExposure: exposure.totalExposure,
+        },
       });
 
-      return { plan, schedule, invoice };
+      return { plan, schedule, invoice, creditCheck: exposure };
+    });
+  }
+
+  // Shared by the standalone pre-check endpoint and createPlan's own
+  // enforcement, so the two can never drift into different numbers for the
+  // same customer.
+  async computeCreditExposure(client, customerId, tenantId, additionalExposure = 0) {
+    const customerResult = await findRetailCustomerById(client, customerId, tenantId);
+    assert(customerResult.rowCount > 0, "Customer not found.", 404);
+    const customer = customerResult.rows[0];
+
+    const today = new Date().toISOString().slice(0, 10);
+    const [installmentOutstanding, overdueAmount, priorDefaultCount] = await Promise.all([
+      sumActiveOutstandingForCustomer(client, customerId, tenantId),
+      sumOverdueForCustomer(client, customerId, tenantId, today),
+      countPriorDefaultsForCustomer(client, customerId, tenantId),
+    ]);
+
+    const normalDue = Number(customer.current_due || 0);
+    const creditLimit = Number(customer.credit_limit || 0);
+    const totalExposure = round2(normalDue + installmentOutstanding + additionalExposure);
+
+    return {
+      customerId,
+      customerName: customer.name,
+      normalDue: round2(normalDue),
+      installmentOutstanding: round2(installmentOutstanding),
+      overdueAmount: round2(overdueAmount),
+      priorDefaultCount,
+      creditLimit,
+      isBlocked: customer.is_credit_blocked === true,
+      additionalExposure: round2(additionalExposure),
+      totalExposure,
+      overLimit: creditLimit > 0 && totalExposure > creditLimit + EPSILON,
+    };
+  }
+
+  async getCreditCheck(query = {}, actor) {
+    const customerId = String(query.customerId || "").trim();
+    assert(customerId, "Customer is required.", 400);
+    const additionalExposure = cleanMoney(query.additionalExposure);
+
+    return this.databaseManager.withClient((client) => this.computeCreditExposure(client, customerId, actor.tenantId, additionalExposure));
+  }
+
+  async updateCustomerCreditSettings(input, actor) {
+    const customerId = String(input.customerId || "").trim();
+    assert(customerId, "Customer is required.", 400);
+    const creditLimit = cleanMoney(input.creditLimit);
+    assert(creditLimit >= 0, "Credit limit cannot be negative.", 400);
+    const isCreditBlocked = input.isCreditBlocked === true;
+
+    return this.databaseManager.withTransaction(async (client) => {
+      const result = await updateRetailCustomerCreditSettings(client, customerId, actor.tenantId, { creditLimit, isCreditBlocked });
+      assert(result.rowCount > 0, "Customer not found.", 404);
+
+      await this.recordActivity(client, actor, {
+        actionType: "installment_plan.update_credit_settings",
+        entityId: customerId,
+        description: `${actor.name} updated installment credit settings for customer ${customerId}`,
+        metadata: { customerId, creditLimit, isCreditBlocked },
+      });
+
+      return { customerId, creditLimit, isCreditBlocked };
+    });
+  }
+
+  async addGuarantor(input, actor) {
+    const planId = String(input.planId || "").trim();
+    assert(planId, "Plan is required.", 400);
+    const name = String(input.name || "").trim();
+    assert(name, "Guarantor name is required.", 400);
+
+    return this.databaseManager.withTransaction(async (client) => {
+      const plan = await findInstallmentPlanForUpdate(client, planId, actor.tenantId);
+      assert(plan, "Installment plan not found.", 404);
+
+      const guarantor = await insertInstallmentGuarantor(client, {
+        id: createId("instguar"),
+        tenantId: actor.tenantId,
+        planId,
+        name,
+        phone: String(input.phone || "").trim(),
+        address: String(input.address || "").trim(),
+        nationalId: String(input.nationalId || "").trim(),
+        relationship: String(input.relationship || "").trim(),
+        occupation: String(input.occupation || "").trim(),
+        employer: String(input.employer || "").trim(),
+        monthlyIncome: cleanMoney(input.monthlyIncome),
+        referenceNotes: String(input.referenceNotes || "").trim(),
+        emergencyContact: String(input.emergencyContact || "").trim(),
+        createdById: actor.id,
+      });
+
+      await this.recordActivity(client, actor, {
+        actionType: "installment_plan.add_guarantor",
+        entityId: planId,
+        description: `${actor.name} added guarantor ${name} to installment plan ${plan.plan_number}`,
+        metadata: { planId, guarantorId: guarantor.id },
+      });
+
+      return guarantor;
+    });
+  }
+
+  async removeGuarantor(input, actor) {
+    const planId = String(input.planId || "").trim();
+    const guarantorId = String(input.guarantorId || "").trim();
+    assert(planId && guarantorId, "Plan and guarantor are required.", 400);
+
+    return this.databaseManager.withTransaction(async (client) => {
+      const plan = await findInstallmentPlanForUpdate(client, planId, actor.tenantId);
+      assert(plan, "Installment plan not found.", 404);
+
+      const existing = await findInstallmentGuarantorById(client, guarantorId, actor.tenantId);
+      assert(existing.rowCount > 0 && existing.rows[0].plan_id === planId, "Guarantor not found.", 404);
+
+      const removed = await softDeleteInstallmentGuarantor(client, guarantorId, actor.tenantId);
+
+      await this.recordActivity(client, actor, {
+        actionType: "installment_plan.remove_guarantor",
+        entityId: planId,
+        description: `${actor.name} removed a guarantor from installment plan ${plan.plan_number}`,
+        metadata: { planId, guarantorId },
+      });
+
+      return removed;
+    });
+  }
+
+  // The uploaded file itself already went through POST /api/upload/photo (or
+  // whatever upload endpoint the frontend used) — this just attaches that
+  // resulting URL to the plan as a categorized document record. See the build
+  // spec's note on why actual cloud storage is a separate, deferred decision.
+  async attachDocument(input, actor) {
+    const planId = String(input.planId || "").trim();
+    assert(planId, "Plan is required.", 400);
+    const url = String(input.url || "").trim();
+    assert(url, "A document URL is required.", 400);
+    const documentType = String(input.documentType || "").trim();
+    assert(documentType, "A document type is required.", 400);
+
+    return this.databaseManager.withTransaction(async (client) => {
+      const plan = await findInstallmentPlanForUpdate(client, planId, actor.tenantId);
+      assert(plan, "Installment plan not found.", 404);
+
+      const document = await insertDocument(client, {
+        id: createId("doc"),
+        tenantId: actor.tenantId,
+        entityType: DOCUMENT_ENTITY_TYPE,
+        entityId: planId,
+        documentType,
+        url,
+        uploadedById: actor.id,
+      });
+
+      await this.recordActivity(client, actor, {
+        actionType: "installment_plan.attach_document",
+        entityId: planId,
+        description: `${actor.name} attached a ${documentType} document to installment plan ${plan.plan_number}`,
+        metadata: { planId, documentId: document.id, documentType },
+      });
+
+      return document;
+    });
+  }
+
+  async removeDocument(input, actor) {
+    const planId = String(input.planId || "").trim();
+    const documentId = String(input.documentId || "").trim();
+    assert(planId && documentId, "Plan and document are required.", 400);
+
+    return this.databaseManager.withTransaction(async (client) => {
+      const plan = await findInstallmentPlanForUpdate(client, planId, actor.tenantId);
+      assert(plan, "Installment plan not found.", 404);
+
+      const existing = await findDocumentById(client, documentId, actor.tenantId);
+      assert(
+        existing.rowCount > 0 && existing.rows[0].entity_type === DOCUMENT_ENTITY_TYPE && existing.rows[0].entity_id === planId,
+        "Document not found.",
+        404,
+      );
+
+      const removed = await softDeleteDocument(client, documentId, actor.tenantId);
+
+      await this.recordActivity(client, actor, {
+        actionType: "installment_plan.remove_document",
+        entityId: planId,
+        description: `${actor.name} removed a document from installment plan ${plan.plan_number}`,
+        metadata: { planId, documentId },
+      });
+
+      return removed;
     });
   }
 
@@ -250,13 +485,15 @@ export class InstallmentPlanService {
       const result = await findInstallmentPlanById(client, planId, actor.tenantId);
       assert(result.rowCount > 0, "Installment plan not found.", 404);
 
-      const [schedule, payments, rescheduleLog] = await Promise.all([
+      const [schedule, payments, rescheduleLog, guarantors, documents] = await Promise.all([
         listScheduleByPlan(client, planId, actor.tenantId),
         listPaymentsByPlan(client, planId, actor.tenantId),
         listRescheduleLogByPlan(client, planId, actor.tenantId),
+        listGuarantorsByPlan(client, planId, actor.tenantId),
+        listDocumentsForEntity(client, actor.tenantId, DOCUMENT_ENTITY_TYPE, planId),
       ]);
 
-      return { plan: mapInstallmentPlan(result.rows[0]), schedule, payments, rescheduleLog };
+      return { plan: mapInstallmentPlan(result.rows[0]), schedule, payments, rescheduleLog, guarantors, documents };
     });
   }
 

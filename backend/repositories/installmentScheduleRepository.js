@@ -117,6 +117,25 @@ export async function listOverdueSchedule(client, tenantId, asOfDate) {
   return result.rows.map((row) => ({ ...mapReportRow(row), daysOverdue: Number(row.days_overdue) }));
 }
 
+// Credit check input: how much of a specific customer's existing installment
+// exposure is currently past due, across all their ACTIVE plans.
+export async function sumOverdueForCustomer(client, customerId, tenantId, asOfDate) {
+  const result = await client.query(
+    `SELECT COALESCE(SUM(installment_schedule.remaining_amount), 0) AS total
+     FROM installment_schedule
+     JOIN installment_plans
+       ON installment_plans.id = installment_schedule.plan_id
+       AND installment_plans.tenant_id = installment_schedule.tenant_id
+     WHERE installment_schedule.tenant_id = $1
+       AND installment_plans.customer_id = $2
+       AND installment_plans.status = 'ACTIVE'
+       AND installment_schedule.status IN ('PENDING', 'PARTIAL')
+       AND installment_schedule.due_date < $3`,
+    [tenantId, customerId, asOfDate],
+  );
+  return Number(result.rows[0].total || 0);
+}
+
 export async function updateInstallmentScheduleRow(client, id, tenantId, { paidAmount, remainingAmount, status, paidDate }) {
   const result = await client.query(
     `UPDATE installment_schedule

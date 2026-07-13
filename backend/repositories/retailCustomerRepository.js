@@ -117,6 +117,20 @@ export function insertRetailCustomer(client, customer) {
   );
 }
 
+// Targeted update, deliberately separate from updateRetailCustomer above (which
+// is a full-replace of the general edit form's fields) — credit settings are
+// an installment-specific concern and this keeps the two flows from stepping
+// on each other's column lists.
+export function updateRetailCustomerCreditSettings(client, customerId, tenantId, { creditLimit, isCreditBlocked }) {
+  return client.query(
+    `UPDATE retail_customers
+     SET credit_limit = $3, is_credit_blocked = $4, updated_at = NOW()
+     WHERE id = $1 AND tenant_id = $2 AND deleted_at IS NULL
+     RETURNING *`,
+    [customerId, tenantId, creditLimit, isCreditBlocked],
+  );
+}
+
 export function updateRetailCustomer(client, customer) {
   return client.query(
     `UPDATE retail_customers

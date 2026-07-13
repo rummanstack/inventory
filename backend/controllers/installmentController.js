@@ -110,4 +110,67 @@ export class InstallmentController {
       next(error);
     }
   };
+
+  getCreditCheck = async (req, res, next) => {
+    try {
+      const result = await this.installmentPlanService.getCreditCheck(req.query, req.currentUser);
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  updateCustomerCreditSettings = async (req, res, next) => {
+    try {
+      const result = await this.installmentPlanService.updateCustomerCreditSettings(
+        { ...req.body, customerId: req.params.customerId },
+        req.currentUser,
+      );
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  addGuarantor = async (req, res, next) => {
+    try {
+      const result = await this.installmentPlanService.addGuarantor({ ...req.body, planId: req.params.id }, req.currentUser);
+      res.status(201).json(result);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  removeGuarantor = async (req, res, next) => {
+    try {
+      const result = await this.installmentPlanService.removeGuarantor(
+        { planId: req.params.id, guarantorId: req.params.guarantorId },
+        req.currentUser,
+      );
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  attachDocument = async (req, res, next) => {
+    try {
+      const result = await this.installmentPlanService.attachDocument({ ...req.body, planId: req.params.id }, req.currentUser);
+      res.status(201).json(result);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  removeDocument = async (req, res, next) => {
+    try {
+      const result = await this.installmentPlanService.removeDocument(
+        { planId: req.params.id, documentId: req.params.documentId },
+        req.currentUser,
+      );
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  };
 }

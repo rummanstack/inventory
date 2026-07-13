@@ -2983,5 +2983,56 @@ export async function createSchema(pool) {
     ALTER TABLE installment_plans ADD COLUMN IF NOT EXISTS written_off_by TEXT REFERENCES users(id) ON DELETE SET NULL;
     ALTER TABLE installment_plans ADD COLUMN IF NOT EXISTS write_off_reason TEXT;
   `);
+
+  // ── Retail Installments — Phase 5: credit checking, guarantors, documents ──
+  // credit_limit = 0 means "no limit configured" (unlimited) rather than "zero
+  // credit allowed" — otherwise every existing customer would instantly exceed
+  // an unset limit the moment this column appears. is_credit_blocked is a
+  // separate, explicit flag for "never extend this customer credit at all,"
+  // independent of any numeric limit.
+  await pool.query(`
+    ALTER TABLE retail_customers ADD COLUMN IF NOT EXISTS credit_limit NUMERIC NOT NULL DEFAULT 0;
+    ALTER TABLE retail_customers ADD COLUMN IF NOT EXISTS is_credit_blocked BOOLEAN NOT NULL DEFAULT false;
+
+    CREATE TABLE IF NOT EXISTS installment_guarantors (
+      id               TEXT PRIMARY KEY,
+      tenant_id        TEXT NOT NULL REFERENCES tenants(id),
+      plan_id          TEXT NOT NULL REFERENCES installment_plans(id),
+      name             TEXT NOT NULL,
+      phone            TEXT NOT NULL DEFAULT '',
+      address          TEXT NOT NULL DEFAULT '',
+      national_id      TEXT NOT NULL DEFAULT '',
+      relationship     TEXT NOT NULL DEFAULT '',
+      occupation       TEXT NOT NULL DEFAULT '',
+      employer         TEXT NOT NULL DEFAULT '',
+      monthly_income   NUMERIC NOT NULL DEFAULT 0,
+      reference_notes  TEXT NOT NULL DEFAULT '',
+      emergency_contact TEXT NOT NULL DEFAULT '',
+      created_by       TEXT REFERENCES users(id) ON DELETE SET NULL,
+      created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      deleted_at       TIMESTAMPTZ
+    );
+    CREATE INDEX IF NOT EXISTS idx_installment_guarantors_plan ON installment_guarantors(tenant_id, plan_id);
+
+    -- Generic document metadata, reused across entity types (installment plan,
+    -- guarantor, customer, ...) rather than one table per type. The uploaded
+    -- file itself still goes through the existing POST /api/upload/photo
+    -- endpoint (local disk on Render) — see the build spec's note that this
+    -- doesn't survive the Vercel serverless target; a cloud-storage backend
+    -- swap is a separate decision, deferred here, not solved by this table.
+    CREATE TABLE IF NOT EXISTS documents (
+      id             TEXT PRIMARY KEY,
+      tenant_id      TEXT NOT NULL REFERENCES tenants(id),
+      entity_type    TEXT NOT NULL,
+      entity_id      TEXT NOT NULL,
+      document_type  TEXT NOT NULL,
+      url            TEXT NOT NULL,
+      uploaded_by    TEXT REFERENCES users(id) ON DELETE SET NULL,
+      created_at     TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      deleted_at     TIMESTAMPTZ
+    );
+    CREATE INDEX IF NOT EXISTS idx_documents_entity ON documents(tenant_id, entity_type, entity_id);
+  `);
 }
 

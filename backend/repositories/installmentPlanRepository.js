@@ -200,6 +200,28 @@ export async function updateInstallmentPlanReschedule(client, planId, tenantId, 
   return mapInstallmentPlan(result.rows[0]);
 }
 
+// Credit check inputs: how much of this customer's existing installment
+// exposure is still outstanding, and how many plans have ever gone bad on them.
+export async function sumActiveOutstandingForCustomer(client, customerId, tenantId) {
+  const result = await client.query(
+    `SELECT COALESCE(SUM(outstanding_amount), 0) AS total
+     FROM installment_plans
+     WHERE customer_id = $1 AND tenant_id = $2 AND deleted_at IS NULL AND status = 'ACTIVE'`,
+    [customerId, tenantId],
+  );
+  return Number(result.rows[0].total || 0);
+}
+
+export async function countPriorDefaultsForCustomer(client, customerId, tenantId) {
+  const result = await client.query(
+    `SELECT COUNT(*)::INTEGER AS count
+     FROM installment_plans
+     WHERE customer_id = $1 AND tenant_id = $2 AND deleted_at IS NULL AND status IN ('DEFAULTED', 'WRITTEN_OFF')`,
+    [customerId, tenantId],
+  );
+  return result.rows[0].count;
+}
+
 export async function markInstallmentPlanWrittenOff(client, planId, tenantId, { writtenOffById, writeOffReason }) {
   const result = await client.query(
     `UPDATE installment_plans

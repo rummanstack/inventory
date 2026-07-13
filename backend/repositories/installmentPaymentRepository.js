@@ -51,3 +51,35 @@ export async function listPaymentsByPlan(client, planId, tenantId) {
   );
   return result.rows.map(mapInstallmentPayment);
 }
+
+// Collection Report: every payment posted within a date range, with the
+// collecting user's name so the report can be grouped/filtered by collector.
+export async function listPaymentsInRange(client, tenantId, { dateFrom, dateTo }) {
+  const result = await client.query(
+    `SELECT
+       installment_payments.*,
+       installment_plans.plan_number,
+       retail_customers.name AS customer_name,
+       users.name AS collected_by_name
+     FROM installment_payments
+     JOIN installment_plans
+       ON installment_plans.id = installment_payments.plan_id
+       AND installment_plans.tenant_id = installment_payments.tenant_id
+     LEFT JOIN retail_customers
+       ON retail_customers.id = installment_payments.customer_id
+       AND retail_customers.tenant_id = installment_payments.tenant_id
+     LEFT JOIN users
+       ON users.id = installment_payments.created_by
+     WHERE installment_payments.tenant_id = $1
+       AND installment_payments.deleted_at IS NULL
+       AND installment_payments.payment_date BETWEEN $2 AND $3
+     ORDER BY installment_payments.payment_date DESC, installment_payments.created_at DESC`,
+    [tenantId, dateFrom, dateTo],
+  );
+  return result.rows.map((row) => ({
+    ...mapInstallmentPayment(row),
+    planNumber: row.plan_number,
+    customerName: row.customer_name || null,
+    collectedByName: row.collected_by_name || null,
+  }));
+}

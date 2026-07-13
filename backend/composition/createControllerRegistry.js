@@ -1,6 +1,7 @@
 import { VoucherController } from "../controllers/voucherController.js";
 import { FinancialReportingController } from "../controllers/financialReportingController.js";
 import { AccountingController } from "../controllers/accountingController.js";
+import { AiInsightController } from "../controllers/aiInsightController.js";
 import { ActivityLogController } from "../controllers/activityLogController.js";
 import { AttendanceController } from "../controllers/attendanceController.js";
 import { LeaveController } from "../controllers/leaveController.js";
@@ -71,6 +72,9 @@ import { WarrantyClaimController } from "../controllers/warrantyClaimController.
 
 export function createControllerRegistry({ services, env, databaseManager }) {
   return {
+    ai: {
+      aiInsightController: new AiInsightController(services.ai.aiInsightService),
+    },
     public: {
       authController: new AuthController(services.operations.authService, env, services.platform.tenantService),
       contactMessageController: new ContactMessageController(services.customers.contactMessageService),

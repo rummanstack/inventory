@@ -1,0 +1,25 @@
+AI GEMINI SETUP
+
+Add these keys to backend/.env:
+
+AI_PROVIDER=gemini
+GEMINI_API_KEY=your_google_ai_studio_key_here
+GEMINI_MODEL=gemini-3.5-flash
+AI_MIN_SECONDS_BETWEEN_REQUESTS=5
+AI_DAILY_LIMIT=100
+
+Backend endpoints added:
+
+GET /api/ai-insights/status
+- Checks whether Gemini is configured.
+
+POST /api/ai-insights/customers/:customerId/insight
+- Requires retail customer view permission.
+- Sends summarized customer purchase, due, return, loyalty, installment, and top-product data to Gemini.
+
+POST /api/ai-insights/low-stock/advice
+- Requires product view permission and low-stock-alerts feature.
+- Sends summarized low-stock product data to Gemini.
+
+Safety rule:
+The backend calls Gemini. Do not expose GEMINI_API_KEY in frontend code.

@@ -1,6 +1,7 @@
 import { VoucherService } from "../services/voucherService.js";
 import { FinancialReportingService } from "../services/financialReportingService.js";
 import { AccountingService } from "../services/accountingService.js";
+import { AiInsightService } from "../services/aiInsightService.js";
 import { AccountingControlService } from "../services/accountingControlService.js";
 import { AttendanceService } from "../services/attendanceService.js";
 import { LeaveService } from "../services/leaveService.js";
@@ -28,6 +29,7 @@ import { FinanceAccountService } from "../services/financeAccountService.js";
 import { JournalService } from "../services/journalService.js";
 import { FinanceDashboardService } from "../services/financeDashboardService.js";
 import { GenericMedicineService } from "../services/genericMedicineService.js";
+import { GeminiProvider } from "../services/geminiProvider.js";
 import { HelpDeskService } from "../services/helpDeskService.js";
 import { InstallmentPlanService } from "../services/installmentPlanService.js";
 import { InvariantService } from "../services/invariantService.js";
@@ -69,6 +71,8 @@ import { VisitorChatService } from "../services/visitorChatService.js";
 import { WarrantyClaimService } from "../services/warrantyClaimService.js";
 
 export function createServiceRegistry({ databaseManager, env }) {
+  const aiProvider = new GeminiProvider(env);
+
   const platform = {
     auditService: new AuditService(databaseManager),
     backupService: null,
@@ -302,7 +306,12 @@ export function createServiceRegistry({ databaseManager, env }) {
     profitService: finance.profitService,
   });
 
+  const ai = {
+    aiInsightService: new AiInsightService(databaseManager, { provider: aiProvider, env }),
+  };
+
   return {
+    ai,
     platform,
     finance,
     catalog,

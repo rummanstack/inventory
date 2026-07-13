@@ -1,13 +1,13 @@
 import { assert } from "../lib/errors.js";
 import { createId } from "../lib/ids.js";
 import { cleanMoney, cleanInteger, normalizeSalesInvoice } from "../lib/normalizers.js";
-import { normalizeIsoDate } from "../lib/dateRanges.js";
+import { normalizeIsoDate, addDays } from "../lib/dateRanges.js";
 import { parsePagination, buildPageResult } from "../lib/pagination.js";
 import { nextInstallmentPlanNumber } from "../lib/installmentNumber.js";
 import { CUSTOMER_DUE_LEDGER_TYPES } from "../lib/customerDueLedger.js";
 import { ACCOUNTS } from "../lib/chartOfAccounts.js";
 import { findTenantById } from "../repositories/tenantRepository.js";
-import { findRetailCustomerForUpdate, updateRetailCustomerCurrentDue } from "../repositories/retailCustomerRepository.js";
+import { findRetailCustomerForUpdate, findRetailCustomerById, updateRetailCustomerCurrentDue } from "../repositories/retailCustomerRepository.js";
 import { getLatestCustomerDueLedgerEntry } from "../repositories/customerDueLedgerRepository.js";
 import {
   insertInstallmentPlan,
@@ -16,6 +16,7 @@ import {
   listInstallmentPlansPage,
   countInstallmentPlans,
   updateInstallmentPlanTotals,
+  listAllPlansForCustomer,
   mapInstallmentPlan,
 } from "../repositories/installmentPlanRepository.js";
 import {
@@ -23,11 +24,14 @@ import {
   listScheduleByPlan,
   listUnpaidScheduleForUpdate,
   updateInstallmentScheduleRow,
+  listDueSchedule,
+  listOverdueSchedule,
 } from "../repositories/installmentScheduleRepository.js";
 import {
   insertInstallmentPayment,
   insertInstallmentPaymentAllocation,
   listPaymentsByPlan,
+  listPaymentsInRange,
 } from "../repositories/installmentPaymentRepository.js";
 import { recordCustomerDueLedgerEntry } from "./shared/inventoryHelpers.js";
 
@@ -379,6 +383,78 @@ export class InstallmentPlanService {
 
       const schedule = await listScheduleByPlan(client, planId, actor.tenantId);
       return { plan: updatedPlan, schedule, payment };
+    });
+  }
+
+  // Covers both "Today's Due" (call with no params) and "Upcoming Due" (call
+  // with dateTo a week/two out) from a single query — the underlying report is
+  // identical, only the range differs.
+  async getDueScheduleReport(query = {}, actor) {
+    const today = new Date().toISOString().slice(0, 10);
+    const dateFrom = normalizeIsoDate(query.dateFrom, today, DATE_ERROR);
+    const dateTo = normalizeIsoDate(query.dateTo, dateFrom, DATE_ERROR);
+    assert(dateFrom <= dateTo, "Start date must be before or equal to end date.", 400);
+
+    return this.databaseManager.withClient(async (client) => {
+      const rows = await listDueSchedule(client, actor.tenantId, { dateFrom, dateTo });
+      const totalDue = round2(rows.reduce((sum, row) => sum + row.remainingAmount, 0));
+      return { dateFrom, dateTo, rows, totalDue };
+    });
+  }
+
+  async getOverdueReport(actor) {
+    const asOfDate = new Date().toISOString().slice(0, 10);
+    return this.databaseManager.withClient(async (client) => {
+      const rows = await listOverdueSchedule(client, actor.tenantId, asOfDate);
+      const totalOverdue = round2(rows.reduce((sum, row) => sum + row.remainingAmount, 0));
+      return { asOfDate, rows, totalOverdue };
+    });
+  }
+
+  async getCollectionReport(query = {}, actor) {
+    const today = new Date().toISOString().slice(0, 10);
+    const dateTo = normalizeIsoDate(query.dateTo, today, DATE_ERROR);
+    const dateFrom = normalizeIsoDate(query.dateFrom, addDays(dateTo, -29), DATE_ERROR);
+    assert(dateFrom <= dateTo, "Start date must be before or equal to end date.", 400);
+
+    return this.databaseManager.withClient(async (client) => {
+      const rows = await listPaymentsInRange(client, actor.tenantId, { dateFrom, dateTo });
+      const totalCollected = round2(rows.reduce((sum, row) => sum + row.amount, 0));
+      return { dateFrom, dateTo, rows, totalCollected, paymentCount: rows.length };
+    });
+  }
+
+  async getCustomerStatement(query = {}, actor) {
+    const customerId = String(query.customerId || "").trim();
+    assert(customerId, "Customer is required.", 400);
+
+    return this.databaseManager.withClient(async (client) => {
+      const customerResult = await findRetailCustomerById(client, customerId, actor.tenantId);
+      assert(customerResult.rowCount > 0, "Customer not found.", 404);
+      const customer = customerResult.rows[0];
+
+      const plans = await listAllPlansForCustomer(client, customerId, actor.tenantId);
+      const plansWithSchedule = await Promise.all(
+        plans.map(async (plan) => ({
+          plan,
+          schedule: await listScheduleByPlan(client, plan.id, actor.tenantId),
+        })),
+      );
+
+      const totals = plans.reduce(
+        (sum, plan) => ({
+          finalPayableAmount: round2(sum.finalPayableAmount + plan.finalPayableAmount),
+          totalPaid: round2(sum.totalPaid + plan.totalPaid),
+          outstandingAmount: round2(sum.outstandingAmount + plan.outstandingAmount),
+        }),
+        { finalPayableAmount: 0, totalPaid: 0, outstandingAmount: 0 },
+      );
+
+      return {
+        customer: { id: customer.id, name: customer.name, phone: customer.phone },
+        plans: plansWithSchedule,
+        totals,
+      };
     });
   }
 }

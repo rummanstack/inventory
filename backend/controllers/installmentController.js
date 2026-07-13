@@ -38,4 +38,40 @@ export class InstallmentController {
       next(error);
     }
   };
+
+  getDueScheduleReport = async (req, res, next) => {
+    try {
+      const result = await this.installmentPlanService.getDueScheduleReport(req.query, req.currentUser);
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getOverdueReport = async (req, res, next) => {
+    try {
+      const result = await this.installmentPlanService.getOverdueReport(req.currentUser);
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getCollectionReport = async (req, res, next) => {
+    try {
+      const result = await this.installmentPlanService.getCollectionReport(req.query, req.currentUser);
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getCustomerStatement = async (req, res, next) => {
+    try {
+      const result = await this.installmentPlanService.getCustomerStatement(req.query, req.currentUser);
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  };
 }

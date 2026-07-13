@@ -16,6 +16,7 @@ const testFiles = [
   'tests/salesInvoices.test.js',
   'tests/installmentPlans.test.js',
   'tests/installmentPayments.test.js',
+  'tests/installmentReports.test.js',
   'tests/quickSale.test.js',
   'tests/salesReturns.test.js',
   'tests/customerPayments.test.js',

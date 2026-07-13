@@ -43,6 +43,7 @@ import {
   Scale,
   BriefcaseBusiness,
   Gift,
+  Sparkles,
 } from 'lucide-react';
 const DashboardPage = lazy(() => import('../features/dashboard/pages/DashboardPage'));
 const ActivityLogsPage = lazy(() => import('../features/activity-logs/pages/ActivityLogsPage'));
@@ -94,6 +95,7 @@ const SrPage = lazy(() => import('../features/srs/pages/SrPage'));
 const SrDueLedgerPage = lazy(() => import('../features/sr-due-ledger/pages/SrDueLedgerPage'));
 const RetailCustomersPage = lazy(() => import('../features/retail-customers/pages/RetailCustomersPage'));
 const RetailCustomerRetentionPage = lazy(() => import('../features/retail-customers/pages/RetailCustomerRetentionPage'));
+const AiInsightsPage = lazy(() => import('../features/ai-insights/pages/AiInsightsPage'));
 const HelpDeskPage = lazy(() => import('../features/help-desk/pages/HelpDeskPage'));
 const TrashPage = lazy(() => import('../features/trash/pages/TrashPage'));
 const DamagedStockPage = lazy(() => import('../features/damaged-stock/pages/DamagedStockPage'));
@@ -151,6 +153,7 @@ export const APP_ROUTES = [
   // 3. Customers
   { id: 'retail-customers', path: '/retail-customers', labelKey: 'nav.retailCustomers', icon: Users, component: RetailCustomersPage, group: 'customers', permission: 'view_retail_customers', feature: 'retail-customers' },
   { id: 'retail-customer-retention', path: '/retail-customers/retention', labelKey: 'nav.retailCustomerRetention', icon: TrendingUp, component: RetailCustomerRetentionPage, group: 'customers', permission: 'view_retail_customer_retention', feature: 'retail-customer-retention' },
+  { id: 'ai-insights', path: '/ai-insights', labelKey: 'nav.aiInsights', icon: Sparkles, component: AiInsightsPage, group: 'customers', permission: 'view_retail_customers', feature: 'retail-customers' },
   { id: 'retailer-customer-due', path: '/retailer/customer-due', labelKey: 'nav.retailerCustomerDue', icon: Wallet, component: CustomerDuePage, group: 'customers', permission: 'view_retail_customer_due', feature: 'retailer-customer-due' },
   { id: 'retailer-due-collection', path: '/retailer/due-collection', labelKey: 'nav.retailerDueCollection', icon: HandCoins, component: DueCollectionPage, group: 'customers', permission: 'view_retail_due_collection', feature: 'retailer-due-collection' },
 

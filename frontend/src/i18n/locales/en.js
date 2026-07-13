@@ -92,6 +92,7 @@ const en = {
       customers: 'Shops',
       shops: 'Shops',
       retailCustomers: 'Customers',
+      aiInsights: 'AI Insights',
       morningIssue: 'Morning Issue',
       eveningSettlement: 'Evening Settlement',
       financeDashboard: 'Finance Dashboard',

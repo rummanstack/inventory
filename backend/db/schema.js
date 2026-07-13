@@ -2955,5 +2955,33 @@ export async function createSchema(pool) {
       ADD COLUMN IF NOT EXISTS markup_recognition_mode TEXT NOT NULL DEFAULT 'GRADUAL'
         CHECK (markup_recognition_mode IN ('GRADUAL', 'IMMEDIATE'));
   `);
+
+  // ── Retail Installments — Phase 4: reschedule, early settlement, write-off, ──
+  // cancel. Reschedule never deletes a row: superseded PENDING/PARTIAL rows
+  // become RESTRUCTURED and installment_reschedule_log keeps a full before/after
+  // snapshot. Write-off reuses the schedule's existing WAIVED status (already in
+  // the Phase 1 CHECK constraint) rather than adding a new one.
+  await pool.query(`
+    INSERT INTO chart_of_accounts (code, name, type, normal_balance) VALUES
+      ('6020', 'Bad Debt Expense', 'EXPENSE', 'DEBIT')
+    ON CONFLICT (code) DO NOTHING;
+    UPDATE chart_of_accounts SET account_group = 'Operating Expenses', is_system = true WHERE code = '6020';
+
+    CREATE TABLE IF NOT EXISTS installment_reschedule_log (
+      id             TEXT PRIMARY KEY,
+      tenant_id      TEXT NOT NULL REFERENCES tenants(id),
+      plan_id        TEXT NOT NULL REFERENCES installment_plans(id),
+      reason         TEXT NOT NULL,
+      old_schedule   JSONB NOT NULL DEFAULT '[]',
+      new_schedule   JSONB NOT NULL DEFAULT '[]',
+      created_by     TEXT REFERENCES users(id) ON DELETE SET NULL,
+      created_at     TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+    CREATE INDEX IF NOT EXISTS idx_installment_reschedule_log_plan ON installment_reschedule_log(tenant_id, plan_id);
+
+    ALTER TABLE installment_plans ADD COLUMN IF NOT EXISTS written_off_at TIMESTAMPTZ;
+    ALTER TABLE installment_plans ADD COLUMN IF NOT EXISTS written_off_by TEXT REFERENCES users(id) ON DELETE SET NULL;
+    ALTER TABLE installment_plans ADD COLUMN IF NOT EXISTS write_off_reason TEXT;
+  `);
 }
 

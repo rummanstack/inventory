@@ -1,5 +1,6 @@
 import { vouchersApi } from './api/vouchersApi.js';
 import { accountingApi } from './api/accountingApi.js';
+import { aiInsightsApi } from './api/aiInsightsApi.js';
 import { activityLogsApi } from './api/activityLogsApi.js';
 import { auditApi } from './api/auditApi.js';
 import { authApi } from './api/authApi.js';
@@ -65,6 +66,7 @@ import { tradePromotionEarningsApi } from './api/tradePromotionEarningsApi.js';
 import { tradePromotionSettlementsApi } from './api/tradePromotionSettlementsApi.js';
 
 export const inventoryApi = {
+  ...aiInsightsApi,
   ...authApi,
   ...usersApi,
   ...activityLogsApi,

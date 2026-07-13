@@ -1,5 +1,6 @@
 import { createVoucherRoutes } from "./vouchers.routes.js";
 import { createAccountingRoutes } from "./accounting.routes.js";
+import { createAiInsightsRoutes } from "./aiInsights.routes.js";
 import { createFinancialReportingRoutes } from "./financialReporting.routes.js";
 import { Router } from "express";
 import { requireAuth } from "../middleware/requireAuth.js";
@@ -79,6 +80,7 @@ import { createDrugBatchesRoutes } from "./drugBatches.routes.js";
 export function createApiRouter({ controllers, authService, env, auditService }) {
   const router = Router();
   const {
+    ai: { aiInsightController },
     public: { authController, contactMessageController, registrationController, visitorChatController },
     platform: { backupController, systemController, tenantController, visitorChatAdminController },
     tenant: {
@@ -190,6 +192,7 @@ export function createApiRouter({ controllers, authService, env, auditService })
   router.use("/activity-logs", createActivityLogsRoutes(activityLogController));
   router.use("/audit", createAuditRoutes(auditController));
   router.use("/report-exports", createReportExportsRoutes(reportExportController));
+  router.use("/ai-insights", createAiInsightsRoutes(aiInsightController));
   router.use("/expenses", createExpensesRoutes(expenseController));
   router.use("/profit-report", createProfitReportRoutes(profitController));
   router.use("/journal", createJournalRoutes(journalController));

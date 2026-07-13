@@ -156,6 +156,20 @@ export async function countInstallmentPlans(client, { tenantId, customerId, stat
   return result.rows[0].count;
 }
 
+// Customer Installment Statement: every plan for a customer, unpaginated —
+// statements are meant to show the whole picture, not a page of it.
+export async function listAllPlansForCustomer(client, customerId, tenantId) {
+  const result = await client.query(
+    `${buildSelect()}
+     WHERE installment_plans.tenant_id = $1
+       AND installment_plans.customer_id = $2
+       AND installment_plans.deleted_at IS NULL
+     ORDER BY installment_plans.created_at DESC`,
+    [tenantId, customerId],
+  );
+  return result.rows.map(mapInstallmentPlan);
+}
+
 export async function updateInstallmentPlanTotals(client, planId, tenantId, { totalPaid, outstandingAmount, status }) {
   const result = await client.query(
     `UPDATE installment_plans

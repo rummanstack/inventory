@@ -12,6 +12,11 @@ import { useDsrViewModel } from '../viewmodels/useDsrViewModel';
 import { useAsyncAction } from '../../../hooks/useAsyncAction.js';
 
 const DSR_PRINT_ID = 'dsr-print';
+const DSR_REPORT_SHORTCUTS = {
+  pdf: { alt: true, key: 'd', label: 'Alt+D' },
+  excel: { alt: true, key: 'e', label: 'Alt+E' },
+  print: { alt: true, key: 'p', label: 'Alt+P' },
+};
 
 export default function DsrPage() {
   const { today, saveDsr, deleteDsr, t, can } = useInventoryApp();
@@ -36,6 +41,13 @@ export default function DsrPage() {
 
   const targetMap = new Map(targetSummary.map((r) => [r.dsrId, r]));
 
+  async function handleDownloadPdf() {
+    await downloadPdf(async () => {
+      await inventoryApi.recordPrint({ entityType: 'dsr', entityId: null, label: 'pdf' }).catch(() => {});
+      await downloadSheetPdf(DSR_PRINT_ID, 'dsr-directory.pdf');
+    });
+  }
+
   async function handleExportExcel() {
     const result = await inventoryApi.listDsrs({ search: vm.search || undefined, page: 1, pageSize: 10000 });
     const all = result.items || [];
@@ -48,6 +60,42 @@ export default function DsrPage() {
     utils.book_append_sheet(wb, ws, t('dsr.sheetName'));
     writeFile(wb, 'dsr-directory.xlsx');
   }
+
+  function handlePrint() {
+    inventoryApi.recordPrint({ entityType: 'dsr', entityId: null, label: 'print' }).catch(() => {});
+    window.print();
+  }
+
+  function shortcutBadge(shortcut) {
+    return <kbd className="ml-1 rounded border border-slate-300 bg-white/70 px-1 py-0.5 font-mono text-[10px] text-slate-500">{shortcut.label}</kbd>;
+  }
+
+  function matchesShortcut(event, shortcut) {
+    return (
+      event.key.toLowerCase() === shortcut.key &&
+      Boolean(event.altKey) === Boolean(shortcut.alt) &&
+      Boolean(event.shiftKey) === Boolean(shortcut.shift) &&
+      Boolean(event.ctrlKey || event.metaKey) === Boolean(shortcut.ctrlOrMeta)
+    );
+  }
+
+  useEffect(() => {
+    function handleKeyDown(event) {
+      if (matchesShortcut(event, DSR_REPORT_SHORTCUTS.pdf) && !downloadingPdf) {
+        event.preventDefault();
+        handleDownloadPdf();
+      } else if (matchesShortcut(event, DSR_REPORT_SHORTCUTS.excel)) {
+        event.preventDefault();
+        handleExportExcel();
+      } else if (matchesShortcut(event, DSR_REPORT_SHORTCUTS.print)) {
+        event.preventDefault();
+        handlePrint();
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [downloadingPdf, vm.search, t]);
 
   return (
     <div>
@@ -78,26 +126,26 @@ export default function DsrPage() {
               <button
                 type="button"
                 className="btn-secondary no-print py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-60"
-                onClick={() => downloadPdf(async () => {
-                  await inventoryApi.recordPrint({ entityType: 'dsr', entityId: null, label: 'pdf' }).catch(() => {});
-                  await downloadSheetPdf(DSR_PRINT_ID, 'dsr-directory.pdf');
-                })}
+                onClick={handleDownloadPdf}
                 disabled={downloadingPdf}
               >
                 {downloadingPdf ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
                 {t('purchaseReceive.downloadPdf')}
+                {shortcutBadge(DSR_REPORT_SHORTCUTS.pdf)}
               </button>
               <button type="button" className="btn-secondary no-print py-1.5 text-xs" onClick={handleExportExcel}>
                 <FileSpreadsheet size={14} />
                 {t('common.exportExcel')}
+                {shortcutBadge(DSR_REPORT_SHORTCUTS.excel)}
               </button>
               <button
                 type="button"
                 className="btn-secondary no-print py-1.5 text-xs"
-                onClick={() => { inventoryApi.recordPrint({ entityType: 'dsr', entityId: null, label: 'print' }).catch(() => {}); window.print(); }}
+                onClick={handlePrint}
               >
                 <Printer size={14} />
                 {t('common.print')}
+                {shortcutBadge(DSR_REPORT_SHORTCUTS.print)}
               </button>
             </div>
           </div>

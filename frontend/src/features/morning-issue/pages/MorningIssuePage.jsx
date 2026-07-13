@@ -9,6 +9,12 @@ import { useMorningIssueViewModel } from '../viewmodels/useMorningIssueViewModel
 
 const autoSelect = (e) => e.target.select();
 const MORNING_ISSUE_REPORT_ID = 'morning-issue-report';
+const MORNING_ISSUE_REPORT_SHORTCUTS = {
+  pdf: { alt: true, key: 'd', label: 'Alt+D' },
+  excel: { alt: true, key: 'e', label: 'Alt+E' },
+  csv: { alt: true, key: 'c', label: 'Alt+C' },
+  print: { alt: true, key: 'p', label: 'Alt+P' },
+};
 
 export default function MorningIssuePage() {
   const { productDirectory, dsrDirectory, today, saveIssue, t, can } = useInventoryApp();
@@ -93,7 +99,7 @@ export default function MorningIssuePage() {
             ))}
           </Select>
           <div className="flex flex-wrap items-center gap-2 sm:justify-end">
-            <TableReportActions targetId={MORNING_ISSUE_REPORT_ID} title={t('morningIssue.sheetTitle')} fileName="morning-issue" entityType="morning_issue" t={t} />
+            <TableReportActions targetId={MORNING_ISSUE_REPORT_ID} title={t('morningIssue.sheetTitle')} fileName="morning-issue" entityType="morning_issue" t={t} shortcuts={MORNING_ISSUE_REPORT_SHORTCUTS} />
             {canEditIssue ? (
               <button type="button" className="btn-primary" onClick={vm.saveIssue} disabled={vm.saving || !productDirectory.length || Boolean(vm.invalidRows.length) || Boolean(vm.existingSettlement)}>
                 <Save size={18} />

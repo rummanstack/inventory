@@ -9,6 +9,7 @@ import { inventoryApi } from '../../../services/inventoryApi';
 import { useAsyncAction } from '../../../hooks/useAsyncAction.js';
 import { formatCasePiece, formatCurrency, formatNumber, toPieces } from '../../../utils/calculations.js';
 import { useSettlementViewModel } from '../viewmodels/useSettlementViewModel';
+import { useEffect } from 'react';
 
 export default function EveningSettlementPage() {
   const { productDirectory, dsrDirectory, srDirectory, shopDirectory, supplierDirectory, today, saveSettlement, t, can, tenant, language } = useInventoryApp();
@@ -35,6 +36,18 @@ export default function EveningSettlementPage() {
     return productDirectory.filter((product) => !selectedProductIds.has(product.id) || vm.extraReturns.find((row) => row.id === rowId)?.productId === product.id);
   }
 
+  useEffect(() => {
+    function handleKeyDown(event) {
+      if (event.key === 's' && (event.ctrlKey || event.metaKey) && canEditSettlement && !vm.saving && !vm.hasErrors) {
+        event.preventDefault();
+        vm.completeSettlement();
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [canEditSettlement, vm.saving, vm.hasErrors, vm.completeSettlement]);
+
   return (
     <div>
       <SectionHeader eyebrow={t('nav.eveningSettlement')} title={t('nav.eveningSettlement')} description={t('settlement.description')} />
@@ -55,9 +68,9 @@ export default function EveningSettlementPage() {
               ))}
             </Select>
           </div>
-          <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
-            <p className="text-xs font-bold uppercase text-slate-500">{t('settlement.totalPayable')}</p>
-            <p className="mt-1 text-2xl font-semibold text-slate-950">{formatCurrency(vm.totalPayable)}</p>
+          <div>
+            <label className="label">{t('settlement.totalPayable')}</label>
+            <input className="input" disabled readOnly value={formatCurrency(vm.totalPayable)} />
           </div>
         </div>
         {vm.message ? (
@@ -450,6 +463,7 @@ export default function EveningSettlementPage() {
                       <button type="button" className="btn-primary justify-center" onClick={vm.completeSettlement} disabled={vm.saving || vm.hasErrors}>
                         <CheckCircle2 size={18} />
                         {vm.saving ? t('common.saving') : vm.completedSettlement ? t('settlement.updateSettlement') : t('settlement.completeSettlement')}
+                        <kbd className="ml-1 rounded border border-indigo-400/40 bg-indigo-500/20 px-1 py-0.5 font-mono text-[10px] text-indigo-200">Ctrl+S</kbd>
                       </button>
                     ) : (
                       <span className="text-sm font-semibold text-slate-400">-</span>

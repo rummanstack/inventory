@@ -1,0 +1,621 @@
+# Retail Installment Sales Module — Build Spec (Adapted for StockLedger)
+
+Date: 2026-07-13
+Status: Planning document only. No code written yet.
+Scope: Full feature set requested (not trimmed to a "v1"). Sections below map every
+requested feature onto this codebase's actual architecture.
+
+This document rewrites the original "Codex Task" prompt so it is buildable against
+StockLedger as it actually exists today. The original prompt was written for a NestJS
++ Swagger + DTO-class stack. StockLedger is not that stack. Nothing below assumes
+NestJS, decorators, DTOs, or Swagger. Every section instead points at the real files,
+patterns, and conventions already used across the dealer and retailer modules audited
+in this session.
+
+---
+
+# 0. Ground Truth: What This Project Actually Is
+
+- Backend: Express (ESM `.js`, not TypeScript), layered as
+  `db/schema.js` (tables) -> `repositories/*.js` (SQL) -> `services/*.js` (business
+  logic) -> `controllers/*.js` (thin req/res) -> `routes/*.js` (Router + middleware)
+  -> wired once in `backend/composition.js` via `createServiceRegistry.js` /
+  `createControllerRegistry.js` -> mounted in `backend/routes/api.js`.
+- No ORM, no migration files — `db/schema.js` is one growing file of
+  `CREATE TABLE IF NOT EXISTS` / `ALTER TABLE ... ADD COLUMN IF NOT EXISTS` blocks,
+  applied idempotently on boot.
+- IDs: `createId('prefix')` from `backend/lib/ids.js` (prefixed UUID strings).
+- Tenant isolation: every table has `tenant_id`; every query filters on it in code
+  (no DB-level RLS). No cross-tenant access is enforced entirely in the service layer.
+- Validation: `assert(condition, message, status)` from `backend/lib/errors.js`.
+- Permissions: `backend/lib/permissions.js` (`PERMISSIONS` map,
+  `TENANT_BUSINESS_PERMISSIONS`), enforced via `requirePermission(...)` middleware and
+  per-tenant `role_permissions` rows (no hardcoded role defaults — a role has zero
+  permissions until rows are seeded).
+- Feature flags: `backend/lib/features.js` (`TENANT_FEATURES` list) + `requireFeature(key)`
+  middleware, independent of permissions.
+- Audit trail: `auditService.record(client, {...})` / the `logActivity` helper —
+  already used by every module in this codebase (see `shopDueLedgerService.js`,
+  `settlementService.js`, etc. for the exact call shape).
+- Accounting: double-entry via `journalService.js` against the chart of accounts in
+  `db/schema.js` (account codes like `1000` Cash, `1110` DSR Receivable, `1130` Goods
+  with DSR). `financialReportingService.js` produces trial balance / general ledger /
+  P&L / balance sheet / cash flow from journal data. New source types are added to
+  `backend/lib/journalSourceTypes.js`.
+- Frontend: React 18 + Vite + Tailwind. Pages live in `frontend/src/features/<domain>/`
+  (pages + viewmodels + components), registered in `frontend/src/app/routes.js`
+  (`APP_ROUTES`), calling API wrappers in `frontend/src/services/api/*Api.js`
+  (registered in `inventoryApi.js`). i18n strings go in
+  `frontend/src/i18n/locales/en.js` + `bn.js`. Dates always go through
+  `formatDate()`/`formatDateTime()` in `frontend/src/utils/calculations.js` (raw
+  `new Date('YYYY-MM-DD')` shows 6:00 AM in UTC+6 — a real, documented footgun here).
+- Testing: `backend/tests/*.test.js`, run with `node --test` against a real disposable
+  Postgres database (no mocks). Each file creates throwaway tenants via
+  `createTenantAndAdmin` and tears them down with `cleanupTenant`. There is no
+  Jest/unit-vs-integration split — see `backend/tests/journal.test.js`,
+  `srDueLedger.test.js`, `settlementService.js`'s tests for the exact idiom to follow.
+  New test files get added to `backend/package.json`'s test scripts, mirroring how
+  `test:dealer-check` / `test:retailer-check` are assembled.
+- Server-side PDF: `reportExportService.js` renders HTML to PDF via headless Chromium
+  (`playwright`) — this is the real mechanism for "Agreement Printing" below, not a
+  new PDF library.
+- File uploads today: `backend/controllers/uploadController.js` is a single generic
+  `POST /api/upload/photo` endpoint that writes to local disk via `multer`
+  (`backend/middleware/upload.js`) and returns a URL. **This does not survive on the
+  Vercel serverless deploy target** (no persistent disk between invocations) — see
+  Section H for what this means for "Customer Documents."
+- No existing concept of a customer credit limit anywhere in the schema or services.
+  No NestJS, no Swagger/OpenAPI, no DTO classes anywhere in this repo.
+
+Everything below is written against this reality, not the original prompt's assumed
+stack.
+
+---
+
+# 1. Module Identity
+
+Name: **Retail Installments**
+
+Navigation (matches existing `APP_ROUTES` conventions — grouped like DSR/Shops/SRs):
+
+- Retailer > Installment Sales
+- Retailer > Installment Collections
+- Reports > Installment Reports (Today Due, Overdue, Collection, Aging, Markup Income,
+  Collector Performance, Settlement, Reschedule, Customer Statement)
+
+Feature flag: add `'installment-sales'` to `TENANT_FEATURES` in `backend/lib/features.js`
+so it can be toggled per tenant like every other module (`requireFeature('installment-sales')`
+on the router, same as `shopDueLedger.routes.js` does with `'shop-due-ledger'`).
+
+---
+
+# 2. Core Business Flow (unchanged from the idea doc)
+
+Customer selected (registered retail customer only, no walk-in) -> products added and
+stock checked -> down payment collected -> remaining amount financed -> optional
+markup (percent or fixed) -> monthly schedule generated -> monthly collections
+recorded, oldest-due-first -> accounting journal posted automatically at each step ->
+reports and dashboard widgets read from the same tables.
+
+---
+
+# 3. Database Schema (added to `backend/db/schema.js`, following its existing style —
+no separate migration files)
+
+## 3.1 `installment_plans`
+
+```
+id                        TEXT PRIMARY KEY          -- createId('instplan')
+tenant_id                 TEXT NOT NULL REFERENCES tenants(id)
+plan_number               TEXT NOT NULL             -- sequential per tenant, via a
+                                                        *_number_counters row like
+                                                        purchaseNumber.js / salesNumber.js
+customer_id               TEXT NOT NULL REFERENCES customers(id)  -- or retail_customers,
+                                                        see Section 3.5 decision
+sales_invoice_id          TEXT NOT NULL REFERENCES sales_invoices(id)
+sale_date                 DATE NOT NULL
+product_total             NUMERIC NOT NULL
+discount_amount           NUMERIC NOT NULL DEFAULT 0
+net_sale_amount           NUMERIC NOT NULL
+down_payment              NUMERIC NOT NULL DEFAULT 0
+finance_amount            NUMERIC NOT NULL          -- net_sale_amount - down_payment
+markup_type               TEXT NOT NULL             -- 'PERCENT' | 'FIXED'
+markup_value              NUMERIC NOT NULL DEFAULT 0
+markup_amount             NUMERIC NOT NULL DEFAULT 0
+final_payable_amount      NUMERIC NOT NULL          -- finance_amount + markup_amount
+number_of_months          INTEGER NOT NULL
+first_payment_date        DATE NOT NULL
+payment_day_of_month      INTEGER NOT NULL
+monthly_installment_amount NUMERIC NOT NULL
+total_paid                NUMERIC NOT NULL DEFAULT 0
+outstanding_amount        NUMERIC NOT NULL          -- derived/recomputed, never client-set
+                                                        (same rule as products.stock_pieces)
+overdue_amount            NUMERIC NOT NULL DEFAULT 0
+status                    TEXT NOT NULL DEFAULT 'ACTIVE'
+                             -- ACTIVE | COMPLETED | OVERDUE | CANCELLED | DEFAULTED
+                             -- | WRITTEN_OFF
+note                      TEXT NOT NULL DEFAULT ''
+markup_recognition_mode   TEXT NOT NULL DEFAULT 'GRADUAL'  -- 'IMMEDIATE' | 'GRADUAL',
+                                                              tenant-configurable, see 6.1
+created_by                TEXT REFERENCES users(id)
+created_at                TIMESTAMPTZ NOT NULL DEFAULT NOW()
+updated_at                TIMESTAMPTZ NOT NULL DEFAULT NOW()
+cancelled_at              TIMESTAMPTZ
+cancelled_by              TEXT REFERENCES users(id)
+cancel_reason             TEXT
+deleted_at                TIMESTAMPTZ                -- soft delete, same pattern as
+                                                        dsrs/shops/suppliers trash
+deleted_by_id             TEXT REFERENCES users(id)
+delete_reason             TEXT NOT NULL DEFAULT ''
+```
+
+Indexes: `(tenant_id, customer_id)`, `(tenant_id, status)`, `(tenant_id, deleted_at)` —
+same style as `idx_dsrs_tenant_id`, `idx_customers_assigned_dsr_id`, etc.
+
+## 3.2 `installment_schedule`
+
+```
+id                TEXT PRIMARY KEY          -- createId('instsch')
+tenant_id         TEXT NOT NULL
+plan_id           TEXT NOT NULL REFERENCES installment_plans(id)
+installment_no    INTEGER NOT NULL
+due_date          DATE NOT NULL
+due_amount        NUMERIC NOT NULL
+paid_amount       NUMERIC NOT NULL DEFAULT 0
+remaining_amount  NUMERIC NOT NULL          -- derived, recomputed on every payment
+paid_date         DATE
+status            TEXT NOT NULL DEFAULT 'PENDING'
+                     -- PENDING | PARTIAL | PAID | OVERDUE | WAIVED | RESTRUCTURED
+created_at        TIMESTAMPTZ NOT NULL DEFAULT NOW()
+updated_at        TIMESTAMPTZ NOT NULL DEFAULT NOW()
+```
+
+Index: `(tenant_id, plan_id, installment_no)` unique; `(tenant_id, due_date, status)`
+for the due/overdue reports (these are the report's primary query pattern, index for it
+directly rather than relying on a full scan — see Section 15 on performance).
+
+## 3.3 `installment_payments`
+
+```
+id               TEXT PRIMARY KEY          -- createId('instpay')
+tenant_id        TEXT NOT NULL
+plan_id          TEXT NOT NULL REFERENCES installment_plans(id)
+customer_id      TEXT NOT NULL
+payment_date     DATE NOT NULL
+amount           NUMERIC NOT NULL
+payment_method   TEXT NOT NULL             -- CASH | BANK | MOBILE_BANKING | CARD |
+                                               CHEQUE | STORE_CREDIT | GIFT_VOUCHER
+note             TEXT NOT NULL DEFAULT ''
+created_by       TEXT REFERENCES users(id)
+created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW()
+deleted_at       TIMESTAMPTZ               -- void/reversal, same as
+                                              expenses/settlements trash pattern
+```
+
+## 3.4 `installment_payment_allocations`
+
+```
+id                 TEXT PRIMARY KEY         -- createId('installoc')
+tenant_id          TEXT NOT NULL
+payment_id         TEXT NOT NULL REFERENCES installment_payments(id)
+schedule_id        TEXT NOT NULL REFERENCES installment_schedule(id)
+allocated_amount   NUMERIC NOT NULL
+created_at         TIMESTAMPTZ NOT NULL DEFAULT NOW()
+```
+
+This is the exact same "traceable many-to-many money movement" shape as
+`trade_promotion_settlements` linking to `trade_promotion_earnings`, or how a purchase
+return links back to `purchase_receipt_items` — reuse that pattern, don't invent a new one.
+
+## 3.5 Decision needed: which customer table?
+
+StockLedger has **two separate customer tables**: `customers` (dealer-side "Shops,"
+assigned to a DSR) and `retail_customers` (walk-in/registered retail customers, used by
+`salesInvoiceService.js` and `customerDueLedgerService.js`). Installment sales are a
+retailer feature, so `installment_plans.customer_id` should reference
+**`retail_customers`**, and "no walk-in customer" means: `customerType` must be
+`REGISTERED` on the underlying sales invoice, same rule `salesInvoiceService.js`
+already enforces for due-balance sales (see `quickSale.test.js`'s "a walk-in sale must
+be fully paid" test for the equivalent existing constraint).
+
+## 3.6 Guarantors, Documents, Serial Capture — see Sections 8/9/10 for why these are
+separate tables (`installment_guarantors`, generalized `documents`, reusing
+`product_serials`) rather than columns bolted onto `installment_plans`.
+
+## 3.7 Late Fee Rules
+
+```
+installment_late_fee_rules
+  id, tenant_id, fee_type (FIXED|PERCENT|DAILY|WEEKLY|MONTHLY), fee_value,
+  grace_period_days, max_penalty_amount, active, created_at, updated_at
+```
+
+Same shape as `trade_promotion_rules` (a tenant-configurable rule table the engine
+reads at calculation time) — reuse that structure rather than a single global setting.
+
+---
+
+# 4. Layering (repository -> service -> controller -> routes)
+
+Follow the exact sequence documented in the `backend-patterns` skill for every new
+piece of business logic:
+
+1. `backend/repositories/installmentPlanRepository.js`,
+   `installmentScheduleRepository.js`, `installmentPaymentRepository.js` — raw SQL,
+   mirroring `shopDueLedgerRepository.js` / `dsrTargetRepository.js` in style
+   (`mapX(row)` functions, `listXPage`, `countX`, `getLatestX`, etc.)
+2. `backend/services/installmentPlanService.js`,
+   `installmentScheduleService.js` (or one `installmentSaleService.js` if the domain
+   is small enough — decide based on how `settlementService.js` vs
+   `shopDueLedgerService.js` split responsibilities: settlement touches many ledgers
+   at once and stays one service; ledgers that are read/written independently get
+   their own service).
+3. `backend/controllers/installmentController.js` — thin, same shape as every other
+   controller in this repo (`try { res.json(await service.method(...)) } catch (e)
+   { next(e) }`).
+4. `backend/routes/installments.routes.js` — `Router()`, `requireFeature(...)`,
+   `requirePermission(...)` per route, mounted in `backend/routes/api.js`.
+5. Wire all of the above into `backend/composition/createServiceRegistry.js` and
+   `createControllerRegistry.js` — **never construct services anywhere else**; this
+   is StockLedger's single composition root rule.
+
+---
+
+# 5. Validation Rules (via `assert()`, not decorator-based DTO validation)
+
+- `assert(customerType === 'REGISTERED', ...)` — no walk-in customer.
+- `assert(items.length > 0, ...)` — at least one product.
+- Stock check reuses the exact same "does not have enough available stock" assertion
+  `salesInvoiceService.js` already does before decrementing stock.
+- `assert(downPayment <= netSaleAmount, ...)`.
+- `assert(numberOfMonths > 0, ...)`.
+- `assert(markupValue >= 0, ...)`.
+- `assert(firstPaymentDate, ...)` via `normalizeIsoDate(...)` from
+  `backend/lib/dateRanges.js` (the same date-parsing helper every other date field in
+  this backend uses — never hand-roll `new Date(...)` parsing here).
+
+---
+
+# 6. Accounting Integration (via the real `journalService.js`, not invented)
+
+Add new source types to `backend/lib/journalSourceTypes.js` (e.g.
+`INSTALLMENT_SALE`, `INSTALLMENT_PAYMENT`, `INSTALLMENT_SETTLEMENT`,
+`INSTALLMENT_WRITE_OFF`), and new chart-of-accounts codes to `db/schema.js`'s seed
+block (e.g. `1150` "Installment Receivable", mirroring how `1110` "DSR Receivable" /
+`1130` "Goods with DSR" were added).
+
+## 6.1 On Sale Creation
+
+- Debit Installment Receivable / Credit Sales (net sale amount)
+- Debit Cash or Bank / Credit Installment Receivable (down payment)
+- COGS entries posted through the same inventory-cost journal path
+  `settlementService.js`'s `postSettlementJournal` already uses for sold-item cost —
+  don't reinvent inventory costing.
+
+## 6.2 Markup Recognition — Configurable, Not Hardcoded
+
+`installment_plans.markup_recognition_mode` (`IMMEDIATE` | `GRADUAL`), settable per
+tenant (org settings) with `GRADUAL` as the default, matching the idea doc's own
+recommendation. `GRADUAL` recognizes markup income proportionally on each payment
+allocation (via `installment_payment_allocations`), the same way trade promotion
+earnings settle proportionally in `tradePromotionSettlementService.js` — that
+service is the closest existing analog for "recognize value over multiple future
+events tied back to one original transaction."
+
+## 6.3 On Payment
+
+Cash/Bank increases via `financeAccountService.recordTransactionInClient(...)` (the
+exact same helper `settlementService.js` and `shopDueLedgerService.js` already call
+for their own cash movements) — Installment Receivable decreases, markup income
+recognized per 6.2, schedule rows updated PENDING -> PARTIAL/PAID.
+
+## 6.4 Early Settlement / Reschedule / Write-Off — see Sections 12-13-14. Each posts
+its own journal entry via `journalService`, same as settlement edits already replace
+(not stack) their journal entry in `settlementService.js`.
+
+---
+
+# 7. Payment Collection
+
+- `POST /api/installments/payments` — oldest-unpaid-installment-first allocation,
+  computed in the service layer (not the DB), same style as
+  `applyShopDueCollections`/`applySrHandovers` compute allocation math before writing.
+- Partial payment allowed; overpayment automatically rolls into the next pending
+  installment(s) via `installment_payment_allocations` rows (one payment can span
+  multiple schedule rows — that's exactly why the allocation table exists).
+- `assert(amount > 0, ...)` — no negative/zero payments (same rule as
+  `sr-due-ledger/collect` and `shop-due-ledger/collect`).
+- Payment methods: CASH, BANK, MOBILE_BANKING, CARD, CHEQUE, STORE_CREDIT,
+  GIFT_VOUCHER. STORE_CREDIT/GIFT_VOUCHER should call into the existing
+  `voucherService.js` rather than build a second voucher concept.
+- All-schedule-paid -> plan status flips to COMPLETED in the same transaction that
+  posts the final payment (no separate cron/job needed for the common case; overdue
+  detection is the one thing that does need a scheduled recompute — see 15.2).
+
+---
+
+# 8. Customer Credit Checking — New Subsystem (does not exist today)
+
+Before plan creation, surface: current `retail_customers` due (via
+`customerDueLedgerService.getBalance`), installment outstanding (sum of active plans'
+`outstanding_amount`), a new **`retail_customers.credit_limit`** column (does not
+exist — must be added), overdue amount, prior default count (`DEFAULTED` /
+`WRITTEN_OFF` plans for that customer), and a blocked flag.
+
+If total exposure exceeds `credit_limit`: show a warning in the UI and require a new
+permission (`OVERRIDE_INSTALLMENT_CREDIT_LIMIT`) to proceed anyway — same
+permission-gated-override pattern already used elsewhere in this app's access-control
+layer (see the `access-control` skill for how a similar override permission is wired).
+
+---
+
+# 9. Guarantors — New Table
+
+```
+installment_guarantors
+  id, tenant_id, plan_id, name, phone, address, national_id, relationship,
+  occupation, employer, monthly_income, reference_notes, emergency_contact,
+  created_at, updated_at, deleted_at
+```
+
+One plan can have multiple guarantors (one-to-many), listed/edited from the Plan
+Detail page. No new architecture needed — this is a straightforward child table
+following the same repository/service pattern as everything else.
+
+---
+
+# 10. Customer & Guarantor Documents — New Subsystem, Real Constraint
+
+The existing `uploadController.js` writes to local disk, which **does not persist on
+the Vercel serverless deploy target**. Before building "Customer Documents," decide
+one of:
+
+(a) Extend the upload system with a pluggable storage backend (local disk for Render,
+    an S3-compatible bucket for Vercel) behind the same `POST /api/upload/...`
+    interface, or
+(b) Store documents only against the Render deploy's persistent disk and explicitly
+    scope this feature to tenants running there.
+
+Recommendation: (a). Add a generic `documents` table (`id, tenant_id, entityType,
+entityId, documentType, url, uploadedBy, createdAt, deletedAt`) so it can attach to a
+plan, a guarantor, or a customer without a separate table per entity type — reuse
+this for National ID, Passport, Driving License, Utility Bill, Customer Photo,
+Guarantor Photo, Signed Agreement, Income Proof, all as `documentType` values on one
+table, not eight tables.
+
+---
+
+# 11. Serial/IMEI Capture — Reuse, Don't Rebuild
+
+`product_serials` already stores serial/IMEI per unit and links to whatever sold it
+(see how `salesInvoiceService.js` and `purchaseReceiptRepository.js` already attach
+serials to a sale/purchase line). An installment sale's line items should link to
+`product_serials` exactly the way a normal sales invoice line does — no new
+serialization system, just make sure `installment_plans` -> `sales_invoice_id` ->
+existing invoice items -> existing serial linkage all just works because the
+installment sale *is* a sales invoice underneath.
+
+---
+
+# 12. Agreement Printing — Reuse `reportExportService.js`
+
+Reuse the existing Playwright-based HTML-to-PDF pipeline
+(`reportExportService.js`'s `createPdfBuffer`) — build an HTML template (customer,
+guarantors, products + serials, schedule table, terms, signature blocks, company
+info from tenant settings) and pass it through the same `chromium` PDF renderer
+already used for other exports. Do not add a second PDF library.
+
+---
+
+# 13. Reschedule — Never Overwrite History
+
+- `assert(reason, ...)` — required, same as every destructive/adjusting action in
+  this codebase (DSR opening-due changes, expense edits, purchase discount edits all
+  require a reason today).
+- Old `installment_schedule` rows for the affected future installments get
+  `status = 'RESTRUCTURED'` (soft-superseded, not deleted); new rows are inserted for
+  the new schedule.
+- Record `approved_by` / `approved_at` on the plan or a dedicated
+  `installment_reschedule_log` table (id, tenant_id, plan_id, reason, old_schedule
+  snapshot as JSONB, new_schedule snapshot as JSONB, approved_by, approved_at) —
+  mirrors how `trade_promotion_settlements` keeps a settlement history separate from
+  the earning it adjusts.
+- `auditService.record(...)` call, same as every other reason-gated edit in this app.
+
+---
+
+# 14. Cancel / Early Settlement / Write-Off
+
+- **Cancel**: reason required; per the idea doc's own v1 recommendation, only allow
+  cancellation when no installment payment has been collected beyond the down
+  payment — anything further requires the write-off flow below, kept deliberately
+  separate rather than overloading "cancel."
+- **Early Settlement**: pay all remaining `outstanding_amount` (optionally with a
+  settlement discount and/or waiving remaining unrecognized markup under `GRADUAL`
+  mode); all remaining schedule rows -> PAID; plan -> COMPLETED; posts its own
+  journal entry (discount/waived-markup handling mirrors how
+  `settlementService.js` posts a discount-to-supplier entry differently from a
+  normal discount).
+- **Write-Off**: new permission (`WRITE_OFF_INSTALLMENT_PLAN`), reason required,
+  posts a bad-debt journal entry, requires an approval step (a second user/role with
+  the approval permission, not just the creator) — same "requires a different
+  permission to approve than to initiate" pattern as trade promotion settlement void
+  vs. creation.
+
+---
+
+# 15. Reports & Dashboard Widgets
+
+All reports reuse existing infrastructure rather than a new reporting framework:
+
+- Pagination: `parsePagination` / `buildPageResult` from `backend/lib/pagination.js`
+  (used by literally every list endpoint in this app).
+- Date ranges: `backend/lib/dateRanges.js` helpers (`normalizeIsoDate`, `addDays`,
+  `startOfIsoWeek`) — the same ones `profitService.js` uses for its daily/weekly/
+  monthly grouping. The Aging Report and Collection Report should follow
+  `profitService.js`'s daily-bucket-then-group pattern directly.
+- Export (PDF/Excel/CSV): `reportExportService.js` already supports this pattern for
+  other reports — extend it, don't build a parallel exporter.
+- Dashboard widgets: extend `financeDashboardService.js` /
+  `useDashboardViewModel.js` (frontend) the same way DSR/shop widgets already sit
+  alongside finance ones on the existing dashboard.
+
+## 15.1 Report List (all requested reports retained)
+
+Today's Due, Tomorrow Due, Upcoming Due (7/15 days or custom range), Overdue
+(with days-overdue and total outstanding), Collection Report (by date range, by
+collector), Customer Installment Statement, Installment Ledger, Markup Income
+Report, Collector Performance, Default Report, Settlement Report, Reschedule
+Report, Aging Report.
+
+## 15.2 Overdue Recalculation
+
+Unlike most of this app's derived fields (recomputed on read), `status = 'OVERDUE'`
+and `overdue_amount` on both the plan and schedule rows need to be correct even when
+nobody is actively viewing them (for dashboard counts and the Overdue report to be
+fast at scale — see Section 16). Recommend a lightweight recompute pass: either (a)
+compute overdue status purely at query time from `due_date < today AND status !=
+PAID` (simplest, matches this codebase's general "derive, don't store" philosophy,
+works fine at reasonable scale with the indexes in 3.2), or (b) a periodic job if (a)
+proves too slow past a very large row count. Start with (a); this app has no existing
+cron/job runner, so introducing one is a bigger architectural addition than the
+feature itself — avoid it unless proven necessary.
+
+---
+
+# 16. Performance
+
+- Index `installment_schedule` on `(tenant_id, due_date, status)` and
+  `installment_plans` on `(tenant_id, status)`, `(tenant_id, customer_id)` — these
+  are the actual query shapes the reports above run.
+- Every list endpoint uses the existing `parsePagination`/`buildPageResult` helpers —
+  no unpaginated "return everything" endpoints, same rule already followed
+  everywhere else in this backend.
+- No N+1 report queries: follow `profitService.js`'s pattern of one aggregate SQL
+  query per report dimension, not a query-per-row loop.
+
+---
+
+# 17. Permissions (added to `backend/lib/permissions.js` + `TENANT_BUSINESS_PERMISSIONS`)
+
+`VIEW_INSTALLMENT_PLANS`, `MANAGE_INSTALLMENT_PLANS` (create/edit), `COLLECT_INSTALLMENT_PAYMENT`,
+`RESCHEDULE_INSTALLMENT_PLAN`, `CANCEL_INSTALLMENT_PLAN`, `WRITE_OFF_INSTALLMENT_PLAN`,
+`APPROVE_INSTALLMENT_SETTLEMENT`, `VIEW_INSTALLMENT_REPORTS`, `EXPORT_INSTALLMENT_REPORTS`,
+`OVERRIDE_INSTALLMENT_CREDIT_LIMIT`, `DELETE_INSTALLMENT_DRAFT`.
+
+Each needs an explicit `role_permissions` row per tenant/role to actually grant it —
+per this codebase's access-control rule, a role has **zero** permissions until rows
+exist, so plan for the rollout/seeding step, not just the permission definitions.
+
+---
+
+# 18. Notifications — Interface Only, No Provider (as requested)
+
+Define a `NotificationService` interface (e.g. `backend/services/notificationService.js`
+with `send({ tenantId, channel, to, template, data })`) that the installment module
+calls for "payment due reminder" / "payment received" / "overdue" events, backed
+initially by a no-op or log-only implementation. Do not wire SMS/WhatsApp/email/push
+providers now — just make sure the call sites exist so a real provider can be
+dropped in later without touching the installment code.
+
+---
+
+# 19. Frontend
+
+Follow `frontend-patterns` conventions exactly:
+
+- `frontend/src/features/installments/pages/` — Installment Sales list,
+  New Installment Sale form (with live schedule preview), Plan Detail, Collection
+  page.
+- `frontend/src/features/installments/viewmodels/` — one viewmodel per page, same
+  split every other feature uses.
+- `frontend/src/services/api/installmentsApi.js`, registered in `inventoryApi.js`.
+- `APP_ROUTES` entries in `frontend/src/app/routes.js` (learn from the HR module's
+  mistake — HR is fully built but has zero `APP_ROUTES` entries, so it's completely
+  unreachable; don't repeat that here).
+- i18n: every label in `en.js` + `bn.js`, no hardcoded strings.
+- Dates: `formatDate()`/`formatDateTime()` only — schedule tables are exactly the
+  kind of place the UTC+6 date bug bites hardest (a due date rendered one day off is
+  a real customer-facing/collections problem, not a cosmetic one).
+- Component library: existing data table, dialog, filter, and summary-card
+  components — this module should look identical in style to the DSR/Shop/Supplier
+  pages we already audited, not a new design language.
+- Permission-gated UI via the existing `access-control` pattern (hide/disable
+  actions the current role can't perform, matching how other pages already do this).
+
+---
+
+# 20. Testing (backend/tests/*.test.js against the real dev DB, not Jest units)
+
+New files, following this session's exact idiom (`createTenantAndAdmin`,
+`cleanupTenant`, real HTTP calls via `tenant.agent`):
+
+- `installmentPlans.test.js` — creation validation (walk-in rejected, stock check,
+  down payment cap, months > 0, markup >= 0), schedule generation (N rows, monthly
+  due dates, total equals final payable).
+- `installmentPayments.test.js` — partial payment, full payment, overpayment
+  allocation across multiple schedule rows, oldest-first ordering, no
+  negative/zero-amount payments.
+- `installmentSettlement.test.js` — early settlement (all schedules -> PAID, plan ->
+  COMPLETED, discount/waived-markup journal correctness).
+- `installmentReschedule.test.js` — reason required, old rows preserved as
+  RESTRUCTURED, new rows correct, audit entry recorded.
+- `installmentWriteOff.test.js` — permission + reason required, correct bad-debt
+  journal entry, approval step enforced.
+- `installmentReports.test.js` — Today Due / Overdue / Collection / Customer
+  Statement aggregate correctly, mirroring how `dsrTargets.test.js` and
+  `profitReport.test.js` verify aggregate report math in this session's audit.
+- Tenant isolation test in each file (or a shared `installmentTenantIsolation`
+  section), same as every other module in this codebase.
+- Wire all new files into `backend/package.json`'s `test:retailer-check` chain
+  (this is a retailer-facing feature), the same way this session's audit wired
+  `customerDueLedger.test.js` and `dailySalesReport.test.js` into that script.
+
+Do not write Jest-style "unit test the class in isolation with mocks" tests — this
+codebase deliberately tests against a real database end-to-end through the HTTP
+layer; follow that, don't introduce a second testing philosophy.
+
+---
+
+# 21. What's Genuinely New vs. Reused (summary)
+
+**New, real subsystems that don't exist yet:**
+- Customer credit limit field + credit-check UI (Section 8)
+- Document storage that survives serverless (Section 10) — needs an explicit
+  storage-backend decision before building
+- Late fee rule engine (Section 3.7)
+- Guarantor management (Section 9)
+- Notification interface (Section 18, no provider)
+- Installment-specific tables (plan, schedule, payment, allocation, reschedule log)
+
+**Reused as-is, not rebuilt:**
+- Accounting/journal engine, chart of accounts, financial reporting
+- Audit trail
+- Permissions + feature flags
+- Product serial/IMEI tracking
+- Sales invoice + stock deduction flow
+- Finance account (cash/bank) transactions
+- Voucher system (for store credit / gift voucher payment method)
+- PDF export pipeline (Playwright)
+- Pagination, date-range, and report-grouping helpers
+- Frontend page/viewmodel/API-client/i18n conventions
+
+---
+
+# 22. Suggested Build Order
+
+1. Schema (3) + repositories + services + routes for Plan/Schedule/Payment/Allocation
+   (core create-sale -> generate-schedule -> collect-payment loop).
+2. Accounting integration (6) on top of that loop — get the journal entries right
+   before adding anything else, since every later feature (settlement, write-off,
+   reschedule) also posts journal entries and needs the base case correct first.
+3. Reports (15) that read the core tables — Today Due, Overdue, Customer Statement,
+   Collection Report.
+4. Reschedule (13), Early Settlement / Write-Off (14).
+5. Credit limit check (8), guarantors (9), documents (10) — these depend on the core
+   loop existing but don't depend on each other.
+6. Late fee engine (3.7/15), dashboard widgets (15), agreement PDF (12),
+   notification interface (18) last — genuinely additive, nothing else depends on them.
+
+This keeps every intermediate state shippable and testable, rather than one big-bang
+module landing all at once.

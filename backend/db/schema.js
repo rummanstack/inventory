@@ -2825,5 +2825,109 @@ export async function createSchema(pool) {
     CREATE INDEX IF NOT EXISTS idx_trade_promotion_settlements_earning ON trade_promotion_settlements(tenant_id, earning_id);
     CREATE INDEX IF NOT EXISTS idx_trade_promotion_settlements_date ON trade_promotion_settlements(tenant_id, settlement_date DESC);
   `);
+
+  // ── Retail Installments (Phase 1: core loop only — no accounting/late-fee/ ──
+  // guarantor/document tables yet; see RETAIL-INSTALLMENT-MODULE-BUILD-SPEC.txt.
+  // An installment plan wraps a normal sales_invoices row (created via
+  // salesInvoiceService.createSalesInvoiceRecord) — the invoice covers stock
+  // deduction and the down payment; the schedule below is the source of truth
+  // for the financed amount plus markup, collected over time.
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS installment_number_counters (
+      tenant_id  TEXT NOT NULL REFERENCES tenants(id),
+      year       INTEGER NOT NULL,
+      last_value INTEGER NOT NULL DEFAULT 0,
+      PRIMARY KEY (tenant_id, year)
+    );
+
+    CREATE TABLE IF NOT EXISTS installment_plans (
+      id                          TEXT PRIMARY KEY,
+      tenant_id                   TEXT NOT NULL REFERENCES tenants(id),
+      plan_number                 TEXT NOT NULL,
+      customer_id                 TEXT NOT NULL REFERENCES retail_customers(id),
+      sales_invoice_id            TEXT NOT NULL REFERENCES sales_invoices(id),
+      sale_date                   DATE NOT NULL,
+      product_total               NUMERIC NOT NULL DEFAULT 0,
+      discount_amount             NUMERIC NOT NULL DEFAULT 0,
+      net_sale_amount             NUMERIC NOT NULL DEFAULT 0,
+      down_payment                NUMERIC NOT NULL DEFAULT 0,
+      finance_amount              NUMERIC NOT NULL DEFAULT 0,
+      markup_type                 TEXT NOT NULL,
+      markup_value                NUMERIC NOT NULL DEFAULT 0,
+      markup_amount               NUMERIC NOT NULL DEFAULT 0,
+      final_payable_amount        NUMERIC NOT NULL DEFAULT 0,
+      number_of_months            INTEGER NOT NULL,
+      first_payment_date          DATE NOT NULL,
+      payment_day_of_month        INTEGER NOT NULL,
+      monthly_installment_amount  NUMERIC NOT NULL DEFAULT 0,
+      total_paid                  NUMERIC NOT NULL DEFAULT 0,
+      outstanding_amount          NUMERIC NOT NULL DEFAULT 0,
+      overdue_amount              NUMERIC NOT NULL DEFAULT 0,
+      status                      TEXT NOT NULL DEFAULT 'ACTIVE'
+        CHECK (status IN ('ACTIVE', 'COMPLETED', 'OVERDUE', 'CANCELLED', 'DEFAULTED', 'WRITTEN_OFF')),
+      note                        TEXT NOT NULL DEFAULT '',
+      created_by                  TEXT REFERENCES users(id) ON DELETE SET NULL,
+      created_at                  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at                  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      cancelled_at                TIMESTAMPTZ,
+      cancelled_by                TEXT REFERENCES users(id) ON DELETE SET NULL,
+      cancel_reason               TEXT,
+      deleted_at                  TIMESTAMPTZ,
+      deleted_by_id               TEXT REFERENCES users(id) ON DELETE SET NULL,
+      delete_reason               TEXT NOT NULL DEFAULT '',
+      UNIQUE (tenant_id, plan_number)
+    );
+    CREATE INDEX IF NOT EXISTS idx_installment_plans_tenant_customer ON installment_plans(tenant_id, customer_id);
+    CREATE INDEX IF NOT EXISTS idx_installment_plans_tenant_status ON installment_plans(tenant_id, status);
+    CREATE INDEX IF NOT EXISTS idx_installment_plans_tenant_deleted ON installment_plans(tenant_id, deleted_at);
+
+    CREATE TABLE IF NOT EXISTS installment_schedule (
+      id               TEXT PRIMARY KEY,
+      tenant_id        TEXT NOT NULL REFERENCES tenants(id),
+      plan_id          TEXT NOT NULL REFERENCES installment_plans(id) ON DELETE CASCADE,
+      installment_no   INTEGER NOT NULL,
+      due_date         DATE NOT NULL,
+      due_amount       NUMERIC NOT NULL DEFAULT 0,
+      paid_amount      NUMERIC NOT NULL DEFAULT 0,
+      remaining_amount NUMERIC NOT NULL DEFAULT 0,
+      paid_date        DATE,
+      status           TEXT NOT NULL DEFAULT 'PENDING'
+        CHECK (status IN ('PENDING', 'PARTIAL', 'PAID', 'OVERDUE', 'WAIVED', 'RESTRUCTURED')),
+      created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE (tenant_id, plan_id, installment_no)
+    );
+    CREATE INDEX IF NOT EXISTS idx_installment_schedule_plan ON installment_schedule(tenant_id, plan_id, installment_no);
+    CREATE INDEX IF NOT EXISTS idx_installment_schedule_due ON installment_schedule(tenant_id, due_date, status);
+
+    CREATE TABLE IF NOT EXISTS installment_payments (
+      id             TEXT PRIMARY KEY,
+      tenant_id      TEXT NOT NULL REFERENCES tenants(id),
+      plan_id        TEXT NOT NULL REFERENCES installment_plans(id),
+      customer_id    TEXT NOT NULL REFERENCES retail_customers(id),
+      payment_date   DATE NOT NULL,
+      amount         NUMERIC NOT NULL,
+      payment_method TEXT NOT NULL DEFAULT 'CASH',
+      note           TEXT NOT NULL DEFAULT '',
+      created_by     TEXT REFERENCES users(id) ON DELETE SET NULL,
+      created_at     TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      deleted_at     TIMESTAMPTZ,
+      deleted_by_id  TEXT REFERENCES users(id) ON DELETE SET NULL,
+      delete_reason  TEXT NOT NULL DEFAULT ''
+    );
+    CREATE INDEX IF NOT EXISTS idx_installment_payments_plan ON installment_payments(tenant_id, plan_id);
+    CREATE INDEX IF NOT EXISTS idx_installment_payments_date ON installment_payments(tenant_id, payment_date);
+
+    CREATE TABLE IF NOT EXISTS installment_payment_allocations (
+      id                TEXT PRIMARY KEY,
+      tenant_id         TEXT NOT NULL REFERENCES tenants(id),
+      payment_id        TEXT NOT NULL REFERENCES installment_payments(id) ON DELETE CASCADE,
+      schedule_id       TEXT NOT NULL REFERENCES installment_schedule(id),
+      allocated_amount  NUMERIC NOT NULL,
+      created_at        TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+    CREATE INDEX IF NOT EXISTS idx_installment_allocations_payment ON installment_payment_allocations(tenant_id, payment_id);
+    CREATE INDEX IF NOT EXISTS idx_installment_allocations_schedule ON installment_payment_allocations(tenant_id, schedule_id);
+  `);
 }
 

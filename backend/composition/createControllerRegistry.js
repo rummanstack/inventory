@@ -28,6 +28,7 @@ import { FinanceDashboardController } from "../controllers/financeDashboardContr
 import { JournalController } from "../controllers/journalController.js";
 import { GenericMedicineController } from "../controllers/genericMedicineController.js";
 import { HelpDeskController } from "../controllers/helpDeskController.js";
+import { InstallmentController } from "../controllers/installmentController.js";
 import { IssueController } from "../controllers/issueController.js";
 import { ManufacturerController } from "../controllers/manufacturerController.js";
 import { OrgController } from "../controllers/orgController.js";
@@ -122,6 +123,7 @@ export function createControllerRegistry({ services, env, databaseManager }) {
     operations: {
       expenseController: new ExpenseController(services.operations.expenseService),
       helpDeskController: new HelpDeskController(services.operations.helpDeskService),
+      installmentController: new InstallmentController(services.operations.installmentPlanService),
       profitController: new ProfitController(services.finance.profitService),
       quotationController: new QuotationController(services.operations.quotationService),
       repairJobController: new RepairJobController(services.operations.repairJobService),

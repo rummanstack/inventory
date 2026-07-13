@@ -46,6 +46,7 @@ import { createPurchaseReturnsRoutes } from "./purchaseReturns.routes.js";
 import { createSupplierPaymentsRoutes } from "./supplierPayments.routes.js";
 import { createSupplierDiscountsRoutes } from "./supplierDiscounts.routes.js";
 import { createSalesInvoicesRoutes } from "./salesInvoices.routes.js";
+import { createInstallmentRoutes } from "./installments.routes.js";
 import { createCustomerDueLedgerRoutes } from "./customerDueLedger.routes.js";
 import { createCustomerPaymentsRoutes } from "./customerPayments.routes.js";
 import { createSalesReturnsRoutes } from "./salesReturns.routes.js";
@@ -111,6 +112,7 @@ export function createApiRouter({ controllers, authService, env, auditService })
     operations: {
       expenseController,
       helpDeskController,
+      installmentController,
       profitController,
       quotationController,
       repairJobController,
@@ -221,6 +223,7 @@ export function createApiRouter({ controllers, authService, env, auditService })
   router.use("/supplier-payments", createSupplierPaymentsRoutes(supplierPaymentController));
   router.use("/supplier-discounts", createSupplierDiscountsRoutes(supplierDiscountController));
   router.use("/sales-invoices", createSalesInvoicesRoutes(salesInvoiceController));
+  router.use("/installments", createInstallmentRoutes(installmentController));
   router.use("/retail-promotions", createRetailPromotionsRoutes(retailPromotionController));
   router.use("/customer-due-ledger", createCustomerDueLedgerRoutes(customerDueLedgerController));
   router.use("/customer-payments", createCustomerPaymentsRoutes(customerPaymentController));

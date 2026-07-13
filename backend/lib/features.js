@@ -12,6 +12,7 @@ export const TENANT_FEATURES = [
   'trade-ins',
   'retailer-sales-invoices',
   'retailer-sales-return',
+  'installment-sales',
 
   // Customers
   'retail-customers',

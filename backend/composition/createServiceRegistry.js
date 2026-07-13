@@ -29,6 +29,7 @@ import { JournalService } from "../services/journalService.js";
 import { FinanceDashboardService } from "../services/financeDashboardService.js";
 import { GenericMedicineService } from "../services/genericMedicineService.js";
 import { HelpDeskService } from "../services/helpDeskService.js";
+import { InstallmentPlanService } from "../services/installmentPlanService.js";
 import { InvariantService } from "../services/invariantService.js";
 import { IssueService } from "../services/issueService.js";
 import { ManufacturerService } from "../services/manufacturerService.js";
@@ -235,6 +236,15 @@ export function createServiceRegistry({ databaseManager, env }) {
       auditService: platform.auditService,
     }),
   };
+
+  // Constructed after `operations` closes because it needs a live reference to
+  // salesInvoiceService (an installment sale creates its underlying invoice via
+  // salesInvoiceService.createSalesInvoiceRecord, inside the same transaction).
+  operations.installmentPlanService = new InstallmentPlanService(databaseManager, {
+    auditService: platform.auditService,
+    financeAccountService: finance.financeAccountService,
+    salesInvoiceService: operations.salesInvoiceService,
+  });
 
   const hr = {
     attendanceService: new AttendanceService(databaseManager, { auditService: platform.auditService }),

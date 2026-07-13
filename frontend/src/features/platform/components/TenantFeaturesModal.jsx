@@ -1,9 +1,22 @@
 import { useEffect, useMemo, useState } from 'react';
-import { CheckSquare, Save, Square } from 'lucide-react';
+import { CheckSquare, Save, Sparkles, Square } from 'lucide-react';
 import { Alert, Modal } from '../../../components/ui.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { APP_ROUTES, SIDEBAR_SECTIONS } from '../../../app/routes.js';
+
+// Features with no APP_ROUTES entry at all (nothing to navigate to — e.g. the
+// floating AI chat widget is mounted globally in AppLayout, not routed) can't
+// be discovered by walking APP_ROUTES/SIDEBAR_SECTIONS below, so they're
+// listed here explicitly and merged in as their own extra group.
+const EXTRA_FEATURE_GROUPS = [
+  {
+    section: 'assistant',
+    features: [
+      { feature: 'ai-assistant', labelKey: 'nav.aiAssistant', icon: Sparkles },
+    ],
+  },
+];
 
 // One-line description of what each feature enables for the tenant.
 const FEATURE_DESCRIPTIONS = {
@@ -118,6 +131,9 @@ const FEATURE_DESCRIPTIONS = {
   trash: 'View and restore soft-deleted records across all entity types.',
   'database-backup': 'Trigger and download database backups for disaster recovery.',
   'help-desk': 'Internal support ticket system for staff issue management.',
+
+  // AI Assistant (floating widget, not a routed page)
+  'ai-assistant': 'Floating Gemini-powered chat assistant with customer and low-stock business context, available on every page.',
 };
 
 export default function TenantFeaturesModal({ tenant, onClose, onSave }) {
@@ -152,12 +168,17 @@ export default function TenantFeaturesModal({ tenant, onClose, onSave }) {
         meta[route.feature] = { labelKey: route.labelKey, icon: route.icon };
       }
     }
+    for (const group of EXTRA_FEATURE_GROUPS) {
+      for (const { feature, labelKey, icon } of group.features) {
+        if (!meta[feature]) meta[feature] = { labelKey, icon };
+      }
+    }
     return meta;
   }, []);
 
   const featureGroups = useMemo(() => {
     const seen = new Set();
-    return SIDEBAR_SECTIONS.filter((s) => s !== 'developer').map((section) => {
+    const routeGroups = SIDEBAR_SECTIONS.filter((s) => s !== 'developer').map((section) => {
       const features = [];
       for (const route of APP_ROUTES) {
         if (route.group !== section || !route.feature || !featureMeta[route.feature]) continue;
@@ -167,6 +188,13 @@ export default function TenantFeaturesModal({ tenant, onClose, onSave }) {
       }
       return { section, features };
     }).filter((g) => g.features.length > 0);
+
+    const extraGroups = EXTRA_FEATURE_GROUPS.map((group) => ({
+      section: group.section,
+      features: group.features.map((f) => f.feature).filter((feature) => !seen.has(feature)),
+    })).filter((g) => g.features.length > 0);
+
+    return [...routeGroups, ...extraGroups];
   }, [featureMeta]);
 
   const totalEnabled = selected.length;

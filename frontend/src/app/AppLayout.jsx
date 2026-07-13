@@ -112,15 +112,6 @@ export default function AppLayout() {
       <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
       {user?.mustChangePassword ? <MustChangePasswordModal /> : null}
       {!menuOpen ? <AiChatWidget /> : null}
-      {location.pathname !== '/help-desk' && !menuOpen && (
-        <button
-          onClick={() => navigate('/help-desk')}
-          className="fixed bottom-6 right-6 z-50 flex h-13 w-13 items-center justify-center rounded-full bg-[var(--secondary)] text-white shadow-lg hover:bg-[var(--secondary-strong)] active:scale-95 transition-all max-lg:bottom-[calc(4.5rem+env(safe-area-inset-bottom))]"
-          title={t('nav.helpDesk')}
-        >
-          <HelpCircle className="h-6 w-6" />
-        </button>
-      )}
     </div>
   );
 }

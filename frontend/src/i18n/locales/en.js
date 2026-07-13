@@ -92,6 +92,7 @@ const en = {
       customers: 'Shops',
       shops: 'Shops',
       retailCustomers: 'Customers',
+      aiAssistant: 'AI Assistant',
       morningIssue: 'Morning Issue',
       eveningSettlement: 'Evening Settlement',
       financeDashboard: 'Finance Dashboard',
@@ -234,6 +235,7 @@ const en = {
       hr: 'HR & Payroll',
       system: 'System & Settings',
       developer: 'Developer',
+      assistant: 'AI Assistant',
       misc: 'Other',
     },
     mobileNav: {

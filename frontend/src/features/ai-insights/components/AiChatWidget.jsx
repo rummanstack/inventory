@@ -1,5 +1,5 @@
-import { useEffect, useRef } from 'react';
-import { AlertTriangle, Bot, Loader2, PackageSearch, Send, Sparkles, UserRound, X } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { AlertTriangle, Bot, Check, Copy, Loader2, PackageSearch, Send, Sparkles, UserRound, X } from 'lucide-react';
 import { Badge, Select, cx } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { useAiChatWidgetViewModel, QUICK_PROMPTS } from '../viewmodels/useAiChatWidgetViewModel.js';
@@ -11,11 +11,52 @@ function MessageContent({ content }) {
     const isHeading = trimmed.endsWith(':') && trimmed.length < 80;
     const isBullet = /^[-*]\s+/.test(trimmed);
     return (
-      <p key={index} className={isHeading ? 'mt-2 font-extrabold text-slate-950 first:mt-0' : isBullet ? 'pl-3' : ''}>
+      // No explicit color here — inherits whatever the surrounding bubble set
+      // (bubble text color already differs between user/assistant and light/dark).
+      <p key={index} className={isHeading ? 'mt-2 font-extrabold first:mt-0' : isBullet ? 'pl-3' : ''}>
         {trimmed}
       </p>
     );
   });
+}
+
+function CopyMessageButton({ text }) {
+  const { t } = useInventoryApp();
+  const [copied, setCopied] = useState(false);
+  const timeoutRef = useRef(null);
+
+  useEffect(() => () => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+  }, []);
+
+  async function handleCopy() {
+    try {
+      await navigator.clipboard.writeText(String(text || ''));
+      setCopied(true);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      timeoutRef.current = setTimeout(() => setCopied(false), 1500);
+    } catch {
+      // Ignore clipboard failures in unsupported browsers.
+    }
+  }
+
+  const label = copied ? t('common.copied') : t('common.copy');
+
+  return (
+    <button
+      type="button"
+      className={cx(
+        'mt-1.5 inline-flex h-6 items-center gap-1 rounded-md px-1.5 text-[11px] font-semibold text-slate-400 transition hover:bg-slate-100 hover:text-slate-700',
+        copied && 'text-emerald-600 hover:text-emerald-600',
+      )}
+      onClick={handleCopy}
+      title={label}
+      aria-label={label}
+    >
+      {copied ? <Check size={12} /> : <Copy size={12} />}
+      {label}
+    </button>
+  );
 }
 
 function ChatBubble({ message }) {
@@ -23,17 +64,25 @@ function ChatBubble({ message }) {
   return (
     <div className={cx('flex gap-2.5', isUser ? 'justify-end' : 'justify-start')}>
       {!isUser ? (
-        <div className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-control bg-slate-950 text-white shadow-crisp">
+        // Literal hex, not bg-slate-950 — the slate scale inverts in dark mode
+        // (adaptive ink scale) while text-white stays genuinely white, so the
+        // pair would turn into white-on-white. This chip must stay dark in
+        // both themes.
+        <div className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-control bg-[#1e293b] text-white shadow-crisp">
           <Bot size={16} />
         </div>
       ) : null}
       <div className={cx(
         'max-w-[82%] rounded-[20px] px-3.5 py-2.5 text-[13px] font-semibold leading-6 shadow-crisp',
-        isUser ? 'bg-slate-950 text-white' : 'border border-slate-100 bg-white text-slate-750',
+        // Same literal-hex reasoning as the avatar chip above for the user bubble.
+        isUser ? 'bg-[#1e293b] text-white' : 'border border-slate-100 bg-white text-slate-700',
       )}
       >
         <MessageContent content={message.content} />
-        {message.meta ? <p className={cx('mt-1.5 text-[11px]', isUser ? 'text-slate-300' : 'text-slate-400')}>{message.meta}</p> : null}
+        {message.meta ? (
+          <p className={cx('mt-1.5 text-[11px]', isUser ? 'text-[#ffffffb3]' : 'text-slate-400')}>{message.meta}</p>
+        ) : null}
+        {!isUser ? <CopyMessageButton text={message.content} /> : null}
       </div>
     </div>
   );
@@ -45,7 +94,8 @@ function ContextPill({ active, icon: Icon, label, onClick, disabled }) {
       type="button"
       className={cx(
         'flex flex-1 items-center justify-center gap-1.5 rounded-full px-2 py-1.5 text-[11px] font-bold transition disabled:cursor-not-allowed disabled:opacity-40',
-        active ? 'bg-slate-950 text-white shadow-crisp' : 'bg-slate-100 text-slate-600 hover:bg-slate-200',
+        // Literal hex, not bg-slate-950 — see ChatBubble comment above.
+        active ? 'bg-[#1e293b] text-white shadow-crisp' : 'bg-slate-100 text-slate-600 hover:bg-slate-200',
       )}
       onClick={onClick}
       disabled={disabled}
@@ -82,7 +132,7 @@ export default function AiChatWidget() {
         <div
           role="dialog"
           aria-label={t('aiChat.title')}
-          className="panel-strong fixed bottom-40 right-6 z-50 flex w-[380px] max-w-[calc(100vw-1.5rem)] flex-col overflow-hidden rounded-[24px] shadow-modal max-lg:bottom-[calc(9.75rem+env(safe-area-inset-bottom))]"
+          className="panel-strong fixed bottom-20 right-6 z-50 flex w-[380px] max-w-[calc(100vw-1.5rem)] flex-col overflow-hidden rounded-[24px] shadow-modal max-lg:bottom-[calc(8.5rem+env(safe-area-inset-bottom))]"
           style={{ height: 'min(600px, calc(100vh - 8rem))' }}
         >
           <div className="flex shrink-0 items-start justify-between gap-3 border-b border-slate-100 bg-slate-50/80 px-4 py-3.5">
@@ -156,7 +206,7 @@ export default function AiChatWidget() {
             ) : null}
             {vm.sending ? (
               <div className="flex gap-2.5">
-                <div className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-control bg-slate-950 text-white shadow-crisp"><Bot size={16} /></div>
+                <div className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-control bg-[#1e293b] text-white shadow-crisp"><Bot size={16} /></div>
                 <div className="rounded-[20px] border border-slate-100 bg-white px-3.5 py-2.5 text-[13px] font-semibold text-slate-500 shadow-crisp">
                   <span className="inline-flex items-center gap-2"><Loader2 size={14} className="animate-spin" /> {t('aiChat.thinking')}</span>
                 </div>
@@ -180,7 +230,7 @@ export default function AiChatWidget() {
                   }
                 }}
               />
-              <button type="submit" className="icon-btn shrink-0 bg-slate-950 text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50" disabled={!vm.message.trim() || vm.sending || !vm.status?.configured} aria-label={t('aiChat.send')}>
+              <button type="submit" className="icon-btn shrink-0 bg-[#1e293b] text-white hover:bg-[#0f172a] disabled:cursor-not-allowed disabled:opacity-50" disabled={!vm.message.trim() || vm.sending || !vm.status?.configured} aria-label={t('aiChat.send')}>
                 {vm.sending ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
               </button>
             </div>
@@ -190,7 +240,7 @@ export default function AiChatWidget() {
 
       <button
         type="button"
-        className="fixed bottom-24 right-6 z-50 flex h-13 w-13 items-center justify-center rounded-full bg-[linear-gradient(135deg,var(--secondary-strong),var(--brand-strong))] text-white shadow-lg transition-all hover:brightness-105 active:scale-95 max-lg:bottom-[calc(8.5rem+env(safe-area-inset-bottom))]"
+        className="fixed bottom-5 right-6 z-50 flex h-13 w-13 items-center justify-center rounded-full bg-[linear-gradient(135deg,var(--secondary-strong),var(--brand-strong))] text-white shadow-lg transition-all hover:brightness-105 active:scale-95 max-lg:bottom-[calc(4.5rem+env(safe-area-inset-bottom))]"
         onClick={() => vm.setOpen((current) => !current)}
         title={vm.open ? t('common.close') : t('aiChat.launch')}
         aria-label={vm.open ? t('common.close') : t('aiChat.launch')}

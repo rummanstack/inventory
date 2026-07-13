@@ -88,6 +88,29 @@ export default function ProductsPage() {
     await inventoryApi.recordPrint({ entityType: 'products_report', entityId: 'all', label: t('products.reportPrintLabel') });
     printElementById(PRODUCTS_PRINT_ID);
   }
+  useEffect(() => {
+    function handleKeyDown(event) {
+      const key = event.key.toLowerCase();
+      const isShortcut = event.altKey && !event.ctrlKey && !event.metaKey;
+      if (!isShortcut) {
+        return;
+      }
+
+      if (key === 'd') {
+        event.preventDefault();
+        handleDownloadPdf();
+      } else if (key === 'e') {
+        event.preventDefault();
+        handleExportExcel();
+      } else if (key === 'p') {
+        event.preventDefault();
+        handlePrint();
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [downloadingPdf, productDirectory, t]);
 
   return (
     <div>
@@ -140,14 +163,17 @@ export default function ProductsPage() {
               <button type="button" className="btn-secondary h-8 gap-1.5 px-3 py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-60" onClick={handleDownloadPdf} disabled={downloadingPdf}>
                 {downloadingPdf ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
                 {t('purchaseReceive.downloadPdf')}
+                <kbd className="rounded border border-slate-200 bg-white px-1.5 py-0.5 text-[10px] font-black text-slate-500">Alt+D</kbd>
               </button>
               <button type="button" className="btn-secondary h-8 gap-1.5 px-3 py-1.5 text-xs" onClick={handleExportExcel}>
                 <FileSpreadsheet size={14} />
                 {t('common.exportExcel')}
+                <kbd className="rounded border border-slate-200 bg-white px-1.5 py-0.5 text-[10px] font-black text-slate-500">Alt+E</kbd>
               </button>
               <button type="button" className="btn-secondary h-8 gap-1.5 px-3 py-1.5 text-xs" onClick={handlePrint}>
                 <Printer size={14} />
                 {t('common.print')}
+                <kbd className="rounded border border-slate-200 bg-white px-1.5 py-0.5 text-[10px] font-black text-slate-500">Alt+P</kbd>
               </button>
             </div>
           </div>
@@ -401,7 +427,7 @@ export default function ProductsPage() {
         ) : null}
       </div>
 
-      <StockLedgerPanel products={productDirectory} t={t} refreshKey={ledgerRefreshKey} sectionDescription="" />
+      <StockLedgerPanel products={productDirectory} t={t} refreshKey={ledgerRefreshKey} sectionDescription="" shortcuts />
 
       {productModal ? <ProductFormModal product={productModal.product} onClose={() => setProductModal(null)} onSave={async (value) => {
         const wasNewProduct = !productModal.product;
@@ -454,5 +480,8 @@ export default function ProductsPage() {
     </div>
   );
 }
+
+
+
 
 

@@ -6,8 +6,8 @@ import { requireAnyPermission, requirePermission } from "../middleware/requireRo
 export function createAiInsightsRoutes(aiInsightController) {
   const router = Router();
 
-  router.get("/status", requireAnyPermission(PERMISSIONS.VIEW_RETAIL_CUSTOMERS, PERMISSIONS.VIEW_PRODUCTS), aiInsightController.status);
-  router.post("/chat", requireAnyPermission(PERMISSIONS.VIEW_RETAIL_CUSTOMERS, PERMISSIONS.VIEW_PRODUCTS), aiInsightController.chat);
+  router.get("/status", requireFeature("ai-assistant"), requireAnyPermission(PERMISSIONS.VIEW_RETAIL_CUSTOMERS, PERMISSIONS.VIEW_PRODUCTS), aiInsightController.status);
+  router.post("/chat", requireFeature("ai-assistant"), requireAnyPermission(PERMISSIONS.VIEW_RETAIL_CUSTOMERS, PERMISSIONS.VIEW_PRODUCTS), aiInsightController.chat);
   router.post("/customers/:customerId/insight", requireFeature("retail-customers"), requirePermission(PERMISSIONS.VIEW_RETAIL_CUSTOMERS), aiInsightController.customerInsight);
   router.post("/low-stock/advice", requireFeature("low-stock-alerts"), requirePermission(PERMISSIONS.VIEW_PRODUCTS), aiInsightController.lowStockAdvice);
 

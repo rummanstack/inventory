@@ -92,7 +92,6 @@ const en = {
       customers: 'Shops',
       shops: 'Shops',
       retailCustomers: 'Customers',
-      aiInsights: 'AI Insights',
       morningIssue: 'Morning Issue',
       eveningSettlement: 'Evening Settlement',
       financeDashboard: 'Finance Dashboard',
@@ -484,7 +483,7 @@ const en = {
     products: {
       eyebrow: 'Inventory',
       title: 'Product Management',
-      description: 'Manage your {count} products, selling rates, case size, and available stock.',
+      description: 'Manage your {count} products, selling rates, and available stock.',
       add: 'Add Product',
       searchPlaceholder: 'Search product or category',
       outOfStock: '{count} product currently has no available stock.',
@@ -715,7 +714,7 @@ const en = {
       settlementDamageEmptyDescription: 'No damage was reported through settlements for the selected filters.',
     },
     stockMovement: {
-      description: 'Filterable log of every stock movement — issues, returns, damage, adjustments, and opening stock.',
+      description: 'Filterable log of stock movement, including issues, returns, damage, and opening stock.',
     },
     lowStockAlerts: {
       description: 'Products at or below their reorder threshold, sorted with the most urgent first.',
@@ -2417,6 +2416,23 @@ const en = {
         emptyDescription: 'Try adjusting the filters or date range.',
       },
     },
+    aiChat: {
+      launch: 'AI Assistant',
+      title: 'AI Assistant',
+      ready: 'Ready',
+      notConfigured: 'No key',
+      newChat: 'New chat',
+      loading: 'Loading assistant...',
+      thinking: 'Thinking with your selected context...',
+      geminiMissing: 'Gemini key missing. Add GEMINI_API_KEY in backend/.env and restart the backend.',
+      requestFailed: 'Request failed',
+      selectCustomerFirst: 'Select a customer before asking customer-context questions.',
+      contextGeneral: 'General',
+      contextCustomer: 'Customer',
+      contextLowStock: 'Low Stock',
+      placeholder: 'Ask a business question…',
+      send: 'Send',
+    },
     installments: {
       plans: {
         eyebrow: 'Retail Installments',
@@ -3342,7 +3358,7 @@ const en = {
       less: 'Less',
     },
     morningIssue: {
-      description: 'Enter all product quantities on one DSR issue sheet. Stock is reduced only when the full sheet is saved.',
+      description: 'Enter quantities on one DSR issue sheet. Stock is reduced after saving.',
       sheetTitle: 'Full Product Issue Sheet',
       lines: 'Lines',
       totalQty: 'Total Qty',
@@ -4764,6 +4780,10 @@ const en = {
 };
 
 export default en;
+
+
+
+
 
 
 

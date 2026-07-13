@@ -8,6 +8,7 @@ import CommandPalette from './CommandPalette.jsx';
 import MobileMenu from './MobileMenu.jsx';
 import MobileTabBar from './MobileTabBar.jsx';
 import MustChangePasswordModal from '../features/auth/pages/MustChangePasswordModal.jsx';
+import AiChatWidget from '../features/ai-insights/components/AiChatWidget.jsx';
 import { getRouteLabel } from './routes';
 import TopHeader from './TopHeader';
 
@@ -110,6 +111,7 @@ export default function AppLayout() {
       <MobileMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
       <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
       {user?.mustChangePassword ? <MustChangePasswordModal /> : null}
+      {!menuOpen ? <AiChatWidget /> : null}
       {location.pathname !== '/help-desk' && !menuOpen && (
         <button
           onClick={() => navigate('/help-desk')}

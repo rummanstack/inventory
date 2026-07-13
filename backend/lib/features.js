@@ -120,6 +120,7 @@ export const TENANT_FEATURES = [
   // Hidden or non-sidebar routes
   'my-profile',
   'help-desk',
+  'ai-assistant',
 
   // Developer
   'platform',

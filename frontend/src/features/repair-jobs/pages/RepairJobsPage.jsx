@@ -59,9 +59,9 @@ function JobCard({ job, canManage, accent, t, onEdit, onDelete, onEscalate, onDr
       {/* Left accent bar */}
       <div className="absolute inset-y-0 left-0 w-[3px]" style={{ backgroundColor: accent }} />
 
-      {/* Hover action tray */}
+      {/* Action tray */}
       {canManage ? (
-        <div className="absolute right-2 top-2 z-10 flex items-center gap-0.5 rounded-lg border border-slate-100 bg-white p-0.5 shadow-sm opacity-0 transition-opacity group-hover:opacity-100">
+        <div className="absolute right-2 top-2 z-10 flex items-center gap-0.5 rounded-lg border border-slate-100 bg-white p-0.5 shadow-sm">
           <button
             type="button"
             title={t('warrantyClaims.escalateFromRepairJob')}
@@ -528,4 +528,5 @@ export default function RepairJobsPage() {
     </div>
   );
 }
+
 

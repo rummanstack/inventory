@@ -8,9 +8,10 @@ export default function StockMovementPage() {
   return (
     <div>
       <SectionHeader eyebrow={t('stockLedger.eyebrow')} title={t('nav.stockMovement')} description={t('stockMovement.description')} />
-      <StockLedgerPanel products={productDirectory} t={t} printTarget hideHeader />
+      <StockLedgerPanel products={productDirectory} t={t} printTarget hideHeader shortcuts shortcutKeys={{ downloadPdf: 'd', exportExcel: 'e', print: 'p', refresh: 'r' }} />
     </div>
   );
 }
+
 
 

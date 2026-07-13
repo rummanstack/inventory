@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { AlertTriangle, Download, FileSpreadsheet, Loader2, Printer } from 'lucide-react';
 import { Alert, Badge, EmptyState, SectionHeader } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
@@ -20,6 +21,18 @@ export default function LowStockAlertsPage() {
     return isElectronics ? `${formatNumber(pieces, language)} ${t('common.pcs')}` : formatCasePiece(pieces, piecesPerCase, language);
   }
 
+  function handleDownloadPdf() {
+    downloadPdf(async () => {
+      await inventoryApi.recordPrint({ entityType: 'low_stock_alerts', entityId: null, label: 'pdf' }).catch(() => {});
+      await downloadSheetPdf(LOW_STOCK_PRINT_ID, 'low-stock-alerts.pdf');
+    });
+  }
+
+  function handlePrint() {
+    inventoryApi.recordPrint({ entityType: 'low_stock_alerts', entityId: null, label: 'print' }).catch(() => {});
+    window.print();
+  }
+
   async function handleExportExcel() {
     const { utils, writeFile } = await import('xlsx');
     const header = [t('lowStockAlerts.product'), t('lowStockAlerts.category'), t('lowStockAlerts.currentStock'), t('lowStockAlerts.threshold'), t('lowStockAlerts.status')];
@@ -36,6 +49,34 @@ export default function LowStockAlertsPage() {
     utils.book_append_sheet(wb, ws, t('lowStockAlerts.sheetName'));
     writeFile(wb, 'low-stock-alerts.xlsx');
   }
+
+  useEffect(() => {
+    if (!lowStockProducts.length) {
+      return undefined;
+    }
+
+    function handleKeyDown(event) {
+      const key = event.key.toLowerCase();
+      const isShortcut = event.altKey && !event.ctrlKey && !event.metaKey;
+      if (!isShortcut) {
+        return;
+      }
+
+      if (key === 'd' && !downloadingPdf) {
+        event.preventDefault();
+        handleDownloadPdf();
+      } else if (key === 'e') {
+        event.preventDefault();
+        handleExportExcel();
+      } else if (key === 'p') {
+        event.preventDefault();
+        handlePrint();
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [downloadingPdf, lowStockProducts]);
 
   return (
     <div>
@@ -57,26 +98,26 @@ export default function LowStockAlertsPage() {
               <button
                 type="button"
                 className="btn-secondary py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-60"
-                onClick={() => downloadPdf(async () => {
-                  await inventoryApi.recordPrint({ entityType: 'low_stock_alerts', entityId: null, label: 'pdf' }).catch(() => {});
-                  await downloadSheetPdf(LOW_STOCK_PRINT_ID, 'low-stock-alerts.pdf');
-                })}
+                onClick={handleDownloadPdf}
                 disabled={downloadingPdf}
               >
                 {downloadingPdf ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
                 {t('purchaseReceive.downloadPdf')}
+                <kbd className="ml-1 rounded border border-slate-300 bg-white/70 px-1 py-0.5 font-mono text-[10px] text-slate-500">Alt+D</kbd>
               </button>
               <button type="button" className="btn-secondary py-1.5 text-xs" onClick={handleExportExcel}>
                 <FileSpreadsheet size={14} />
                 {t('common.exportExcel')}
+                <kbd className="ml-1 rounded border border-slate-300 bg-white/70 px-1 py-0.5 font-mono text-[10px] text-slate-500">Alt+E</kbd>
               </button>
               <button
                 type="button"
                 className="btn-secondary py-1.5 text-xs"
-                onClick={() => { inventoryApi.recordPrint({ entityType: 'low_stock_alerts', entityId: null, label: 'print' }).catch(() => {}); window.print(); }}
+                onClick={handlePrint}
               >
                 <Printer size={14} />
                 {t('common.print')}
+                <kbd className="ml-1 rounded border border-slate-300 bg-white/70 px-1 py-0.5 font-mono text-[10px] text-slate-500">Alt+P</kbd>
               </button>
             </div>
           ) : null}

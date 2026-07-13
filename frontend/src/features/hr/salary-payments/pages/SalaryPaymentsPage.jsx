@@ -378,7 +378,7 @@ export default function SalaryPaymentsPage() {
                                       <td className="py-2">
                                         <button
                                           type="button"
-                                          className="icon-btn text-rose-500 opacity-0 transition-opacity group-hover:opacity-100"
+                                          className="icon-btn text-rose-500"
                                           disabled={deletingId === p.id}
                                           onClick={() => handleDeletePayment(p)}
                                           title={t('salary.deletePayment')}
@@ -413,3 +413,4 @@ export default function SalaryPaymentsPage() {
     </div>
   );
 }
+

@@ -996,16 +996,10 @@
   }
 
   .surface tbody tr .row-actions {
-    opacity: 0;
-    transition: opacity var(--motion-fast) ease;
-  }
-
-  .surface tbody tr:hover .row-actions,
-  .surface tbody tr:focus-within .row-actions {
     opacity: 1;
   }
 
-  .table-row-active {
+.table-row-active {
     background-color: var(--secondary-soft) !important;
     box-shadow: inset 2px 0 0 var(--secondary);
   }
@@ -1507,6 +1501,7 @@ body.landing-page-active .page-shell {
     font-size: 0.86rem;
   }
 }
+
 
 
 

@@ -7,7 +7,8 @@
     "dev": "nodemon server.js",
     "start": "node server.js",
     "check:invariants": "node scripts/checkInvariants.js",
-    "test": "node --test --test-concurrency=1"
+    "test": "node --test --test-concurrency=1",
+    "test:dealer-check": "node --test --test-isolation=none --test-concurrency=1 tests/products.test.js tests/productSerials.test.js tests/dsrs.test.js tests/dsrIssueSettlement.test.js tests/shops.test.js tests/srDueLedger.test.js tests/srs.test.js tests/suppliers.test.js tests/purchaseReceive.test.js tests/purchaseReturns.test.js tests/supplierPayments.test.js tests/supplierDiscounts.test.js tests/supplierStatement.test.js tests/tradePromotions.test.js tests/tradePromotionEngine.unit.test.js tests/financeAccounts.test.js tests/expenses.test.js tests/profitReport.test.js"
   },
   "dependencies": {
     "@fontsource/noto-sans-bengali": "^5.2.11",

@@ -16,7 +16,6 @@ import { CustomerPaymentService } from "../services/customerPaymentService.js";
 import { CustomerService } from "../services/customerService.js";
 import { DrugBatchService } from "../services/drugBatchService.js";
 import { DsrDueLedgerService } from "../services/dsrDueLedgerService.js";
-import { DsrFinanceService } from "../services/dsrFinanceService.js";
 import { DsrService } from "../services/dsrService.js";
 import { DsrTargetService } from "../services/dsrTargetService.js";
 import { DepartmentService } from "../services/departmentService.js";
@@ -132,10 +131,6 @@ export function createServiceRegistry({ databaseManager, env }) {
 
   const field = {
     dsrDueLedgerService: new DsrDueLedgerService(databaseManager, {
-      auditService: platform.auditService,
-      financeAccountService: finance.financeAccountService,
-    }),
-    dsrFinanceService: new DsrFinanceService(databaseManager, {
       auditService: platform.auditService,
       financeAccountService: finance.financeAccountService,
     }),

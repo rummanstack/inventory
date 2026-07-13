@@ -11,7 +11,7 @@ import SettleDueModal from '../components/SettleDueModal';
 import { useAsyncAction } from '../../../hooks/useAsyncAction.js';
 
 function ledgerTone(type) {
-  if (type === 'COLLECTION' || type === 'ADVANCE_ADJUSTMENT') return 'emerald';
+  if (type === 'COLLECTION') return 'emerald';
   if (type === 'SALE_DUE') return 'rose';
   if (type === 'OPENING') return 'blue';
   return 'slate';

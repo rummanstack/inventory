@@ -9,6 +9,7 @@ import {
   hasTenantFeatureConfig,
 } from "../repositories/tenantFeatureRepository.js";
 import { loadFeatureCache, getCachedFeatures, setCachedFeatures } from "../lib/tenantFeatureCache.js";
+import { TenantService } from "../services/tenantService.js";
 
 let app;
 let databaseManager;
@@ -80,6 +81,37 @@ test("saving one role's permissions via the API preserves everything already sho
     );
   }
   assert.ok(managerAfter.permissions.includes("view_products"));
+});
+
+test("legacy feature rows normalize to current feature keys on read and save", async () => {
+  const tenantService = new TenantService(databaseManager);
+  const legacyFeatures = [
+    "controlled-drug-register",
+    "expiry-alerts",
+    "payslips",
+    "retailer-profit-report",
+    "salary-reports",
+    "salary-structure",
+  ];
+  const expectedFeatures = ["batch-tracking", "dashboard", "hr-reports", "payroll", "profit"];
+
+  await databaseManager.withTransaction(async (client) => {
+    await replaceTenantFeatures(client, tenant.tenantId, ["dashboard", ...legacyFeatures]);
+  });
+
+  const loaded = await tenantService.getTenantFeatures(tenant.tenantId);
+  assert.deepEqual(loaded.sort(), expectedFeatures);
+
+  const saved = await tenantService.updateTenantFeatures(tenant.tenantId, ["dashboard", ...legacyFeatures], {
+    id: "test-user",
+    name: "Test Dev",
+    role: "system_developer",
+  });
+  assert.deepEqual(saved.sort(), expectedFeatures);
+
+  await databaseManager.withClient(async (client) => {
+    assert.deepEqual((await listTenantFeatures(client, tenant.tenantId)).sort(), expectedFeatures);
+  });
 });
 
 test("an explicitly-empty feature set stays empty across a cache reload (no menu resurrection)", async () => {

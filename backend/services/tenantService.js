@@ -81,6 +81,22 @@ function normalizeSellerType(value, fallback = SELLER_TYPES.DEALER) {
 const DEALER_DISTRIBUTION_FEATURES = ["dsrs", "customers", "morning-issue", "settlements", "dsr-finance"];
 const ELECTRONICS_ONLY_FEATURES = ["product-serials", "warranty-claims", "repair-jobs", "trade-ins"];
 const PHARMACY_EXCLUDED_FEATURES = ["product-serials", "warranty-claims", "repair-jobs", "trade-ins"];
+const FEATURE_ALIASES = new Map([
+  ["controlled-drug-register", "batch-tracking"],
+  ["expiry-alerts", "batch-tracking"],
+  ["payslips", "payroll"],
+  ["retailer-profit-report", "profit"],
+  ["salary-reports", "hr-reports"],
+  ["salary-structure", "payroll"],
+]);
+
+function normalizeTenantFeature(feature) {
+  return FEATURE_ALIASES.get(feature) || feature;
+}
+
+function normalizeTenantFeatures(features) {
+  return [...new Set(features.map((feature) => normalizeTenantFeature(String(feature))))];
+}
 
 export function defaultFeaturesForBusinessType(businessType) {
   let excluded = DEALER_DISTRIBUTION_FEATURES;
@@ -243,7 +259,7 @@ export class TenantService {
       if (!configured) {
         return [...TENANT_FEATURES];
       }
-      return await listTenantFeatures(client, tenantId);
+      return normalizeTenantFeatures(await listTenantFeatures(client, tenantId));
     } finally {
       client.release();
     }
@@ -252,7 +268,7 @@ export class TenantService {
   async updateTenantFeatures(tenantId, features, actor) {
     assert(Array.isArray(features), "features must be an array", 400);
 
-    const cleanFeatures = [...new Set(features.map((feature) => String(feature)))];
+    const cleanFeatures = normalizeTenantFeatures(features);
     for (const feature of cleanFeatures) {
       assert(TENANT_FEATURES.includes(feature), `Unknown feature: ${feature}`, 400);
     }
@@ -262,7 +278,7 @@ export class TenantService {
       const existing = await findTenantById(client, tenantId);
       assert(existing, "Organization not found", 404);
       const configured = await hasTenantFeatureConfig(client, tenantId);
-      const previousFeatures = configured ? await listTenantFeatures(client, tenantId) : [...TENANT_FEATURES];
+      const previousFeatures = configured ? normalizeTenantFeatures(await listTenantFeatures(client, tenantId)) : [...TENANT_FEATURES];
       await replaceTenantFeatures(client, tenantId, cleanFeatures);
       setCachedFeatures(tenantId, cleanFeatures);
       await logActivity(this.auditService, client, actor, {

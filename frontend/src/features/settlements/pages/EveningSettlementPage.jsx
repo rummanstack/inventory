@@ -367,9 +367,9 @@ export default function EveningSettlementPage() {
                     {vm.discount > 0 ? (
                       <div className="flex items-center justify-between gap-3 py-1.5">
                         <dt className="text-sm font-medium text-slate-400">Supplier (discount from)</dt>
-                        <dd>
+                        <dd className="w-52 max-w-[60vw] shrink-0">
                           <Select
-                            className="input h-9 text-sm"
+                            className="input h-9 w-full text-sm"
                             value={vm.discountSupplierId}
                             onChange={(e) => vm.setDiscountSupplierId(e.target.value)}
                             disabled={vm.saving}

@@ -341,6 +341,11 @@ async function applyShopDueCollections(client, shopCollections, settlementId, se
     const shop = shopResult.rows[0];
     const latestEntry = await getLatestShopDueLedgerEntry(client, sc.shopId, tenantId);
     const currentBalance = latestEntry ? latestEntry.balanceAfter : Number(shop.opening_due || 0);
+    assert(
+      sc.amount <= currentBalance + 0.004,
+      `Collection for ${shop.shop_name} (${sc.amount}) exceeds their current due balance of ${currentBalance}.`,
+      400,
+    );
     const balanceAfter = currentBalance - sc.amount;
     await insertShopDueLedgerEntry(client, {
       id: createId("sdl"),
@@ -380,6 +385,13 @@ async function applyShopDueCollectionDeltas(client, oldCollections, newCollectio
     const shop = shopResult.rows[0];
     const latestEntry = await getLatestShopDueLedgerEntry(client, shopId, tenantId);
     const currentBalance = latestEntry ? latestEntry.balanceAfter : Number(shop.opening_due || 0);
+    if (delta > 0) {
+      assert(
+        delta <= currentBalance + 0.004,
+        `Additional collection for ${shop.shop_name} (${delta}) exceeds their current due balance of ${currentBalance}.`,
+        400,
+      );
+    }
     const balanceAfter = currentBalance - delta;
     await insertShopDueLedgerEntry(client, {
       id: createId("sdl"),

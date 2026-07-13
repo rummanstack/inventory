@@ -68,3 +68,83 @@ test("a withdrawal for exactly the available balance is accepted (boundary case)
   const after = await getCashAccount(tenant.agent);
   assert.equal(after.balance, 0);
 });
+
+async function getBankAccount() {
+  const response = await tenant.agent.get("/api/finance-accounts");
+  assert.equal(response.status, 200);
+  return response.body.accounts.find((account) => account.type === "BANK");
+}
+
+test("depositing into the Bank account keeps it independent from the Cash account", async () => {
+  const cashBefore = await getCashAccount(tenant.agent);
+
+  const response = await tenant.agent.post("/api/finance-accounts/transactions").send({
+    accountType: "BANK",
+    type: "DEPOSIT",
+    amount: 2000,
+    date: "2026-04-01",
+    note: "Bank deposit test",
+  });
+  assert.equal(response.status, 201);
+
+  const bankAfter = await getBankAccount();
+  assert.equal(bankAfter.balance, 2000);
+
+  const cashAfter = await getCashAccount(tenant.agent);
+  assert.equal(Number(cashAfter.balance), Number(cashBefore.balance), "the Cash account must be unaffected by a Bank deposit");
+});
+
+test("a transfer moves the balance from one account to the other and both legs are ledgered", async () => {
+  await transact("DEPOSIT", 5000);
+  const cashBefore = await getCashAccount(tenant.agent);
+  const bankBefore = await getBankAccount();
+
+  const transferResponse = await tenant.agent.post("/api/finance-accounts/transfers").send({
+    fromAccountType: "CASH",
+    toAccountType: "BANK",
+    amount: 1500,
+    date: "2026-04-02",
+    note: "Deposit to bank",
+  });
+  assert.equal(transferResponse.status, 201);
+
+  const cashAfter = await getCashAccount(tenant.agent);
+  const bankAfter = await getBankAccount();
+  assert.equal(Number(cashAfter.balance), Number(cashBefore.balance) - 1500);
+  assert.equal(Number(bankAfter.balance), Number(bankBefore.balance) + 1500);
+
+  const transactionsResponse = await tenant.agent.get("/api/finance-accounts/transactions").query({ accountType: "BANK" });
+  assert.equal(transactionsResponse.status, 200);
+  assert.ok(transactionsResponse.body.items.some((item) => item.type === "TRANSFER_IN" && Number(item.debit) === 1500));
+
+  const cashTransactionsResponse = await tenant.agent.get("/api/finance-accounts/transactions").query({ accountType: "CASH" });
+  assert.ok(cashTransactionsResponse.body.items.some((item) => item.type === "TRANSFER_OUT" && Number(item.credit) === 1500));
+});
+
+test("a transfer exceeding the source account's balance is rejected and changes neither account", async () => {
+  const cashBefore = await getCashAccount(tenant.agent);
+  const bankBefore = await getBankAccount();
+
+  const response = await tenant.agent.post("/api/finance-accounts/transfers").send({
+    fromAccountType: "CASH",
+    toAccountType: "BANK",
+    amount: cashBefore.balance + 100000,
+    date: "2026-04-02",
+  });
+  assert.equal(response.status, 400);
+
+  const cashAfter = await getCashAccount(tenant.agent);
+  const bankAfter = await getBankAccount();
+  assert.equal(Number(cashAfter.balance), Number(cashBefore.balance));
+  assert.equal(Number(bankAfter.balance), Number(bankBefore.balance));
+});
+
+test("a transfer to the same account type is rejected", async () => {
+  const response = await tenant.agent.post("/api/finance-accounts/transfers").send({
+    fromAccountType: "CASH",
+    toAccountType: "CASH",
+    amount: 100,
+    date: "2026-04-02",
+  });
+  assert.equal(response.status, 400);
+});

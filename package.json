@@ -16,7 +16,8 @@
     "deploy-watch": "npm run backend-build --prefix frontend && npm run watch --prefix backend",
     "render-build": "node scripts/render-build.mjs",
     "start": "npm run start --prefix backend",
-    "test:dealer-check": "npm --prefix backend run test:dealer-check"
+    "test:dealer-check": "npm --prefix backend run test:dealer-check",
+    "test:retailer-check": "npm --prefix backend run test:retailer-check"
   },
   "dependencies": {
     "dotenv": "^16.6.1",

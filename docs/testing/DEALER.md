@@ -8,6 +8,10 @@
 npm run test:dealer-check
 ```
 
+> **Coverage note (updated 2026-07-13):** `test:dealer-check` now runs 23 test files. All six gaps previously called out here are closed: `tenantIsolation.test.js`, `permissionFixes.test.js`, and `journal.test.js` are wired into the chain; `shopDueLedger.test.js` and `dsrTargets.test.js` are new; and `financeAccounts.test.js`, `supplierStatement.test.js`, and `profitReport.test.js` were extended to cover Transfers/Bank accounts, Return/Payment/Discount statement lines, and DSR-Settlement revenue + Expenses in the profit report, respectively. A follow-up pass added `TC-SR-003` (settlement SR handovers, previously untested end-to-end) and found + fixed a real bug: settlement-embedded `shopCollections` had no over-collection guard (see TC-SHOP-002's Automation note) — fixed in `backend/services/settlementService.js` and covered by new tests. See each TC's Automation note below for exactly which test(s) cover it, and one remaining known-behavior note on TC-SHOP-002 (opening due vs. statement opening balance) that documents a real product quirk rather than a bug.
+>
+> **Execution status:** all test files touched in this pass (`shopDueLedger.test.js`, `dsrTargets.test.js`, `srDueLedger.test.js`, `financeAccounts.test.js`, `supplierStatement.test.js`, `profitReport.test.js`, and the `settlementService.js` fix) are syntax-checked (`node --check`) and verified by tracing the actual service/repository/controller code, but have **not yet been executed against a real database** — see the Database Requirement note below. Run `npm run test:dealer-check` after fixing `DEV_DATABASE_URL` to get real pass/fail confirmation.
+
 ## Frontend Build
 
 ```bash
@@ -19,6 +23,8 @@ npm --prefix frontend run build
 > Use a disposable local or dedicated PostgreSQL test database in `backend/.env` as `DEV_DATABASE_URL`.
 >
 > **Do not run dealer automation against a production/shared Supabase pooler database.**
+>
+> **Known issue as of 2026-07-13:** `backend/.env`'s `DEV_DATABASE_URL` was found identical to `DATABASE_URL` (both pointing at the same Supabase pooler) — meaning `npm test` / `test:dealer-check` would run against production until this is fixed. Confirm `DEV_DATABASE_URL` points at a genuinely separate, disposable database before running anything in this document.
 
 ---
 
@@ -202,6 +208,53 @@ npm --prefix frontend run build
 
 ---
 
+## TC-DSR-005 — DSR Targets and Monthly Achievement
+
+### Steps
+
+1. Set a monthly target amount for a DSR (`YYYY-MM`).
+2. Update the same DSR/month target (upsert).
+3. Post one or more Settlements for that DSR within the target month.
+4. Open the Monthly Summary for that month.
+
+### Expected Result
+
+- Target is created/updated per DSR per month (`dsr_targets`, unique on tenant+DSR+month).
+- Setting targets requires `manage_dsrs`; viewing targets/summary requires `view_state`.
+- Monthly Summary shows `actual_amount` as the sum of each settlement's `total_payable - previous_due` for that month, excluding cancelled settlements.
+- A DSR with a settlement but no set target still appears (target defaults to 0), and vice versa.
+
+### Automation
+
+- Covered by `backend/tests/dsrTargets.test.js` (validation, upsert-not-duplicate, monthly summary with/without a target or settlement, tenant isolation), now included in `npm run test:dealer-check`.
+
+---
+
+## TC-DSR-006 — DSR Issue/Settlement Journal Entries
+
+### Steps
+
+1. Create a Morning Issue for a DSR.
+2. Open the accounting journal and confirm the issue's entry.
+3. Settle with a mix of sold/returned/damaged and partial cash collection.
+4. Confirm the settlement's journal entry.
+5. Edit the settlement and confirm the journal entry is replaced, not duplicated.
+6. Record an SR handover for the DSR's due and confirm the receivable moves from DSR to SR.
+
+### Expected Result
+
+- Morning Issue debits "Goods with DSR" (1130) and credits Inventory for the issued cost.
+- Settlement recognizes revenue and COGS for sold quantity, clears "Goods with DSR" for sold+returned+damaged cost, and adjusts "DSR Receivable" (1110) for the uncollected payable.
+- A settlement discount attributed to a supplier debits Accounts Payable instead of Discounts Given.
+- Editing a settlement replaces its journal entry (no stacked/duplicate entries).
+- SR handover zeroes out the DSR's receivable and creates the corresponding SR receivable.
+
+### Automation
+
+- Covered by `backend/tests/journal.test.js`, now included in `npm run test:dealer-check`.
+
+---
+
 # 3. Shops, Customers, and SRs
 
 ## TC-SHOP-001 — Customer/Shop CRUD
@@ -241,6 +294,12 @@ npm --prefix frontend run build
 - References are correct.
 - Running Balance is correct.
 
+### Automation
+
+- Covered by `backend/tests/shopDueLedger.test.js` (opening-due fallback on `/balance`, manual record-due/collect, over-collection rejection, a DSR settlement's `shopCollections` posting a referenced COLLECTION entry, the statement's opening/closing balance and totals over a date range, tenant isolation), now included in `npm run test:dealer-check`.
+- **Bug found and fixed (2026-07-13):** `applyShopDueCollections`/`applyShopDueCollectionDeltas` in `backend/services/settlementService.js` had **no validation** that a settlement's `shopCollections[].amount` (or an edit's delta) didn't exceed the shop's current due — unlike the manual `POST /shop-due-ledger/collect` endpoint, which does enforce this. A settlement could silently drive a shop's balance negative. Fixed by adding the same `amount <= currentBalance` guard used by the manual endpoint, at both create-time and edit-time (delta). Covered by two new tests in `shopDueLedger.test.js`: over-collection at settlement creation, and an over-collecting edit delta (plus a valid edit delta, to confirm the fix doesn't block legitimate partial increases).
+- **Known behavior worth flagging (separate from the bug above):** unlike suppliers/DSRs/SRs, a shop's Opening Due never gets an `OPENING` row inserted into `shop_due_ledger` at creation — it lives only on `customers.opening_due`. `GET /balance` falls back to that column when the ledger is empty, but `GET /statement`'s opening balance (`getShopBalanceBefore`) only ever looks at prior ledger rows and does **not** fall back — so a shop with an opening due but no ledger activity before the requested range reports an opening balance of **0**, not its actual due. This is captured as a passing test (documenting current behavior) rather than something the test asserts should change — flag to the team if this divergence from `/balance` is unintended.
+
 ---
 
 ## TC-SR-001 — SR CRUD
@@ -272,6 +331,26 @@ npm --prefix frontend run build
 - Valid collection reduces Due.
 - Cash is deposited.
 - Over-collection is rejected.
+
+---
+
+## TC-SR-003 — DSR Settlement SR Handover
+
+### Steps
+
+1. Create a Morning Issue and Settlement for a DSR, including an `srHandovers` entry for an SR.
+2. Attempt a settlement whose total handover amount exceeds the settlement's total receivable.
+3. Edit the settlement to change the handover amount.
+
+### Expected Result
+
+- A valid handover debits the SR's due ledger (referencing the settlement) and reduces the DSR's own due by the same amount.
+- A handover total that exceeds the settlement's receivable (`totalPayable + previousDue - discount - extraReturnValue`) is rejected and touches nothing.
+- Editing the handover amount adjusts the SR's due by the delta (not by re-applying the full new amount on top of the old one).
+
+### Automation
+
+- Covered by `backend/tests/srDueLedger.test.js` (handover creation, over-handover rejection — exercising the pre-existing guard in `finalizeSettlementAmountsStrict` that had no test anywhere, and edit-time delta adjustment via `applySrHandoverDeltas`). Already part of `npm run test:dealer-check` (`srDueLedger.test.js` was already in the chain).
 
 ---
 
@@ -392,6 +471,10 @@ npm --prefix frontend run build
 - Totals are correct.
 - Closing Balance matches source records.
 
+### Automation
+
+- Covered by `backend/tests/supplierStatement.test.js`, extended with a scenario that posts a Purchase, a Return, a Payment, and a supplier-attributed Discount (via a DSR settlement's `discountSupplierId` — supplier discounts have no direct create endpoint) all in one day, then asserts the statement's opening/closing balance, `totalDebit`/`totalCredit`, and that all four entry types (`PURCHASE_DUE`, `RETURN`, `PAYMENT`, `DISCOUNT`) appear. Now included in `npm run test:dealer-check`.
+
 ---
 
 # 5. Trade Promotions
@@ -463,6 +546,10 @@ npm --prefix frontend run build
 - Balances update correctly.
 - Insufficient withdrawal is rejected.
 
+### Automation
+
+- Covered by `backend/tests/financeAccounts.test.js`, extended with a Bank-account deposit (isolated from Cash), a Cash→Bank transfer (asserting both legs' balances and both `TRANSFER_OUT`/`TRANSFER_IN` ledger rows), an over-balance transfer rejection, and a same-account-type transfer rejection.
+
 ---
 
 ## TC-EXP-001 — Expenses
@@ -499,6 +586,10 @@ npm --prefix frontend run build
 - Expenses are correct.
 - Profit Percentage is correct.
 
+### Automation
+
+- Covered by `backend/tests/profitReport.test.js`, extended with: (1) a DSR Settlement + Expense feeding `/api/profit-report`, asserting `revenue`/`cost`/`grossProfit`/`expenses`/`profit` on both the daily row and totals; (2) `/api/profit-report/by-dsr` attributing settlement revenue/cost to the correct DSR; (3) `/api/profit-report/by-product` picking up a settlement-sold product, not just invoice items. The underlying product code (`backend/services/profitService.js`) already fully supported DSR settlements and expenses — this was purely a missing-test gap, not a missing-feature gap.
+
 ---
 
 # 7. Cross-Checks
@@ -516,6 +607,10 @@ npm --prefix frontend run build
 - Tenant B cannot view Tenant A data.
 - Tenant B cannot modify Tenant A data.
 
+### Automation
+
+- Covered by `backend/tests/tenantIsolation.test.js` (includes product, supplier, retail customer, and DSR isolation), now included in `npm run test:dealer-check`.
+
 ---
 
 ## TC-CROSS-002 — Permission and Feature Gates
@@ -530,6 +625,10 @@ npm --prefix frontend run build
 
 - Page access is blocked.
 - API access is blocked.
+
+### Automation
+
+- Covered by `backend/tests/permissionFixes.test.js` (includes `view_dsrs` scoping/fallback checks), now included in `npm run test:dealer-check`.
 
 ---
 

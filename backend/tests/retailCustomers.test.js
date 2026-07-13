@@ -2,7 +2,7 @@ import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { getTestApp, closeTestApp } from "./helpers/testApp.js";
 import { createTenantAndAdmin, cleanupTenant } from "./helpers/fixtures.js";
-import { createRetailCustomer } from "./helpers/seeders.js";
+import { createRetailCustomer, createProduct, addStock } from "./helpers/seeders.js";
 
 let databaseManager;
 let tenant;
@@ -104,4 +104,93 @@ test("retention insights classify a customer with no purchase history as NEW and
   assert.equal(found.hasPurchaseHistory, false);
   assert.equal(found.repeatPurchase, false);
   assert.ok(response.body.summary.totalCustomers >= 1);
+});
+
+async function sellToCustomer(customerId, productId, invoiceDate, price) {
+  const response = await tenant.agent.post("/api/sales-invoices").send({
+    customerId,
+    customerType: "REGISTERED",
+    saleType: "RETAIL",
+    invoiceDate,
+    items: [{ productId, quantityPieces: 1, actualSalePrice: price }],
+    discount: 0,
+    paidAmount: price,
+    paymentMethod: "CASH",
+  });
+  if (response.status !== 201) {
+    throw new Error(`sellToCustomer failed (${response.status}): ${JSON.stringify(response.body)}`);
+  }
+  return response.body.invoice;
+}
+
+test("retention insights classify a customer with 2 purchases as REPEAT and report correct purchase summary", async () => {
+  const product = await createProduct(tenant.agent, { name: `Repeat Widget ${Date.now()}`, retailPrice: 100 });
+  await addStock(tenant.agent, product.id, 10);
+  const customer = await createRetailCustomer(tenant.agent, { name: `Repeat Cust ${Date.now()}` });
+
+  await sellToCustomer(customer.id, product.id, "2026-01-01", 100);
+  await sellToCustomer(customer.id, product.id, "2026-01-15", 100);
+
+  const response = await tenant.agent.get("/api/retail-customers/retention");
+  assert.equal(response.status, 200);
+
+  const found = response.body.customers.find((item) => item.id === customer.id);
+  assert.ok(found, "customer with purchase history should appear in retention insights");
+  assert.equal(found.customerTier, "REPEAT");
+  assert.equal(found.hasPurchaseHistory, true);
+  assert.equal(found.repeatPurchase, true);
+  assert.equal(found.purchaseCount, 2);
+  assert.equal(found.totalSpent, 200);
+  assert.equal(found.firstPurchaseAt, "2026-01-01");
+  assert.equal(found.lastPurchaseAt, "2026-01-15");
+
+  assert.ok(response.body.repeatCustomers.some((item) => item.id === customer.id));
+});
+
+test("retention insights classify a customer by total spend into LOYAL and VIP tiers regardless of purchase count", async () => {
+  const productLoyal = await createProduct(tenant.agent, { name: `Loyal Widget ${Date.now()}`, retailPrice: 30000 });
+  await addStock(tenant.agent, productLoyal.id, 5);
+  const loyalCustomer = await createRetailCustomer(tenant.agent, { name: `Loyal Cust ${Date.now()}` });
+  await sellToCustomer(loyalCustomer.id, productLoyal.id, "2026-01-01", 30000);
+
+  const productVip = await createProduct(tenant.agent, { name: `VIP Widget ${Date.now()}`, retailPrice: 150000 });
+  await addStock(tenant.agent, productVip.id, 5);
+  const vipCustomer = await createRetailCustomer(tenant.agent, { name: `VIP Cust ${Date.now()}` });
+  await sellToCustomer(vipCustomer.id, productVip.id, "2026-01-01", 150000);
+
+  const response = await tenant.agent.get("/api/retail-customers/retention");
+  assert.equal(response.status, 200);
+
+  const loyalFound = response.body.customers.find((item) => item.id === loyalCustomer.id);
+  assert.ok(loyalFound);
+  assert.equal(loyalFound.customerTier, "LOYAL", "a single purchase >= 25000 must qualify as LOYAL even with purchaseCount 1");
+
+  const vipFound = response.body.customers.find((item) => item.id === vipCustomer.id);
+  assert.ok(vipFound);
+  assert.equal(vipFound.customerTier, "VIP", "a single purchase >= 100000 must qualify as VIP even with purchaseCount 1");
+  assert.ok(response.body.summary.vipCustomers >= 1, "summary.vipCustomers count must include this customer");
+});
+
+test("retention insights flag a customer whose last purchase is outside the inactive window as inactive", async () => {
+  const product = await createProduct(tenant.agent, { name: `Inactive Widget ${Date.now()}`, retailPrice: 50 });
+  await addStock(tenant.agent, product.id, 10);
+  const customer = await createRetailCustomer(tenant.agent, { name: `Inactive Cust ${Date.now()}` });
+
+  const oldDate = new Date();
+  oldDate.setUTCDate(oldDate.getUTCDate() - 45);
+  await sellToCustomer(customer.id, product.id, oldDate.toISOString().slice(0, 10), 50);
+
+  // Default inactive window is 30 days; a purchase 45 days ago must be flagged inactive.
+  const response = await tenant.agent.get("/api/retail-customers/retention");
+  assert.equal(response.status, 200);
+
+  const found = response.body.customers.find((item) => item.id === customer.id);
+  assert.ok(found);
+  assert.ok(found.daysSinceLastPurchase >= 45);
+  assert.ok(response.body.inactiveCustomers.some((item) => item.id === customer.id));
+
+  // A tighter, explicit window of 60 days must exclude the same customer.
+  const widerWindowResponse = await tenant.agent.get("/api/retail-customers/retention").query({ inactiveWindowDays: 60 });
+  assert.equal(widerWindowResponse.status, 200);
+  assert.equal(widerWindowResponse.body.inactiveCustomers.some((item) => item.id === customer.id), false);
 });

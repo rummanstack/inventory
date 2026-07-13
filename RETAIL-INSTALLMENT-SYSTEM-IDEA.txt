@@ -1,0 +1,616 @@
+# Retail Installment System Idea
+
+Date: 2026-07-13
+
+## Recommended Module Name
+
+Retail Installments
+
+Alternative names:
+- Installment Sales
+- Customer Installment Plans
+- Monthly Payment Sales
+
+Recommended navigation:
+- Retailer > Installment Sales
+- Retailer > Installment Collections
+- Reports > Installment Due Report
+
+---
+
+# 1. Purpose
+
+This module is for retailer-managed monthly installment sales.
+
+It is like EMI, but not bank EMI. The shop sells products to a registered customer, collects an optional down payment, adds optional markup or discount, then creates a monthly payment schedule.
+
+Example:
+
+Product total: 50,000
+Down payment: 10,000
+Remaining amount: 40,000
+Markup: 10%
+Markup amount: 4,000
+Installment payable: 44,000
+Duration: 8 months
+Monthly installment: 5,500
+First payment date: 2026-08-10
+Payment day: 10th of every month
+
+---
+
+# 2. Core Flow
+
+1. Retailer creates a new installment sale.
+2. Retailer selects a registered retail customer.
+3. Retailer adds products.
+4. System calculates product subtotal, discount, tax if any, and sale total.
+5. Retailer enters down payment.
+6. Retailer enters markup percentage or fixed markup amount.
+7. Retailer may enter discount.
+8. Retailer selects number of months.
+9. Retailer selects first payment date.
+10. System previews monthly schedule.
+11. Retailer confirms.
+12. System creates sale invoice, stock movement, installment plan, and installment schedule.
+13. Retailer collects installments monthly.
+
+---
+
+# 3. Main Screens
+
+## 3.1 Installment Sales Page
+
+Purpose:
+Show all installment plans.
+
+Filters:
+- Customer
+- Status
+- Date range
+- Overdue only
+- Due this month
+- Search by invoice number / customer phone
+
+Table columns:
+- Plan No
+- Customer
+- Phone
+- Invoice No
+- Sale Date
+- Product Total
+- Down Payment
+- Markup
+- Final Payable
+- Paid Amount
+- Outstanding Amount
+- Next Due Date
+- Overdue Amount
+- Status
+- Actions
+
+Actions:
+- View plan
+- Collect payment
+- Print schedule
+- Reschedule
+- Early settlement
+- Cancel plan
+
+Statuses:
+- ACTIVE
+- COMPLETED
+- OVERDUE
+- CANCELLED
+
+---
+
+## 3.2 New Installment Sale Form
+
+Fields:
+- Customer
+- Product items
+- Quantity
+- Sale price
+- Discount
+- Tax if applicable
+- Down payment
+- Markup type: Percentage / Fixed
+- Markup value
+- Number of months
+- First payment date
+- Payment day of month
+- Notes
+
+Preview section:
+- Product total
+- Discount
+- Net sale amount
+- Down payment
+- Finance amount
+- Markup amount
+- Final installment payable
+- Monthly installment amount
+- Schedule preview
+
+Validation:
+- Customer is required.
+- Walk-in customer should not be allowed.
+- At least one product is required.
+- Stock must be available.
+- Down payment cannot exceed sale total.
+- Number of months must be greater than zero.
+- Markup cannot be negative.
+- First payment date is required.
+
+---
+
+## 3.3 Installment Plan Detail Page
+
+Sections:
+- Customer information
+- Invoice/product information
+- Financial summary
+- Payment schedule
+- Payment history
+- Notes/activity history
+
+Summary cards:
+- Sale total
+- Down payment
+- Markup amount
+- Final payable
+- Total paid
+- Outstanding
+- Overdue amount
+- Current points
+- Next due date
+
+Schedule table:
+- Installment no
+- Due date
+- Due amount
+- Paid amount
+- Remaining amount
+- Paid date
+- Status
+- Action
+
+Schedule statuses:
+- PENDING
+- PARTIAL
+- PAID
+- OVERDUE
+- WAIVED
+
+---
+
+## 3.4 Installment Collection Page
+
+Purpose:
+Collect monthly payments.
+
+Fields:
+- Customer / plan selector
+- Payment date
+- Amount received
+- Payment method: Cash / Bank
+- Note
+
+Rules:
+- Payment should apply to oldest unpaid installment first.
+- Partial payment should be allowed.
+- Extra payment should continue applying to next pending installments.
+- If all installments are paid, plan becomes COMPLETED.
+
+---
+
+# 4. Data Needed
+
+## 4.1 Installment Plan
+
+Fields:
+- id
+- tenant_id
+- plan_number
+- customer_id
+- sales_invoice_id
+- sale_date
+- product_total
+- discount_amount
+- net_sale_amount
+- down_payment
+- finance_amount
+- markup_type: PERCENT / FIXED
+- markup_value
+- markup_amount
+- final_payable_amount
+- number_of_months
+- first_payment_date
+- payment_day_of_month
+- monthly_installment_amount
+- total_paid
+- outstanding_amount
+- overdue_amount
+- status
+- note
+- created_by
+- created_at
+- updated_at
+- cancelled_at
+- cancelled_by
+- cancel_reason
+
+## 4.2 Installment Schedule
+
+Fields:
+- id
+- tenant_id
+- plan_id
+- installment_no
+- due_date
+- due_amount
+- paid_amount
+- remaining_amount
+- paid_date
+- status
+- created_at
+- updated_at
+
+## 4.3 Installment Payment
+
+Fields:
+- id
+- tenant_id
+- plan_id
+- customer_id
+- payment_date
+- amount
+- payment_method
+- note
+- created_by
+- created_at
+
+## 4.4 Installment Payment Allocation
+
+Purpose:
+Track which payment paid which schedule row.
+
+Fields:
+- id
+- tenant_id
+- payment_id
+- schedule_id
+- allocated_amount
+- created_at
+
+---
+
+# 5. Accounting / Ledger Behavior
+
+## 5.1 On Installment Sale Creation
+
+Effects:
+- Stock decreases immediately.
+- Sale invoice is created.
+- Down payment increases cash/bank.
+- Installment receivable is created for remaining payable.
+- Customer installment outstanding increases.
+
+Important decision:
+Markup income can be recognized in two ways.
+
+Option A: Recognize full markup at sale creation.
+- Easier.
+- But profit may look high before money is collected.
+
+Option B: Recognize markup gradually as installments are collected.
+- More accurate and safer.
+- Recommended.
+
+Recommendation:
+Use Option B. Recognize markup income proportionally with each installment payment.
+
+## 5.2 On Installment Payment
+
+Effects:
+- Cash/bank increases.
+- Installment receivable decreases.
+- Markup income is recognized proportionally if using gradual recognition.
+- Schedule rows update to PAID/PARTIAL.
+
+## 5.3 On Early Full Settlement
+
+Effects:
+- Customer pays all remaining amount.
+- All unpaid schedules become PAID.
+- Plan becomes COMPLETED.
+- Optional settlement discount may be allowed.
+
+## 5.4 On Reschedule
+
+Rules:
+- Require reason.
+- Keep old schedule history.
+- Create adjustment/reschedule audit entry.
+- Do not silently overwrite paid schedule rows.
+
+## 5.5 On Cancel Plan
+
+Rules:
+- Require reason.
+- Only allow cancellation if business rules are safe.
+- If product already returned, reverse stock/sale carefully.
+- If payments already collected, define refund or adjustment behavior.
+
+Recommendation:
+For first version, allow cancellation only when no installment payment has been collected except down payment, or require manual admin handling.
+
+---
+
+# 6. Customer Impact
+
+Retail customer profile should show:
+- Active installment count
+- Total installment outstanding
+- Overdue installment amount
+- Next payment date
+- Installment payment history
+- Products bought through installment
+
+Customer due ledger should remain separate from installment ledger unless intentionally merged.
+
+Recommendation:
+Keep normal customer due and installment due separate, but show both in customer summary.
+
+Example customer summary:
+- Normal Current Due
+- Installment Outstanding
+- Total Receivable
+- Loyalty Points
+
+---
+
+# 7. Reports
+
+## 7.1 Today Due Installments
+
+Shows installments due today.
+
+Columns:
+- Customer
+- Phone
+- Plan No
+- Due date
+- Due amount
+- Paid amount
+- Remaining amount
+
+## 7.2 Upcoming Due Report
+
+Filters:
+- Next 7 days
+- Next 15 days
+- Date range
+
+## 7.3 Overdue Installments
+
+Shows overdue schedules.
+
+Columns:
+- Customer
+- Phone
+- Plan No
+- Due date
+- Days overdue
+- Overdue amount
+- Total outstanding
+
+## 7.4 Installment Collection Report
+
+Shows payments collected by date range.
+
+Columns:
+- Payment date
+- Customer
+- Plan No
+- Amount
+- Payment method
+- Collected by
+
+## 7.5 Customer Installment Statement
+
+For a single customer.
+
+Shows:
+- All installment plans
+- Payment schedule
+- Paid amounts
+- Outstanding amounts
+- Overdue amounts
+
+## 7.6 Markup Income Report
+
+Shows income from installment markup.
+
+Filters:
+- Date range
+- Customer
+- Plan status
+
+---
+
+# 8. Business Rules
+
+Recommended rules:
+- Installment sale must use registered retail customer.
+- Walk-in customer cannot use installment.
+- Product stock is reduced immediately after installment sale confirmation.
+- Down payment is optional or required based on shop policy.
+- Markup can be percent or fixed amount.
+- Discount can be applied before markup.
+- Payment schedule is auto-generated.
+- Payment applies to oldest due installment first.
+- Partial payment is allowed.
+- Extra payment rolls forward to next installment.
+- Overdue status is calculated from due date and remaining amount.
+- Reschedule requires reason.
+- Cancel requires reason.
+- Delete should be restricted; prefer cancel/void with audit history.
+
+---
+
+# 9. Recommended Version 1 Scope
+
+Build first:
+- Create installment sale
+- Generate monthly schedule
+- Collect payment
+- View plan detail
+- Overdue calculation
+- Customer installment statement
+- Today due / overdue report
+- Basic print/export
+
+Delay until later:
+- Advanced rescheduling
+- Penalty fees
+- SMS reminders
+- Guarantor fields
+- Document uploads
+- Legal notice tracking
+- Automatic late fee
+- Advanced accounting recognition options
+
+---
+
+# 10. Suggested Test Cases
+
+## TC-INST-001 - Create Installment Sale
+
+Steps:
+1. Create customer.
+2. Create product with stock.
+3. Create installment sale with down payment, markup, months, and first due date.
+
+Expected:
+- Invoice is created.
+- Stock decreases.
+- Down payment enters cash/bank.
+- Installment plan is ACTIVE.
+- Schedule rows are generated.
+
+## TC-INST-002 - Monthly Schedule Generation
+
+Steps:
+1. Create plan for 6 months.
+2. Check schedule.
+
+Expected:
+- 6 schedule rows exist.
+- Due dates are monthly.
+- Total schedule amount equals final payable amount.
+
+## TC-INST-003 - Partial Payment
+
+Steps:
+1. Create installment plan.
+2. Pay less than first installment.
+
+Expected:
+- First schedule row becomes PARTIAL.
+- Paid amount updates.
+- Remaining amount updates.
+- Plan outstanding decreases.
+
+## TC-INST-004 - Full Installment Payment
+
+Steps:
+1. Pay exact first installment amount.
+
+Expected:
+- First schedule row becomes PAID.
+- Plan total paid increases.
+- Outstanding decreases.
+
+## TC-INST-005 - Extra Payment Allocation
+
+Steps:
+1. Pay more than one installment amount.
+
+Expected:
+- Oldest unpaid installment is paid first.
+- Extra amount applies to next installment.
+
+## TC-INST-006 - Overdue Report
+
+Steps:
+1. Create plan with past due date.
+2. Do not pay.
+3. Open overdue report.
+
+Expected:
+- Installment appears as overdue.
+- Days overdue and overdue amount are correct.
+
+## TC-INST-007 - Early Full Settlement
+
+Steps:
+1. Create active plan.
+2. Pay all remaining amount.
+
+Expected:
+- All schedules become PAID.
+- Plan becomes COMPLETED.
+
+## TC-INST-008 - Customer Installment Statement
+
+Steps:
+1. Create multiple installment plans for one customer.
+2. Pay some installments.
+3. Open customer statement.
+
+Expected:
+- All plans appear.
+- Paid/outstanding/overdue values are correct.
+
+## TC-INST-009 - Reschedule Requires Reason
+
+Steps:
+1. Try to reschedule without reason.
+2. Try with reason.
+
+Expected:
+- Without reason is rejected.
+- With reason updates future schedules and records audit history.
+
+## TC-INST-010 - Tenant Isolation
+
+Steps:
+1. Create plan in Tenant A.
+2. Log in as Tenant B.
+3. Try to view or collect payment on Tenant A plan.
+
+Expected:
+- Tenant B cannot access Tenant A plan.
+
+---
+
+# 11. Recommendation
+
+This is a high-value feature for phone, electronics, appliance, and retail shops where customers buy on monthly payments.
+
+However, it touches many critical systems:
+- Sales invoice
+- Stock
+- Customer due
+- Finance accounts
+- Profit
+- Reports
+- Customer retention
+- Audit history
+
+Recommendation:
+Build it as a separate Retail Installments module, not as a small field inside normal sales invoice.
+
+Keep normal customer due and installment due separate internally, then show both in customer summary.

@@ -562,6 +562,65 @@ export class JournalService {
       ],
     });
   }
+  async postPromotionEarning(client, actor, { earningId, earnedDate, ruleName, amount }) {
+    return this.post(client, {
+      tenantId: actor.tenantId,
+      entryDate: earnedDate,
+      sourceType: JOURNAL_SOURCE_TYPES.PROMOTION_EARNING,
+      sourceId: earningId,
+      memo: ruleName ? `Trade promotion earning - ${ruleName}` : "Trade promotion earning",
+      createdById: actor.id,
+      lines: [
+        { accountCode: ACCOUNTS.PROMOTION_RECEIVABLE, debit: amount },
+        { accountCode: ACCOUNTS.PROMOTION_INCOME, credit: amount },
+      ],
+    });
+  }
+
+  async postPromotionSettlementCash(client, actor, { settlementId, settlementDate, amount, financeAccountType }) {
+    return this.post(client, {
+      tenantId: actor.tenantId,
+      entryDate: settlementDate,
+      sourceType: JOURNAL_SOURCE_TYPES.PROMOTION_SETTLEMENT,
+      sourceId: settlementId,
+      memo: "Trade promotion cash settlement",
+      createdById: actor.id,
+      lines: [
+        { accountCode: accountForFinanceType(financeAccountType), debit: amount },
+        { accountCode: ACCOUNTS.PROMOTION_RECEIVABLE, credit: amount },
+      ],
+    });
+  }
+
+  async postPromotionSettlementStock(client, actor, { settlementId, settlementDate, amount }) {
+    return this.post(client, {
+      tenantId: actor.tenantId,
+      entryDate: settlementDate,
+      sourceType: JOURNAL_SOURCE_TYPES.PROMOTION_SETTLEMENT,
+      sourceId: settlementId,
+      memo: "Trade promotion stock settlement",
+      createdById: actor.id,
+      lines: [
+        { accountCode: ACCOUNTS.INVENTORY, debit: amount },
+        { accountCode: ACCOUNTS.PROMOTION_INCOME, credit: amount },
+      ],
+    });
+  }
+
+  async postPromotionSettlementCreditNote(client, actor, { settlementId, settlementDate, amount }) {
+    return this.post(client, {
+      tenantId: actor.tenantId,
+      entryDate: settlementDate,
+      sourceType: JOURNAL_SOURCE_TYPES.PROMOTION_SETTLEMENT,
+      sourceId: settlementId,
+      memo: "Trade promotion credit note settlement",
+      createdById: actor.id,
+      lines: [
+        { accountCode: ACCOUNTS.ACCOUNTS_PAYABLE, debit: amount },
+        { accountCode: ACCOUNTS.PROMOTION_RECEIVABLE, credit: amount },
+      ],
+    });
+  }
   async getChartOfAccounts() {
     return this.databaseManager.withClient((client) => listChartOfAccounts(client));
   }

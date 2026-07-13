@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Download, FileSpreadsheet, Loader2, Pencil, Phone, Plus, Printer, Search, Trash2, Users } from 'lucide-react';
+import { CreditCard, Download, FileSpreadsheet, Loader2, Pencil, Phone, Plus, Printer, Search, Trash2, Users } from 'lucide-react';
 import { Alert, Badge, EmptyState, MobileCardList, MobileListCard, Pagination, SectionHeader, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { statusTone } from '../../../models/inventoryViewData.js';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
@@ -8,17 +8,20 @@ import { downloadSheetPdf } from '../../../services/printService.js';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import { formatCurrency } from '../../../utils/calculations.js';
 import RetailCustomerFormModal from '../components/RetailCustomerFormModal.jsx';
+import CreditSettingsModal from '../../installment-sales/components/CreditSettingsModal.jsx';
 import { useRetailCustomersViewModel } from '../viewmodels/useRetailCustomersViewModel';
 import { useAsyncAction } from '../../../hooks/useAsyncAction.js';
 
 const RETAIL_CUSTOMERS_PRINT_ID = 'retail-customers-print';
 
 export default function RetailCustomersPage() {
-  const { t, can, pushToast, confirm } = useInventoryApp();
+  const { t, can, hasFeature, pushToast, confirm } = useInventoryApp();
   const navigate = useNavigate();
   const vm = useRetailCustomersViewModel();
   const [formModal, setFormModal] = useState(null);
+  const [creditSettingsCustomer, setCreditSettingsCustomer] = useState(null);
   const canManage = can('manage_retail_customers_write');
+  const canManageInstallmentCredit = hasFeature('installment-sales') && can('manage_installment_credit_settings');
   const [downloadingPdf, downloadPdf] = useAsyncAction();
 
   async function handleExportExcel() {
@@ -177,7 +180,7 @@ export default function RetailCustomersPage() {
                   <th className="px-4 py-3 text-right">{t('retailCustomers.currentDue')}</th>
                   <th className="px-4 py-3">{t('retailCustomers.loyaltyPoints')}</th>
                   <th className="px-4 py-3">{t('retailCustomers.status')}</th>
-                  {canManage ? <th className="px-4 py-3 text-right no-print">{t('common.actions')}</th> : null}
+                  {canManage || canManageInstallmentCredit ? <th className="px-4 py-3 text-right no-print">{t('common.actions')}</th> : null}
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -203,15 +206,24 @@ export default function RetailCustomersPage() {
                         {customer.status === 'ACTIVE' ? t('retailCustomers.statusActive') : t('retailCustomers.statusInactive')}
                       </Badge>
                     </td>
-                    {canManage ? (
+                    {canManage || canManageInstallmentCredit ? (
                       <td className="table-cell no-print">
                         <div className="row-actions flex justify-end gap-2">
-                          <button type="button" className="icon-btn" title={t('common.edit')} onClick={() => setFormModal({ mode: 'edit', retailCustomer: customer })}>
-                            <Pencil size={16} />
-                          </button>
-                          <button type="button" className="icon-btn text-rose-600 hover:text-rose-700" title={t('common.delete')} onClick={() => deleteRetailCustomer(customer)}>
-                            <Trash2 size={16} />
-                          </button>
+                          {canManageInstallmentCredit ? (
+                            <button type="button" className="icon-btn" title={t('installments.creditSettings.title')} onClick={() => setCreditSettingsCustomer(customer)}>
+                              <CreditCard size={16} />
+                            </button>
+                          ) : null}
+                          {canManage ? (
+                            <>
+                              <button type="button" className="icon-btn" title={t('common.edit')} onClick={() => setFormModal({ mode: 'edit', retailCustomer: customer })}>
+                                <Pencil size={16} />
+                              </button>
+                              <button type="button" className="icon-btn text-rose-600 hover:text-rose-700" title={t('common.delete')} onClick={() => deleteRetailCustomer(customer)}>
+                                <Trash2 size={16} />
+                              </button>
+                            </>
+                          ) : null}
                         </div>
                       </td>
                     ) : null}
@@ -240,6 +252,14 @@ export default function RetailCustomersPage() {
           retailCustomer={formModal.retailCustomer}
           onClose={() => setFormModal(null)}
           onSave={saveRetailCustomer}
+        />
+      ) : null}
+
+      {creditSettingsCustomer ? (
+        <CreditSettingsModal
+          customerId={creditSettingsCustomer.id}
+          onClose={() => setCreditSettingsCustomer(null)}
+          onSaved={() => setCreditSettingsCustomer(null)}
         />
       ) : null}
     </div>

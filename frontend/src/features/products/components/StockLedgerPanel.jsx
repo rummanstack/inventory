@@ -124,9 +124,11 @@ export default function StockLedgerPanel({ products, t, refreshKey = 0, fixedTyp
         <div className={`flex flex-col gap-4 lg:flex-row lg:items-start ${hideHeader ? 'lg:justify-end' : 'lg:justify-between'}`}>
           {hideHeader ? null : (
             <div>
-              <p className="brand-chip">{t('stockLedger.eyebrow')}</p>
-              <h2 className="mt-3 text-lg font-bold tracking-tight text-slate-950">{sectionTitle || t('stockLedger.title')}</h2>
-              <p className="mt-1 max-w-3xl text-sm font-medium leading-6 text-slate-500">{sectionDescription || t('stockLedger.description')}</p>
+              {sectionDescription !== '' ? <p className="brand-chip">{t('stockLedger.eyebrow')}</p> : null}
+              <h2 className={sectionDescription !== '' ? "mt-3 text-lg font-bold tracking-tight text-slate-950" : "text-lg font-bold tracking-tight text-slate-950"}>{sectionTitle || t('stockLedger.title')}</h2>
+              {sectionDescription !== '' ? (
+                <p className="mt-1 max-w-3xl text-sm font-medium leading-6 text-slate-500">{sectionDescription ?? t('stockLedger.description')}</p>
+              ) : null}
             </div>
           )}
           <div className="flex flex-wrap gap-2">
@@ -280,4 +282,6 @@ export default function StockLedgerPanel({ products, t, refreshKey = 0, fixedTyp
     </section>
   );
 }
+
+
 

@@ -1385,6 +1385,217 @@ export function InventoryAppProvider({ children }) {
     }
   }
 
+  async function createInstallmentPlan(payload) {
+    try {
+      const result = await inventoryApi.createInstallmentPlan(payload);
+      pushToast('success', t('installments.plans.addTitle'), `${result.plan.planNumber} ${t('alerts.created')}`);
+      return { ok: true, ...result };
+    } catch (error) {
+      const message = getFriendlyError(error, t);
+      pushToast('error', t('alerts.requestFailed'), message);
+      return { ok: false, message };
+    }
+  }
+
+  async function collectInstallmentPayment(payload) {
+    try {
+      const result = await inventoryApi.collectInstallmentPayment(payload);
+      pushToast('success', t('installments.payment.title'), `${result.plan.planNumber} ${t('alerts.updated')}`);
+      return { ok: true, ...result };
+    } catch (error) {
+      const message = getFriendlyError(error, t);
+      pushToast('error', t('alerts.requestFailed'), message);
+      return { ok: false, message };
+    }
+  }
+
+  async function rescheduleInstallmentPlan(planId, payload) {
+    try {
+      const plan = await inventoryApi.reschedulePlan(planId, payload);
+      pushToast('success', t('installments.detail.reschedule'), `${plan.planNumber} ${t('alerts.updated')}`);
+      return { ok: true, plan };
+    } catch (error) {
+      const message = getFriendlyError(error, t);
+      pushToast('error', t('alerts.requestFailed'), message);
+      return { ok: false, message };
+    }
+  }
+
+  async function settleInstallmentPlan(planId, payload) {
+    try {
+      const plan = await inventoryApi.settlePlan(planId, payload);
+      pushToast('success', t('installments.detail.settle'), `${plan.planNumber} ${t('alerts.updated')}`);
+      return { ok: true, plan };
+    } catch (error) {
+      const message = getFriendlyError(error, t);
+      pushToast('error', t('alerts.requestFailed'), message);
+      return { ok: false, message };
+    }
+  }
+
+  async function writeOffInstallmentPlan(plan) {
+    const { confirmed, reason } = await confirm({
+      title: t('installments.detail.writeOffTitle'),
+      description: interpolateConfirm(t('installments.detail.writeOffConfirm'), { number: plan.planNumber }),
+      confirmLabel: t('installments.detail.writeOff'),
+      tone: 'rose',
+      requireReason: true,
+      reasonLabel: t('common.deleteReasonLabel'),
+      reasonPlaceholder: t('common.deleteReasonPlaceholder'),
+      consequences: buildConsequences(t, 'installments.detail.writeOffConsequences', ['danger', 'danger', 'info']),
+    });
+    if (!confirmed) return { ok: false };
+
+    try {
+      const updated = await inventoryApi.writeOffPlan(plan.id, { reason });
+      pushToast('success', t('installments.detail.writeOff'), `${updated.planNumber} ${t('alerts.updated')}`);
+      return { ok: true, plan: updated };
+    } catch (error) {
+      const message = getFriendlyError(error, t);
+      pushToast('error', t('alerts.requestFailed'), message);
+      return { ok: false, message };
+    }
+  }
+
+  async function cancelInstallmentPlan(plan) {
+    const { confirmed, reason } = await confirm({
+      title: t('installments.detail.cancelTitle'),
+      description: interpolateConfirm(t('installments.detail.cancelConfirm'), { number: plan.planNumber }),
+      confirmLabel: t('installments.detail.cancel'),
+      tone: 'rose',
+      requireReason: true,
+      reasonLabel: t('common.deleteReasonLabel'),
+      reasonPlaceholder: t('common.deleteReasonPlaceholder'),
+      consequences: buildConsequences(t, 'installments.detail.cancelConsequences', ['safe', 'danger', 'info']),
+    });
+    if (!confirmed) return { ok: false };
+
+    try {
+      const updated = await inventoryApi.cancelPlan(plan.id, { reason });
+      pushToast('success', t('installments.detail.cancel'), `${updated.planNumber} ${t('alerts.updated')}`);
+      return { ok: true, plan: updated };
+    } catch (error) {
+      const message = getFriendlyError(error, t);
+      pushToast('error', t('alerts.requestFailed'), message);
+      return { ok: false, message };
+    }
+  }
+
+  async function addInstallmentGuarantor(planId, payload) {
+    try {
+      const guarantor = await inventoryApi.addInstallmentGuarantor(planId, payload);
+      pushToast('success', t('installments.guarantors.add'), guarantor.name);
+      return { ok: true, guarantor };
+    } catch (error) {
+      const message = getFriendlyError(error, t);
+      pushToast('error', t('alerts.requestFailed'), message);
+      return { ok: false, message };
+    }
+  }
+
+  async function removeInstallmentGuarantor(planId, guarantor) {
+    const { confirmed } = await confirm({
+      title: t('installments.guarantors.deleteTitle'),
+      description: interpolateConfirm(t('installments.guarantors.deleteConfirm'), { name: guarantor.name }),
+      requireReason: false,
+    });
+    if (!confirmed) return { ok: false };
+
+    try {
+      await inventoryApi.removeInstallmentGuarantor(planId, guarantor.id);
+      pushToast('success', t('common.delete'), `${guarantor.name} ${t('alerts.deleted')}`);
+      return { ok: true };
+    } catch (error) {
+      pushToast('error', t('alerts.deleteFailed'), getFriendlyError(error, t));
+      return { ok: false };
+    }
+  }
+
+  async function addInstallmentDocument(planId, payload) {
+    try {
+      const document = await inventoryApi.addInstallmentDocument(planId, payload);
+      pushToast('success', t('installments.documents.add'), t(`installments.documents.types.${document.documentType}`));
+      return { ok: true, document };
+    } catch (error) {
+      const message = getFriendlyError(error, t);
+      pushToast('error', t('alerts.requestFailed'), message);
+      return { ok: false, message };
+    }
+  }
+
+  async function removeInstallmentDocument(planId, document) {
+    const { confirmed } = await confirm({
+      title: t('installments.documents.deleteTitle'),
+      description: t('installments.documents.deleteConfirm'),
+      requireReason: false,
+    });
+    if (!confirmed) return { ok: false };
+
+    try {
+      await inventoryApi.removeInstallmentDocument(planId, document.id);
+      pushToast('success', t('common.delete'), t('alerts.deleted'));
+      return { ok: true };
+    } catch (error) {
+      pushToast('error', t('alerts.deleteFailed'), getFriendlyError(error, t));
+      return { ok: false };
+    }
+  }
+
+  async function updateInstallmentCreditSettings(customerId, payload) {
+    try {
+      const customer = await inventoryApi.updateInstallmentCreditSettings(customerId, payload);
+      pushToast('success', t('installments.creditSettings.title'), t('alerts.updated'));
+      return { ok: true, customer };
+    } catch (error) {
+      const message = getFriendlyError(error, t);
+      pushToast('error', t('alerts.requestFailed'), message);
+      return { ok: false, message };
+    }
+  }
+
+  async function saveInstallmentLateFeeRule(rule) {
+    try {
+      const result = await inventoryApi.saveInstallmentLateFeeRule(rule);
+      pushToast('success', rule.id ? t('installments.lateFeeRules.editTitle') : t('installments.lateFeeRules.addTitle'), t(rule.id ? 'alerts.updated' : 'alerts.created'));
+      return { ok: true, rule: result };
+    } catch (error) {
+      const message = getFriendlyError(error, t);
+      pushToast('error', t('alerts.requestFailed'), message);
+      return { ok: false, message };
+    }
+  }
+
+  async function applyInstallmentLateFee(scheduleId) {
+    try {
+      const result = await inventoryApi.applyInstallmentLateFee(scheduleId);
+      pushToast('success', t('installments.reports.applyLateFee'), t('alerts.updated'));
+      return { ok: true, ...result };
+    } catch (error) {
+      const message = getFriendlyError(error, t);
+      pushToast('error', t('alerts.requestFailed'), message);
+      return { ok: false, message };
+    }
+  }
+
+  async function downloadInstallmentAgreementPdf(planId) {
+    try {
+      const { blob, filename } = await inventoryApi.downloadInstallmentAgreementPdf(planId);
+      const url = window.URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = filename;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      window.URL.revokeObjectURL(url);
+      return { ok: true };
+    } catch (error) {
+      const message = getFriendlyError(error, t);
+      pushToast('error', t('alerts.requestFailed'), message);
+      return { ok: false, message };
+    }
+  }
+
   const value = useMemo(
     () => ({
       today,
@@ -1489,6 +1700,20 @@ export function InventoryAppProvider({ children }) {
       removeFromPromotionDirectory,
       refreshPromotionDirectory,
       updateProfile,
+      createInstallmentPlan,
+      collectInstallmentPayment,
+      rescheduleInstallmentPlan,
+      settleInstallmentPlan,
+      writeOffInstallmentPlan,
+      cancelInstallmentPlan,
+      addInstallmentGuarantor,
+      removeInstallmentGuarantor,
+      addInstallmentDocument,
+      removeInstallmentDocument,
+      updateInstallmentCreditSettings,
+      saveInstallmentLateFeeRule,
+      applyInstallmentLateFee,
+      downloadInstallmentAgreementPdf,
     }),
     [today, language, theme, t, user, tenant, tenantOptions, permissions, authLoading, productDirectory, dsrDirectory, srDirectory, supplierDirectory, shopDirectory, retailCustomerDirectory, promotionDirectory, loading, loadError, confirmation, loggingOut],
   );

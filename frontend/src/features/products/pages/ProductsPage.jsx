@@ -401,7 +401,7 @@ export default function ProductsPage() {
         ) : null}
       </div>
 
-      <StockLedgerPanel products={productDirectory} t={t} refreshKey={ledgerRefreshKey} />
+      <StockLedgerPanel products={productDirectory} t={t} refreshKey={ledgerRefreshKey} sectionDescription="" />
 
       {productModal ? <ProductFormModal product={productModal.product} onClose={() => setProductModal(null)} onSave={async (value) => {
         const wasNewProduct = !productModal.product;
@@ -454,4 +454,5 @@ export default function ProductsPage() {
     </div>
   );
 }
+
 

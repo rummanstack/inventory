@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Download, HandCoins, Loader2, Printer, RefreshCw, Wallet } from 'lucide-react';
 import { Alert, Badge, CopyableText, EmptyState, SectionHeader, StatCard, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
@@ -40,6 +40,44 @@ export default function DsrFinancePage() {
 
   const dueEntries = dueVm.statement?.entries || [];
 
+  function handleDownloadPdf() {
+    return downloadPdf(async () => {
+      await inventoryApi.recordPrint({ entityType: 'dsr_due_statement', entityId: dueVm.dsrId, label: 'pdf' }).catch(() => {});
+      await downloadSheetPdf('dsr-due-statement-print', `dsr-due-statement.pdf`);
+    });
+  }
+
+  function handlePrintSheet() {
+    inventoryApi.recordPrint({ entityType: 'dsr_due_statement', entityId: dueVm.dsrId, label: 'print' }).catch(() => {});
+    window.print();
+  }
+
+  useEffect(() => {
+    function handleKeyDown(event) {
+      const key = event.key.toLowerCase();
+      const isReportShortcut = event.altKey && !event.ctrlKey && !event.metaKey;
+      if (!isReportShortcut) {
+        return;
+      }
+      if (key === 's' && dueVm.dsrId) {
+        event.preventDefault();
+        setShowSettleModal(true);
+      } else if (dueVm.statement && key === 'r') {
+        event.preventDefault();
+        dueVm.refresh();
+      } else if (dueVm.statement && key === 'd' && !downloadingPdf) {
+        event.preventDefault();
+        handleDownloadPdf();
+      } else if (dueVm.statement && key === 'p') {
+        event.preventDefault();
+        handlePrintSheet();
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [downloadingPdf, dueVm.statement, dueVm.dsrId]);
+
   return (
     <div>
       <SectionHeader
@@ -50,6 +88,7 @@ export default function DsrFinancePage() {
           <button type="button" className="btn-primary" disabled={!dueVm.dsrId} onClick={() => setShowSettleModal(true)}>
             <HandCoins size={18} />
             {t('dsrDueLedger.settleDue')}
+            <kbd className="ml-1 rounded border border-white/40 bg-white/20 px-1 py-0.5 font-mono text-[10px] text-white">Alt+S</kbd>
           </button>
         }
       />
@@ -84,28 +123,30 @@ export default function DsrFinancePage() {
             <button type="button" className="btn-secondary" onClick={dueVm.refresh}>
               <RefreshCw size={16} />
               {t('dsrDueLedger.refresh')}
+              <kbd className="ml-1 rounded border border-slate-300 bg-white/70 px-1 py-0.5 font-mono text-[10px] text-slate-500">Alt+R</kbd>
             </button>
             {dueVm.statement ? (
               <div className="flex items-center gap-2 no-print">
                 <button
                   type="button"
                   className="btn-secondary disabled:cursor-not-allowed disabled:opacity-60"
-                  onClick={() => downloadPdf(async () => {
-                    await inventoryApi.recordPrint({ entityType: 'dsr_due_statement', entityId: dueVm.dsrId, label: 'pdf' }).catch(() => {});
-                    await downloadSheetPdf('dsr-due-statement-print', `dsr-due-statement.pdf`);
-                  })}
+                  onClick={handleDownloadPdf}
+
                   disabled={downloadingPdf}
                 >
                   {downloadingPdf ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
                   {t('purchaseReceive.downloadPdf')}
+                  <kbd className="ml-1 rounded border border-slate-300 bg-white/70 px-1 py-0.5 font-mono text-[10px] text-slate-500">Alt+D</kbd>
                 </button>
                 <button
                   type="button"
                   className="btn-secondary"
-                  onClick={() => { inventoryApi.recordPrint({ entityType: 'dsr_due_statement', entityId: dueVm.dsrId, label: 'print' }).catch(() => {}); window.print(); }}
+                  onClick={handlePrintSheet}
+
                 >
                   <Printer size={16} />
                   {t('purchaseReceive.printSheet')}
+                  <kbd className="ml-1 rounded border border-slate-300 bg-white/70 px-1 py-0.5 font-mono text-[10px] text-slate-500">Alt+P</kbd>
                 </button>
               </div>
             ) : null}
@@ -184,4 +225,7 @@ export default function DsrFinancePage() {
     </div>
   );
 }
+
+
+
 

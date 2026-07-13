@@ -243,7 +243,9 @@ export function useSettlementViewModel({ products, dsrs, today, saveSettlementAc
   }
 
   function addExtraReturn() {
-    const nextProduct = products.find((product) => !extraReturns.some((row) => row.productId === product.id));
+    const issuedProductIds = new Set(displayRows.map((row) => row.productId));
+    const extraReturnProductIds = new Set(extraReturns.map((row) => row.productId));
+    const nextProduct = products.find((product) => !issuedProductIds.has(product.id) && !extraReturnProductIds.has(product.id));
     if (!nextProduct) {
       return;
     }

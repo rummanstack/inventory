@@ -64,8 +64,10 @@ import { drugBatchApi } from './api/drugBatchApi.js';
 import { tradePromotionRulesApi } from './api/tradePromotionRulesApi.js';
 import { tradePromotionEarningsApi } from './api/tradePromotionEarningsApi.js';
 import { tradePromotionSettlementsApi } from './api/tradePromotionSettlementsApi.js';
+import { installmentsApi } from './api/installmentsApi.js';
 
 export const inventoryApi = {
+  ...installmentsApi,
   ...aiInsightsApi,
   ...authApi,
   ...usersApi,

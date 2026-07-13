@@ -136,6 +136,11 @@ const PayrollPage = lazy(() => import('../features/hr/payroll/pages/PayrollPage'
 const AdvancesPage = lazy(() => import('../features/hr/employee-finance/pages/AdvancesPage'));
 const LoansPage = lazy(() => import('../features/hr/employee-finance/pages/LoansPage'));
 const HrReportsPage = lazy(() => import('../features/hr/reports/pages/HrReportsPage'));
+const InstallmentPlansPage = lazy(() => import('../features/installment-sales/pages/InstallmentPlansPage'));
+const InstallmentPlanDetailPage = lazy(() => import('../features/installment-sales/pages/InstallmentPlanDetailPage'));
+const InstallmentReportsPage = lazy(() => import('../features/installment-sales/pages/InstallmentReportsPage'));
+const InstallmentDashboardPage = lazy(() => import('../features/installment-sales/pages/InstallmentDashboardPage'));
+const LateFeeRulesPage = lazy(() => import('../features/installment-sales/pages/LateFeeRulesPage'));
 
 export const APP_ROUTES = [
   // 1. Dashboard
@@ -156,6 +161,13 @@ export const APP_ROUTES = [
   { id: 'ai-insights', path: '/ai-insights', labelKey: 'nav.aiInsights', icon: Sparkles, component: AiInsightsPage, group: 'customers', permission: 'view_retail_customers', feature: 'retail-customers' },
   { id: 'retailer-customer-due', path: '/retailer/customer-due', labelKey: 'nav.retailerCustomerDue', icon: Wallet, component: CustomerDuePage, group: 'customers', permission: 'view_retail_customer_due', feature: 'retailer-customer-due' },
   { id: 'retailer-due-collection', path: '/retailer/due-collection', labelKey: 'nav.retailerDueCollection', icon: HandCoins, component: DueCollectionPage, group: 'customers', permission: 'view_retail_due_collection', feature: 'retailer-due-collection' },
+
+  // 3.5 Retail Installments
+  { id: 'installment-plans', path: '/installment-sales', labelKey: 'nav.installmentPlans', icon: CreditCard, component: InstallmentPlansPage, group: 'installment-sales', permission: 'view_installment_plans', feature: 'installment-sales' },
+  { id: 'installment-plan-detail', path: '/installment-sales/:id', labelKey: 'nav.installmentPlanDetail', icon: CreditCard, component: InstallmentPlanDetailPage, group: 'hidden', permission: 'view_installment_plans', feature: 'installment-sales' },
+  { id: 'installment-reports', path: '/installment-sales/reports', labelKey: 'nav.installmentReports', icon: FileText, component: InstallmentReportsPage, group: 'installment-sales', permission: 'view_installment_plans', feature: 'installment-sales' },
+  { id: 'installment-dashboard', path: '/installment-sales/dashboard', labelKey: 'nav.installmentDashboard', icon: LayoutDashboard, component: InstallmentDashboardPage, group: 'installment-sales', permission: 'view_installment_plans', feature: 'installment-sales' },
+  { id: 'installment-late-fee-rules', path: '/installment-sales/late-fee-rules', labelKey: 'nav.installmentLateFeeRules', icon: Gift, component: LateFeeRulesPage, group: 'installment-sales', permission: 'manage_installment_plans', feature: 'installment-sales' },
 
   // 4. Inventory
   { id: 'products', path: '/products', labelKey: 'nav.products', icon: Boxes, component: ProductsPage, group: 'inventory', permission: 'view_products', feature: 'products' },
@@ -262,7 +274,7 @@ export const APP_ROUTES = [
   { id: 'registration-requests', path: '/platform/registrations', labelKey: 'nav.registrationRequests', icon: UserCheck, component: RegistrationRequestsPage, group: 'developer', role: 'system_developer', feature: 'registration-requests' },
 ];
 
-export const SIDEBAR_SECTIONS = ['overview', 'pos', 'customers', 'inventory', 'dsr', 'shops', 'purchases', 'trade-promotions', 'warranty', 'finance', 'accounting', 'reports', 'hr', 'system', 'developer'];
+export const SIDEBAR_SECTIONS = ['overview', 'pos', 'customers', 'installment-sales', 'inventory', 'dsr', 'shops', 'purchases', 'trade-promotions', 'warranty', 'finance', 'accounting', 'reports', 'hr', 'system', 'developer'];
 
 export function canAccessRoute(route, { user, can, hasFeature }) {
   if (!route) return false;

@@ -31,22 +31,44 @@ export default function EveningSettlementPage() {
     inventoryApi.recordPrint({ entityType: 'settlement', entityId: vm.completedSettlement.id, label }).catch(() => {});
   }
 
+  function handleDownloadPdf() {
+    return downloadPdf(async () => {
+      recordSettlementPrint('pdf');
+      await downloadSheetPdf('settlement-print-sheet', buildPdfFileName(vm.sheet));
+    });
+  }
+
+  function handlePrintSheet() {
+    recordSettlementPrint('print');
+    printElementById('settlement-print-sheet');
+  }
+
   function getExtraReturnOptions(rowId) {
+    const issuedProductIds = new Set(vm.displayRows.map((row) => row.productId));
     const selectedProductIds = new Set(vm.extraReturns.filter((row) => row.id !== rowId).map((row) => row.productId));
-    return productDirectory.filter((product) => !selectedProductIds.has(product.id) || vm.extraReturns.find((row) => row.id === rowId)?.productId === product.id);
+    return productDirectory.filter((product) => !issuedProductIds.has(product.id) && !selectedProductIds.has(product.id));
   }
 
   useEffect(() => {
     function handleKeyDown(event) {
-      if (event.key === 's' && (event.ctrlKey || event.metaKey) && canEditSettlement && !vm.saving && !vm.hasErrors) {
+      const key = event.key.toLowerCase();
+      const isSaveShortcut = event.ctrlKey || event.metaKey;
+      const isReportShortcut = event.altKey && !event.ctrlKey && !event.metaKey;
+      if (key === 's' && isSaveShortcut && canEditSettlement && !vm.saving && !vm.hasErrors) {
         event.preventDefault();
         vm.completeSettlement();
+      } else if (key === 'd' && isReportShortcut && vm.completedSettlement && canUpdateSettlement && !downloadingPdf) {
+        event.preventDefault();
+        handleDownloadPdf();
+      } else if (key === 'p' && isReportShortcut && vm.completedSettlement && canUpdateSettlement) {
+        event.preventDefault();
+        handlePrintSheet();
       }
     }
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [canEditSettlement, vm.saving, vm.hasErrors, vm.completeSettlement]);
+  }, [canEditSettlement, canUpdateSettlement, downloadingPdf, vm.saving, vm.hasErrors, vm.completeSettlement, vm.completedSettlement, vm.sheet]);
 
   return (
     <div>
@@ -103,8 +125,7 @@ export default function EveningSettlementPage() {
       <div className="surface mt-6 overflow-hidden">
         <div className="flex flex-col gap-3 border-b border-slate-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="section-title">{t('settlement.itemsTitle')}</h2>
-            <p className="mt-1 text-sm text-slate-500">{vm.completedSettlement ? t('settlement.updateHint') : t('settlement.entryHint')}</p>
+
           </div>
           <div className="flex flex-wrap items-center gap-2">
             {vm.completedSettlement ? <Badge tone="emerald">{t('settlement.editingCompleted')}</Badge> : null}
@@ -159,7 +180,7 @@ export default function EveningSettlementPage() {
                 <h3 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">{t('settlement.extraReturnsTitle')}</h3>
                 <div className="flex items-center gap-3">
                   <Badge tone="amber">{t('settlement.extraReturnTotal', { pieces: vm.totalExtraReturnedPieces })}</Badge>
-                  <button type="button" className="btn-secondary h-8 gap-1.5 px-3 py-1.5 text-xs" onClick={vm.addExtraReturn} disabled={!productDirectory.length}>
+                  <button type="button" className="btn-secondary h-8 gap-1.5 px-3 py-1.5 text-xs" onClick={vm.addExtraReturn} disabled={!getExtraReturnOptions('').length}>
                     <Plus size={14} />
                     {t('settlement.addExtraReturn')}
                   </button>
@@ -219,7 +240,7 @@ export default function EveningSettlementPage() {
                   })}
                 </div>
               ) : (
-                <div className="rounded-[22px] border border-dashed border-slate-200 bg-slate-50 px-4 py-5 text-sm text-slate-500">
+                <div className="rounded-[22px] border border-dashed border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-500">
                   {t('settlement.noExtraReturns')}
                 </div>
               )}
@@ -454,9 +475,10 @@ export default function EveningSettlementPage() {
                   ) : null}
                   <div className="flex flex-col gap-2 sm:flex-row lg:flex-col">
                     {vm.completedSettlement && canUpdateSettlement ? (
-                      <button type="button" className="btn-secondary justify-center" onClick={() => printElementById('settlement-print-sheet')}>
+                      <button type="button" className="btn-secondary justify-center" onClick={handlePrintSheet}>
                         <Printer size={18} />
                         {t('settlement.printSheet')}
+                        <kbd className="ml-1 rounded border border-slate-300 bg-white/70 px-1 py-0.5 font-mono text-[10px] text-slate-500">Alt+P</kbd>
                       </button>
                     ) : null}
                     {canEditSettlement ? (
@@ -465,12 +487,10 @@ export default function EveningSettlementPage() {
                         {vm.saving ? t('common.saving') : vm.completedSettlement ? t('settlement.updateSettlement') : t('settlement.completeSettlement')}
                         <kbd className="ml-1 rounded border border-indigo-400/40 bg-indigo-500/20 px-1 py-0.5 font-mono text-[10px] text-indigo-200">Ctrl+S</kbd>
                       </button>
-                    ) : (
-                      <span className="text-sm font-semibold text-slate-400">-</span>
-                    )}
+                    ) : null}
                   </div>
                   {!vm.hasInvalidReturns && !vm.discountTooHigh && !vm.amountPaidTooHigh ? (
-                    <p className="text-sm font-semibold text-slate-600">{t('settlement.returnHint')}</p>
+                    <p className="mt-2 block text-sm font-semibold text-slate-600">{t('settlement.returnHint')}</p>
                   ) : null}
                 </div>
               </div>
@@ -492,15 +512,17 @@ export default function EveningSettlementPage() {
                   <button
                     type="button"
                     className="btn-secondary disabled:cursor-not-allowed disabled:opacity-60"
-                    onClick={() => downloadPdf(async () => { recordSettlementPrint('pdf'); await downloadSheetPdf('settlement-print-sheet', buildPdfFileName(vm.sheet)); })}
+                    onClick={handleDownloadPdf}
                     disabled={downloadingPdf}
                   >
                     {downloadingPdf ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />}
                     {t('settlement.downloadPdf')}
+                    <kbd className="ml-1 rounded border border-slate-300 bg-white/70 px-1 py-0.5 font-mono text-[10px] text-slate-500">Alt+D</kbd>
                   </button>
-                  <button type="button" className="btn-secondary" onClick={() => { recordSettlementPrint('print'); printElementById('settlement-print-sheet'); }}>
+                  <button type="button" className="btn-secondary" onClick={handlePrintSheet}>
                     <Printer size={18} />
                     {t('settlement.printSheet')}
+                    <kbd className="ml-1 rounded border border-slate-300 bg-white/70 px-1 py-0.5 font-mono text-[10px] text-slate-500">Alt+P</kbd>
                   </button>
                 </>
               ) : null}
@@ -514,4 +536,7 @@ export default function EveningSettlementPage() {
     </div>
   );
 }
+
+
+
 

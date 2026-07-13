@@ -132,7 +132,7 @@ export default function AiChatWidget() {
         <div
           role="dialog"
           aria-label={t('aiChat.title')}
-          className="panel-strong fixed bottom-20 right-6 z-50 flex w-[380px] max-w-[calc(100vw-1.5rem)] flex-col overflow-hidden rounded-[24px] shadow-modal max-lg:bottom-[calc(8.5rem+env(safe-area-inset-bottom))]"
+          className="panel-strong fixed bottom-[5.25rem] right-6 z-50 flex w-[380px] max-w-[calc(100vw-1.5rem)] flex-col overflow-hidden rounded-[24px] shadow-modal max-lg:bottom-[calc(8.75rem+env(safe-area-inset-bottom))]"
           style={{ height: 'min(600px, calc(100vh - 8rem))' }}
         >
           <div className="flex shrink-0 items-start justify-between gap-3 border-b border-slate-100 bg-slate-50/80 px-4 py-3.5">
@@ -240,7 +240,7 @@ export default function AiChatWidget() {
 
       <button
         type="button"
-        className="fixed bottom-5 right-6 z-50 flex h-13 w-13 items-center justify-center rounded-full bg-[linear-gradient(135deg,var(--secondary-strong),var(--brand-strong))] text-white shadow-lg transition-all hover:brightness-105 active:scale-95 max-lg:bottom-[calc(4.5rem+env(safe-area-inset-bottom))]"
+        className="fixed bottom-5 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-[linear-gradient(135deg,var(--secondary-strong),var(--brand-strong))] text-white shadow-[0_8px_20px_-6px_rgba(0,0,0,0.4)] transition-all duration-200 hover:brightness-110 active:scale-95 max-lg:bottom-[calc(4.5rem+env(safe-area-inset-bottom))]"
         onClick={() => vm.setOpen((current) => !current)}
         title={vm.open ? t('common.close') : t('aiChat.launch')}
         aria-label={vm.open ? t('common.close') : t('aiChat.launch')}

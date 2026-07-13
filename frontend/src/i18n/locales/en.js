@@ -679,6 +679,9 @@ const en = {
     damagedStock: {
       eyebrow: 'Inventory',
       title: 'Damaged Stock',
+      currentTab: 'Current Damaged Stock',
+      inflowTab: 'Damage Inflow',
+      historyTab: 'Clear History',
       description: 'Clear (write off) damaged stock for products and track the history of cleared quantities.',
       product: 'Product',
       category: 'Category',

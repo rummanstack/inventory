@@ -17,7 +17,7 @@ function subtractDays(dateISO, days) {
   return date.toISOString().slice(0, 10);
 }
 
-export default function DamageClearHistoryPanel({ products, refreshKey = 0 }) {
+export default function DamageClearHistoryPanel({ products, refreshKey = 0, flushTop = false }) {
   const { t } = useInventoryApp();
   const today = todayISO();
   const [productId, setProductId] = useState('');
@@ -72,34 +72,64 @@ export default function DamageClearHistoryPanel({ products, refreshKey = 0 }) {
     return () => { cancelled = true; };
   }, [page, productId, dateFrom, dateTo, version, refreshKey]);
 
+  function handleRefresh() {
+    setVersion((v) => v + 1);
+  }
+
+  function handleDownloadPdf() {
+    downloadPdf(async () => {
+      await inventoryApi.recordPrint({ entityType: 'damage_clear_history', entityId: null, label: 'pdf' }).catch(() => {});
+      await downloadSheetPdf('damage-clear-history-print', `damage-clear-history-${dateFrom}-${dateTo}.pdf`);
+    });
+  }
+
+  useEffect(() => {
+    function handleKeyDown(event) {
+      const key = event.key.toLowerCase();
+      const isShortcut = event.altKey && !event.ctrlKey && !event.metaKey;
+      if (!isShortcut) {
+        return;
+      }
+
+      if (key === 'r') {
+        event.preventDefault();
+        handleRefresh();
+      } else if (key === 'd' && !downloadingPdf) {
+        event.preventDefault();
+        handleDownloadPdf();
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [downloadingPdf, dateFrom, dateTo]);
+
   return (
-    <section id="damage-clear-history-print" className="surface mt-6 overflow-hidden">
+    <section id="damage-clear-history-print" className={`surface overflow-hidden ${flushTop ? '' : 'mt-6'}`}>
       <div className="border-b border-slate-100 px-5 py-4">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
-            <h2 className="text-lg font-semibold text-slate-950">{t('damagedStock.clearHistoryTitle')}</h2>
-            <p className="mt-1 max-w-3xl text-sm font-medium leading-6 text-slate-500">{t('damagedStock.clearHistoryDescription')}</p>
+            <h2 className="text-sm font-bold text-slate-700">{t('damagedStock.historyTab')}</h2>
           </div>
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
               className="btn-secondary"
-              onClick={() => setVersion((v) => v + 1)}
+              onClick={handleRefresh}
             >
               <RefreshCw size={16} />
               {t('stockLedger.refresh')}
+              <kbd className="ml-1 rounded border border-slate-300 bg-white/70 px-1 py-0.5 font-mono text-[10px] text-slate-500">Alt+R</kbd>
             </button>
             <button
               type="button"
               className="btn-secondary no-print disabled:cursor-not-allowed disabled:opacity-60"
-              onClick={() => downloadPdf(async () => {
-                await inventoryApi.recordPrint({ entityType: 'damage_clear_history', entityId: null, label: 'pdf' }).catch(() => {});
-                await downloadSheetPdf('damage-clear-history-print', `damage-clear-history-${dateFrom}-${dateTo}.pdf`);
-              })}
+              onClick={handleDownloadPdf}
               disabled={downloadingPdf}
             >
               {downloadingPdf ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
               {t('purchaseReceive.downloadPdf')}
+              <kbd className="ml-1 rounded border border-slate-300 bg-white/70 px-1 py-0.5 font-mono text-[10px] text-slate-500">Alt+D</kbd>
             </button>
           </div>
         </div>

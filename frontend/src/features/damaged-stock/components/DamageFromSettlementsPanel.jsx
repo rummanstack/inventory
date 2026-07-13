@@ -10,6 +10,12 @@ import { usePagination } from '../../../hooks/usePagination.js';
 
 const PAGE_SIZE = 15;
 const SETTLEMENT_DAMAGE_REPORT_ID = 'settlement-damage-report';
+const DAMAGE_INFLOW_REPORT_SHORTCUTS = {
+  pdf: { alt: true, key: 'd', label: 'Alt+D' },
+  excel: { alt: true, key: 'e', label: 'Alt+E' },
+  csv: { alt: true, key: 'c', label: 'Alt+C' },
+  print: { alt: true, key: 'p', label: 'Alt+P' },
+};
 
 function subtractDays(dateISO, days) {
   const date = new Date(`${dateISO}T00:00:00`);
@@ -17,7 +23,7 @@ function subtractDays(dateISO, days) {
   return date.toISOString().slice(0, 10);
 }
 
-export default function DamageFromSettlementsPanel({ products }) {
+export default function DamageFromSettlementsPanel({ products, flushTop = false }) {
   const { t, language } = useInventoryApp();
   const today = todayISO();
   const [productId, setProductId] = useState('');
@@ -72,19 +78,37 @@ export default function DamageFromSettlementsPanel({ products }) {
     return () => { cancelled = true; };
   }, [page, productId, dateFrom, dateTo, version]);
 
+  useEffect(() => {
+    function handleKeyDown(event) {
+      const key = event.key.toLowerCase();
+      const isShortcut = event.altKey && !event.ctrlKey && !event.metaKey;
+      if (!isShortcut) {
+        return;
+      }
+
+      if (key === 'r') {
+        event.preventDefault();
+        setVersion((v) => v + 1);
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   return (
-    <section id={SETTLEMENT_DAMAGE_REPORT_ID} className="surface mt-6 overflow-hidden">
+    <section id={SETTLEMENT_DAMAGE_REPORT_ID} className={`surface overflow-hidden ${flushTop ? '' : 'mt-6'}`}>
       <div className="border-b border-slate-100 px-5 py-4">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
-            <h2 className="text-lg font-semibold text-slate-950">{t('damagedStock.settlementDamageHistoryTitle')}</h2>
-            <p className="mt-1 max-w-3xl text-sm font-medium leading-6 text-slate-500">{t('damagedStock.settlementDamageHistoryDescription')}</p>
+            <h2 className="text-sm font-bold text-slate-700">{t('damagedStock.inflowTab')}</h2>
           </div>
           <div className="flex flex-wrap justify-end gap-2 no-print">
-            <TableReportActions targetId={SETTLEMENT_DAMAGE_REPORT_ID} title={t('damagedStock.settlementDamageHistoryTitle')} fileName="settlement-damage-history" entityType="settlement_damage_history" t={t} />
+            <TableReportActions targetId={SETTLEMENT_DAMAGE_REPORT_ID} title={t('damagedStock.inflowTab')} fileName="settlement-damage-history" entityType="settlement_damage_history" t={t} shortcuts={DAMAGE_INFLOW_REPORT_SHORTCUTS} />
             <button type="button" className="btn-secondary shrink-0" onClick={() => setVersion((v) => v + 1)}>
               <RefreshCw size={16} />
               {t('stockLedger.refresh')}
+              <kbd className="ml-1 rounded border border-slate-300 bg-white/70 px-1 py-0.5 font-mono text-[10px] text-slate-500">Alt+R</kbd>
             </button>
           </div>
         </div>

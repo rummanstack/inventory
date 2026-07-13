@@ -21,8 +21,18 @@ export function createInstallmentRoutes(installmentController) {
   );
   router.post("/payments", requirePermission(PERMISSIONS.COLLECT_INSTALLMENT_PAYMENT), installmentController.collectPayment);
 
+  router.get("/dashboard", requirePermission(PERMISSIONS.VIEW_INSTALLMENT_PLANS), installmentController.getDashboard);
+  router.get("/late-fee-rules", requirePermission(PERMISSIONS.VIEW_INSTALLMENT_PLANS), installmentController.listLateFeeRules);
+  router.post("/late-fee-rules", requirePermission(PERMISSIONS.MANAGE_INSTALLMENT_PLANS), installmentController.saveLateFeeRule);
+  router.post(
+    "/schedule/:scheduleId/apply-late-fee",
+    requirePermission(PERMISSIONS.MANAGE_INSTALLMENT_PLANS),
+    installmentController.applyLateFee,
+  );
+
   router.get("/", requirePermission(PERMISSIONS.VIEW_INSTALLMENT_PLANS), installmentController.listPlans);
   router.get("/:id", requirePermission(PERMISSIONS.VIEW_INSTALLMENT_PLANS), installmentController.getPlan);
+  router.get("/:id/agreement-pdf", requirePermission(PERMISSIONS.VIEW_INSTALLMENT_PLANS), installmentController.getAgreementPdf);
   router.post("/", requirePermission(PERMISSIONS.MANAGE_INSTALLMENT_PLANS), installmentController.createPlan);
   router.post("/:id/reschedule", requirePermission(PERMISSIONS.RESCHEDULE_INSTALLMENT_PLAN), installmentController.reschedulePlan);
   router.post("/:id/settle", requirePermission(PERMISSIONS.MANAGE_INSTALLMENT_PLANS), installmentController.settlePlan);

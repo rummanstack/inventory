@@ -35,6 +35,7 @@ import { InstallmentPlanService } from "../services/installmentPlanService.js";
 import { InvariantService } from "../services/invariantService.js";
 import { IssueService } from "../services/issueService.js";
 import { ManufacturerService } from "../services/manufacturerService.js";
+import { NotificationService } from "../services/notificationService.js";
 import { PermissionService } from "../services/permissionService.js";
 import { ProductSerialService } from "../services/productSerialService.js";
 import { ProductService } from "../services/productService.js";
@@ -241,6 +242,11 @@ export function createServiceRegistry({ databaseManager, env }) {
     }),
   };
 
+  // Constructed early so it can be handed to installmentPlanService below;
+  // also assigned onto `platform` further down for every other caller.
+  const reportExportService = new ReportExportService();
+  const notificationService = new NotificationService();
+
   // Constructed after `operations` closes because it needs a live reference to
   // salesInvoiceService (an installment sale creates its underlying invoice via
   // salesInvoiceService.createSalesInvoiceRecord, inside the same transaction).
@@ -249,6 +255,8 @@ export function createServiceRegistry({ databaseManager, env }) {
     financeAccountService: finance.financeAccountService,
     salesInvoiceService: operations.salesInvoiceService,
     journalService,
+    reportExportService,
+    notificationService,
   });
 
   const hr = {
@@ -280,7 +288,8 @@ export function createServiceRegistry({ databaseManager, env }) {
   platform.invariantService = new InvariantService(databaseManager);
   platform.errorLogService = new ErrorLogService(databaseManager);
   platform.backupService = new BackupService(databaseManager, { auditService: platform.auditService });
-  platform.reportExportService = new ReportExportService();
+  platform.reportExportService = reportExportService;
+  platform.notificationService = notificationService;
 
   finance.accountingService = new AccountingService(databaseManager, {
     auditService: platform.auditService,

@@ -187,6 +187,142 @@ function buildReportHtml({ title, generatedAt, tables, tenantName, tenantAddress
   `;
 }
 
+// Shared by every PDF export in this service — launches Chromium, renders the
+// given HTML, and returns the resulting buffer. Pulled out so a
+// document-style export (like the installment agreement) can reuse the exact
+// same rendering mechanics without being forced through buildReportHtml's
+// tabular-report-only layout.
+async function renderHtmlToPdf(html) {
+  const browser = await chromium.launch({ headless: true, args: ["--no-sandbox", "--disable-dev-shm-usage"] });
+  try {
+    const page = await browser.newPage({ viewport: { width: 1280, height: 1600 } });
+    await page.setContent(html, { waitUntil: "networkidle" });
+    await page.emulateMedia({ media: "screen" });
+    await page.evaluate(() => document.fonts.ready);
+    return await page.pdf({
+      format: "A4",
+      printBackground: true,
+      preferCSSPageSize: true,
+      margin: { top: "10mm", right: "10mm", bottom: "10mm", left: "10mm" },
+    });
+  } finally {
+    await browser.close();
+  }
+}
+
+function formatMoney(value) {
+  return Number(value || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function buildInstallmentAgreementHtml({ plan, schedule, guarantors, tenantName, tenantAddress }) {
+  const fontCss = pathToFileURL(path.join(backendRoot, "node_modules", "@fontsource", "noto-sans-bengali", "index.css")).href;
+  const generatedAt = new Date().toLocaleString();
+
+  const scheduleRows = schedule.map((row) => `
+    <tr>
+      <td style="padding:6px 8px;border:1px solid #dbe2ea;">${row.installmentNo}</td>
+      <td style="padding:6px 8px;border:1px solid #dbe2ea;">${escapeHtml(row.dueDate)}</td>
+      <td style="padding:6px 8px;border:1px solid #dbe2ea;text-align:right;">${formatMoney(row.dueAmount)}</td>
+      <td style="padding:6px 8px;border:1px solid #dbe2ea;">${escapeHtml(row.status)}</td>
+    </tr>
+  `).join("");
+
+  const guarantorBlocks = guarantors.length
+    ? guarantors.map((guarantor, index) => `
+        <div style="margin-top:10px;padding:10px;border:1px solid #dbe2ea;">
+          <div style="font-weight:700;">Guarantor ${index + 1}: ${escapeHtml(guarantor.name)}</div>
+          <div style="font-size:10.5px;color:#475569;margin-top:3px;">
+            Phone: ${escapeHtml(guarantor.phone || "-")} &nbsp;|&nbsp;
+            Relationship: ${escapeHtml(guarantor.relationship || "-")} &nbsp;|&nbsp;
+            National ID: ${escapeHtml(guarantor.nationalId || "-")}
+          </div>
+          <div style="font-size:10.5px;color:#475569;margin-top:2px;">Address: ${escapeHtml(guarantor.address || "-")}</div>
+        </div>
+      `).join("")
+    : `<div style="margin-top:10px;font-size:10.5px;color:#94a3b8;">No guarantors recorded for this plan.</div>`;
+
+  return `
+    <!doctype html>
+    <html>
+      <head>
+        <meta charset="UTF-8">
+        <link rel="stylesheet" href="${fontCss}">
+        <style>
+          @page { size: A4; margin: 10mm; }
+          body { margin: 0; padding: 12px; background: #f4f6f8; font-family: "Noto Sans Bengali", "Noto Sans", Arial, Helvetica, sans-serif; color: #1f2937; }
+          .page { width: 794px; min-height: 1122px; box-sizing: border-box; margin: 0 auto; padding: 22px 26px; background: #ffffff; border: 1px solid #dbe2ea; }
+          h2 { font-size: 16px; margin: 18px 0 8px; }
+          table { border-collapse: collapse; width: 100%; }
+        </style>
+      </head>
+      <body>
+        <section class="page">
+          <table width="100%">
+            <tr>
+              <td style="font-size:19px;font-weight:800;">${escapeHtml(tenantName)}</td>
+              <td align="right" style="font-size:16px;font-weight:800;text-transform:uppercase;">Installment Sale Agreement</td>
+            </tr>
+            <tr>
+              <td style="font-size:10px;color:#475569;">${escapeHtml(tenantAddress)}</td>
+              <td align="right" style="font-size:10px;color:#475569;">Plan ${escapeHtml(plan.planNumber)} &middot; Generated ${escapeHtml(generatedAt)}</td>
+            </tr>
+          </table>
+
+          <h2>Customer</h2>
+          <div style="font-size:11px;">
+            <div><strong>${escapeHtml(plan.customerName || "-")}</strong></div>
+            <div style="color:#475569;">Phone: ${escapeHtml(plan.customerPhone || "-")}</div>
+          </div>
+
+          <h2>Guarantors</h2>
+          ${guarantorBlocks}
+
+          <h2>Sale &amp; Financing Summary</h2>
+          <table style="font-size:11px;">
+            <tr><td style="padding:4px 0;color:#475569;">Sale date</td><td style="padding:4px 0;text-align:right;">${escapeHtml(plan.saleDate)}</td></tr>
+            <tr><td style="padding:4px 0;color:#475569;">Product total</td><td style="padding:4px 0;text-align:right;">${formatMoney(plan.productTotal)}</td></tr>
+            <tr><td style="padding:4px 0;color:#475569;">Discount</td><td style="padding:4px 0;text-align:right;">${formatMoney(plan.discountAmount)}</td></tr>
+            <tr><td style="padding:4px 0;color:#475569;">Down payment</td><td style="padding:4px 0;text-align:right;">${formatMoney(plan.downPayment)}</td></tr>
+            <tr><td style="padding:4px 0;color:#475569;">Financed amount</td><td style="padding:4px 0;text-align:right;">${formatMoney(plan.financeAmount)}</td></tr>
+            <tr><td style="padding:4px 0;color:#475569;">Markup (${escapeHtml(plan.markupType)} ${escapeHtml(String(plan.markupValue))})</td><td style="padding:4px 0;text-align:right;">${formatMoney(plan.markupAmount)}</td></tr>
+            <tr style="font-weight:700;"><td style="padding:4px 0;">Total payable over term</td><td style="padding:4px 0;text-align:right;">${formatMoney(plan.finalPayableAmount)}</td></tr>
+            <tr><td style="padding:4px 0;color:#475569;">Term</td><td style="padding:4px 0;text-align:right;">${plan.numberOfMonths} months</td></tr>
+            <tr><td style="padding:4px 0;color:#475569;">Monthly installment</td><td style="padding:4px 0;text-align:right;">${formatMoney(plan.monthlyInstallmentAmount)}</td></tr>
+          </table>
+
+          <h2>Payment Schedule</h2>
+          <table style="font-size:10.5px;">
+            <tr style="background:#eef2f7;">
+              <th style="padding:6px 8px;border:1px solid #dbe2ea;text-align:left;">#</th>
+              <th style="padding:6px 8px;border:1px solid #dbe2ea;text-align:left;">Due Date</th>
+              <th style="padding:6px 8px;border:1px solid #dbe2ea;text-align:right;">Amount</th>
+              <th style="padding:6px 8px;border:1px solid #dbe2ea;text-align:left;">Status</th>
+            </tr>
+            ${scheduleRows}
+          </table>
+
+          <h2>Terms &amp; Conditions</h2>
+          <ol style="font-size:10px;color:#334155;line-height:1.6;padding-left:18px;">
+            <li>The customer agrees to pay each installment on or before its due date shown above.</li>
+            <li>Ownership of the goods financed under this agreement remains with the seller until the total payable amount is paid in full.</li>
+            <li>Late payments may be subject to a late fee as configured by the seller and disclosed separately.</li>
+            <li>Any guarantor named above agrees to be jointly responsible for repayment in the event of default by the customer.</li>
+            <li>This agreement may be rescheduled, settled early, or written off strictly in accordance with the seller's policies.</li>
+          </ol>
+
+          <table width="100%" style="margin-top:36px;">
+            <tr>
+              <td style="width:33%;padding-top:36px;border-top:1px solid #1f2937;font-size:10px;text-align:center;">Customer Signature</td>
+              <td style="width:33%;padding-top:36px;border-top:1px solid #1f2937;font-size:10px;text-align:center;">Guarantor Signature</td>
+              <td style="width:33%;padding-top:36px;border-top:1px solid #1f2937;font-size:10px;text-align:center;">Authorized Signatory</td>
+            </tr>
+          </table>
+        </section>
+      </body>
+    </html>
+  `;
+}
+
 export class ReportExportService {
   async createPdfBuffer(payload = {}) {
     const tables = normalizeTables(payload.tables);
@@ -200,21 +336,19 @@ export class ReportExportService {
       tenantLogoUrl: cleanText(payload.tenantLogoUrl || ""),
     });
 
-    const browser = await chromium.launch({ headless: true, args: ["--no-sandbox", "--disable-dev-shm-usage"] });
-    try {
-      const page = await browser.newPage({ viewport: { width: 1280, height: 1600 } });
-      await page.setContent(html, { waitUntil: "networkidle" });
-      await page.emulateMedia({ media: "screen" });
-      await page.evaluate(() => document.fonts.ready);
-      return await page.pdf({
-        format: "A4",
-        printBackground: true,
-        preferCSSPageSize: true,
-        margin: { top: "10mm", right: "10mm", bottom: "10mm", left: "10mm" },
-      });
-    } finally {
-      await browser.close();
-    }
+    return renderHtmlToPdf(html);
+  }
+
+  async createInstallmentAgreementPdf(payload = {}) {
+    const html = buildInstallmentAgreementHtml({
+      plan: payload.plan,
+      schedule: payload.schedule || [],
+      guarantors: payload.guarantors || [],
+      tenantName: cleanText(payload.tenantName || "StockLedger"),
+      tenantAddress: cleanText(payload.tenantAddress || ""),
+    });
+
+    return renderHtmlToPdf(html);
   }
 
   async createExcelBuffer(payload = {}) {

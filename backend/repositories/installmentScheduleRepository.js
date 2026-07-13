@@ -10,6 +10,7 @@ export function mapInstallmentScheduleRow(row) {
     remainingAmount: Number(row.remaining_amount || 0),
     paidDate: row.paid_date || null,
     status: row.status,
+    lateFeeApplied: Number(row.late_fee_applied || 0),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -136,6 +137,25 @@ export async function sumOverdueForCustomer(client, customerId, tenantId, asOfDa
   return Number(result.rows[0].total || 0);
 }
 
+// Dashboard input: what the schedule says should come in during a date range
+// (e.g. this calendar month), regardless of whether it's actually been
+// collected yet — "expected," not "outstanding."
+export async function sumExpectedForRange(client, tenantId, dateFrom, dateTo) {
+  const result = await client.query(
+    `SELECT COALESCE(SUM(installment_schedule.due_amount), 0) AS total
+     FROM installment_schedule
+     JOIN installment_plans
+       ON installment_plans.id = installment_schedule.plan_id
+       AND installment_plans.tenant_id = installment_schedule.tenant_id
+     WHERE installment_schedule.tenant_id = $1
+       AND installment_plans.status IN ('ACTIVE', 'COMPLETED')
+       AND installment_schedule.status != 'RESTRUCTURED'
+       AND installment_schedule.due_date BETWEEN $2 AND $3`,
+    [tenantId, dateFrom, dateTo],
+  );
+  return Number(result.rows[0].total || 0);
+}
+
 export async function updateInstallmentScheduleRow(client, id, tenantId, { paidAmount, remainingAmount, status, paidDate }) {
   const result = await client.query(
     `UPDATE installment_schedule
@@ -143,6 +163,29 @@ export async function updateInstallmentScheduleRow(client, id, tenantId, { paidA
      WHERE id = $1 AND tenant_id = $2
      RETURNING *`,
     [id, tenantId, paidAmount, remainingAmount, status, paidDate],
+  );
+  return mapInstallmentScheduleRow(result.rows[0]);
+}
+
+export async function findInstallmentScheduleRowForUpdate(client, scheduleId, tenantId) {
+  const result = await client.query(
+    `SELECT * FROM installment_schedule WHERE id = $1 AND tenant_id = $2 FOR UPDATE LIMIT 1`,
+    [scheduleId, tenantId],
+  );
+  return result.rowCount > 0 ? result.rows[0] : null;
+}
+
+// Charging a late fee widens what's owed on this one installment — it adds to
+// due_amount/remaining_amount (not paid_amount) and tracks the cumulative fee
+// separately in late_fee_applied so it's always visible how much of a row's
+// due amount is principal vs. penalty.
+export async function applyLateFeeToScheduleRow(client, scheduleId, tenantId, { dueAmount, remainingAmount, lateFeeApplied }) {
+  const result = await client.query(
+    `UPDATE installment_schedule
+     SET due_amount = $3, remaining_amount = $4, late_fee_applied = $5, updated_at = NOW()
+     WHERE id = $1 AND tenant_id = $2
+     RETURNING *`,
+    [scheduleId, tenantId, dueAmount, remainingAmount, lateFeeApplied],
   );
   return mapInstallmentScheduleRow(result.rows[0]);
 }

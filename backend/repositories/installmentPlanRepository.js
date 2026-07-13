@@ -176,6 +176,22 @@ export async function listAllPlansForCustomer(client, customerId, tenantId) {
   return result.rows.map(mapInstallmentPlan);
 }
 
+// A charged late fee widens the total the plan expects to collect —
+// final_payable_amount and outstanding_amount both grow by the fee amount so
+// the plan-level totals stay in sync with the sum of its schedule rows.
+export async function applyLateFeeToPlan(client, planId, tenantId, feeAmount) {
+  const result = await client.query(
+    `UPDATE installment_plans
+     SET final_payable_amount = final_payable_amount + $3,
+         outstanding_amount = outstanding_amount + $3,
+         updated_at = NOW()
+     WHERE id = $1 AND tenant_id = $2
+     RETURNING *`,
+    [planId, tenantId, feeAmount],
+  );
+  return mapInstallmentPlan(result.rows[0]);
+}
+
 export async function updateInstallmentPlanTotals(client, planId, tenantId, { totalPaid, outstandingAmount, status }) {
   const result = await client.query(
     `UPDATE installment_plans
@@ -220,6 +236,34 @@ export async function countPriorDefaultsForCustomer(client, customerId, tenantId
     [customerId, tenantId],
   );
   return result.rows[0].count;
+}
+
+// Dashboard inputs: plan counts by status, and total outstanding across every
+// ACTIVE plan tenant-wide (sumActiveOutstandingForCustomer already covers the
+// per-customer case for the credit check; this is the tenant-wide analog).
+export async function countPlansByStatus(client, tenantId) {
+  const result = await client.query(
+    `SELECT status, COUNT(*)::INTEGER AS count
+     FROM installment_plans
+     WHERE tenant_id = $1 AND deleted_at IS NULL
+     GROUP BY status`,
+    [tenantId],
+  );
+  const counts = { ACTIVE: 0, COMPLETED: 0, OVERDUE: 0, CANCELLED: 0, DEFAULTED: 0, WRITTEN_OFF: 0 };
+  for (const row of result.rows) {
+    counts[row.status] = row.count;
+  }
+  return counts;
+}
+
+export async function sumActiveOutstandingForTenant(client, tenantId) {
+  const result = await client.query(
+    `SELECT COALESCE(SUM(outstanding_amount), 0) AS total
+     FROM installment_plans
+     WHERE tenant_id = $1 AND deleted_at IS NULL AND status = 'ACTIVE'`,
+    [tenantId],
+  );
+  return Number(result.rows[0].total || 0);
 }
 
 export async function markInstallmentPlanWrittenOff(client, planId, tenantId, { writtenOffById, writeOffReason }) {

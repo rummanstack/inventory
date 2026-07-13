@@ -173,4 +173,54 @@ export class InstallmentController {
       next(error);
     }
   };
+
+  listLateFeeRules = async (req, res, next) => {
+    try {
+      const result = await this.installmentPlanService.listLateFeeRulesForTenant(req.currentUser);
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  saveLateFeeRule = async (req, res, next) => {
+    try {
+      const result = await this.installmentPlanService.saveLateFeeRule(req.body, req.currentUser);
+      res.status(req.body.id ? 200 : 201).json(result);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  applyLateFee = async (req, res, next) => {
+    try {
+      const result = await this.installmentPlanService.applyLateFee(
+        { scheduleId: req.params.scheduleId },
+        req.currentUser,
+      );
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getDashboard = async (req, res, next) => {
+    try {
+      const result = await this.installmentPlanService.getDashboard(req.currentUser);
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getAgreementPdf = async (req, res, next) => {
+    try {
+      const buffer = await this.installmentPlanService.generateAgreementPdf(req.params.id, req.currentUser);
+      res.set("Content-Type", "application/pdf");
+      res.set("Content-Disposition", `inline; filename="installment-agreement-${req.params.id}.pdf"`);
+      res.send(buffer);
+    } catch (error) {
+      next(error);
+    }
+  };
 }

@@ -3034,5 +3034,31 @@ export async function createSchema(pool) {
     );
     CREATE INDEX IF NOT EXISTS idx_documents_entity ON documents(tenant_id, entity_type, entity_id);
   `);
+
+  // ── Retail Installments — Phase 6: late fees, dashboard, agreements, ──────
+  // notifications. Late fee rules are tenant-level config (same shape as
+  // trade_promotion_rules) — the fee itself is only ever computed on demand
+  // (surfaced in the Overdue Report) and applied to a specific installment
+  // explicitly via its own endpoint, never automatically: this app has no
+  // cron/job runner, so "automatic calculation" here means "computed live at
+  // read time," not "silently charged by a background process."
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS installment_late_fee_rules (
+      id                  TEXT PRIMARY KEY,
+      tenant_id           TEXT NOT NULL REFERENCES tenants(id),
+      fee_type            TEXT NOT NULL CHECK (fee_type IN ('FIXED', 'PERCENT', 'DAILY', 'WEEKLY', 'MONTHLY')),
+      fee_value           NUMERIC NOT NULL DEFAULT 0,
+      grace_period_days   INTEGER NOT NULL DEFAULT 0,
+      max_penalty_amount  NUMERIC NOT NULL DEFAULT 0,
+      active              BOOLEAN NOT NULL DEFAULT true,
+      created_by          TEXT REFERENCES users(id) ON DELETE SET NULL,
+      created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      deleted_at          TIMESTAMPTZ
+    );
+    CREATE INDEX IF NOT EXISTS idx_installment_late_fee_rules_tenant ON installment_late_fee_rules(tenant_id, active) WHERE deleted_at IS NULL;
+
+    ALTER TABLE installment_schedule ADD COLUMN IF NOT EXISTS late_fee_applied NUMERIC NOT NULL DEFAULT 0;
+  `);
 }
 

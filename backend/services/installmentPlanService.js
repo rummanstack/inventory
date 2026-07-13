@@ -26,7 +26,10 @@ import {
   markInstallmentPlanCancelled,
   listAllPlansForCustomer,
   sumActiveOutstandingForCustomer,
+  sumActiveOutstandingForTenant,
   countPriorDefaultsForCustomer,
+  countPlansByStatus,
+  applyLateFeeToPlan,
   mapInstallmentPlan,
 } from "../repositories/installmentPlanRepository.js";
 import {
@@ -37,6 +40,9 @@ import {
   listDueSchedule,
   listOverdueSchedule,
   sumOverdueForCustomer,
+  sumExpectedForRange,
+  findInstallmentScheduleRowForUpdate,
+  applyLateFeeToScheduleRow,
 } from "../repositories/installmentScheduleRepository.js";
 import {
   insertInstallmentPayment,
@@ -57,6 +63,14 @@ import {
   findDocumentById,
   softDeleteDocument,
 } from "../repositories/documentRepository.js";
+import {
+  insertLateFeeRule,
+  listLateFeeRules,
+  findActiveLateFeeRule,
+  findLateFeeRuleById,
+  updateLateFeeRule,
+} from "../repositories/installmentLateFeeRuleRepository.js";
+import { calculateLateFee } from "../lib/lateFeeEngine.js";
 import { recordCustomerDueLedgerEntry } from "./shared/inventoryHelpers.js";
 import { JOURNAL_SOURCE_TYPES } from "../lib/journalSourceTypes.js";
 import { PERMISSIONS, hasPermission } from "../lib/permissions.js";
@@ -67,6 +81,7 @@ const MARKUP_RECOGNITION_MODES = ["GRADUAL", "IMMEDIATE"];
 const PAYMENT_METHODS = ["CASH", "BANK", "MOBILE_BANKING", "CARD", "CHEQUE", "STORE_CREDIT", "GIFT_VOUCHER"];
 const CASH_MOVEMENT_METHODS = new Set(["CASH", "BANK", "MOBILE_BANKING", "CARD", "CHEQUE"]);
 const DOCUMENT_ENTITY_TYPE = "installment_plan";
+const LATE_FEE_TYPES = ["FIXED", "PERCENT", "DAILY", "WEEKLY", "MONTHLY"];
 const EPSILON = 0.004;
 
 // Advances an ISO date by N calendar months, clamping to the shorter month's
@@ -88,12 +103,14 @@ function round2(value) {
 }
 
 export class InstallmentPlanService {
-  constructor(databaseManager, { auditService, financeAccountService, salesInvoiceService, journalService }) {
+  constructor(databaseManager, { auditService, financeAccountService, salesInvoiceService, journalService, reportExportService, notificationService }) {
     this.databaseManager = databaseManager;
     this.auditService = auditService;
     this.financeAccountService = financeAccountService;
     this.salesInvoiceService = salesInvoiceService;
     this.journalService = journalService;
+    this.reportExportService = reportExportService;
+    this.notificationService = notificationService;
   }
 
   async recordActivity(client, actor, payload) {
@@ -282,6 +299,16 @@ export class InstallmentPlanService {
           totalExposure: exposure.totalExposure,
         },
       });
+
+      if (this.notificationService) {
+        await this.notificationService.send({
+          tenantId: actor.tenantId,
+          channel: "SMS",
+          to: customer.phone,
+          template: "installment_plan_created",
+          data: { planNumber, finalPayableAmount, firstPaymentDate },
+        });
+      }
 
       return { plan, schedule, invoice, creditCheck: exposure };
     });
@@ -625,6 +652,17 @@ export class InstallmentPlanService {
         metadata: { planId, amount, paymentMethod, newTotalPaid, newOutstanding, newStatus },
       });
 
+      if (this.notificationService) {
+        const customerResult = await findRetailCustomerById(client, plan.customer_id, actor.tenantId);
+        await this.notificationService.send({
+          tenantId: actor.tenantId,
+          channel: "SMS",
+          to: customerResult.rows[0]?.phone,
+          template: newStatus === "COMPLETED" ? "installment_plan_completed" : "installment_payment_received",
+          data: { planNumber: plan.plan_number, amount, newOutstanding },
+        });
+      }
+
       const schedule = await listScheduleByPlan(client, planId, actor.tenantId);
       return { plan: updatedPlan, schedule, payment };
     });
@@ -649,9 +687,201 @@ export class InstallmentPlanService {
   async getOverdueReport(actor) {
     const asOfDate = new Date().toISOString().slice(0, 10);
     return this.databaseManager.withClient(async (client) => {
-      const rows = await listOverdueSchedule(client, actor.tenantId, asOfDate);
+      const [rows, activeLateFeeRule] = await Promise.all([
+        listOverdueSchedule(client, actor.tenantId, asOfDate),
+        findActiveLateFeeRule(client, actor.tenantId),
+      ]);
       const totalOverdue = round2(rows.reduce((sum, row) => sum + row.remainingAmount, 0));
-      return { asOfDate, rows, totalOverdue };
+
+      // previewLateFee is what applying the fee right now would charge — a
+      // read-only calculation, not a stored value (that's late_fee_applied,
+      // already 0 unless someone has previously called applyLateFee on the row).
+      const rowsWithPreview = rows.map((row) => ({
+        ...row,
+        previewLateFee: activeLateFeeRule
+          ? calculateLateFee(activeLateFeeRule, { remainingAmount: row.remainingAmount, daysOverdue: row.daysOverdue })
+          : 0,
+      }));
+
+      return { asOfDate, rows: rowsWithPreview, totalOverdue, lateFeeRuleActive: Boolean(activeLateFeeRule) };
+    });
+  }
+
+  async listLateFeeRulesForTenant(actor) {
+    return this.databaseManager.withClient((client) => listLateFeeRules(client, actor.tenantId));
+  }
+
+  async saveLateFeeRule(input, actor) {
+    const feeType = String(input.feeType || "").trim().toUpperCase();
+    assert(LATE_FEE_TYPES.includes(feeType), `Fee type must be one of: ${LATE_FEE_TYPES.join(", ")}.`, 400);
+    const feeValue = cleanMoney(input.feeValue);
+    assert(feeValue >= 0, "Fee value cannot be negative.", 400);
+    const gracePeriodDays = Math.max(0, cleanInteger(input.gracePeriodDays));
+    const maxPenaltyAmount = Math.max(0, cleanMoney(input.maxPenaltyAmount));
+    const active = input.active !== false;
+    const ruleId = String(input.id || "").trim();
+
+    return this.databaseManager.withTransaction(async (client) => {
+      let rule;
+      if (ruleId) {
+        rule = await updateLateFeeRule(client, ruleId, actor.tenantId, { feeType, feeValue, gracePeriodDays, maxPenaltyAmount, active });
+        assert(rule, "Late fee rule not found.", 404);
+      } else {
+        rule = await insertLateFeeRule(client, {
+          id: createId("latefeerule"),
+          tenantId: actor.tenantId,
+          feeType,
+          feeValue,
+          gracePeriodDays,
+          maxPenaltyAmount,
+          active,
+          createdById: actor.id,
+        });
+      }
+
+      await this.recordActivity(client, actor, {
+        actionType: ruleId ? "installment_plan.update_late_fee_rule" : "installment_plan.create_late_fee_rule",
+        entityId: rule.id,
+        description: `${actor.name} ${ruleId ? "updated" : "created"} a late fee rule (${feeType})`,
+        metadata: { ruleId: rule.id, feeType, feeValue, gracePeriodDays, maxPenaltyAmount, active },
+      });
+
+      return rule;
+    });
+  }
+
+  // Deliberately not automatic — this app has no cron/job runner, so a late
+  // fee is only ever charged when explicitly triggered here (by a user, or
+  // later by a scheduled job someone wires up), never silently in the
+  // background. Applying twice to an already-fee-bearing row just recomputes
+  // and re-applies against its current (already-widened) remaining amount —
+  // callers should check previewLateFee from the Overdue Report first.
+  async applyLateFee(input, actor) {
+    const scheduleId = String(input.scheduleId || "").trim();
+    assert(scheduleId, "Schedule row is required.", 400);
+
+    return this.databaseManager.withTransaction(async (client) => {
+      const row = await findInstallmentScheduleRowForUpdate(client, scheduleId, actor.tenantId);
+      assert(row, "Installment schedule row not found.", 404);
+      assert(["PENDING", "PARTIAL"].includes(row.status), `Cannot apply a late fee to a ${row.status.toLowerCase()} installment.`, 400);
+
+      const plan = await findInstallmentPlanForUpdate(client, row.plan_id, actor.tenantId);
+      assert(plan, "Installment plan not found.", 404);
+      assert(plan.status === "ACTIVE", `Cannot apply a late fee on a ${plan.status.toLowerCase()} plan.`, 400);
+
+      const rule = await findActiveLateFeeRule(client, actor.tenantId);
+      assert(rule, "No active late fee rule is configured for this tenant.", 400);
+
+      const today = new Date().toISOString().slice(0, 10);
+      const daysOverdue = Math.max(0, Math.round((new Date(today).getTime() - new Date(row.due_date).getTime()) / 86400000));
+      const remainingAmount = Number(row.remaining_amount || 0);
+      const feeAmount = calculateLateFee(rule, { remainingAmount, daysOverdue });
+      assert(feeAmount > 0, "This installment is not yet eligible for a late fee (still within its grace period, or nothing is overdue).", 400);
+
+      const newDueAmount = round2(Number(row.due_amount || 0) + feeAmount);
+      const newRemainingAmount = round2(remainingAmount + feeAmount);
+      const newLateFeeApplied = round2(Number(row.late_fee_applied || 0) + feeAmount);
+
+      const updatedRow = await applyLateFeeToScheduleRow(client, scheduleId, actor.tenantId, {
+        dueAmount: newDueAmount,
+        remainingAmount: newRemainingAmount,
+        lateFeeApplied: newLateFeeApplied,
+      });
+      const updatedPlan = await applyLateFeeToPlan(client, row.plan_id, actor.tenantId, feeAmount);
+
+      await this.recordActivity(client, actor, {
+        actionType: "installment_plan.apply_late_fee",
+        entityId: row.plan_id,
+        description: `${actor.name} applied a late fee of ${feeAmount} to installment #${row.installment_no} of plan ${plan.plan_number}`,
+        metadata: { scheduleId, planId: row.plan_id, feeAmount, daysOverdue },
+      });
+
+      return { schedule: updatedRow, plan: updatedPlan };
+    });
+  }
+
+  async getDashboard(actor) {
+    const today = new Date().toISOString().slice(0, 10);
+    const monthStart = `${today.slice(0, 7)}-01`;
+
+    return this.databaseManager.withClient(async (client) => {
+      const [
+        todaysDueRows,
+        overdueRows,
+        upcomingRows,
+        planCounts,
+        outstandingReceivable,
+        todaysCollections,
+        monthCollections,
+        expectedThisMonth,
+      ] = await Promise.all([
+        listDueSchedule(client, actor.tenantId, { dateFrom: today, dateTo: today }),
+        listOverdueSchedule(client, actor.tenantId, today),
+        listDueSchedule(client, actor.tenantId, { dateFrom: today, dateTo: addDays(today, 7) }),
+        countPlansByStatus(client, actor.tenantId),
+        sumActiveOutstandingForTenant(client, actor.tenantId),
+        listPaymentsInRange(client, actor.tenantId, { dateFrom: today, dateTo: today }),
+        listPaymentsInRange(client, actor.tenantId, { dateFrom: monthStart, dateTo: today }),
+        sumExpectedForRange(client, actor.tenantId, monthStart, today),
+      ]);
+
+      const todaysDueAmount = round2(todaysDueRows.reduce((sum, row) => sum + row.remainingAmount, 0));
+      const overdueAmount = round2(overdueRows.reduce((sum, row) => sum + row.remainingAmount, 0));
+      const upcomingDueAmount = round2(upcomingRows.reduce((sum, row) => sum + row.remainingAmount, 0));
+      const todaysCollectionsAmount = round2(todaysCollections.reduce((sum, row) => sum + row.amount, 0));
+      const monthCollectionsAmount = round2(monthCollections.reduce((sum, row) => sum + row.amount, 0));
+
+      const resolvedPlans = planCounts.COMPLETED + planCounts.WRITTEN_OFF;
+      const defaultRate = resolvedPlans > 0 ? round2((planCounts.WRITTEN_OFF / resolvedPlans) * 100) : 0;
+      const collectionPerformance = expectedThisMonth > 0 ? round2((monthCollectionsAmount / expectedThisMonth) * 100) : 0;
+
+      return {
+        asOfDate: today,
+        todaysCollections: todaysCollectionsAmount,
+        todaysDue: todaysDueAmount,
+        overdueAmount,
+        upcomingDue: upcomingDueAmount,
+        activePlans: planCounts.ACTIVE,
+        completedPlans: planCounts.COMPLETED,
+        writtenOffPlans: planCounts.WRITTEN_OFF,
+        cancelledPlans: planCounts.CANCELLED,
+        defaultRate,
+        expectedMonthlyCollection: round2(expectedThisMonth),
+        monthToDateCollection: monthCollectionsAmount,
+        outstandingReceivable: round2(outstandingReceivable),
+        collectionPerformance,
+      };
+    });
+  }
+
+  // Reuses the same Playwright/Chromium pipeline as reportExportService's
+  // other exports (see its renderHtmlToPdf helper) but with a dedicated
+  // document-style template — an installment agreement isn't a data table, it
+  // needs free-text terms and signature blocks, which the generic tabular
+  // report layout isn't built for.
+  async generateAgreementPdf(planId, actor) {
+    assert(this.reportExportService, "PDF export is not available.", 500);
+
+    return this.databaseManager.withClient(async (client) => {
+      const planResult = await findInstallmentPlanById(client, planId, actor.tenantId);
+      assert(planResult.rowCount > 0, "Installment plan not found.", 404);
+      const plan = mapInstallmentPlan(planResult.rows[0]);
+
+      const [schedule, guarantors, tenant] = await Promise.all([
+        listScheduleByPlan(client, planId, actor.tenantId),
+        listGuarantorsByPlan(client, planId, actor.tenantId),
+        findTenantById(client, actor.tenantId),
+      ]);
+
+      const buffer = await this.reportExportService.createInstallmentAgreementPdf({
+        plan,
+        schedule,
+        guarantors,
+        tenantName: tenant?.name || "StockLedger",
+        tenantAddress: tenant?.address || "",
+      });
+
+      return buffer;
     });
   }
 

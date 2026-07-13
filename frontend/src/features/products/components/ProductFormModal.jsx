@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Save } from 'lucide-react';
 import { Alert, Modal, Select } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
@@ -13,6 +13,7 @@ export default function ProductFormModal({ product, onClose, onSave }) {
   const isEdit = Boolean(product);
   const isElectronics = (tenant?.businessType || 'ELECTRONICS') === 'ELECTRONICS';
   const isPharmacy = tenant?.businessType === 'DRUG_PHARMACY';
+  const formRef = useRef(null);
   const [categories, setCategories] = useState([]);
   const [brands, setBrands] = useState([]);
   const [suppliers, setSuppliers] = useState([]);
@@ -70,6 +71,18 @@ export default function ProductFormModal({ product, onClose, onSave }) {
       inventoryApi.listActiveGenericMedicines().then((result) => setGenericMedicines(result.genericMedicines || [])).catch(() => setGenericMedicines([]));
     }
   }, []);
+
+  useEffect(() => {
+    function handleKeyDown(event) {
+      if (event.key.toLowerCase() === 's' && (event.ctrlKey || event.metaKey) && !saving) {
+        event.preventDefault();
+        formRef.current?.requestSubmit();
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [saving]);
 
   async function submitForm(event) {
     event.preventDefault();
@@ -167,7 +180,7 @@ export default function ProductFormModal({ product, onClose, onSave }) {
 
   return (
     <Modal title={isEdit ? t('products.editTitle') : t('products.addTitle')} description={t('products.modalDescription')} onClose={onClose}>
-      <form className="space-y-4" onSubmit={submitForm}>
+      <form ref={formRef} className="space-y-4" onSubmit={submitForm}>
         {error ? <Alert type="error">{error}</Alert> : null}
         <PhotoUploadField
           label={t('products.imageUrl')}
@@ -430,6 +443,7 @@ export default function ProductFormModal({ product, onClose, onSave }) {
           <button type="submit" className="btn-primary" disabled={saving}>
             <Save size={18} />
             {saving ? t('common.saving') : t('products.saveProduct')}
+            <kbd className="ml-1 rounded border border-indigo-400/40 bg-indigo-500/20 px-1 py-0.5 font-mono text-[10px] text-indigo-200">Ctrl+S</kbd>
           </button>
         </div>
       </form>

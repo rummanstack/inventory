@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Download, FileSpreadsheet, Loader2, PackageX, Printer } from 'lucide-react';
 import { EmptyState, SectionHeader, cx } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
@@ -120,15 +120,15 @@ export default function DamagedStockPage() {
                 type="button"
                 className={cx(
                   'flex min-h-10 flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-md px-3 text-sm font-bold transition sm:flex-none',
-                  selected ? 'bg-white text-slate-950 shadow-sm ring-1 ring-slate-200' : 'text-slate-500 hover:bg-white/70 hover:text-slate-800'
+                  selected ? 'border border-rose-200 bg-rose-50 text-rose-800 shadow-sm ring-2 ring-rose-100' : 'border border-transparent text-slate-500 hover:bg-white/70 hover:text-slate-800'
                 )}
                 aria-pressed={selected}
                 onClick={() => setActiveTab(tab.id)}
               >
                 {tab.label}
-                <kbd className={cx('rounded border px-1.5 py-0.5 text-[10px] font-black', selected ? 'border-slate-200 bg-slate-50 text-slate-500' : 'border-slate-200 bg-white text-slate-400')}>{tab.shortcut}</kbd>
+                <kbd className={cx('rounded border px-1.5 py-0.5 text-[10px] font-black', selected ? 'border-rose-200 bg-white text-rose-700' : 'border-slate-200 bg-white text-slate-400')}>{tab.shortcut}</kbd>
                 {typeof tab.count === 'number' ? (
-                  <span className={cx('rounded-full px-2 py-0.5 text-xs font-black', selected ? 'bg-rose-50 text-rose-700' : 'bg-slate-200 text-slate-600')}>
+                  <span className={cx('rounded-full px-2 py-0.5 text-xs font-black', selected ? 'bg-rose-600 text-white' : 'bg-slate-200 text-slate-600')}>
                     {formatNumber(tab.count)}
                   </span>
                 ) : null}

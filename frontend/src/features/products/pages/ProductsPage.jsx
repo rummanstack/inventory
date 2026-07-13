@@ -92,11 +92,14 @@ export default function ProductsPage() {
     function handleKeyDown(event) {
       const key = event.key.toLowerCase();
       const isShortcut = event.altKey && !event.ctrlKey && !event.metaKey;
-      if (!isShortcut) {
+      if (!isShortcut || productModal || stockModalProduct || showCategoriesModal || showBrandsModal || showManufacturersModal || showGenericMedicinesModal) {
         return;
       }
 
-      if (key === 'd') {
+      if (key === 'a' && canManageProducts) {
+        event.preventDefault();
+        setProductModal({ mode: 'add' });
+      } else if (key === 'd') {
         event.preventDefault();
         handleDownloadPdf();
       } else if (key === 'e') {
@@ -110,7 +113,7 @@ export default function ProductsPage() {
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [downloadingPdf, productDirectory, t]);
+  }, [canManageProducts, downloadingPdf, productDirectory, productModal, stockModalProduct, showCategoriesModal, showBrandsModal, showManufacturersModal, showGenericMedicinesModal, t]);
 
   return (
     <div>
@@ -145,6 +148,7 @@ export default function ProductsPage() {
             <button type="button" className="btn-primary" onClick={() => setProductModal({ mode: 'add' })}>
               <Plus size={18} />
               {t('products.add')}
+              <kbd className="ml-1 rounded border border-indigo-400/40 bg-indigo-500/20 px-1 py-0.5 font-mono text-[10px] text-indigo-200">Alt+A</kbd>
             </button>
           </div>
         ) : null}

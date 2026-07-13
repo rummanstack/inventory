@@ -18,6 +18,8 @@ export const JOURNAL_SOURCE_TYPES = {
   PAYROLL_PAYMENT: "payroll_payment",
   PROMOTION_EARNING: "promotion_earning",
   PROMOTION_SETTLEMENT: "promotion_settlement",
+  INSTALLMENT_PLAN: "installment_plan",
+  INSTALLMENT_PAYMENT: "installment_payment",
   OPENING_BALANCE: "opening_balance",
   JOURNAL_VOUCHER: "journal_voucher",
   RECEIPT_VOUCHER: "receipt_voucher",

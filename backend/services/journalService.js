@@ -374,7 +374,70 @@ export class JournalService {
     });
   }
 
-  // Manual deposit/withdrawal made directly on the Finance Accounts page ï¿½
+  // An installment plan's underlying sales invoice already posted its financed
+  // amount (financeAmount) into generic Accounts Receivable via
+  // postSalesInvoice above. This entry reclassifies that amount onto a
+  // dedicated Installment Receivable account (so the installment schedule and
+  // the general ledger agree on where that money lives) and brings the markup
+  // onto the books for the first time — as deferred (unearned) income by
+  // default, or straight to revenue if the plan uses immediate recognition.
+  // No-ops when there's nothing to book (e.g. a plan with no financed amount).
+  async postInstallmentPlan(client, actor, { planId, planNumber, saleDate, financeAmount, markupAmount, markupRecognitionMode }) {
+    if (financeAmount <= 0 && markupAmount <= 0) return null;
+
+    const lines = [
+      { accountCode: ACCOUNTS.INSTALLMENT_RECEIVABLE, debit: financeAmount + markupAmount },
+      { accountCode: ACCOUNTS.ACCOUNTS_RECEIVABLE, credit: financeAmount },
+    ];
+    if (markupAmount > 0) {
+      lines.push({
+        accountCode: markupRecognitionMode === "IMMEDIATE" ? ACCOUNTS.MARKUP_INCOME : ACCOUNTS.UNEARNED_MARKUP_INCOME,
+        credit: markupAmount,
+      });
+    }
+
+    return this.post(client, {
+      tenantId: actor.tenantId,
+      entryDate: saleDate,
+      sourceType: JOURNAL_SOURCE_TYPES.INSTALLMENT_PLAN,
+      sourceId: planId,
+      memo: `Installment plan ${planNumber}`,
+      createdById: actor.id,
+      lines,
+    });
+  }
+
+  // accountCode is the caller-resolved Cash/Bank account for this payment's
+  // method (installmentPlanService already decides that, including which
+  // methods bypass a cash/bank movement entirely — e.g. store credit). Under
+  // GRADUAL recognition, markupRecognized is this payment's proportional slice
+  // of the plan's total markup, moved from Unearned Markup Income to Markup
+  // Income now that it's actually been collected; under IMMEDIATE recognition
+  // the markup was already booked as revenue at plan creation, so this is 0.
+  async postInstallmentPayment(client, actor, { paymentId, planNumber, paymentDate, accountCode, amount, markupRecognized = 0 }) {
+    if (amount <= 0) return null;
+
+    const lines = [
+      { accountCode, debit: amount },
+      { accountCode: ACCOUNTS.INSTALLMENT_RECEIVABLE, credit: amount },
+    ];
+    if (markupRecognized > 0) {
+      lines.push({ accountCode: ACCOUNTS.UNEARNED_MARKUP_INCOME, debit: markupRecognized });
+      lines.push({ accountCode: ACCOUNTS.MARKUP_INCOME, credit: markupRecognized });
+    }
+
+    return this.post(client, {
+      tenantId: actor.tenantId,
+      entryDate: paymentDate,
+      sourceType: JOURNAL_SOURCE_TYPES.INSTALLMENT_PAYMENT,
+      sourceId: paymentId,
+      memo: `Installment payment — plan ${planNumber}`,
+      createdById: actor.id,
+      lines,
+    });
+  }
+
+  // Manual deposit/withdrawal made directly on the Finance Accounts page —
   // not a domain event, so the offsetting side is Owner's Equity.
   async postFinanceManualTransaction(client, actor, { transactionId, date, accountType, type, amount, note }) {
     const account = accountForFinanceType(accountType);

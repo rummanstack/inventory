@@ -5,6 +5,7 @@ import { normalizeIsoDate } from "../lib/dateRanges.js";
 import { parsePagination, buildPageResult } from "../lib/pagination.js";
 import { nextInstallmentPlanNumber } from "../lib/installmentNumber.js";
 import { CUSTOMER_DUE_LEDGER_TYPES } from "../lib/customerDueLedger.js";
+import { ACCOUNTS } from "../lib/chartOfAccounts.js";
 import { findTenantById } from "../repositories/tenantRepository.js";
 import { findRetailCustomerForUpdate, updateRetailCustomerCurrentDue } from "../repositories/retailCustomerRepository.js";
 import { getLatestCustomerDueLedgerEntry } from "../repositories/customerDueLedgerRepository.js";
@@ -32,6 +33,7 @@ import { recordCustomerDueLedgerEntry } from "./shared/inventoryHelpers.js";
 
 const DATE_ERROR = "Date must be in YYYY-MM-DD format.";
 const MARKUP_TYPES = ["PERCENT", "FIXED"];
+const MARKUP_RECOGNITION_MODES = ["GRADUAL", "IMMEDIATE"];
 const PAYMENT_METHODS = ["CASH", "BANK", "MOBILE_BANKING", "CARD", "CHEQUE", "STORE_CREDIT", "GIFT_VOUCHER"];
 const CASH_MOVEMENT_METHODS = new Set(["CASH", "BANK", "MOBILE_BANKING", "CARD", "CHEQUE"]);
 const EPSILON = 0.004;
@@ -55,11 +57,12 @@ function round2(value) {
 }
 
 export class InstallmentPlanService {
-  constructor(databaseManager, { auditService, financeAccountService, salesInvoiceService }) {
+  constructor(databaseManager, { auditService, financeAccountService, salesInvoiceService, journalService }) {
     this.databaseManager = databaseManager;
     this.auditService = auditService;
     this.financeAccountService = financeAccountService;
     this.salesInvoiceService = salesInvoiceService;
+    this.journalService = journalService;
   }
 
   async recordActivity(client, actor, payload) {
@@ -94,6 +97,10 @@ export class InstallmentPlanService {
     assert(firstPaymentDate, "First payment date is required.", 400);
 
     const paymentDayOfMonth = cleanInteger(input.paymentDayOfMonth) || Number(firstPaymentDate.split("-")[2]);
+
+    const markupRecognitionMode = MARKUP_RECOGNITION_MODES.includes(String(input.markupRecognitionMode || "").trim().toUpperCase())
+      ? String(input.markupRecognitionMode).trim().toUpperCase()
+      : "GRADUAL";
 
     return this.databaseManager.withTransaction(async (client) => {
       const tenant = await findTenantById(client, actor.tenantId);
@@ -183,8 +190,20 @@ export class InstallmentPlanService {
         overdueAmount: 0,
         status: "ACTIVE",
         note: String(input.note || "").trim(),
+        markupRecognitionMode,
         createdById: actor.id,
       });
+
+      if (this.journalService) {
+        await this.journalService.postInstallmentPlan(client, actor, {
+          planId: plan.id,
+          planNumber,
+          saleDate: base.invoiceDate,
+          financeAmount,
+          markupAmount,
+          markupRecognitionMode,
+        });
+      }
 
       const baseInstallment = Math.floor((finalPayableAmount / numberOfMonths) * 100) / 100;
       const schedule = [];
@@ -316,19 +335,40 @@ export class InstallmentPlanService {
         status: newStatus,
       });
 
-      if (this.financeAccountService && CASH_MOVEMENT_METHODS.has(paymentMethod)) {
-        await this.financeAccountService.recordTransactionInClient(
-          client,
-          {
-            accountType: paymentMethod === "CASH" ? "CASH" : "BANK",
-            type: "DEPOSIT",
+      if (CASH_MOVEMENT_METHODS.has(paymentMethod)) {
+        if (this.financeAccountService) {
+          await this.financeAccountService.recordTransactionInClient(
+            client,
+            {
+              accountType: paymentMethod === "CASH" ? "CASH" : "BANK",
+              type: "DEPOSIT",
+              amount,
+              date: paymentDate,
+              note: `Installment payment — plan ${plan.plan_number}`,
+            },
+            actor,
+          );
+        }
+
+        if (this.journalService) {
+          const finalPayableAmount = Number(plan.final_payable_amount || 0);
+          const markupRecognized = plan.markup_recognition_mode === "GRADUAL" && finalPayableAmount > 0
+            ? round2((amount * Number(plan.markup_amount || 0)) / finalPayableAmount)
+            : 0;
+
+          await this.journalService.postInstallmentPayment(client, actor, {
+            paymentId,
+            planNumber: plan.plan_number,
+            paymentDate,
+            accountCode: paymentMethod === "CASH" ? ACCOUNTS.CASH : ACCOUNTS.BANK,
             amount,
-            date: paymentDate,
-            note: `Installment payment — plan ${plan.plan_number}`,
-          },
-          actor,
-        );
+            markupRecognized,
+          });
+        }
       }
+      // STORE_CREDIT/GIFT_VOUCHER payments touch neither a cash/bank account nor
+      // the journal yet — full voucher-system integration (Section F/voucherService)
+      // is deferred past this phase; the schedule/plan totals still update correctly.
 
       await this.recordActivity(client, actor, {
         actionType: "installment_plan.collect_payment",

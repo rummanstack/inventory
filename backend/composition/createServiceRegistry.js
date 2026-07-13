@@ -244,6 +244,7 @@ export function createServiceRegistry({ databaseManager, env }) {
     auditService: platform.auditService,
     financeAccountService: finance.financeAccountService,
     salesInvoiceService: operations.salesInvoiceService,
+    journalService,
   });
 
   const hr = {

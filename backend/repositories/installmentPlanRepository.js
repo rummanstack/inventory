@@ -27,6 +27,7 @@ export function mapInstallmentPlan(row) {
     overdueAmount: Number(row.overdue_amount || 0),
     status: row.status,
     note: row.note || "",
+    markupRecognitionMode: row.markup_recognition_mode,
     createdById: row.created_by,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -55,13 +56,13 @@ export async function insertInstallmentPlan(client, plan) {
        product_total, discount_amount, net_sale_amount, down_payment, finance_amount,
        markup_type, markup_value, markup_amount, final_payable_amount,
        number_of_months, first_payment_date, payment_day_of_month, monthly_installment_amount,
-       total_paid, outstanding_amount, overdue_amount, status, note, created_by
+       total_paid, outstanding_amount, overdue_amount, status, note, markup_recognition_mode, created_by
      ) VALUES (
        $1, $2, $3, $4, $5, $6,
        $7, $8, $9, $10, $11,
        $12, $13, $14, $15,
        $16, $17, $18, $19,
-       $20, $21, $22, $23, $24, $25
+       $20, $21, $22, $23, $24, $25, $26
      )
      RETURNING *`,
     [
@@ -89,6 +90,7 @@ export async function insertInstallmentPlan(client, plan) {
       plan.overdueAmount,
       plan.status,
       plan.note,
+      plan.markupRecognitionMode,
       plan.createdById,
     ],
   );

@@ -118,6 +118,50 @@ test("the financed amount is tracked on the installment schedule only, not doubl
   assert.equal(planBalance, 44000, "the installment schedule is the sole source of truth for this receivable");
 });
 
+async function ledgerLinesFor(accountCode, sourceId) {
+  const response = await tenant.agent.get("/api/journal/general-ledger").query({ accountCode });
+  assert.equal(response.status, 200);
+  return response.body.lines.filter((line) => line.sourceId === sourceId);
+}
+
+test("plan creation (GRADUAL, the default) reclassifies the financed amount onto Installment Receivable and defers the markup as unearned income", async () => {
+  const { payload } = await basePlanPayload();
+
+  const response = await tenant.agent.post("/api/installments").send(payload);
+  assert.equal(response.status, 201);
+  const planId = response.body.plan.id;
+
+  const receivableLines = await ledgerLinesFor("1150", planId);
+  assert.equal(receivableLines.length, 1);
+  assert.equal(receivableLines[0].debit, 44000, "Installment Receivable picks up finance + markup (40000 + 4000)");
+
+  const reclassLines = await ledgerLinesFor("1100", planId);
+  assert.equal(reclassLines.length, 1);
+  assert.equal(reclassLines[0].credit, 40000, "the financed amount is credited back out of generic Accounts Receivable");
+
+  const unearnedLines = await ledgerLinesFor("2150", planId);
+  assert.equal(unearnedLines.length, 1);
+  assert.equal(unearnedLines[0].credit, 4000, "markup sits as unearned income until collected, under GRADUAL recognition");
+
+  const markupIncomeLines = await ledgerLinesFor("4040", planId);
+  assert.equal(markupIncomeLines.length, 0, "no markup income is recognized yet under GRADUAL recognition");
+});
+
+test("plan creation with IMMEDIATE markup recognition books the markup straight to income instead of unearned income", async () => {
+  const { payload } = await basePlanPayload({ markupRecognitionMode: "IMMEDIATE" });
+
+  const response = await tenant.agent.post("/api/installments").send(payload);
+  assert.equal(response.status, 201);
+  const planId = response.body.plan.id;
+
+  const markupIncomeLines = await ledgerLinesFor("4040", planId);
+  assert.equal(markupIncomeLines.length, 1);
+  assert.equal(markupIncomeLines[0].credit, 4000);
+
+  const unearnedLines = await ledgerLinesFor("2150", planId);
+  assert.equal(unearnedLines.length, 0, "IMMEDIATE recognition never touches the unearned income account");
+});
+
 test("a plan can be fetched by id with its schedule, and listed", async () => {
   const { payload } = await basePlanPayload();
   const createResponse = await tenant.agent.post("/api/installments").send(payload);

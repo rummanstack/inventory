@@ -2929,5 +2929,31 @@ export async function createSchema(pool) {
     CREATE INDEX IF NOT EXISTS idx_installment_allocations_payment ON installment_payment_allocations(tenant_id, payment_id);
     CREATE INDEX IF NOT EXISTS idx_installment_allocations_schedule ON installment_payment_allocations(tenant_id, schedule_id);
   `);
+
+  // ── Retail Installments — Phase 2: accounting integration ──────────────
+  // The underlying sales invoice (created via salesInvoiceService.createSalesInvoiceRecord)
+  // already posted its financed amount into the generic Accounts Receivable
+  // (1100) account. At plan-creation time we reclassify that amount onto a
+  // dedicated Installment Receivable account and bring the markup onto the
+  // books too — as deferred (unearned) income by default, recognized
+  // proportionally on each payment (see JournalService.postInstallmentPlan /
+  // postInstallmentPayment). markup_recognition_mode is a per-plan override
+  // (not a global tenant setting yet) so the choice is explicit and testable
+  // without a wider settings subsystem.
+  await pool.query(`
+    INSERT INTO chart_of_accounts (code, name, type, normal_balance) VALUES
+      ('1150', 'Installment Receivable',   'ASSET',     'DEBIT'),
+      ('2150', 'Unearned Markup Income',   'LIABILITY', 'CREDIT'),
+      ('4040', 'Markup Income',            'REVENUE',   'CREDIT')
+    ON CONFLICT (code) DO NOTHING;
+
+    UPDATE chart_of_accounts SET account_group = 'Current Assets', is_system = true, is_receivable_account = true WHERE code = '1150';
+    UPDATE chart_of_accounts SET account_group = 'Current Liabilities', is_system = true WHERE code = '2150';
+    UPDATE chart_of_accounts SET account_group = 'Other Income', is_system = true WHERE code = '4040';
+
+    ALTER TABLE installment_plans
+      ADD COLUMN IF NOT EXISTS markup_recognition_mode TEXT NOT NULL DEFAULT 'GRADUAL'
+        CHECK (markup_recognition_mode IN ('GRADUAL', 'IMMEDIATE'));
+  `);
 }
 

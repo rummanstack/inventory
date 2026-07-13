@@ -113,6 +113,66 @@ test("a payment exceeding the plan's outstanding balance is rejected and changes
   assert.equal(Number(cashAfter.balance), Number(cashBefore.balance), "cash must be unchanged after the rejected payment");
 });
 
+async function ledgerLinesFor(agent, accountCode, sourceId) {
+  const response = await agent.get("/api/journal/general-ledger").query({ accountCode });
+  assert.equal(response.status, 200);
+  return response.body.lines.filter((line) => line.sourceId === sourceId);
+}
+
+test("a GRADUAL-recognition payment credits Cash, debits Installment Receivable, and recognizes its proportional slice of markup income", async () => {
+  const plan = await createPlan(tenant.agent);
+
+  // 4000 markup / 44000 final payable = 1/11 of every taka collected is markup;
+  // paying exactly one installment (5500) recognizes 500 of it as earned.
+  const response = await tenant.agent.post("/api/installments/payments").send({
+    planId: plan.id,
+    amount: 5500,
+    paymentDate: "2026-08-10",
+    paymentMethod: "CASH",
+  });
+  assert.equal(response.status, 201);
+  const paymentId = response.body.payment.id;
+
+  const cashLines = await ledgerLinesFor(tenant.agent, "1000", paymentId);
+  assert.equal(cashLines.length, 1);
+  assert.equal(cashLines[0].debit, 5500);
+
+  const receivableLines = await ledgerLinesFor(tenant.agent, "1150", paymentId);
+  assert.equal(receivableLines.length, 1);
+  assert.equal(receivableLines[0].credit, 5500);
+
+  const unearnedLines = await ledgerLinesFor(tenant.agent, "2150", paymentId);
+  assert.equal(unearnedLines.length, 1);
+  assert.equal(unearnedLines[0].debit, 500, "500 of unearned markup income is released");
+
+  const markupIncomeLines = await ledgerLinesFor(tenant.agent, "4040", paymentId);
+  assert.equal(markupIncomeLines.length, 1);
+  assert.equal(markupIncomeLines[0].credit, 500, "and recognized as earned markup income");
+});
+
+test("an IMMEDIATE-recognition plan's payment moves cash and the receivable only — markup was already recognized at sale time", async () => {
+  const plan = await createPlan(tenant.agent, { markupRecognitionMode: "IMMEDIATE" });
+
+  const response = await tenant.agent.post("/api/installments/payments").send({
+    planId: plan.id,
+    amount: 5500,
+    paymentDate: "2026-08-10",
+    paymentMethod: "CASH",
+  });
+  assert.equal(response.status, 201);
+  const paymentId = response.body.payment.id;
+
+  const receivableLines = await ledgerLinesFor(tenant.agent, "1150", paymentId);
+  assert.equal(receivableLines.length, 1);
+  assert.equal(receivableLines[0].credit, 5500);
+
+  const unearnedLines = await ledgerLinesFor(tenant.agent, "2150", paymentId);
+  assert.equal(unearnedLines.length, 0, "nothing was ever deferred, so nothing is released here");
+
+  const markupIncomeLines = await ledgerLinesFor(tenant.agent, "4040", paymentId);
+  assert.equal(markupIncomeLines.length, 0, "the markup income line was already posted at plan creation, not here");
+});
+
 test("a CASH payment deposits the exact amount into the cash account", async () => {
   const plan = await createPlan(tenant.agent);
   const cashBefore = await getCashAccount(tenant.agent);

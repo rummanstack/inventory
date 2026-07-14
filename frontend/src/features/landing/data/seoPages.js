@@ -7,13 +7,10 @@ import {
   groceryImage,
   heroDashboardImage,
   pharmacyImage,
-  profitReportImage,
   purchaseReceiveImage,
   reportsVisibilityImage,
   retailCounterImage,
   supportCallImage,
-  ownerLaptopImage,
-  eveningSettlementImage,
   tradersImage,
   warehouseStockImage,
 } from './seoPageImages';
@@ -31,10 +28,12 @@ export const featurePages = [
       { title: 'Know what is available before your team sells', body: 'StockLedger keeps product quantities, purchase records, returns, damage adjustments, and movement history tied to the same product records. Owners and managers can see what is available, what is running low, and which supplier activity changed stock.' },
       { title: 'Built for real product operations', body: 'Use categories, brands, manufacturers, serial numbers, generic medicine details, product batches, purchase receive, purchase returns, damaged stock, and stock movement reports without splitting records across notebooks and spreadsheets.' },
       { title: 'Inventory connects to accounts', body: 'Sales, purchases, supplier payments, customer dues, and profit reporting all depend on stock accuracy. StockLedger keeps those workflows together so inventory decisions are visible in business reports.' },
+      { title: 'Better buying decisions for Bangladeshi businesses', body: 'For many shops, traders, and distributors in Bangladesh, the biggest problem is not just stock shortage. It is cash stuck in the wrong products, repeated purchase mistakes, and low visibility into what actually moves. Inventory records become more useful when they help the owner decide what to reorder, what to discount, and what to stop buying.' },
     ],
     faqs: [
       ['Can I track low stock?', 'Yes. StockLedger includes low-stock visibility so teams can reorder before shelves become empty.'],
       ['Can I track serial numbers?', 'Yes. Product serial tracking is available for businesses such as electronics and mobile shops.'],
+      ['Can inventory connect with purchases and sales?', 'Yes. Stock records stay connected with purchase receive, sales activity, returns, and reporting workflows.'],
     ],
   },
   {
@@ -49,10 +48,12 @@ export const featurePages = [
       { title: 'Fast billing without losing control', body: 'StockLedger supports quick sale, sales invoices, quotations, sales returns, promotions, trade-ins, and receipt printing. Each sale updates stock, customer balance, and business reports.' },
       { title: 'Daily cash stays visible', body: 'Cash sessions and daily sales reports help shop owners reconcile counter activity with actual cash, card, and due movements at the end of the day.' },
       { title: 'Useful for retail and wholesale', body: 'The same POS foundation works for small shops, wholesalers, electronics stores, grocery stores, pharmacies, and multi-user businesses that need controlled sales records.' },
+      { title: 'Point of sale should feed the rest of the business', body: 'A POS page ranks better when it explains more than billing speed. In real operations, the counter affects stock, customer balances, cash review, returns, and profit tracking. StockLedger is positioned for buyers who want a POS system that stays connected with the rest of the business instead of ending at the receipt.' },
     ],
     faqs: [
       ['Can I print invoices and receipts?', 'Yes. StockLedger supports printable invoices, receipts, and sales records.'],
       ['Does a sale update stock?', 'Yes. Sales workflows update inventory records and reporting visibility.'],
+      ['Can POS handle due sales too?', 'Yes. Retail sales, due balances, collections, and customer statements can work together.'],
     ],
   },
   {
@@ -67,10 +68,13 @@ export const featurePages = [
       { title: 'Accounting built into business operations', body: 'StockLedger does not stop at sales and stock. It includes finance accounts, expenses, vouchers, journal registers, ledgers, cash book, bank book, trial balance, balance sheet, profit and loss, and cash flow reporting.' },
       { title: 'Less duplicate entry', body: 'Sales, purchases, returns, payments, due collection, settlements, and expenses become part of one financial picture, reducing the need to re-enter the same business events in separate tools.' },
       { title: 'Owner and accountant can work from the same truth', body: 'Business owners can monitor cash, dues, stock value, and profit while accountants can review ledgers and statements from structured records.' },
+      { title: 'Accounting software should reduce reporting delay', body: 'Many businesses search for accounting software because month-end clarity arrives too late. The practical value is not just ledger creation. It is faster review of receivables, payables, expenses, cash, bank movement, and profitability from the same records the business uses daily.' },
+      { title: 'Built for businesses that have already outgrown manual summaries', body: 'In growing shops, wholesale businesses, dealer networks, and mixed operations, accounting often becomes the bottleneck because sales and finance live in separate systems. StockLedger is stronger where operations and accounting need to stay synchronized.' },
     ],
     faqs: [
       ['Does StockLedger include final statements?', 'Yes. It includes reports such as trial balance, balance sheet, profit and loss, cash flow, cash book, bank book, and ledgers.'],
       ['Can I manage cash and bank accounts?', 'Yes. Finance account management and transfers are part of the finance workflow.'],
+      ['Does this replace separate manual ledger work?', 'For many businesses, yes. The goal is to reduce duplicate entry and make operational records usable for accounting review.'],
     ],
   },
   {
@@ -85,10 +89,12 @@ export const featurePages = [
       { title: 'Control employee records with business context', body: 'StockLedger includes employee profiles, departments, designations, documents, attendance, leave, payroll, salary payments, employee loans, advances, and HR reports.' },
       { title: 'Payroll tied to finance visibility', body: 'Salary payments, loans, advances, and expenses are part of the same business system, helping owners understand team costs alongside sales, purchases, and profit.' },
       { title: 'Useful for growing teams', body: 'Role-based permissions, user management, activity logs, and HR workflows help businesses move beyond informal employee tracking.' },
+      { title: 'HR software matters more when teams stop fitting into spreadsheets', body: 'Small businesses often manage employees informally until attendance, salary, leave, and accountability become harder to review. This page is strongest for buyers who want HR and payroll inside the same system as operations and finance.' },
     ],
     faqs: [
       ['Can I track attendance and leave?', 'Yes. Attendance and leave management are supported for eligible accounts.'],
       ['Can payroll connect with finance?', 'Yes. Payroll-related records can be managed alongside finance and expense workflows.'],
+      ['Can this help with user control too?', 'Yes. HR and payroll often connect with user management, permissions, and activity review in StockLedger.'],
     ],
   },
   {
@@ -175,10 +181,12 @@ export const featurePages = [
       { title: 'See the business from multiple angles', body: 'StockLedger includes dashboards, daily reports, daily sales reports, profit reports, stock movement, low-stock alerts, finance dashboards, accounting statements, HR reports, activity logs, and operational reports.' },
       { title: 'Reports are connected to real workflows', body: 'Because sales, stock, purchases, dues, payments, HR, finance, and accounting live together, reports are based on the same records your team uses every day.' },
       { title: 'Owner visibility from anywhere', body: 'Managers can monitor sales, dues, profit, stock, cash, expenses, and team activity without waiting for manual summaries.' },
+      { title: 'Good reporting pages rank because they answer owner questions', body: 'Searchers looking for business reporting software usually want answers to practical management questions: what sold today, which products are low, who still owes money, what cash came in, where profit is leaking, and what the team changed. That is the context this page now covers more clearly.' },
     ],
     faqs: [
       ['Can I see daily sales and profit?', 'Yes. Daily reports and profit reports are available.'],
       ['Can I export reports?', 'The platform includes Excel, PDF, and print-oriented reporting workflows in several modules.'],
+      ['Are reports based on live workflow data?', 'Yes. Reporting is strongest because it is connected to operational records rather than manually recompiled summaries.'],
     ],
   },
   {
@@ -215,10 +223,13 @@ export const solutionPages = [
       { title: 'Counter sales stay connected to the business', body: 'Quick sale, invoices, receipts, sales returns, customer due, cash sessions, and daily sales reports work together so the counter does not become disconnected from stock and finance.' },
       { title: 'Owners can see daily movement clearly', body: 'A retail owner can review sales, stock, customer balances, expenses, profit, and activity without waiting for handwritten summaries at closing time.' },
       { title: 'Start small and expand later', body: 'A shop can begin with POS, stock, customers, purchases, and reports, then add accounting, HR, repair, warranty, or installment workflows as operations grow.' },
+      { title: 'Built for Bangladeshi shop reality', body: 'Retail shop software in Bangladesh often has to handle a mix of cash sales, due sales, supplier purchases, stock pressure, and fast owner review. This page is stronger when it speaks directly to that daily pattern instead of generic retail language.' },
+      { title: 'One system is easier to scale than many small tools', body: 'A retail business may begin with one counter but later needs clearer purchase control, accounting, employee access, and reporting. StockLedger is positioned for that expansion path.' },
     ],
     faqs: [
       ['Is this only for large shops?', 'No. Small retail shops can start with core billing, stock, customer due, purchase, and daily report workflows.'],
       ['Can I use it for both cash and due sales?', 'Yes. StockLedger supports normal sales, due balances, collections, and customer statements.'],
+      ['Can I add accounting later?', 'Yes. Many retail businesses start with daily operations first and expand into accounting and wider control later.'],
     ],
   },
   {
@@ -234,10 +245,13 @@ export const solutionPages = [
       { title: 'Wholesale records need more than billing', body: 'StockLedger keeps products, invoices, supplier purchases, customer dues, supplier payments, returns, expenses, and reports connected so the owner can understand both sales volume and money movement.' },
       { title: 'Customer and supplier balances stay visible', body: 'Wholesale businesses often carry both receivable and payable balances. StockLedger gives teams structured customer and supplier history instead of scattered notebooks.' },
       { title: 'Reports help with buying decisions', body: 'Sales, stock, purchase, and profit reports help owners understand which products move quickly, which customers owe money, and where cash is tied up.' },
+      { title: 'Wholesale software should reduce financial blind spots', body: 'The real issue in wholesale is often not order entry. It is balance control, stock turnover, supplier obligations, customer follow-up, and the time needed to understand margin and cash movement. This page now addresses those search intents more directly.' },
+      { title: 'Useful for businesses with mixed trade and collection pressure', body: 'Many wholesalers need one system for invoices, customer collection, supplier payable review, and product movement visibility. That is where StockLedger is a better fit than a narrow billing-only setup.' },
     ],
     faqs: [
       ['Can I manage supplier purchases?', 'Yes. Purchase receive, purchase returns, supplier payments, discounts, and supplier statements are supported.'],
       ['Can I track customer balances?', 'Yes. Customer dues, payments, and statements can be tracked from transaction records.'],
+      ['Can this help with stock and finance together?', 'Yes. Wholesale workflows are strongest when inventory, receivables, payables, and reports are reviewed together.'],
     ],
   },
   {
@@ -317,6 +331,7 @@ export const solutionPages = [
     ],
   },
 ];
+
 export function getFeaturePage(slug) {
   return featurePages.find((page) => page.slug === slug);
 }

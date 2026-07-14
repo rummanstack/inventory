@@ -3846,6 +3846,7 @@ const en = {
         noteText: "If you're a business owner who's been managing stock in notebooks, tracking dues on WhatsApp, and lying awake wondering if you made money this month — I built this for you. I'd love to talk. Reach out anytime.",
         noteBy: '— Rumman',
         whatsappMe: 'WhatsApp me',
+        callMe: 'Call me',
       },
       privacy: {
         breadcrumbHome: 'Home',

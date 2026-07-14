@@ -11,6 +11,25 @@ import { clearCssVarCache } from '../utils/theme.js';
 const InventoryAppContext = createContext(null);
 
 const THEME_STORAGE_KEY = 'stockledger.theme';
+const SESSION_OPTIONAL_PATHS = [
+  '/landing',
+  '/features',
+  '/solutions',
+  '/pricing',
+  '/contact',
+  '/get-started',
+  '/founder',
+  '/privacy-policy',
+  '/terms',
+];
+
+function isSessionOptionalPathname(pathname) {
+  return SESSION_OPTIONAL_PATHS.some((publicPath) => pathname === publicPath || pathname.startsWith(publicPath + '/'));
+}
+
+function getCurrentPathname() {
+  return typeof window === 'undefined' ? '/' : window.location.pathname;
+}
 
 function useTheme() {
   const [theme, setThemeState] = useState(() =>
@@ -115,6 +134,10 @@ export function InventoryAppProvider({ children }) {
     setActiveTenantId(tenantId || '');
     try {
       const result = await inventoryApi.getCurrentUser();
+      if (!result?.user) {
+        handleUnauthorized();
+        return { ok: false, message: t('alerts.unableToVerify') };
+      }
       setUser(result.user);
       setTenant(result.tenant || null);
       setPermissions(result.permissions || []);
@@ -175,11 +198,17 @@ export function InventoryAppProvider({ children }) {
           return;
         }
 
-        setUser(result.user);
+        const currentUser = result?.user || null;
+        if (!currentUser) {
+          handleUnauthorized();
+          return;
+        }
+
+        setUser(currentUser);
         setTenant(result.tenant || null);
         setPermissions(result.permissions || []);
 
-        if (result.user.isPlatformUser) {
+        if (currentUser.isPlatformUser) {
           inventoryApi.listTenants().then((tenantsResult) => {
             if (!cancelled) {
               setTenantOptions(tenantsResult.tenants || []);
@@ -187,7 +216,7 @@ export function InventoryAppProvider({ children }) {
           }).catch(() => {});
         }
 
-        if (!result.user.isPlatformUser) {
+        if (!currentUser.isPlatformUser) {
           await refreshState();
         } else {
           setLoading(false);
@@ -197,7 +226,8 @@ export function InventoryAppProvider({ children }) {
           return;
         }
 
-        if (error.status !== 401) {
+        const pathname = getCurrentPathname();
+        if (error.status !== 401 && !isSessionOptionalPathname(pathname)) {
           const message = getFriendlyError(error, t);
           setLoadError(message);
           pushToast('error', t('alerts.unableToVerify'), message);
@@ -228,6 +258,10 @@ export function InventoryAppProvider({ children }) {
       lastSessionRefreshRef.current = Date.now();
       try {
         const result = await inventoryApi.getCurrentUser();
+        if (!result?.user) {
+          handleUnauthorized();
+          return;
+        }
         setUser(result.user);
         setTenant(result.tenant || null);
         setPermissions(result.permissions || []);
@@ -1729,3 +1763,4 @@ export function useInventoryApp() {
 
   return context;
 }
+

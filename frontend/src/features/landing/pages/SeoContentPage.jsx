@@ -47,6 +47,217 @@ const solutionIcons = {
   'grocery-store': Landmark,
 };
 
+const pageSupport = {
+  accounting: {
+    painPoints: [
+      'Sales, purchases, expenses, dues, and cash movement live in separate notebooks or spreadsheets.',
+      'Owners wait too long to see real profit, receivables, payables, and cash position.',
+      'Accountants have to rebuild reports from operational data instead of reviewing ready records.',
+    ],
+    outcomes: [
+      'Faster month-end and day-end visibility for cash, bank, expenses, and receivables.',
+      'Cleaner handoff between owner, manager, cashier, and accountant.',
+      'Better confidence in ledger, trial balance, profit and loss, and balance sheet review.',
+    ],
+    relatedModules: ['reporting', 'due-collection', 'purchase-management'],
+  },
+  'inventory-management': {
+    painPoints: [
+      'Teams sell items before checking stock availability and reorder too late.',
+      'Damaged stock, returns, and purchase receive entries are hard to reconcile later.',
+      'The owner cannot quickly see which products move, stall, or tie up cash.',
+    ],
+    outcomes: [
+      'Fewer stock surprises at the counter or during wholesaler delivery planning.',
+      'Clearer purchase decisions from low-stock visibility and movement history.',
+      'Better connection between stock value, purchases, sales, and profit reporting.',
+    ],
+    relatedModules: ['retail-pos', 'purchase-management', 'reporting'],
+  },
+  'retail-pos': {
+    painPoints: [
+      'Counter billing slows down during rush hours and receipts are inconsistent.',
+      'Cash sales, due sales, returns, and stock changes are tracked in different places.',
+      'Owners cannot close the day confidently because counter activity is incomplete.',
+    ],
+    outcomes: [
+      'Faster billing with better visibility into sales, stock, and customer balance changes.',
+      'Cleaner daily closing through cash sessions, receipts, and daily sales reporting.',
+      'A retail workflow that can grow from one counter to a more controlled team setup.',
+    ],
+    relatedModules: ['inventory-management', 'due-collection', 'reporting'],
+  },
+  'hr-payroll': {
+    painPoints: [
+      'Attendance, leave, salary, and employee records are maintained manually.',
+      'The business knows team cost only after late manual summaries.',
+      'Permissions and user control do not match real job roles inside the company.',
+    ],
+    outcomes: [
+      'Structured employee records with less dependence on ad hoc files and messaging threads.',
+      'Better payroll and finance coordination for salary payments, advances, and loans.',
+      'Stronger control over who can access which workflow inside the system.',
+    ],
+    relatedModules: ['accounting', 'reporting'],
+  },
+  'purchase-management': {
+    painPoints: [
+      'Supplier balances become unclear when returns, discounts, and payments are not tied to the same record set.',
+      'Received stock and supplier statements do not match at review time.',
+      'Owners lose time resolving purchase disputes with incomplete history.',
+    ],
+    outcomes: [
+      'Better visibility into purchase receive, supplier due, returns, and payment history.',
+      'Cleaner supplier conversations through structured statements and records.',
+      'Stronger stock and finance accuracy because purchase activity feeds both sides.',
+    ],
+    relatedModules: ['inventory-management', 'accounting', 'reporting'],
+  },
+  'due-collection': {
+    painPoints: [
+      'Teams collect money without a reliable transaction history behind each balance.',
+      'Customer and shop statements are assembled manually during disputes.',
+      'Managers cannot prioritize overdue follow-up based on clean ledger data.',
+    ],
+    outcomes: [
+      'Clearer customer and shop balance follow-up from linked sales and payment records.',
+      'Better accountability for field collection and in-shop due collection activity.',
+      'Fewer collection errors caused by disconnected notes or verbal updates.',
+    ],
+    relatedModules: ['retail-pos', 'dsr-dealer-management', 'accounting'],
+  },
+  'dsr-dealer-management': {
+    painPoints: [
+      'Morning issue, returns, cash, and evening settlement are hard to reconcile across route teams.',
+      'Managers depend on calls and handwritten notes to know what happened in the field.',
+      'Shop dues and rep-level accountability become unclear after a few sales cycles.',
+    ],
+    outcomes: [
+      'Better route-team control from issue to collection to settlement.',
+      'Cleaner accountability for stock, cash, returns, and due balances per rep or route.',
+      'More reliable dealer and distributor reporting without rebuilding the day manually.',
+    ],
+    relatedModules: ['due-collection', 'inventory-management', 'accounting'],
+  },
+  'installment-sales': {
+    painPoints: [
+      'Installment schedules drift from the original sale and teams lose track of overdue payments.',
+      'Guarantor and customer documentation is scattered across files and chat messages.',
+      'Late fee handling and reschedules are inconsistent across customers.',
+    ],
+    outcomes: [
+      'Better collection control through due schedules, overdue visibility, and customer statements.',
+      'Stronger documentation around guarantors, supporting files, and credit settings.',
+      'A more disciplined installment workflow from sale creation to final closure.',
+    ],
+    relatedModules: ['due-collection', 'reporting'],
+  },
+  reporting: {
+    painPoints: [
+      'Owners receive reports late because daily data has to be recompiled manually.',
+      'Sales, stock, finance, HR, and collection reports do not agree with each other.',
+      'Managers spend time hunting for the right number instead of acting on it.',
+    ],
+    outcomes: [
+      'Quicker operational review using dashboards and reports tied to live workflows.',
+      'Less debate over numbers because teams look at one connected record base.',
+      'Better decision-making for stock, due, spending, and profit control.',
+    ],
+    relatedModules: ['accounting', 'inventory-management', 'retail-pos'],
+  },
+  'repair-warranty': {
+    painPoints: [
+      'Service counters lose track of product history, claims, and job status.',
+      'Customers return with serial or warranty questions but records are incomplete.',
+      'After-sales support is disconnected from the original product sale.',
+    ],
+    outcomes: [
+      'Faster warranty lookup and job follow-up with better product history.',
+      'Less dependence on paper slips for repair intake and status tracking.',
+      'Better support quality for electronics, appliance, and service-oriented retailers.',
+    ],
+    relatedModules: ['inventory-management', 'retail-pos'],
+  },
+  'retail-shop': {
+    painPoints: [
+      'A busy shop needs quick billing, but stock and due records still have to stay clean.',
+      'Owners often discover margin, due, or purchase problems only after the day is over.',
+      'Separate apps for POS, stock, accounts, and customer balance create daily friction.',
+    ],
+    outcomes: [
+      'A cleaner retail routine from sale and receipt to stock update and day-end review.',
+      'Better control of customer due, purchase activity, and expense visibility.',
+      'A path to expand into accounting, HR, service, or installment workflows later.',
+    ],
+    relatedModules: ['retail-pos', 'inventory-management', 'accounting'],
+  },
+  'wholesale-business': {
+    painPoints: [
+      'Wholesale businesses juggle supplier balances, customer dues, and stock movement at the same time.',
+      'Large invoice volume makes manual reconciliation too slow.',
+      'Cash gets tied up in stock and receivables without enough visibility.',
+    ],
+    outcomes: [
+      'Better control of invoice, purchase, supplier, and customer balance workflows.',
+      'Clearer buying and collection decisions from connected reports.',
+      'Stronger financial visibility for a business with both payables and receivables.',
+    ],
+    relatedModules: ['purchase-management', 'due-collection', 'reporting'],
+  },
+  'dealer-distributor': {
+    painPoints: [
+      'Stock leaves the warehouse through routes, reps, and shops, but settlement clarity comes late.',
+      'Cash, returns, and due records become inconsistent across the field and office.',
+      'Management cannot quickly compare issued stock against actual route outcomes.',
+    ],
+    outcomes: [
+      'Better distributor control across stock issue, route activity, collection, and settlement.',
+      'Cleaner shop and field-team accountability with less manual follow-up.',
+      'More reliable reporting for dealer, route, and collection operations.',
+    ],
+    relatedModules: ['dsr-dealer-management', 'due-collection', 'accounting'],
+  },
+  'dsr-sales-team': {
+    painPoints: [
+      'Field reps manage stock, cash, and customer balance changes outside the office all day.',
+      'Managers need route-level accountability without waiting for manual updates.',
+      'Collection and return activity is easy to lose when the workflow is informal.',
+    ],
+    outcomes: [
+      'Stronger rep-level accountability from issue through settlement.',
+      'Cleaner visibility into route sales, route cash, route dues, and returns.',
+      'Less dependency on memory, calls, and handwritten updates.',
+    ],
+    relatedModules: ['dsr-dealer-management', 'due-collection', 'reporting'],
+  },
+  pharmacy: {
+    painPoints: [
+      'Medicine retail requires product, supplier, sales, and daily cash control at the same time.',
+      'Purchase and supplier records need to stay traceable as stock changes quickly.',
+      'Owners want more than billing; they need cleaner daily operating numbers.',
+    ],
+    outcomes: [
+      'Better visibility into medicine stock, supplier history, due, and expenses.',
+      'A more organized pharmacy workflow from purchase receive to sale and reporting.',
+      'Stronger operational review for owners managing sales and accounts together.',
+    ],
+    relatedModules: ['inventory-management', 'purchase-management', 'accounting'],
+  },
+  'grocery-store': {
+    painPoints: [
+      'Fast daily transactions create end-of-day confusion when stock and cash are reviewed manually.',
+      'Small but frequent purchases and customer dues are easy to lose track of.',
+      'Owners need a simple system first, not a heavy rollout that stalls the team.',
+    ],
+    outcomes: [
+      'Cleaner sales, stock, purchase, and due control for a busy grocery operation.',
+      'Better day-end clarity around cash, sales, and customer balances.',
+      'A simple starting point that can expand as the shop grows.',
+    ],
+    relatedModules: ['retail-pos', 'inventory-management', 'due-collection'],
+  },
+};
+
 function useLandingPageMode() {
   useEffect(() => {
     document.documentElement.classList.add('landing-page-active');
@@ -124,6 +335,17 @@ function HubPage({ type }) {
               return <PageCard key={page.slug} page={page} basePath={isFeatures ? '/features' : '/solutions'} Icon={Icon} />;
             })}
           </div>
+
+          <div className="mt-8 rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_16px_44px_rgba(15,23,42,0.06)] sm:p-8">
+            <p className="text-xs font-black uppercase tracking-[0.16em] text-[var(--brand)]">How to use these pages</p>
+            <h2 className="mt-3 text-2xl font-black tracking-tight text-slate-950">Browse by workflow first, then by business type</h2>
+            <p className="mt-3 text-[15px] font-medium leading-7 text-slate-600">
+              Feature pages explain what each StockLedger module does and which problems it solves. Solution pages explain how those modules fit together for a real business model like retail, wholesale, distribution, grocery, or pharmacy operations.
+            </p>
+            <p className="mt-4 text-[15px] font-medium leading-7 text-slate-600">
+              That matters for SEO and for buyers. Someone searching for accounting software, retail POS software, inventory software, or DSR management software usually wants a specific workflow. Someone searching for retail shop software or wholesale business software wants a complete setup. These page groups separate those intents clearly.
+            </p>
+          </div>
         </div>
       </section>
 
@@ -131,6 +353,27 @@ function HubPage({ type }) {
       <LandingChatWidget t={t} />
     </main>
   );
+}
+
+function getDefaultSupport(page, isFeature, relatedPages) {
+  const relatedTitles = relatedPages
+    .filter((related) => related.slug !== page.slug)
+    .slice(0, 3)
+    .map((related) => related.eyebrow);
+
+  return {
+    painPoints: [
+      `${page.eyebrow} work becomes harder when teams split records across spreadsheets, notebooks, and separate apps.`,
+      `Managers lose time checking numbers manually instead of reviewing one reliable workflow.`,
+      `As the business grows, ${page.eyebrow.toLowerCase()} activity needs clearer accountability and reporting.`,
+    ],
+    outcomes: [
+      `A more structured ${page.eyebrow.toLowerCase()} workflow with fewer manual follow-up steps.`,
+      `Cleaner reporting because the page workflow stays connected with the rest of the system.`,
+      `A better base for scaling users, branches, or modules later.`,
+    ],
+    relatedModules: relatedTitles,
+  };
 }
 
 function DetailPage({ type }) {
@@ -157,6 +400,10 @@ function DetailPage({ type }) {
     [`Is StockLedger suitable for ${page.eyebrow.toLowerCase()}?`, `Yes. StockLedger includes workflows and reporting designed for ${page.eyebrow.toLowerCase()} operations.`],
     ['Can this connect with accounting and reports?', 'Yes. StockLedger is designed so operations, finance, accounting, and reports can stay connected.'],
   ];
+  const support = pageSupport[page.slug] || getDefaultSupport(page, isFeature, relatedPages);
+  const linkedModules = support.relatedModules
+    .map((moduleSlug) => getFeaturePage(moduleSlug) || getSolutionPage(moduleSlug))
+    .filter(Boolean);
 
   return (
     <main id="top" className="landing-page">
@@ -218,6 +465,18 @@ function DetailPage({ type }) {
                 ))}
               </div>
             </div>
+
+            <div className="mt-5 rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_18px_50px_rgba(15,23,42,0.06)]">
+              <h2 className="text-xl font-black text-slate-950">Operational problems this page addresses</h2>
+              <div className="mt-4 space-y-3">
+                {support.painPoints.map((item) => (
+                  <p key={item} className="flex items-start gap-3 text-sm font-medium leading-6 text-slate-600">
+                    <CheckCircle2 size={17} className="mt-0.5 shrink-0 text-[var(--brand)]" />
+                    {item}
+                  </p>
+                ))}
+              </div>
+            </div>
           </aside>
 
           <div className="space-y-5">
@@ -231,6 +490,58 @@ function DetailPage({ type }) {
                 <p className="mt-3 text-[15px] font-medium leading-7 text-slate-600">{section.body}</p>
               </article>
             ))}
+
+            <article className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_12px_36px_rgba(15,23,42,0.05)]">
+              <p className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.14em] text-[var(--brand)]">
+                <Clock size={14} />
+                Buying guide
+              </p>
+              <h2 className="mt-3 text-2xl font-black tracking-tight text-slate-950">Why businesses search for this type of software</h2>
+              <p className="mt-3 text-[15px] font-medium leading-7 text-slate-600">
+                Buyers usually land on this page when the current workflow has become too manual, too slow, or too disconnected from daily reporting. They are not just looking for a feature list. They want to know whether {page.eyebrow.toLowerCase()} can stay connected with sales, stock, due, purchasing, finance, user control, and management reporting.
+              </p>
+              <p className="mt-4 text-[15px] font-medium leading-7 text-slate-600">
+                That is where StockLedger is different from a narrow single-purpose tool. It is designed for businesses that want one operational system instead of separate apps that have to be reconciled later. For many teams in Bangladesh, that means fewer duplicate entries, better owner visibility, and cleaner day-end or month-end review.
+              </p>
+            </article>
+
+            <article className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_12px_36px_rgba(15,23,42,0.05)]">
+              <p className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.14em] text-[var(--brand)]">
+                <Clock size={14} />
+                Expected outcomes
+              </p>
+              <h2 className="mt-3 text-2xl font-black tracking-tight text-slate-950">What usually improves after implementation</h2>
+              <div className="mt-4 space-y-3">
+                {support.outcomes.map((item) => (
+                  <p key={item} className="flex items-start gap-3 text-[15px] font-medium leading-7 text-slate-600">
+                    <CheckCircle2 size={18} className="mt-1 shrink-0 text-[var(--landing-accent-success)]" />
+                    {item}
+                  </p>
+                ))}
+              </div>
+            </article>
+
+            <article className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_12px_36px_rgba(15,23,42,0.05)]">
+              <p className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.14em] text-[var(--brand)]">
+                <Clock size={14} />
+                Connected modules
+              </p>
+              <h2 className="mt-3 text-2xl font-black tracking-tight text-slate-950">What businesses usually connect next</h2>
+              <p className="mt-3 text-[15px] font-medium leading-7 text-slate-600">
+                The strongest SEO pages are also the clearest buying pages. A company that needs {page.eyebrow.toLowerCase()} rarely needs it in isolation. Most teams also ask about reporting, finance visibility, stock accuracy, collection control, role permissions, or route accountability.
+              </p>
+              <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {linkedModules.map((related) => {
+                  const href = featurePages.some((feature) => feature.slug === related.slug) ? `/features/${related.slug}` : `/solutions/${related.slug}`;
+                  return (
+                    <Link key={related.slug} to={href} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 transition hover:border-[var(--brand)]/25 hover:bg-white">
+                      <p className="text-xs font-black uppercase tracking-[0.14em] text-[var(--brand)]">{related.eyebrow}</p>
+                      <p className="mt-2 text-sm font-bold leading-6 text-slate-900">{related.title}</p>
+                    </Link>
+                  );
+                })}
+              </div>
+            </article>
 
             <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_12px_36px_rgba(15,23,42,0.05)]">
               <h2 className="text-2xl font-black tracking-tight text-slate-950">Frequently asked questions</h2>

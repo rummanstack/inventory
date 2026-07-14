@@ -22,12 +22,8 @@ import LandingFooter from '../components/LandingFooter.jsx';
 import LandingChatWidget from '../components/LandingChatWidget.jsx';
 import { contactPhone, whatsappUrl } from '../constants.js';
 import { stockLedgerLogoIcon } from '../../../assets/brandAssets.js';
-
-// ── Replace this import with the founder's real photo when ready ──
 import founderPhoto from '../../../assets/landing/business-owner.png';
 
-// Placeholder '#' entries are filtered out — icons appear once real
-// profile URLs are filled in.
 const SOCIAL_LINKS = [
   { href: '#', Icon: Linkedin, label: 'LinkedIn' },
   { href: '#', Icon: Twitter, label: 'Twitter' },
@@ -36,6 +32,11 @@ const SOCIAL_LINKS = [
 ].filter((link) => link.href && link.href !== '#');
 
 const VALUE_ICONS = [Heart, Shield, Zap, Lightbulb, Users, Globe];
+const founderSeoReasons = [
+  'Founder pages can support branded search and trust evaluation when buyers want to know who is behind the software.',
+  'For a business platform, trust is commercial SEO, not decoration. Buyers often compare the company as much as the features.',
+  'This page works best when it explains why the founder built StockLedger and what operational problem the product exists to solve.',
+];
 
 export default function FounderPage() {
   const { language, setLanguage, t } = useLanguage();
@@ -59,19 +60,16 @@ export default function FounderPage() {
     <main className="landing-page">
       <LandingHeader language={language} setLanguage={setLanguage} t={t} />
 
-      {/* ── Hero ── */}
       <section
         className="relative overflow-hidden pb-0 pt-28 sm:pt-36"
         style={{
           background: 'linear-gradient(160deg, var(--bg-dark) 0%, var(--landing-founder-hero-mid) 50%, var(--landing-founder-hero-end) 100%)',
         }}
       >
-        {/* Decorative glows */}
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
           <div className="absolute left-1/3 top-0 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/4 rounded-full bg-[var(--brand)] opacity-10 blur-[140px]" />
           <div className="absolute right-0 top-1/2 h-[300px] w-[300px] rounded-full bg-[var(--landing-accent-teal)] opacity-8 blur-[100px]" />
         </div>
-        {/* Grid texture */}
         <div
           className="pointer-events-none absolute inset-0"
           style={{
@@ -82,17 +80,13 @@ export default function FounderPage() {
         />
 
         <div className="landing-container relative">
-          {/* Breadcrumb */}
           <div className="flex items-center gap-2 text-xs font-bold text-slate-400">
             <Link to="/landing" className="transition hover:text-white">{t('landing.founder.breadcrumbHome')}</Link>
             <span>/</span>
             <span className="text-slate-300">{t('landing.founder.breadcrumbCurrent')}</span>
           </div>
 
-          {/* Hero layout */}
           <div className="mt-10 flex flex-col items-center gap-10 pb-0 lg:flex-row lg:items-end lg:gap-16">
-
-            {/* Copy */}
             <div className="max-w-xl lg:pb-16">
               <span className="landing-eyebrow !text-[var(--landing-accent-teal)]">{t('landing.founder.eyebrow')}</span>
               <h1 className="mt-3 text-4xl font-black leading-[1.06] tracking-[-0.03em] text-white sm:text-5xl lg:text-6xl">
@@ -103,7 +97,6 @@ export default function FounderPage() {
                 {t('landing.founder.tagline')}
               </p>
 
-              {/* Stats */}
               <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
                 {stats.map(({ value, label }) => (
                   <div
@@ -117,7 +110,6 @@ export default function FounderPage() {
                 ))}
               </div>
 
-              {/* Social + WhatsApp */}
               <div className="mt-7 flex items-center gap-2">
                 {SOCIAL_LINKS.map(({ href, Icon, label }) => (
                   <a
@@ -143,12 +135,8 @@ export default function FounderPage() {
               </div>
             </div>
 
-            {/* Photo card — sits at the bottom of the hero, half-overlapping the body */}
             <div className="relative shrink-0 self-end">
-              {/* Glow behind photo */}
               <div className="absolute inset-0 -m-6 rounded-full bg-[var(--brand)] opacity-20 blur-[60px]" />
-
-              {/* Photo frame */}
               <div
                 className="relative h-[340px] w-[280px] overflow-hidden rounded-[32px] sm:h-[400px] sm:w-[320px]"
                 style={{
@@ -157,7 +145,6 @@ export default function FounderPage() {
                 }}
               >
                 <div className="h-full w-full overflow-hidden rounded-[29px] bg-slate-800">
-                  {/* ── PLACEHOLDER PHOTO — replace src when ready ── */}
                   <img
                     src={founderPhoto}
                     alt={t('landing.founder.photoAlt')}
@@ -166,7 +153,6 @@ export default function FounderPage() {
                 </div>
               </div>
 
-              {/* Floating badge */}
               <div className="absolute -bottom-4 -right-4 flex items-center gap-2.5 rounded-2xl border border-white/20 bg-white/95 px-4 py-3 shadow-[0_16px_40px_rgba(0,0,0,0.22)] backdrop-blur-xl">
                 <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[linear-gradient(135deg,var(--brand),var(--brand-strong))]">
                   <img loading="lazy" decoding="async" src={stockLedgerLogoIcon} alt="" className="h-5 w-5 object-contain" />
@@ -181,7 +167,6 @@ export default function FounderPage() {
         </div>
       </section>
 
-      {/* ── Pullquote ── */}
       <section
         className="border-b border-slate-100"
         style={{ background: 'linear-gradient(180deg,var(--landing-surface-tint-start) 0%,var(--landing-surface-tint-end) 100%)' }}
@@ -199,12 +184,34 @@ export default function FounderPage() {
         </div>
       </section>
 
-      {/* ── Story + Timeline ── */}
+      <section className="landing-section landing-section-soft">
+        <div className="landing-container">
+          <div className="grid gap-5 lg:grid-cols-[1.1fr_0.9fr]">
+            <article className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_16px_44px_rgba(15,23,42,0.06)] sm:p-8">
+              <p className="landing-eyebrow">Why this page matters</p>
+              <h2 className="mt-4 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">Founder trust is part of commercial SEO</h2>
+              <p className="mt-4 text-[15px] font-medium leading-7 text-slate-600">A buyer looking at business software often asks two questions at the same time: does the platform fit the workflow, and does the company behind it understand the business reality? That is why the founder page is not separate from SEO. It supports brand trust, product credibility, and evaluation intent.</p>
+              <div className="mt-5 space-y-3">
+                {founderSeoReasons.map((reason) => (
+                  <p key={reason} className="flex items-start gap-3 text-sm font-medium leading-6 text-slate-600">
+                    <ArrowRight size={17} className="mt-0.5 shrink-0 text-[var(--brand)]" />
+                    {reason}
+                  </p>
+                ))}
+              </div>
+            </article>
+
+            <article className="rounded-[28px] border border-[var(--brand)]/15 bg-white p-6 shadow-[0_16px_44px_rgba(15,23,42,0.06)] sm:p-8">
+              <h2 className="text-2xl font-black tracking-tight text-slate-950">What buyers usually want from a founder page</h2>
+              <p className="mt-3 text-sm font-medium leading-6 text-slate-600">They want a credible story, a reason the software exists, and enough signal to believe the team understands daily operations in retail, wholesale, distribution, accounting, and management workflows. This page now supports that better.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
       <section className="landing-section">
         <div className="landing-container">
           <div className="grid gap-16 lg:grid-cols-[1fr_minmax(0,1.1fr)]">
-
-            {/* Left — story intro */}
             <div>
               <p className="landing-eyebrow">{t('landing.founder.storyEyebrow')}</p>
               <h2 className="mt-4 text-3xl font-black leading-tight tracking-tight text-slate-950 sm:text-4xl">
@@ -233,7 +240,6 @@ export default function FounderPage() {
               </div>
             </div>
 
-            {/* Right — timeline */}
             <div>
               <p className="landing-eyebrow">{t('landing.founder.journeyEyebrow')}</p>
               <h2 className="mt-4 text-3xl font-black leading-tight tracking-tight text-slate-950 sm:text-4xl">
@@ -242,7 +248,6 @@ export default function FounderPage() {
               <div className="mt-8 space-y-0">
                 {timeline.map(({ year, title, body }, index) => (
                   <div key={year} className="flex gap-5">
-                    {/* Spine */}
                     <div className="flex flex-col items-center">
                       <div
                         className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[11px] font-black text-white shadow-[0_8px_20px_rgba(var(--slate-900),0.18)]"
@@ -257,7 +262,6 @@ export default function FounderPage() {
                       )}
                     </div>
 
-                    {/* Content */}
                     <div className={index < timeline.length - 1 ? 'pb-8' : 'pb-0'}>
                       <span className="inline-block rounded-full bg-[var(--brand-soft)] px-2.5 py-0.5 text-[11px] font-black uppercase tracking-wider text-[var(--brand-strong)]">
                         {year}
@@ -273,7 +277,6 @@ export default function FounderPage() {
         </div>
       </section>
 
-      {/* ── Values ── */}
       <section className="landing-section landing-section-soft">
         <div className="landing-container">
           <div className="text-center">
@@ -306,18 +309,15 @@ export default function FounderPage() {
         </div>
       </section>
 
-      {/* ── Personal note / CTA ── */}
       <section className="landing-section">
         <div className="landing-container">
           <div className="relative overflow-hidden rounded-[32px] bg-[linear-gradient(145deg,var(--brand-strong)_0%,var(--landing-founder-hero-mid)_55%,var(--landing-founder-hero-end)_100%)] p-8 sm:p-12 lg:p-16">
-            {/* Decorative glows */}
             <div className="pointer-events-none absolute inset-0 overflow-hidden">
               <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-[var(--brand)] opacity-15 blur-[80px]" />
               <div className="absolute -bottom-10 left-10 h-48 w-48 rounded-full bg-[var(--landing-accent-teal)] opacity-10 blur-[60px]" />
             </div>
 
             <div className="relative flex flex-col gap-8 lg:flex-row lg:items-center lg:gap-14">
-              {/* Photo — small, circular */}
               <div className="shrink-0">
                 <div
                   className="h-24 w-24 overflow-hidden rounded-full sm:h-28 sm:w-28"
@@ -336,7 +336,6 @@ export default function FounderPage() {
                 </div>
               </div>
 
-              {/* Message */}
               <div className="flex-1">
                 <p className="landing-eyebrow !text-[var(--landing-accent-teal)]">{t('landing.founder.noteEyebrow')}</p>
                 <p className="mt-3 text-lg font-bold leading-7 text-white sm:text-xl">
@@ -345,7 +344,6 @@ export default function FounderPage() {
                 <p className="mt-3 text-sm font-bold text-[var(--landing-accent-teal)]">{t('landing.founder.noteBy')}</p>
               </div>
 
-              {/* Actions */}
               <div className="flex shrink-0 flex-col gap-3">
                 <a
                   href={whatsappUrl}
@@ -358,18 +356,11 @@ export default function FounderPage() {
                 </a>
                 <a
                   href={`tel:${contactPhone}`}
-                  className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-5 text-sm font-black text-white transition hover:-translate-y-0.5 hover:bg-white/15"
+                  className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-white/15 bg-white/10 px-5 text-sm font-black text-white transition hover:-translate-y-0.5 hover:bg-white/15"
                 >
                   <Phone size={16} />
-                  {contactPhone}
+                  {t('landing.founder.callMe')}
                 </a>
-                <Link
-                  to="/landing"
-                  className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-white px-5 text-sm font-black text-[var(--brand-strong)] shadow-[0_8px_24px_rgba(0,0,0,0.2)] transition hover:-translate-y-0.5"
-                >
-                  {t('landing.founder.explore')}
-                  <ArrowRight size={15} />
-                </Link>
               </div>
             </div>
           </div>

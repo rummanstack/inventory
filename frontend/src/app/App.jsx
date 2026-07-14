@@ -27,13 +27,11 @@ function SessionLoadingScreen() {
   const { t } = useInventoryApp();
   return (
     <div className="fixed inset-0 flex flex-col items-center justify-center overflow-hidden bg-[var(--sidebar-bg)]">
-      {/* Ambient glow */}
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute left-1/2 top-1/2 h-[520px] w-[520px] -translate-x-1/2 -translate-y-2/3 rounded-full bg-[color-mix(in_srgb,var(--brand)_10%,transparent)] blur-[120px]" />
       </div>
 
       <div className="relative z-10 flex flex-col items-center">
-        {/* Logo mark */}
         <div className="relative">
           <div className="absolute inset-0 -m-2 animate-ping rounded-2xl bg-[color-mix(in_srgb,var(--secondary)_15%,transparent)]" style={{ animationDuration: '2.2s' }} />
           <div className="logo-chip relative flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl shadow-[0_8px_40px_rgba(55,51,115,0.2)]">
@@ -41,13 +39,11 @@ function SessionLoadingScreen() {
           </div>
         </div>
 
-        {/* Brand */}
         <div className="logo-chip mt-7 rounded-control px-3 py-1.5">
           <img src={stockLedgerLogoHorizontal} alt="StockLedger" className="h-10 w-auto object-contain" />
         </div>
         <p className="mt-1.5 text-[13px] font-medium tracking-widest text-slate-400 uppercase">{t('common.checkingSession')}</p>
 
-        {/* Indeterminate progress bar */}
         <div className="relative mt-10 h-px w-48 overflow-hidden rounded-full bg-[color-mix(in_srgb,var(--brand)_10%,transparent)]">
           <div className="session-loader-bar absolute inset-y-0 w-1/2 rounded-full bg-gradient-to-r from-transparent via-[var(--secondary)] to-transparent" />
         </div>
@@ -68,9 +64,6 @@ function PublicOnlyRoute({ children }) {
     return <SessionLoadingScreen />;
   }
 
-  // A password-reset link must work even if this browser still holds a
-  // session for someone (the admin testing their own copied link, or a
-  // stale login on the affected user's device) — never drop the token.
   if (user && !searchParams.has('token')) {
     return <Navigate to={getDefaultRoute(user)} replace />;
   }
@@ -126,8 +119,6 @@ function GuardedAppRoute({ route }) {
     return <Navigate to={defaultRoute} replace />;
   }
 
-  // Per-page Suspense keeps the sidebar/header mounted while a lazy page
-  // chunk downloads; only the content area shows the skeleton.
   return (
     <Suspense fallback={<div className="pt-2"><LoadingState /></div>}>
       <RouteComponent />
@@ -158,7 +149,8 @@ function AppRoutes() {
       <Route path="/solutions" element={<SolutionHubPage />} />
       <Route path="/solutions/:slug" element={<SolutionDetailPage />} />
       <Route path="/pricing" element={<PricingPage />} />
-      <Route path="/contact" element={<ContactPage />} />`r`n      <Route path="/get-started" element={<GetStartedPage />} />
+      <Route path="/contact" element={<ContactPage />} />
+      <Route path="/get-started" element={<GetStartedPage />} />
       <Route path="/login" element={<PublicOnlyRoute><LoginPage /></PublicOnlyRoute>} />
       <Route path="/register" element={<PublicOnlyRoute><RegisterPage /></PublicOnlyRoute>} />
       <Route element={<ProtectedLayout />}>
@@ -183,7 +175,6 @@ export default function App() {
   );
 }
 
-
 function ScrollRestoration() {
   const location = useLocation();
 
@@ -203,6 +194,7 @@ function ScrollRestoration() {
 
   return null;
 }
+
 function AppShell() {
   const { t, theme } = useInventoryApp();
 

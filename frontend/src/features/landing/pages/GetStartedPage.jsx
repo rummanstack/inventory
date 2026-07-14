@@ -37,6 +37,29 @@ const fitOptions = [
   'Growing team that needs HR, payroll, attendance, leave, roles, and control',
 ];
 
+const startingPoints = [
+  {
+    title: 'Retail, grocery, and counter sales',
+    text: 'Start with POS, stock, purchase receive, customer due, and daily reporting. Add accounting or HR after the team is stable on the daily flow.',
+  },
+  {
+    title: 'Wholesale, dealer, and route distribution',
+    text: 'Start with stock, invoices, due collection, morning issue, evening settlement, and supplier records. Add advanced accounting or branch-level controls after core movement is clean.',
+  },
+  {
+    title: 'Accounting-first businesses',
+    text: 'Start with finance accounts, expenses, vouchers, ledger visibility, and the operational workflows that feed those reports. That prevents duplicate entry from the beginning.',
+  },
+];
+
+const onboardingChecklist = [
+  'Product list, categories, and starting stock',
+  'Customer, shop, and supplier records',
+  'Opening due balances and account balances',
+  'User roles, responsibilities, and permission decisions',
+  'The one or two daily workflows that must work cleanly first',
+];
+
 export default function GetStartedPage() {
   const { language, setLanguage, t } = useLanguage();
 
@@ -63,7 +86,7 @@ export default function GetStartedPage() {
             <Link to="/landing" className="text-sm font-bold text-white/70 transition hover:text-white">Home</Link>
             <p className="landing-eyebrow mt-6 !text-[var(--landing-accent-teal)]">Get started</p>
             <h1 className="mt-3 text-4xl font-black leading-[1.06] tracking-tight text-white sm:text-5xl">Start with the right StockLedger setup, not a confusing full system.</h1>
-            <p className="mt-5 text-base font-medium leading-7 text-slate-200 sm:text-lg">StockLedger has many modules, so onboarding should be practical. We help you choose the workflows your business needs first, then expand when your team is ready.</p>
+            <p className="mt-5 text-base font-medium leading-7 text-slate-200 sm:text-lg">This page is about onboarding and rollout, not just inquiry. StockLedger has many modules, so the right start is practical: choose the workflows that create daily value first, then expand after the team is confident. That is how complex business software gets adopted successfully.</p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <a href={whatsappUrl} target="_blank" rel="noreferrer" className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-[var(--landing-accent-success)] px-6 text-sm font-black text-white shadow-[0_14px_30px_var(--landing-accent-success-shadow)] transition hover:-translate-y-0.5">
                 <MessageCircle size={17} />
@@ -95,7 +118,7 @@ export default function GetStartedPage() {
           <div className="max-w-3xl">
             <p className="landing-eyebrow">Onboarding path</p>
             <h2 className="landing-section-title">A clean start for a large platform</h2>
-            <p className="landing-section-text">You do not need to use every module on day one. The best setup starts with the workflows that create daily value.</p>
+            <p className="landing-section-text">You do not need to use every module on day one. The best setup starts with the workflows that create daily value, reduce confusion immediately, and teach the team one operational rhythm at a time.</p>
           </div>
 
           <div className="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
@@ -111,9 +134,36 @@ export default function GetStartedPage() {
             ))}
           </div>
 
+          <div className="mt-8 grid gap-5 lg:grid-cols-[1.05fr_0.95fr]">
+            <article className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_16px_44px_rgba(15,23,42,0.06)] sm:p-8">
+              <h2 className="text-2xl font-black tracking-tight text-slate-950">Recommended first module path by business type</h2>
+              <div className="mt-5 space-y-4">
+                {startingPoints.map((item) => (
+                  <div key={item.title} className="rounded-[22px] border border-slate-200 bg-slate-50 p-5">
+                    <h3 className="text-lg font-black text-slate-950">{item.title}</h3>
+                    <p className="mt-2 text-sm font-medium leading-6 text-slate-600">{item.text}</p>
+                  </div>
+                ))}
+              </div>
+            </article>
+
+            <article className="rounded-[28px] border border-[var(--brand)]/15 bg-white p-6 shadow-[0_16px_44px_rgba(15,23,42,0.06)] sm:p-8">
+              <h2 className="text-2xl font-black tracking-tight text-slate-950">Prepare these before onboarding</h2>
+              <div className="mt-5 space-y-3">
+                {onboardingChecklist.map((item) => (
+                  <p key={item} className="flex items-start gap-3 text-sm font-medium leading-6 text-slate-600">
+                    <CheckCircle2 size={17} className="mt-0.5 shrink-0 text-[var(--landing-accent-success)]" />
+                    {item}
+                  </p>
+                ))}
+              </div>
+              <p className="mt-5 text-sm font-medium leading-6 text-slate-600">Good onboarding copy should reduce fear. You do not need a perfect data environment before starting, but you do need enough structure to make the first workflows succeed quickly.</p>
+            </article>
+          </div>
+
           <div className="mt-8 rounded-[28px] border border-[var(--brand)]/15 bg-white p-6 shadow-[0_16px_44px_rgba(15,23,42,0.06)] sm:p-8">
             <h2 className="text-2xl font-black tracking-tight text-slate-950">Not sure which modules to start with?</h2>
-            <p className="mt-3 max-w-3xl text-sm font-medium leading-6 text-slate-600">Start with your daily bottleneck. If billing is slow, start with POS. If cash and due are unclear, start with sales, customer due, and finance. If your field team is messy, start with DSR issue and settlement. If the owner needs final numbers, start with accounting and reports.</p>
+            <p className="mt-3 max-w-3xl text-sm font-medium leading-6 text-slate-600">Start with your daily bottleneck. If billing is slow, start with POS. If cash and due are unclear, start with sales, customer due, and finance. If your field team is messy, start with DSR issue and settlement. If the owner needs final numbers, start with accounting and reports. The point of this page is to turn a big system into an ordered rollout plan.</p>
             <div className="mt-6 flex flex-col gap-3 sm:flex-row">
               <Link to="/features" className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-[var(--brand-strong)] px-5 text-sm font-black text-white transition hover:-translate-y-0.5">
                 Compare Features

@@ -355,6 +355,20 @@ function HubPage({ type }) {
   );
 }
 
+function getRotatingRelatedPages(pages, currentSlug, count = 3) {
+  const currentIndex = pages.findIndex((candidate) => candidate.slug === currentSlug);
+  if (currentIndex === -1) {
+    return pages.slice(0, count);
+  }
+
+  const ordered = [
+    ...pages.slice(currentIndex + 1),
+    ...pages.slice(0, currentIndex),
+  ];
+
+  return ordered.slice(0, count);
+}
+
 function getDefaultSupport(page, isFeature, relatedPages) {
   const relatedTitles = relatedPages
     .filter((related) => related.slug !== page.slug)
@@ -572,7 +586,7 @@ function DetailPage({ type }) {
             </Link>
           </div>
           <div className="mt-6 grid gap-5 md:grid-cols-3">
-            {relatedPages.filter((related) => related.slug !== page.slug).slice(0, 3).map((related) => {
+            {getRotatingRelatedPages(relatedPages, page.slug).map((related) => {
               const RelatedIcon = icons[related.slug] || CheckCircle2;
               return <PageCard key={related.slug} page={related} basePath={isFeature ? '/features' : '/solutions'} Icon={RelatedIcon} />;
             })}

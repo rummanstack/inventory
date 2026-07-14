@@ -5,40 +5,13 @@ import { mkdir, readFile, stat, writeFile } from 'node:fs/promises';
 
 import puppeteer from 'puppeteer-core';
 
+import { PUBLIC_ROUTES } from './public-routes.mjs';
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const frontendRoot = path.resolve(__dirname, '..');
 const distRoot = path.join(frontendRoot, 'dist');
 const serverPort = Number(process.env.PRERENDER_PORT || 4173);
-
-const PUBLIC_ROUTES = [
-  '/',
-  '/landing',
-  '/features',
-  '/features/inventory-management',
-  '/features/retail-pos',
-  '/features/accounting',
-  '/features/hr-payroll',
-  '/features/purchase-management',
-  '/features/due-collection',
-  '/features/dsr-dealer-management',
-  '/features/installment-sales',
-  '/features/reporting',
-  '/features/repair-warranty',
-  '/solutions',
-  '/solutions/retail-shop',
-  '/solutions/wholesale-business',
-  '/solutions/dealer-distributor',
-  '/solutions/dsr-sales-team',
-  '/solutions/pharmacy',
-  '/solutions/grocery-store',
-  '/pricing',
-  '/contact',
-  '/get-started',
-  '/founder',
-  '/privacy-policy',
-  '/terms',
-];
 
 const BROWSER_CANDIDATES = [
   process.env.PUPPETEER_EXECUTABLE_PATH,

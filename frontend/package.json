@@ -1,36 +1,37 @@
 {
-    "name":  "arinda-inventory-system",
-    "version":  "1.0.0",
-    "private":  true,
-    "type":  "module",
-    "scripts":  {
-                    "install:all":  "npm install --include=dev",
-                    "dev":  "vite",
-                    "dev:client":  "vite",
-                    "build":  "vite build \u0026\u0026 node scripts/prerender-public-pages.mjs",
-                    "build:watch":  "vite build --watch",
-                    "preview":  "vite preview",
-                    "render-build":  "npm install --include=dev \u0026\u0026 npm run build",
-                    "backend-build":  "vite build --outDir ../backend/public/dist"
-                },
-    "dependencies":  {
-                         "chart.js":  "^4.5.1",
-                         "html2canvas":  "^1.4.1",
-                         "jspdf":  "^3.0.1",
-                         "lucide-react":  "^0.468.0",
-                         "react":  "^18.3.1",
-                         "react-chartjs-2":  "^5.3.1",
-                         "react-dom":  "^18.3.1",
-                         "react-router-dom":  "^6.30.1",
-                         "sonner":  "^2.0.7",
-                         "xlsx":  "^0.18.5"
-                     },
-    "devDependencies":  {
-                            "@vitejs/plugin-react":  "^4.3.4",
-                            "autoprefixer":  "^10.4.20",
-                            "postcss":  "^8.4.49",
-                            "tailwindcss":  "^3.4.17",
-                            "vite":  "^5.4.11",
-                            "puppeteer-core":  "^23.11.1"
-                        }
+  "name": "arinda-inventory-system",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "install:all": "npm install --include=dev",
+    "dev": "vite",
+    "dev:client": "vite",
+    "build": "vite build && node scripts/prerender-public-pages.mjs",
+    "build:watch": "vite build --watch",
+    "preview": "vite preview",
+    "render-build": "npm install --include=dev && npm run build",
+    "backend-build": "vite build --outDir ../backend/public/dist",
+    "audit:navigation": "node scripts/audit-public-navigation.mjs"
+  },
+  "dependencies": {
+    "chart.js": "^4.5.1",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^3.0.1",
+    "lucide-react": "^0.468.0",
+    "react": "^18.3.1",
+    "react-chartjs-2": "^5.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.30.1",
+    "sonner": "^2.0.7",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.4",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.17",
+    "vite": "^5.4.11",
+    "puppeteer-core": "^23.11.1"
+  }
 }

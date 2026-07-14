@@ -102,7 +102,10 @@ function HubPage({ type }) {
   return (
     <main id="top" className="landing-page">
       <LandingHeader language={language} setLanguage={setLanguage} t={t} />
-      <section className="relative overflow-hidden bg-[linear-gradient(135deg,var(--bg-dark)_0%,var(--brand-strong)_55%,#1f3a8a_100%)] pb-16 pt-32 text-white sm:pt-40">
+      <section
+        className="relative overflow-hidden pb-16 pt-32 text-white sm:pt-40"
+        style={{ background: 'linear-gradient(135deg,var(--bg-dark) 0%,var(--brand-strong) 55%,#1f3a8a 100%)' }}
+      >
         <div className="landing-container relative">
           <Link to="/landing" className="text-sm font-bold text-white/70 transition hover:text-white">Home</Link>
           <div className="mt-6 max-w-3xl">
@@ -159,7 +162,10 @@ function DetailPage({ type }) {
     <main id="top" className="landing-page">
       <LandingHeader language={language} setLanguage={setLanguage} t={t} />
 
-      <section className="relative overflow-hidden bg-[linear-gradient(135deg,var(--bg-dark)_0%,var(--brand-strong)_58%,#14532d_100%)] pb-16 pt-32 text-white sm:pt-40">
+      <section
+        className="relative overflow-hidden pb-16 pt-32 text-white sm:pt-40"
+        style={{ background: 'linear-gradient(135deg,var(--bg-dark) 0%,var(--brand-strong) 58%,#14532d 100%)' }}
+      >
         <div className="landing-container grid items-center gap-10 lg:grid-cols-[1fr_0.9fr]">
           <div>
             <div className="flex items-center gap-2 text-sm font-bold text-white/70">

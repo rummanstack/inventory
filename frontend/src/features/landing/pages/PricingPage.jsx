@@ -24,7 +24,10 @@ export default function PricingPage() {
   return (
     <main id="top" className="landing-page">
       <LandingHeader language={language} setLanguage={setLanguage} t={t} />
-      <section className="relative overflow-hidden bg-[linear-gradient(135deg,var(--bg-dark)_0%,var(--brand-strong)_58%,#1f3a8a_100%)] pb-14 pt-32 text-white sm:pt-40">
+      <section
+        className="relative overflow-hidden pb-14 pt-32 text-white sm:pt-40"
+        style={{ background: 'linear-gradient(135deg,var(--bg-dark) 0%,var(--brand-strong) 58%,#1f3a8a 100%)' }}
+      >
         <div className="landing-container">
           <Link to="/landing" className="text-sm font-bold text-white/70 transition hover:text-white">Home</Link>
           <div className="mt-6 max-w-3xl">

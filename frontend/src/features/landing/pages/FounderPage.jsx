@@ -182,7 +182,10 @@ export default function FounderPage() {
       </section>
 
       {/* ── Pullquote ── */}
-      <section className="border-b border-slate-100 bg-[linear-gradient(180deg,var(--landing-surface-tint-start)_0%,var(--landing-surface-tint-end)_100%)]">
+      <section
+        className="border-b border-slate-100"
+        style={{ background: 'linear-gradient(180deg,var(--landing-surface-tint-start) 0%,var(--landing-surface-tint-end) 100%)' }}
+      >
         <div className="landing-container py-12 sm:py-16">
           <div className="mx-auto max-w-3xl text-center">
             <Quote size={36} className="mx-auto text-[var(--brand)]/30" />

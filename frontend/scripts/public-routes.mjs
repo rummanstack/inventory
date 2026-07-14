@@ -24,11 +24,14 @@ export const PUBLIC_ROUTES = [
   '/software/hr-payroll-software-bangladesh',
   '/software/inventory-software-bangladesh',
   '/software/dsr-management-software-bangladesh',
+  '/software/dealer-management-software-bangladesh',
   '/software/retail-pos-software-bangladesh',
   '/software/accounting-software-bangladesh',
+  '/software/business-reporting-software-bangladesh',
   '/software/pharmacy-management-software-bangladesh',
   '/software/wholesale-software-bangladesh',
   '/software/shop-management-software-bangladesh',
+  '/software/grocery-store-software-bangladesh',
   '/pricing',
   '/contact',
   '/get-started',
@@ -38,5 +41,6 @@ export const PUBLIC_ROUTES = [
 ];
 
 export const INDEXABLE_PUBLIC_ROUTES = PUBLIC_ROUTES.filter((route) => route !== '/');
+
 
 

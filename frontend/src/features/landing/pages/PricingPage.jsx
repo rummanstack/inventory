@@ -4,7 +4,7 @@ import { ArrowRight, Boxes, Calculator, Route, ShieldCheck, Users } from 'lucide
 import { useLanguage } from '../../../app/hooks/useLanguage.js';
 import LandingHeader from '../components/LandingHeader.jsx';
 import LandingFooter from '../components/LandingFooter.jsx';
-import LandingChatWidget from '../components/LandingChatWidget.jsx';
+import DeferredLandingChatWidget from '../components/DeferredLandingChatWidget.jsx';
 import PricingSection from '../components/PricingSection.jsx';
 import FaqSection from '../components/FaqSection.jsx';
 
@@ -138,7 +138,8 @@ export default function PricingPage() {
 
       <FaqSection t={t} />
       <LandingFooter t={t} />
-      <LandingChatWidget t={t} />
+      <DeferredLandingChatWidget t={t} />
     </main>
   );
 }
+

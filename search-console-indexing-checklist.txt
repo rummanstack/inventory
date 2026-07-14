@@ -1,0 +1,53 @@
+StockLedger Search Console and Indexing Checklist
+
+1. Domain setup
+- Confirm the production canonical domain is https://stockledger.pro
+- Redirect all non-canonical host variants to the canonical domain
+- Force HTTPS on every public URL
+
+2. Search Console properties
+- Add and verify the Domain property for stockledger.pro
+- Add and verify the URL-prefix property for https://stockledger.pro/ if needed for debugging
+- Submit the production sitemap: https://stockledger.pro/sitemap.xml
+
+3. Crawl and indexing checks
+- Confirm robots.txt is reachable at /robots.txt
+- Confirm sitemap.xml is reachable at /sitemap.xml
+- Test a sample of public URLs in Search Console URL Inspection
+- Request indexing for new high-intent pages after deployment
+- Check that login, dashboard, and private app routes stay blocked or noindexed
+
+4. Canonical and metadata checks
+- Verify each public page has one canonical tag
+- Verify titles and descriptions render correctly on every feature, solution, software, pricing, contact, and get-started page
+- Confirm each page has one H1 and a clean heading structure under it
+- Check that schema markup is present on key page types
+
+5. Performance and CWV checks
+- Run PageSpeed Insights for homepage and 3 to 5 important landing pages
+- Review LCP element and confirm the hero and first image are loading correctly
+- Review CLS and confirm no layout jumps from images, menus, or chat widgets
+- Review INP and confirm no heavy client-side work blocks interaction
+
+6. Content and internal linking checks
+- Make sure each new software page has at least one internal link from another public page
+- Make sure feature pages link to solutions and software pages where relevant
+- Make sure contact, pricing, and get-started pages each target distinct intent
+- Review on-page copy for duplicated sections or thin content
+
+7. Trust and conversion checks
+- Confirm testimonial, proof, FAQ, and contact sections are visible on important public pages
+- Check that demo, pricing, and contact CTAs are clear above the fold and deeper in the page
+- Replace any weak or generic images with real product or business-context visuals when available
+
+8. After deployment
+- Rebuild and verify prerender output for all public pages
+- Re-submit sitemap in Search Console
+- Inspect newly added high-intent pages manually in Search Console
+- Monitor indexing coverage, Core Web Vitals, and enhancement reports for 2 to 4 weeks
+
+9. What still requires non-code work
+- Publish stronger business-specific imagery and real screenshots where possible
+- Earn backlinks from relevant business directories, partners, case studies, and local publications
+- Collect branded search demand with demos, outreach, and customer references
+- Keep adding genuinely useful pages for new search intents instead of thin keyword variants

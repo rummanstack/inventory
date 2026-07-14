@@ -60,3 +60,4 @@ Disallow: /error-logs
 Disallow: /database-backup
 
 Sitemap: https://stockledger.pro/sitemap.xml
+Host: https://stockledger.pro

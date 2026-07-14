@@ -4,6 +4,7 @@ import {
   heroDashboardImage,
   pharmacyImage,
   retailCounterImage,
+  reportsVisibilityImage,
   tradersImage,
   warehouseStockImage,
 } from './seoPageImages';
@@ -94,6 +95,27 @@ export const intentPages = [
     ],
   },
   {
+    slug: 'dealer-management-software-bangladesh',
+    title: 'Dealer Management Software in Bangladesh',
+    eyebrow: 'Dealer Software Bangladesh',
+    description: 'Manage dealer routes, issue, settlement, shop balances, collections, and supplier-linked product movement with StockLedger.',
+    image: tradersImage,
+    imageAlt: 'Dealer management software workflow in Bangladesh',
+    keywords: ['dealer management software Bangladesh', 'dealer software', 'shop balances', 'route settlement'],
+    fit: 'Dealer and distribution businesses that need route-level control over stock, cash, collections, and shop dues.',
+    primaryFeatureSlug: 'dsr-dealer-management',
+    primarySolutionSlug: 'dealer-distributor',
+    sections: [
+      { title: 'Dealer management software should improve route accountability', body: 'Dealer businesses often need clearer control over issue, returns, shop due, collection, and route-level settlement. This page targets buyers searching for that operational control directly.' },
+      { title: 'Built for stock, route, and collection coordination', body: 'StockLedger connects dealer issue, route movement, sales, returns, collection, shop balances, and supplier-linked inventory workflows so the business can review the full chain.' },
+      { title: 'Useful for dealer networks in Bangladesh that have outgrown informal tracking', body: 'The practical value is not just billing. It is stronger control over who took stock, who sold it, what cash came back, and what is still outstanding.' },
+    ],
+    faqs: [
+      ['Can I track dealer issue and settlement?', 'Yes. Issue and settlement are core parts of StockLedger distribution workflows.'],
+      ['Is this relevant for shop-based dealer routes?', 'Yes. Shop dues, route movement, and collection visibility are part of the use case.'],
+    ],
+  },
+  {
     slug: 'retail-pos-software-bangladesh',
     title: 'Retail POS Software in Bangladesh',
     eyebrow: 'Retail POS Bangladesh',
@@ -133,6 +155,27 @@ export const intentPages = [
     faqs: [
       ['Does this include final statements?', 'Yes. StockLedger supports P&L, balance sheet, trial balance, and ledger workflows.'],
       ['Can owners and accountants use the same system?', 'Yes. That is one of the main product advantages.'],
+    ],
+  },
+  {
+    slug: 'business-reporting-software-bangladesh',
+    title: 'Business Reporting Software in Bangladesh',
+    eyebrow: 'Reporting Software Bangladesh',
+    description: 'Use StockLedger dashboards, daily sales reports, stock movement, due visibility, profit reporting, and financial statements from one connected system.',
+    image: reportsVisibilityImage,
+    imageAlt: 'Business reporting software dashboard for Bangladeshi businesses',
+    keywords: ['business reporting software Bangladesh', 'daily sales report', 'profit reporting', 'dashboard software'],
+    fit: 'Owners and managers who need faster visibility into sales, stock, due, expense, and profit without waiting for manual summaries.',
+    primaryFeatureSlug: 'reporting',
+    primarySolutionSlug: 'retail-shop',
+    sections: [
+      { title: 'Reporting software should answer owner questions fast', body: 'The real value of reporting software is not chart decoration. It is faster answers to practical questions: what sold today, what is low in stock, who still owes money, and where profit is changing.' },
+      { title: 'Built on live business workflows instead of manual report rebuilding', body: 'StockLedger reporting is stronger because sales, purchases, stock, due, finance, and accounting stay connected. That gives managers cleaner reporting without duplicate compilation work.' },
+      { title: 'Useful for Bangladesh businesses that want daily and final visibility together', body: 'This page targets buyers looking specifically for reporting software, dashboards, and management visibility tied to real business activity.' },
+    ],
+    faqs: [
+      ['Can I see sales, stock, and due in one reporting view?', 'Yes. StockLedger reporting is designed to reflect multiple connected workflows.'],
+      ['Does reporting connect with accounting too?', 'Yes. Financial statements and operational reporting can be reviewed from the same system.'],
     ],
   },
   {
@@ -196,6 +239,27 @@ export const intentPages = [
     faqs: [
       ['Can a small shop use this without a complex setup?', 'Yes. A shop can start with the basic workflows first.'],
       ['Does this include profit and stock visibility?', 'Yes. Those are core reasons to use the system.'],
+    ],
+  },
+  {
+    slug: 'grocery-store-software-bangladesh',
+    title: 'Grocery Store Software in Bangladesh',
+    eyebrow: 'Grocery Software Bangladesh',
+    description: 'Run grocery billing, stock control, customer due, supplier purchases, expenses, and daily sales visibility with StockLedger.',
+    image: groceryImage,
+    imageAlt: 'Grocery store software workflow in Bangladesh',
+    keywords: ['grocery store software Bangladesh', 'grocery billing software', 'daily sales', 'store stock control'],
+    fit: 'Grocery and general stores that need fast daily billing with cleaner stock, due, and purchase visibility.',
+    primaryFeatureSlug: 'retail-pos',
+    primarySolutionSlug: 'grocery-store',
+    sections: [
+      { title: 'Grocery store software should reduce end-of-day confusion', body: 'Grocery businesses need speed at the counter, but they also need cleaner daily stock, customer due, purchase, and cash review. This page targets buyers who need those basics to work reliably first.' },
+      { title: 'Built for practical daily movement, not just a sales screen', body: 'StockLedger connects grocery sales, customer due, supplier purchases, stock changes, expenses, and reports so the owner can review the day without rebuilding records manually.' },
+      { title: 'Useful for Bangladesh grocery shops that want a clear starting system', body: 'The strongest entry point for many grocery stores is a lighter, high-frequency workflow setup that can grow into accounting, reporting, and team control later.' },
+    ],
+    faqs: [
+      ['Can I use this for a small grocery store?', 'Yes. Grocery and general stores can start with core billing, stock, due, and purchase workflows.'],
+      ['Does it help with daily reporting too?', 'Yes. Daily sales, cash, and stock visibility are part of the operational value.'],
     ],
   },
 ];

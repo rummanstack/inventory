@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, ChevronLeft, ChevronRight, Clock, FileText, MessageCircle, Phone } from 'lucide-react';
 import LandingHeader from '../LandingHeader.jsx';
 import LandingFooter from '../LandingFooter.jsx';
-import LandingChatWidget from '../LandingChatWidget.jsx';
+import DeferredLandingChatWidget from '../DeferredLandingChatWidget.jsx';
 import { contactPhone, whatsappUrl } from '../../constants.js';
 import { stockLedgerLogoIcon } from '../../../../assets/brandAssets.js';
 
@@ -355,7 +355,8 @@ export default function LegalPageLayout({ language, setLanguage, t, contentKey, 
       </div>
 
       <LandingFooter t={t} />
-      <LandingChatWidget t={t} />
+      <DeferredLandingChatWidget t={t} />
     </main>
   );
 }
+

@@ -4,7 +4,7 @@ import { ArrowRight, Clock3, MessageCircle, Phone, Settings, Users } from 'lucid
 import { useLanguage } from '../../../app/hooks/useLanguage.js';
 import LandingHeader from '../components/LandingHeader.jsx';
 import LandingFooter from '../components/LandingFooter.jsx';
-import LandingChatWidget from '../components/LandingChatWidget.jsx';
+import DeferredLandingChatWidget from '../components/DeferredLandingChatWidget.jsx';
 import ContactSection from '../components/ContactSection.jsx';
 
 const contactReasons = [
@@ -29,6 +29,18 @@ const nextSteps = [
   'We review your business type, current workflow, and highest-friction problems first.',
   'We recommend a starting module set instead of pushing every module at once.',
   'We discuss onboarding scope, training, users, branches, and pricing direction clearly.',
+];
+
+const relatedDecisionPages = [
+  { title: 'Get Started', text: 'Use this when you already want a rollout plan and need to decide which modules should go live first.', href: '/get-started' },
+  { title: 'Pricing', text: 'Use this when you need to compare plan structure, setup scope, support, and commercial fit.', href: '/pricing' },
+  { title: 'Software Guides', text: 'Use this when you are still comparing StockLedger against intent-specific searches like POS, accounting, inventory, or DSR software.', href: '/software' },
+];
+
+const contactFaqs = [
+  ['What should I include in a contact request?', 'Your business type, branch count, current workflow problems, the modules you care about most, and whether you need a demo, pricing discussion, or rollout guidance.'],
+  ['When should I use Contact instead of Get Started?', 'Use Contact when you still need to confirm fit, ask commercial questions, or discuss pricing. Use Get Started when you are ready to plan the first implementation steps.'],
+  ['Can I ask for a demo focused on my business type?', 'Yes. The page is designed for business-specific demo requests rather than a generic product tour.'],
 ];
 
 export default function ContactPage() {
@@ -108,13 +120,41 @@ export default function ContactPage() {
               </div>
             </article>
           </div>
+
+          <div className="mt-8 grid gap-5 lg:grid-cols-[1.05fr_0.95fr]">
+            <article className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_16px_44px_rgba(15,23,42,0.06)] sm:p-8">
+              <p className="text-xs font-black uppercase tracking-[0.16em] text-[var(--brand)]">Related decision pages</p>
+              <h2 className="mt-3 text-2xl font-black tracking-tight text-slate-950">Pick the page that matches your buying stage</h2>
+              <div className="mt-5 grid gap-4">
+                {relatedDecisionPages.map((item) => (
+                  <Link key={item.href} to={item.href} className="rounded-[22px] border border-slate-200 bg-slate-50 px-5 py-4 transition hover:border-[var(--brand)]/25 hover:bg-white">
+                    <h3 className="text-lg font-black text-slate-950">{item.title}</h3>
+                    <p className="mt-2 text-sm font-medium leading-6 text-slate-600">{item.text}</p>
+                  </Link>
+                ))}
+              </div>
+            </article>
+
+            <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_12px_36px_rgba(15,23,42,0.05)]">
+              <h2 className="text-2xl font-black tracking-tight text-slate-950">Frequently asked questions</h2>
+              <div className="mt-5 divide-y divide-slate-100">
+                {contactFaqs.map(([question, answer]) => (
+                  <div key={question} className="py-4 first:pt-0 last:pb-0">
+                    <h3 className="text-base font-black text-slate-950">{question}</h3>
+                    <p className="mt-2 text-sm font-medium leading-6 text-slate-600">{answer}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
+          </div>
         </div>
       </section>
 
       <ContactSection t={t} />
 
       <LandingFooter t={t} />
-      <LandingChatWidget t={t} />
+      <DeferredLandingChatWidget t={t} />
     </main>
   );
 }
+

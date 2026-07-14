@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { ArrowRight, Calculator, CheckCircle2, Layers3, Route, ShieldCheck } from 'lucide-react';
+import { ArrowRight, Calculator, CheckCircle2, ClipboardList, Layers3, Route, ShieldCheck, Store, Truck } from 'lucide-react';
 import { useLanguage } from '../../../app/hooks/useLanguage';
 import LandingHeader from '../components/LandingHeader.jsx';
 import HeroSection from '../components/HeroSection.jsx';
@@ -16,7 +16,7 @@ import ProofSection from '../components/ProofSection.jsx';
 import WhoIsItForSection from '../components/WhoIsItForSection.jsx';
 import ContactSection from '../components/ContactSection.jsx';
 import LandingFooter from '../components/LandingFooter.jsx';
-import LandingChatWidget from '../components/LandingChatWidget.jsx';
+import DeferredLandingChatWidget from '../components/DeferredLandingChatWidget.jsx';
 import { Link } from 'react-router-dom';
 
 const decisionBlocks = [
@@ -44,6 +44,50 @@ const buyerSignals = [
   'You need a site that explains how StockLedger fits a growing business, not just a small tool list.',
 ];
 
+const comparePaths = [
+  {
+    title: 'Retail and grocery businesses',
+    text: 'Usually start with fast billing, stock visibility, customer due, purchases, and daily closing review.',
+    Icon: Store,
+    links: [
+      { label: 'Retail POS', href: '/features/retail-pos' },
+      { label: 'Grocery Solution', href: '/solutions/grocery-store' },
+    ],
+  },
+  {
+    title: 'Wholesale, dealer, and route sales teams',
+    text: 'Need invoice control, stock movement, due collection, morning issue, evening settlement, and supplier balances.',
+    Icon: Truck,
+    links: [
+      { label: 'DSR Management', href: '/features/dsr-dealer-management' },
+      { label: 'Wholesale Solution', href: '/solutions/wholesale-business' },
+    ],
+  },
+  {
+    title: 'Control-focused owner and finance workflows',
+    text: 'Need accounting, ledger, profit visibility, reporting, and operational records that stay connected.',
+    Icon: ClipboardList,
+    links: [
+      { label: 'Accounting', href: '/features/accounting' },
+      { label: 'Reporting', href: '/features/reporting' },
+    ],
+  },
+];
+
+const topSearchPages = [
+  { title: 'Inventory Software in Bangladesh', href: '/software/inventory-software-bangladesh' },
+  { title: 'Retail POS Software in Bangladesh', href: '/software/retail-pos-software-bangladesh' },
+  { title: 'Accounting Software in Bangladesh', href: '/software/accounting-software-bangladesh' },
+  { title: 'HR and Payroll Software in Bangladesh', href: '/software/hr-payroll-software-bangladesh' },
+  { title: 'DSR Management Software in Bangladesh', href: '/software/dsr-management-software-bangladesh' },
+  { title: 'Shop Management Software in Bangladesh', href: '/software/shop-management-software-bangladesh' },
+];
+
+const deferredSectionStyle = {
+  contentVisibility: 'auto',
+  containIntrinsicSize: '960px',
+};
+
 export default function LandingPage() {
   const { language, setLanguage, t } = useLanguage();
 
@@ -69,7 +113,53 @@ export default function LandingPage() {
       <ProofSection t={t} />
       <TestimonialsSection t={t} />
 
-      <section className="landing-section landing-section-soft">
+      <section className="landing-section landing-section-soft" style={deferredSectionStyle}>
+        <div className="landing-container">
+          <div className="max-w-3xl">
+            <p className="landing-eyebrow">Compare common starting paths</p>
+            <h2 className="landing-section-title">Different businesses should not enter the product from the same page</h2>
+            <p className="landing-section-text">A retail shop, a wholesale route team, and an owner searching for better accounting do not evaluate software the same way. These paths help both buyers and search engines understand which StockLedger workflows matter first.</p>
+          </div>
+
+          <div className="mt-6 grid gap-5 lg:grid-cols-3">
+            {comparePaths.map(({ title, text, Icon, links }) => (
+              <article key={title} className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_16px_44px_rgba(15,23,42,0.06)]">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[var(--brand-soft)] text-[var(--brand-strong)]">
+                  <Icon size={20} />
+                </div>
+                <h3 className="mt-4 text-xl font-black text-slate-950">{title}</h3>
+                <p className="mt-3 text-sm font-medium leading-6 text-slate-600">{text}</p>
+                <div className="mt-5 grid gap-3">
+                  {links.map((link) => (
+                    <Link key={link.href} to={link.href} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold text-slate-800 transition hover:border-[var(--brand)]/30 hover:bg-white">
+                      {link.label}
+                    </Link>
+                  ))}
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="landing-section landing-section-brand" style={deferredSectionStyle}>
+        <div className="landing-container">
+          <div className="max-w-3xl">
+            <p className="landing-eyebrow">Popular search pages</p>
+            <h2 className="landing-section-title">High-intent software pages for buyers who already know what they need</h2>
+            <p className="landing-section-text">These pages target direct software-buying searches and create stronger paths for visitors comparing inventory, POS, accounting, HR, DSR, and shop-management tools.</p>
+          </div>
+          <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {topSearchPages.map((page) => (
+              <Link key={page.href} to={page.href} className="rounded-[22px] border border-slate-200 bg-white px-5 py-4 text-sm font-bold text-slate-900 shadow-[0_12px_30px_rgba(15,23,42,0.05)] transition hover:-translate-y-0.5 hover:border-[var(--brand)]/30">
+                {page.title}
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="landing-section landing-section-soft" style={deferredSectionStyle}>
         <div className="landing-container">
           <div className="max-w-3xl">
             <p className="landing-eyebrow">Why this site is structured this way</p>
@@ -134,7 +224,7 @@ export default function LandingPage() {
       <CtaSection t={t} />
       <ContactSection t={t} />
       <LandingFooter t={t} />
-      <LandingChatWidget t={t} />
+      <DeferredLandingChatWidget t={t} />
     </main>
   );
 }

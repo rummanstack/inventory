@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Link, Navigate, useParams } from 'react-router-dom';
 import {
   ArrowRight,
+  BarChart3,
   BookOpenText,
   Boxes,
   Building2,
@@ -9,6 +10,7 @@ import {
   ClipboardList,
   Landmark,
   MessageCircle,
+  Store,
   ReceiptText,
   ShieldCheck,
   Users,
@@ -16,7 +18,7 @@ import {
 import { useLanguage } from '../../../app/hooks/useLanguage.js';
 import LandingHeader from '../components/LandingHeader.jsx';
 import LandingFooter from '../components/LandingFooter.jsx';
-import LandingChatWidget from '../components/LandingChatWidget.jsx';
+import DeferredLandingChatWidget from '../components/DeferredLandingChatWidget.jsx';
 import ImagePlaceholder from '../components/shared/ImagePlaceholder.jsx';
 import { whatsappUrl } from '../constants.js';
 import { getFeaturePage, getSolutionPage } from '../data/seoPages.js';
@@ -27,11 +29,14 @@ const intentIcons = {
   'hr-payroll-software-bangladesh': Users,
   'inventory-software-bangladesh': Boxes,
   'dsr-management-software-bangladesh': Building2,
+  'dealer-management-software-bangladesh': Building2,
   'retail-pos-software-bangladesh': ReceiptText,
   'accounting-software-bangladesh': BookOpenText,
+  'business-reporting-software-bangladesh': BarChart3,
   'pharmacy-management-software-bangladesh': ShieldCheck,
   'wholesale-software-bangladesh': Building2,
   'shop-management-software-bangladesh': Landmark,
+  'grocery-store-software-bangladesh': Store,
 };
 
 function useLandingPageMode() {
@@ -101,7 +106,7 @@ export function SoftwareHubPage() {
           <div className="mt-6 max-w-3xl">
             <p className="landing-eyebrow !text-[var(--landing-accent-teal)]">Software guides</p>
             <h1 className="mt-3 text-4xl font-black leading-[1.06] tracking-tight text-white sm:text-5xl">High-intent software pages for StockLedger buyers in Bangladesh</h1>
-            <p className="mt-5 text-base font-medium leading-7 text-slate-200 sm:text-lg">These pages target direct commercial search intent such as inventory software in Bangladesh, retail POS software in Bangladesh, accounting software in Bangladesh, HR and payroll software, DSR management software, pharmacy management software, wholesale software, and shop management software.</p>
+            <p className="mt-5 text-base font-medium leading-7 text-slate-200 sm:text-lg">These pages target direct commercial search intent such as inventory software in Bangladesh, retail POS software in Bangladesh, accounting software in Bangladesh, HR and payroll software, DSR management software, dealer management software, reporting software, pharmacy management software, wholesale software, grocery store software, and shop management software.</p>
           </div>
         </div>
       </section>
@@ -121,7 +126,7 @@ export function SoftwareHubPage() {
       </section>
 
       <LandingFooter t={t} />
-      <LandingChatWidget t={t} />
+      <DeferredLandingChatWidget t={t} />
     </main>
   );
 }
@@ -267,9 +272,11 @@ export function SoftwareDetailPage() {
       </section>
 
       <LandingFooter t={t} />
-      <LandingChatWidget t={t} />
+      <DeferredLandingChatWidget t={t} />
     </main>
   );
 }
+
+
 
 

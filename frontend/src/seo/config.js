@@ -203,6 +203,12 @@ export const SEO_PAGE_METADATA = {
     canonicalPath: '/software/dsr-management-software-bangladesh',
     robots: 'index,follow,max-image-preview:large',
   },
+  '/software/dealer-management-software-bangladesh': {
+    title: 'Dealer Management Software in Bangladesh',
+    description: 'Manage dealer routes, issue, settlement, shop balances, collections, and stock movement with StockLedger in Bangladesh.',
+    canonicalPath: '/software/dealer-management-software-bangladesh',
+    robots: 'index,follow,max-image-preview:large',
+  },
   '/software/retail-pos-software-bangladesh': {
     title: 'Retail POS Software in Bangladesh',
     description: 'Run fast billing, receipts, due sales, stock updates, and daily cash review with StockLedger retail POS workflows.',
@@ -213,6 +219,12 @@ export const SEO_PAGE_METADATA = {
     title: 'Accounting Software in Bangladesh',
     description: 'Use StockLedger for ledgers, trial balance, P&L, balance sheet, cash, bank, and accounting tied to daily operations.',
     canonicalPath: '/software/accounting-software-bangladesh',
+    robots: 'index,follow,max-image-preview:large',
+  },
+  '/software/business-reporting-software-bangladesh': {
+    title: 'Business Reporting Software in Bangladesh',
+    description: 'Use StockLedger for dashboards, daily sales reports, stock visibility, due review, profit reporting, and management reporting.',
+    canonicalPath: '/software/business-reporting-software-bangladesh',
     robots: 'index,follow,max-image-preview:large',
   },
   '/software/pharmacy-management-software-bangladesh': {
@@ -231,6 +243,12 @@ export const SEO_PAGE_METADATA = {
     title: 'Shop Management Software in Bangladesh',
     description: 'Manage shop sales, stock, purchases, customer due, expenses, and profit review with StockLedger in Bangladesh.',
     canonicalPath: '/software/shop-management-software-bangladesh',
+    robots: 'index,follow,max-image-preview:large',
+  },
+  '/software/grocery-store-software-bangladesh': {
+    title: 'Grocery Store Software in Bangladesh',
+    description: 'Run grocery billing, stock control, customer due, supplier purchases, expenses, and daily sales visibility with StockLedger.',
+    canonicalPath: '/software/grocery-store-software-bangladesh',
     robots: 'index,follow,max-image-preview:large',
   },
   '/pricing': {
@@ -259,5 +277,6 @@ export const PRIVATE_APP_METADATA = {
   canonicalPath: '/landing',
   robots: 'noindex,nofollow,noarchive',
 };
+
 
 

@@ -1,8 +1,8 @@
 StockLedger Public Navigation Audit
-Generated: 2026-07-14T10:57:08.907Z
+Generated: 2026-07-14T11:25:16.854Z
 
 Summary
-- Indexable public routes checked: 35
+- Indexable public routes checked: 38
 - Orphan routes: 0
 - Weak routes (<2 internal incoming links): 0
 - Detail routes missing parent hub link: 0
@@ -13,44 +13,47 @@ Findings
 - Missing parent hub links: None
 
 Per-route incoming link counts
-- /landing: 34
-- /features: 34
+- /landing: 37
+- /features: 37
 - /features/inventory-management: 12
-- /features/retail-pos: 9
-- /features/accounting: 14
+- /features/retail-pos: 11
+- /features/accounting: 15
 - /features/hr-payroll: 5
 - /features/purchase-management: 8
 - /features/due-collection: 11
-- /features/dsr-dealer-management: 7
+- /features/dsr-dealer-management: 9
 - /features/installment-sales: 4
-- /features/reporting: 11
+- /features/reporting: 13
 - /features/repair-warranty: 4
-- /solutions: 34
-- /solutions/retail-shop: 7
-- /solutions/wholesale-business: 7
-- /solutions/dealer-distributor: 4
+- /solutions: 37
+- /solutions/retail-shop: 8
+- /solutions/wholesale-business: 8
+- /solutions/dealer-distributor: 5
 - /solutions/dsr-sales-team: 5
 - /solutions/pharmacy: 5
-- /solutions/grocery-store: 5
-- /software: 34
+- /solutions/grocery-store: 7
+- /software: 37
 - /software/business-management-software-bangladesh: 4
-- /software/hr-payroll-software-bangladesh: 4
-- /software/inventory-software-bangladesh: 4
-- /software/dsr-management-software-bangladesh: 4
-- /software/retail-pos-software-bangladesh: 4
-- /software/accounting-software-bangladesh: 4
+- /software/hr-payroll-software-bangladesh: 5
+- /software/inventory-software-bangladesh: 5
+- /software/dsr-management-software-bangladesh: 5
+- /software/dealer-management-software-bangladesh: 4
+- /software/retail-pos-software-bangladesh: 5
+- /software/accounting-software-bangladesh: 5
+- /software/business-reporting-software-bangladesh: 4
 - /software/pharmacy-management-software-bangladesh: 4
 - /software/wholesale-software-bangladesh: 4
-- /software/shop-management-software-bangladesh: 4
-- /pricing: 34
-- /contact: 34
-- /get-started: 34
-- /founder: 34
-- /privacy-policy: 34
-- /terms: 34
+- /software/shop-management-software-bangladesh: 5
+- /software/grocery-store-software-bangladesh: 4
+- /pricing: 37
+- /contact: 37
+- /get-started: 37
+- /founder: 37
+- /privacy-policy: 37
+- /terms: 37
 
 Per-route outgoing public links
-- /landing: /contact, /features, /founder, /get-started, /pricing, /privacy-policy, /software, /solutions, /terms
+- /landing: /contact, /features, /features/accounting, /features/dsr-dealer-management, /features/reporting, /features/retail-pos, /founder, /get-started, /pricing, /privacy-policy, /software, /software/accounting-software-bangladesh, /software/dsr-management-software-bangladesh, /software/hr-payroll-software-bangladesh, /software/inventory-software-bangladesh, /software/retail-pos-software-bangladesh, /software/shop-management-software-bangladesh, /solutions, /solutions/grocery-store, /solutions/wholesale-business, /terms
 - /features: /contact, /features/accounting, /features/dsr-dealer-management, /features/due-collection, /features/hr-payroll, /features/installment-sales, /features/inventory-management, /features/purchase-management, /features/repair-warranty, /features/reporting, /features/retail-pos, /founder, /get-started, /landing, /pricing, /privacy-policy, /software, /solutions, /terms
 - /features/inventory-management: /contact, /features, /features/accounting, /features/hr-payroll, /features/purchase-management, /features/reporting, /features/retail-pos, /founder, /get-started, /landing, /pricing, /privacy-policy, /software, /solutions, /terms
 - /features/retail-pos: /contact, /features, /features/accounting, /features/due-collection, /features/hr-payroll, /features/inventory-management, /features/purchase-management, /features/reporting, /founder, /get-started, /landing, /pricing, /privacy-policy, /software, /solutions, /terms
@@ -69,16 +72,19 @@ Per-route outgoing public links
 - /solutions/dsr-sales-team: /contact, /features, /features/dsr-dealer-management, /features/due-collection, /features/reporting, /founder, /get-started, /landing, /pricing, /privacy-policy, /software, /solutions, /solutions/grocery-store, /solutions/pharmacy, /solutions/retail-shop, /terms
 - /solutions/pharmacy: /contact, /features, /features/accounting, /features/inventory-management, /features/purchase-management, /founder, /get-started, /landing, /pricing, /privacy-policy, /software, /solutions, /solutions/grocery-store, /solutions/retail-shop, /solutions/wholesale-business, /terms
 - /solutions/grocery-store: /contact, /features, /features/due-collection, /features/inventory-management, /features/retail-pos, /founder, /get-started, /landing, /pricing, /privacy-policy, /software, /solutions, /solutions/dealer-distributor, /solutions/retail-shop, /solutions/wholesale-business, /terms
-- /software: /contact, /features, /founder, /get-started, /landing, /pricing, /privacy-policy, /software/accounting-software-bangladesh, /software/business-management-software-bangladesh, /software/dsr-management-software-bangladesh, /software/hr-payroll-software-bangladesh, /software/inventory-software-bangladesh, /software/pharmacy-management-software-bangladesh, /software/retail-pos-software-bangladesh, /software/shop-management-software-bangladesh, /software/wholesale-software-bangladesh, /solutions, /terms
+- /software: /contact, /features, /founder, /get-started, /landing, /pricing, /privacy-policy, /software/accounting-software-bangladesh, /software/business-management-software-bangladesh, /software/business-reporting-software-bangladesh, /software/dealer-management-software-bangladesh, /software/dsr-management-software-bangladesh, /software/grocery-store-software-bangladesh, /software/hr-payroll-software-bangladesh, /software/inventory-software-bangladesh, /software/pharmacy-management-software-bangladesh, /software/retail-pos-software-bangladesh, /software/shop-management-software-bangladesh, /software/wholesale-software-bangladesh, /solutions, /terms
 - /software/business-management-software-bangladesh: /contact, /features, /features/accounting, /founder, /get-started, /landing, /pricing, /privacy-policy, /software, /software/dsr-management-software-bangladesh, /software/hr-payroll-software-bangladesh, /software/inventory-software-bangladesh, /solutions, /solutions/retail-shop, /terms
-- /software/hr-payroll-software-bangladesh: /contact, /features, /features/hr-payroll, /founder, /get-started, /landing, /pricing, /privacy-policy, /software, /software/dsr-management-software-bangladesh, /software/inventory-software-bangladesh, /software/retail-pos-software-bangladesh, /solutions, /solutions/retail-shop, /terms
-- /software/inventory-software-bangladesh: /contact, /features, /features/inventory-management, /founder, /get-started, /landing, /pricing, /privacy-policy, /software, /software/accounting-software-bangladesh, /software/dsr-management-software-bangladesh, /software/retail-pos-software-bangladesh, /solutions, /solutions/wholesale-business, /terms
-- /software/dsr-management-software-bangladesh: /contact, /features, /features/dsr-dealer-management, /founder, /get-started, /landing, /pricing, /privacy-policy, /software, /software/accounting-software-bangladesh, /software/pharmacy-management-software-bangladesh, /software/retail-pos-software-bangladesh, /solutions, /solutions/dsr-sales-team, /terms
-- /software/retail-pos-software-bangladesh: /contact, /features, /features/retail-pos, /founder, /get-started, /landing, /pricing, /privacy-policy, /software, /software/accounting-software-bangladesh, /software/pharmacy-management-software-bangladesh, /software/wholesale-software-bangladesh, /solutions, /solutions/retail-shop, /terms
-- /software/accounting-software-bangladesh: /contact, /features, /features/accounting, /founder, /get-started, /landing, /pricing, /privacy-policy, /software, /software/pharmacy-management-software-bangladesh, /software/shop-management-software-bangladesh, /software/wholesale-software-bangladesh, /solutions, /solutions/wholesale-business, /terms
-- /software/pharmacy-management-software-bangladesh: /contact, /features, /features/inventory-management, /founder, /get-started, /landing, /pricing, /privacy-policy, /software, /software/business-management-software-bangladesh, /software/shop-management-software-bangladesh, /software/wholesale-software-bangladesh, /solutions, /solutions/pharmacy, /terms
-- /software/wholesale-software-bangladesh: /contact, /features, /features/purchase-management, /founder, /get-started, /landing, /pricing, /privacy-policy, /software, /software/business-management-software-bangladesh, /software/hr-payroll-software-bangladesh, /software/shop-management-software-bangladesh, /solutions, /solutions/wholesale-business, /terms
-- /software/shop-management-software-bangladesh: /contact, /features, /features/retail-pos, /founder, /get-started, /landing, /pricing, /privacy-policy, /software, /software/business-management-software-bangladesh, /software/hr-payroll-software-bangladesh, /software/inventory-software-bangladesh, /solutions, /solutions/grocery-store, /terms
+- /software/hr-payroll-software-bangladesh: /contact, /features, /features/hr-payroll, /founder, /get-started, /landing, /pricing, /privacy-policy, /software, /software/dealer-management-software-bangladesh, /software/dsr-management-software-bangladesh, /software/inventory-software-bangladesh, /solutions, /solutions/retail-shop, /terms
+- /software/inventory-software-bangladesh: /contact, /features, /features/inventory-management, /founder, /get-started, /landing, /pricing, /privacy-policy, /software, /software/dealer-management-software-bangladesh, /software/dsr-management-software-bangladesh, /software/retail-pos-software-bangladesh, /solutions, /solutions/wholesale-business, /terms
+- /software/dsr-management-software-bangladesh: /contact, /features, /features/dsr-dealer-management, /founder, /get-started, /landing, /pricing, /privacy-policy, /software, /software/accounting-software-bangladesh, /software/dealer-management-software-bangladesh, /software/retail-pos-software-bangladesh, /solutions, /solutions/dsr-sales-team, /terms
+- /software/dealer-management-software-bangladesh: /contact, /features, /features/dsr-dealer-management, /founder, /get-started, /landing, /pricing, /privacy-policy, /software, /software/accounting-software-bangladesh, /software/business-reporting-software-bangladesh, /software/retail-pos-software-bangladesh, /solutions, /solutions/dealer-distributor, /terms
+- /software/retail-pos-software-bangladesh: /contact, /features, /features/retail-pos, /founder, /get-started, /landing, /pricing, /privacy-policy, /software, /software/accounting-software-bangladesh, /software/business-reporting-software-bangladesh, /software/pharmacy-management-software-bangladesh, /solutions, /solutions/retail-shop, /terms
+- /software/accounting-software-bangladesh: /contact, /features, /features/accounting, /founder, /get-started, /landing, /pricing, /privacy-policy, /software, /software/business-reporting-software-bangladesh, /software/pharmacy-management-software-bangladesh, /software/wholesale-software-bangladesh, /solutions, /solutions/wholesale-business, /terms
+- /software/business-reporting-software-bangladesh: /contact, /features, /features/reporting, /founder, /get-started, /landing, /pricing, /privacy-policy, /software, /software/pharmacy-management-software-bangladesh, /software/shop-management-software-bangladesh, /software/wholesale-software-bangladesh, /solutions, /solutions/retail-shop, /terms
+- /software/pharmacy-management-software-bangladesh: /contact, /features, /features/inventory-management, /founder, /get-started, /landing, /pricing, /privacy-policy, /software, /software/grocery-store-software-bangladesh, /software/shop-management-software-bangladesh, /software/wholesale-software-bangladesh, /solutions, /solutions/pharmacy, /terms
+- /software/wholesale-software-bangladesh: /contact, /features, /features/purchase-management, /founder, /get-started, /landing, /pricing, /privacy-policy, /software, /software/business-management-software-bangladesh, /software/grocery-store-software-bangladesh, /software/shop-management-software-bangladesh, /solutions, /solutions/wholesale-business, /terms
+- /software/shop-management-software-bangladesh: /contact, /features, /features/retail-pos, /founder, /get-started, /landing, /pricing, /privacy-policy, /software, /software/business-management-software-bangladesh, /software/grocery-store-software-bangladesh, /software/hr-payroll-software-bangladesh, /solutions, /solutions/grocery-store, /terms
+- /software/grocery-store-software-bangladesh: /contact, /features, /features/retail-pos, /founder, /get-started, /landing, /pricing, /privacy-policy, /software, /software/business-management-software-bangladesh, /software/hr-payroll-software-bangladesh, /software/inventory-software-bangladesh, /solutions, /solutions/grocery-store, /terms
 - /pricing: /contact, /features, /founder, /get-started, /landing, /privacy-policy, /software, /solutions, /terms
 - /contact: /features, /founder, /get-started, /landing, /pricing, /privacy-policy, /software, /solutions, /terms
 - /get-started: /contact, /features, /founder, /landing, /pricing, /privacy-policy, /software, /solutions, /terms

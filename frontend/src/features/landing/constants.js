@@ -45,6 +45,7 @@ export const socialLinks = {
 export const navLinks = [
   { key: 'features', href: '/features' },
   { key: 'solutions', href: '/solutions' },
+  { key: 'software', href: '/software' },
   { key: 'workflow', href: '/landing#workflow' },
   { key: 'getStarted', href: '/get-started' },
   { key: 'pricing', href: '/pricing' },
@@ -110,6 +111,7 @@ export const showcaseImages = [
   { src: reportsVisibilityImage, key: 'reportsVisibility', fit: 'fill', position: 'center' },
   { src: accountingStatementImage, key: 'accountingStatement', fit: 'fill', position: 'center' },
 ];
+
 
 
 

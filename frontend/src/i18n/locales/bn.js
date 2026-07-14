@@ -3625,6 +3625,7 @@ const bn = {
       nav: {
         features: 'প্ল্যাটফর্ম',
         solutions: 'অ্যাকাউন্টিং',
+        software: 'Software',
         workflow: 'ওয়ার্কফ্লো',
         getStarted: 'শুরু',
         pricing: 'প্রাইসিং',

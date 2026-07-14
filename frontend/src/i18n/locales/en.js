@@ -3633,6 +3633,7 @@ const en = {
       nav: {
         features: 'Features',
         solutions: 'Solutions',
+        software: 'Software',
         workflow: 'Workflow',
         getStarted: 'Get Started',
         pricing: 'Pricing',

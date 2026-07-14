@@ -4,7 +4,7 @@ import { ArrowRight, CheckCircle2, ClipboardList, MessageCircle, Phone, Settings
 import { useLanguage } from '../../../app/hooks/useLanguage.js';
 import LandingHeader from '../components/LandingHeader.jsx';
 import LandingFooter from '../components/LandingFooter.jsx';
-import LandingChatWidget from '../components/LandingChatWidget.jsx';
+import DeferredLandingChatWidget from '../components/DeferredLandingChatWidget.jsx';
 import { contactPhone, whatsappUrl } from '../constants.js';
 
 const steps = [
@@ -58,6 +58,18 @@ const onboardingChecklist = [
   'Opening due balances and account balances',
   'User roles, responsibilities, and permission decisions',
   'The one or two daily workflows that must work cleanly first',
+];
+
+const rolloutComparisons = [
+  { title: 'Get Started', text: 'Best when you already want StockLedger and need the right module rollout, onboarding sequence, and setup plan.', href: '/get-started' },
+  { title: 'Contact', text: 'Best when you still need pricing, fit confirmation, or a sales discussion before deciding the rollout path.', href: '/contact' },
+  { title: 'Pricing', text: 'Best when you are comparing plan scope, setup coverage, support, users, and commercial structure.', href: '/pricing' },
+];
+
+const getStartedFaqs = [
+  ['Do I need every module on day one?', 'No. The stronger rollout is to start with the workflows that remove daily friction first, then expand once the team is stable.'],
+  ['What is the best first module set for a shop or grocery business?', 'Usually POS, stock, purchases, customer due, and daily reporting. Accounting or HR can follow after the core flow is working cleanly.'],
+  ['Can wholesale or dealer businesses start without full accounting first?', 'Yes. Many distribution businesses start with stock, issue, settlement, collections, and supplier workflows, then deepen finance and reporting later.'],
 ];
 
 export default function GetStartedPage() {
@@ -161,6 +173,45 @@ export default function GetStartedPage() {
             </article>
           </div>
 
+          <div className="mt-8 grid gap-5 lg:grid-cols-[1.05fr_0.95fr]">
+            <article className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_16px_44px_rgba(15,23,42,0.06)] sm:p-8">
+              <p className="text-xs font-black uppercase tracking-[0.16em] text-[var(--brand)]">Compare the next step</p>
+              <h2 className="mt-3 text-2xl font-black tracking-tight text-slate-950">Different pages should answer different buyer questions</h2>
+              <div className="mt-5 grid gap-4">
+                {rolloutComparisons.map((item) => (
+                  <Link key={item.href} to={item.href} className="rounded-[22px] border border-slate-200 bg-slate-50 px-5 py-4 transition hover:border-[var(--brand)]/25 hover:bg-white">
+                    <h3 className="text-lg font-black text-slate-950">{item.title}</h3>
+                    <p className="mt-2 text-sm font-medium leading-6 text-slate-600">{item.text}</p>
+                  </Link>
+                ))}
+              </div>
+            </article>
+
+            <article className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_16px_44px_rgba(15,23,42,0.06)] sm:p-8">
+              <p className="text-xs font-black uppercase tracking-[0.16em] text-[var(--brand)]">Why teams trust a staged rollout</p>
+              <div className="mt-5 space-y-3">
+                {['Training is easier when the team learns one operational rhythm at a time.', 'Data cleanup gets smaller when you start with the records that matter most daily.', 'Management sees earlier value because the first module set is tied to immediate bottlenecks.'].map((item) => (
+                  <p key={item} className="flex items-start gap-3 text-sm font-medium leading-6 text-slate-600">
+                    <CheckCircle2 size={17} className="mt-0.5 shrink-0 text-[var(--landing-accent-success)]" />
+                    {item}
+                  </p>
+                ))}
+              </div>
+            </article>
+          </div>
+
+          <section className="mt-8 rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_12px_36px_rgba(15,23,42,0.05)]">
+            <h2 className="text-2xl font-black tracking-tight text-slate-950">Frequently asked questions about starting</h2>
+            <div className="mt-5 divide-y divide-slate-100">
+              {getStartedFaqs.map(([question, answer]) => (
+                <div key={question} className="py-4 first:pt-0 last:pb-0">
+                  <h3 className="text-base font-black text-slate-950">{question}</h3>
+                  <p className="mt-2 text-sm font-medium leading-6 text-slate-600">{answer}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+
           <div className="mt-8 rounded-[28px] border border-[var(--brand)]/15 bg-white p-6 shadow-[0_16px_44px_rgba(15,23,42,0.06)] sm:p-8">
             <h2 className="text-2xl font-black tracking-tight text-slate-950">Not sure which modules to start with?</h2>
             <p className="mt-3 max-w-3xl text-sm font-medium leading-6 text-slate-600">Start with your daily bottleneck. If billing is slow, start with POS. If cash and due are unclear, start with sales, customer due, and finance. If your field team is messy, start with DSR issue and settlement. If the owner needs final numbers, start with accounting and reports. The point of this page is to turn a big system into an ordered rollout plan.</p>
@@ -179,7 +230,8 @@ export default function GetStartedPage() {
       </section>
 
       <LandingFooter t={t} />
-      <LandingChatWidget t={t} />
+      <DeferredLandingChatWidget t={t} />
     </main>
   );
 }
+

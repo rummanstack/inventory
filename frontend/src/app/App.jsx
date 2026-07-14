@@ -22,6 +22,8 @@ const FeatureHubPage = lazy(() => import('../features/landing/pages/SeoContentPa
 const FeatureDetailPage = lazy(() => import('../features/landing/pages/SeoContentPage.jsx').then((module) => ({ default: module.FeatureDetailPage })));
 const SolutionHubPage = lazy(() => import('../features/landing/pages/SeoContentPage.jsx').then((module) => ({ default: module.SolutionHubPage })));
 const SolutionDetailPage = lazy(() => import('../features/landing/pages/SeoContentPage.jsx').then((module) => ({ default: module.SolutionDetailPage })));
+const SoftwareHubPage = lazy(() => import('../features/landing/pages/IntentSeoPage.jsx').then((module) => ({ default: module.SoftwareHubPage })));
+const SoftwareDetailPage = lazy(() => import('../features/landing/pages/IntentSeoPage.jsx').then((module) => ({ default: module.SoftwareDetailPage })));
 
 function SessionLoadingScreen() {
   const { t } = useInventoryApp();
@@ -148,6 +150,8 @@ function AppRoutes() {
       <Route path="/features/:slug" element={<FeatureDetailPage />} />
       <Route path="/solutions" element={<SolutionHubPage />} />
       <Route path="/solutions/:slug" element={<SolutionDetailPage />} />
+      <Route path="/software" element={<SoftwareHubPage />} />
+      <Route path="/software/:slug" element={<SoftwareDetailPage />} />
       <Route path="/pricing" element={<PricingPage />} />
       <Route path="/contact" element={<ContactPage />} />
       <Route path="/get-started" element={<GetStartedPage />} />

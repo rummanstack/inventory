@@ -19,6 +19,16 @@
   <url><loc>https://stockledger.pro/solutions/dsr-sales-team</loc><changefreq>monthly</changefreq><priority>0.75</priority></url>
   <url><loc>https://stockledger.pro/solutions/pharmacy</loc><changefreq>monthly</changefreq><priority>0.75</priority></url>
   <url><loc>https://stockledger.pro/solutions/grocery-store</loc><changefreq>monthly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://stockledger.pro/software</loc><changefreq>weekly</changefreq><priority>0.85</priority></url>
+  <url><loc>https://stockledger.pro/software/business-management-software-bangladesh</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://stockledger.pro/software/hr-payroll-software-bangladesh</loc><changefreq>monthly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://stockledger.pro/software/inventory-software-bangladesh</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://stockledger.pro/software/dsr-management-software-bangladesh</loc><changefreq>monthly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://stockledger.pro/software/retail-pos-software-bangladesh</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://stockledger.pro/software/accounting-software-bangladesh</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://stockledger.pro/software/pharmacy-management-software-bangladesh</loc><changefreq>monthly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://stockledger.pro/software/wholesale-software-bangladesh</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://stockledger.pro/software/shop-management-software-bangladesh</loc><changefreq>monthly</changefreq><priority>0.75</priority></url>
   <url><loc>https://stockledger.pro/pricing</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://stockledger.pro/get-started</loc><changefreq>monthly</changefreq><priority>0.75</priority></url>
   <url><loc>https://stockledger.pro/contact</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
@@ -26,3 +36,4 @@
   <url><loc>https://stockledger.pro/privacy-policy</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
   <url><loc>https://stockledger.pro/terms</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
 </urlset>
+

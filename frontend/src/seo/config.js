@@ -173,6 +173,66 @@ export const SEO_PAGE_METADATA = {
     canonicalPath: '/solutions/grocery-store',
     robots: 'index,follow,max-image-preview:large',
   },
+  '/software': {
+    title: 'Business Software Guides in Bangladesh',
+    description: 'Explore high-intent StockLedger software guides for business management, inventory, POS, accounting, HR, DSR, wholesale, pharmacy, and shop operations in Bangladesh.',
+    canonicalPath: '/software',
+    robots: 'index,follow,max-image-preview:large',
+  },
+  '/software/business-management-software-bangladesh': {
+    title: 'Business Management Software in Bangladesh',
+    description: 'See how StockLedger helps Bangladeshi businesses manage sales, stock, due, accounting, HR, and reporting from one connected system.',
+    canonicalPath: '/software/business-management-software-bangladesh',
+    robots: 'index,follow,max-image-preview:large',
+  },
+  '/software/hr-payroll-software-bangladesh': {
+    title: 'HR and Payroll Software in Bangladesh',
+    description: 'Manage employee records, attendance, leave, payroll, salary payments, and HR review with StockLedger in Bangladesh.',
+    canonicalPath: '/software/hr-payroll-software-bangladesh',
+    robots: 'index,follow,max-image-preview:large',
+  },
+  '/software/inventory-software-bangladesh': {
+    title: 'Inventory Software in Bangladesh',
+    description: 'Control stock, purchase receive, returns, suppliers, and inventory visibility with StockLedger for Bangladeshi businesses.',
+    canonicalPath: '/software/inventory-software-bangladesh',
+    robots: 'index,follow,max-image-preview:large',
+  },
+  '/software/dsr-management-software-bangladesh': {
+    title: 'DSR Management Software in Bangladesh',
+    description: 'Track route sales, morning issue, collections, returns, and evening settlement for field teams with StockLedger.',
+    canonicalPath: '/software/dsr-management-software-bangladesh',
+    robots: 'index,follow,max-image-preview:large',
+  },
+  '/software/retail-pos-software-bangladesh': {
+    title: 'Retail POS Software in Bangladesh',
+    description: 'Run fast billing, receipts, due sales, stock updates, and daily cash review with StockLedger retail POS workflows.',
+    canonicalPath: '/software/retail-pos-software-bangladesh',
+    robots: 'index,follow,max-image-preview:large',
+  },
+  '/software/accounting-software-bangladesh': {
+    title: 'Accounting Software in Bangladesh',
+    description: 'Use StockLedger for ledgers, trial balance, P&L, balance sheet, cash, bank, and accounting tied to daily operations.',
+    canonicalPath: '/software/accounting-software-bangladesh',
+    robots: 'index,follow,max-image-preview:large',
+  },
+  '/software/pharmacy-management-software-bangladesh': {
+    title: 'Pharmacy Management Software in Bangladesh',
+    description: 'Manage medicine stock, pharmacy sales, supplier purchases, due balances, expenses, and reports with StockLedger.',
+    canonicalPath: '/software/pharmacy-management-software-bangladesh',
+    robots: 'index,follow,max-image-preview:large',
+  },
+  '/software/wholesale-software-bangladesh': {
+    title: 'Wholesale Software in Bangladesh',
+    description: 'Manage wholesale invoices, stock, supplier purchases, customer balances, collections, and reports in one StockLedger system.',
+    canonicalPath: '/software/wholesale-software-bangladesh',
+    robots: 'index,follow,max-image-preview:large',
+  },
+  '/software/shop-management-software-bangladesh': {
+    title: 'Shop Management Software in Bangladesh',
+    description: 'Manage shop sales, stock, purchases, customer due, expenses, and profit review with StockLedger in Bangladesh.',
+    canonicalPath: '/software/shop-management-software-bangladesh',
+    robots: 'index,follow,max-image-preview:large',
+  },
   '/pricing': {
     title: 'Pricing',
     description: 'Compare StockLedger plans for sales, inventory, accounting, HR, DSR, installments, reports, setup, training, and support.',
@@ -184,16 +244,20 @@ export const SEO_PAGE_METADATA = {
     description: 'Start StockLedger with the right setup for your business workflows, modules, users, opening data, training, and onboarding path.',
     canonicalPath: '/get-started',
     robots: 'index,follow,max-image-preview:large',
-  },  '/contact': {
+  },
+  '/contact': {
     title: 'Contact StockLedger',
     description: 'Book a StockLedger demo or ask about setup, pricing, modules, users, branches, training, and the right configuration for your business.',
     canonicalPath: '/contact',
     robots: 'index,follow,max-image-preview:large',
   },
 };
+
 export const PRIVATE_APP_METADATA = {
   title: 'Workspace',
   description: 'StockLedger secure business management workspace.',
   canonicalPath: '/landing',
   robots: 'noindex,nofollow,noarchive',
 };
+
+

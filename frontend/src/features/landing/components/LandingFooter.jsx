@@ -18,6 +18,7 @@ const PRODUCT_LINKS = [
   { key: 'solutions', href: '/solutions' },
   { key: 'workflow', href: '/landing#workflow' },
   { key: 'pricing', href: '/pricing' },
+  { key: 'software', href: '/software', label: 'Software Guides' },
 ];
 
 function FooterHeading({ children }) {
@@ -65,7 +66,7 @@ export default function LandingFooter({ t }) {
             <FooterHeading>{t('landing.footer.product')}</FooterHeading>
             {PRODUCT_LINKS.map((link) => (
               <Link key={link.href} to={link.href} className={footerLinkClass}>
-                {t(`landing.nav.${link.key}`)}
+                {link.label || t(`landing.nav.${link.key}`)}
               </Link>
             ))}
           </nav>

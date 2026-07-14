@@ -119,6 +119,10 @@ export default function LandingPage() {
                   Explore Solutions
                   <ArrowRight size={16} />
                 </Link>
+                <Link to="/software" className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 text-sm font-black text-slate-700 transition hover:-translate-y-0.5 hover:border-[var(--brand)]/30">
+                  Software Guides
+                  <ArrowRight size={16} />
+                </Link>
               </div>
             </article>
           </div>

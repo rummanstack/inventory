@@ -1,8 +1,8 @@
 StockLedger Public Navigation Audit
-Generated: 2026-07-14T10:38:10.482Z
+Generated: 2026-07-14T10:57:08.907Z
 
 Summary
-- Indexable public routes checked: 25
+- Indexable public routes checked: 35
 - Orphan routes: 0
 - Weak routes (<2 internal incoming links): 0
 - Detail routes missing parent hub link: 0
@@ -13,55 +13,75 @@ Findings
 - Missing parent hub links: None
 
 Per-route incoming link counts
-- /landing: 24
-- /features: 24
-- /features/inventory-management: 10
-- /features/retail-pos: 7
-- /features/accounting: 12
-- /features/hr-payroll: 4
-- /features/purchase-management: 7
+- /landing: 34
+- /features: 34
+- /features/inventory-management: 12
+- /features/retail-pos: 9
+- /features/accounting: 14
+- /features/hr-payroll: 5
+- /features/purchase-management: 8
 - /features/due-collection: 11
-- /features/dsr-dealer-management: 6
+- /features/dsr-dealer-management: 7
 - /features/installment-sales: 4
 - /features/reporting: 11
 - /features/repair-warranty: 4
-- /solutions: 24
-- /solutions/retail-shop: 4
-- /solutions/wholesale-business: 4
+- /solutions: 34
+- /solutions/retail-shop: 7
+- /solutions/wholesale-business: 7
 - /solutions/dealer-distributor: 4
-- /solutions/dsr-sales-team: 4
-- /solutions/pharmacy: 4
-- /solutions/grocery-store: 4
-- /pricing: 24
-- /contact: 24
-- /get-started: 24
-- /founder: 24
-- /privacy-policy: 24
-- /terms: 24
+- /solutions/dsr-sales-team: 5
+- /solutions/pharmacy: 5
+- /solutions/grocery-store: 5
+- /software: 34
+- /software/business-management-software-bangladesh: 4
+- /software/hr-payroll-software-bangladesh: 4
+- /software/inventory-software-bangladesh: 4
+- /software/dsr-management-software-bangladesh: 4
+- /software/retail-pos-software-bangladesh: 4
+- /software/accounting-software-bangladesh: 4
+- /software/pharmacy-management-software-bangladesh: 4
+- /software/wholesale-software-bangladesh: 4
+- /software/shop-management-software-bangladesh: 4
+- /pricing: 34
+- /contact: 34
+- /get-started: 34
+- /founder: 34
+- /privacy-policy: 34
+- /terms: 34
 
 Per-route outgoing public links
-- /landing: /contact, /features, /founder, /get-started, /pricing, /privacy-policy, /solutions, /terms
-- /features: /contact, /features/accounting, /features/dsr-dealer-management, /features/due-collection, /features/hr-payroll, /features/installment-sales, /features/inventory-management, /features/purchase-management, /features/repair-warranty, /features/reporting, /features/retail-pos, /founder, /get-started, /landing, /pricing, /privacy-policy, /solutions, /terms
-- /features/inventory-management: /contact, /features, /features/accounting, /features/hr-payroll, /features/purchase-management, /features/reporting, /features/retail-pos, /founder, /get-started, /landing, /pricing, /privacy-policy, /solutions, /terms
-- /features/retail-pos: /contact, /features, /features/accounting, /features/due-collection, /features/hr-payroll, /features/inventory-management, /features/purchase-management, /features/reporting, /founder, /get-started, /landing, /pricing, /privacy-policy, /solutions, /terms
-- /features/accounting: /contact, /features, /features/due-collection, /features/hr-payroll, /features/purchase-management, /features/reporting, /founder, /get-started, /landing, /pricing, /privacy-policy, /solutions, /terms
-- /features/hr-payroll: /contact, /features, /features/accounting, /features/dsr-dealer-management, /features/due-collection, /features/purchase-management, /features/reporting, /founder, /get-started, /landing, /pricing, /privacy-policy, /solutions, /terms
-- /features/purchase-management: /contact, /features, /features/accounting, /features/dsr-dealer-management, /features/due-collection, /features/installment-sales, /features/inventory-management, /features/reporting, /founder, /get-started, /landing, /pricing, /privacy-policy, /solutions, /terms
-- /features/due-collection: /contact, /features, /features/accounting, /features/dsr-dealer-management, /features/installment-sales, /features/reporting, /features/retail-pos, /founder, /get-started, /landing, /pricing, /privacy-policy, /solutions, /terms
-- /features/dsr-dealer-management: /contact, /features, /features/accounting, /features/due-collection, /features/installment-sales, /features/inventory-management, /features/repair-warranty, /features/reporting, /founder, /get-started, /landing, /pricing, /privacy-policy, /solutions, /terms
-- /features/installment-sales: /contact, /features, /features/due-collection, /features/inventory-management, /features/repair-warranty, /features/reporting, /founder, /get-started, /landing, /pricing, /privacy-policy, /solutions, /terms
-- /features/reporting: /contact, /features, /features/accounting, /features/inventory-management, /features/repair-warranty, /features/retail-pos, /founder, /get-started, /landing, /pricing, /privacy-policy, /solutions, /terms
-- /features/repair-warranty: /contact, /features, /features/accounting, /features/inventory-management, /features/retail-pos, /founder, /get-started, /landing, /pricing, /privacy-policy, /solutions, /terms
-- /solutions: /contact, /features, /founder, /get-started, /landing, /pricing, /privacy-policy, /solutions/dealer-distributor, /solutions/dsr-sales-team, /solutions/grocery-store, /solutions/pharmacy, /solutions/retail-shop, /solutions/wholesale-business, /terms
-- /solutions/retail-shop: /contact, /features, /features/accounting, /features/inventory-management, /features/retail-pos, /founder, /get-started, /landing, /pricing, /privacy-policy, /solutions, /solutions/dealer-distributor, /solutions/dsr-sales-team, /solutions/wholesale-business, /terms
-- /solutions/wholesale-business: /contact, /features, /features/due-collection, /features/purchase-management, /features/reporting, /founder, /get-started, /landing, /pricing, /privacy-policy, /solutions, /solutions/dealer-distributor, /solutions/dsr-sales-team, /solutions/pharmacy, /terms
-- /solutions/dealer-distributor: /contact, /features, /features/accounting, /features/dsr-dealer-management, /features/due-collection, /founder, /get-started, /landing, /pricing, /privacy-policy, /solutions, /solutions/dsr-sales-team, /solutions/grocery-store, /solutions/pharmacy, /terms
-- /solutions/dsr-sales-team: /contact, /features, /features/dsr-dealer-management, /features/due-collection, /features/reporting, /founder, /get-started, /landing, /pricing, /privacy-policy, /solutions, /solutions/grocery-store, /solutions/pharmacy, /solutions/retail-shop, /terms
-- /solutions/pharmacy: /contact, /features, /features/accounting, /features/inventory-management, /features/purchase-management, /founder, /get-started, /landing, /pricing, /privacy-policy, /solutions, /solutions/grocery-store, /solutions/retail-shop, /solutions/wholesale-business, /terms
-- /solutions/grocery-store: /contact, /features, /features/due-collection, /features/inventory-management, /features/retail-pos, /founder, /get-started, /landing, /pricing, /privacy-policy, /solutions, /solutions/dealer-distributor, /solutions/retail-shop, /solutions/wholesale-business, /terms
-- /pricing: /contact, /features, /founder, /get-started, /landing, /privacy-policy, /solutions, /terms
-- /contact: /features, /founder, /get-started, /landing, /pricing, /privacy-policy, /solutions, /terms
-- /get-started: /contact, /features, /founder, /landing, /pricing, /privacy-policy, /solutions, /terms
-- /founder: /contact, /features, /get-started, /landing, /pricing, /privacy-policy, /solutions, /terms
-- /privacy-policy: /contact, /features, /founder, /get-started, /landing, /pricing, /solutions, /terms
-- /terms: /contact, /features, /founder, /get-started, /landing, /pricing, /privacy-policy, /solutions
+- /landing: /contact, /features, /founder, /get-started, /pricing, /privacy-policy, /software, /solutions, /terms
+- /features: /contact, /features/accounting, /features/dsr-dealer-management, /features/due-collection, /features/hr-payroll, /features/installment-sales, /features/inventory-management, /features/purchase-management, /features/repair-warranty, /features/reporting, /features/retail-pos, /founder, /get-started, /landing, /pricing, /privacy-policy, /software, /solutions, /terms
+- /features/inventory-management: /contact, /features, /features/accounting, /features/hr-payroll, /features/purchase-management, /features/reporting, /features/retail-pos, /founder, /get-started, /landing, /pricing, /privacy-policy, /software, /solutions, /terms
+- /features/retail-pos: /contact, /features, /features/accounting, /features/due-collection, /features/hr-payroll, /features/inventory-management, /features/purchase-management, /features/reporting, /founder, /get-started, /landing, /pricing, /privacy-policy, /software, /solutions, /terms
+- /features/accounting: /contact, /features, /features/due-collection, /features/hr-payroll, /features/purchase-management, /features/reporting, /founder, /get-started, /landing, /pricing, /privacy-policy, /software, /solutions, /terms
+- /features/hr-payroll: /contact, /features, /features/accounting, /features/dsr-dealer-management, /features/due-collection, /features/purchase-management, /features/reporting, /founder, /get-started, /landing, /pricing, /privacy-policy, /software, /solutions, /terms
+- /features/purchase-management: /contact, /features, /features/accounting, /features/dsr-dealer-management, /features/due-collection, /features/installment-sales, /features/inventory-management, /features/reporting, /founder, /get-started, /landing, /pricing, /privacy-policy, /software, /solutions, /terms
+- /features/due-collection: /contact, /features, /features/accounting, /features/dsr-dealer-management, /features/installment-sales, /features/reporting, /features/retail-pos, /founder, /get-started, /landing, /pricing, /privacy-policy, /software, /solutions, /terms
+- /features/dsr-dealer-management: /contact, /features, /features/accounting, /features/due-collection, /features/installment-sales, /features/inventory-management, /features/repair-warranty, /features/reporting, /founder, /get-started, /landing, /pricing, /privacy-policy, /software, /solutions, /terms
+- /features/installment-sales: /contact, /features, /features/due-collection, /features/inventory-management, /features/repair-warranty, /features/reporting, /founder, /get-started, /landing, /pricing, /privacy-policy, /software, /solutions, /terms
+- /features/reporting: /contact, /features, /features/accounting, /features/inventory-management, /features/repair-warranty, /features/retail-pos, /founder, /get-started, /landing, /pricing, /privacy-policy, /software, /solutions, /terms
+- /features/repair-warranty: /contact, /features, /features/accounting, /features/inventory-management, /features/retail-pos, /founder, /get-started, /landing, /pricing, /privacy-policy, /software, /solutions, /terms
+- /solutions: /contact, /features, /founder, /get-started, /landing, /pricing, /privacy-policy, /software, /solutions/dealer-distributor, /solutions/dsr-sales-team, /solutions/grocery-store, /solutions/pharmacy, /solutions/retail-shop, /solutions/wholesale-business, /terms
+- /solutions/retail-shop: /contact, /features, /features/accounting, /features/inventory-management, /features/retail-pos, /founder, /get-started, /landing, /pricing, /privacy-policy, /software, /solutions, /solutions/dealer-distributor, /solutions/dsr-sales-team, /solutions/wholesale-business, /terms
+- /solutions/wholesale-business: /contact, /features, /features/due-collection, /features/purchase-management, /features/reporting, /founder, /get-started, /landing, /pricing, /privacy-policy, /software, /solutions, /solutions/dealer-distributor, /solutions/dsr-sales-team, /solutions/pharmacy, /terms
+- /solutions/dealer-distributor: /contact, /features, /features/accounting, /features/dsr-dealer-management, /features/due-collection, /founder, /get-started, /landing, /pricing, /privacy-policy, /software, /solutions, /solutions/dsr-sales-team, /solutions/grocery-store, /solutions/pharmacy, /terms
+- /solutions/dsr-sales-team: /contact, /features, /features/dsr-dealer-management, /features/due-collection, /features/reporting, /founder, /get-started, /landing, /pricing, /privacy-policy, /software, /solutions, /solutions/grocery-store, /solutions/pharmacy, /solutions/retail-shop, /terms
+- /solutions/pharmacy: /contact, /features, /features/accounting, /features/inventory-management, /features/purchase-management, /founder, /get-started, /landing, /pricing, /privacy-policy, /software, /solutions, /solutions/grocery-store, /solutions/retail-shop, /solutions/wholesale-business, /terms
+- /solutions/grocery-store: /contact, /features, /features/due-collection, /features/inventory-management, /features/retail-pos, /founder, /get-started, /landing, /pricing, /privacy-policy, /software, /solutions, /solutions/dealer-distributor, /solutions/retail-shop, /solutions/wholesale-business, /terms
+- /software: /contact, /features, /founder, /get-started, /landing, /pricing, /privacy-policy, /software/accounting-software-bangladesh, /software/business-management-software-bangladesh, /software/dsr-management-software-bangladesh, /software/hr-payroll-software-bangladesh, /software/inventory-software-bangladesh, /software/pharmacy-management-software-bangladesh, /software/retail-pos-software-bangladesh, /software/shop-management-software-bangladesh, /software/wholesale-software-bangladesh, /solutions, /terms
+- /software/business-management-software-bangladesh: /contact, /features, /features/accounting, /founder, /get-started, /landing, /pricing, /privacy-policy, /software, /software/dsr-management-software-bangladesh, /software/hr-payroll-software-bangladesh, /software/inventory-software-bangladesh, /solutions, /solutions/retail-shop, /terms
+- /software/hr-payroll-software-bangladesh: /contact, /features, /features/hr-payroll, /founder, /get-started, /landing, /pricing, /privacy-policy, /software, /software/dsr-management-software-bangladesh, /software/inventory-software-bangladesh, /software/retail-pos-software-bangladesh, /solutions, /solutions/retail-shop, /terms
+- /software/inventory-software-bangladesh: /contact, /features, /features/inventory-management, /founder, /get-started, /landing, /pricing, /privacy-policy, /software, /software/accounting-software-bangladesh, /software/dsr-management-software-bangladesh, /software/retail-pos-software-bangladesh, /solutions, /solutions/wholesale-business, /terms
+- /software/dsr-management-software-bangladesh: /contact, /features, /features/dsr-dealer-management, /founder, /get-started, /landing, /pricing, /privacy-policy, /software, /software/accounting-software-bangladesh, /software/pharmacy-management-software-bangladesh, /software/retail-pos-software-bangladesh, /solutions, /solutions/dsr-sales-team, /terms
+- /software/retail-pos-software-bangladesh: /contact, /features, /features/retail-pos, /founder, /get-started, /landing, /pricing, /privacy-policy, /software, /software/accounting-software-bangladesh, /software/pharmacy-management-software-bangladesh, /software/wholesale-software-bangladesh, /solutions, /solutions/retail-shop, /terms
+- /software/accounting-software-bangladesh: /contact, /features, /features/accounting, /founder, /get-started, /landing, /pricing, /privacy-policy, /software, /software/pharmacy-management-software-bangladesh, /software/shop-management-software-bangladesh, /software/wholesale-software-bangladesh, /solutions, /solutions/wholesale-business, /terms
+- /software/pharmacy-management-software-bangladesh: /contact, /features, /features/inventory-management, /founder, /get-started, /landing, /pricing, /privacy-policy, /software, /software/business-management-software-bangladesh, /software/shop-management-software-bangladesh, /software/wholesale-software-bangladesh, /solutions, /solutions/pharmacy, /terms
+- /software/wholesale-software-bangladesh: /contact, /features, /features/purchase-management, /founder, /get-started, /landing, /pricing, /privacy-policy, /software, /software/business-management-software-bangladesh, /software/hr-payroll-software-bangladesh, /software/shop-management-software-bangladesh, /solutions, /solutions/wholesale-business, /terms
+- /software/shop-management-software-bangladesh: /contact, /features, /features/retail-pos, /founder, /get-started, /landing, /pricing, /privacy-policy, /software, /software/business-management-software-bangladesh, /software/hr-payroll-software-bangladesh, /software/inventory-software-bangladesh, /solutions, /solutions/grocery-store, /terms
+- /pricing: /contact, /features, /founder, /get-started, /landing, /privacy-policy, /software, /solutions, /terms
+- /contact: /features, /founder, /get-started, /landing, /pricing, /privacy-policy, /software, /solutions, /terms
+- /get-started: /contact, /features, /founder, /landing, /pricing, /privacy-policy, /software, /solutions, /terms
+- /founder: /contact, /features, /get-started, /landing, /pricing, /privacy-policy, /software, /solutions, /terms
+- /privacy-policy: /contact, /features, /founder, /get-started, /landing, /pricing, /software, /solutions, /terms
+- /terms: /contact, /features, /founder, /get-started, /landing, /pricing, /privacy-policy, /software, /solutions

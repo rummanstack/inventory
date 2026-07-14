@@ -19,6 +19,16 @@ export const PUBLIC_ROUTES = [
   '/solutions/dsr-sales-team',
   '/solutions/pharmacy',
   '/solutions/grocery-store',
+  '/software',
+  '/software/business-management-software-bangladesh',
+  '/software/hr-payroll-software-bangladesh',
+  '/software/inventory-software-bangladesh',
+  '/software/dsr-management-software-bangladesh',
+  '/software/retail-pos-software-bangladesh',
+  '/software/accounting-software-bangladesh',
+  '/software/pharmacy-management-software-bangladesh',
+  '/software/wholesale-software-bangladesh',
+  '/software/shop-management-software-bangladesh',
   '/pricing',
   '/contact',
   '/get-started',
@@ -28,3 +38,5 @@ export const PUBLIC_ROUTES = [
 ];
 
 export const INDEXABLE_PUBLIC_ROUTES = PUBLIC_ROUTES.filter((route) => route !== '/');
+
+

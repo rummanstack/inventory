@@ -1,11 +1,12 @@
-import { Suspense, lazy } from 'react';
-import { BrowserRouter, Navigate, Route, Routes, useSearchParams } from 'react-router-dom';
+import { Suspense, lazy, useEffect } from 'react';
+import { BrowserRouter, Navigate, Route, Routes, useLocation, useSearchParams } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import { APP_ROUTES } from './routes';
 import { ErrorBoundary } from './ErrorBoundary.jsx';
 import { InventoryAppProvider, useInventoryApp } from './useInventoryApp.jsx';
 import { LoadingState } from '../components/ui/Feedback.jsx';
 import { stockLedgerLogoHorizontal, stockLedgerLogoIcon } from '../assets/brandAssets.js';
+import SeoManager from '../seo/SeoManager.jsx';
 
 const AppLayout = lazy(() => import('./AppLayout'));
 const LoginPage = lazy(() => import('../features/auth/pages/LoginPage'));
@@ -14,6 +15,12 @@ const LandingPage = lazy(() => import('../features/landing/pages/LandingPage'));
 const PrivacyPolicyPage = lazy(() => import('../features/landing/pages/PrivacyPolicyPage'));
 const TermsPage = lazy(() => import('../features/landing/pages/TermsPage'));
 const FounderPage = lazy(() => import('../features/landing/pages/FounderPage'));
+const PricingPage = lazy(() => import('../features/landing/pages/PricingPage'));
+const ContactPage = lazy(() => import('../features/landing/pages/ContactPage'));
+const FeatureHubPage = lazy(() => import('../features/landing/pages/SeoContentPage.jsx').then((module) => ({ default: module.FeatureHubPage })));
+const FeatureDetailPage = lazy(() => import('../features/landing/pages/SeoContentPage.jsx').then((module) => ({ default: module.FeatureDetailPage })));
+const SolutionHubPage = lazy(() => import('../features/landing/pages/SeoContentPage.jsx').then((module) => ({ default: module.SolutionHubPage })));
+const SolutionDetailPage = lazy(() => import('../features/landing/pages/SeoContentPage.jsx').then((module) => ({ default: module.SolutionDetailPage })));
 
 function SessionLoadingScreen() {
   const { t } = useInventoryApp();
@@ -145,6 +152,12 @@ function AppRoutes() {
       <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
       <Route path="/terms" element={<TermsPage />} />
       <Route path="/founder" element={<FounderPage />} />
+      <Route path="/features" element={<FeatureHubPage />} />
+      <Route path="/features/:slug" element={<FeatureDetailPage />} />
+      <Route path="/solutions" element={<SolutionHubPage />} />
+      <Route path="/solutions/:slug" element={<SolutionDetailPage />} />
+      <Route path="/pricing" element={<PricingPage />} />
+      <Route path="/contact" element={<ContactPage />} />
       <Route path="/login" element={<PublicOnlyRoute><LoginPage /></PublicOnlyRoute>} />
       <Route path="/register" element={<PublicOnlyRoute><RegisterPage /></PublicOnlyRoute>} />
       <Route element={<ProtectedLayout />}>
@@ -169,6 +182,26 @@ export default function App() {
   );
 }
 
+
+function ScrollRestoration() {
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.hash) {
+      window.setTimeout(() => {
+        const target = document.getElementById(location.hash.slice(1));
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 80);
+      return;
+    }
+
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  }, [location.pathname, location.hash]);
+
+  return null;
+}
 function AppShell() {
   const { t, theme } = useInventoryApp();
 
@@ -176,6 +209,8 @@ function AppShell() {
     <ErrorBoundary t={t}>
       <Toaster position="top-right" theme={theme} richColors expand closeButton duration={4000} />
       <BrowserRouter>
+        <SeoManager />
+        <ScrollRestoration />
         <Suspense fallback={<SessionLoadingScreen />}>
           <AppRoutes />
         </Suspense>

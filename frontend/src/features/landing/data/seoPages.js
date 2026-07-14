@@ -1,0 +1,265 @@
+import {
+  accountingStatementImage,
+  dashboardSummaryImage,
+  dealerImage,
+  dsrRouteImage,
+  dueCollectionImage,
+  groceryImage,
+  heroDashboardImage,
+  pharmacyImage,
+  profitReportImage,
+  purchaseReceiveImage,
+  reportsVisibilityImage,
+  retailCounterImage,
+  supportCallImage,
+  tradersImage,
+  warehouseStockImage,
+} from './seoPageImages';
+
+export const featurePages = [
+  {
+    slug: 'inventory-management',
+    title: 'Inventory Management Software for Shops and Distributors',
+    eyebrow: 'Inventory Management',
+    description: 'Control product stock, purchases, returns, damaged goods, low-stock alerts, serials, and supplier records from one connected StockLedger workspace.',
+    image: warehouseStockImage,
+    imageAlt: 'Warehouse and stock management workflow in StockLedger',
+    keywords: ['Stock control', 'Low-stock alerts', 'Purchase receive', 'Product serials'],
+    sections: [
+      { title: 'Know what is available before your team sells', body: 'StockLedger keeps product quantities, purchase records, returns, damage adjustments, and movement history tied to the same product records. Owners and managers can see what is available, what is running low, and which supplier activity changed stock.' },
+      { title: 'Built for real product operations', body: 'Use categories, brands, manufacturers, serial numbers, generic medicine details, product batches, purchase receive, purchase returns, damaged stock, and stock movement reports without splitting records across notebooks and spreadsheets.' },
+      { title: 'Inventory connects to accounts', body: 'Sales, purchases, supplier payments, customer dues, and profit reporting all depend on stock accuracy. StockLedger keeps those workflows together so inventory decisions are visible in business reports.' },
+    ],
+    faqs: [
+      ['Can I track low stock?', 'Yes. StockLedger includes low-stock visibility so teams can reorder before shelves become empty.'],
+      ['Can I track serial numbers?', 'Yes. Product serial tracking is available for businesses such as electronics and mobile shops.'],
+    ],
+  },
+  {
+    slug: 'retail-pos',
+    title: 'Retail POS Software with Sales, Receipts, Stock, and Due Collection',
+    eyebrow: 'Retail POS',
+    description: 'Run quick sales, print receipts, manage cash sessions, record returns, and keep stock and customer dues updated from the sales counter.',
+    image: retailCounterImage,
+    imageAlt: 'Retail counter point of sale workflow',
+    keywords: ['Quick sale', 'Sales invoices', 'Cash sessions', 'Receipts'],
+    sections: [
+      { title: 'Fast billing without losing control', body: 'StockLedger supports quick sale, sales invoices, quotations, sales returns, promotions, trade-ins, and receipt printing. Each sale updates stock, customer balance, and business reports.' },
+      { title: 'Daily cash stays visible', body: 'Cash sessions and daily sales reports help shop owners reconcile counter activity with actual cash, card, and due movements at the end of the day.' },
+      { title: 'Useful for retail and wholesale', body: 'The same POS foundation works for small shops, wholesalers, electronics stores, grocery stores, pharmacies, and multi-user businesses that need controlled sales records.' },
+    ],
+    faqs: [
+      ['Can I print invoices and receipts?', 'Yes. StockLedger supports printable invoices, receipts, and sales records.'],
+      ['Does a sale update stock?', 'Yes. Sales workflows update inventory records and reporting visibility.'],
+    ],
+  },
+  {
+    slug: 'accounting',
+    title: 'Accounting Software for Sales, Purchases, Ledgers, P&L, and Balance Sheet',
+    eyebrow: 'Accounting',
+    description: 'Connect daily operations with accounting reports: cash, bank, expenses, journals, general ledger, trial balance, profit and loss, and balance sheet.',
+    image: accountingStatementImage,
+    imageAlt: 'Accounting statements and finance dashboard',
+    keywords: ['General ledger', 'Trial balance', 'Profit and loss', 'Balance sheet'],
+    sections: [
+      { title: 'Accounting built into business operations', body: 'StockLedger does not stop at sales and stock. It includes finance accounts, expenses, vouchers, journal registers, ledgers, cash book, bank book, trial balance, balance sheet, profit and loss, and cash flow reporting.' },
+      { title: 'Less duplicate entry', body: 'Sales, purchases, returns, payments, due collection, settlements, and expenses become part of one financial picture, reducing the need to re-enter the same business events in separate tools.' },
+      { title: 'Owner and accountant can work from the same truth', body: 'Business owners can monitor cash, dues, stock value, and profit while accountants can review ledgers and statements from structured records.' },
+    ],
+    faqs: [
+      ['Does StockLedger include final statements?', 'Yes. It includes reports such as trial balance, balance sheet, profit and loss, cash flow, cash book, bank book, and ledgers.'],
+      ['Can I manage cash and bank accounts?', 'Yes. Finance account management and transfers are part of the finance workflow.'],
+    ],
+  },
+  {
+    slug: 'hr-payroll',
+    title: 'HR and Payroll Software for Employees, Attendance, Leave, Salary, Loans, and Advances',
+    eyebrow: 'HR & Payroll',
+    description: 'Manage departments, designations, employees, attendance, leave, payroll, salary payments, loans, advances, and HR reports inside StockLedger.',
+    image: supportCallImage,
+    imageAlt: 'Team administration and support workflow',
+    keywords: ['Employees', 'Attendance', 'Payroll', 'Leave management'],
+    sections: [
+      { title: 'Control employee records with business context', body: 'StockLedger includes employee profiles, departments, designations, documents, attendance, leave, payroll, salary payments, employee loans, advances, and HR reports.' },
+      { title: 'Payroll tied to finance visibility', body: 'Salary payments, loans, advances, and expenses are part of the same business system, helping owners understand team costs alongside sales, purchases, and profit.' },
+      { title: 'Useful for growing teams', body: 'Role-based permissions, user management, activity logs, and HR workflows help businesses move beyond informal employee tracking.' },
+    ],
+    faqs: [
+      ['Can I track attendance and leave?', 'Yes. Attendance and leave management are supported for eligible accounts.'],
+      ['Can payroll connect with finance?', 'Yes. Payroll-related records can be managed alongside finance and expense workflows.'],
+    ],
+  },
+  {
+    slug: 'purchase-management',
+    title: 'Purchase and Supplier Management Software',
+    eyebrow: 'Purchases & Suppliers',
+    description: 'Record purchase receive, purchase returns, supplier payments, supplier discounts, supplier statements, and supplier due balances.',
+    image: purchaseReceiveImage,
+    imageAlt: 'Purchase receiving and supplier workflow',
+    keywords: ['Purchase receive', 'Supplier payments', 'Supplier statement', 'Purchase returns'],
+    sections: [
+      { title: 'Supplier activity stays traceable', body: 'StockLedger records purchase receive, purchase returns, supplier payments, supplier discounts, and supplier statements so purchase history and supplier balances stay clear.' },
+      { title: 'Purchases update stock and reporting', body: 'Received products update inventory availability, while supplier balances and payments remain available for finance and reporting workflows.' },
+      { title: 'Reduce supplier disputes', body: 'Structured purchase records and supplier statements make it easier to verify what was purchased, returned, discounted, and paid.' },
+    ],
+    faqs: [
+      ['Can I see supplier statements?', 'Yes. StockLedger includes supplier statement workflows.'],
+      ['Do purchases update stock?', 'Yes. Purchase receive updates product stock records.'],
+    ],
+  },
+  {
+    slug: 'due-collection',
+    title: 'Due Collection and Customer Ledger Software',
+    eyebrow: 'Due Collection',
+    description: 'Track retail customer dues, shop dues, customer payments, due collection, and account statements without losing payment history.',
+    image: dueCollectionImage,
+    imageAlt: 'Customer due collection workflow',
+    keywords: ['Customer due', 'Due collection', 'Customer ledger', 'Payment history'],
+    sections: [
+      { title: 'Know who owes what', body: 'StockLedger helps teams track retail customer balances, shop due ledgers, customer payments, and due collection activity from transaction-level records.' },
+      { title: 'Collections stay tied to sales', body: 'Due collection is connected to sales, invoices, shops, customers, and reports, so owners can follow balances without relying on disconnected notes.' },
+      { title: 'Better follow-up for collection teams', body: 'Collection teams can record payments while managers monitor outstanding balances and customer or shop statements.' },
+    ],
+    faqs: [
+      ['Can I track customer payment history?', 'Yes. Customer payments and due ledgers are part of the system.'],
+      ['Can field teams collect dues?', 'Yes. DSR and due collection workflows support collection-oriented businesses.'],
+    ],
+  },
+  {
+    slug: 'dsr-dealer-management',
+    title: 'DSR, Dealer, and Distributor Management Software',
+    eyebrow: 'DSR & Dealer Management',
+    description: 'Manage morning issue, route sales, shops, SR/DSR records, evening settlement, returns, cash, and due ledgers for field sales teams.',
+    image: dsrRouteImage,
+    imageAlt: 'DSR route and field sales workflow',
+    keywords: ['DSR management', 'Morning issue', 'Evening settlement', 'Dealer distribution'],
+    sections: [
+      { title: 'Built for field sales operations', body: 'StockLedger supports SR and DSR records, morning issue, evening settlement, shops, shop due ledgers, SR due ledgers, DSR finance, route activity, returns, and cash collection.' },
+      { title: 'Daily settlement becomes clearer', body: 'Instead of chasing phone calls and handwritten records, managers can review issued stock, sold stock, returned stock, cash, and dues from structured workflows.' },
+      { title: 'Designed for dealers and distributors', body: 'The system fits businesses that distribute products through sales reps, shops, wholesale customers, route teams, and collection staff.' },
+    ],
+    faqs: [
+      ['Can I manage morning issue and evening settlement?', 'Yes. These are core StockLedger workflows for DSR and distributor businesses.'],
+      ['Can I track shop dues?', 'Yes. Shop due ledger and SR due ledger workflows are supported.'],
+    ],
+  },
+  {
+    slug: 'installment-sales',
+    title: 'Installment Sales Management Software',
+    eyebrow: 'Installment Sales',
+    description: 'Manage installment plans, guarantors, schedules, due reports, collections, late fee rules, reschedules, and customer statements.',
+    image: dashboardSummaryImage,
+    imageAlt: 'Installment dashboard and reporting workflow',
+    keywords: ['Installment plans', 'Payment schedules', 'Late fees', 'Customer statements'],
+    sections: [
+      { title: 'Control installment plans from sale to closure', body: 'StockLedger supports installment plans, plan detail views, guarantors, documents, payment collection, schedule reports, overdue reports, reschedules, late fee rules, closures, and customer statements.' },
+      { title: 'Reduce missed payments', body: 'Due schedules, overdue reports, and collection reports help teams follow up with customers before balances become difficult to manage.' },
+      { title: 'Credit checks and documentation', body: 'Installment workflows include customer credit settings, guarantor records, and supporting documents for better accountability.' },
+    ],
+    faqs: [
+      ['Can I manage installment schedules?', 'Yes. Installment schedules, reschedules, and due reports are supported.'],
+      ['Can I track guarantors and documents?', 'Yes. Guarantor and document records are part of the installment workflow.'],
+    ],
+  },
+  {
+    slug: 'reporting',
+    title: 'Business Reporting Software for Sales, Profit, Stock, Finance, and Operations',
+    eyebrow: 'Reports & Analytics',
+    description: 'Use dashboards, daily sales reports, profit reports, stock movement, activity logs, financial statements, and operational reports to understand the business.',
+    image: reportsVisibilityImage,
+    imageAlt: 'Reports and dashboard visibility in StockLedger',
+    keywords: ['Profit reports', 'Daily sales reports', 'Dashboards', 'Activity logs'],
+    sections: [
+      { title: 'See the business from multiple angles', body: 'StockLedger includes dashboards, daily reports, daily sales reports, profit reports, stock movement, low-stock alerts, finance dashboards, accounting statements, HR reports, activity logs, and operational reports.' },
+      { title: 'Reports are connected to real workflows', body: 'Because sales, stock, purchases, dues, payments, HR, finance, and accounting live together, reports are based on the same records your team uses every day.' },
+      { title: 'Owner visibility from anywhere', body: 'Managers can monitor sales, dues, profit, stock, cash, expenses, and team activity without waiting for manual summaries.' },
+    ],
+    faqs: [
+      ['Can I see daily sales and profit?', 'Yes. Daily reports and profit reports are available.'],
+      ['Can I export reports?', 'The platform includes Excel, PDF, and print-oriented reporting workflows in several modules.'],
+    ],
+  },
+  {
+    slug: 'repair-warranty',
+    title: 'Repair Job and Warranty Claim Management Software',
+    eyebrow: 'Repair & Warranty',
+    description: 'Track repair jobs, warranty claims, product serial history, customer service status, and after-sales records in one system.',
+    image: heroDashboardImage,
+    imageAlt: 'Service and warranty management dashboard',
+    keywords: ['Warranty claims', 'Repair jobs', 'Serial tracking', 'After-sales service'],
+    sections: [
+      { title: 'After-sales service with product history', body: 'StockLedger supports warranty claims, repair jobs, serial tracking, customer details, and service progress so support teams can find records quickly.' },
+      { title: 'Useful for electronics and service businesses', body: 'Mobile shops, electronics retailers, appliance sellers, and repair counters can connect product sales with after-sales support.' },
+      { title: 'Reduce lost service records', body: 'Structured repair and warranty records help teams avoid searching through paper slips, chat messages, and disconnected spreadsheets.' },
+    ],
+    faqs: [
+      ['Can I track warranty claims?', 'Yes. Warranty claim workflows are supported.'],
+      ['Can I connect serial numbers with service?', 'Yes. Serial tracking can support after-sales and warranty lookup.'],
+    ],
+  },
+];
+
+export const solutionPages = [
+  {
+    slug: 'retail-shop',
+    title: 'Business Software for Retail Shops in Bangladesh',
+    eyebrow: 'Retail Shops',
+    description: 'Run sales, receipts, stock, customer dues, purchases, expenses, reports, and profit from one system built for everyday shop operations.',
+    image: retailCounterImage,
+    imageAlt: 'Retail shop counter using StockLedger',
+    keywords: ['Retail POS', 'Customer due', 'Stock', 'Profit'],
+  },
+  {
+    slug: 'wholesale-business',
+    title: 'Wholesale Business Management Software',
+    eyebrow: 'Wholesale Business',
+    description: 'Manage bulk sales, supplier purchases, customer balances, stock, due collection, finance, and reports for wholesale trading businesses.',
+    image: tradersImage,
+    imageAlt: 'Wholesale trader business workflow',
+    keywords: ['Wholesale invoices', 'Supplier purchase', 'Customer balances', 'Reports'],
+  },
+  {
+    slug: 'dealer-distributor',
+    title: 'Dealer and Distributor Management Software',
+    eyebrow: 'Dealers & Distributors',
+    description: 'Control route teams, DSR issue and settlement, shop dues, supplier purchases, stock, collections, and accounting from one platform.',
+    image: dealerImage,
+    imageAlt: 'Dealer and distributor operations workflow',
+    keywords: ['Dealer management', 'Distributor software', 'DSR settlement', 'Shop dues'],
+  },
+  {
+    slug: 'dsr-sales-team',
+    title: 'DSR Sales Team Management Software',
+    eyebrow: 'DSR Sales Teams',
+    description: 'Track sales reps, morning issue, route activity, cash collection, returns, evening settlement, and due ledgers with clear accountability.',
+    image: dsrRouteImage,
+    imageAlt: 'DSR sales team route workflow',
+    keywords: ['DSR tracking', 'Morning issue', 'Evening settlement', 'Route collection'],
+  },
+  {
+    slug: 'pharmacy',
+    title: 'Pharmacy Management Software for Sales, Stock, Purchases, and Accounts',
+    eyebrow: 'Pharmacies',
+    description: 'Manage medicine stock, purchases, customer sales, supplier records, dues, expenses, and reports for pharmacy and medical retail businesses.',
+    image: pharmacyImage,
+    imageAlt: 'Pharmacy business workflow',
+    keywords: ['Medicine stock', 'Pharmacy sales', 'Supplier purchase', 'Accounts'],
+  },
+  {
+    slug: 'grocery-store',
+    title: 'Grocery Store Management Software',
+    eyebrow: 'Grocery Stores',
+    description: 'Run fast billing, product stock, customer dues, supplier purchases, cash sessions, expenses, and daily profit reports for grocery stores.',
+    image: groceryImage,
+    imageAlt: 'Grocery store management workflow',
+    keywords: ['Grocery POS', 'Stock control', 'Customer due', 'Daily profit'],
+  },
+];
+
+export function getFeaturePage(slug) {
+  return featurePages.find((page) => page.slug === slug);
+}
+
+export function getSolutionPage(slug) {
+  return solutionPages.find((page) => page.slug === slug);
+}

@@ -14,10 +14,10 @@ const SOCIAL_LINKS = [
 ].filter((link) => link.href && link.href !== '#');
 
 const PRODUCT_LINKS = [
-  { key: 'features', href: '#features' },
-  { key: 'solutions', href: '#solutions' },
-  { key: 'workflow', href: '#workflow' },
-  { key: 'pricing', href: '#pricing' },
+  { key: 'features', href: '/features' },
+  { key: 'solutions', href: '/solutions' },
+  { key: 'workflow', href: '/landing#workflow' },
+  { key: 'pricing', href: '/pricing' },
 ];
 
 function FooterHeading({ children }) {
@@ -64,9 +64,9 @@ export default function LandingFooter({ t }) {
           <nav className="flex flex-col gap-3" aria-label={t('landing.footer.product')}>
             <FooterHeading>{t('landing.footer.product')}</FooterHeading>
             {PRODUCT_LINKS.map((link) => (
-              <a key={link.href} href={link.href} className={footerLinkClass}>
+              <Link key={link.href} to={link.href} className={footerLinkClass}>
                 {t(`landing.nav.${link.key}`)}
-              </a>
+              </Link>
             ))}
           </nav>
 
@@ -74,8 +74,8 @@ export default function LandingFooter({ t }) {
           <nav className="flex flex-col gap-3" aria-label={t('landing.footer.company')}>
             <FooterHeading>{t('landing.footer.company')}</FooterHeading>
             <Link to="/founder" className={footerLinkClass}>{t('landing.footer.aboutFounder')}</Link>
-            <a href="#contact-form" className={footerLinkClass}>{t('landing.nav.contact')}</a>
-            <a href="#get-started" className={footerLinkClass}>{t('landing.nav.getStarted')}</a>
+            <Link to="/contact" className={footerLinkClass}>{t('landing.nav.contact')}</Link>
+            <Link to="/contact" className={footerLinkClass}>{t('landing.nav.getStarted')}</Link>
             <Link to="/login" className={footerLinkClass}>{t('landing.login')}</Link>
           </nav>
 

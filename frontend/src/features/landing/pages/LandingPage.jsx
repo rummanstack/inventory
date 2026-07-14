@@ -1,4 +1,4 @@
-﻿import { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useLanguage } from '../../../app/hooks/useLanguage';
 import LandingHeader from '../components/LandingHeader.jsx';
 import HeroSection from '../components/HeroSection.jsx';
@@ -30,7 +30,7 @@ export default function LandingPage() {
   }, []);
 
   return (
-    <main className="landing-page">
+    <main id="top" className="landing-page">
       <LandingHeader language={language} setLanguage={setLanguage} t={t} />
       <HeroSection t={t} />
       <TrustBarSection t={t} />

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<browserconfig>
+  <msapplication>
+    <tile>
+      <square70x70logo src="/stockledger-icon-64x64.png"/>
+      <square150x150logo src="/stockledger-icon-180x180.png"/>
+      <square310x310logo src="/stockledger-icon-512x512.png"/>
+      <TileColor>#0e0c25</TileColor>
+    </tile>
+  </msapplication>
+</browserconfig>

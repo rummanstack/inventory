@@ -1,7 +1,21 @@
 {
-  "name": "StockLedger",
+  "name": "StockLedger Business Management System",
   "short_name": "StockLedger",
+  "description": "Complete business management software for shops, dealers, wholesalers and DSR teams in Bangladesh.",
+  "id": "/landing",
   "icons": [
+    {
+      "src": "/stockledger-icon-48x48.png",
+      "sizes": "48x48",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/stockledger-icon-64x64.png",
+      "sizes": "64x64",
+      "type": "image/png",
+      "purpose": "any"
+    },
     {
       "src": "/stockledger-icon-192x192.png",
       "sizes": "192x192",
@@ -27,8 +41,12 @@
       "purpose": "maskable"
     }
   ],
-  "start_url": "/",
+  "start_url": "/landing",
+  "scope": "/",
   "theme_color": "#0e0c25",
   "background_color": "#ffffff",
-  "display": "standalone"
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "categories": ["business", "productivity", "finance"],
+  "lang": "en"
 }

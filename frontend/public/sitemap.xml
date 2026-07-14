@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://stockledger.pro/landing</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
+  <url><loc>https://stockledger.pro/features</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://stockledger.pro/features/inventory-management</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://stockledger.pro/features/retail-pos</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://stockledger.pro/features/accounting</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://stockledger.pro/features/hr-payroll</loc><changefreq>monthly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://stockledger.pro/features/purchase-management</loc><changefreq>monthly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://stockledger.pro/features/due-collection</loc><changefreq>monthly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://stockledger.pro/features/dsr-dealer-management</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://stockledger.pro/features/installment-sales</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://stockledger.pro/features/reporting</loc><changefreq>monthly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://stockledger.pro/features/repair-warranty</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://stockledger.pro/solutions</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://stockledger.pro/solutions/retail-shop</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://stockledger.pro/solutions/wholesale-business</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://stockledger.pro/solutions/dealer-distributor</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://stockledger.pro/solutions/dsr-sales-team</loc><changefreq>monthly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://stockledger.pro/solutions/pharmacy</loc><changefreq>monthly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://stockledger.pro/solutions/grocery-store</loc><changefreq>monthly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://stockledger.pro/pricing</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://stockledger.pro/contact</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://stockledger.pro/founder</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://stockledger.pro/privacy-policy</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
+  <url><loc>https://stockledger.pro/terms</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
+</urlset>

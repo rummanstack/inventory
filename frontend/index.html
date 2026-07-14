@@ -5,13 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>StockLedger Business Management System for Shops, Dealers & DSR Teams</title>
     <meta name="theme-color" content="#0e0c25" />
+    <meta name="color-scheme" content="light dark" />
     <meta name="description" content="StockLedger is a complete business system for shops, dealers, wholesalers and DSR teams in Bangladesh. Manage sales, stock, due, settlement, purchases, accounts, reports and profit in one place." />
     <meta name="keywords" content="business management system Bangladesh, shop management system, dealer software, DSR software, wholesale software, retail POS, stock management, due collection, sales report, profit report, StockLedger" />
     <meta name="robots" content="index,follow,max-image-preview:large" />
+    <meta name="googlebot" content="index,follow,max-image-preview:large" />
     <meta name="application-name" content="StockLedger" />
+    <meta name="apple-mobile-web-app-title" content="StockLedger" />
+    <meta name="msapplication-TileColor" content="#0e0c25" />
+    <meta name="msapplication-config" content="/browserconfig.xml" />
+    <link rel="canonical" href="https://stockledger.pro/landing" />
     <meta property="og:site_name" content="StockLedger" />
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="en_US" />
+    <meta property="og:url" content="https://stockledger.pro/landing" />
     <meta property="og:title" content="StockLedger Business Management System for Shops, Dealers & DSR Teams" />
     <meta property="og:description" content="A complete business system for Bangladesh shops, dealers, wholesalers and DSR teams. Manage sales, stock, due, settlement, purchases, reports and profit from one dashboard." />
     <meta property="og:image" content="/stockledger-og.png" />
@@ -23,16 +30,23 @@
     <meta name="twitter:description" content="A complete business system for Bangladesh shops, dealers, wholesalers and DSR teams. Manage sales, stock, due, settlement, purchases, reports and profit from one dashboard." />
     <meta name="twitter:image" content="/stockledger-og.png" />
     <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" sizes="64x64" href="/stockledger-icon-64x64.png" />
+    <link rel="icon" type="image/png" sizes="48x48" href="/stockledger-icon-48x48.png" />
     <link rel="icon" type="image/png" sizes="32x32" href="/stockledger-icon-32x32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/stockledger-icon-16x16.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/stockledger-icon-180x180.png" />
+    <link rel="mask-icon" href="/stockledger-brand-mark.png" color="#0e0c25" />
     <link rel="manifest" href="/site.webmanifest" />
     <script>
       (function () {
         // Landing/legal routes are light-only; pre-marking them here keeps
         // the stored dark theme from flashing in before React mounts.
-        var lightOnly = ['/landing', '/terms', '/privacy-policy', '/founder'];
-        if (lightOnly.indexOf(location.pathname) !== -1) {
+        var lightOnly = ['/landing', '/terms', '/privacy-policy', '/founder', '/pricing', '/contact'];
+        var lightPrefixes = ['/features', '/solutions'];
+        var isLightPage = lightOnly.indexOf(location.pathname) !== -1 || lightPrefixes.some(function (prefix) {
+          return location.pathname === prefix || location.pathname.indexOf(prefix + '/') === 0;
+        });
+        if (isLightPage) {
           document.documentElement.classList.add('landing-page-active');
         }
         try {

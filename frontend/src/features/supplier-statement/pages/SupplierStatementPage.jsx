@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Download, FileSpreadsheet, Loader2, Printer, RefreshCw, Wallet } from 'lucide-react';
 import { Badge, CopyableText, EmptyState, SectionHeader, StatCard, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
@@ -8,6 +9,13 @@ import { formatCurrency, formatDateTime } from '../../../utils/calculations.js';
 import SupplierStatementPrintSheet from '../components/SupplierStatementPrintSheet';
 import { useSupplierStatementViewModel } from '../viewmodels/useSupplierStatementViewModel';
 import { useAsyncAction } from '../../../hooks/useAsyncAction.js';
+
+const SUPPLIER_STATEMENT_SHORTCUTS = {
+  refresh: { alt: true, key: 'r', label: 'Alt+R' },
+  pdf: { alt: true, key: 'd', label: 'Alt+D' },
+  excel: { alt: true, key: 'e', label: 'Alt+E' },
+  print: { alt: true, key: 'p', label: 'Alt+P' },
+};
 
 function ledgerTone(type) {
   if (type === 'PAYMENT') return 'emerald';
@@ -46,6 +54,55 @@ export default function SupplierStatementPage() {
     writeFile(wb, `supplier-statement-${vm.statement?.supplier?.name || vm.supplierId}.xlsx`);
   }
 
+  function handleDownloadPdf() {
+    return downloadPdf(async () => {
+      recordStatementPrint('pdf');
+      await downloadSheetPdf(printTargetId, `supplier-statement-${vm.statement.supplier?.name || vm.supplierId}.pdf`);
+    });
+  }
+
+  function handlePrint() {
+    recordStatementPrint('print');
+    printElementById(printTargetId);
+  }
+
+  function shortcutBadge(shortcut) {
+    return <kbd className="ml-1 rounded border border-slate-300 bg-white/70 px-1 py-0.5 font-mono text-[10px] text-slate-500">{shortcut.label}</kbd>;
+  }
+
+  function matchesShortcut(event, shortcut) {
+    return (
+      event.key.toLowerCase() === shortcut.key &&
+      Boolean(event.altKey) === Boolean(shortcut.alt) &&
+      Boolean(event.shiftKey) === Boolean(shortcut.shift) &&
+      Boolean(event.ctrlKey || event.metaKey) === Boolean(shortcut.ctrlOrMeta)
+    );
+  }
+
+  useEffect(() => {
+    function handleKeyDown(event) {
+      if (matchesShortcut(event, SUPPLIER_STATEMENT_SHORTCUTS.refresh)) {
+        event.preventDefault();
+        vm.refresh();
+        return;
+      }
+      if (!vm.statement) return;
+      if (matchesShortcut(event, SUPPLIER_STATEMENT_SHORTCUTS.pdf) && !downloadingPdf) {
+        event.preventDefault();
+        handleDownloadPdf();
+      } else if (matchesShortcut(event, SUPPLIER_STATEMENT_SHORTCUTS.excel)) {
+        event.preventDefault();
+        handleExportExcel();
+      } else if (matchesShortcut(event, SUPPLIER_STATEMENT_SHORTCUTS.print)) {
+        event.preventDefault();
+        handlePrint();
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [downloadingPdf, vm.statement, vm.supplierId, vm.refresh, entries, t]);
+
   return (
     <div>
       <SectionHeader
@@ -55,46 +112,59 @@ export default function SupplierStatementPage() {
       />
 
       <div className="surface p-5">
-        <div className="grid gap-3 sm:grid-cols-4">
-          <Select className="input sm:col-span-2" value={vm.supplierId} onChange={(event) => vm.setSupplierId(event.target.value)}>
-            <option value="">{t('supplierStatement.selectSupplier')}</option>
-            {supplierDirectory.map((supplier) => (
-              <option key={supplier.id} value={supplier.id}>{supplier.name}</option>
-            ))}
-          </Select>
-          <DatePickerField value={vm.dateFrom} onChange={vm.setDateFrom} placeholder={t('supplierStatement.dateFrom')} />
-          <DatePickerField value={vm.dateTo} onChange={vm.setDateTo} placeholder={t('supplierStatement.dateTo')} min={vm.dateFrom} />
-        </div>
-        <div className="mt-4 flex flex-wrap gap-2">
-          <button type="button" className="btn-secondary" onClick={vm.refresh}>
-            <RefreshCw size={18} />
-            {t('supplierStatement.refresh')}
-          </button>
-          {vm.statement ? (
-            <>
-              <button
-                type="button"
-                className="btn-secondary disabled:cursor-not-allowed disabled:opacity-60"
-                onClick={() => downloadPdf(async () => { recordStatementPrint('pdf'); await downloadSheetPdf(printTargetId, `supplier-statement-${vm.statement.supplier?.name || vm.supplierId}.pdf`); })}
-                disabled={downloadingPdf}
-              >
-                {downloadingPdf ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />}
-                {t('supplierStatement.downloadPdf')}
-              </button>
-              <button
-                type="button"
-                className="btn-secondary"
-                onClick={() => { recordStatementPrint('print'); printElementById(printTargetId); }}
-              >
-                <Printer size={18} />
-                {t('supplierStatement.printSheet')}
-              </button>
-              <button type="button" className="btn-secondary" onClick={handleExportExcel}>
-                <FileSpreadsheet size={18} />
-                {t('common.exportExcel')}
-              </button>
-            </>
-          ) : null}
+        <div className="flex flex-wrap items-end gap-3">
+          <div className="w-48">
+            <label className="label">{t('supplierStatement.supplier')}</label>
+            <Select className="input" value={vm.supplierId} onChange={(event) => vm.setSupplierId(event.target.value)}>
+              <option value="">{t('supplierStatement.selectSupplier')}</option>
+              {supplierDirectory.map((supplier) => (
+                <option key={supplier.id} value={supplier.id}>{supplier.name}</option>
+              ))}
+            </Select>
+          </div>
+          <div className="min-w-[150px]">
+            <label className="label">{t('supplierStatement.dateFrom')}</label>
+            <DatePickerField value={vm.dateFrom} onChange={vm.setDateFrom} placeholder={t('supplierStatement.dateFrom')} />
+          </div>
+          <div className="min-w-[150px]">
+            <label className="label">{t('supplierStatement.dateTo')}</label>
+            <DatePickerField value={vm.dateTo} onChange={vm.setDateTo} placeholder={t('supplierStatement.dateTo')} min={vm.dateFrom} />
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <button type="button" className="btn-secondary" onClick={vm.refresh}>
+              <RefreshCw size={18} />
+              {t('supplierStatement.refresh')}
+              {shortcutBadge(SUPPLIER_STATEMENT_SHORTCUTS.refresh)}
+            </button>
+            {vm.statement ? (
+              <>
+                <button
+                  type="button"
+                  className="btn-secondary disabled:cursor-not-allowed disabled:opacity-60"
+                  onClick={handleDownloadPdf}
+                  disabled={downloadingPdf}
+                >
+                  {downloadingPdf ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />}
+                  {t('supplierStatement.downloadPdf')}
+                  {shortcutBadge(SUPPLIER_STATEMENT_SHORTCUTS.pdf)}
+                </button>
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={handlePrint}
+                >
+                  <Printer size={18} />
+                  {t('supplierStatement.printSheet')}
+                  {shortcutBadge(SUPPLIER_STATEMENT_SHORTCUTS.print)}
+                </button>
+                <button type="button" className="btn-secondary" onClick={handleExportExcel}>
+                  <FileSpreadsheet size={18} />
+                  {t('common.exportExcel')}
+                  {shortcutBadge(SUPPLIER_STATEMENT_SHORTCUTS.excel)}
+                </button>
+              </>
+            ) : null}
+          </div>
         </div>
       </div>
 

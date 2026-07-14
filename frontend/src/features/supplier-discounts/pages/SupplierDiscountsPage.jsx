@@ -8,6 +8,12 @@ import { formatCurrency, formatDateTime } from '../../../utils/calculations.js';
 import { useSupplierDiscountsViewModel } from '../viewmodels/useSupplierDiscountsViewModel.js';
 
 const SUPPLIER_DISCOUNTS_REPORT_ID = 'supplier-discounts-report';
+const SUPPLIER_DISCOUNTS_SHORTCUTS = {
+  pdf: { alt: true, key: 'd', label: 'Alt+D' },
+  excel: { alt: true, key: 'e', label: 'Alt+E' },
+  csv: { alt: true, key: 'c', label: 'Alt+C' },
+  print: { alt: true, key: 'p', label: 'Alt+P' },
+};
 
 export default function SupplierDiscountsPage() {
   const { confirm, pushToast, can, t } = useInventoryApp();
@@ -47,7 +53,7 @@ export default function SupplierDiscountsPage() {
         <div className="border-b border-slate-100 p-5">
           <div className="mb-3 flex items-center justify-between gap-3">
             <span className="text-sm font-bold text-slate-700">{t('supplierDiscounts.tableTitle')}</span>
-            <TableReportActions targetId={SUPPLIER_DISCOUNTS_REPORT_ID} title={t('supplierDiscounts.tableTitle')} fileName="supplier-discounts" entityType="supplier_discounts" t={t} />
+            <TableReportActions targetId={SUPPLIER_DISCOUNTS_REPORT_ID} title={t('supplierDiscounts.tableTitle')} fileName="supplier-discounts" entityType="supplier_discounts" t={t} shortcuts={SUPPLIER_DISCOUNTS_SHORTCUTS} />
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
             <DatePickerField value={vm.dateFrom} onChange={vm.setDateFrom} placeholder={t('supplierDiscounts.dateFromPlaceholder')} />

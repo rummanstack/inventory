@@ -99,9 +99,9 @@ export default function DsrFinancePage() {
         </div>
       ) : null}
 
-      <div className="surface mb-6 p-5">
-        <div className="grid gap-4 lg:grid-cols-[1.2fr_1fr_1fr_auto]">
-          <div>
+      <div className="surface p-5">
+        <div className="flex flex-wrap items-end gap-3">
+          <div className="w-48">
             <label className="label">{t('dsrDueLedger.dsr')}</label>
             <Select className="input" value={dueVm.dsrId} onChange={(event) => dueVm.setDsrId(event.target.value)}>
               {dsrDirectory.map((dsr) => (
@@ -111,27 +111,26 @@ export default function DsrFinancePage() {
               ))}
             </Select>
           </div>
-          <div>
+          <div className="min-w-[150px]">
             <label className="label">{t('dsrDueLedger.dateFrom')}</label>
             <DatePickerField value={dueVm.dateFrom} onChange={dueVm.setDateFrom} />
           </div>
-          <div>
+          <div className="min-w-[150px]">
             <label className="label">{t('dsrDueLedger.dateTo')}</label>
             <DatePickerField value={dueVm.dateTo} onChange={dueVm.setDateTo} min={dueVm.dateFrom} />
           </div>
-          <div className="flex items-end gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <button type="button" className="btn-secondary" onClick={dueVm.refresh}>
               <RefreshCw size={16} />
               {t('dsrDueLedger.refresh')}
               <kbd className="ml-1 rounded border border-slate-300 bg-white/70 px-1 py-0.5 font-mono text-[10px] text-slate-500">Alt+R</kbd>
             </button>
             {dueVm.statement ? (
-              <div className="flex items-center gap-2 no-print">
+              <>
                 <button
                   type="button"
                   className="btn-secondary disabled:cursor-not-allowed disabled:opacity-60"
                   onClick={handleDownloadPdf}
-
                   disabled={downloadingPdf}
                 >
                   {downloadingPdf ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
@@ -142,23 +141,24 @@ export default function DsrFinancePage() {
                   type="button"
                   className="btn-secondary"
                   onClick={handlePrintSheet}
-
                 >
                   <Printer size={16} />
                   {t('purchaseReceive.printSheet')}
                   <kbd className="ml-1 rounded border border-slate-300 bg-white/70 px-1 py-0.5 font-mono text-[10px] text-slate-500">Alt+P</kbd>
                 </button>
-              </div>
+              </>
             ) : null}
           </div>
         </div>
       </div>
 
       {dueVm.loading ? (
-        <TableSkeleton rows={6} columns={6} />
+        <div className="mt-6">
+          <TableSkeleton rows={6} columns={6} />
+        </div>
       ) : (
         <>
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <StatCard title={t('dsrDueLedger.openingBalance')} value={formatCurrency(dueVm.statement?.openingBalance || 0)} icon={Wallet} tone="slate" />
             <StatCard title={t('dsrDueLedger.totalDebit')} value={formatCurrency(dueVm.statement?.totalDebit || 0)} icon={Wallet} tone="rose" />
             <StatCard title={t('dsrDueLedger.totalCredit')} value={formatCurrency(dueVm.statement?.totalCredit || 0)} icon={Wallet} tone="emerald" />

@@ -202,8 +202,8 @@ export default function ExpensesPage() {
                       <th className="px-4 py-3">{t('expenses.date')}</th>
                       <th className="px-4 py-3">{t('expenses.category')}</th>
                       <th className="px-4 py-3">{t('expenses.amount')}</th>
-                      <th className="px-4 py-3 hidden sm:table-cell">{t('expenses.note')}</th>
-                      <th className="px-4 py-3 hidden md:table-cell">{t('expenses.createdBy')}</th>
+                      <th className="px-4 py-3">{t('expenses.note')}</th>
+                      <th className="px-4 py-3">{t('expenses.createdBy')}</th>
                       {canManageExpenses ? <th className="px-4 py-3 text-right">{t('common.actions')}</th> : null}
                     </tr>
                   </thead>
@@ -213,10 +213,10 @@ export default function ExpensesPage() {
                         <td className="table-cell">{formatDate(expense.date)}</td>
                         <td className="table-cell"><Badge tone="slate">{tCategory(expense.category)}</Badge></td>
                         <td className="table-cell font-semibold">{formatCurrency(expense.amount)}</td>
-                        <td className="table-cell hidden sm:table-cell max-w-64">
+                        <td className="table-cell max-w-64">
                           <p className="truncate">{expense.note}</p>
                         </td>
-                        <td className="table-cell hidden md:table-cell">
+                        <td className="table-cell">
                           <p className="font-semibold text-slate-950">{expense.createdByName || '-'}</p>
                           <p className="text-xs text-slate-500">{expense.createdByRole || ''}</p>
                         </td>
@@ -282,8 +282,8 @@ export default function ExpensesPage() {
                       <th className="px-4 py-3">{t('expenses.date')}</th>
                       <th className="px-4 py-3">{t('expenses.category')}</th>
                       <th className="px-4 py-3">{t('expenses.amount')}</th>
-                      <th className="px-4 py-3 hidden sm:table-cell">{t('expenses.note')}</th>
-                      <th className="px-4 py-3 hidden md:table-cell">{t('expenses.createdBy')}</th>
+                      <th className="px-4 py-3">{t('expenses.note')}</th>
+                      <th className="px-4 py-3">{t('expenses.createdBy')}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
@@ -292,10 +292,10 @@ export default function ExpensesPage() {
                         <td className="table-cell">{formatDate(expense.date)}</td>
                         <td className="table-cell"><Badge tone="slate">{tCategory(expense.category)}</Badge></td>
                         <td className="table-cell font-semibold">{formatCurrency(expense.amount)}</td>
-                        <td className="table-cell hidden sm:table-cell max-w-64">
+                        <td className="table-cell max-w-64">
                           <p className="truncate">{expense.note}</p>
                         </td>
-                        <td className="table-cell hidden md:table-cell">
+                        <td className="table-cell">
                           <p className="font-semibold text-slate-950">{expense.createdByName || '-'}</p>
                           <p className="text-xs text-slate-500">{expense.createdByRole || ''}</p>
                         </td>

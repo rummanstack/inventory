@@ -123,7 +123,7 @@ export default function DueCollectionPage() {
                   <td className="table-cell font-semibold text-slate-950">{payment.customerName || '-'}</td>
                   <td className="table-cell text-right font-bold text-emerald-700">{formatCurrency(payment.amount, language)}</td>
                   <td className="table-cell">{t(`purchaseReceive.paymentMethods.${payment.paymentMethod}`)}</td>
-                  <td className="hidden table-cell lg:table-cell">{payment.note || '-'}</td>
+                  <td className="table-cell">{payment.note || '-'}</td>
                   <td className="table-cell">
                     {canManageRetailers ? (
                       <div className="row-actions flex justify-end gap-2">

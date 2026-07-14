@@ -59,7 +59,7 @@ export default function ErrorLogsPage() {
                 <th className="px-4 py-3">{t('errorLogs.request')}</th>
                 <th className="px-4 py-3">{t('errorLogs.status')}</th>
                 <th className="px-4 py-3">{t('errorLogs.message')}</th>
-                <th className="px-4 py-3 hidden sm:table-cell">{t('errorLogs.user')}</th>
+                <th className="px-4 py-3">{t('errorLogs.user')}</th>
               </tr>
             </thead>
             {vm.loading ? null : (
@@ -82,7 +82,7 @@ export default function ErrorLogsPage() {
                       <td className="table-cell max-w-[24rem]">
                         <p className="truncate">{log.message}</p>
                       </td>
-                      <td className="table-cell hidden sm:table-cell">
+                      <td className="table-cell">
                         <p className="font-semibold text-slate-950">{log.userName || '-'}</p>
                         <p className="text-xs text-slate-500">{log.userEmail || ''}</p>
                       </td>

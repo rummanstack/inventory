@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Download, FileSpreadsheet, HandCoins, Loader2, Plus, Printer, RefreshCw, Wallet } from 'lucide-react';
 import { Alert, Badge, EmptyState, Modal, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
@@ -10,6 +10,12 @@ import { formatCurrency, formatDate, formatDateTime, reverseEntries } from '../.
 import { useShopDueStatementViewModel } from '../viewmodels/useShopDueStatementViewModel.js';
 
 const PRINT_ID = 'shop-due-statement-print';
+const SHOP_DUE_LEDGER_SHORTCUTS = {
+  refresh: { alt: true, key: 'r', label: 'Alt+R' },
+  pdf: { alt: true, key: 'd', label: 'Alt+D' },
+  excel: { alt: true, key: 'e', label: 'Alt+E' },
+  print: { alt: true, key: 'p', label: 'Alt+P' },
+};
 
 function ledgerTone(type) {
   if (type === 'COLLECTION') return 'emerald';
@@ -126,6 +132,55 @@ export default function ShopDueLedgerPage() {
     return result;
   }
 
+  async function handleDownloadPdf() {
+    await downloadPdf(async () => {
+      await inventoryApi.recordPrint({ entityType: 'shop_due_statement', entityId: vm.shopId, label: 'pdf' }).catch(() => {});
+      await downloadSheetPdf(PRINT_ID, `shop-due-${selectedShop?.shopName || vm.shopId}.pdf`);
+    });
+  }
+
+  function handlePrint() {
+    inventoryApi.recordPrint({ entityType: 'shop_due_statement', entityId: vm.shopId, label: 'print' }).catch(() => {});
+    window.print();
+  }
+
+  function shortcutBadge(shortcut) {
+    return <kbd className="ml-1 rounded border border-slate-300 bg-white/70 px-1 py-0.5 font-mono text-[10px] text-slate-500">{shortcut.label}</kbd>;
+  }
+
+  function matchesShortcut(event, shortcut) {
+    return (
+      event.key.toLowerCase() === shortcut.key &&
+      Boolean(event.altKey) === Boolean(shortcut.alt) &&
+      Boolean(event.shiftKey) === Boolean(shortcut.shift) &&
+      Boolean(event.ctrlKey || event.metaKey) === Boolean(shortcut.ctrlOrMeta)
+    );
+  }
+
+  useEffect(() => {
+    function handleKeyDown(event) {
+      if (matchesShortcut(event, SHOP_DUE_LEDGER_SHORTCUTS.refresh)) {
+        event.preventDefault();
+        vm.refresh();
+        return;
+      }
+      if (!vm.statement) return;
+      if (matchesShortcut(event, SHOP_DUE_LEDGER_SHORTCUTS.pdf) && !downloadingPdf) {
+        event.preventDefault();
+        handleDownloadPdf();
+      } else if (matchesShortcut(event, SHOP_DUE_LEDGER_SHORTCUTS.excel)) {
+        event.preventDefault();
+        handleExportExcel();
+      } else if (matchesShortcut(event, SHOP_DUE_LEDGER_SHORTCUTS.print)) {
+        event.preventDefault();
+        handlePrint();
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [downloadingPdf, vm.statement, vm.shopId, vm.refresh, entries, t]);
+
   return (
     <div>
       <SectionHeader
@@ -147,65 +202,59 @@ export default function ShopDueLedgerPage() {
       />
 
       <div className="surface p-5">
-        <div className="grid gap-3 sm:grid-cols-4">
-          <Select
-            className="input sm:col-span-2"
-            value={vm.shopId}
-            onChange={(e) => vm.setShopId(e.target.value)}
-          >
-            <option value="">{t('shopDueLedger.selectShop')}</option>
-            {shopDirectory.map((shop) => (
-              <option key={shop.id} value={shop.id}>{shop.shopName || shop.name}</option>
-            ))}
-          </Select>
-          <DatePickerField
-            value={vm.dateFrom}
-            onChange={vm.setDateFrom}
-            placeholder={t('supplierStatement.dateFrom')}
-          />
-          <DatePickerField
-            value={vm.dateTo}
-            onChange={vm.setDateTo}
-            placeholder={t('supplierStatement.dateTo')}
-            min={vm.dateFrom}
-          />
-        </div>
-        <div className="mt-4 flex flex-wrap gap-2">
-          <button type="button" className="btn-secondary" onClick={vm.refresh}>
-            <RefreshCw size={18} />
-            {t('supplierStatement.refresh')}
-          </button>
-          {vm.statement ? (
-            <>
-              <button
-                type="button"
-                className="btn-secondary disabled:cursor-not-allowed disabled:opacity-60"
-                onClick={() => downloadPdf(async () => {
-                  await inventoryApi.recordPrint({ entityType: 'shop_due_statement', entityId: vm.shopId, label: 'pdf' }).catch(() => {});
-                  await downloadSheetPdf(PRINT_ID, `shop-due-${selectedShop?.shopName || vm.shopId}.pdf`);
-                })}
-                disabled={downloadingPdf}
-              >
-                {downloadingPdf ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />}
-                {t('purchaseReceive.downloadPdf')}
-              </button>
-              <button type="button" className="btn-secondary" onClick={handleExportExcel}>
-                <FileSpreadsheet size={18} />
-                {t('common.exportExcel')}
-              </button>
-              <button
-                type="button"
-                className="btn-secondary"
-                onClick={() => {
-                  inventoryApi.recordPrint({ entityType: 'shop_due_statement', entityId: vm.shopId, label: 'print' }).catch(() => {});
-                  window.print();
-                }}
-              >
-                <Printer size={18} />
-                {t('common.print')}
-              </button>
-            </>
-          ) : null}
+        <div className="flex flex-wrap items-end gap-3">
+          <div className="w-48">
+            <label className="label">{t('shopDueLedger.shop')}</label>
+            <Select
+              className="input"
+              value={vm.shopId}
+              onChange={(e) => vm.setShopId(e.target.value)}
+            >
+              <option value="">{t('shopDueLedger.selectShop')}</option>
+              {shopDirectory.map((shop) => (
+                <option key={shop.id} value={shop.id}>{shop.shopName || shop.name}</option>
+              ))}
+            </Select>
+          </div>
+          <div className="min-w-[150px]">
+            <label className="label">{t('supplierStatement.dateFrom')}</label>
+            <DatePickerField value={vm.dateFrom} onChange={vm.setDateFrom} placeholder={t('supplierStatement.dateFrom')} />
+          </div>
+          <div className="min-w-[150px]">
+            <label className="label">{t('supplierStatement.dateTo')}</label>
+            <DatePickerField value={vm.dateTo} onChange={vm.setDateTo} placeholder={t('supplierStatement.dateTo')} min={vm.dateFrom} />
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <button type="button" className="btn-secondary" onClick={vm.refresh}>
+              <RefreshCw size={18} />
+              {t('supplierStatement.refresh')}
+              {shortcutBadge(SHOP_DUE_LEDGER_SHORTCUTS.refresh)}
+            </button>
+            {vm.statement ? (
+              <>
+                <button
+                  type="button"
+                  className="btn-secondary disabled:cursor-not-allowed disabled:opacity-60"
+                  onClick={handleDownloadPdf}
+                  disabled={downloadingPdf}
+                >
+                  {downloadingPdf ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />}
+                  {t('purchaseReceive.downloadPdf')}
+                  {shortcutBadge(SHOP_DUE_LEDGER_SHORTCUTS.pdf)}
+                </button>
+                <button type="button" className="btn-secondary" onClick={handleExportExcel}>
+                  <FileSpreadsheet size={18} />
+                  {t('common.exportExcel')}
+                  {shortcutBadge(SHOP_DUE_LEDGER_SHORTCUTS.excel)}
+                </button>
+                <button type="button" className="btn-secondary" onClick={handlePrint}>
+                  <Printer size={18} />
+                  {t('common.print')}
+                  {shortcutBadge(SHOP_DUE_LEDGER_SHORTCUTS.print)}
+                </button>
+              </>
+            ) : null}
+          </div>
         </div>
       </div>
 
@@ -276,7 +325,7 @@ export default function ShopDueLedgerPage() {
                     <th className="px-4 py-3 text-right">{t('shopDueLedger.credit')}</th>
                     <th className="px-4 py-3 text-right">{t('shopDueLedger.balance')}</th>
                     <th className="px-4 py-3">{t('shopDueLedger.note')}</th>
-                    <th className="hidden px-4 py-3 xl:table-cell">{t('shopDueLedger.createdBy')}</th>
+                    <th className="px-4 py-3">{t('shopDueLedger.createdBy')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -297,10 +346,10 @@ export default function ShopDueLedgerPage() {
                       <td className="table-cell text-right font-semibold text-slate-950">
                         {formatCurrency(entry.balanceAfter, language)}
                       </td>
-                      <td className="hidden table-cell lg:table-cell max-w-52">
+                      <td className="table-cell max-w-52">
                         <p className="truncate text-sm text-slate-600">{entry.note || '-'}</p>
                       </td>
-                      <td className="hidden table-cell xl:table-cell">
+                      <td className="table-cell">
                         <p className="font-semibold text-slate-950">{entry.createdByName || '-'}</p>
                         <p className="text-xs text-slate-500">{entry.createdByRole || ''}</p>
                       </td>

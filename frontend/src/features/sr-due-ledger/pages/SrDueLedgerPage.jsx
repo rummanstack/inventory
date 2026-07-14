@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Download, FileSpreadsheet, HandCoins, Loader2, Printer, RefreshCw, Wallet } from 'lucide-react';
 import { Alert, Badge, EmptyState, Modal, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
@@ -10,6 +10,12 @@ import { formatCurrency, formatDate, formatDateTime } from '../../../utils/calcu
 import { useSrDueStatementViewModel } from '../viewmodels/useSrDueStatementViewModel.js';
 
 const PRINT_ID = 'sr-due-statement-print';
+const SR_DUE_LEDGER_SHORTCUTS = {
+  refresh: { alt: true, key: 'r', label: 'Alt+R' },
+  pdf: { alt: true, key: 'd', label: 'Alt+D' },
+  excel: { alt: true, key: 'e', label: 'Alt+E' },
+  print: { alt: true, key: 'p', label: 'Alt+P' },
+};
 
 function ledgerTone(type) {
   if (type === 'COLLECTION') return 'emerald';
@@ -127,6 +133,55 @@ export default function SrDueLedgerPage() {
     return result;
   }
 
+  async function handleDownloadPdf() {
+    await downloadPdf(async () => {
+      await inventoryApi.recordPrint({ entityType: 'sr_due_statement', entityId: vm.srId, label: 'pdf' }).catch(() => {});
+      await downloadSheetPdf(PRINT_ID, `sr-due-${selectedSr?.name || vm.srId}.pdf`);
+    });
+  }
+
+  function handlePrint() {
+    inventoryApi.recordPrint({ entityType: 'sr_due_statement', entityId: vm.srId, label: 'print' }).catch(() => {});
+    window.print();
+  }
+
+  function shortcutBadge(shortcut) {
+    return <kbd className="ml-1 rounded border border-slate-300 bg-white/70 px-1 py-0.5 font-mono text-[10px] text-slate-500">{shortcut.label}</kbd>;
+  }
+
+  function matchesShortcut(event, shortcut) {
+    return (
+      event.key.toLowerCase() === shortcut.key &&
+      Boolean(event.altKey) === Boolean(shortcut.alt) &&
+      Boolean(event.shiftKey) === Boolean(shortcut.shift) &&
+      Boolean(event.ctrlKey || event.metaKey) === Boolean(shortcut.ctrlOrMeta)
+    );
+  }
+
+  useEffect(() => {
+    function handleKeyDown(event) {
+      if (matchesShortcut(event, SR_DUE_LEDGER_SHORTCUTS.refresh)) {
+        event.preventDefault();
+        vm.refresh();
+        return;
+      }
+      if (!vm.statement) return;
+      if (matchesShortcut(event, SR_DUE_LEDGER_SHORTCUTS.pdf) && !downloadingPdf) {
+        event.preventDefault();
+        handleDownloadPdf();
+      } else if (matchesShortcut(event, SR_DUE_LEDGER_SHORTCUTS.excel)) {
+        event.preventDefault();
+        handleExportExcel();
+      } else if (matchesShortcut(event, SR_DUE_LEDGER_SHORTCUTS.print)) {
+        event.preventDefault();
+        handlePrint();
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [downloadingPdf, vm.statement, vm.srId, vm.refresh, entries, t]);
+
   return (
     <div>
       <SectionHeader
@@ -142,56 +197,59 @@ export default function SrDueLedgerPage() {
       />
 
       <div className="surface p-5">
-        <div className="grid gap-3 sm:grid-cols-4">
-          <Select
-            className="input sm:col-span-2"
-            value={vm.srId}
-            onChange={(e) => vm.setSrId(e.target.value)}
-          >
-            <option value="">{t('srDueLedgerPage.selectSrPlaceholder')}</option>
-            {srDirectory.map((sr) => (
-              <option key={sr.id} value={sr.id}>{sr.name}</option>
-            ))}
-          </Select>
-          <DatePickerField value={vm.dateFrom} onChange={vm.setDateFrom} placeholder={t('srDueLedgerPage.dateFromPlaceholder')} />
-          <DatePickerField value={vm.dateTo} onChange={vm.setDateTo} placeholder={t('srDueLedgerPage.dateToPlaceholder')} min={vm.dateFrom} />
-        </div>
-        <div className="mt-4 flex flex-wrap gap-2">
-          <button type="button" className="btn-secondary" onClick={vm.refresh}>
-            <RefreshCw size={18} />
-            {t('srDueLedgerPage.refresh')}
-          </button>
-          {vm.statement ? (
-            <>
-              <button
-                type="button"
-                className="btn-secondary disabled:cursor-not-allowed disabled:opacity-60"
-                onClick={() => downloadPdf(async () => {
-                  await inventoryApi.recordPrint({ entityType: 'sr_due_statement', entityId: vm.srId, label: 'pdf' }).catch(() => {});
-                  await downloadSheetPdf(PRINT_ID, `sr-due-${selectedSr?.name || vm.srId}.pdf`);
-                })}
-                disabled={downloadingPdf}
-              >
-                {downloadingPdf ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />}
-                {t('srDueLedgerPage.downloadPdf')}
-              </button>
-              <button type="button" className="btn-secondary" onClick={handleExportExcel}>
-                <FileSpreadsheet size={18} />
-                {t('srDueLedgerPage.exportExcel')}
-              </button>
-              <button
-                type="button"
-                className="btn-secondary"
-                onClick={() => {
-                  inventoryApi.recordPrint({ entityType: 'sr_due_statement', entityId: vm.srId, label: 'print' }).catch(() => {});
-                  window.print();
-                }}
-              >
-                <Printer size={18} />
-                {t('srDueLedgerPage.print')}
-              </button>
-            </>
-          ) : null}
+        <div className="flex flex-wrap items-end gap-3">
+          <div className="w-48">
+            <label className="label">{t('srDueLedgerPage.srNameLabel')}</label>
+            <Select
+              className="input"
+              value={vm.srId}
+              onChange={(e) => vm.setSrId(e.target.value)}
+            >
+              <option value="">{t('srDueLedgerPage.selectSrPlaceholder')}</option>
+              {srDirectory.map((sr) => (
+                <option key={sr.id} value={sr.id}>{sr.name}</option>
+              ))}
+            </Select>
+          </div>
+          <div className="min-w-[150px]">
+            <label className="label">{t('srDueLedgerPage.dateFromPlaceholder')}</label>
+            <DatePickerField value={vm.dateFrom} onChange={vm.setDateFrom} placeholder={t('srDueLedgerPage.dateFromPlaceholder')} />
+          </div>
+          <div className="min-w-[150px]">
+            <label className="label">{t('srDueLedgerPage.dateToPlaceholder')}</label>
+            <DatePickerField value={vm.dateTo} onChange={vm.setDateTo} placeholder={t('srDueLedgerPage.dateToPlaceholder')} min={vm.dateFrom} />
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <button type="button" className="btn-secondary" onClick={vm.refresh}>
+              <RefreshCw size={18} />
+              {t('srDueLedgerPage.refresh')}
+              {shortcutBadge(SR_DUE_LEDGER_SHORTCUTS.refresh)}
+            </button>
+            {vm.statement ? (
+              <>
+                <button
+                  type="button"
+                  className="btn-secondary disabled:cursor-not-allowed disabled:opacity-60"
+                  onClick={handleDownloadPdf}
+                  disabled={downloadingPdf}
+                >
+                  {downloadingPdf ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />}
+                  {t('srDueLedgerPage.downloadPdf')}
+                  {shortcutBadge(SR_DUE_LEDGER_SHORTCUTS.pdf)}
+                </button>
+                <button type="button" className="btn-secondary" onClick={handleExportExcel}>
+                  <FileSpreadsheet size={18} />
+                  {t('srDueLedgerPage.exportExcel')}
+                  {shortcutBadge(SR_DUE_LEDGER_SHORTCUTS.excel)}
+                </button>
+                <button type="button" className="btn-secondary" onClick={handlePrint}>
+                  <Printer size={18} />
+                  {t('srDueLedgerPage.print')}
+                  {shortcutBadge(SR_DUE_LEDGER_SHORTCUTS.print)}
+                </button>
+              </>
+            ) : null}
+          </div>
         </div>
       </div>
 
@@ -223,28 +281,6 @@ export default function SrDueLedgerPage() {
             <StatCard title={t('srDueLedgerPage.totalCredit')} value={formatCurrency(vm.statement.totalCredit, language)} icon={Wallet} tone="emerald" />
             <StatCard title={t('srDueLedgerPage.closingBalance')} value={formatCurrency(vm.statement.closingBalance, language)} icon={Wallet} tone="blue" />
           </div>
-
-          {vm.statement.sr ? (
-            <div className="surface mt-4 px-5 py-4">
-              <div className="grid gap-3 sm:grid-cols-3">
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-wide text-slate-400">{t('srDueLedgerPage.srNameLabel')}</p>
-                  <p className="mt-1 font-bold text-slate-950">{vm.statement.sr.name}</p>
-                  <p className="text-sm text-slate-600">{vm.statement.sr.phone}</p>
-                </div>
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-wide text-slate-400">{t('srDueLedgerPage.statusLabel')}</p>
-                  <p className="mt-1 font-semibold text-slate-700">{vm.statement.sr.status}</p>
-                </div>
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-wide text-slate-400">{t('srDueLedgerPage.currentDueLabel')}</p>
-                  <p className={`mt-1 text-lg font-semibold ${Number(vm.statement.sr.currentDue) > 0 ? 'text-rose-700' : 'text-emerald-700'}`}>
-                    {formatCurrency(vm.statement.sr.currentDue, language)}
-                  </p>
-                </div>
-              </div>
-            </div>
-          ) : null}
 
           <div id={PRINT_ID} className="surface mt-6 overflow-hidden print-target">
             <div className="border-b border-slate-100 px-5 py-4">
@@ -281,10 +317,10 @@ export default function SrDueLedgerPage() {
                       <td className="table-cell text-right font-semibold text-slate-950">
                         {formatCurrency(entry.balanceAfter, language)}
                       </td>
-                      <td className="hidden table-cell lg:table-cell max-w-52">
+                      <td className="table-cell max-w-52">
                         <p className="truncate text-sm text-slate-600">{entry.note || '-'}</p>
                       </td>
-                      <td className="hidden table-cell xl:table-cell">
+                      <td className="table-cell">
                         <p className="font-semibold text-slate-950">{entry.createdByName || '-'}</p>
                         <p className="text-xs text-slate-500">{entry.createdByRole || ''}</p>
                       </td>

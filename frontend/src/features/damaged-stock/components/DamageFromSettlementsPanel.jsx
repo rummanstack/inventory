@@ -145,7 +145,7 @@ export default function DamageFromSettlementsPanel({ products, flushTop = false 
               <th className="px-4 py-3 text-left">{t('damagedStock.settlementDamageDate')}</th>
               <th className="px-4 py-3 text-left">{t('damagedStock.settlementDamageProduct')}</th>
               <th className="px-4 py-3 text-right">{t('damagedStock.settlementDamagePieces')}</th>
-              <th className="hidden px-4 py-3 text-left md:table-cell">{t('damagedStock.settlementDamageSource')}</th>
+              <th className="px-4 py-3 text-left">{t('damagedStock.settlementDamageSource')}</th>
             </tr>
           </thead>
           {loading ? null : (
@@ -159,7 +159,7 @@ export default function DamageFromSettlementsPanel({ products, flushTop = false 
                   <td className="px-4 py-3 text-right font-semibold text-rose-600">
                     {formatNumber(record.quantityOut, language)}
                   </td>
-                  <td className="hidden max-w-xs truncate px-4 py-3 text-slate-500 md:table-cell">
+                  <td className="max-w-xs truncate px-4 py-3 text-slate-500">
                     {record.note || '—'}
                   </td>
                 </tr>

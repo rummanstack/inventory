@@ -493,7 +493,7 @@ export default function FinanceDashboardPage() {
                           <td className={`whitespace-nowrap px-4 py-3 text-right ${transactionAmountClass(tx)}`}>
                             {formatCurrency(transactionAmount(tx), language)}
                           </td>
-                          <td className="hidden max-w-xs truncate px-4 py-3 text-slate-500 sm:table-cell">{tx.note}</td>
+                          <td className="max-w-xs truncate px-4 py-3 text-slate-500">{tx.note}</td>
                         </tr>
                       );
                     })}

@@ -19,12 +19,12 @@ import {
   ShoppingBag,
   ShoppingCart,
   TrendingUp,
-  Store,
   Trash2,
   Truck,
   Users,
   UserCheck,
   UserCog,
+  IdCard,
   Database,
   Activity,
   Bug,
@@ -194,10 +194,10 @@ export const APP_ROUTES = [
   { id: 'dsr-finance', path: '/dsr-finance', labelKey: 'nav.dsrFinance', icon: HandCoins, component: DsrFinancePage, group: 'dsr', permission: 'manage_dsr_finance', feature: 'dsr-finance' },
 
   // 6b. Shops & SRs
-  { id: 'customers', path: '/customers', labelKey: 'nav.shops', icon: Store, component: ShopsPage, group: 'shops', permission: 'view_customers', feature: 'customers' },
+  { id: 'customers', path: '/customers', labelKey: 'nav.shops', icon: ShoppingBag, component: ShopsPage, group: 'shops', permission: 'view_customers', feature: 'customers' },
   { id: 'shop-due-ledger', path: '/shop-due-ledger', labelKey: 'nav.shopDueLedger', icon: Wallet, component: ShopDueLedgerPage, group: 'shops', permission: 'view_customers', feature: 'shop-due-ledger' },
-  { id: 'srs', path: '/srs', labelKey: 'nav.srs', icon: Users, component: SrPage, group: 'shops', permission: 'view_srs', feature: 'srs' },
-  { id: 'sr-due-ledger', path: '/sr-due-ledger', labelKey: 'nav.srDueLedger', icon: Wallet, component: SrDueLedgerPage, group: 'shops', permission: 'view_srs', feature: 'sr-due-ledger' },
+  { id: 'srs', path: '/srs', labelKey: 'nav.srs', icon: IdCard, component: SrPage, group: 'shops', permission: 'view_srs', feature: 'srs' },
+  { id: 'sr-due-ledger', path: '/sr-due-ledger', labelKey: 'nav.srDueLedger', icon: HandCoins, component: SrDueLedgerPage, group: 'shops', permission: 'view_srs', feature: 'sr-due-ledger' },
 
   // 7. Warranty & Repair
   { id: 'warranty-claims', path: '/warranty-claims', labelKey: 'nav.warrantyClaims', icon: Wrench, component: WarrantyClaimsPage, group: 'warranty', permission: 'view_warranty_claims', feature: 'warranty-claims' },

@@ -169,7 +169,7 @@ const en = {
       warrantyClaims: 'Warranty Claims',
       repairJobs: 'Repair Jobs',
       shopDueLedger: 'Shop Due Ledger',
-      srs: 'SRs',
+      srs: 'Sales Reps',
       srDueLedger: 'SR Due Ledger',
       departments: 'Departments',
       designations: 'Designations',

@@ -174,7 +174,7 @@ export default function SecurityPage() {
                   <th className="px-4 py-3">{t('security.time')}</th>
                   <th className="px-4 py-3">{t('security.result')}</th>
                   <th className="px-4 py-3">{t('security.ipAddress')}</th>
-                  <th className="px-4 py-3 hidden sm:table-cell">{t('security.device')}</th>
+                  <th className="px-4 py-3">{t('security.device')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -190,7 +190,7 @@ export default function SecurityPage() {
                       {!entry.success ? <p className="mt-1 text-xs text-slate-500">{failureReasonLabel(entry.failureReason)}</p> : null}
                     </td>
                     <td className="table-cell whitespace-nowrap text-sm text-slate-700">{entry.ipAddress || '-'}</td>
-                    <td className="table-cell hidden max-w-[20rem] truncate text-sm text-slate-700 sm:table-cell">{entry.userAgent || '-'}</td>
+                    <td className="table-cell max-w-[20rem] truncate text-sm text-slate-700">{entry.userAgent || '-'}</td>
                   </tr>
                 ))}
               </tbody>

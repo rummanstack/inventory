@@ -276,8 +276,8 @@ export default function StockLedgerPanel({ products, t, refreshKey = 0, fixedTyp
               <th className="px-4 py-3 text-right">{t('stockLedger.quantityIn')}</th>
               <th className="px-4 py-3 text-right">{t('stockLedger.quantityOut')}</th>
               <th className="px-4 py-3 text-right">{t('stockLedger.balanceAfter')}</th>
-              <th className="hidden px-4 py-3 lg:table-cell">{t('stockLedger.reference')}</th>
-              <th className="hidden px-4 py-3 xl:table-cell">{t('stockLedger.createdBy')}</th>
+              <th className="px-4 py-3">{t('stockLedger.reference')}</th>
+              <th className="px-4 py-3">{t('stockLedger.createdBy')}</th>
             </tr>
           </thead>
           {loading ? null : (
@@ -302,10 +302,10 @@ export default function StockLedgerPanel({ products, t, refreshKey = 0, fixedTyp
                     {movement.quantityOut ? `-${formatNumber(movement.quantityOut)}` : '-'}
                   </td>
                   <td className="table-cell text-right font-semibold text-slate-950">{formatNumber(movement.balanceAfter)}</td>
-                  <td className="hidden table-cell lg:table-cell">
+                  <td className="table-cell">
                     <CopyableText value={movement.referenceId ? `${movement.referenceType || 'reference'} / ${movement.referenceId}` : ''} copyLabel={t('stockLedger.reference')} displayValue={formatReference(movement)} textClassName="max-w-52 text-xs font-semibold text-slate-600" buttonClassName="h-5 w-5" />
                   </td>
-                  <td className="hidden table-cell xl:table-cell">
+                  <td className="table-cell">
                     <p className="font-semibold text-slate-950">{movement.createdByName || '-'}</p>
                     <p className="text-xs text-slate-500">{movement.createdByRole || ''}</p>
                   </td>

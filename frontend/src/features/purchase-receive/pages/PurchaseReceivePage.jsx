@@ -155,9 +155,9 @@ export default function PurchaseReceivePage() {
                   <td className="table-cell"><CopyableText value={receipt.purchaseNumber} copyLabel={t('purchaseReceive.purchaseNumber')} displayValue={receipt.purchaseNumber} textClassName="font-semibold text-slate-950" /></td>
                   <td className="table-cell">{receipt.supplierName || '-'}</td>
                   <td className="table-cell">{formatDateTime(receipt.purchaseDate)}</td>
-                  <td className="hidden table-cell lg:table-cell">{receipt.supplierInvoiceNo || '-'}</td>
+                  <td className="table-cell">{receipt.supplierInvoiceNo || '-'}</td>
                   <td className="table-cell text-right font-bold">{formatCurrency(receipt.totalAmount)}</td>
-                  <td className="hidden table-cell text-right font-bold text-rose-700 sm:table-cell">{formatCurrency(receipt.dueAmount)}</td>
+                  <td className="table-cell text-right font-bold text-rose-700">{formatCurrency(receipt.dueAmount)}</td>
                   <td className="table-cell">
                     <Badge tone={paymentStatusTone(paymentStatusOf(receipt))}>
                       {t(`purchaseReceive.paymentStatuses.${paymentStatusOf(receipt)}`)}

@@ -160,7 +160,7 @@ export default function TradeInsPage() {
                   <th className="px-4 py-3">{t('tradeIns.customerLabel')}</th>
                   <th className="px-4 py-3">{t('tradeIns.tradeInDateLabel')}</th>
                   <th className="px-4 py-3 text-right">{t('tradeIns.totalTradeInValueLabel')}</th>
-                  <th className="hidden px-4 py-3 text-right md:table-cell">{t('tradeIns.totalSaleAmountLabel')}</th>
+                  <th className="px-4 py-3 text-right">{t('tradeIns.totalSaleAmountLabel')}</th>
                   <th className="px-4 py-3 text-right">{t('tradeIns.paymentAmountLabel')}</th>
                   <th className="px-4 py-3 text-right no-print">{t('common.actions')}</th>
                 </tr>
@@ -185,11 +185,11 @@ export default function TradeInsPage() {
                           <p className="text-xs text-slate-400">{tradeIn.customerPhone}</p>
                         ) : null}
                       </td>
-                      <td className="hidden table-cell text-slate-600 sm:table-cell">{formatDateHuman(tradeIn.tradeInDate, language)}</td>
+                      <td className="table-cell text-slate-600">{formatDateHuman(tradeIn.tradeInDate, language)}</td>
                       <td className="table-cell text-right font-semibold text-emerald-700">
                         {formatCurrency(tradeIn.totalTradeInValue, language)}
                       </td>
-                      <td className="hidden table-cell text-right font-semibold text-slate-700 md:table-cell">
+                      <td className="table-cell text-right font-semibold text-slate-700">
                         {formatCurrency(tradeIn.totalSaleAmount, language)}
                       </td>
                       <td className="table-cell text-right">

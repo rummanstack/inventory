@@ -82,7 +82,7 @@ export default function PurchaseReturnsPage() {
                     ))}
                   </td>
                   <td className="table-cell text-right font-bold text-rose-700">{formatCurrency(purchaseReturn.totalAmount)}</td>
-                  <td className="hidden table-cell lg:table-cell">{purchaseReturn.note || '-'}</td>
+                  <td className="table-cell">{purchaseReturn.note || '-'}</td>
                   <td className="table-cell">
                     {canManage ? (
                       <div className="row-actions flex justify-end gap-2">

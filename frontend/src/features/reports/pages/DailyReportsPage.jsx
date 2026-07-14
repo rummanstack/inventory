@@ -139,11 +139,11 @@ export default function DailyReportsPage() {
                   <tr>
                     <th className="px-4 py-3">{t('dsr.title')}</th>
                     <th className="px-4 py-3">{t('reports.issued')}</th>
-                    <th className="px-4 py-3 hidden sm:table-cell">{t('reports.returned')}</th>
+                    <th className="px-4 py-3">{t('reports.returned')}</th>
                     <th className="px-4 py-3">{t('reports.sold')}</th>
-                    <th className="px-4 py-3 hidden md:table-cell">{t('reports.paid')}</th>
-                    <th className="px-4 py-3 hidden lg:table-cell">{t('reports.due')}</th>
-                    <th className="px-4 py-3 hidden lg:table-cell">{t('reports.discount')}</th>
+                    <th className="px-4 py-3">{t('reports.paid')}</th>
+                    <th className="px-4 py-3">{t('reports.due')}</th>
+                    <th className="px-4 py-3">{t('reports.discount')}</th>
                     {vm.isSingleDay && <th className="px-4 py-3 text-right no-print">{t('reports.sheet')}</th>}
                   </tr>
                 </thead>
@@ -160,7 +160,7 @@ export default function DailyReportsPage() {
                           <span className="font-semibold text-slate-950">{formatCurrency(row.issuedValue)}</span>
                           <span className="ml-1 text-xs text-slate-400">{formatNumber(row.issuedPieces)} {t('common.pcs')}</span>
                         </td>
-                        <td className="table-cell hidden sm:table-cell">
+                        <td className="table-cell">
                           <span className="font-semibold text-slate-950">{formatCurrency(row.returnValue)}</span>
                           <span className="ml-1 text-xs text-slate-400">{formatNumber(row.returnedPieces)} {t('common.pcs')}</span>
                         </td>
@@ -168,9 +168,9 @@ export default function DailyReportsPage() {
                           <span className="font-semibold text-slate-950">{formatCurrency(row.totalPayable)}</span>
                           <span className="ml-1 text-xs text-slate-400">{formatNumber(row.soldPieces)} {t('common.pcs')}</span>
                         </td>
-                        <td className="table-cell hidden md:table-cell">{formatCurrency(row.amountPaid)}</td>
-                        <td className="table-cell hidden lg:table-cell text-rose-600">{formatCurrency(rowDue)}</td>
-                        <td className="table-cell hidden lg:table-cell text-amber-600">{formatCurrency(row.discount)}</td>
+                        <td className="table-cell">{formatCurrency(row.amountPaid)}</td>
+                        <td className="table-cell text-rose-600">{formatCurrency(rowDue)}</td>
+                        <td className="table-cell text-amber-600">{formatCurrency(row.discount)}</td>
                         {vm.isSingleDay && (
                           <td className="table-cell text-right no-print">
                             <button
@@ -231,7 +231,7 @@ export default function DailyReportsPage() {
                       <th className="px-4 py-3">{t('products.product')}</th>
                       <th className="px-4 py-3 text-right">{t('reports.quantitySold')}</th>
                       <th className="px-4 py-3 text-right">{t('reports.revenue')}</th>
-                      <th className="px-4 py-3 text-right hidden sm:table-cell">{t('reports.profit')}</th>
+                      <th className="px-4 py-3 text-right">{t('reports.profit')}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
@@ -240,7 +240,7 @@ export default function DailyReportsPage() {
                         <td className="table-cell font-semibold text-slate-950">{row.productName}</td>
                         <td className="table-cell text-right">{formatNumber(row.quantitySold)} {t('common.pcs')}</td>
                         <td className="table-cell text-right font-semibold text-slate-950">{formatCurrency(row.revenue)}</td>
-                        <td className={`table-cell text-right hidden sm:table-cell font-semibold ${row.profit >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>{formatCurrency(row.profit)}</td>
+                        <td className={`table-cell text-right font-semibold ${row.profit >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>{formatCurrency(row.profit)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -281,7 +281,7 @@ export default function DailyReportsPage() {
                       <th className="px-4 py-3">SR</th>
                       <th className="px-4 py-3 text-right">{t('reports.handover')}</th>
                       <th className="px-4 py-3 text-right">{t('reports.srCollected')}</th>
-                      <th className="px-4 py-3 text-right hidden sm:table-cell">{t('reports.due')}</th>
+                      <th className="px-4 py-3 text-right">{t('reports.due')}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
@@ -290,7 +290,7 @@ export default function DailyReportsPage() {
                         <td className="table-cell font-semibold text-slate-950">{row.srName}</td>
                         <td className="table-cell text-right font-semibold text-slate-950">{formatCurrency(row.handover)}</td>
                         <td className="table-cell text-right font-semibold text-emerald-600">{formatCurrency(row.collected)}</td>
-                        <td className="table-cell text-right hidden sm:table-cell text-rose-600">
+                        <td className="table-cell text-right text-rose-600">
                           {formatCurrency(Math.max(0, row.handover - row.collected))}
                         </td>
                       </tr>
@@ -427,7 +427,7 @@ export default function DailyReportsPage() {
                   <thead className="table-head">
                     <tr>
                       <th className="px-4 py-3">{t('common.dsr')}</th>
-                      <th className="px-4 py-3 hidden sm:table-cell">{t('dsr.area')}</th>
+                      <th className="px-4 py-3">{t('dsr.area')}</th>
                       <th className="px-4 py-3 text-right">{t('reports.collected')}</th>
                     </tr>
                   </thead>
@@ -435,7 +435,7 @@ export default function DailyReportsPage() {
                     {vm.dueCollectionRows.map((row) => (
                       <tr key={row.dsrId} className="hover:bg-slate-50">
                         <td className="table-cell font-semibold text-slate-950">{row.dsrName}</td>
-                        <td className="table-cell hidden sm:table-cell text-slate-500">{row.area}</td>
+                        <td className="table-cell text-slate-500">{row.area}</td>
                         <td className="table-cell text-right font-semibold text-emerald-600">{formatCurrency(row.total)}</td>
                       </tr>
                     ))}
@@ -477,7 +477,7 @@ export default function DailyReportsPage() {
                   <thead className="table-head">
                     <tr>
                       <th className="px-4 py-3">{t('common.dsr')}</th>
-                      <th className="px-4 py-3 hidden sm:table-cell">{t('dsr.area')}</th>
+                      <th className="px-4 py-3">{t('dsr.area')}</th>
                       <th className="px-4 py-3 text-right">{t('reports.currentBalance')}</th>
                     </tr>
                   </thead>
@@ -485,7 +485,7 @@ export default function DailyReportsPage() {
                     {vm.dsrDueBalanceRows.map((row) => (
                       <tr key={row.id} className="hover:bg-slate-50">
                         <td className="table-cell font-semibold text-slate-950">{row.dsrName}</td>
-                        <td className="table-cell hidden sm:table-cell text-slate-500">{row.area}</td>
+                        <td className="table-cell text-slate-500">{row.area}</td>
                         <td className="table-cell text-right font-semibold text-rose-600">{formatCurrency(row.balance)}</td>
                       </tr>
                     ))}

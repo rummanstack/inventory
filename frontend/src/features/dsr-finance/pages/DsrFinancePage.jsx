@@ -179,7 +179,7 @@ export default function DsrFinancePage() {
                     <th className="px-4 py-3 text-right">{t('dsrDueLedger.credit')}</th>
                     <th className="px-4 py-3 text-right">{t('dsrDueLedger.balanceAfter')}</th>
                     <th className="px-4 py-3">{t('dsrDueLedger.reference')}</th>
-                    <th className="hidden px-4 py-3 xl:table-cell">{t('dsrDueLedger.createdBy')}</th>
+                    <th className="px-4 py-3">{t('dsrDueLedger.createdBy')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -193,10 +193,10 @@ export default function DsrFinancePage() {
                       <td className="table-cell text-right font-semibold text-rose-700">{entry.debit ? formatCurrency(entry.debit) : '-'}</td>
                       <td className="table-cell text-right font-semibold text-emerald-700">{entry.credit ? formatCurrency(entry.credit) : '-'}</td>
                       <td className="table-cell text-right font-semibold text-slate-950">{formatCurrency(entry.balanceAfter)}</td>
-                      <td className="hidden table-cell lg:table-cell">
+                      <td className="table-cell">
                         <CopyableText value={entry.referenceId ? `${entry.referenceType || 'reference'} / ${entry.referenceId}` : ''} copyLabel={t('dsrDueLedger.reference')} displayValue={formatReference(entry)} textClassName="max-w-52 text-xs font-semibold text-slate-600" buttonClassName="h-5 w-5" />
                       </td>
-                      <td className="hidden table-cell xl:table-cell">
+                      <td className="table-cell">
                         <p className="font-semibold text-slate-950">{entry.createdByName || '-'}</p>
                         <p className="text-xs text-slate-500">{entry.createdByRole || ''}</p>
                       </td>

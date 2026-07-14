@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Download, Eye, FileSpreadsheet, Loader2, Pencil, Phone, Plus, Printer, Search, Store, Trash2 } from 'lucide-react';
 import { Alert, Badge, EmptyState, MobileCardList, MobileListCard, Pagination, SectionHeader, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { statusTone } from '../../../models/inventoryViewData.js';
@@ -12,6 +12,12 @@ import ShopViewModal from '../components/ShopViewModal';
 import { useShopsViewModel } from '../viewmodels/useShopsViewModel';
 
 const SHOPS_PRINT_ID = 'shops-print';
+const SHOPS_REPORT_SHORTCUTS = {
+  add: { alt: true, key: 'a', label: 'Alt+A' },
+  pdf: { alt: true, key: 'd', label: 'Alt+D' },
+  excel: { alt: true, key: 'e', label: 'Alt+E' },
+  print: { alt: true, key: 'p', label: 'Alt+P' },
+};
 
 export default function ShopsPage() {
   const { saveShop, deleteShop, t, can } = useInventoryApp();
@@ -42,6 +48,52 @@ export default function ShopsPage() {
     writeFile(wb, 'shops.xlsx');
   }
 
+  async function handleDownloadPdf() {
+    await downloadPdf(async () => {
+      await inventoryApi.recordPrint({ entityType: 'shops', entityId: null, label: 'pdf' }).catch(() => {});
+      await downloadSheetPdf(SHOPS_PRINT_ID, 'shops.pdf');
+    });
+  }
+
+  function handlePrint() {
+    inventoryApi.recordPrint({ entityType: 'shops', entityId: null, label: 'print' }).catch(() => {});
+    window.print();
+  }
+
+  function shortcutBadge(shortcut) {
+    return <kbd className="ml-1 rounded border border-slate-300 bg-white/70 px-1 py-0.5 font-mono text-[10px] text-slate-500">{shortcut.label}</kbd>;
+  }
+
+  function matchesShortcut(event, shortcut) {
+    return (
+      event.key.toLowerCase() === shortcut.key &&
+      Boolean(event.altKey) === Boolean(shortcut.alt) &&
+      Boolean(event.shiftKey) === Boolean(shortcut.shift) &&
+      Boolean(event.ctrlKey || event.metaKey) === Boolean(shortcut.ctrlOrMeta)
+    );
+  }
+
+  useEffect(() => {
+    function handleKeyDown(event) {
+      if (matchesShortcut(event, SHOPS_REPORT_SHORTCUTS.add) && canManageShops && !formModal && !viewShop) {
+        event.preventDefault();
+        setFormModal({ mode: 'add' });
+      } else if (matchesShortcut(event, SHOPS_REPORT_SHORTCUTS.pdf) && !downloadingPdf) {
+        event.preventDefault();
+        handleDownloadPdf();
+      } else if (matchesShortcut(event, SHOPS_REPORT_SHORTCUTS.excel)) {
+        event.preventDefault();
+        handleExportExcel();
+      } else if (matchesShortcut(event, SHOPS_REPORT_SHORTCUTS.print)) {
+        event.preventDefault();
+        handlePrint();
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [downloadingPdf, vm.search, vm.status, canManageShops, formModal, viewShop, t]);
+
   return (
     <div>
       <SectionHeader
@@ -52,6 +104,7 @@ export default function ShopsPage() {
           <button type="button" className="btn-primary" onClick={() => setFormModal({ mode: 'add' })}>
             <Plus size={18} />
             {t('shops.add')}
+            <kbd className="ml-1 rounded border border-indigo-400/40 bg-indigo-500/20 px-1 py-0.5 font-mono text-[10px] text-indigo-200">Alt+A</kbd>
           </button>
         ) : null}
       />
@@ -65,23 +118,26 @@ export default function ShopsPage() {
               <button
                 type="button"
                 className="btn-secondary no-print py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-60"
-                onClick={() => downloadPdf(async () => { await inventoryApi.recordPrint({ entityType: 'shops', entityId: null, label: 'pdf' }).catch(() => {}); await downloadSheetPdf(SHOPS_PRINT_ID, 'shops.pdf'); })}
+                onClick={handleDownloadPdf}
                 disabled={downloadingPdf}
               >
                 {downloadingPdf ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
                 {t('purchaseReceive.downloadPdf')}
+                {shortcutBadge(SHOPS_REPORT_SHORTCUTS.pdf)}
               </button>
               <button type="button" className="btn-secondary no-print py-1.5 text-xs" onClick={handleExportExcel}>
                 <FileSpreadsheet size={14} />
                 {t('common.exportExcel')}
+                {shortcutBadge(SHOPS_REPORT_SHORTCUTS.excel)}
               </button>
               <button
                 type="button"
                 className="btn-secondary no-print py-1.5 text-xs"
-                onClick={() => { inventoryApi.recordPrint({ entityType: 'shops', entityId: null, label: 'print' }).catch(() => {}); window.print(); }}
+                onClick={handlePrint}
               >
                 <Printer size={14} />
                 {t('common.print')}
+                {shortcutBadge(SHOPS_REPORT_SHORTCUTS.print)}
               </button>
             </div>
           </div>
@@ -152,14 +208,14 @@ export default function ShopsPage() {
                       {shop.ownerName ? <p className="text-xs font-medium text-slate-500">{shop.ownerName}</p> : null}
                     </div>
                   </td>
-                  <td className="hidden table-cell sm:table-cell">
+                  <td className="table-cell">
                     <span className="inline-flex items-center gap-2">
                       <Phone size={15} className="text-slate-400" />
                       {shop.phone || '-'}
                     </span>
                   </td>
-                  <td className="hidden table-cell md:table-cell">{shop.market || '-'}</td>
-                  <td className="hidden table-cell md:table-cell">{shop.assignedDsrName || t('shops.unassigned')}</td>
+                  <td className="table-cell">{shop.market || '-'}</td>
+                  <td className="table-cell">{shop.assignedDsrName || t('shops.unassigned')}</td>
                   <td className="table-cell text-right font-bold">{formatCurrency(shop.currentDue)}</td>
                   <td className="table-cell">
                     <Badge tone={statusTone(shop.status === 'ACTIVE' ? 'Active' : 'Inactive')}>

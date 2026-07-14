@@ -188,19 +188,19 @@ export default function RetailCustomersPage() {
                   <tr key={customer.id} className="hover:bg-slate-50">
                     <td className="table-cell font-semibold text-slate-400">{(vm.page - 1) * vm.pageSize + index + 1}</td>
                     <td className="table-cell font-semibold text-slate-950">{customer.name}</td>
-                    <td className="hidden table-cell sm:table-cell">
+                    <td className="table-cell">
                       <span className="inline-flex items-center gap-2">
                         <Phone size={15} className="text-slate-400" />
                         {customer.phone || '-'}
                       </span>
                     </td>
-                    <td className="hidden table-cell md:table-cell">{customer.address || '-'}</td>
+                    <td className="table-cell">{customer.address || '-'}</td>
                     <td className="table-cell text-right">
                       <span className={`font-bold ${customer.currentDue > 0 ? 'text-rose-700' : 'text-slate-500'}`}>
                         {formatCurrency(customer.currentDue || 0)}
                       </span>
                     </td>
-                    <td className="hidden table-cell lg:table-cell font-bold text-slate-950">{Number(customer.loyaltyPointsBalance || 0)}</td>
+                    <td className="table-cell font-bold text-slate-950">{Number(customer.loyaltyPointsBalance || 0)}</td>
                     <td className="table-cell">
                       <Badge tone={statusTone(customer.status === 'ACTIVE' ? 'Active' : 'Inactive')}>
                         {customer.status === 'ACTIVE' ? t('retailCustomers.statusActive') : t('retailCustomers.statusInactive')}

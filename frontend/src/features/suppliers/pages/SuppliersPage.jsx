@@ -152,13 +152,13 @@ export default function SuppliersPage() {
                 <tr key={supplier.id} className="hover:bg-slate-50">
                   <td className="table-cell font-semibold text-slate-400">{(vm.page - 1) * vm.pageSize + index + 1}</td>
                   <td className="table-cell font-semibold text-slate-950">{supplier.name}</td>
-                  <td className="hidden table-cell sm:table-cell">
+                  <td className="table-cell">
                     <span className="inline-flex items-center gap-2">
                       <Phone size={15} className="text-slate-400" />
                       {supplier.phone || '-'}
                     </span>
                   </td>
-                  <td className="hidden table-cell md:table-cell">{supplier.address || '-'}</td>
+                  <td className="table-cell">{supplier.address || '-'}</td>
                   <td className="table-cell text-right font-bold">{formatCurrency(supplier.openingDue)}</td>
                   <td className="table-cell text-right font-bold">{formatCurrency(supplier.currentDue)}</td>
                   <td className="table-cell">

@@ -143,11 +143,11 @@ export default function ProductSerialsPage() {
                   <td className="table-cell font-semibold text-slate-400">{(vm.page - 1) * vm.pageSize + index + 1}</td>
                   <td className="table-cell font-semibold text-slate-950">{serial.productName || '-'}</td>
                   <td className="table-cell"><CopyableText value={serial.serialNumber} copyLabel={t('productSerials.serialNumberLabel')} displayValue={serial.serialNumber} /></td>
-                  <td className="hidden table-cell sm:table-cell"><CopyableText value={serial.imei1} copyLabel={t('productSerials.imei1Label')} displayValue={serial.imei1} /></td>
+                  <td className="table-cell"><CopyableText value={serial.imei1} copyLabel={t('productSerials.imei1Label')} displayValue={serial.imei1} /></td>
                   <td className="table-cell">
                     <Badge tone={productSerialStatusTone(serial.status)}>{t(`productSerials.statuses.${serial.status}`)}</Badge>
                   </td>
-                  <td className="hidden table-cell md:table-cell"><CopyableText value={serial.invoiceNumber} copyLabel={t('productSerials.linkedInvoiceLabel')} displayValue={serial.invoiceNumber} /></td>
+                  <td className="table-cell"><CopyableText value={serial.invoiceNumber} copyLabel={t('productSerials.linkedInvoiceLabel')} displayValue={serial.invoiceNumber} /></td>
                   <td className="table-cell no-print">
                     <div className="row-actions flex justify-end gap-2">
                       <button type="button" className="icon-btn" title={t('common.view')} onClick={() => setViewSerial(serial)}>

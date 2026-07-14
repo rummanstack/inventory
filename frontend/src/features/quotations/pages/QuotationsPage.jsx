@@ -200,8 +200,8 @@ export default function QuotationsPage() {
                         <p className="text-xs text-slate-400">{quotation.customerPhone}</p>
                       ) : null}
                     </td>
-                    <td className="hidden table-cell text-slate-600 sm:table-cell">{formatDateHuman(quotation.quoteDate, language)}</td>
-                    <td className="hidden table-cell text-slate-600 md:table-cell">{formatDateHuman(quotation.validUntil, language)}</td>
+                    <td className="table-cell text-slate-600">{formatDateHuman(quotation.quoteDate, language)}</td>
+                    <td className="table-cell text-slate-600">{formatDateHuman(quotation.validUntil, language)}</td>
                     <td className="table-cell">
                       <Badge tone={quotationStatusTone(quotation.status)}>
                         {t(`quotations.statuses.${quotation.status}`)}

@@ -372,11 +372,11 @@ export default function ProductsPage() {
                       </div>
                     </div>
                   </td>
-                  {isPharmacy ? <td className="hidden table-cell sm:table-cell text-slate-700">{product.genericName || '-'}</td> : null}
-                  {!isElectronics && !isPharmacy ? <td className="hidden table-cell text-right sm:table-cell">{formatNumber(product.piecesPerCase, language)} {t('common.pcsPerCase')}</td> : null}
-                  <td className="hidden table-cell text-right md:table-cell">{formatCurrency(product.purchasePrice, language)}</td>
-                  <td className="hidden table-cell text-right md:table-cell">{formatCurrency(product.wholesalePrice, language)}</td>
-                  <td className="hidden table-cell text-right md:table-cell">{formatCurrency(product.retailPrice, language)}</td>
+                  {isPharmacy ? <td className="table-cell text-slate-700">{product.genericName || '-'}</td> : null}
+                  {!isElectronics && !isPharmacy ? <td className="table-cell text-right">{formatNumber(product.piecesPerCase, language)} {t('common.pcsPerCase')}</td> : null}
+                  <td className="table-cell text-right">{formatCurrency(product.purchasePrice, language)}</td>
+                  <td className="table-cell text-right">{formatCurrency(product.wholesalePrice, language)}</td>
+                  <td className="table-cell text-right">{formatCurrency(product.retailPrice, language)}</td>
                   <td className="table-cell text-right">
                     {isElectronics ? (
                       <p className="font-semibold text-slate-950">{formatNumber(product.stockPieces, language)} {t('common.pcs')}</p>

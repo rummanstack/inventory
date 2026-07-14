@@ -264,9 +264,9 @@ export default function TrashPage() {
                 {items.map((item) => (
                   <tr key={item.id} className="hover:bg-slate-50">
                     <td className="table-cell font-semibold text-slate-950">{activeTab.getName(item) || '-'}</td>
-                    <td className="hidden table-cell sm:table-cell">{formatDateTime(item.deletedAt)}</td>
-                    <td className="hidden table-cell md:table-cell">{item.deletedByName || '-'}</td>
-                    <td className="hidden table-cell lg:table-cell">{item.deleteReason || '-'}</td>
+                    <td className="table-cell">{formatDateTime(item.deletedAt)}</td>
+                    <td className="table-cell">{item.deletedByName || '-'}</td>
+                    <td className="table-cell">{item.deleteReason || '-'}</td>
                     <td className="table-cell no-print">
                       <div className="row-actions flex justify-end gap-2">
                         <button type="button" className="icon-btn text-emerald-600 hover:text-emerald-700" title={t('trash.restore')} onClick={() => handleRestore(item)}>

@@ -465,15 +465,15 @@ export default function RepairJobsPage() {
                           <div className="font-medium text-slate-900">{job.customerName || '-'}</div>
                           {job.customerPhone ? <div className="text-xs text-slate-500">{job.customerPhone}</div> : null}
                         </td>
-                        <td className="hidden table-cell sm:table-cell"><CopyableText value={job.serialNumber} copyLabel={t('repairJobs.serialLabel')} displayValue={job.serialNumber} /></td>
+                        <td className="table-cell"><CopyableText value={job.serialNumber} copyLabel={t('repairJobs.serialLabel')} displayValue={job.serialNumber} /></td>
                         <td className="table-cell">
                           <Badge tone={repairJobStatusTone(job.status)}>{t(`repairJobs.statuses.${job.status}`)}</Badge>
                         </td>
-                        <td className="hidden table-cell md:table-cell">
+                        <td className="table-cell">
                           <Badge tone={repairJobApprovalTone(job.approvalStatus)}>{t(`repairJobs.approvalStatuses.${job.approvalStatus}`)}</Badge>
                         </td>
-                        <td className="hidden table-cell lg:table-cell">{job.technicianName || '-'}</td>
-                        <td className="hidden table-cell lg:table-cell">{formatDateTime(job.receivedDate)}</td>
+                        <td className="table-cell">{job.technicianName || '-'}</td>
+                        <td className="table-cell">{formatDateTime(job.receivedDate)}</td>
                         <td className="table-cell">
                           <div className="row-actions flex justify-end gap-2">
                             {canManage ? (

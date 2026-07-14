@@ -133,7 +133,7 @@ export default function SupplierPaymentsPage() {
                   <td className="table-cell font-semibold text-slate-950">{payment.supplierName || '-'}</td>
                   <td className="table-cell text-right font-bold text-emerald-700">{formatCurrency(payment.amount)}</td>
                   <td className="table-cell">{t(`purchaseReceive.paymentMethods.${payment.paymentMethod}`)}</td>
-                  <td className="hidden table-cell lg:table-cell">{payment.note || '-'}</td>
+                  <td className="table-cell">{payment.note || '-'}</td>
                   <td className="table-cell no-print">
                     {canManagePayments ? (
                       <div className="row-actions flex justify-end gap-2">

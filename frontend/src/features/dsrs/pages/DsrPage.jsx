@@ -188,13 +188,13 @@ export default function DsrPage() {
                       <span>{dsr.name}</span>
                     </div>
                   </td>
-                  <td className="hidden table-cell sm:table-cell">
+                  <td className="table-cell">
                     <span className="inline-flex items-center gap-2">
                       <Phone size={15} className="text-slate-400" />
                       {dsr.phone}
                     </span>
                   </td>
-                  <td className="hidden table-cell md:table-cell">
+                  <td className="table-cell">
                     <span className="inline-flex items-center gap-2">
                       <MapPin size={15} className="text-slate-400" />
                       {dsr.area}

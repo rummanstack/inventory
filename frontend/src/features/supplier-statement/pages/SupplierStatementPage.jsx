@@ -140,7 +140,7 @@ export default function SupplierStatementPage() {
                     <th className="px-4 py-3 text-right">{t('supplierStatement.credit')}</th>
                     <th className="px-4 py-3 text-right">{t('supplierStatement.balanceAfter')}</th>
                     <th className="px-4 py-3">{t('supplierStatement.reference')}</th>
-                    <th className="hidden px-4 py-3 xl:table-cell">{t('supplierStatement.createdBy')}</th>
+                    <th className="px-4 py-3">{t('supplierStatement.createdBy')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -154,10 +154,10 @@ export default function SupplierStatementPage() {
                       <td className="table-cell text-right font-semibold text-rose-700">{entry.debit ? formatCurrency(entry.debit) : '-'}</td>
                       <td className="table-cell text-right font-semibold text-emerald-700">{entry.credit ? formatCurrency(entry.credit) : '-'}</td>
                       <td className="table-cell text-right font-semibold text-slate-950">{formatCurrency(entry.balanceAfter)}</td>
-                      <td className="hidden table-cell lg:table-cell">
+                      <td className="table-cell">
                         <CopyableText value={entry.referenceId ? `${entry.referenceType || 'reference'} / ${entry.referenceId}` : ''} copyLabel={t('supplierStatement.reference')} displayValue={entry.referenceType ? `${entry.referenceType} / ${String(entry.referenceId || '').slice(0, 18)}` : '-'} textClassName="max-w-52 text-xs font-semibold text-slate-600" buttonClassName="h-5 w-5" />
                       </td>
-                      <td className="hidden table-cell xl:table-cell">
+                      <td className="table-cell">
                         <p className="font-semibold text-slate-950">{entry.createdByName || '-'}</p>
                       </td>
                     </tr>

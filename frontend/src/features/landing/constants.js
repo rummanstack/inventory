@@ -52,6 +52,48 @@ export const navLinks = [
   { key: 'contact', href: '/contact' },
 ];
 
+export const megaMenuSections = [
+  {
+    title: 'Features',
+    href: '/features',
+    description: 'Explore StockLedger by workflow and module.',
+    links: [
+      { label: 'Inventory Management', href: '/features/inventory-management' },
+      { label: 'Retail POS', href: '/features/retail-pos' },
+      { label: 'Accounting', href: '/features/accounting' },
+      { label: 'HR & Payroll', href: '/features/hr-payroll' },
+      { label: 'DSR Dealer Management', href: '/features/dsr-dealer-management' },
+      { label: 'Reporting', href: '/features/reporting' },
+    ],
+  },
+  {
+    title: 'Solutions',
+    href: '/solutions',
+    description: 'See the best-fit setup by business type.',
+    links: [
+      { label: 'Retail Shop', href: '/solutions/retail-shop' },
+      { label: 'Wholesale Business', href: '/solutions/wholesale-business' },
+      { label: 'Dealer Distributor', href: '/solutions/dealer-distributor' },
+      { label: 'DSR Sales Team', href: '/solutions/dsr-sales-team' },
+      { label: 'Pharmacy', href: '/solutions/pharmacy' },
+      { label: 'Grocery Store', href: '/solutions/grocery-store' },
+    ],
+  },
+  {
+    title: 'Software Guides',
+    href: '/software',
+    description: 'Jump into high-intent software comparison pages.',
+    links: [
+      { label: 'Inventory Software Bangladesh', href: '/software/inventory-software-bangladesh' },
+      { label: 'Retail POS Software Bangladesh', href: '/software/retail-pos-software-bangladesh' },
+      { label: 'Accounting Software Bangladesh', href: '/software/accounting-software-bangladesh' },
+      { label: 'HR Payroll Software Bangladesh', href: '/software/hr-payroll-software-bangladesh' },
+      { label: 'DSR Management Software Bangladesh', href: '/software/dsr-management-software-bangladesh' },
+      { label: 'Shop Management Software Bangladesh', href: '/software/shop-management-software-bangladesh' },
+    ],
+  },
+];
+
 export const heroPortraitImage = heroDashboardImage;
 export const contactUsImage = supportCallImage;
 
@@ -111,6 +153,8 @@ export const showcaseImages = [
   { src: reportsVisibilityImage, key: 'reportsVisibility', fit: 'fill', position: 'center' },
   { src: accountingStatementImage, key: 'accountingStatement', fit: 'fill', position: 'center' },
 ];
+
+
 
 
 

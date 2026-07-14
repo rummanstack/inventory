@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { HandCoins, Pencil, Phone, Plus, Search, Trash2, Users } from 'lucide-react';
 import { Alert, Badge, EmptyState, Modal, Pagination, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
 import TableReportActions from '../../../components/TableReportActions.jsx';
@@ -11,6 +11,22 @@ import SrFormModal from '../components/SrFormModal';
 import { useSrViewModel } from '../viewmodels/useSrViewModel';
 
 const SRS_REPORT_ID = 'srs-report';
+const SRS_REPORT_SHORTCUTS = {
+  pdf: { alt: true, key: 'd', label: 'Alt+D' },
+  excel: { alt: true, key: 'e', label: 'Alt+E' },
+  csv: { alt: true, key: 'c', label: 'Alt+C' },
+  print: { alt: true, key: 'p', label: 'Alt+P' },
+};
+const SRS_ADD_SHORTCUT = { alt: true, key: 'a', label: 'Alt+A' };
+
+function matchesShortcut(event, shortcut) {
+  return (
+    event.key.toLowerCase() === shortcut.key &&
+    Boolean(event.altKey) === Boolean(shortcut.alt) &&
+    Boolean(event.shiftKey) === Boolean(shortcut.shift) &&
+    Boolean(event.ctrlKey || event.metaKey) === Boolean(shortcut.ctrlOrMeta)
+  );
+}
 
 function CollectDueModal({ sr, onClose, onSave, t }) {
   const [amount, setAmount] = useState('');
@@ -72,6 +88,18 @@ export default function SrPage() {
   const [collectModal, setCollectModal] = useState(null);
   const canManageSrs = can('manage_srs');
 
+  useEffect(() => {
+    function handleKeyDown(event) {
+      if (matchesShortcut(event, SRS_ADD_SHORTCUT) && canManageSrs && !srModal && !collectModal) {
+        event.preventDefault();
+        setSrModal({ mode: 'add' });
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [canManageSrs, srModal, collectModal]);
+
   return (
     <div>
       <SectionHeader
@@ -82,6 +110,7 @@ export default function SrPage() {
           <button type="button" className="btn-primary" onClick={() => setSrModal({ mode: 'add' })}>
             <Plus size={18} />
             {t('srs.add')}
+            <kbd className="ml-1 rounded border border-indigo-400/40 bg-indigo-500/20 px-1 py-0.5 font-mono text-[10px] text-indigo-200">Alt+A</kbd>
           </button>
         ) : null}
       />
@@ -98,7 +127,7 @@ export default function SrPage() {
                 placeholder={t('srs.searchPlaceholder')}
               />
             </div>
-            <TableReportActions targetId={SRS_REPORT_ID} title={t('srs.title')} fileName="srs" entityType="srs" t={t} />
+            <TableReportActions targetId={SRS_REPORT_ID} title={t('srs.title')} fileName="srs" entityType="srs" t={t} shortcuts={SRS_REPORT_SHORTCUTS} />
           </div>
         </div>
 
@@ -128,7 +157,7 @@ export default function SrPage() {
                   <tr key={sr.id} className="hover:bg-slate-50">
                     <td className="table-cell font-semibold text-slate-400">{(vm.page - 1) * vm.pageSize + index + 1}</td>
                     <td className="table-cell font-semibold text-slate-950">{sr.name}</td>
-                    <td className="hidden table-cell sm:table-cell">
+                    <td className="table-cell">
                       <span className="inline-flex items-center gap-2">
                         <Phone size={15} className="text-slate-400" />
                         {sr.phone}

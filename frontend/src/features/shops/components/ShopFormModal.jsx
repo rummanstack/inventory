@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { Save } from 'lucide-react';
 import { Alert, Modal, Select } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
@@ -7,6 +8,7 @@ import { useFormState } from '../../../hooks/useFormState';
 export default function ShopFormModal({ shop, onClose, onSave }) {
   const { t, dsrDirectory, pushToast } = useInventoryApp();
   const isEdit = Boolean(shop);
+  const formRef = useRef(null);
   const { form, updateField, error, setError, saving, setSaving } = useFormState({
     shopName: shop?.shopName || '',
     ownerName: shop?.ownerName || '',
@@ -69,9 +71,21 @@ export default function ShopFormModal({ shop, onClose, onSave }) {
     }
   }
 
+  useEffect(() => {
+    function handleKeyDown(event) {
+      if (event.key.toLowerCase() === 's' && (event.ctrlKey || event.metaKey) && !saving) {
+        event.preventDefault();
+        formRef.current?.requestSubmit();
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [saving]);
+
   return (
     <Modal title={isEdit ? t('shops.editTitle') : t('shops.addTitle')} description={t('shops.modalDescription')} onClose={onClose} width="max-w-2xl">
-      <form className="space-y-4" onSubmit={submitForm}>
+      <form ref={formRef} className="space-y-4" onSubmit={submitForm}>
         {error ? <Alert type="error">{error}</Alert> : null}
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
@@ -133,6 +147,7 @@ export default function ShopFormModal({ shop, onClose, onSave }) {
           <button type="submit" className="btn-primary" disabled={saving}>
             <Save size={18} />
             {saving ? t('common.saving') : t('shops.saveShop')}
+            <kbd className="ml-1 rounded border border-indigo-400/40 bg-indigo-500/20 px-1 py-0.5 font-mono text-[10px] text-indigo-200">Ctrl+S</kbd>
           </button>
         </div>
       </form>

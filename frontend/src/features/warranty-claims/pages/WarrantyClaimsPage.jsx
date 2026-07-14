@@ -162,8 +162,8 @@ export default function WarrantyClaimsPage() {
                     {claim.rmaNumber ? <div className="text-xs text-amber-700 font-medium"><CopyableText value={claim.rmaNumber} copyLabel={t('warrantyClaims.rmaNumberLabel')} displayValue={claim.rmaNumber} textClassName="font-medium text-amber-700" buttonClassName="h-5 w-5" /></div> : null}
                   </td>
                   <td className="table-cell">{claim.productName || '-'}</td>
-                  <td className="hidden table-cell sm:table-cell"><CopyableText value={claim.serialNumber || claim.imei1 || claim.imei2} copyLabel={t('warrantyClaims.serialLabel')} displayValue={claim.serialNumber || claim.imei1 || claim.imei2} /></td>
-                  <td className="hidden table-cell md:table-cell">{claim.customerName || '-'}</td>
+                  <td className="table-cell"><CopyableText value={claim.serialNumber || claim.imei1 || claim.imei2} copyLabel={t('warrantyClaims.serialLabel')} displayValue={claim.serialNumber || claim.imei1 || claim.imei2} /></td>
+                  <td className="table-cell">{claim.customerName || '-'}</td>
                   <td className="table-cell">{formatDateTime(claim.receivedDate)}</td>
                   <td className="table-cell">
                     <Badge tone={warrantyClaimStatusTone(claim.status)}>{t(`warrantyClaims.statuses.${claim.status}`)}</Badge>

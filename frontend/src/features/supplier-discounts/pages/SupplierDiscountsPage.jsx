@@ -81,7 +81,7 @@ export default function SupplierDiscountsPage() {
                     <td className="table-cell font-semibold text-slate-950">{discount.dsrName || '-'}</td>
                     <td className="table-cell text-slate-700">{discount.supplierName || <span className="text-slate-300">-</span>}</td>
                     <td className="table-cell text-right font-bold text-emerald-700">{formatCurrency(discount.amount)}</td>
-                    <td className="hidden table-cell lg:table-cell">{discount.note || '-'}</td>
+                    <td className="table-cell">{discount.note || '-'}</td>
                     {canManagePayments ? (
                       <td className="table-cell no-print">
                         <div className="flex justify-end">

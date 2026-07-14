@@ -1,0 +1,54 @@
+Pre-login pages and routes
+
+Home redirect -> / -> redirects to /landing
+Landing -> /landing
+Login -> /login
+Register -> /register
+Privacy Policy -> /privacy-policy
+Terms -> /terms
+Founder -> /founder
+Pricing -> /pricing
+Contact -> /contact
+Get Started -> /get-started
+
+Feature SEO pages
+Features hub -> /features
+Inventory Management -> /features/inventory-management
+Retail POS -> /features/retail-pos
+Accounting -> /features/accounting
+HR & Payroll -> /features/hr-payroll
+Purchase Management -> /features/purchase-management
+Due Collection -> /features/due-collection
+DSR Dealer Management -> /features/dsr-dealer-management
+Installment Sales -> /features/installment-sales
+Reporting -> /features/reporting
+Repair & Warranty -> /features/repair-warranty
+
+Solution SEO pages
+Solutions hub -> /solutions
+Retail Shop -> /solutions/retail-shop
+Wholesale Business -> /solutions/wholesale-business
+Dealer Distributor -> /solutions/dealer-distributor
+DSR Sales Team -> /solutions/dsr-sales-team
+Pharmacy -> /solutions/pharmacy
+Grocery Store -> /solutions/grocery-store
+
+Software SEO pages
+Software hub -> /software
+Business Management Software Bangladesh -> /software/business-management-software-bangladesh
+HR Payroll Software Bangladesh -> /software/hr-payroll-software-bangladesh
+Inventory Software Bangladesh -> /software/inventory-software-bangladesh
+DSR Management Software Bangladesh -> /software/dsr-management-software-bangladesh
+Dealer Management Software Bangladesh -> /software/dealer-management-software-bangladesh
+Retail POS Software Bangladesh -> /software/retail-pos-software-bangladesh
+Accounting Software Bangladesh -> /software/accounting-software-bangladesh
+Business Reporting Software Bangladesh -> /software/business-reporting-software-bangladesh
+Pharmacy Management Software Bangladesh -> /software/pharmacy-management-software-bangladesh
+Wholesale Software Bangladesh -> /software/wholesale-software-bangladesh
+Shop Management Software Bangladesh -> /software/shop-management-software-bangladesh
+Grocery Store Software Bangladesh -> /software/grocery-store-software-bangladesh
+
+Summary
+Public/SEO routes: 38
+Auth routes: 2
+Total pre-login accessible routes: 40

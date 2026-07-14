@@ -166,7 +166,7 @@ export default function CashSessionsPage() {
                       <div className="mt-1"><CopyableText value={session.id} copyLabel="session ID" displayValue={session.id.slice(0, 10)} textClassName="text-xs font-medium text-slate-500" buttonClassName="h-5 w-5" /></div>
                       {session.openedByName ? <div className="text-xs text-slate-500">{session.openedByName}</div> : null}
                     </td>
-                    <td className="hidden table-cell sm:table-cell text-slate-600">
+                    <td className="table-cell text-slate-600">
                       {session.closedAt ? (
                         <>
                           <div>{formatDateTime(session.closedAt)}</div>
@@ -176,14 +176,14 @@ export default function CashSessionsPage() {
                         <span className="text-slate-400">—</span>
                       )}
                     </td>
-                    <td className="hidden table-cell md:table-cell text-slate-600">{session.openedByName || '—'}</td>
+                    <td className="table-cell text-slate-600">{session.openedByName || '—'}</td>
                     <td className="table-cell text-right font-medium">{formatCurrency(session.openingCash)}</td>
-                    <td className="hidden table-cell text-right lg:table-cell">
+                    <td className="table-cell text-right">
                       <div className="font-medium">{formatCurrency(session.cashSalesAmount)}</div>
                       <div className="text-xs text-slate-500">{formatNumber(session.cashSalesCount)} {t('cashSessions.salesCountLabel')}</div>
                     </td>
-                    <td className="hidden table-cell text-right lg:table-cell font-medium">{formatCurrency(session.expectedCash)}</td>
-                    <td className="hidden table-cell text-right xl:table-cell font-medium">
+                    <td className="table-cell text-right font-medium">{formatCurrency(session.expectedCash)}</td>
+                    <td className="table-cell text-right font-medium">
                       {session.countedCash !== null && session.countedCash !== undefined
                         ? formatCurrency(session.countedCash)
                         : <span className="text-slate-400">—</span>}

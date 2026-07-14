@@ -185,10 +185,10 @@ export default function DamageClearHistoryPanel({ products, refreshKey = 0, flus
                   <td className="table-cell text-right font-semibold text-emerald-700">
                     {formatNumber(record.quantityIn || record.quantityOut || 0)}
                   </td>
-                  <td className="hidden table-cell md:table-cell">
+                  <td className="table-cell">
                     <p className="max-w-56 truncate text-sm text-slate-600">{record.note || '-'}</p>
                   </td>
-                  <td className="hidden table-cell lg:table-cell">
+                  <td className="table-cell">
                     <p className="font-semibold text-slate-950">{record.createdByName || '-'}</p>
                     <p className="text-xs text-slate-500">{record.createdByRole || ''}</p>
                   </td>

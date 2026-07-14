@@ -169,9 +169,9 @@ export default function ActivityLogsPage() {
                 <th className="px-4 py-3">{t('activityLogs.user')}</th>
                 <th className="px-4 py-3">{t('activityLogs.action')}</th>
                 <th className="px-4 py-3">{t('activityLogs.entity')}</th>
-                <th className="px-4 py-3 hidden sm:table-cell">{t('activityLogs.descriptionColumn')}</th>
-                <th className="px-4 py-3 hidden lg:table-cell">{t('activityLogs.changes')}</th>
-                <th className="px-4 py-3 hidden lg:table-cell">{t('activityLogs.reason')}</th>
+                <th className="px-4 py-3">{t('activityLogs.descriptionColumn')}</th>
+                <th className="px-4 py-3">{t('activityLogs.changes')}</th>
+                <th className="px-4 py-3">{t('activityLogs.reason')}</th>
               </tr>
             </thead>
             {vm.loading ? null : (
@@ -191,10 +191,10 @@ export default function ActivityLogsPage() {
                       <p className="font-semibold text-slate-950">{log.entityType}</p>
                       <p className="hidden text-xs text-slate-500 sm:block">{log.entityId || '-'}</p>
                     </td>
-                    <td className="table-cell hidden sm:table-cell max-w-[28rem]">
+                    <td className="table-cell max-w-[28rem]">
                       <p className="truncate">{log.description}</p>
                     </td>
-                    <td className="table-cell hidden lg:table-cell max-w-[18rem]">
+                    <td className="table-cell max-w-[18rem]">
                       {Object.keys(log.afterData || {}).length ? (
                         <ul className="space-y-1">
                           {Object.keys(log.afterData).map((field) => (
@@ -207,7 +207,7 @@ export default function ActivityLogsPage() {
                         <span className="text-xs text-slate-400">-</span>
                       )}
                     </td>
-                    <td className="table-cell hidden lg:table-cell max-w-[14rem]">
+                    <td className="table-cell max-w-[14rem]">
                       <p className="truncate text-xs text-slate-500">{log.reason || '-'}</p>
                     </td>
                   </tr>

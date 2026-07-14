@@ -207,10 +207,10 @@ export default function FinanceAccountsPage() {
                       {transaction.debit > 0 ? `+${formatCurrency(transaction.debit)}` : `-${formatCurrency(transaction.credit)}`}
                     </td>
                     <td className="table-cell text-right font-semibold">{formatCurrency(transaction.balanceAfter)}</td>
-                    <td className="hidden table-cell lg:table-cell max-w-64">
+                    <td className="table-cell max-w-64">
                       <p className="truncate">{transaction.note || '-'}</p>
                     </td>
-                    <td className="hidden table-cell md:table-cell">{transaction.createdByName || '-'}</td>
+                    <td className="table-cell">{transaction.createdByName || '-'}</td>
                     {canManage ? (
                       <td className="table-cell no-print">
                         <div className="row-actions flex justify-end gap-2">

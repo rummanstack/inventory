@@ -3,7 +3,7 @@ import { ArrowUp, Facebook, Instagram, Linkedin, Mail, MapPin, MessageCircle, Ph
 import { contactEmail, contactPhone, socialLinks, whatsappUrl } from '../constants.js';
 import { stockLedgerLogoIcon } from '../../../assets/brandAssets.js';
 
-// Placeholder '#' entries in constants.js are filtered out â€” icons appear
+// Placeholder '#' entries in constants.js are filtered out - icons appear
 // automatically once real profile URLs are filled in.
 const SOCIAL_LINKS = [
   { key: 'facebook', href: socialLinks.facebook, Icon: Facebook },

@@ -1,0 +1,145 @@
+StockLedger SEO Next Steps
+=========================
+
+Goal
+----
+Make StockLedger easier to discover for searches related to inventory, POS, accounting, HR, payroll, DSR, dealer management, pharmacy management, grocery store management, wholesale business software, and business software in Bangladesh.
+
+1. Prerender Public Pages
+-------------------------
+Current public pages are React client-rendered. Google can render React, but prerendered HTML is stronger for SEO.
+
+Prerender these pages:
+- /landing
+- /features
+- /features/inventory-management
+- /features/retail-pos
+- /features/accounting
+- /features/hr-payroll
+- /features/purchase-management
+- /features/due-collection
+- /features/dsr-dealer-management
+- /features/installment-sales
+- /features/reporting
+- /features/repair-warranty
+- /solutions
+- /solutions/retail-shop
+- /solutions/wholesale-business
+- /solutions/dealer-distributor
+- /solutions/dsr-sales-team
+- /solutions/pharmacy
+- /solutions/grocery-store
+- /pricing
+- /contact
+- /get-started
+- /founder
+- /privacy-policy
+- /terms
+
+2. Replace Generic Images With Real Product Screenshots
+-------------------------------------------------------
+Feature pages should show real StockLedger product screens. Users and Google both trust real product evidence more than generic visuals.
+
+Use real screenshots for:
+- Accounting: ledger, trial balance, P&L, balance sheet
+- POS: quick sale, invoice, receipt
+- Inventory: products, stock movement, low-stock alerts
+- DSR: morning issue, evening settlement, shop due ledger
+- HR & Payroll: employees, attendance, leave, payroll
+- Installment Sales: plan detail, schedule, overdue report
+- Purchases: purchase receive, supplier statement
+- Reporting: dashboard, profit report, daily sales report
+
+Keep lifestyle/business images mainly for solution pages.
+
+3. Write Stronger Long-Form Page Copy
+-------------------------------------
+Each important SEO page should have:
+- One clear H1
+- 800-1500 words of useful content
+- Real screenshots
+- 5-8 FAQs
+- Internal links to related pages
+- One clear CTA
+
+Priority pages to expand first:
+- /features/accounting
+- /features/retail-pos
+- /features/inventory-management
+- /features/dsr-dealer-management
+- /solutions/dealer-distributor
+- /solutions/retail-shop
+- /solutions/pharmacy
+
+4. Add More High-Intent SEO Pages
+---------------------------------
+Create pages for keywords people are likely to search:
+- /business-software-bangladesh
+- /inventory-software-bangladesh
+- /accounting-software-bangladesh
+- /pos-software-bangladesh
+- /dealer-management-software-bangladesh
+- /pharmacy-management-software-bangladesh
+- /compare/stockledger-vs-excel
+- /compare/stockledger-vs-traditional-pos
+
+5. Add More Schema Markup
+-------------------------
+Current schema is a good start. Add:
+- FAQPage schema for FAQ sections
+- BreadcrumbList schema
+- SoftwareApplication schema with pricing details
+- Organization schema with social links
+- LocalBusiness schema if StockLedger has a public business location/profile
+
+6. Improve Core Web Vitals
+--------------------------
+Many current images are large PNG files. Large images can hurt rankings and conversions.
+
+Targets:
+- Hero images under 250 KB
+- Screenshots under 300-500 KB
+- Convert heavy PNGs to WebP or AVIF
+- Lazy-load below-fold images
+- Preload only the main hero image
+- Keep mobile layout fast and stable
+
+7. Set Up Google Search Console
+-------------------------------
+After deployment:
+- Submit https://stockledger.pro/sitemap.xml
+- Request indexing for the most important pages
+- Monitor indexed pages weekly
+- Watch queries with impressions but low CTR
+- Improve titles/descriptions for low CTR pages
+
+Priority URLs to request indexing:
+- /landing
+- /features/accounting
+- /features/retail-pos
+- /features/inventory-management
+- /features/dsr-dealer-management
+- /solutions/dealer-distributor
+- /solutions/retail-shop
+- /pricing
+- /get-started
+
+8. Build Authority and Trust
+----------------------------
+Code alone cannot guarantee top rankings. StockLedger also needs trust signals.
+
+Add:
+- Real customer testimonials
+- Real business screenshots
+- Case studies from shops, dealers, pharmacies, and wholesalers
+- Google Business Profile
+- Social profiles linked from footer
+- Local business directory listings
+- Backlinks from Bangladeshi SME/business websites
+- Blog posts about inventory, accounting, POS, DSR, and retail operations
+
+Best Next Technical Task
+------------------------
+Implement prerendering, FAQ schema, Breadcrumb schema, and an image optimization pipeline.
+
+This is the strongest next technical SEO upgrade after the current foundation.

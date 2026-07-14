@@ -4557,7 +4557,7 @@ const en = {
       },
       footer: {
         tagline: 'Simple Business Software for Shops, Dealers & Wholesalers',
-        description: 'Manage stock, sales, due, purchases, settlement and profit — all in one place.',
+        description: 'Manage stock, sales, due, purchases, settlement and profit - all in one place.',
         quickLinks: 'Quick Links',
         product: 'Product',
         company: 'Company',
@@ -4565,7 +4565,7 @@ const en = {
         contactLabel: 'Contact',
         whatsapp: 'Book Demo',
         backToTop: 'Back to top',
-        copyright: 'Copyright © 2026 StockLedger. All rights reserved.',
+        copyright: 'Copyright (c) 2026 StockLedger. All rights reserved.',
       },
       images: {
         heroDashboard: 'StockLedger dashboard screenshot showing sales, stock, due and profit reports',

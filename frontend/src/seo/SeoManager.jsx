@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { buildMetadata } from './metadata';
+import { buildStructuredData } from './schema';
 
 function upsertMetaByName(name, content) {
   let element = document.head.querySelector(`meta[name="${name}"]`);
@@ -36,8 +37,7 @@ function upsertLink(rel, href, attributes = {}) {
   });
 }
 
-
-function upsertJsonLd(metadata) {
+function upsertJsonLd(jsonLd) {
   const id = 'stockledger-json-ld';
   let element = document.getElementById(id);
   if (!element) {
@@ -47,53 +47,10 @@ function upsertJsonLd(metadata) {
     document.head.appendChild(element);
   }
 
-  const jsonLd = {
-    '@context': 'https://schema.org',
-    '@graph': [
-      {
-        '@type': 'Organization',
-        '@id': `${metadata.canonicalUrl}#organization`,
-        name: metadata.siteName,
-        url: 'https://stockledger.pro',
-        logo: 'https://stockledger.pro/stockledger-icon-512x512.png',
-      },
-      {
-        '@type': 'SoftwareApplication',
-        '@id': `${metadata.canonicalUrl}#software`,
-        name: metadata.siteName,
-        applicationCategory: 'BusinessApplication',
-        operatingSystem: 'Web',
-        url: metadata.canonicalUrl,
-        image: metadata.imageUrl,
-        description: metadata.description,
-        offers: {
-          '@type': 'Offer',
-          priceCurrency: 'BDT',
-          availability: 'https://schema.org/InStock',
-        },
-      },
-      {
-        '@type': 'WebPage',
-        '@id': `${metadata.canonicalUrl}#webpage`,
-        url: metadata.canonicalUrl,
-        name: metadata.title,
-        description: metadata.description,
-        isPartOf: {
-          '@type': 'WebSite',
-          name: metadata.siteName,
-          url: 'https://stockledger.pro',
-        },
-        primaryImageOfPage: {
-          '@type': 'ImageObject',
-          url: metadata.imageUrl,
-        },
-      },
-    ],
-  };
-
   element.textContent = JSON.stringify(jsonLd);
 }
-export function applyMetadata(metadata) {
+
+export function applyMetadata(metadata, pathname) {
   document.documentElement.setAttribute('lang', metadata.language);
   document.title = metadata.title;
 
@@ -122,14 +79,14 @@ export function applyMetadata(metadata) {
   upsertMetaByProperty('og:image:height', metadata.imageHeight);
 
   upsertLink('canonical', metadata.canonicalUrl);
-  upsertJsonLd(metadata);
+  upsertJsonLd(buildStructuredData(pathname, metadata));
 }
 
 export default function SeoManager() {
   const location = useLocation();
 
   useEffect(() => {
-    applyMetadata(buildMetadata(location.pathname));
+    applyMetadata(buildMetadata(location.pathname), location.pathname);
   }, [location.pathname]);
 
   return null;

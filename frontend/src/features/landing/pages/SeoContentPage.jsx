@@ -201,8 +201,8 @@ function DetailPage({ type }) {
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--brand-soft)] text-[var(--brand-strong)]">
                 <Icon size={24} />
               </div>
-              <h2 className="mt-5 text-2xl font-black text-slate-950">Why this matters</h2>
-              <p className="mt-3 text-sm font-medium leading-6 text-slate-600">Focused pages help business owners find the exact StockLedger workflow they need, while the product still stays connected behind the scenes.</p>
+              <h2 className="mt-5 text-2xl font-black text-slate-950">Best fit for</h2>
+              <p className="mt-3 text-sm font-medium leading-6 text-slate-600">{page.fit || 'Businesses that want this workflow connected with sales, stock, due, finance, accounting, reports, permissions, and daily team activity.'}</p>
               <div className="mt-5 space-y-3">
                 {page.keywords.map((keyword) => (
                   <p key={keyword} className="flex items-center gap-3 text-sm font-bold text-slate-700">
@@ -247,7 +247,7 @@ function DetailPage({ type }) {
             <div className="max-w-2xl">
               <p className="landing-eyebrow">Explore more</p>
               <h2 className="landing-section-title">Related {isFeature ? 'features' : 'solutions'}</h2>
-              <p className="landing-section-text">StockLedger ranks better and serves users better when each page answers one clear need.</p>
+              <p className="landing-section-text">Most businesses use several StockLedger workflows together. These related pages show how the pieces connect.</p>
             </div>
             <Link to={isFeature ? '/features' : '/solutions'} className="inline-flex items-center gap-2 text-sm font-black text-[var(--brand)] transition hover:gap-3">
               View all

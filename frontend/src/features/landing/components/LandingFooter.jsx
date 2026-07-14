@@ -75,7 +75,7 @@ export default function LandingFooter({ t }) {
             <FooterHeading>{t('landing.footer.company')}</FooterHeading>
             <Link to="/founder" className={footerLinkClass}>{t('landing.footer.aboutFounder')}</Link>
             <Link to="/contact" className={footerLinkClass}>{t('landing.nav.contact')}</Link>
-            <Link to="/contact" className={footerLinkClass}>{t('landing.nav.getStarted')}</Link>
+            <Link to="/get-started" className={footerLinkClass}>{t('landing.nav.getStarted')}</Link>
             <Link to="/login" className={footerLinkClass}>{t('landing.login')}</Link>
           </nav>
 

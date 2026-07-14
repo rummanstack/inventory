@@ -46,7 +46,7 @@ export const navLinks = [
   { key: 'features', href: '/features' },
   { key: 'solutions', href: '/solutions' },
   { key: 'workflow', href: '/landing#workflow' },
-  { key: 'getStarted', href: '/contact' },
+  { key: 'getStarted', href: '/get-started' },
   { key: 'pricing', href: '/pricing' },
   { key: 'contact', href: '/contact' },
 ];

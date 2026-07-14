@@ -179,7 +179,12 @@ export const SEO_PAGE_METADATA = {
     canonicalPath: '/pricing',
     robots: 'index,follow,max-image-preview:large',
   },
-  '/contact': {
+  '/get-started': {
+    title: 'Get Started',
+    description: 'Start StockLedger with the right setup for your business workflows, modules, users, opening data, training, and onboarding path.',
+    canonicalPath: '/get-started',
+    robots: 'index,follow,max-image-preview:large',
+  },  '/contact': {
     title: 'Contact StockLedger',
     description: 'Book a StockLedger demo or ask about setup, pricing, modules, users, branches, training, and the right configuration for your business.',
     canonicalPath: '/contact',

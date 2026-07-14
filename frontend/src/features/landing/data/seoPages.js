@@ -12,6 +12,8 @@ import {
   reportsVisibilityImage,
   retailCounterImage,
   supportCallImage,
+  ownerLaptopImage,
+  eveningSettlementImage,
   tradersImage,
   warehouseStockImage,
 } from './seoPageImages';
@@ -205,57 +207,116 @@ export const solutionPages = [
     title: 'Business Software for Retail Shops in Bangladesh',
     eyebrow: 'Retail Shops',
     description: 'Run sales, receipts, stock, customer dues, purchases, expenses, reports, and profit from one system built for everyday shop operations.',
+    fit: 'Retail shops that need faster billing, cleaner stock records, customer due tracking, purchase visibility, and daily profit clarity without running separate tools.',
     image: retailCounterImage,
     imageAlt: 'Retail shop counter using StockLedger',
     keywords: ['Retail POS', 'Customer due', 'Stock', 'Profit'],
+    sections: [
+      { title: 'Counter sales stay connected to the business', body: 'Quick sale, invoices, receipts, sales returns, customer due, cash sessions, and daily sales reports work together so the counter does not become disconnected from stock and finance.' },
+      { title: 'Owners can see daily movement clearly', body: 'A retail owner can review sales, stock, customer balances, expenses, profit, and activity without waiting for handwritten summaries at closing time.' },
+      { title: 'Start small and expand later', body: 'A shop can begin with POS, stock, customers, purchases, and reports, then add accounting, HR, repair, warranty, or installment workflows as operations grow.' },
+    ],
+    faqs: [
+      ['Is this only for large shops?', 'No. Small retail shops can start with core billing, stock, customer due, purchase, and daily report workflows.'],
+      ['Can I use it for both cash and due sales?', 'Yes. StockLedger supports normal sales, due balances, collections, and customer statements.'],
+    ],
   },
   {
     slug: 'wholesale-business',
     title: 'Wholesale Business Management Software',
     eyebrow: 'Wholesale Business',
     description: 'Manage bulk sales, supplier purchases, customer balances, stock, due collection, finance, and reports for wholesale trading businesses.',
+    fit: 'Wholesalers that need invoice control, customer and supplier balances, stock movement, purchase records, collections, and profit visibility from one workspace.',
     image: tradersImage,
     imageAlt: 'Wholesale trader business workflow',
     keywords: ['Wholesale invoices', 'Supplier purchase', 'Customer balances', 'Reports'],
+    sections: [
+      { title: 'Wholesale records need more than billing', body: 'StockLedger keeps products, invoices, supplier purchases, customer dues, supplier payments, returns, expenses, and reports connected so the owner can understand both sales volume and money movement.' },
+      { title: 'Customer and supplier balances stay visible', body: 'Wholesale businesses often carry both receivable and payable balances. StockLedger gives teams structured customer and supplier history instead of scattered notebooks.' },
+      { title: 'Reports help with buying decisions', body: 'Sales, stock, purchase, and profit reports help owners understand which products move quickly, which customers owe money, and where cash is tied up.' },
+    ],
+    faqs: [
+      ['Can I manage supplier purchases?', 'Yes. Purchase receive, purchase returns, supplier payments, discounts, and supplier statements are supported.'],
+      ['Can I track customer balances?', 'Yes. Customer dues, payments, and statements can be tracked from transaction records.'],
+    ],
   },
   {
     slug: 'dealer-distributor',
     title: 'Dealer and Distributor Management Software',
     eyebrow: 'Dealers & Distributors',
     description: 'Control route teams, DSR issue and settlement, shop dues, supplier purchases, stock, collections, and accounting from one platform.',
+    fit: 'Dealer and distributor businesses that issue stock to field teams, collect cash and returns, manage shop dues, and need evening settlement clarity.',
     image: dealerImage,
     imageAlt: 'Dealer and distributor operations workflow',
     keywords: ['Dealer management', 'Distributor software', 'DSR settlement', 'Shop dues'],
+    sections: [
+      { title: 'Built around field distribution flow', body: 'StockLedger supports shops, SR and DSR records, morning issue, evening settlement, returns, cash collection, route activity, and shop due ledgers.' },
+      { title: 'Settlement becomes a controlled process', body: 'Managers can compare issued stock, sales, returns, cash, and due balances from structured records instead of chasing phone calls and paper notes.' },
+      { title: 'Distribution connects with finance', body: 'Supplier purchases, customer or shop dues, collections, expenses, cash, bank, profit reports, and accounting statements can be reviewed from the same platform.' },
+    ],
+    faqs: [
+      ['Can I manage DSR morning issue?', 'Yes. Morning issue and evening settlement workflows are built for route and distribution teams.'],
+      ['Can I see shop due balances?', 'Yes. Shop due and SR due ledger workflows are available.'],
+    ],
   },
   {
     slug: 'dsr-sales-team',
     title: 'DSR Sales Team Management Software',
     eyebrow: 'DSR Sales Teams',
     description: 'Track sales reps, morning issue, route activity, cash collection, returns, evening settlement, and due ledgers with clear accountability.',
+    fit: 'Field sales teams that need accountability for issued stock, sold stock, returned stock, cash collection, shop dues, and daily settlement.',
     image: dsrRouteImage,
     imageAlt: 'DSR sales team route workflow',
     keywords: ['DSR tracking', 'Morning issue', 'Evening settlement', 'Route collection'],
+    sections: [
+      { title: 'Every DSR day has a clear start and close', body: 'Issue stock in the morning, record sales and collections during the day, then settle cash, returns, dues, and remaining stock in the evening.' },
+      { title: 'Less dependency on memory and calls', body: 'The system keeps DSR activity, shop relationships, collections, returns, and due ledgers structured so managers can review what happened.' },
+      { title: 'Useful for sales and collection teams', body: 'Businesses that sell through reps, vans, routes, or shop visits can use StockLedger to reduce confusion between stock, cash, and due balances.' },
+    ],
+    faqs: [
+      ['Can I track each sales rep separately?', 'Yes. SR and DSR records can be managed separately with route-related workflows.'],
+      ['Does this help with collections?', 'Yes. Cash collection, due collection, and ledger visibility are part of the distribution workflow.'],
+    ],
   },
   {
     slug: 'pharmacy',
     title: 'Pharmacy Management Software for Sales, Stock, Purchases, and Accounts',
     eyebrow: 'Pharmacies',
     description: 'Manage medicine stock, purchases, customer sales, supplier records, dues, expenses, and reports for pharmacy and medical retail businesses.',
+    fit: 'Pharmacies that need product stock control, purchase records, supplier balances, sales, customer dues, expenses, and accounting visibility.',
     image: pharmacyImage,
     imageAlt: 'Pharmacy business workflow',
     keywords: ['Medicine stock', 'Pharmacy sales', 'Supplier purchase', 'Accounts'],
+    sections: [
+      { title: 'Medicine stock needs clean records', body: 'StockLedger helps pharmacies manage products, purchases, sales, stock checks, customer dues, supplier records, and daily reports in one place.' },
+      { title: 'Purchases and suppliers stay traceable', body: 'Supplier purchase, supplier payment, supplier discount, and statement workflows help pharmacy owners reduce disputes and understand payable balances.' },
+      { title: 'Finance visibility for daily operations', body: 'Sales, purchases, dues, expenses, profit, cash, bank, and accounting reports help owners see what is happening beyond the counter.' },
+    ],
+    faqs: [
+      ['Can I manage supplier purchases for medicines?', 'Yes. Purchase and supplier workflows are available.'],
+      ['Can I track daily sales and due?', 'Yes. Sales, due collection, and daily reporting workflows are supported.'],
+    ],
   },
   {
     slug: 'grocery-store',
     title: 'Grocery Store Management Software',
     eyebrow: 'Grocery Stores',
     description: 'Run fast billing, product stock, customer dues, supplier purchases, cash sessions, expenses, and daily profit reports for grocery stores.',
+    fit: 'Grocery and general stores that need simple billing, fast stock checks, purchase records, customer due tracking, and daily closing visibility.',
     image: groceryImage,
     imageAlt: 'Grocery store management workflow',
     keywords: ['Grocery POS', 'Stock control', 'Customer due', 'Daily profit'],
+    sections: [
+      { title: 'Simple daily workflows matter most', body: 'Grocery stores need fast sales, clear stock, purchase history, customer due, expenses, and daily cash visibility. StockLedger keeps those records connected.' },
+      { title: 'Reduce end-of-day confusion', body: 'Cash sessions, reports, sales records, and due collections help owners compare what was sold with what money came in.' },
+      { title: 'Grow from shop system to full business control', body: 'Start with POS, stock, purchase, and due. Add finance, accounting, payroll, user permissions, and reports as the business grows.' },
+    ],
+    faqs: [
+      ['Is this too complex for a grocery store?', 'No. A grocery store can start with simple sales, stock, purchase, due, and daily report workflows.'],
+      ['Can I track supplier purchases?', 'Yes. Purchase receive and supplier payment records are supported.'],
+    ],
   },
 ];
-
 export function getFeaturePage(slug) {
   return featurePages.find((page) => page.slug === slug);
 }

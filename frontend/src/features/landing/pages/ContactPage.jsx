@@ -5,7 +5,6 @@ import LandingHeader from '../components/LandingHeader.jsx';
 import LandingFooter from '../components/LandingFooter.jsx';
 import LandingChatWidget from '../components/LandingChatWidget.jsx';
 import ContactSection from '../components/ContactSection.jsx';
-import CtaSection from '../components/CtaSection.jsx';
 
 export default function ContactPage() {
   const { language, setLanguage, t } = useLanguage();
@@ -34,7 +33,7 @@ export default function ContactPage() {
         </div>
       </section>
       <ContactSection t={t} />
-      <CtaSection t={t} />
+
       <LandingFooter t={t} />
       <LandingChatWidget t={t} />
     </main>

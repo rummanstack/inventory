@@ -17,6 +17,7 @@ const TermsPage = lazy(() => import('../features/landing/pages/TermsPage'));
 const FounderPage = lazy(() => import('../features/landing/pages/FounderPage'));
 const PricingPage = lazy(() => import('../features/landing/pages/PricingPage'));
 const ContactPage = lazy(() => import('../features/landing/pages/ContactPage'));
+const GetStartedPage = lazy(() => import('../features/landing/pages/GetStartedPage'));
 const FeatureHubPage = lazy(() => import('../features/landing/pages/SeoContentPage.jsx').then((module) => ({ default: module.FeatureHubPage })));
 const FeatureDetailPage = lazy(() => import('../features/landing/pages/SeoContentPage.jsx').then((module) => ({ default: module.FeatureDetailPage })));
 const SolutionHubPage = lazy(() => import('../features/landing/pages/SeoContentPage.jsx').then((module) => ({ default: module.SolutionHubPage })));
@@ -157,7 +158,7 @@ function AppRoutes() {
       <Route path="/solutions" element={<SolutionHubPage />} />
       <Route path="/solutions/:slug" element={<SolutionDetailPage />} />
       <Route path="/pricing" element={<PricingPage />} />
-      <Route path="/contact" element={<ContactPage />} />
+      <Route path="/contact" element={<ContactPage />} />`r`n      <Route path="/get-started" element={<GetStartedPage />} />
       <Route path="/login" element={<PublicOnlyRoute><LoginPage /></PublicOnlyRoute>} />
       <Route path="/register" element={<PublicOnlyRoute><RegisterPage /></PublicOnlyRoute>} />
       <Route element={<ProtectedLayout />}>

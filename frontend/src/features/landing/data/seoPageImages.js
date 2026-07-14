@@ -13,3 +13,6 @@ export { default as retailCounterImage } from '../../../assets/landing/retail-co
 export { default as supportCallImage } from '../../../assets/landing/support-call.png';
 export { default as tradersImage } from '../../../assets/landing/traders.png';
 export { default as warehouseStockImage } from '../../../assets/landing/warehouse-stock.png';
+
+export { default as ownerLaptopImage } from '../../../assets/landing/owner-laptop.png';
+export { default as eveningSettlementImage } from '../../../assets/landing/evening-settlement.png';

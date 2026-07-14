@@ -41,7 +41,7 @@
       (function () {
         // Landing/legal routes are light-only; pre-marking them here keeps
         // the stored dark theme from flashing in before React mounts.
-        var lightOnly = ['/landing', '/terms', '/privacy-policy', '/founder', '/pricing', '/contact'];
+        var lightOnly = ['/landing', '/terms', '/privacy-policy', '/founder', '/pricing', '/contact', '/get-started'];
         var lightPrefixes = ['/features', '/solutions'];
         var isLightPage = lightOnly.indexOf(location.pathname) !== -1 || lightPrefixes.some(function (prefix) {
           return location.pathname === prefix || location.pathname.indexOf(prefix + '/') === 0;

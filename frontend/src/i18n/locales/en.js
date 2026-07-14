@@ -3631,10 +3631,10 @@ const en = {
     },
     landing: {
       nav: {
-        features: 'Platform',
-        solutions: 'Accounting',
+        features: 'Features',
+        solutions: 'Solutions',
         workflow: 'Workflow',
-        getStarted: 'Start',
+        getStarted: 'Get Started',
         pricing: 'Pricing',
         contact: 'Contact',
       },

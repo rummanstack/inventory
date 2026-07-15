@@ -19,7 +19,7 @@ import {
 import { useLanguage } from '../../../app/hooks/useLanguage';
 import LandingHeader from '../components/LandingHeader.jsx';
 import LandingFooter from '../components/LandingFooter.jsx';
-import DeferredLandingChatWidget from '../components/DeferredLandingChatWidget.jsx';
+import DeferredLandingAiChatWidget from '../components/DeferredLandingAiChatWidget.jsx';
 import { contactPhone, whatsappUrl } from '../constants.js';
 import { stockLedgerLogoIcon } from '../../../assets/brandAssets.js';
 import founderPhoto from '../../../assets/landing/business-owner.png';
@@ -368,7 +368,7 @@ export default function FounderPage() {
       </section>
 
       <LandingFooter t={t} />
-      <DeferredLandingChatWidget t={t} />
+      <DeferredLandingAiChatWidget t={t} />
     </main>
   );
 }

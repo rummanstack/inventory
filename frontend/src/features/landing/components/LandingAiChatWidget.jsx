@@ -1,28 +1,27 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { MessageCircle, Phone, Send, X } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Send, Sparkles, X } from 'lucide-react';
 import { stockLedgerLogoIcon } from '../../../assets/brandAssets.js';
-import { contactPhone, whatsappUrl } from '../constants.js';
-import { getVisitorToken, setVisitorToken } from '../lib/visitorIdentity.js';
-import { visitorChatApi } from '../../../services/api/visitorChatApi.js';
-import { usePolling } from '../../../hooks/usePolling.js';
-import { formatTime } from '../../../utils/calculations.js';
+import { landingChatApi } from '../../../services/api/landingChatApi.js';
 
 const COMPOSER_MIN_HEIGHT = 44;
 const COMPOSER_MAX_HEIGHT = 120;
 
-function buildWhatsAppLink(message) {
-  const text = message.trim() || 'Hi, I need help with StockLedger.';
-  return `${whatsappUrl}?text=${encodeURIComponent(text)}`;
+function MessageContent({ content }) {
+  return String(content || '').split('\n').map((line, index) => {
+    const trimmed = line.trim();
+    if (!trimmed) return <div key={index} className="h-2" />;
+    return <p key={index}>{trimmed}</p>;
+  });
 }
 
-export default function LandingChatWidget({ t }) {
+export default function LandingAiChatWidget({ t }) {
   const [open, setOpen] = useState(false);
+  const [status, setStatus] = useState(null);
+  const [statusLoaded, setStatusLoaded] = useState(false);
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState([]);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
-  const visitorTokenRef = useRef(getVisitorToken());
-  const afterIdRef = useRef(0);
   const textareaRef = useRef(null);
   const messagesEndRef = useRef(null);
 
@@ -36,53 +35,40 @@ export default function LandingChatWidget({ t }) {
   useEffect(() => {
     if (!open) return;
     messagesEndRef.current?.scrollIntoView({ block: 'end' });
-  }, [open, messages.length]);
+  }, [open, messages.length, sending]);
 
-  const quickReplies = useMemo(
-    () => [
-      t('landing.chat.quickReplies.pricing'),
-      t('landing.chat.quickReplies.setup'),
-    ],
-    [t],
-  );
+  useEffect(() => {
+    if (!open || statusLoaded) return;
+    setStatusLoaded(true);
+    landingChatApi.getLandingChatStatus()
+      .then(setStatus)
+      .catch(() => setStatus({ configured: false }));
+  }, [open, statusLoaded]);
 
-  async function fetchMessages() {
-    const token = visitorTokenRef.current;
-    if (!token) {
-      return;
-    }
+  const quickReplies = [
+    t('landing.chat.quickReplies.pricing'),
+    t('landing.chat.quickReplies.features'),
+    t('landing.chat.quickReplies.setup'),
+    t('landing.chat.quickReplies.demo'),
+  ];
 
-    try {
-      const result = await visitorChatApi.listVisitorMessages({ visitorToken: token, afterId: afterIdRef.current });
-      const incoming = result?.messages || [];
-      if (incoming.length) {
-        setMessages((current) => [...current, ...incoming]);
-        afterIdRef.current = incoming[incoming.length - 1].id;
-      }
-    } catch {
-      // Polling failures shouldn't interrupt the chat UI — it'll just retry on the next tick.
-    }
-  }
+  async function sendMessage(overrideText) {
+    const text = String(overrideText ?? message).trim();
+    if (!text || sending) return;
 
-  usePolling(fetchMessages, 1500, { enabled: open });
-
-  async function sendMessage() {
-    const trimmed = message.trim();
-    if (!trimmed || sending) {
-      return;
-    }
-
+    const userMessage = { id: `user-${Date.now()}`, role: 'user', content: text };
+    const nextMessages = [...messages, userMessage];
+    setMessages(nextMessages);
+    setMessage('');
     setSending(true);
     setError('');
+
     try {
-      const result = await visitorChatApi.sendVisitorMessage({ visitorToken: visitorTokenRef.current, body: trimmed });
-      // Server is the source of truth for the token — persist and use whatever it returns.
-      if (result?.token && result.token !== visitorTokenRef.current) {
-        visitorTokenRef.current = result.token;
-        setVisitorToken(result.token);
-      }
-      setMessage('');
-      await fetchMessages();
+      const result = await landingChatApi.sendLandingChatMessage({
+        message: text,
+        history: nextMessages.slice(-8).map((entry) => ({ role: entry.role, content: entry.content })),
+      });
+      setMessages((current) => [...current, { id: `assistant-${Date.now()}`, role: 'assistant', content: result.answer }]);
     } catch {
       setError(t('landing.chat.sendError'));
     } finally {
@@ -107,12 +93,11 @@ export default function LandingChatWidget({ t }) {
                 <img loading="lazy" decoding="async" src={stockLedgerLogoIcon} alt="" className="h-full w-full object-contain" />
               </span>
               <div>
-                <p className="landing-chat-agent-name">{t('landing.chat.team')}</p>
+                <p className="landing-chat-agent-name">{t('landing.chat.assistantName')}</p>
                 <p className="landing-chat-agent-status">
                   <span className="landing-chat-status-dot" />
-                  {t('landing.chat.statusOnline')}
+                  {status && !status.configured ? t('landing.chat.statusOffline') : t('landing.chat.statusReady')}
                 </p>
-                <p className="landing-chat-reply-time">{t('landing.chat.replyTime')}</p>
               </div>
             </div>
             <button type="button" className="landing-chat-close" onClick={() => setOpen(false)} aria-label={t('landing.chat.close')}>
@@ -123,19 +108,18 @@ export default function LandingChatWidget({ t }) {
           <div className="landing-chat-messages">
             {messages.length ? (
               messages.map((item) => {
-                const isSupport = item.senderRole === 'ADMIN';
+                const isAssistant = item.role === 'assistant';
                 return (
-                  <div key={item.id} className={`flex items-end gap-2 ${isSupport ? '' : 'flex-row-reverse'}`}>
-                    {isSupport ? (
+                  <div key={item.id} className={`flex items-end gap-2 ${isAssistant ? '' : 'flex-row-reverse'}`}>
+                    {isAssistant ? (
                       <span className="landing-chat-avatar">
-                        <img loading="lazy" decoding="async" src={stockLedgerLogoIcon} alt="" className="h-full w-full object-contain" />
+                        <Sparkles size={15} className="text-[var(--brand-strong)]" />
                       </span>
                     ) : null}
                     <div className="flex max-w-[78%] flex-col gap-1">
-                      <div className={`landing-chat-bubble ${isSupport ? 'landing-chat-bubble-support' : 'landing-chat-bubble-visitor'}`}>
-                        {item.body}
+                      <div className={`landing-chat-bubble ${isAssistant ? 'landing-chat-bubble-support' : 'landing-chat-bubble-visitor'}`}>
+                        <MessageContent content={item.content} />
                       </div>
-                      <span className={`landing-chat-timestamp ${isSupport ? '' : 'text-right'}`}>{formatTime(item.createdAt)}</span>
                     </div>
                   </div>
                 );
@@ -143,11 +127,19 @@ export default function LandingChatWidget({ t }) {
             ) : (
               <div className="flex items-start gap-2">
                 <span className="landing-chat-avatar">
-                  <img loading="lazy" decoding="async" src={stockLedgerLogoIcon} alt="" className="h-full w-full object-contain" />
+                  <Sparkles size={15} className="text-[var(--brand-strong)]" />
                 </span>
                 <div className="landing-chat-bubble landing-chat-bubble-support">{t('landing.chat.greeting')}</div>
               </div>
             )}
+            {sending ? (
+              <div className="flex items-start gap-2">
+                <span className="landing-chat-avatar">
+                  <Sparkles size={15} className="text-[var(--brand-strong)]" />
+                </span>
+                <div className="landing-chat-bubble landing-chat-bubble-support">{t('landing.chat.thinking')}</div>
+              </div>
+            ) : null}
             <div ref={messagesEndRef} />
           </div>
 
@@ -156,7 +148,7 @@ export default function LandingChatWidget({ t }) {
               <p className="landing-chat-quickreplies-label">{t('landing.chat.quickRepliesLabel')}</p>
               <div className="flex flex-wrap gap-2">
                 {quickReplies.map((reply) => (
-                  <button key={reply} type="button" className="landing-chat-chip" onClick={() => setMessage(reply)}>
+                  <button key={reply} type="button" className="landing-chat-chip" onClick={() => sendMessage(reply)} disabled={sending}>
                     {reply}
                   </button>
                 ))}
@@ -165,6 +157,7 @@ export default function LandingChatWidget({ t }) {
           ) : null}
 
           {error ? <p className="px-4 pb-1 text-xs font-semibold text-rose-600">{error}</p> : null}
+          {status && !status.configured ? <p className="px-4 pb-1 text-xs font-semibold text-amber-600">{t('landing.chat.notConfigured')}</p> : null}
 
           <div className="landing-chat-composer">
             <textarea
@@ -175,22 +168,11 @@ export default function LandingChatWidget({ t }) {
               onKeyDown={handleComposerKeyDown}
               placeholder={t('landing.chat.placeholder')}
               className="landing-chat-input"
+              disabled={sending}
             />
-            <button type="button" className="landing-chat-send-btn" onClick={sendMessage} disabled={sending || !message.trim()} aria-label={t('landing.chat.sendMessage')}>
+            <button type="button" className="landing-chat-send-btn" onClick={() => sendMessage()} disabled={sending || !message.trim()} aria-label={t('landing.chat.sendMessage')}>
               <Send size={17} />
             </button>
-          </div>
-
-          <div className="landing-chat-fallback">
-            <a href={buildWhatsAppLink(message)} target="_blank" rel="noreferrer" className="landing-chat-fallback-link">
-              <MessageCircle size={13} />
-              {t('landing.chat.openWhatsApp')}
-            </a>
-            <span className="h-3 w-px bg-slate-200" />
-            <a href={`tel:${contactPhone}`} className="landing-chat-fallback-link">
-              <Phone size={13} />
-              {t('landing.chat.callUs')}
-            </a>
           </div>
         </div>
       ) : null}
@@ -205,7 +187,7 @@ export default function LandingChatWidget({ t }) {
           <X size={18} />
         ) : (
           <>
-            <MessageCircle size={18} />
+            <Sparkles size={18} />
             <span className="hidden sm:inline">{t('landing.chat.launch')}</span>
           </>
         )}

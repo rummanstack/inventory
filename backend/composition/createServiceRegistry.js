@@ -34,6 +34,7 @@ import { HelpDeskService } from "../services/helpDeskService.js";
 import { InstallmentPlanService } from "../services/installmentPlanService.js";
 import { InvariantService } from "../services/invariantService.js";
 import { IssueService } from "../services/issueService.js";
+import { LandingChatService } from "../services/landingChatService.js";
 import { ManufacturerService } from "../services/manufacturerService.js";
 import { NotificationService } from "../services/notificationService.js";
 import { PermissionService } from "../services/permissionService.js";
@@ -317,6 +318,7 @@ export function createServiceRegistry({ databaseManager, env }) {
 
   const ai = {
     aiInsightService: new AiInsightService(databaseManager, { provider: aiProvider, env }),
+    landingChatService: new LandingChatService({ provider: aiProvider }),
   };
 
   return {

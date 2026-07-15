@@ -54,6 +54,7 @@ import { createSalesReturnsRoutes } from "./salesReturns.routes.js";
 import { createContactRoutes } from "./contact.routes.js";
 import { createPublicRegistrationRoutes, createPlatformRegistrationsRoutes } from "./registration.routes.js";
 import { createVisitorChatRoutes } from "./visitorChat.routes.js";
+import { createLandingChatRoutes } from "./landingChat.routes.js";
 import { createVisitorChatAdminRoutes } from "./visitorChatAdmin.routes.js";
 import { createContactMessagesRoutes } from "./contactMessages.routes.js";
 import { createFinanceAccountsRoutes } from "./financeAccounts.routes.js";
@@ -81,7 +82,7 @@ export function createApiRouter({ controllers, authService, env, auditService })
   const router = Router();
   const {
     ai: { aiInsightController },
-    public: { authController, contactMessageController, registrationController, visitorChatController },
+    public: { authController, contactMessageController, landingChatController, registrationController, visitorChatController },
     platform: { backupController, systemController, tenantController, visitorChatAdminController },
     tenant: {
       activityLogController,
@@ -155,6 +156,11 @@ export function createApiRouter({ controllers, authService, env, auditService })
     windowMs: 15 * 60 * 1000,
     max: 60,
   });
+  const landingChatRateLimiter = createRateLimiter({
+    name: "landing-chat-post",
+    windowMs: 15 * 60 * 1000,
+    max: 30,
+  });
 
   router.use("/auth", createPublicAuthRoutes(authController, { loginRateLimiter, authRateLimiter }));
 
@@ -166,6 +172,9 @@ export function createApiRouter({ controllers, authService, env, auditService })
 
   // Public visitor chat widget - no auth required
   router.use("/visitor-chat", createVisitorChatRoutes(visitorChatController, { visitorChatRateLimiter }));
+
+  // Public landing-page AI assistant - no auth required
+  router.use("/landing-chat", createLandingChatRoutes(landingChatController, { landingChatRateLimiter }));
 
   router.use(requireAuth(authService, env, auditService));
 

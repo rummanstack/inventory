@@ -31,6 +31,7 @@ import { GenericMedicineController } from "../controllers/genericMedicineControl
 import { HelpDeskController } from "../controllers/helpDeskController.js";
 import { InstallmentController } from "../controllers/installmentController.js";
 import { IssueController } from "../controllers/issueController.js";
+import { LandingChatController } from "../controllers/landingChatController.js";
 import { ManufacturerController } from "../controllers/manufacturerController.js";
 import { OrgController } from "../controllers/orgController.js";
 import { PermissionController } from "../controllers/permissionController.js";
@@ -78,6 +79,7 @@ export function createControllerRegistry({ services, env, databaseManager }) {
     public: {
       authController: new AuthController(services.operations.authService, env, services.platform.tenantService),
       contactMessageController: new ContactMessageController(services.customers.contactMessageService),
+      landingChatController: new LandingChatController(services.ai.landingChatService),
       registrationController: new RegistrationController(services.platform.registrationService),
       visitorChatController: new VisitorChatController(services.customers.visitorChatService),
     },

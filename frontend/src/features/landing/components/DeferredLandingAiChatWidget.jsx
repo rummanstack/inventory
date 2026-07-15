@@ -1,20 +1,20 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
-import { MessageCircle } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 
-const LandingChatWidget = lazy(() => import('./LandingChatWidget.jsx'));
+const LandingAiChatWidget = lazy(() => import('./LandingAiChatWidget.jsx'));
 
 function FallbackLauncher({ t, onActivate }) {
   return (
     <div className="landing-chat-root">
       <button type="button" className="landing-live-chat landing-live-chat-idle" aria-label={t('landing.chat.launch')} onClick={onActivate}>
-        <MessageCircle size={18} />
+        <Sparkles size={18} />
         <span className="hidden sm:inline">{t('landing.chat.launch')}</span>
       </button>
     </div>
   );
 }
 
-export default function DeferredLandingChatWidget({ t }) {
+export default function DeferredLandingAiChatWidget({ t }) {
   const [enabled, setEnabled] = useState(false);
 
   useEffect(() => {
@@ -39,7 +39,7 @@ export default function DeferredLandingChatWidget({ t }) {
 
   return (
     <Suspense fallback={<FallbackLauncher t={t} onActivate={() => setEnabled(true)} />}>
-      <LandingChatWidget t={t} />
+      <LandingAiChatWidget t={t} />
     </Suspense>
   );
 }

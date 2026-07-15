@@ -16,7 +16,7 @@ import ProofSection from '../components/ProofSection.jsx';
 import WhoIsItForSection from '../components/WhoIsItForSection.jsx';
 import ContactSection from '../components/ContactSection.jsx';
 import LandingFooter from '../components/LandingFooter.jsx';
-import DeferredLandingChatWidget from '../components/DeferredLandingChatWidget.jsx';
+import DeferredLandingAiChatWidget from '../components/DeferredLandingAiChatWidget.jsx';
 import { Link } from 'react-router-dom';
 
 const decisionBlocks = [
@@ -224,7 +224,7 @@ export default function LandingPage() {
       <CtaSection t={t} />
       <ContactSection t={t} />
       <LandingFooter t={t} />
-      <DeferredLandingChatWidget t={t} />
+      <DeferredLandingAiChatWidget t={t} />
     </main>
   );
 }

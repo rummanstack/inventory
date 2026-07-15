@@ -4,7 +4,7 @@ import { ArrowRight, CheckCircle2, ClipboardList, MessageCircle, Phone, Settings
 import { useLanguage } from '../../../app/hooks/useLanguage.js';
 import LandingHeader from '../components/LandingHeader.jsx';
 import LandingFooter from '../components/LandingFooter.jsx';
-import DeferredLandingChatWidget from '../components/DeferredLandingChatWidget.jsx';
+import DeferredLandingAiChatWidget from '../components/DeferredLandingAiChatWidget.jsx';
 import { contactPhone, whatsappUrl } from '../constants.js';
 
 const steps = [
@@ -230,7 +230,7 @@ export default function GetStartedPage() {
       </section>
 
       <LandingFooter t={t} />
-      <DeferredLandingChatWidget t={t} />
+      <DeferredLandingAiChatWidget t={t} />
     </main>
   );
 }

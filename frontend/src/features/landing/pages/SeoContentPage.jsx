@@ -20,7 +20,7 @@ import {
 import { useLanguage } from '../../../app/hooks/useLanguage.js';
 import LandingHeader from '../components/LandingHeader.jsx';
 import LandingFooter from '../components/LandingFooter.jsx';
-import DeferredLandingChatWidget from '../components/DeferredLandingChatWidget.jsx';
+import DeferredLandingAiChatWidget from '../components/DeferredLandingAiChatWidget.jsx';
 import ImagePlaceholder from '../components/shared/ImagePlaceholder.jsx';
 import { whatsappUrl } from '../constants.js';
 import { featurePages, getFeaturePage, getSolutionPage, solutionPages } from '../data/seoPages.js';
@@ -350,7 +350,7 @@ function HubPage({ type }) {
       </section>
 
       <LandingFooter t={t} />
-      <DeferredLandingChatWidget t={t} />
+      <DeferredLandingAiChatWidget t={t} />
     </main>
   );
 }
@@ -595,7 +595,7 @@ function DetailPage({ type }) {
       </section>
 
       <LandingFooter t={t} />
-      <DeferredLandingChatWidget t={t} />
+      <DeferredLandingAiChatWidget t={t} />
     </main>
   );
 }

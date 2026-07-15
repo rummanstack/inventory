@@ -4,7 +4,7 @@ import { ArrowRight, Clock3, MessageCircle, Phone, Settings, Users } from 'lucid
 import { useLanguage } from '../../../app/hooks/useLanguage.js';
 import LandingHeader from '../components/LandingHeader.jsx';
 import LandingFooter from '../components/LandingFooter.jsx';
-import DeferredLandingChatWidget from '../components/DeferredLandingChatWidget.jsx';
+import DeferredLandingAiChatWidget from '../components/DeferredLandingAiChatWidget.jsx';
 import ContactSection from '../components/ContactSection.jsx';
 
 const contactReasons = [
@@ -153,7 +153,7 @@ export default function ContactPage() {
       <ContactSection t={t} />
 
       <LandingFooter t={t} />
-      <DeferredLandingChatWidget t={t} />
+      <DeferredLandingAiChatWidget t={t} />
     </main>
   );
 }

@@ -238,21 +238,17 @@ export default function LandingAiChatWidget({ t }) {
         </div>
       ) : null}
 
-      <button
-        type="button"
-        className={`landing-live-chat ${open ? '' : 'landing-live-chat-idle'}`}
-        onClick={() => setOpen((prev) => !prev)}
-        aria-label={open ? t('landing.chat.close') : t('landing.chat.launch')}
-      >
-        {open ? (
-          <X size={18} />
-        ) : (
-          <>
-            <Sparkles size={18} />
-            <span className="hidden sm:inline">{t('landing.chat.launch')}</span>
-          </>
-        )}
-      </button>
+      {!open ? (
+        <button
+          type="button"
+          className="landing-live-chat landing-live-chat-idle"
+          onClick={() => setOpen(true)}
+          aria-label={t('landing.chat.launch')}
+        >
+          <Sparkles size={18} />
+          <span className="hidden sm:inline">{t('landing.chat.launch')}</span>
+        </button>
+      ) : null}
     </div>
   );
 }

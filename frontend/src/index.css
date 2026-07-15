@@ -548,17 +548,17 @@
   }
 
   /* Root is a non-visual wrapper only — the panel and the launcher button
-     are each independently `fixed` against the viewport with their own
-     bottom offsets. They used to be flex-stacked siblings, but the button
-     is `fixed` (so it escapes flex flow entirely) while the panel sized
-     itself to content, which let the two converge on the same bottom-right
-     corner and visually overlap once the panel got short. */
+     are each independently `fixed` against the viewport. The launcher only
+     renders in the DOM while the panel is closed (see the component), so
+     the panel never needs to reserve clearance above it — it can sit flush
+     near the bottom edge instead of leaving an empty gap where the button
+     used to be. */
   .landing-chat-root {
     @apply contents;
   }
 
   .landing-chat-panel {
-    @apply fixed bottom-[5.5rem] right-4 z-50 flex h-[min(600px,calc(100vh-9rem))] w-[min(calc(100vw-2rem),408px)] flex-col overflow-hidden rounded-[28px] border border-slate-200/70 bg-white shadow-[0_40px_90px_-18px_rgba(var(--slate-900),0.38)] ring-1 ring-black/[0.03] sm:bottom-24 sm:right-6;
+    @apply fixed bottom-4 right-4 z-50 flex h-[min(640px,calc(100vh-6rem))] w-[min(calc(100vw-2rem),408px)] flex-col overflow-hidden rounded-[28px] border border-slate-200/70 bg-white shadow-[0_40px_90px_-18px_rgba(var(--slate-900),0.38)] ring-1 ring-black/[0.03] sm:bottom-6 sm:right-6;
     animation: landing-chat-pop 0.22s cubic-bezier(0.16, 1, 0.3, 1);
   }
 

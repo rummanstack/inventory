@@ -372,6 +372,42 @@
     @apply inline-flex h-9 items-center justify-center gap-2 whitespace-nowrap rounded-full border border-[rgba(var(--white),0.18)] bg-white/10 px-3.5 text-sm font-bold text-white shadow-[0_1px_0_rgba(var(--white),0.08)] transition duration-200 ease-out hover:-translate-y-0.5 hover:border-[rgba(var(--white),0.3)] hover:bg-[rgba(var(--white),0.16)] hover:shadow-[0_8px_20px_rgba(var(--slate-950),0.16)] active:translate-y-0 active:bg-[rgba(var(--white),0.14)];
   }
 
+  .landing-mega-menu-surface {
+    transform-origin: top center;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(100, 116, 139, 0.42) transparent;
+    animation: landing-mega-menu-in 180ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .landing-mega-menu-surface::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .landing-mega-menu-surface::-webkit-scrollbar-thumb {
+    border: 2px solid transparent;
+    border-radius: 999px;
+    background: rgba(100, 116, 139, 0.42);
+    background-clip: padding-box;
+  }
+
+  @keyframes landing-mega-menu-in {
+    from {
+      opacity: 0;
+      transform: translateY(-8px) scale(0.985);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .landing-mega-menu-surface {
+      animation: none;
+    }
+  }
+
   .landing-hero {
     @apply relative overflow-hidden pb-10 pt-32 sm:pb-12 sm:pt-36 lg:pb-14 lg:pt-40;
     background:

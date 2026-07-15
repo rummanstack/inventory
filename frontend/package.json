@@ -7,7 +7,7 @@
     "install:all": "npm install --include=dev",
     "dev": "vite",
     "dev:client": "vite",
-    "build": "vite build && node scripts/prerender-public-pages.mjs",
+    "build": "node scripts/generate-sitemap.mjs && vite build && node scripts/prerender-public-pages.mjs && node scripts/audit-public-navigation.mjs",
     "build:watch": "vite build --watch",
     "preview": "vite preview",
     "render-build": "npm install --include=dev && npm run build",
@@ -32,6 +32,6 @@
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.17",
     "vite": "^5.4.11",
-    "puppeteer-core": "^23.11.1"
+    "puppeteer": "^23.11.1"
   }
 }

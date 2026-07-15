@@ -3,11 +3,11 @@ import { fileURLToPath } from 'node:url';
 import { readFile, writeFile } from 'node:fs/promises';
 
 import { INDEXABLE_PUBLIC_ROUTES, PUBLIC_ROUTES } from './public-routes.mjs';
+import { distRoot } from './dist-root.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const frontendRoot = path.resolve(__dirname, '..');
-const distRoot = path.join(frontendRoot, 'dist');
 const reportPath = path.join(frontendRoot, 'public-navigation-audit.txt');
 
 const routeSet = new Set(PUBLIC_ROUTES);

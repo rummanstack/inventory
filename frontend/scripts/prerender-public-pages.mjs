@@ -1,38 +1,13 @@
 import http from 'node:http';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { mkdir, readFile, stat, writeFile } from 'node:fs/promises';
 
-import puppeteer from 'puppeteer-core';
+import puppeteer from 'puppeteer';
 
 import { PUBLIC_ROUTES } from './public-routes.mjs';
+import { distRoot } from './dist-root.mjs';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const frontendRoot = path.resolve(__dirname, '..');
-const distRoot = path.join(frontendRoot, 'dist');
 const serverPort = Number(process.env.PRERENDER_PORT || 4173);
-
-const BROWSER_CANDIDATES = [
-  process.env.PUPPETEER_EXECUTABLE_PATH,
-  'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
-  'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
-  'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe',
-  'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
-].filter(Boolean);
-
-async function findBrowserExecutable() {
-  for (const candidate of BROWSER_CANDIDATES) {
-    try {
-      await stat(candidate);
-      return candidate;
-    } catch {
-      // Try the next local browser.
-    }
-  }
-
-  throw new Error('No Chrome or Edge executable was found. Set PUPPETEER_EXECUTABLE_PATH to continue.');
-}
 
 function getContentType(filePath) {
   const extension = path.extname(filePath).toLowerCase();
@@ -99,7 +74,6 @@ async function writeRouteHtml(route, html) {
 }
 
 async function prerender() {
-  const executablePath = await findBrowserExecutable();
   const server = createStaticServer(distRoot);
 
   await new Promise((resolve, reject) => {
@@ -107,8 +81,12 @@ async function prerender() {
     server.listen(serverPort, '127.0.0.1', resolve);
   });
 
+  // puppeteer (not puppeteer-core) bundles its own Chromium, downloaded for
+  // the current platform at npm install time, so this works unmodified on
+  // Windows locally and on Render/Vercel's Linux build containers.
+  // PUPPETEER_EXECUTABLE_PATH still overrides it if one is set.
   const browser = await puppeteer.launch({
-    executablePath,
+    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
     headless: true,
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
   });

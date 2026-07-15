@@ -1,0 +1,382 @@
+STOCKLEDGER SEO AUDIT
+Generated: 2026-07-15
+
+Scope: frontend/src/features/landing (public marketing site), frontend/scripts
+(build-time SEO tooling), frontend/public (robots.txt, sitemap.xml), and the
+backend static-file serving path that fronts prerendered pages.
+
+
+================================================================================
+1. PER-PAGE <TITLE> AND <META NAME="DESCRIPTION">  --  GOOD
+================================================================================
+
+Mechanism: a custom client-side manager, not React Helmet.
+
+- frontend/src/seo/SeoManager.jsx
+  Mounted once inside <BrowserRouter> in frontend/src/app/App.jsx:209.
+  On every route change (useLocation + useEffect, SeoManager.jsx:86-91) it
+  calls buildMetadata(pathname) and applyMetadata(...), which sets:
+    - document.title                          (SeoManager.jsx:55)
+    - <meta name="description">                (upserted)
+    - <meta name="keywords">
+    - <meta name="robots">
+    - Twitter / OpenGraph tags
+    - canonical <link>
+    - JSON-LD <script>                         (SeoManager.jsx:53-83)
+
+- Per-route content: frontend/src/seo/config.js
+    PUBLIC_ROUTE_METADATA, SEO_PAGE_METADATA, AUTH_ROUTE_METADATA,
+    PRIVATE_APP_METADATA (lines 21-279).
+  Distinct title/description confirmed for:
+    /landing                (21-28)
+    /privacy-policy         (29-35)
+    /terms                  (36-42)
+    /founder                (43-49)
+    all 10 /features/*      (74-133)
+    all 6 /solutions/*      (140-175)
+    all 12 /software/*      (182-253)
+    /pricing                (254-259)
+    /get-started            (260-265)
+    /contact                (266-271)
+
+- Resolution logic: frontend/src/seo/metadata.js:23-36 (getRouteMetadata)
+  looks up the pathname and falls back to PRIVATE_APP_METADATA
+  (config.js:274-279, robots: 'noindex,nofollow,noarchive') for authenticated
+  app routes -- correctly keeps internal app pages out of indexable metadata.
+
+Caveat: metadata is applied via useEffect/DOM mutation, not server-rendered
+per request. index.html (lines 1-64) has only one static title/description --
+that is only what a crawler sees if prerendering is bypassed (see item 2).
+
+
+================================================================================
+2. PRERENDERING  --  GOOD, WITH ONE REAL DEPLOYMENT RISK
+================================================================================
+
+frontend/scripts/prerender-public-pages.mjs is a genuine full-HTML
+prerenderer, not a stub:
+
+- Starts a local static file server over the built dist/
+  (createStaticServer, lines 56-88).
+- Launches headless Chrome/Edge via puppeteer-core (lines 110-114).
+- For every route in PUBLIC_ROUTES (from public-routes.mjs), navigates with
+  waitUntil: 'networkidle0', waits for <main> to render (line 122), then
+  captures document.documentElement.outerHTML AFTER React has hydrated and
+  SeoManager has run (line 123) -- so the emitted HTML already contains the
+  per-route title, meta tags, canonical link, and JSON-LD.
+- Writes each route to dist/<route>/index.html (writeRouteHtml, lines 90-99),
+  e.g. dist/features/retail-pos/index.html.
+
+Coverage: frontend/scripts/public-routes.mjs (lines 1-41) lists 37 routes --
+/, /landing, all 10 /features/*, all 6 /solutions/*, all 12 /software/*, plus
+/pricing, /contact, /get-started, /founder, /privacy-policy, /terms.
+Cross-checked against:
+  - frontend/src/features/landing/data/seoPages.js  (10 featurePages, 6 solutionPages)
+  - frontend/src/features/landing/data/intentPages.js (12 intentPages)
+Counts match exactly -- every real content page is covered. Also cross-checked
+against frontend/src/app/App.jsx:144-159 (the actual public <Route> entries)
+-- no orphaned public route exists outside this list. Private app routes
+(frontend/src/app/routes.js, APP_ROUTES) are correctly excluded.
+
+Wiring:
+  - frontend/package.json:8
+    "build": "vite build && node scripts/prerender-public-pages.mjs"
+    Prerendering runs on every production build.
+  - root scripts/render-build.mjs:42 runs `npm run build` inside frontend/.
+  - vercel.json: "buildCommand": "npm run render-build"
+  - frontend/render.yaml: buildCommand: npm run render-build
+  - backend/app.js:38-44 serves express.static(staticRoot) BEFORE the SPA
+    fallback catch-all, so a request to e.g. /features/retail-pos resolves
+    to the prerendered index.html in that directory, not the generic SPA
+    shell -- prerendering is actually effective for crawlers.
+
+RISK: findBrowserExecutable() (prerender-public-pages.mjs:24-35) only checks
+PUPPETEER_EXECUTABLE_PATH and four hardcoded WINDOWS Chrome/Edge paths
+(lines 16-22). Render and Vercel build on Linux containers. The repo has no
+Dockerfile/Aptfile/nixpacks config that installs Chromium, and puppeteer-core
+(a devDependency, frontend/package.json:23) does not bundle a browser.
+Unless PUPPETEER_EXECUTABLE_PATH is set to a real Linux Chromium binary in
+the Render/Vercel dashboard env vars (not visible in the repo -- unverifiable
+from here), this build step should throw "No Chrome or Edge executable was
+found" and either fail the whole deploy, or (if failures are silently
+tolerated somewhere) skip prerendering, leaving crawlers with only the
+generic SPA shell in index.html.
+ACTION: verify directly against the live deployment's build logs / env vars.
+
+
+================================================================================
+3. ROBOTS.TXT AND SITEMAP.XML  --  GOOD (minor drift risk)
+================================================================================
+
+Both exist at frontend/public/robots.txt and frontend/public/sitemap.xml, and
+are copied into backend/public/dist/ at build time.
+
+- sitemap.xml is STATIC, listing all 37 public routes with
+  changefreq/priority (lines 3-40), including every /features/*,
+  /solutions/*, and /software/* page -- verified 1:1 against public-routes.mjs.
+
+- robots.txt:
+    Allow: /                                          (line 2)
+    Disallow: for every private/authenticated app path -- /login, /register,
+      /dashboard, /retailer/, /products, /accounting/, /settings/, /hr/,
+      /platform, etc. (lines 6-60), plus /api/ and /uploads/ (lines 4-5).
+    Sitemap: https://stockledger.pro/sitemap.xml       (line 62)
+    Host:                                              (line 63)
+  Disallow list cross-checked against frontend/src/app/routes.js APP_ROUTES
+  paths and matches well.
+
+MINOR GAP: sitemap.xml is hand-maintained rather than generated from
+public-routes.mjs at build time, so it can drift if a new SEO page is added
+to intentPages.js/seoPages.js without a matching manual sitemap edit. No
+build step regenerates it (not referenced in prerender-public-pages.mjs,
+render-build.mjs, or package.json scripts).
+
+
+================================================================================
+4. STRUCTURED DATA (JSON-LD / SCHEMA.ORG)  --  GOOD
+================================================================================
+
+frontend/src/seo/schema.js builds a single @graph JSON-LD payload injected by
+SeoManager.jsx:82 (upsertJsonLd, SeoManager.jsx:40-51, using
+id="stockledger-json-ld" to avoid duplicates). Per buildStructuredData
+(schema.js:181-257):
+
+  - Organization node with ContactPoint (lines 187-202), sourced from
+    frontend/src/seo/schemaConfig.js:4-12 (SCHEMA_SITE_CONFIG), pulling real
+    contact email/phone/social links from features/landing/constants.js.
+  - WebSite node (lines 203-210).
+  - SoftwareApplication node with Offer / priceCurrency: 'BDT' (lines 211-226).
+  - Page-level node whose @type varies by route (WebPage, ContactPage,
+    AboutPage, CollectionPage for hubs) with breadcrumb/mainEntity refs
+    (lines 227-242).
+  - BreadcrumbList (lines 35-48, 245) built per-page, including for every
+    /features/:slug, /solutions/:slug, /software/:slug
+    (getPageContext, lines 119-162).
+  - FAQPage (lines 50-65, 246) populated from each feature/solution/intent
+    page's own faqs array (e.g. seoPages.js:33-37, intentPages.js per-page
+    faqs) plus static FAQs for /landing, /pricing, /contact, /get-started in
+    schemaConfig.js:14-31. Hub pages (/features, /solutions, /software) get
+    no FAQ node since STATIC_PAGE_FAQS doesn't define entries for them --
+    only detail pages get FAQ schema.
+  - ItemList (lines 67-80, 247) for the three hub pages, listing all child
+    pages with absolute URLs.
+
+Verdict: a genuinely complete, well-modeled structured-data implementation --
+Organization + SoftwareApplication + WebPage + BreadcrumbList + FAQPage +
+ItemList, all correctly scoped per route.
+
+
+================================================================================
+5. CANONICAL URLS  --  GOOD
+================================================================================
+
+- Static fallback in frontend/index.html:17
+    <link rel="canonical" href="https://stockledger.pro/landing" />
+- Dynamic, per-route canonical set by SeoManager.jsx:81
+    (upsertLink('canonical', metadata.canonicalUrl)), which finds and
+  updates the existing <link rel="canonical"> in place (upsertLink,
+  SeoManager.jsx:26-38) rather than duplicating it.
+- Every route's canonical path is explicitly declared in config.js
+  (canonicalPath field on every entry, e.g. lines 26, 77, 143, 185, 257) and
+  resolved to an absolute URL via absoluteUrl()/SEO_CONFIG.siteUrl in
+  metadata.js:8-12,42-51.
+
+Given every /features/*, /solutions/*, /software/* page has its own
+hardcoded canonical, duplicate-content risk between the near-identical
+programmatic pages is well handled -- none of them silently canonicalize to
+a parent hub or to /landing.
+
+
+================================================================================
+6. HEADING HIERARCHY  --  GOOD
+================================================================================
+
+Spot-checked LandingPage.jsx, the shared SeoContentPage.jsx (feature/solution
+hub + detail), and IntentSeoPage.jsx (software hub + detail):
+
+- Exactly one <h1> per page, always in the hero:
+    HeroSection.jsx:13            (landing.hero.title) for /landing
+    SeoContentPage.jsx:324 (hub) / :439 (detail)  for features/solutions
+    IntentSeoPage.jsx:108 (hub) / :167 (detail)   for software guides
+    PricingPage.jsx:73
+    GetStartedPage.jsx:100
+    FounderPage.jsx:92
+    ContactPage.jsx:70
+    shared/LegalPageLayout.jsx:213  (privacy/terms)
+  No page found with two <h1>s.
+
+- <h2> used consistently for section titles (SectionHeader.jsx:5,
+  FaqSection.jsx:41, ProofSection.jsx:60, WhoIsItForSection.jsx:23,
+  SeoContentPage.jsx:471,484,503,513,527,543,561, IntentSeoPage.jsx:200,
+  213,229,236,241), with <h3> correctly nested one level down for sub-items:
+  FAQ questions (SeoContentPage.jsx:565, IntentSeoPage.jsx:245); card/
+  testimonial titles (WorkflowSection.jsx:28, WhoIsItForSection.jsx:39,
+  SolutionsSection.jsx:30,48, PricingSection.jsx:23,31,
+  FeatureStorySection.jsx:35).
+
+- NIT: LandingFooter.jsx:41 uses <h2>StockLedger</h2> for the footer brand
+  block -- semantically odd (a footer brand mark shouldn't compete with
+  section <h2>s) but not a hierarchy violation per se (no skipped levels, no
+  duplicate <h1>).
+
+- LandingPage.jsx itself directly renders three more <h2>s (lines 120, 149,
+  166, 188, 194) for its own inline sections in addition to the imported
+  section components -- all correctly subordinate to the single <h1> in
+  HeroSection.
+
+No multiple-h1 or skipped-level violations found in the pages checked.
+
+
+================================================================================
+7. IMAGE ALT TEXT  --  GOOD
+================================================================================
+
+- Content images go through
+  frontend/src/features/landing/components/shared/ImagePlaceholder.jsx:8
+  (alt={data.alt}), and every caller supplies a real imageAlt string sourced
+  from data files -- e.g. seoPages.js:25 ('Warehouse and stock management
+  workflow in StockLedger'), :45, :65, etc., and intentPages.js:19,40,61.
+  These are descriptive, not generic ("image1.png") or empty.
+
+- Testimonial/avatar images use the person's name as alt:
+    ProofSection.jsx:39 (alt={item.name}), TestimonialsSection.jsx:34.
+
+- Founder photo uses a translated, meaningful alt:
+    FounderPage.jsx:150,333 (t('landing.founder.photoAlt')).
+
+- Purely decorative logo/icon images correctly use empty alt="":
+    LandingHeader.jsx:197, LandingFooter.jsx:39, FounderPage.jsx:158,
+    LegalPageLayout.jsx:326, LandingAiChatWidget.jsx:150 -- this is the right
+  pattern (decorative images shouldn't announce redundant text to screen
+  readers). Minor nit: a couple of these logo instances could arguably carry
+  alt="StockLedger" for extra robustness, but this is not a defect.
+
+No instances found of meaningful content images shipping with empty/missing
+alt.
+
+
+================================================================================
+8. INTERNAL LINKING / URL STRUCTURE  --  GOOD
+================================================================================
+
+A single, consistent source of truth exists per content family:
+
+- frontend/src/features/landing/data/seoPages.js
+    featurePages   (10 entries, lines 18-210)
+    solutionPages  (6 entries,  lines 212-333)
+  each with slug, title, description, image, keywords, sections, faqs.
+
+- frontend/src/features/landing/data/intentPages.js
+    intentPages (12 entries, confirmed via grep -c "slug:" = 12)
+
+Total programmatic SEO pages: 10 feature + 6 solution + 12 software-guide
+= 28, plus 3 hub pages (/features, /solutions, /software) and 7 static pages
+(/landing, /pricing, /contact, /get-started, /founder, /privacy-policy,
+/terms) = 38 public pages total (matches public-routes.mjs's 37 entries +
+root /).
+
+frontend/src/seo/config.js and frontend/src/seo/schema.js both consume these
+same arrays for metadata and structured data, so there is no risk of the
+route list, sitemap generator inputs, prerender list, and SEO metadata
+drifting apart from each other (all downstream of public-routes.mjs,
+seoPages.js, intentPages.js).
+
+Cross-linking between families is deliberate:
+  - IntentSeoPage.jsx:145-151 links each software-guide page to its
+    primaryFeatureSlug/primarySolutionSlug.
+  - SeoContentPage.jsx:417-420,548-557 links each feature/solution detail
+    page to related modules via a pageSupport/relatedModules map
+    (lines 50-259).
+  - LandingPage.jsx:52-84 (comparePaths, topSearchPages) links from the
+    homepage directly into /features/*, /solutions/*, /software/*.
+
+
+================================================================================
+9. audit-public-navigation.mjs  --  PARTIAL (useful, but narrow and not in CI)
+================================================================================
+
+frontend/scripts/audit-public-navigation.mjs (run via `npm run
+audit:navigation`, frontend/package.json:14) is a post-build internal-linking
+checker, not a general SEO checker:
+
+- Reads the PRERENDERED HTML for every route in INDEXABLE_PUBLIC_ROUTES
+  (lines 57-58) and extracts href="..." links pointing to other known public
+  routes (collectLinks, lines 40-52).
+- Computes:
+    - orphan routes (zero incoming internal links, line 70)
+    - "weak" routes (fewer than 2 incoming links, line 71)
+    - detail pages (/features/:slug, /solutions/:slug) missing a link back
+      to their parent hub (lines 72-81)
+- Writes a plain-text report to frontend/public-navigation-audit.txt
+  (lines 11, 108-109) -- it does NOT fail the build or assert anything; it
+  is purely diagnostic output for a human to read.
+
+What it does NOT check: title/description uniqueness, canonical correctness,
+structured data, heading hierarchy, or image alt text -- it only validates
+internal link topology among already-prerendered pages.
+
+It is also not wired into package.json's build script (only `vite build &&
+prerender-public-pages.mjs` runs automatically, per package.json:8) --
+audit:navigation (package.json:14) is a separate, manually-invoked script.
+Nothing currently enforces "every route is linked from somewhere" as part of
+CI/build; it must be run and read manually.
+
+Verdict: a solid answer to "does internal linking make the programmatic
+pages reachable," but it is not a general SEO auditor and isn't automated.
+
+
+================================================================================
+SUMMARY
+================================================================================
+
+GOOD     : 1 (meta tags), 3 (robots/sitemap), 4 (structured data),
+           5 (canonical URLs), 6 (heading hierarchy), 7 (alt text),
+           8 (internal linking)
+GOOD*    : 2 (prerendering) -- correct in design, but carries one
+           unverified production risk (see below)
+PARTIAL  : 9 (audit-public-navigation.mjs) -- exists, useful, but manual
+           and narrow in scope
+
+TOP ACTION ITEMS
+  1. Verify PUPPETEER_EXECUTABLE_PATH is set to a real Linux Chromium path
+     in the Render/Vercel dashboard, or check the actual build logs, to
+     confirm prerendering is succeeding in production and not silently
+     falling back to the bare SPA shell for crawlers.
+  2. Consider generating sitemap.xml from public-routes.mjs (or
+     seoPages.js/intentPages.js) at build time instead of hand-maintaining
+     it, so it cannot drift when new SEO pages are added.
+  3. Optionally wire audit-public-navigation.mjs into the build/CI pipeline
+     (or at least run it periodically) so orphaned/weakly-linked pages get
+     caught automatically instead of only on manual runs.
+
+
+================================================================================
+ADDENDUM (fixed same day, after the audit above)
+================================================================================
+
+Three fixes were implemented following this audit:
+
+1. Swapped puppeteer-core -> puppeteer (frontend/package.json) and removed
+   the hardcoded Windows-only Chrome/Edge executable paths in
+   prerender-public-pages.mjs. Full puppeteer bundles/downloads its own
+   Chromium per-platform at npm install time, so this now works on
+   Render/Vercel's Linux build containers without any dashboard env var.
+
+2. Added frontend/scripts/generate-sitemap.mjs, generating sitemap.xml from
+   public-routes.mjs (single source of truth) instead of hand-maintaining it.
+   Wired into frontend/package.json's build script to run before `vite build`.
+
+3. Wired audit-public-navigation.mjs into the build script to run
+   automatically after prerendering (it only writes a diagnostic report,
+   never fails the build, so this is zero-risk).
+
+A FOURTH, more serious bug was discovered while verifying these fixes
+locally: root scripts/render-build.mjs (the actual script Render/Vercel run
+via `npm run render-build`) was deleting the fresh build output in
+backend/public/dist and replacing it with a copy from frontend/dist -- a
+directory Vite no longer writes to (vite.config.js's build.outDir points
+directly at ../backend/public/dist). frontend/dist is gitignored and would
+not exist on a clean CI checkout, so this copy step likely either crashed
+the deploy or silently served stale content. Fixed by having render-build.mjs
+mirror the real build output (backend/public/dist) into the root /public
+folder Vercel needs, instead of copying from the wrong/stale source.

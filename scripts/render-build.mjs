@@ -8,8 +8,9 @@ const __dirname = path.dirname(__filename);
 const projectRoot = path.resolve(__dirname, '..');
 const frontendRoot = path.join(projectRoot, 'frontend');
 const backendRoot = path.join(projectRoot, 'backend');
-const frontendDist = path.join(frontendRoot, 'dist');
 const publicDist = path.join(projectRoot, 'public');
+// Must match `build.outDir` in frontend/vite.config.js -- `npm run build`
+// (inside frontend/) writes the production build directly here.
 const backendDist = path.join(backendRoot, 'public', 'dist');
 
 async function run(command, args, options = {}) {
@@ -41,14 +42,15 @@ async function main() {
   await run('npm', ['install', '--include=dev'], { cwd: frontendRoot });
   await run('npm', ['run', 'build'], { cwd: frontendRoot });
 
+  // The build above already wrote the final output straight into backendDist
+  // (Render serves it from there). Vercel needs the same output mirrored
+  // under the repo-root /public folder, so copy it from there instead of
+  // rebuilding or sourcing from frontend/dist, which Vite no longer uses.
   await rm(publicDist, { recursive: true, force: true });
-  await rm(backendDist, { recursive: true, force: true });
   await mkdir(publicDist, { recursive: true });
-  await mkdir(path.dirname(backendDist), { recursive: true });
-  await cp(frontendDist, publicDist, { recursive: true });
-  await cp(frontendDist, backendDist, { recursive: true });
+  await cp(backendDist, publicDist, { recursive: true });
 
-  console.log(`Frontend copied to ${publicDist} and ${backendDist}`);
+  console.log(`Frontend built to ${backendDist} and mirrored to ${publicDist}`);
 }
 
 main().catch((error) => {

@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { Link, Navigate, useParams } from 'react-router-dom';
 import {
   ArrowRight,
@@ -18,6 +17,7 @@ import {
   Wrench,
 } from 'lucide-react';
 import { usePublicLanguage, buildLocalizedPath } from '../../../app/hooks/usePublicLanguage.js';
+import { usePublicPageEffects } from '../hooks/usePublicPageEffects.js';
 import LandingHeader from '../components/LandingHeader.jsx';
 import LandingFooter from '../components/LandingFooter.jsx';
 import DeferredLandingAiChatWidget from '../components/DeferredLandingAiChatWidget.jsx';
@@ -482,19 +482,6 @@ const pageSupport = {
   },
 };
 
-function useLandingPageMode() {
-  useEffect(() => {
-    document.documentElement.classList.add('landing-page-active');
-    document.body.classList.add('landing-page-active');
-    window.scrollTo(0, 0);
-
-    return () => {
-      document.documentElement.classList.remove('landing-page-active');
-      document.body.classList.remove('landing-page-active');
-    };
-  }, []);
-}
-
 function PageCard({ page, basePath, Icon, language }) {
   return (
     <Link to={buildLocalizedPath(language, `${basePath}/${page.slug}`)} className="group rounded-[28px] border border-slate-200 bg-white p-5 shadow-[0_16px_44px_rgba(15,23,42,0.06)] transition duration-200 hover:-translate-y-1 hover:border-[var(--brand)]/30 hover:shadow-[0_22px_56px_rgba(15,23,42,0.1)]">
@@ -522,7 +509,7 @@ function PageCard({ page, basePath, Icon, language }) {
 
 function HubPage({ type }) {
   const { language, setLanguage, t } = usePublicLanguage();
-  useLandingPageMode();
+  usePublicPageEffects();
 
   const isFeatures = type === 'features';
   const pages = isFeatures ? featurePages.map((page) => getFeaturePage(page.slug, language)) : solutionPages.map((page) => getSolutionPage(page.slug, language));
@@ -533,16 +520,13 @@ function HubPage({ type }) {
   return (
     <main id="top" className="landing-page">
       <LandingHeader language={language} setLanguage={setLanguage} t={t} />
-      <section
-        className="relative overflow-hidden pb-16 pt-32 text-white sm:pt-40"
-        style={{ background: 'linear-gradient(135deg,var(--bg-dark) 0%,var(--brand-strong) 55%,#1f3a8a 100%)' }}
-      >
+      <section className="public-hero pb-16">
         <div className="landing-container relative">
-          <Link to={buildLocalizedPath(language, '/landing')} className="text-sm font-bold text-white/70 transition hover:text-white">{t('seoContent.breadcrumbHome')}</Link>
+          <Link to={buildLocalizedPath(language, '/landing')} className="public-hero-breadcrumb">{t('seoContent.breadcrumbHome')}</Link>
           <div className="mt-6 max-w-3xl">
             <p className="landing-eyebrow !text-[var(--landing-accent-teal)]">{isFeatures ? t('seoContent.hub.featuresEyebrow') : t('seoContent.hub.solutionsEyebrow')}</p>
-            <h1 className="mt-3 text-4xl font-black leading-[1.06] tracking-tight text-white sm:text-5xl">{title}</h1>
-            <p className="mt-5 text-base font-medium leading-7 text-slate-200 sm:text-lg">{description}</p>
+            <h1 className="public-hero-title">{title}</h1>
+            <p className="public-hero-text">{description}</p>
           </div>
         </div>
       </section>
@@ -604,7 +588,7 @@ function getDefaultSupport(page, t) {
 function DetailPage({ type }) {
   const { slug } = useParams();
   const { language, setLanguage, t } = usePublicLanguage();
-  useLandingPageMode();
+  usePublicPageEffects();
 
   const isFeature = type === 'feature';
   const page = isFeature ? getFeaturePage(slug, language) : getSolutionPage(slug, language);
@@ -628,10 +612,7 @@ function DetailPage({ type }) {
     <main id="top" className="landing-page">
       <LandingHeader language={language} setLanguage={setLanguage} t={t} />
 
-      <section
-        className="relative overflow-hidden pb-16 pt-32 text-white sm:pt-40"
-        style={{ background: 'linear-gradient(135deg,var(--bg-dark) 0%,var(--brand-strong) 58%,#14532d 100%)' }}
-      >
+      <section className="public-hero pb-16">
         <div className="landing-container grid items-center gap-10 lg:grid-cols-[1fr_0.9fr]">
           <div>
             <div className="flex items-center gap-2 text-sm font-bold text-white/70">
@@ -641,8 +622,8 @@ function DetailPage({ type }) {
             </div>
             <div className="mt-6 max-w-3xl">
               <p className="landing-eyebrow !text-[var(--landing-accent-teal)]">{page.eyebrow}</p>
-              <h1 className="mt-3 text-4xl font-black leading-[1.06] tracking-tight text-white sm:text-5xl">{page.title}</h1>
-              <p className="mt-5 text-base font-medium leading-7 text-slate-200 sm:text-lg">{page.description}</p>
+              <h1 className="public-hero-title">{page.title}</h1>
+              <p className="public-hero-text">{page.description}</p>
             </div>
             <div className="mt-7 flex flex-wrap gap-2">
               {page.keywords.map((keyword) => (

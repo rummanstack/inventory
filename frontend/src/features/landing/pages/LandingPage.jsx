@@ -1,6 +1,6 @@
-import { useEffect } from 'react';
 import { ArrowRight, Calculator, CheckCircle2, ClipboardList, Layers3, Route, ShieldCheck, Store, Truck } from 'lucide-react';
 import { usePublicLanguage, buildLocalizedPath } from '../../../app/hooks/usePublicLanguage.js';
+import { usePublicPageEffects } from '../hooks/usePublicPageEffects.js';
 import LandingHeader from '../components/LandingHeader.jsx';
 import HeroSection from '../components/HeroSection.jsx';
 import FeatureStorySection from '../components/FeatureStorySection.jsx';
@@ -34,40 +34,7 @@ export default function LandingPage() {
   const decisionBlocks = t('landingExtra.decisionBlocks').map((item, index) => ({ ...item, Icon: decisionBlockIcons[index] }));
   const buyerSignals = t('landingExtra.buyerSignals');
 
-  useEffect(() => {
-    document.documentElement.classList.add('landing-page-active');
-    document.body.classList.add('landing-page-active');
-    return () => {
-      document.documentElement.classList.remove('landing-page-active');
-      document.body.classList.remove('landing-page-active');
-    };
-  }, []);
-
-  // Scroll reveal: sections below the hero fade-and-rise in as they enter the
-  // viewport. Classes are only attached here, so nothing is hidden without JS,
-  // and reduced-motion users see everything instantly (handled in CSS).
-  // Skipped under webdriver so the SEO prerender snapshot never captures the
-  // opacity-0 `lp-reveal` state in the static HTML.
-  useEffect(() => {
-    if (typeof IntersectionObserver === 'undefined' || navigator.webdriver) return undefined;
-    const targets = document.querySelectorAll('.landing-page > section:not(.landing-hero) > .landing-container');
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('lp-reveal-in');
-            observer.unobserve(entry.target);
-          }
-        });
-      },
-      { rootMargin: '0px 0px -60px 0px' },
-    );
-    targets.forEach((el) => {
-      el.classList.add('lp-reveal');
-      observer.observe(el);
-    });
-    return () => observer.disconnect();
-  }, []);
+  usePublicPageEffects({ scrollToTop: false });
 
   return (
     <main id="top" className="landing-page">

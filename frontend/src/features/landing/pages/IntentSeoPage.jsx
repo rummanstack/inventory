@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { Link, Navigate, useParams } from 'react-router-dom';
 import {
   ArrowRight,
@@ -16,6 +15,7 @@ import {
   Users,
 } from 'lucide-react';
 import { usePublicLanguage, buildLocalizedPath } from '../../../app/hooks/usePublicLanguage.js';
+import { usePublicPageEffects } from '../hooks/usePublicPageEffects.js';
 import LandingHeader from '../components/LandingHeader.jsx';
 import LandingFooter from '../components/LandingFooter.jsx';
 import DeferredLandingAiChatWidget from '../components/DeferredLandingAiChatWidget.jsx';
@@ -38,19 +38,6 @@ const intentIcons = {
   'shop-management-software-bangladesh': Landmark,
   'grocery-store-software-bangladesh': Store,
 };
-
-function useLandingPageMode() {
-  useEffect(() => {
-    document.documentElement.classList.add('landing-page-active');
-    document.body.classList.add('landing-page-active');
-    window.scrollTo(0, 0);
-
-    return () => {
-      document.documentElement.classList.remove('landing-page-active');
-      document.body.classList.remove('landing-page-active');
-    };
-  }, []);
-}
 
 function getRotatingRelatedPages(pages, currentSlug, count = 3) {
   const currentIndex = pages.findIndex((candidate) => candidate.slug === currentSlug);
@@ -95,20 +82,20 @@ function IntentCard({ page, language }) {
 
 export function SoftwareHubPage() {
   const { language, setLanguage, t } = usePublicLanguage();
-  useLandingPageMode();
+  usePublicPageEffects();
 
   const pages = intentPages.map((page) => getIntentPage(page.slug, language));
 
   return (
     <main id="top" className="landing-page">
       <LandingHeader language={language} setLanguage={setLanguage} t={t} />
-      <section className="relative overflow-hidden pb-16 pt-32 text-white sm:pt-40" style={{ background: 'linear-gradient(135deg,var(--bg-dark) 0%,var(--brand-strong) 58%,#1f3a8a 100%)' }}>
+      <section className="public-hero pb-16">
         <div className="landing-container relative">
-          <Link to={buildLocalizedPath(language, '/landing')} className="text-sm font-bold text-white/70 transition hover:text-white">{t('seoContent.breadcrumbHome')}</Link>
+          <Link to={buildLocalizedPath(language, '/landing')} className="public-hero-breadcrumb">{t('seoContent.breadcrumbHome')}</Link>
           <div className="mt-6 max-w-3xl">
             <p className="landing-eyebrow !text-[var(--landing-accent-teal)]">{t('seoContent.hub.softwareEyebrow')}</p>
-            <h1 className="mt-3 text-4xl font-black leading-[1.06] tracking-tight text-white sm:text-5xl">{t('seoContent.hub.softwareTitle')}</h1>
-            <p className="mt-5 text-base font-medium leading-7 text-slate-200 sm:text-lg">{t('seoContent.hub.softwareDescription')}</p>
+            <h1 className="public-hero-title">{t('seoContent.hub.softwareTitle')}</h1>
+            <p className="public-hero-text">{t('seoContent.hub.softwareDescription')}</p>
           </div>
         </div>
       </section>
@@ -136,7 +123,7 @@ export function SoftwareHubPage() {
 export function SoftwareDetailPage() {
   const { slug } = useParams();
   const { language, setLanguage, t } = usePublicLanguage();
-  useLandingPageMode();
+  usePublicPageEffects();
 
   const page = getIntentPage(slug, language);
   if (!page) {
@@ -156,7 +143,7 @@ export function SoftwareDetailPage() {
     <main id="top" className="landing-page">
       <LandingHeader language={language} setLanguage={setLanguage} t={t} />
 
-      <section className="relative overflow-hidden pb-16 pt-32 text-white sm:pt-40" style={{ background: 'linear-gradient(135deg,var(--bg-dark) 0%,var(--brand-strong) 58%,#14532d 100%)' }}>
+      <section className="public-hero pb-16">
         <div className="landing-container grid items-center gap-10 lg:grid-cols-[1fr_0.9fr]">
           <div>
             <div className="flex items-center gap-2 text-sm font-bold text-white/70">
@@ -166,8 +153,8 @@ export function SoftwareDetailPage() {
             </div>
             <div className="mt-6 max-w-3xl">
               <p className="landing-eyebrow !text-[var(--landing-accent-teal)]">{page.eyebrow}</p>
-              <h1 className="mt-3 text-4xl font-black leading-[1.06] tracking-tight text-white sm:text-5xl">{page.title}</h1>
-              <p className="mt-5 text-base font-medium leading-7 text-slate-200 sm:text-lg">{page.description}</p>
+              <h1 className="public-hero-title">{page.title}</h1>
+              <p className="public-hero-text">{page.description}</p>
             </div>
             <div className="mt-7 flex flex-wrap gap-2">
               {page.keywords.map((keyword) => (

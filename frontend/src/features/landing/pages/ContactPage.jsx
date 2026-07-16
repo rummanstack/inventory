@@ -1,7 +1,7 @@
-import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Clock3, MessageCircle, Phone, Settings, Users } from 'lucide-react';
 import { usePublicLanguage, buildLocalizedPath } from '../../../app/hooks/usePublicLanguage.js';
+import { usePublicPageEffects } from '../hooks/usePublicPageEffects.js';
 import LandingHeader from '../components/LandingHeader.jsx';
 import LandingFooter from '../components/LandingFooter.jsx';
 import DeferredLandingAiChatWidget from '../components/DeferredLandingAiChatWidget.jsx';
@@ -16,29 +16,18 @@ export default function ContactPage() {
   const relatedDecisionPages = t('contactPage.relatedDecisionPages');
   const contactFaqs = t('contactPage.contactFaqs');
 
-  useEffect(() => {
-    document.documentElement.classList.add('landing-page-active');
-    document.body.classList.add('landing-page-active');
-    window.scrollTo(0, 0);
-    return () => {
-      document.documentElement.classList.remove('landing-page-active');
-      document.body.classList.remove('landing-page-active');
-    };
-  }, []);
+  usePublicPageEffects();
 
   return (
     <main id="top" className="landing-page">
       <LandingHeader language={language} setLanguage={setLanguage} t={t} />
-      <section
-        className="relative overflow-hidden pb-14 pt-32 text-white sm:pt-40"
-        style={{ background: 'linear-gradient(135deg,var(--bg-dark) 0%,var(--brand-strong) 58%,#14532d 100%)' }}
-      >
+      <section className="public-hero">
         <div className="landing-container">
-          <Link to={buildLocalizedPath(language, '/landing')} className="text-sm font-bold text-white/70 transition hover:text-white">{t('seoContent.breadcrumbHome')}</Link>
+          <Link to={buildLocalizedPath(language, '/landing')} className="public-hero-breadcrumb">{t('seoContent.breadcrumbHome')}</Link>
           <div className="mt-6 max-w-3xl">
             <p className="landing-eyebrow !text-[var(--landing-accent-teal)]">{t('contactPage.eyebrow')}</p>
-            <h1 className="mt-3 text-4xl font-black leading-[1.06] tracking-tight text-white sm:text-5xl">{t('contactPage.heroTitle')}</h1>
-            <p className="mt-5 text-base font-medium leading-7 text-slate-200 sm:text-lg">{t('contactPage.heroText')}</p>
+            <h1 className="public-hero-title">{t('contactPage.heroTitle')}</h1>
+            <p className="public-hero-text">{t('contactPage.heroText')}</p>
           </div>
         </div>
       </section>

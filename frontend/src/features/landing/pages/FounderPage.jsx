@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ArrowRight,
@@ -17,6 +16,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { usePublicLanguage, buildLocalizedPath } from '../../../app/hooks/usePublicLanguage.js';
+import { usePublicPageEffects } from '../hooks/usePublicPageEffects.js';
 import LandingHeader from '../components/LandingHeader.jsx';
 import LandingFooter from '../components/LandingFooter.jsx';
 import DeferredLandingAiChatWidget from '../components/DeferredLandingAiChatWidget.jsx';
@@ -37,15 +37,7 @@ export default function FounderPage() {
   const { language, setLanguage, t } = usePublicLanguage();
   const founderSeoReasons = t('landing.founder.seoReasons');
 
-  useEffect(() => {
-    document.documentElement.classList.add('landing-page-active');
-    document.body.classList.add('landing-page-active');
-    window.scrollTo(0, 0);
-    return () => {
-      document.documentElement.classList.remove('landing-page-active');
-      document.body.classList.remove('landing-page-active');
-    };
-  }, []);
+  usePublicPageEffects();
 
   const stats = t('landing.founder.stats') || [];
   const storyParagraphs = t('landing.founder.storyParagraphs') || [];
@@ -56,25 +48,7 @@ export default function FounderPage() {
     <main className="landing-page">
       <LandingHeader language={language} setLanguage={setLanguage} t={t} />
 
-      <section
-        className="relative overflow-hidden pb-0 pt-28 sm:pt-36"
-        style={{
-          background: 'linear-gradient(160deg, var(--bg-dark) 0%, var(--landing-founder-hero-mid) 50%, var(--landing-founder-hero-end) 100%)',
-        }}
-      >
-        <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="absolute left-1/3 top-0 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/4 rounded-full bg-[var(--brand)] opacity-10 blur-[140px]" />
-          <div className="absolute right-0 top-1/2 h-[300px] w-[300px] rounded-full bg-[var(--landing-accent-teal)] opacity-8 blur-[100px]" />
-        </div>
-        <div
-          className="pointer-events-none absolute inset-0"
-          style={{
-            backgroundImage:
-              'linear-gradient(rgba(255,255,255,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.025) 1px,transparent 1px)',
-            backgroundSize: '56px 56px',
-          }}
-        />
-
+      <section className="public-hero pb-0 pt-28 sm:pt-36">
         <div className="landing-container relative">
           <div className="flex items-center gap-2 text-xs font-bold text-slate-400">
             <Link to={buildLocalizedPath(language, '/landing')} className="transition hover:text-white">{t('landing.founder.breadcrumbHome')}</Link>
@@ -85,11 +59,11 @@ export default function FounderPage() {
           <div className="mt-10 flex flex-col items-center gap-10 pb-0 lg:flex-row lg:items-end lg:gap-16">
             <div className="max-w-xl lg:pb-16">
               <span className="landing-eyebrow !text-[var(--landing-accent-teal)]">{t('landing.founder.eyebrow')}</span>
-              <h1 className="mt-3 text-4xl font-black leading-[1.06] tracking-[-0.03em] text-white sm:text-5xl lg:text-6xl">
+              <h1 className="public-hero-title lg:text-6xl">
                 {t('landing.founder.name')}
               </h1>
               <p className="mt-2 text-base font-bold text-[var(--landing-accent-teal)]">{t('landing.founder.title')}</p>
-              <p className="mt-5 text-base font-medium leading-7 text-slate-300 sm:text-lg">
+              <p className="public-hero-text">
                 {t('landing.founder.tagline')}
               </p>
 

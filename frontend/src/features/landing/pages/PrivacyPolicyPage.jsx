@@ -26,7 +26,6 @@ export default function PrivacyPolicyPage() {
       contentKey="landing.privacy"
       sectionIcons={SECTION_ICONS}
       email="admin@stockledger.pro"
-      heroGradient="linear-gradient(145deg, var(--bg-dark) 0%, var(--brand-strong) 55%, #1a1440 100%)"
       ctaGradient="linear-gradient(135deg, var(--brand-strong) 0%, #1a1440 55%, #0d2040 100%)"
     />
   );

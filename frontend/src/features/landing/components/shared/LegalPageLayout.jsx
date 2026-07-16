@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, ChevronLeft, ChevronRight, Clock, FileText, MessageCircle, Phone } from 'lucide-react';
 import LandingHeader from '../LandingHeader.jsx';
@@ -7,6 +7,7 @@ import DeferredLandingAiChatWidget from '../DeferredLandingAiChatWidget.jsx';
 import { contactPhone, whatsappUrl } from '../../constants.js';
 import { stockLedgerLogoIcon } from '../../../../assets/brandAssets.js';
 import { buildLocalizedPath } from '../../../../app/hooks/usePublicLanguage.js';
+import { usePublicPageEffects } from '../../hooks/usePublicPageEffects.js';
 
 // Renders **bold** spans plus {email} / {privacy} placeholders so the
 // locale files can stay plain strings.
@@ -137,7 +138,7 @@ function ContactCards({ contact, email }) {
   );
 }
 
-export default function LegalPageLayout({ language, setLanguage, t, contentKey, sectionIcons, email, heroGradient, ctaGradient }) {
+export default function LegalPageLayout({ language, setLanguage, t, contentKey, sectionIcons, email, ctaGradient }) {
   const content = t(contentKey) || {};
   const sections = content.sections || [];
   const tabs = useMemo(
@@ -153,15 +154,7 @@ export default function LegalPageLayout({ language, setLanguage, t, contentKey, 
   const activeIndex = Math.max(0, tabs.findIndex((tab) => tab.id === activeId));
   const activeTab = tabs[activeIndex];
 
-  useEffect(() => {
-    document.documentElement.classList.add('landing-page-active');
-    document.body.classList.add('landing-page-active');
-    window.scrollTo(0, 0);
-    return () => {
-      document.documentElement.classList.remove('landing-page-active');
-      document.body.classList.remove('landing-page-active');
-    };
-  }, []);
+  usePublicPageEffects();
 
   function selectTab(id) {
     setActiveId(id);
@@ -189,19 +182,7 @@ export default function LegalPageLayout({ language, setLanguage, t, contentKey, 
       <LandingHeader language={language} setLanguage={setLanguage} t={t} />
 
       {/* ── Hero ── */}
-      <section className="relative overflow-hidden pb-12 pt-32 sm:pb-16 sm:pt-40" style={{ background: heroGradient }}>
-        <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="absolute -left-20 -top-20 h-[440px] w-[440px] rounded-full bg-[var(--brand)] opacity-10 blur-[120px]" />
-          <div className="absolute -right-20 top-0 h-[320px] w-[320px] rounded-full bg-[var(--landing-accent-teal)] opacity-8 blur-[100px]" />
-        </div>
-        <div
-          className="pointer-events-none absolute inset-0"
-          style={{
-            backgroundImage: 'linear-gradient(rgba(255,255,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.03) 1px,transparent 1px)',
-            backgroundSize: '56px 56px',
-          }}
-        />
-
+      <section className="public-hero pb-12 sm:pb-16">
         <div className="landing-container relative">
           <div className="flex items-center gap-2 text-xs font-bold text-slate-400">
             <Link to={buildLocalizedPath(language, '/landing')} className="transition hover:text-white">{content.breadcrumbHome}</Link>
@@ -211,8 +192,8 @@ export default function LegalPageLayout({ language, setLanguage, t, contentKey, 
 
           <div className="mt-6 max-w-2xl">
             <span className="landing-eyebrow !text-[var(--landing-accent-teal)]">{content.eyebrow}</span>
-            <h1 className="mt-3 text-4xl font-black leading-[1.06] tracking-[-0.03em] text-white sm:text-5xl">{content.title}</h1>
-            <p className="mt-4 text-base font-medium leading-7 text-slate-300 sm:text-lg">{content.intro}</p>
+            <h1 className="public-hero-title">{content.title}</h1>
+            <p className="public-hero-text">{content.intro}</p>
             <p className="mt-5 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-semibold text-slate-300">
               <Clock size={14} className="text-[var(--landing-accent-teal)]" />
               {content.updated}

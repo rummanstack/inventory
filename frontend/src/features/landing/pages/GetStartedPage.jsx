@@ -1,7 +1,7 @@
-import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, CheckCircle2, ClipboardList, MessageCircle, Phone, Settings, Users } from 'lucide-react';
 import { usePublicLanguage, buildLocalizedPath } from '../../../app/hooks/usePublicLanguage.js';
+import { usePublicPageEffects } from '../hooks/usePublicPageEffects.js';
 import LandingHeader from '../components/LandingHeader.jsx';
 import LandingFooter from '../components/LandingFooter.jsx';
 import DeferredLandingAiChatWidget from '../components/DeferredLandingAiChatWidget.jsx';
@@ -19,30 +19,19 @@ export default function GetStartedPage() {
   const getStartedFaqs = t('getStartedPage.getStartedFaqs');
   const stagedReasons = t('getStartedPage.stagedReasons');
 
-  useEffect(() => {
-    document.documentElement.classList.add('landing-page-active');
-    document.body.classList.add('landing-page-active');
-    window.scrollTo(0, 0);
-    return () => {
-      document.documentElement.classList.remove('landing-page-active');
-      document.body.classList.remove('landing-page-active');
-    };
-  }, []);
+  usePublicPageEffects();
 
   return (
     <main id="top" className="landing-page">
       <LandingHeader language={language} setLanguage={setLanguage} t={t} />
 
-      <section
-        className="relative overflow-hidden pb-16 pt-32 text-white sm:pt-40"
-        style={{ background: 'linear-gradient(135deg,var(--bg-dark) 0%,var(--brand-strong) 58%,#14532d 100%)' }}
-      >
+      <section className="public-hero pb-16">
         <div className="landing-container grid items-center gap-10 lg:grid-cols-[1fr_0.85fr]">
           <div>
-            <Link to={buildLocalizedPath(language, '/landing')} className="text-sm font-bold text-white/70 transition hover:text-white">{t('seoContent.breadcrumbHome')}</Link>
+            <Link to={buildLocalizedPath(language, '/landing')} className="public-hero-breadcrumb">{t('seoContent.breadcrumbHome')}</Link>
             <p className="landing-eyebrow mt-6 !text-[var(--landing-accent-teal)]">{t('getStartedPage.eyebrow')}</p>
-            <h1 className="mt-3 text-4xl font-black leading-[1.06] tracking-tight text-white sm:text-5xl">{t('getStartedPage.heroTitle')}</h1>
-            <p className="mt-5 text-base font-medium leading-7 text-slate-200 sm:text-lg">{t('getStartedPage.heroText')}</p>
+            <h1 className="public-hero-title">{t('getStartedPage.heroTitle')}</h1>
+            <p className="public-hero-text">{t('getStartedPage.heroText')}</p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <a href={whatsappUrl} target="_blank" rel="noreferrer" className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-[var(--landing-accent-success)] px-6 text-sm font-black text-white shadow-[0_14px_30px_var(--landing-accent-success-shadow)] transition hover:-translate-y-0.5">
                 <MessageCircle size={17} />

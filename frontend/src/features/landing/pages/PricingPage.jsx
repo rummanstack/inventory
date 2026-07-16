@@ -1,7 +1,7 @@
-import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Boxes, Calculator, Route, ShieldCheck, Users } from 'lucide-react';
 import { usePublicLanguage, buildLocalizedPath } from '../../../app/hooks/usePublicLanguage.js';
+import { usePublicPageEffects } from '../hooks/usePublicPageEffects.js';
 import LandingHeader from '../components/LandingHeader.jsx';
 import LandingFooter from '../components/LandingFooter.jsx';
 import DeferredLandingAiChatWidget from '../components/DeferredLandingAiChatWidget.jsx';
@@ -15,29 +15,18 @@ export default function PricingPage() {
   const pricingDrivers = t('pricingPage.pricingDrivers').map((item, index) => ({ ...item, Icon: pricingDriverIcons[index] }));
   const planFit = t('pricingPage.planFit');
 
-  useEffect(() => {
-    document.documentElement.classList.add('landing-page-active');
-    document.body.classList.add('landing-page-active');
-    window.scrollTo(0, 0);
-    return () => {
-      document.documentElement.classList.remove('landing-page-active');
-      document.body.classList.remove('landing-page-active');
-    };
-  }, []);
+  usePublicPageEffects();
 
   return (
     <main id="top" className="landing-page">
       <LandingHeader language={language} setLanguage={setLanguage} t={t} />
-      <section
-        className="relative overflow-hidden pb-14 pt-32 text-white sm:pt-40"
-        style={{ background: 'linear-gradient(135deg,var(--bg-dark) 0%,var(--brand-strong) 58%,#1f3a8a 100%)' }}
-      >
+      <section className="public-hero">
         <div className="landing-container">
-          <Link to={buildLocalizedPath(language, '/landing')} className="text-sm font-bold text-white/70 transition hover:text-white">{t('seoContent.breadcrumbHome')}</Link>
+          <Link to={buildLocalizedPath(language, '/landing')} className="public-hero-breadcrumb">{t('seoContent.breadcrumbHome')}</Link>
           <div className="mt-6 max-w-3xl">
             <p className="landing-eyebrow !text-[var(--landing-accent-teal)]">{t('pricingPage.eyebrow')}</p>
-            <h1 className="mt-3 text-4xl font-black leading-[1.06] tracking-tight text-white sm:text-5xl">{t('pricingPage.heroTitle')}</h1>
-            <p className="mt-5 text-base font-medium leading-7 text-slate-200 sm:text-lg">{t('pricingPage.heroText')}</p>
+            <h1 className="public-hero-title">{t('pricingPage.heroTitle')}</h1>
+            <p className="public-hero-text">{t('pricingPage.heroText')}</p>
             <Link to={buildLocalizedPath(language, '/contact')} className="mt-7 inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-white px-6 text-sm font-black text-[var(--brand-strong)] transition hover:-translate-y-0.5">
               {t('pricingPage.talkToSales')}
               <ArrowRight size={17} />

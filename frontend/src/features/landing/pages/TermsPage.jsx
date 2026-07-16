@@ -28,7 +28,6 @@ export default function TermsPage() {
       contentKey="landing.terms"
       sectionIcons={SECTION_ICONS}
       email="admin@stockledger.pro"
-      heroGradient="linear-gradient(145deg, #0c0b1e 0%, #12103a 45%, #0d2040 100%)"
       ctaGradient="linear-gradient(135deg, #0c0b1e 0%, #12103a 50%, #0d2040 100%)"
     />
   );

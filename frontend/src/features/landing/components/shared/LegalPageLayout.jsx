@@ -184,10 +184,10 @@ export default function LegalPageLayout({ language, setLanguage, t, contentKey, 
       {/* ── Hero ── */}
       <section className="public-hero pb-12 sm:pb-16">
         <div className="landing-container relative">
-          <div className="flex items-center gap-2 text-xs font-bold text-slate-400">
+          <div className="flex items-center gap-2 text-sm font-bold text-white/70">
             <Link to={buildLocalizedPath(language, '/landing')} className="transition hover:text-white">{content.breadcrumbHome}</Link>
             <span>/</span>
-            <span className="text-slate-300">{content.breadcrumb}</span>
+            <span className="text-white">{content.breadcrumb}</span>
           </div>
 
           <div className="mt-6 max-w-2xl">

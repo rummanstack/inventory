@@ -1,5 +1,5 @@
 import {
-  dealerImage,
+  eveningSettlementImage,
 } from './seoPageImages';
 import {
   F01Image,
@@ -495,7 +495,7 @@ export const solutionPages = [
   },
   {
     slug: 'dealer-distributor',
-    image: dealerImage,
+    image: eveningSettlementImage,
     en: {
       title: 'Dealer and Distributor Management Software',
       eyebrow: 'Dealers & Distributors',

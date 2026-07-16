@@ -50,10 +50,10 @@ export default function FounderPage() {
 
       <section className="public-hero pb-0 pt-28 sm:pt-36">
         <div className="landing-container relative">
-          <div className="flex items-center gap-2 text-xs font-bold text-slate-400">
+          <div className="flex items-center gap-2 text-sm font-bold text-white/70">
             <Link to={buildLocalizedPath(language, '/landing')} className="transition hover:text-white">{t('landing.founder.breadcrumbHome')}</Link>
             <span>/</span>
-            <span className="text-slate-300">{t('landing.founder.breadcrumbCurrent')}</span>
+            <span className="text-white">{t('landing.founder.breadcrumbCurrent')}</span>
           </div>
 
           <div className="mt-10 flex flex-col items-center gap-10 pb-0 lg:flex-row lg:items-end lg:gap-16">

@@ -1,18 +1,1 @@
-export { default as accountingStatementImage } from '../../../assets/landing/accounting-statement.png';
-export { default as dashboardSummaryImage } from '../../../assets/landing/dashboard-summary.png';
-export { default as dealerImage } from '../../../assets/landing/dealer.png';
-export { default as dsrRouteImage } from '../../../assets/landing/dsr-route.png';
-export { default as dueCollectionImage } from '../../../assets/landing/due-collection.png';
-export { default as groceryImage } from '../../../assets/landing/grocery.png';
-export { default as heroDashboardImage } from '../../../assets/landing/hero-dashboard.png';
-export { default as pharmacyImage } from '../../../assets/landing/pharmacy.png';
-export { default as profitReportImage } from '../../../assets/landing/profit-report.png';
-export { default as purchaseReceiveImage } from '../../../assets/landing/purchase-receive.png';
-export { default as reportsVisibilityImage } from '../../../assets/landing/reports-visibility.png';
-export { default as retailCounterImage } from '../../../assets/landing/retail-counter.png';
-export { default as supportCallImage } from '../../../assets/landing/support-call.png';
-export { default as tradersImage } from '../../../assets/landing/traders.png';
-export { default as warehouseStockImage } from '../../../assets/landing/warehouse-stock.png';
-
-export { default as ownerLaptopImage } from '../../../assets/landing/owner-laptop.png';
 export { default as eveningSettlementImage } from '../../../assets/landing/evening-settlement.png';

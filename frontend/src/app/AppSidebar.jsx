@@ -127,26 +127,26 @@ export default function AppSidebar({ mobileOpen, setMobileOpen, user, tenant, la
         )}
       >
         {/* Header */}
-        <div className="relative flex items-center justify-between px-2">
+        <div className={cx('relative flex items-center justify-between px-2', collapsed && 'lg:flex-col lg:justify-center lg:gap-2')}>
           <div className={cx('flex min-w-0 flex-1 items-center gap-3', collapsed && 'lg:hidden')}>
             <div className="logo-chip flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-slate-200 shadow-card">
               <img src={tenant?.logoUrl || stockLedgerLogoIcon} alt="" className="h-full w-full object-contain p-1.5" />
             </div>
-            <div className="min-w-0">
-              <h2 className="mt-1 truncate text-xl font-semibold tracking-normal text-slate-950">{tenant?.name || t('app.brand')}</h2>
+            <div className="flex min-w-0 flex-col justify-center gap-1">
+              <h2 className="truncate text-[17px] font-bold leading-tight tracking-tight text-slate-950" title={tenant?.name || t('app.brand')}>{tenant?.name || t('app.brand')}</h2>
               {tenant?.plan ? (
-                <p className="text-xs font-semibold capitalize text-slate-500">{tenant.plan}</p>
+                <span className="inline-flex w-fit items-center rounded-full bg-[var(--brand-soft)] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[var(--brand-strong)]">{tenant.plan}</span>
               ) : t('app.subtitle') ? (
                 <p className="text-xs font-semibold text-slate-500">{t('app.subtitle')}</p>
               ) : null}
             </div>
           </div>
-          <div className={cx('hidden', collapsed && 'lg:flex lg:flex-1 lg:justify-center')}>
+          <div className={cx('hidden', collapsed && 'lg:flex lg:justify-center')}>
             <div className="logo-chip flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl border border-slate-200">
               <img src={tenant?.logoUrl || stockLedgerLogoIcon} alt="" className="h-full w-full object-contain p-1" />
             </div>
           </div>
-          <div className="flex shrink-0 items-center gap-1">
+          <div className="flex shrink-0 items-center justify-center gap-1">
             <button
               type="button"
               className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-[var(--sidebar-line-strong)] bg-white/70 text-slate-600 transition hover:border-[var(--sidebar-line-hover)] hover:bg-white hover:text-slate-950 lg:hidden"

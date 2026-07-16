@@ -38,6 +38,7 @@ import { LandingChatService } from "../services/landingChatService.js";
 import { ManufacturerService } from "../services/manufacturerService.js";
 import { NotificationService } from "../services/notificationService.js";
 import { PermissionService } from "../services/permissionService.js";
+import { PhotoStorageService } from "../services/photoStorageService.js";
 import { ProductSerialService } from "../services/productSerialService.js";
 import { ProductService } from "../services/productService.js";
 import { ProfitService } from "../services/profitService.js";
@@ -82,6 +83,7 @@ export function createServiceRegistry({ databaseManager, env }) {
     invariantService: null,
     reportExportService: null,
     permissionService: null,
+    photoStorageService: new PhotoStorageService(env),
     registrationService: null,
     systemService: null,
     tenantService: null,

@@ -1,8 +1,9 @@
 import { UPLOAD_ACTIONS } from "../lib/auditActions.js";
 
 export class UploadController {
-  constructor(auditService) {
+  constructor(auditService, photoStorageService) {
     this.auditService = auditService;
+    this.photoStorageService = photoStorageService;
   }
 
   uploadPhoto = async (req, res, next) => {
@@ -12,7 +13,10 @@ export class UploadController {
         error.status = 400;
         throw error;
       }
-      const url = `/uploads/photos/${req.file.filename}`;
+      const storedPhoto = await this.photoStorageService.storePhoto(req.file, {
+        tenantId: req.currentUser?.tenantId,
+      });
+      const { url } = storedPhoto;
       if (this.auditService && req.currentUser) {
         await this.auditService.databaseManager.withClient((client) =>
           this.auditService.record(client, {
@@ -20,13 +24,14 @@ export class UploadController {
             userId: req.currentUser.id,
             actionType: UPLOAD_ACTIONS.PHOTO_UPLOAD,
             entityType: "upload",
-            entityId: req.file.filename,
+            entityId: storedPhoto.key,
             description: `${req.currentUser.name} uploaded photo ${req.file.originalname}`,
             metadata: {
               actorName: req.currentUser.name,
               actorRole: req.currentUser.role,
               originalName: req.file.originalname,
-              storedName: req.file.filename,
+              storedName: storedPhoto.storedName,
+              storageKey: storedPhoto.key,
               mimeType: req.file.mimetype,
               size: req.file.size,
               url,

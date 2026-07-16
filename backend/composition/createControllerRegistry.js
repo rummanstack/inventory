@@ -104,7 +104,7 @@ export function createControllerRegistry({ services, env, databaseManager }) {
       reportExportController: new ReportExportController(services.platform.reportExportService, services.platform.auditService),
       orgController: new OrgController(services.platform.tenantService),
       permissionController: new PermissionController(services.platform.permissionService),
-      uploadController: new UploadController(services.platform.auditService),
+      uploadController: new UploadController(services.platform.auditService, services.platform.photoStorageService),
       userController: new UserController(services.platform.userService),
     },
     catalog: {

@@ -24,15 +24,7 @@ const ALLOWED_DOCUMENT_MIME_TYPES = new Set([
 ]);
 
 const upload = multer({
-  storage: multer.diskStorage({
-    destination(req, file, callback) {
-      callback(null, uploadsDir);
-    },
-    filename(req, file, callback) {
-      const ext = path.extname(file.originalname || "").toLowerCase();
-      callback(null, `${createId("photo")}${ext}`);
-    },
-  }),
+  storage: multer.memoryStorage(),
   limits: { fileSize: MAX_FILE_SIZE_BYTES },
   fileFilter(req, file, callback) {
     if (!ALLOWED_MIME_TYPES.has(file.mimetype)) {

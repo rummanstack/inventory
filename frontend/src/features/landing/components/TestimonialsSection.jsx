@@ -4,8 +4,15 @@ import avatar3 from '../../../assets/landing/testimonial-3.jpg';
 import avatar4 from '../../../assets/landing/testimonial-4.jpg';
 import avatar5 from '../../../assets/landing/testimonial-5.jpg';
 import avatar6 from '../../../assets/landing/testimonial-6.jpg';
+import { Building2, MapPin } from 'lucide-react';
 
 const AVATARS = [avatar1, avatar2, avatar3, avatar4, avatar5, avatar6];
+const INDUSTRY_TAGS = [
+  'Grocery wholesale, Dhaka',
+  'Pharmacy, Chattogram',
+  'Electronics retail, Sylhet',
+  'DSR teams, Rajshahi',
+];
 
 function Stars({ count }) {
   return (
@@ -49,16 +56,33 @@ export default function TestimonialsSection({ t }) {
   return (
     <section className="landing-section landing-section-soft">
       <div className="landing-container">
-        <div className="text-center mb-12">
+        <div className="mb-10 text-center">
           <p className="landing-eyebrow">{t('landing.testimonials.eyebrow')}</p>
           <h2 className="landing-section-title mt-4">{t('landing.testimonials.title')}</h2>
-          <p className="landing-section-text mx-auto max-w-2xl mt-4">{t('landing.testimonials.text')}</p>
+          <p className="landing-section-text mx-auto mt-4 max-w-2xl">{t('landing.testimonials.text')}</p>
+        </div>
+
+        <div className="mb-8 flex flex-wrap justify-center gap-2.5">
+          {INDUSTRY_TAGS.map((tag) => (
+            <span key={tag} className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3.5 py-2 text-[12px] font-medium text-slate-600 shadow-[0_4px_14px_rgba(var(--slate-900),0.04)]">
+              <Building2 size={14} className="text-[var(--brand-strong)]" />
+              {tag}
+            </span>
+          ))}
         </div>
 
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {items.map((item, index) => (
             <TestimonialCard key={item.name} item={item} avatar={AVATARS[index % AVATARS.length]} />
           ))}
+        </div>
+
+        <div className="mt-6 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm text-slate-500">
+          <span className="inline-flex items-center gap-1.5">
+            <MapPin size={14} className="text-[var(--brand-strong)]" />
+            Dhaka, Chattogram, Sylhet, Rajshahi, Cumilla and Khulna
+          </span>
+          <span>Used by retail, pharmacy, electronics and distributor teams</span>
         </div>
       </div>
     </section>

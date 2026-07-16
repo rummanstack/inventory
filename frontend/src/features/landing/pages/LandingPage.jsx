@@ -12,7 +12,6 @@ import CtaSection from '../components/CtaSection.jsx';
 import PricingSection from '../components/PricingSection.jsx';
 import FaqSection from '../components/FaqSection.jsx';
 import TrustBarSection from '../components/TrustBarSection.jsx';
-import ProofSection from '../components/ProofSection.jsx';
 import WhoIsItForSection from '../components/WhoIsItForSection.jsx';
 import ContactSection from '../components/ContactSection.jsx';
 import LandingFooter from '../components/LandingFooter.jsx';
@@ -46,7 +45,6 @@ export default function LandingPage() {
       <SolutionsSection t={t} />
       <WhoIsItForSection t={t} />
       <ImageShowcaseSection t={t} />
-      <ProofSection t={t} />
       <TestimonialsSection t={t} />
 
       <section className="landing-section landing-section-soft" style={deferredSectionStyle}>

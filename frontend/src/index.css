@@ -418,18 +418,19 @@
     color: var(--text-strong);
   }
 
-  /* Fine grid, faded out toward the edges so it reads as texture, not wallpaper */
+  /* Fine grid net (same look as the auth brand panel), faded out toward the
+     edges so it reads as texture, not wallpaper */
   .landing-hero::before {
     content: '';
     position: absolute;
     inset: 0;
     pointer-events: none;
     background:
-      linear-gradient(rgba(var(--slate-900), 0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(var(--slate-900), 0.03) 1px, transparent 1px);
-    background-size: 54px 54px;
-    -webkit-mask-image: radial-gradient(85rem 46rem at 50% -6rem, black 28%, transparent 76%);
-    mask-image: radial-gradient(85rem 46rem at 50% -6rem, black 28%, transparent 76%);
+      linear-gradient(rgba(60, 42, 134, 0.08) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(60, 42, 134, 0.08) 1px, transparent 1px);
+    background-size: 44px 44px;
+    -webkit-mask-image: radial-gradient(95rem 52rem at 50% -6rem, black 32%, transparent 80%);
+    mask-image: radial-gradient(95rem 52rem at 50% -6rem, black 32%, transparent 80%);
   }
 
   .landing-hero > .landing-container {
@@ -966,7 +967,7 @@
       radial-gradient(44rem 24rem at 88% -25%, rgba(13, 148, 136, 0.32), transparent 60%),
       radial-gradient(42rem 26rem at -12% 125%, rgba(109, 91, 194, 0.38), transparent 62%),
       linear-gradient(120deg, var(--bg-dark) 0%, var(--brand-strong) 60%, #173b4a 100%);
-    box-shadow: 0 34px 90px -22px rgba(14, 12, 37, 0.55);
+    box-shadow: 0 18px 44px -18px rgba(14, 12, 37, 0.28);
   }
 
   /* Subtle inner top highlight so the panel reads as glass, not flat paint */
@@ -1538,11 +1539,55 @@ body.landing-page-active .page-shell {
   filter: blur(30px);
 }
 
-.hero-portrait-shell .image-placeholder {
-  border-color: rgba(60, 42, 134, 0.16);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.85),
-    0 34px 90px -22px rgba(60, 42, 134, 0.38);
+/* Browser-window frame around the hero product shot */
+.hero-browser-frame {
+  overflow: hidden;
+  border-radius: 1.4rem;
+  border: 1px solid rgba(60, 42, 134, 0.18);
+  background: #ffffff;
+  box-shadow: 0 34px 90px -22px rgba(60, 42, 134, 0.38);
+}
+
+.hero-browser-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.6rem 0.9rem;
+  background: linear-gradient(90deg, #171427 0%, var(--brand-strong) 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.hero-browser-dot {
+  width: 0.6rem;
+  height: 0.6rem;
+  flex: 0 0 auto;
+  border-radius: 999px;
+}
+
+.hero-browser-dot-red { background: #ff5f57; }
+.hero-browser-dot-amber { background: #febc2e; }
+.hero-browser-dot-green { background: #28c840; }
+
+.hero-browser-url {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-left: 0.65rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.28rem 0.85rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* The placeholder's own card chrome is redundant inside the frame */
+.hero-browser-frame .image-placeholder {
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
 }
 
 @media (min-width: 1280px) {

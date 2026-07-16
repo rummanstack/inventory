@@ -1,6 +1,6 @@
 ﻿import { Link } from 'react-router-dom';
-import { ArrowRight, MessageCircle, Phone } from 'lucide-react';
-import { contactPhone, whatsappUrl } from '../constants.js';
+import { ArrowRight, MessageCircle } from 'lucide-react';
+import { whatsappUrl } from '../constants.js';
 
 export default function CtaSection({ t }) {
   const copy = t('landing.cta');
@@ -22,11 +22,7 @@ export default function CtaSection({ t }) {
               <span className="demo-btn-icon"><MessageCircle size={15} /></span>
               {copy.whatsapp}
             </a>
-            <a href={`tel:${contactPhone}`} className="cta-outline-btn group">
-              <span className="demo-btn-icon"><Phone size={15} /></span>
-              {copy.callNow}
-            </a>
-            <Link to="/register" className="demo-white-btn group">
+            <Link to="/register" className="cta-outline-btn group">
               {t('landing.registerNow')}
               <ArrowRight size={18} className="transition duration-200 group-hover:translate-x-1" />
             </Link>

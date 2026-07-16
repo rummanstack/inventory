@@ -68,7 +68,7 @@ function LoginForm({ login, t, onForgot }) {
         <span className="relative block">
           <Mail className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
           <input
-            className="input h-11 pl-9"
+            className="input h-12 rounded-xl pl-9 focus:border-[var(--brand)] focus:ring-[var(--brand-soft)]"
             type="email"
             autoComplete="email"
             value={email}
@@ -83,7 +83,7 @@ function LoginForm({ login, t, onForgot }) {
         <span className="label">{t('auth.password')}</span>
         <PasswordInput
           leftIcon={<Lock size={16} />}
-          className="input h-11 pl-9"
+          className="input h-12 rounded-xl pl-9 focus:border-[var(--brand)] focus:ring-[var(--brand-soft)]"
           autoComplete="current-password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
@@ -159,7 +159,7 @@ function ForgotPasswordForm({ forgotPassword, t, onBack }) {
         <span className="relative block">
           <Mail className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
           <input
-            className="input h-11 pl-9"
+            className="input h-12 rounded-xl pl-9 focus:border-[var(--brand)] focus:ring-[var(--brand-soft)]"
             type="email"
             autoComplete="email"
             value={email}
@@ -231,7 +231,7 @@ function ResetPasswordForm({ resetPassword, t, token, onBack }) {
         <span className="label">{t('auth.newPassword')}</span>
         <PasswordInput
           leftIcon={<Lock size={16} />}
-          className="input h-11 pl-9"
+          className="input h-12 rounded-xl pl-9 focus:border-[var(--brand)] focus:ring-[var(--brand-soft)]"
           autoComplete="new-password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
@@ -244,7 +244,7 @@ function ResetPasswordForm({ resetPassword, t, token, onBack }) {
         <span className="label">{t('auth.confirmPassword')}</span>
         <PasswordInput
           leftIcon={<Lock size={16} />}
-          className="input h-11 pl-9"
+          className="input h-12 rounded-xl pl-9 focus:border-[var(--brand)] focus:ring-[var(--brand-soft)]"
           autoComplete="new-password"
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}

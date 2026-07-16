@@ -1,4 +1,4 @@
-import { ArrowRight, MessageCircle } from 'lucide-react';
+import { ArrowRight, Lock, MessageCircle } from 'lucide-react';
 import ImagePlaceholder from './shared/ImagePlaceholder.jsx';
 import { heroPortraitImage } from '../constants.js';
 
@@ -36,14 +36,25 @@ export default function HeroSection({ t }) {
 
         <div className="landing-hero-media">
           <div className="hero-portrait-shell">
-            <ImagePlaceholder
-              data={{ src: heroPortraitImage, alt: t('landing.hero.imageAlt') }}
-              heightClass="aspect-[16/10]"
-              variant="dashboard"
-              fit="fill"
-              position="center"
-              priority
-            />
+            <div className="hero-browser-frame">
+              <div className="hero-browser-bar" aria-hidden="true">
+                <span className="hero-browser-dot hero-browser-dot-red" />
+                <span className="hero-browser-dot hero-browser-dot-amber" />
+                <span className="hero-browser-dot hero-browser-dot-green" />
+                <span className="hero-browser-url">
+                  <Lock size={10} />
+                  stockledger.pro
+                </span>
+              </div>
+              <ImagePlaceholder
+                data={{ src: heroPortraitImage, alt: t('landing.hero.imageAlt') }}
+                heightClass="aspect-[16/10]"
+                variant="dashboard"
+                fit="fill"
+                position="center"
+                priority
+              />
+            </div>
             <div className="hero-image-badge-wrap">
               <div className="hero-image-badge">
                 <p className="hero-image-badge-label">{t('landing.hero.badgeLabel')}</p>

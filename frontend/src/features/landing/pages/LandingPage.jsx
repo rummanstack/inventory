@@ -169,18 +169,18 @@ export default function LandingPage() {
                   </p>
                 ))}
               </div>
-              <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-                <Link to={buildLocalizedPath(language, '/features')} className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-[var(--brand-strong)] px-5 text-sm font-black text-white transition hover:-translate-y-0.5">
+              <div className="mt-6 grid gap-3 sm:grid-cols-2">
+                <Link to={buildLocalizedPath(language, '/features')} className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-[var(--brand-strong)] px-4 py-3 text-center text-sm font-black leading-5 text-white transition hover:-translate-y-0.5">
                   {t('landingExtra.exploreFeatures')}
-                  <ArrowRight size={16} />
+                  <ArrowRight size={16} className="shrink-0" />
                 </Link>
-                <Link to={buildLocalizedPath(language, '/solutions')} className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 text-sm font-black text-slate-700 transition hover:-translate-y-0.5 hover:border-[var(--brand)]/30">
+                <Link to={buildLocalizedPath(language, '/solutions')} className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-center text-sm font-black leading-5 text-slate-700 transition hover:-translate-y-0.5 hover:border-[var(--brand)]/30">
                   {t('landingExtra.exploreSolutions')}
-                  <ArrowRight size={16} />
+                  <ArrowRight size={16} className="shrink-0" />
                 </Link>
-                <Link to={buildLocalizedPath(language, '/software')} className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 text-sm font-black text-slate-700 transition hover:-translate-y-0.5 hover:border-[var(--brand)]/30">
+                <Link to={buildLocalizedPath(language, '/software')} className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-center text-sm font-black leading-5 text-slate-700 transition hover:-translate-y-0.5 hover:border-[var(--brand)]/30 sm:col-span-2">
                   {t('landingExtra.softwareGuides')}
-                  <ArrowRight size={16} />
+                  <ArrowRight size={16} className="shrink-0" />
                 </Link>
               </div>
             </article>

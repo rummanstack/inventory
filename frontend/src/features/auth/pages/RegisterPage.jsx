@@ -146,7 +146,7 @@ function RegisterForm({ t, onDone }) {
           <label className="block">
             <span className="label">{t('auth.register.businessName')}</span>
             <input
-              className="input h-11"
+              className="input h-12 rounded-xl focus:border-[var(--brand)] focus:ring-[var(--brand-soft)]"
               value={businessName}
               onChange={(e) => setBusinessName(e.target.value)}
               placeholder={t('auth.register.businessNamePlaceholder')}
@@ -159,7 +159,7 @@ function RegisterForm({ t, onDone }) {
             <span className="relative block">
               <User className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
               <input
-                className="input h-11 pl-9"
+                className="input h-12 rounded-xl pl-9 focus:border-[var(--brand)] focus:ring-[var(--brand-soft)]"
                 value={ownerName}
                 onChange={(e) => setOwnerName(e.target.value)}
                 autoComplete="name"
@@ -175,7 +175,7 @@ function RegisterForm({ t, onDone }) {
             <span className="relative block">
               <Mail className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
               <input
-                className="input h-11 pl-9"
+                className="input h-12 rounded-xl pl-9 focus:border-[var(--brand)] focus:ring-[var(--brand-soft)]"
                 type="email"
                 autoComplete="email"
                 value={email}
@@ -191,7 +191,7 @@ function RegisterForm({ t, onDone }) {
             <span className="relative block">
               <PhoneCall className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
               <input
-                className="input h-11 pl-9"
+                className="input h-12 rounded-xl pl-9 focus:border-[var(--brand)] focus:ring-[var(--brand-soft)]"
                 type="tel"
                 autoComplete="tel"
                 value={phone}
@@ -208,7 +208,7 @@ function RegisterForm({ t, onDone }) {
             <span className="label">{t('auth.password')}</span>
             <PasswordInput
               leftIcon={<Lock size={16} />}
-              className="input h-11 pl-9"
+              className="input h-12 rounded-xl pl-9 focus:border-[var(--brand)] focus:ring-[var(--brand-soft)]"
               autoComplete="new-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -220,7 +220,7 @@ function RegisterForm({ t, onDone }) {
             <span className="label">{t('auth.confirmPassword')}</span>
             <PasswordInput
               leftIcon={<Lock size={16} />}
-              className="input h-11 pl-9"
+              className="input h-12 rounded-xl pl-9 focus:border-[var(--brand)] focus:ring-[var(--brand-soft)]"
               autoComplete="new-password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}

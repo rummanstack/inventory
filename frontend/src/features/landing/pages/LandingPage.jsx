@@ -43,6 +43,32 @@ export default function LandingPage() {
     };
   }, []);
 
+  // Scroll reveal: sections below the hero fade-and-rise in as they enter the
+  // viewport. Classes are only attached here, so nothing is hidden without JS,
+  // and reduced-motion users see everything instantly (handled in CSS).
+  // Skipped under webdriver so the SEO prerender snapshot never captures the
+  // opacity-0 `lp-reveal` state in the static HTML.
+  useEffect(() => {
+    if (typeof IntersectionObserver === 'undefined' || navigator.webdriver) return undefined;
+    const targets = document.querySelectorAll('.landing-page > section:not(.landing-hero) > .landing-container');
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('lp-reveal-in');
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { rootMargin: '0px 0px -60px 0px' },
+    );
+    targets.forEach((el) => {
+      el.classList.add('lp-reveal');
+      observer.observe(el);
+    });
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <main id="top" className="landing-page">
       <LandingHeader language={language} setLanguage={setLanguage} t={t} />

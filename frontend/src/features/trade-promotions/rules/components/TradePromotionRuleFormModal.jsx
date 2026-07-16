@@ -152,11 +152,6 @@ export default function TradePromotionRuleFormModal({ rule, categories, onClose,
             <label className="label">{t('tradePromotions.rules.priority')}</label>
             <input className="input" type="number" inputMode="numeric" min="1" step="1" value={form.priority} onChange={(event) => updateField('priority', event.target.value)} />
           </div>
-          <div className="sm:col-span-2">
-            <label className="label">{t('tradePromotions.rules.remarks')}</label>
-            <textarea className="input min-h-20" value={form.remarks} onChange={(event) => updateField('remarks', event.target.value)} />
-          </div>
-
           <div>
             <label className="label">{t('tradePromotions.rules.supplierScope')}</label>
             <Select className="input" value={form.supplierScope} onChange={(event) => updateField('supplierScope', event.target.value)}>
@@ -214,7 +209,34 @@ export default function TradePromotionRuleFormModal({ rule, categories, onClose,
               ))}
             </Select>
           </div>
-          <div>
+          {form.rewardType === 'FREE_QUANTITY' ? (
+            <div>
+              <label className="label">{t('tradePromotions.rules.rewardUnit')}</label>
+              <Select className="input" value={form.rewardUnit} onChange={(event) => updateField('rewardUnit', event.target.value)}>
+                {BUY_UNITS.map((value) => (
+                  <option key={value} value={value}>{t(`tradePromotions.rules.units.${value}`)}</option>
+                ))}
+              </Select>
+            </div>
+          ) : form.rewardType === 'FIXED_AMOUNT' ? (
+            <div>
+              <label className="label">{t('tradePromotions.rules.rewardAmount')}</label>
+              <input className="input" type="number" inputMode="decimal" min="0" step="0.01" value={form.rewardAmount} onChange={(event) => updateField('rewardAmount', event.target.value)} />
+            </div>
+          ) : (
+            <div>
+              <label className="label">{t('tradePromotions.rules.rewardPercentage')}</label>
+              <input className="input" type="number" inputMode="decimal" min="0" max="100" step="0.01" value={form.rewardPercentage} onChange={(event) => updateField('rewardPercentage', event.target.value)} />
+            </div>
+          )}
+
+          {form.rewardType === 'FREE_QUANTITY' ? (
+            <div>
+              <label className="label">{t('tradePromotions.rules.rewardQuantity')}</label>
+              <input className="input" type="number" inputMode="decimal" min="0" step="0.0001" value={form.rewardQuantity} onChange={(event) => updateField('rewardQuantity', event.target.value)} />
+            </div>
+          ) : null}
+          <div className={form.rewardType === 'FREE_QUANTITY' ? '' : 'sm:col-span-2'}>
             <label className="label">{t('tradePromotions.rules.settlementMethod')}</label>
             <Select className="input" value={form.settlementMethod} onChange={(event) => updateField('settlementMethod', event.target.value)}>
               {SETTLEMENT_METHODS.map((value) => (
@@ -222,35 +244,6 @@ export default function TradePromotionRuleFormModal({ rule, categories, onClose,
               ))}
             </Select>
           </div>
-
-          {form.rewardType === 'FREE_QUANTITY' ? (
-            <>
-              <div>
-                <label className="label">{t('tradePromotions.rules.rewardUnit')}</label>
-                <Select className="input" value={form.rewardUnit} onChange={(event) => updateField('rewardUnit', event.target.value)}>
-                  {BUY_UNITS.map((value) => (
-                    <option key={value} value={value}>{t(`tradePromotions.rules.units.${value}`)}</option>
-                  ))}
-                </Select>
-              </div>
-              <div>
-                <label className="label">{t('tradePromotions.rules.rewardQuantity')}</label>
-                <input className="input" type="number" inputMode="decimal" min="0" step="0.0001" value={form.rewardQuantity} onChange={(event) => updateField('rewardQuantity', event.target.value)} />
-              </div>
-            </>
-          ) : null}
-          {form.rewardType === 'FIXED_AMOUNT' ? (
-            <div>
-              <label className="label">{t('tradePromotions.rules.rewardAmount')}</label>
-              <input className="input" type="number" inputMode="decimal" min="0" step="0.01" value={form.rewardAmount} onChange={(event) => updateField('rewardAmount', event.target.value)} />
-            </div>
-          ) : null}
-          {form.rewardType === 'PERCENTAGE' ? (
-            <div>
-              <label className="label">{t('tradePromotions.rules.rewardPercentage')}</label>
-              <input className="input" type="number" inputMode="decimal" min="0" max="100" step="0.01" value={form.rewardPercentage} onChange={(event) => updateField('rewardPercentage', event.target.value)} />
-            </div>
-          ) : null}
 
           <div>
             <label className="label">{t('tradePromotions.rules.effectiveFrom')}</label>
@@ -274,6 +267,11 @@ export default function TradePromotionRuleFormModal({ rule, categories, onClose,
                 <span className="mt-0.5 block text-xs font-medium text-slate-500">{t('tradePromotions.rules.activeHint')}</span>
               </span>
             </label>
+          </div>
+
+          <div className="sm:col-span-2">
+            <label className="label">{t('tradePromotions.rules.remarks')}</label>
+            <textarea className="input min-h-20" value={form.remarks} onChange={(event) => updateField('remarks', event.target.value)} />
           </div>
         </div>
         <div className="flex justify-end gap-2 pt-2">

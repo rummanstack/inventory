@@ -9,6 +9,7 @@ import { PayrollService } from "../services/payrollService.js";
 import { AuditService } from "../services/auditService.js";
 import { AuthService } from "../services/authService.js";
 import { BackupService } from "../services/backupService.js";
+import { BackupStorageService } from "../services/backupStorageService.js";
 import { BrandService } from "../services/brandService.js";
 import { CategoryService } from "../services/categoryService.js";
 import { ContactMessageService } from "../services/contactMessageService.js";
@@ -290,7 +291,10 @@ export function createServiceRegistry({ databaseManager, env }) {
   platform.systemService = new SystemService(databaseManager);
   platform.invariantService = new InvariantService(databaseManager);
   platform.errorLogService = new ErrorLogService(databaseManager);
-  platform.backupService = new BackupService(databaseManager, { auditService: platform.auditService });
+  platform.backupService = new BackupService(databaseManager, {
+    auditService: platform.auditService,
+    backupStorageService: new BackupStorageService(env),
+  });
   platform.reportExportService = reportExportService;
   platform.notificationService = notificationService;
 

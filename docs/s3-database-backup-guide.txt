@@ -1,0 +1,73 @@
+StockLedger S3 Database Backup Guide
+====================================
+
+Purpose
+-------
+When an authorized user generates an SQL or JSON backup, StockLedger stores a
+private copy in S3 and also downloads a copy through the browser.
+
+1. Create the private backup bucket
+-----------------------------------
+Bucket: stockledger-db-backups-720718980561-ap-south-1-an
+Region: ap-south-1
+
+- Keep Block Public Access fully enabled.
+- Enable Bucket Versioning and default SSE-S3 encryption.
+- Do not connect this bucket to CloudFront.
+- Never add a public-read bucket policy.
+
+2. Give the uploader permission
+-------------------------------
+Add the backup resource to the stockledger-uploader IAM policy:
+
+{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Effect": "Allow",
+    "Action": "s3:PutObject",
+    "Resource": [
+      "arn:aws:s3:::stockledger-720718980561-ap-south-1-an/photos/*",
+      "arn:aws:s3:::stockledger-db-backups-720718980561-ap-south-1-an/database-backups/*"
+    ]
+  }]
+}
+
+For EC2 production, attach this permission to the EC2 IAM role. Do not store
+access keys or run aws configure on EC2.
+
+3. Configure backend/.env
+-------------------------
+BACKUP_STORAGE_DRIVER=s3
+AWS_REGION=ap-south-1
+AWS_PROFILE=stockledger-s3
+AWS_S3_BACKUP_BUCKET=stockledger-db-backups-720718980561-ap-south-1-an
+AWS_S3_BACKUP_PREFIX=database-backups
+
+AWS_PROFILE is for local development only. Remove it on EC2 because the AWS
+SDK automatically uses the attached EC2 IAM role.
+
+4. Restart and test
+-------------------
+cd backend
+npm run dev
+
+Open Database Backup in StockLedger and generate an SQL or JSON backup. The
+browser download is expected. Confirm the private S3 copy appears under:
+
+- Tenant: database-backups/tenants/<tenant-id>/
+- Platform: database-backups/platform/
+
+5. Troubleshooting
+------------------
+- AccessDenied: the IAM identity lacks s3:PutObject for database-backups/*.
+- NoSuchBucket/404: the bucket name is wrong or the bucket was not created.
+- Still local only: BACKUP_STORAGE_DRIVER is local, or the backend was not
+  restarted after changing .env.
+- Browser still downloads: expected; the workflow stores in S3 and downloads.
+
+Security and recovery
+---------------------
+Backups contain business data. Keep the bucket private, restrict IAM access,
+enable versioning, and add an S3 lifecycle rule based on your retention needs.
+To restore or download an older S3 backup from inside StockLedger, add a future
+authenticated s3:GetObject workflow instead of making the bucket public.

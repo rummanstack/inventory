@@ -44,9 +44,10 @@ const SENSITIVE_COLUMNS = {
 };
 
 export class BackupService {
-  constructor(databaseManager, { auditService }) {
+  constructor(databaseManager, { auditService, backupStorageService = null }) {
     this.databaseManager = databaseManager;
     this.auditService = auditService;
+    this.backupStorageService = backupStorageService;
   }
 
   async createBackupFile(format = "sql", { tenantId = null } = {}) {
@@ -65,6 +66,10 @@ export class BackupService {
 
   async removeBackupFile(tempPath) {
     await fs.unlink(tempPath).catch(() => {});
+  }
+
+  async storeBackupFile(backupFile, context) {
+    return this.backupStorageService?.storeBackupFile(backupFile, context) || null;
   }
 
   // Resolves, per table, the safe column list and whether it can be scoped to one tenant.
@@ -179,7 +184,7 @@ export class BackupService {
     await fs.writeFile(tempPath, `${lines.join("\n")}\n`, "utf8");
   }
 
-  async recordDownload(client, user, { filename, format, tenantId, scope }) {
+  async recordDownload(client, user, { filename, format, tenantId, scope, storedBackup = null }) {
     if (!this.auditService) {
       return;
     }
@@ -191,7 +196,15 @@ export class BackupService {
       entityType: "database_backup",
       entityId: null,
       description: `${user.name} downloaded a ${scope} database backup`,
-      metadata: { filename, format, scope, tenantId: tenantId || null },
+      metadata: {
+        filename,
+        format,
+        scope,
+        tenantId: tenantId || null,
+        storageDriver: storedBackup?.driver || "local",
+        storageBucket: storedBackup?.bucket || null,
+        storageKey: storedBackup?.key || null,
+      },
     });
   }
 }

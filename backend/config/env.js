@@ -4,6 +4,7 @@ const SESSION_DAYS = Number(process.env.SESSION_DAYS || 7);
 const AI_DAILY_LIMIT = Number(process.env.AI_DAILY_LIMIT || 100);
 const AI_MIN_SECONDS_BETWEEN_REQUESTS = Number(process.env.AI_MIN_SECONDS_BETWEEN_REQUESTS || 5);
 const PHOTO_STORAGE_DRIVER = String(process.env.PHOTO_STORAGE_DRIVER || 'local').trim().toLowerCase();
+const BACKUP_STORAGE_DRIVER = String(process.env.BACKUP_STORAGE_DRIVER || 'local').trim().toLowerCase();
 
 const isDevRun = process.env.npm_lifecycle_event === 'dev' || process.env.npm_lifecycle_event === 'test';
 const DATABASE_URL = (isDevRun && process.env.DEV_DATABASE_URL) || process.env.DATABASE_URL;
@@ -21,11 +22,24 @@ if (!['local', 's3'].includes(PHOTO_STORAGE_DRIVER)) {
   throw new Error('PHOTO_STORAGE_DRIVER must be either local or s3.');
 }
 
+if (!['local', 's3'].includes(BACKUP_STORAGE_DRIVER)) {
+  throw new Error('BACKUP_STORAGE_DRIVER must be either local or s3.');
+}
+
 if (PHOTO_STORAGE_DRIVER === 's3') {
   for (const key of ['AWS_REGION', 'AWS_S3_BUCKET', 'AWS_S3_PUBLIC_BASE_URL']) {
     if (!String(process.env[key] || '').trim()) {
       throw new Error(key + ' is required when PHOTO_STORAGE_DRIVER=s3.');
     }
+  }
+}
+
+if (BACKUP_STORAGE_DRIVER === 's3') {
+  if (!String(process.env.AWS_REGION || '').trim()) {
+    throw new Error('AWS_REGION is required when BACKUP_STORAGE_DRIVER=s3.');
+  }
+  if (!String(process.env.AWS_S3_BACKUP_BUCKET || process.env.AWS_S3_BUCKET || '').trim()) {
+    throw new Error('AWS_S3_BACKUP_BUCKET or AWS_S3_BUCKET is required when BACKUP_STORAGE_DRIVER=s3.');
   }
 }
 
@@ -43,10 +57,13 @@ export const env = {
   NODE_ENV,
   PORT,
   PHOTO_STORAGE_DRIVER,
+  BACKUP_STORAGE_DRIVER,
   AWS_REGION: String(process.env.AWS_REGION || '').trim(),
   AWS_S3_BUCKET: String(process.env.AWS_S3_BUCKET || '').trim(),
   AWS_S3_PHOTO_PREFIX: String(process.env.AWS_S3_PHOTO_PREFIX || 'photos').trim(),
   AWS_S3_PUBLIC_BASE_URL: String(process.env.AWS_S3_PUBLIC_BASE_URL || '').trim().replace(/\/+$/, ''),
+  AWS_S3_BACKUP_BUCKET: String(process.env.AWS_S3_BACKUP_BUCKET || process.env.AWS_S3_BUCKET || '').trim(),
+  AWS_S3_BACKUP_PREFIX: String(process.env.AWS_S3_BACKUP_PREFIX || 'database-backups').trim(),
   SESSION_COOKIE_NAME: process.env.SESSION_COOKIE_NAME || 'arinda_session',
   SESSION_DAYS,
 };

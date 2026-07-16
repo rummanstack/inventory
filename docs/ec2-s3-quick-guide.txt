@@ -1,0 +1,45 @@
+StockLedger EC2 + S3 Quick Guide
+================================
+
+1. Create an IAM role for EC2 with this permission:
+   Action: s3:PutObject
+   Resources:
+   - arn:aws:s3:::stockledger-720718980561-ap-south-1-an/photos/*
+   - arn:aws:s3:::stockledger-db-backups-720718980561-ap-south-1-an/database-backups/*
+
+2. Attach the IAM role to the EC2 instance:
+   EC2 Console > Instance > Actions > Security > Modify IAM role.
+   Do not run aws configure or store access keys on EC2.
+
+3. Use Node.js 20 or newer, clone the project, then install dependencies:
+   npm --prefix backend ci
+   npm --prefix frontend ci
+   npm --prefix frontend run build
+
+4. Add the production database settings and these values to backend/.env:
+   NODE_ENV=production
+   PHOTO_STORAGE_DRIVER=s3
+   BACKUP_STORAGE_DRIVER=s3
+   AWS_REGION=ap-south-1
+   AWS_S3_BUCKET=stockledger-720718980561-ap-south-1-an
+   AWS_S3_PHOTO_PREFIX=photos
+   AWS_S3_BACKUP_BUCKET=stockledger-db-backups-720718980561-ap-south-1-an
+   AWS_S3_BACKUP_PREFIX=database-backups
+   AWS_S3_PUBLIC_BASE_URL=https://stockledger-720718980561-ap-south-1-an.s3.ap-south-1.amazonaws.com
+
+5. Do not add AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, or AWS_PROFILE.
+   The AWS SDK automatically uses the attached EC2 IAM role.
+
+6. Start the backend from the backend folder with a process manager such as
+   systemd or PM2. Keep port 3001 private and expose the app through Nginx
+   on HTTPS ports 80/443.
+
+7. Upload one product photo and confirm it exists under photos/<tenant-id>/.
+   Generate one database backup and confirm it exists under
+   database-backups/tenants/<tenant-id>/ or database-backups/platform/.
+   Never grant public read access to the database-backups prefix.
+   If direct S3 image viewing returns 403, public reading requires a bucket
+   policy; otherwise use signed URLs or CloudFront while keeping S3 private.
+
+Security: restrict SSH (22) to your IP, enable root-account MFA, and never
+commit backend/.env or AWS credentials.

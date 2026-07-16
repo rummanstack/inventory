@@ -32,8 +32,8 @@ export default function ProductsPage() {
   const [ledgerRefreshKey, setLedgerRefreshKey] = useState(0);
   const [downloadingPdf, downloadPdf] = useAsyncAction();
   const [viewMode, setViewMode] = useState(() => {
-    if (typeof window === 'undefined') return 'list';
-    return window.localStorage.getItem(VIEW_MODE_STORAGE_KEY) === 'grid' ? 'grid' : 'list';
+    if (typeof window === 'undefined') return 'grid';
+    return window.localStorage.getItem(VIEW_MODE_STORAGE_KEY) === 'list' ? 'list' : 'grid';
   });
 
   useEffect(() => {

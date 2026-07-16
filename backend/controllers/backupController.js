@@ -28,6 +28,11 @@ export class BackupController {
     try {
       const format = req.query.format === "json" ? "json" : "sql";
       backupFile = await this.backupService.createBackupFile(format, { tenantId });
+      const storedBackup = await this.backupService.storeBackupFile(backupFile, {
+        tenantId,
+        scope,
+        format,
+      });
       client = await this.databaseManager.getPool().connect();
 
       try {
@@ -36,6 +41,7 @@ export class BackupController {
           format,
           tenantId,
           scope,
+          storedBackup,
         });
       } catch (auditError) {
         console.error("Failed to record backup download audit entry");

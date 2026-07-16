@@ -292,6 +292,183 @@ export function DatePickerField({ value, onChange, placeholder = 'Select date', 
   );
 }
 
+export function DateRangePickerField({ from, to, onChange, placeholder = 'Select date range', className = '', disabled = false, min = null, max = null }) {
+  const wrapperRef = useRef(null);
+  const panelRef = useRef(null);
+  const [open, setOpen] = useState(false);
+  const [pendingFrom, setPendingFrom] = useState(null);
+  const [viewMonth, setViewMonth] = useState(() => startOfMonth(toDateValue(from) || new Date()));
+
+  const fromDate = useMemo(() => toDateValue(from), [from]);
+  const toDate = useMemo(() => toDateValue(to), [to]);
+  const minDate = useMemo(() => toDateValue(min), [min]);
+  const maxDate = useMemo(() => toDateValue(max), [max]);
+
+  useEffect(() => {
+    if (open) {
+      setViewMonth(startOfMonth(fromDate || new Date()));
+      setPendingFrom(null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
+  useEffect(() => {
+    function onPointerDown(event) {
+      const target = event.target;
+      const isInsideAnchor = wrapperRef.current && wrapperRef.current.contains(target);
+      const isInsidePanel = panelRef.current && panelRef.current.contains(target);
+
+      if (!isInsideAnchor && !isInsidePanel) {
+        setOpen(false);
+      }
+    }
+
+    function onEscape(event) {
+      if (event.key === 'Escape') {
+        setOpen(false);
+      }
+    }
+
+    document.addEventListener('mousedown', onPointerDown);
+    document.addEventListener('keydown', onEscape);
+    return () => {
+      document.removeEventListener('mousedown', onPointerDown);
+      document.removeEventListener('keydown', onEscape);
+    };
+  }, []);
+
+  const year = viewMonth.getFullYear();
+  const month = viewMonth.getMonth();
+  const totalDays = daysInMonth(year, month);
+  const firstDayIndex = new Date(year, month, 1).getDay();
+  const days = [];
+
+  for (let i = 0; i < firstDayIndex; i += 1) {
+    days.push(null);
+  }
+
+  for (let day = 1; day <= totalDays; day += 1) {
+    days.push(new Date(year, month, day));
+  }
+
+  const prevMonthDisabled = minDate ? addMonths(viewMonth, -1) < startOfMonth(minDate) : false;
+  const nextMonthDisabled = maxDate ? addMonths(viewMonth, 1) > startOfMonth(maxDate) : false;
+
+  const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const rangeStart = pendingFrom || fromDate;
+  const rangeEnd = pendingFrom ? null : toDate;
+  const displayValue = fromDate && toDate
+    ? `${formatDate(fromDate)} - ${formatDate(toDate)}`
+    : pendingFrom
+      ? `${formatDate(pendingFrom)} - …`
+      : '';
+
+  function handleDayClick(day) {
+    if (!rangeStart || (rangeStart && toDate && !pendingFrom)) {
+      // Starting a fresh range
+      setPendingFrom(day);
+      return;
+    }
+
+    // Completing the range
+    if (day < rangeStart) {
+      onChange(toISODate(day), toISODate(rangeStart));
+    } else {
+      onChange(toISODate(rangeStart), toISODate(day));
+    }
+    setPendingFrom(null);
+    setOpen(false);
+  }
+
+  return (
+    <div ref={wrapperRef} className={cx('relative', className)}>
+      <button
+        type="button"
+        className="input flex items-center justify-between gap-3 text-left"
+        onClick={() => !disabled && setOpen((current) => !current)}
+        disabled={disabled}
+      >
+        <span className={cx('truncate', displayValue ? 'text-slate-950' : 'text-slate-400')}>
+          {displayValue || placeholder}
+        </span>
+        <CalendarDays size={16} className="shrink-0 text-slate-400" />
+      </button>
+
+      <PickerFrame open={open} anchorRef={wrapperRef} panelRef={panelRef} panelWidth={304} panelHeight={392}>
+        <div className="flex items-center justify-between gap-2 px-1 pt-1">
+          <button
+            type="button"
+            className="icon-btn h-9 w-9 disabled:cursor-not-allowed disabled:opacity-30"
+            disabled={prevMonthDisabled}
+            onClick={() => !prevMonthDisabled && setViewMonth((current) => addMonths(current, -1))}
+          >
+            <ChevronLeft size={16} />
+          </button>
+          <div className="text-sm font-semibold text-slate-950">
+            {formatMonth(viewMonth)}
+          </div>
+          <button
+            type="button"
+            className="icon-btn h-9 w-9 disabled:cursor-not-allowed disabled:opacity-30"
+            disabled={nextMonthDisabled}
+            onClick={() => !nextMonthDisabled && setViewMonth((current) => addMonths(current, 1))}
+          >
+            <ChevronRight size={16} />
+          </button>
+        </div>
+
+        <p className="mt-2 px-1 text-[11px] font-semibold text-slate-400">
+          {pendingFrom ? 'Pick the end date' : 'Pick the start date'}
+        </p>
+
+        <div className="mt-2 grid grid-cols-7 gap-1 px-1 text-center text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+          {weekdays.map((weekday) => (
+            <div key={weekday} className="py-1">
+              {weekday}
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-1 grid grid-cols-7 gap-1 px-1">
+          {days.map((day, index) => {
+            if (!day) {
+              return <div key={`blank-${index}`} className="h-9" />;
+            }
+
+            const isDisabled = Boolean((minDate && day < minDate) || (maxDate && day > maxDate));
+            const isStart = isSameDay(day, rangeStart);
+            const isEnd = isSameDay(day, rangeEnd);
+            const inRange = rangeStart && rangeEnd && day > rangeStart && day < rangeEnd;
+            const isToday = isSameDay(day, new Date());
+
+            return (
+              <button
+                key={day.toISOString()}
+                type="button"
+                disabled={isDisabled}
+                className={cx(
+                  'h-9 rounded-xl text-sm font-bold transition',
+                  isDisabled
+                    ? 'cursor-not-allowed opacity-25'
+                    : isStart || isEnd
+                      ? 'bg-[var(--secondary)] text-white shadow-[0_1px_2px_var(--secondary-shadow)]'
+                      : inRange
+                        ? 'bg-[color-mix(in_srgb,var(--secondary)_14%,transparent)] text-slate-900'
+                        : 'text-slate-700 hover:bg-slate-100',
+                  isToday && !isStart && !isEnd && !isDisabled ? 'ring-1 ring-[var(--secondary-soft)]' : '',
+                )}
+                onClick={() => !isDisabled && handleDayClick(day)}
+              >
+                {day.getDate()}
+              </button>
+            );
+          })}
+        </div>
+      </PickerFrame>
+    </div>
+  );
+}
+
 export function MonthPickerField({ value, onChange, placeholder = 'Select month', className = '', disabled = false }) {
   const wrapperRef = useRef(null);
   const panelRef = useRef(null);

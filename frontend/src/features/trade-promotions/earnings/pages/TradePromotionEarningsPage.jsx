@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Gift, HandCoins, Search } from 'lucide-react';
 import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton, Select } from '../../../../components/ui.jsx';
 import TableReportActions from '../../../../components/TableReportActions.jsx';
-import { DatePickerField } from '../../../../components/DatePicker.jsx';
+import { DateRangePickerField } from '../../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
 import { formatCurrency, formatDate, formatNumber } from '../../../../utils/calculations.js';
 import TradePromotionSettleModal from '../components/TradePromotionSettleModal.jsx';
@@ -41,7 +41,7 @@ export default function TradePromotionEarningsPage() {
               <TableReportActions targetId={TRADE_PROMOTION_EARNINGS_REPORT_ID} title={t('tradePromotions.earnings.title')} fileName="trade-promotion-earnings" entityType="trade_promotion_earnings" t={t} shortcuts={TRADE_PROMOTION_EARNINGS_REPORT_SHORTCUTS} />
             </div>
           </div>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-7">
             <div className="relative lg:col-span-2">
               <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
               <input className="input pl-10" value={vm.search} onChange={(event) => vm.setSearch(event.target.value)} placeholder={t('tradePromotions.earnings.searchPlaceholder')} />
@@ -64,10 +64,13 @@ export default function TradePromotionEarningsPage() {
                 <option key={product.id} value={product.id}>{product.name}</option>
               ))}
             </Select>
-            <div className="grid grid-cols-2 gap-2">
-              <DatePickerField value={vm.dateFrom} onChange={vm.setDateFrom} placeholder={t('purchaseReceive.dateFrom')} />
-              <DatePickerField value={vm.dateTo} onChange={vm.setDateTo} placeholder={t('purchaseReceive.dateTo')} min={vm.dateFrom} />
-            </div>
+            <DateRangePickerField
+              className="lg:col-span-2"
+              from={vm.dateFrom}
+              to={vm.dateTo}
+              onChange={(from, to) => { vm.setDateFrom(from); vm.setDateTo(to); }}
+              placeholder={`${t('purchaseReceive.dateFrom')} - ${t('purchaseReceive.dateTo')}`}
+            />
           </div>
         </div>
 

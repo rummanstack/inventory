@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { FileText } from 'lucide-react';
 import { Alert, EmptyState, SectionHeader, TableSkeleton } from '../../../../components/ui.jsx';
 import TableReportActions from '../../../../components/TableReportActions.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../../services/inventoryApi.js';
+import { useTenantReportQuery } from '../../../reports/queries/useTenantReportQuery.js';
 
 const monthNow = () => new Date().toISOString().slice(0, 7);
 const money = (value) => new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 }).format(Number(value || 0));
@@ -44,14 +45,11 @@ function MiniTable({ title, rows, columns, reportId, t, noDataDesc }) {
 export default function HrReportsPage() {
   const { t } = useInventoryApp();
   const [month, setMonth] = useState(monthNow());
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [data, setData] = useState(null);
-
-  async function load() {
-    setLoading(true);
-    setError('');
-    try {
+  const query = useTenantReportQuery({
+    scope: 'hr-reports',
+    params: { month },
+    keepPrevious: true,
+    queryFn: async () => {
       const [employees, departments, attendance, leave, payroll, advances, loans] = await Promise.all([
         inventoryApi.listEmployees({ pageSize: 500 }),
         inventoryApi.listDepartments({ pageSize: 500 }),
@@ -61,7 +59,7 @@ export default function HrReportsPage() {
         inventoryApi.listEmployeeAdvances({}),
         inventoryApi.listEmployeeLoans({}),
       ]);
-      setData({
+      return {
         employees: employees.items || [],
         departments: departments.items || [],
         attendance: attendance.items || [],
@@ -70,15 +68,12 @@ export default function HrReportsPage() {
         payrollTotals: payroll.totals || {},
         advances: advances.items || [],
         loans: loans.items || [],
-      });
-    } catch (err) {
-      setError(err?.message || t('hrReports.loadFailed'));
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => { load(); }, [month]);
+      };
+    },
+  });
+  const data = query.data || { employees: [], departments: [], attendance: [], leave: [], payroll: [], payrollTotals: {}, advances: [], loans: [] };
+  const loading = query.isPending;
+  const error = query.error?.message || '';
 
   return (
     <div>

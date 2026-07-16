@@ -3,44 +3,31 @@ import { Alert, Badge, CopyableText, SectionHeader, TableSkeleton } from '../../
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { formatCurrency } from '../../../utils/calculations.js';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import { useReportReferenceData } from '../hooks/useReportReferenceData.js';
+import { useTenantReportQuery } from '../../reports/queries/useTenantReportQuery.js';
 
 export default function TrialBalancePage() {
   const { language } = useInventoryApp();
   const { accounts, fiscalYears, periods, loading: refLoading, error: refError } = useReportReferenceData();
   const [filters, setFilters] = useState({ fiscalYearId: '', accountingPeriodId: '', dateFrom: '', dateTo: '', accountCode: '', showZeroAccounts: false });
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    let cancelled = false;
-    async function load() {
-      setLoading(true);
-      try {
-        const result = await inventoryApi.getTrialBalance({
-          fiscalYearId: filters.fiscalYearId || undefined,
-          accountingPeriodId: filters.accountingPeriodId || undefined,
-          dateFrom: filters.dateFrom || undefined,
-          dateTo: filters.dateTo || undefined,
-          accountCode: filters.accountCode || undefined,
-          showZeroAccounts: filters.showZeroAccounts,
-        });
-        if (!cancelled) {
-          setData(result);
-          setError('');
-        }
-      } catch (loadError) {
-        if (!cancelled) setError(loadError?.message || 'Failed to load trial balance.');
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }
-    load();
-    return () => { cancelled = true; };
-  }, [filters.fiscalYearId, filters.accountingPeriodId, filters.dateFrom, filters.dateTo, filters.accountCode, filters.showZeroAccounts]);
+  const query = useTenantReportQuery({
+    scope: 'accounting-trial-balance',
+    params: filters,
+    keepPrevious: true,
+    queryFn: () => inventoryApi.getTrialBalance({
+      fiscalYearId: filters.fiscalYearId || undefined,
+      accountingPeriodId: filters.accountingPeriodId || undefined,
+      dateFrom: filters.dateFrom || undefined,
+      dateTo: filters.dateTo || undefined,
+      accountCode: filters.accountCode || undefined,
+      showZeroAccounts: filters.showZeroAccounts,
+    }),
+  });
+  const data = query.data || null;
+  const loading = query.isPending;
+  const error = query.error?.message || '';
 
   const availablePeriods = useMemo(() => {
     if (!filters.fiscalYearId) return periods;

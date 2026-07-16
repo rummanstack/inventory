@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import TableReportActions from '../../../components/TableReportActions.jsx';
 import { Alert, SectionHeader, TableSkeleton, cx } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { formatCurrency } from '../../../utils/calculations.js';
 import { inventoryApi } from '../../../services/inventoryApi.js';
+import { useTenantReportQuery } from '../../reports/queries/useTenantReportQuery.js';
 
 const PROFIT_AND_LOSS_REPORT_ID = 'profit-and-loss-report';
 const PROFIT_AND_LOSS_SHORTCUTS = {
@@ -26,35 +27,21 @@ function PnlLine({ label, value, language, bold, indent }) {
 export default function ProfitAndLossPage() {
   const { t, language } = useInventoryApp();
   const [filters, setFilters] = useState({ dateFrom: '', dateTo: '', comparisonDateFrom: '', comparisonDateTo: '', showZeroAccounts: false });
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    let cancelled = false;
-    async function load() {
-      setLoading(true);
-      try {
-        const result = await inventoryApi.getProfitAndLoss({
-          dateFrom: filters.dateFrom || undefined,
-          dateTo: filters.dateTo || undefined,
-          comparisonDateFrom: filters.comparisonDateFrom || undefined,
-          comparisonDateTo: filters.comparisonDateTo || undefined,
-          showZeroAccounts: filters.showZeroAccounts,
-        });
-        if (!cancelled) {
-          setData(result);
-          setError('');
-        }
-      } catch (loadError) {
-        if (!cancelled) setError(loadError?.message || t('journal.loadFailed'));
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }
-    load();
-    return () => { cancelled = true; };
-  }, [filters.dateFrom, filters.dateTo, filters.comparisonDateFrom, filters.comparisonDateTo, filters.showZeroAccounts, t]);
+  const query = useTenantReportQuery({
+    scope: 'accounting-profit-and-loss',
+    params: filters,
+    keepPrevious: true,
+    queryFn: () => inventoryApi.getProfitAndLoss({
+      dateFrom: filters.dateFrom || undefined,
+      dateTo: filters.dateTo || undefined,
+      comparisonDateFrom: filters.comparisonDateFrom || undefined,
+      comparisonDateTo: filters.comparisonDateTo || undefined,
+      showZeroAccounts: filters.showZeroAccounts,
+    }),
+  });
+  const data = query.data || null;
+  const loading = query.isPending;
+  const error = query.error?.message || '';
 
   return (
     <div>

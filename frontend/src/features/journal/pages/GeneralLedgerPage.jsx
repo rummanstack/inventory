@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { BookOpen } from 'lucide-react';
 import TableReportActions from '../../../components/TableReportActions.jsx';
 import { Alert, CopyableText, EmptyState, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
@@ -7,45 +7,23 @@ import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { formatCurrency, formatDate } from '../../../utils/calculations.js';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import { useReportReferenceData } from '../hooks/useReportReferenceData.js';
+import { useTenantReportQuery } from '../../reports/queries/useTenantReportQuery.js';
 
 function LedgerPage({ title, endpoint }) {
   const { language } = useInventoryApp();
   const { accounts, customers, suppliers, loading: refLoading, error: refError } = useReportReferenceData();
   const [filters, setFilters] = useState({ accountCode: '', dateFrom: '', dateTo: '', voucherNumber: '', reference: '', customerId: '', supplierId: '' });
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-
   const requiresAccount = endpoint === 'account';
-
-  useEffect(() => {
-    if (requiresAccount && !filters.accountCode) {
-      setData(null);
-      setError('');
-      setLoading(false);
-      return;
-    }
-
-    let cancelled = false;
-    async function load() {
-      setLoading(true);
-      try {
-        const result = requiresAccount
-          ? await inventoryApi.getAccountLedger(filters)
-          : await inventoryApi.getGeneralLedger(filters);
-        if (!cancelled) {
-          setData(result);
-          setError('');
-        }
-      } catch (loadError) {
-        if (!cancelled) setError(loadError?.message || 'Failed to load ledger.');
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }
-    load();
-    return () => { cancelled = true; };
-  }, [endpoint, requiresAccount, filters.accountCode, filters.dateFrom, filters.dateTo, filters.voucherNumber, filters.reference, filters.customerId, filters.supplierId]);
+  const query = useTenantReportQuery({
+    scope: `accounting-${endpoint}-ledger`,
+    params: filters,
+    enabled: !requiresAccount || Boolean(filters.accountCode),
+    keepPrevious: true,
+    queryFn: () => requiresAccount ? inventoryApi.getAccountLedger(filters) : inventoryApi.getGeneralLedger(filters),
+  });
+  const data = requiresAccount && !filters.accountCode ? null : (query.data || null);
+  const loading = query.isPending && (!requiresAccount || Boolean(filters.accountCode));
+  const error = query.error?.message || '';
 
   const emptyTitle = requiresAccount ? 'Select an account' : 'No ledger entries';
   const emptyDescription = requiresAccount

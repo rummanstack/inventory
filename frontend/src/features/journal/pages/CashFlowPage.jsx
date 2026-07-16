@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Activity } from 'lucide-react';
 import TableReportActions from '../../../components/TableReportActions.jsx';
 import { Alert, Badge, EmptyState, SectionHeader, TableSkeleton, cx } from '../../../components/ui.jsx';
@@ -6,6 +6,7 @@ import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { formatCurrency } from '../../../utils/calculations.js';
 import { inventoryApi } from '../../../services/inventoryApi.js';
+import { useTenantReportQuery } from '../../reports/queries/useTenantReportQuery.js';
 
 function CashFlowSection({ title, rows, total, language }) {
   return (
@@ -30,39 +31,17 @@ function CashFlowSection({ title, rows, total, language }) {
 export default function CashFlowPage() {
   const { language } = useInventoryApp();
   const [filters, setFilters] = useState({ dateFrom: '', dateTo: '' });
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    if (!filters.dateFrom || !filters.dateTo) {
-      setData(null);
-      setError('');
-      setLoading(false);
-      return;
-    }
-
-    let cancelled = false;
-    async function load() {
-      setLoading(true);
-      try {
-        const result = await inventoryApi.getCashFlow({
-          dateFrom: filters.dateFrom,
-          dateTo: filters.dateTo,
-        });
-        if (!cancelled) {
-          setData(result);
-          setError('');
-        }
-      } catch (loadError) {
-        if (!cancelled) setError(loadError?.message || 'Failed to load cash flow.');
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }
-    load();
-    return () => { cancelled = true; };
-  }, [filters.dateFrom, filters.dateTo]);
+  const enabled = Boolean(filters.dateFrom && filters.dateTo);
+  const query = useTenantReportQuery({
+    scope: 'accounting-cash-flow',
+    params: filters,
+    enabled,
+    keepPrevious: true,
+    queryFn: () => inventoryApi.getCashFlow(filters),
+  });
+  const data = enabled ? (query.data || null) : null;
+  const loading = query.isPending && enabled;
+  const error = query.error?.message || '';
 
   return (
     <div>

@@ -11,6 +11,7 @@ import { clearCssVarCache } from '../utils/theme.js';
 import { SHARED_DATA_DOMAINS as D, subscribeToSharedDataInvalidation } from '../services/sharedDataInvalidation.js';
 import { fetchProductDirectory, productKeys } from '../features/products/queries/productQueries.js';
 import { apiListKeys } from '../queries/apiQueryKeys.js';
+import { reportKeys } from '../features/reports/queries/reportQueries.js';
 
 const InventoryAppContext = createContext(null);
 
@@ -311,6 +312,7 @@ export function InventoryAppProvider({ children }) {
     domains.forEach((domain) => staleSharedDirectoryDomainsRef.current.add(domain));
     queryClient.invalidateQueries({ queryKey: apiListKeys.all, refetchType: 'none' });
     queryClient.invalidateQueries({ queryKey: ['api-data'], refetchType: 'none' });
+    queryClient.invalidateQueries({ queryKey: reportKeys.all, refetchType: 'none' });
     if (domains.includes(D.PRODUCTS)) {
       queryClient.invalidateQueries({ queryKey: productKeys.all, refetchType: 'none' });
     }

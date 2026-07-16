@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { inventoryApi } from '../../../services/inventoryApi';
 import { todayISO } from '../../../utils/calculations.js';
+import { useTenantReportQuery } from '../../reports/queries/useTenantReportQuery.js';
 
 function defaultMonthStart() {
   const today = new Date();
@@ -11,28 +12,8 @@ function defaultMonthStart() {
 export function useProfitAndLossViewModel() {
   const [dateFrom, setDateFrom] = useState(defaultMonthStart);
   const [dateTo, setDateTo] = useState(todayISO);
-  const [profitAndLoss, setProfitAndLoss] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const filters = { dateFrom: dateFrom || undefined, dateTo: dateTo || undefined };
+  const query = useTenantReportQuery({ scope: 'profit-and-loss', params: filters, queryFn: () => inventoryApi.getProfitAndLoss(filters), keepPrevious: true });
 
-  useEffect(() => {
-    let cancelled = false;
-    setLoading(true);
-    setError('');
-    inventoryApi.getProfitAndLoss({ dateFrom: dateFrom || undefined, dateTo: dateTo || undefined })
-      .then((result) => {
-        if (!cancelled) setProfitAndLoss(result);
-      })
-      .catch((err) => {
-        if (!cancelled) setError(err.message);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [dateFrom, dateTo]);
-
-  return { dateFrom, setDateFrom, dateTo, setDateTo, profitAndLoss, loading, error };
+  return { dateFrom, setDateFrom, dateTo, setDateTo, profitAndLoss: query.data || null, loading: query.isPending, error: query.error?.message || '' };
 }

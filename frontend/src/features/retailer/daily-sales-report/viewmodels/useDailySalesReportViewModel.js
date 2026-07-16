@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { inventoryApi } from '../../../../services/inventoryApi';
 import { todayISO } from '../../../../utils/calculations.js';
+import { useTenantReportQuery } from '../../../reports/queries/useTenantReportQuery.js';
 
 function defaultDateFrom() {
   const today = new Date();
@@ -13,32 +14,13 @@ export function useDailySalesReportViewModel() {
   const [dateFrom, setDateFrom] = useState(defaultDateFrom);
   const [dateTo, setDateTo] = useState(todayISO);
   const [saleType, setSaleType] = useState('');
-  const [report, setReport] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    let cancelled = false;
-    setLoading(true);
-    setError('');
-    inventoryApi
-      .getDailySalesReport({ dateFrom, dateTo, saleType: saleType || undefined })
-      .then((result) => {
-        if (!cancelled) setReport(result);
-      })
-      .catch((requestError) => {
-        if (!cancelled) {
-          setError(requestError.message);
-          setReport(null);
-        }
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [dateFrom, dateTo, saleType]);
+  const filters = { dateFrom, dateTo, saleType: saleType || undefined };
+  const query = useTenantReportQuery({
+    scope: 'daily-sales',
+    params: filters,
+    queryFn: () => inventoryApi.getDailySalesReport(filters),
+    keepPrevious: true,
+  });
 
   return {
     dateFrom,
@@ -47,8 +29,8 @@ export function useDailySalesReportViewModel() {
     setDateTo,
     saleType,
     setSaleType,
-    report,
-    loading,
-    error,
+    report: query.data || null,
+    loading: query.isPending,
+    error: query.error?.message || '',
   };
 }

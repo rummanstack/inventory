@@ -1,62 +1,27 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { inventoryApi } from '../../../services/inventoryApi';
 import { todayISO } from '../../../utils/calculations.js';
+import { useTenantReportQuery } from '../../reports/queries/useTenantReportQuery.js';
 
 export function useGeneralLedgerViewModel() {
-  const [accounts, setAccounts] = useState([]);
-  const [accountsError, setAccountsError] = useState('');
-
   const [accountCode, setAccountCode] = useState('');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState(todayISO);
-  const [ledgerLines, setLedgerLines] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    let cancelled = false;
-    inventoryApi.getChartOfAccounts()
-      .then((result) => {
-        if (!cancelled) setAccounts(result.accounts || []);
-      })
-      .catch((err) => {
-        if (!cancelled) setAccountsError(err.message);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  useEffect(() => {
-    let cancelled = false;
-    setLoading(true);
-    setError('');
-    inventoryApi.getGeneralLedger({ accountCode: accountCode || undefined, dateFrom: dateFrom || undefined, dateTo: dateTo || undefined })
-      .then((result) => {
-        if (!cancelled) setLedgerLines(result.lines || []);
-      })
-      .catch((err) => {
-        if (!cancelled) setError(err.message);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [accountCode, dateFrom, dateTo]);
+  const accountsQuery = useTenantReportQuery({ scope: 'chart-of-accounts-reference', queryFn: () => inventoryApi.getChartOfAccounts() });
+  const filters = { accountCode: accountCode || undefined, dateFrom: dateFrom || undefined, dateTo: dateTo || undefined };
+  const ledgerQuery = useTenantReportQuery({ scope: 'general-ledger', params: filters, queryFn: () => inventoryApi.getGeneralLedger(filters), keepPrevious: true });
 
   return {
-    accounts,
-    accountsError,
+    accounts: accountsQuery.data?.accounts || [],
+    accountsError: accountsQuery.error?.message || '',
     accountCode,
     setAccountCode,
     dateFrom,
     setDateFrom,
     dateTo,
     setDateTo,
-    ledgerLines,
-    loading,
-    error,
+    ledgerLines: ledgerQuery.data?.lines || [],
+    loading: ledgerQuery.isPending,
+    error: ledgerQuery.error?.message || '',
   };
 }

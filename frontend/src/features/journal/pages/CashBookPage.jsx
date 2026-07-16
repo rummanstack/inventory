@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Wallet } from 'lucide-react';
 import TableReportActions from '../../../components/TableReportActions.jsx';
 import { Alert, CopyableText, EmptyState, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
@@ -7,37 +7,22 @@ import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { formatCurrency, formatDate } from '../../../utils/calculations.js';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import { useReportReferenceData } from '../hooks/useReportReferenceData.js';
+import { useTenantReportQuery } from '../../reports/queries/useTenantReportQuery.js';
 
 function CashOrBankBookPage({ title, kind, reportId }) {
   const { language } = useInventoryApp();
   const { accounts, loading: refLoading, error: refError } = useReportReferenceData();
   const filteredAccounts = accounts.filter((account) => (kind === 'BANK' ? account.isBankAccount : account.isCashAccount));
   const [filters, setFilters] = useState({ accountCode: '', dateFrom: '', dateTo: '', voucherNumber: '', reference: '' });
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    let cancelled = false;
-    async function load() {
-      setLoading(true);
-      try {
-        const result = kind === 'BANK'
-          ? await inventoryApi.getBankBook(filters)
-          : await inventoryApi.getCashBook(filters);
-        if (!cancelled) {
-          setData(result);
-          setError('');
-        }
-      } catch (loadError) {
-        if (!cancelled) setError(loadError?.message || `Failed to load ${title.toLowerCase()}.`);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }
-    load();
-    return () => { cancelled = true; };
-  }, [filters.accountCode, filters.dateFrom, filters.dateTo, filters.reference, filters.voucherNumber, kind, title]);
+  const query = useTenantReportQuery({
+    scope: `accounting-${kind.toLowerCase()}-book`,
+    params: filters,
+    keepPrevious: true,
+    queryFn: () => kind === 'BANK' ? inventoryApi.getBankBook(filters) : inventoryApi.getCashBook(filters),
+  });
+  const data = query.data || null;
+  const loading = query.isPending;
+  const error = query.error?.message || '';
 
   return (
     <div>

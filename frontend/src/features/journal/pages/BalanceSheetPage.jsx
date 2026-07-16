@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import TableReportActions from '../../../components/TableReportActions.jsx';
 import { Alert, Badge, SectionHeader, TableSkeleton, cx } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { formatCurrency } from '../../../utils/calculations.js';
 import { inventoryApi } from '../../../services/inventoryApi.js';
+import { useTenantReportQuery } from '../../reports/queries/useTenantReportQuery.js';
 
 function BalanceSheetGroup({ title, rows, total, language }) {
   return (
@@ -31,32 +32,15 @@ function BalanceSheetGroup({ title, rows, total, language }) {
 export default function BalanceSheetPage() {
   const { language } = useInventoryApp();
   const [filters, setFilters] = useState({ asOfDate: '', showZeroAccounts: false });
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    let cancelled = false;
-    async function load() {
-      setLoading(true);
-      try {
-        const result = await inventoryApi.getBalanceSheet({
-          asOfDate: filters.asOfDate || undefined,
-          showZeroAccounts: filters.showZeroAccounts,
-        });
-        if (!cancelled) {
-          setData(result);
-          setError('');
-        }
-      } catch (loadError) {
-        if (!cancelled) setError(loadError?.message || 'Failed to load balance sheet.');
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }
-    load();
-    return () => { cancelled = true; };
-  }, [filters.asOfDate, filters.showZeroAccounts]);
+  const query = useTenantReportQuery({
+    scope: 'accounting-balance-sheet',
+    params: filters,
+    keepPrevious: true,
+    queryFn: () => inventoryApi.getBalanceSheet({ asOfDate: filters.asOfDate || undefined, showZeroAccounts: filters.showZeroAccounts }),
+  });
+  const data = query.data || null;
+  const loading = query.isPending;
+  const error = query.error?.message || '';
 
   return (
     <div>

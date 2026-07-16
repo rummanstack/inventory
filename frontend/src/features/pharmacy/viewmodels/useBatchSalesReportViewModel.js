@@ -1,14 +1,11 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useState } from 'react';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import { todayISO } from '../../../utils/calculations.js';
+import { useTenantReportQuery } from '../../reports/queries/useTenantReportQuery.js';
 
 export function useBatchSalesReportViewModel({ products = [] }) {
-  const [rows, setRows] = useState([]);
-  const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [pageSize] = useState(50);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
 
   const firstOfMonth = todayISO().slice(0, 8) + '01';
   const [dateFrom, setDateFrom] = useState(firstOfMonth);
@@ -16,34 +13,27 @@ export function useBatchSalesReportViewModel({ products = [] }) {
   const [batchNumber, setBatchNumber] = useState('');
   const [productId, setProductId] = useState('');
 
-  const load = useCallback(async (params) => {
-    setLoading(true);
-    setError('');
-    try {
-      const result = await inventoryApi.batchSalesReport({
-        dateFrom: params.dateFrom || undefined,
-        dateTo: params.dateTo || undefined,
-        batchNumber: params.batchNumber || undefined,
-        productId: params.productId || undefined,
-        page: params.page,
-        pageSize: params.pageSize,
-      });
-      setRows(result.items || []);
-      setTotal(result.total || 0);
-    } catch (err) {
-      setError(err?.message || 'Failed to load batch sales report.');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    load({ dateFrom, dateTo, batchNumber, productId, page, pageSize });
-  }, [load, dateFrom, dateTo, batchNumber, productId, page, pageSize]);
+  const filters = { dateFrom, dateTo, batchNumber, productId, page, pageSize };
+  const query = useTenantReportQuery({
+    scope: 'batch-sales',
+    params: filters,
+    queryFn: () => inventoryApi.batchSalesReport({
+      dateFrom: dateFrom || undefined,
+      dateTo: dateTo || undefined,
+      batchNumber: batchNumber || undefined,
+      productId: productId || undefined,
+      page,
+      pageSize,
+    }),
+    keepPrevious: true,
+  });
+  const result = query.data || {};
+  const rows = result.items || [];
+  const total = result.total || 0;
 
   function applyFilters() {
     setPage(1);
-    load({ dateFrom, dateTo, batchNumber, productId, page: 1, pageSize });
+    if (page === 1) query.refetch();
   }
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
@@ -54,8 +44,8 @@ export function useBatchSalesReportViewModel({ products = [] }) {
     page,
     setPage,
     totalPages,
-    loading,
-    error,
+    loading: query.isPending,
+    error: query.error?.message || '',
     dateFrom,
     setDateFrom,
     dateTo,

@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react';
 import {
   buildActivityHeatmap,
   buildCategoryInventory,
@@ -10,6 +9,7 @@ import {
 import { inventoryApi } from '../../../services/inventoryApi';
 import { formatCasePiece, formatCurrency, formatNumber, getLowStockProducts } from '../../../utils/calculations.js';
 import { getCssVar } from '../../../utils/theme.js';
+import { useTenantReportQuery } from '../../reports/queries/useTenantReportQuery.js';
 
 function formatMonthlyTrend(rows, t) {
   const monthNames = t('common.monthsShort');
@@ -42,131 +42,59 @@ function computeDelta(today, yesterday) {
 }
 
 export function useDashboardViewModel({ products, dsrs, today, t, language = 'en' }) {
-  const [todayIssues, setTodayIssues] = useState([]);
-  const [todaySettlements, setTodaySettlements] = useState([]);
-  const [trendIssues, setTrendIssues] = useState([]);
-  const [trendSettlements, setTrendSettlements] = useState([]);
-  const [heatmapIssues, setHeatmapIssues] = useState([]);
-  const [heatmapSettlements, setHeatmapSettlements] = useState([]);
-  const [yesterdayIssues, setYesterdayIssues] = useState([]);
-  const [yesterdaySettlements, setYesterdaySettlements] = useState([]);
-  const [todaySalesInvoices, setTodaySalesInvoices] = useState([]);
-  const [trendRetailInvoices, setTrendRetailInvoices] = useState([]);
-  const [financeDashboard, setFinanceDashboard] = useState(null);
-  const [retailCashSession, setRetailCashSession] = useState(undefined);
-  const [todayExpenseReport, setTodayExpenseReport] = useState(null);
-  const [dsrTargetSummary, setDsrTargetSummary] = useState([]);
-  const [monthlyTrend, setMonthlyTrend] = useState([]);
-  const [todayDueLedger, setTodayDueLedger] = useState([]);
-  const [calendarDailyReport, setCalendarDailyReport] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    let cancelled = false;
-
-    if (!today) {
-      return undefined;
-    }
-
-    async function load() {
-      try {
-        setLoading(true);
-        setError('');
-        const trendFrom = subtractDays(today, TREND_DAYS - 1);
-        const heatmapFrom = subtractDays(today, HEATMAP_DAYS - 1);
-        const calendarFrom = subtractDays(today, CALENDAR_DAYS - 1);
-        const yesterday = subtractDays(today, 1);
-        const [
-          todayIssuesResult,
-          todaySettlementsResult,
-          trendIssuesResult,
-          trendSettlementsResult,
-          heatmapIssuesResult,
-          heatmapSettlementsResult,
-          yesterdayIssuesResult,
-          yesterdaySettlementsResult,
-          todaySalesResult,
-          trendRetailResult,
-          financeDashboardResult,
-          cashSessionResult,
-          expenseReportResult,
-          dsrTargetSummaryResult,
-          monthlyTrendResult,
-          todayDueLedgerResult,
-          calendarDailyReportResult,
-        ] = await Promise.all([
-          inventoryApi.listIssues({ dateFrom: today, dateTo: today, pageSize: DAY_SCOPE_PAGE_SIZE }).catch(() => ({ items: [] })),
-          inventoryApi.listSettlements({ dateFrom: today, dateTo: today, pageSize: DAY_SCOPE_PAGE_SIZE }).catch(() => ({ items: [] })),
-          inventoryApi.listIssues({ dateFrom: trendFrom, dateTo: today, pageSize: DAY_SCOPE_PAGE_SIZE }).catch(() => ({ items: [] })),
-          inventoryApi.listSettlements({ dateFrom: trendFrom, dateTo: today, pageSize: DAY_SCOPE_PAGE_SIZE }).catch(() => ({ items: [] })),
-          inventoryApi.listIssues({ dateFrom: heatmapFrom, dateTo: today, pageSize: HEATMAP_PAGE_SIZE }).catch(() => ({ items: [] })),
-          inventoryApi.listSettlements({ dateFrom: heatmapFrom, dateTo: today, pageSize: HEATMAP_PAGE_SIZE }).catch(() => ({ items: [] })),
-          inventoryApi.listIssues({ dateFrom: yesterday, dateTo: yesterday, pageSize: DAY_SCOPE_PAGE_SIZE }).catch(() => ({ items: [] })),
-          inventoryApi.listSettlements({ dateFrom: yesterday, dateTo: yesterday, pageSize: DAY_SCOPE_PAGE_SIZE }).catch(() => ({ items: [] })),
-          inventoryApi.listSalesInvoices({ dateFrom: today, dateTo: today, pageSize: 2000 }).catch(() => ({ items: [] })),
-          inventoryApi.listSalesInvoices({ dateFrom: trendFrom, dateTo: today, pageSize: 2000 }).catch(() => ({ items: [] })),
-          inventoryApi.getFinanceDashboard().catch(() => null),
-          inventoryApi.getCurrentRetailCashSession().catch(() => null),
-          inventoryApi.getExpenseReport({ date: today }).catch(() => null),
-          inventoryApi.getDsrTargetSummary(today.slice(0, 7)).catch(() => ({ summary: [] })),
-          inventoryApi.getMonthlyTrend().catch(() => ({ rows: [] })),
-          inventoryApi.listDsrDueLedger({ dateFrom: today, dateTo: today, pageSize: 500 }).catch(() => ({ items: [] })),
-          inventoryApi.getDailySalesReport({ dateFrom: calendarFrom, dateTo: today }).catch(() => []),
-        ]);
-
-        if (cancelled) {
-          return;
-        }
-
-        setTodayIssues(todayIssuesResult.items || []);
-        setTodaySettlements(todaySettlementsResult.items || []);
-        setTrendIssues(trendIssuesResult.items || []);
-        setTrendSettlements(trendSettlementsResult.items || []);
-        setHeatmapIssues(heatmapIssuesResult.items || []);
-        setHeatmapSettlements(heatmapSettlementsResult.items || []);
-        setYesterdayIssues(yesterdayIssuesResult.items || []);
-        setYesterdaySettlements(yesterdaySettlementsResult.items || []);
-        setTodaySalesInvoices(todaySalesResult?.items || []);
-        setTrendRetailInvoices(trendRetailResult?.items || []);
-        setFinanceDashboard(financeDashboardResult);
-        setRetailCashSession(cashSessionResult);
-        setTodayExpenseReport(expenseReportResult);
-        setDsrTargetSummary(dsrTargetSummaryResult?.summary || []);
-        setMonthlyTrend(formatMonthlyTrend(monthlyTrendResult?.rows || [], t));
-        setTodayDueLedger(todayDueLedgerResult?.items || []);
-        setCalendarDailyReport(calendarDailyReportResult?.rows || []);
-      } catch (requestError) {
-        if (!cancelled) {
-          setError(requestError.message);
-          setTodayIssues([]);
-          setTodaySettlements([]);
-          setTrendIssues([]);
-          setTrendSettlements([]);
-          setHeatmapIssues([]);
-          setHeatmapSettlements([]);
-          setYesterdayIssues([]);
-          setYesterdaySettlements([]);
-          setTodaySalesInvoices([]);
-          setTrendRetailInvoices([]);
-          setFinanceDashboard(null);
-          setRetailCashSession(null);
-          setMonthlyTrend([]);
-          setTodayDueLedger([]);
-          setCalendarDailyReport([]);
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    }
-
-    load();
-    return () => {
-      cancelled = true;
-    };
-  }, [today]);
+  const dashboardQuery = useTenantReportQuery({
+    scope: 'main-dashboard',
+    params: { today },
+    enabled: Boolean(today),
+    queryFn: async () => {
+      const trendFrom = subtractDays(today, TREND_DAYS - 1);
+      const heatmapFrom = subtractDays(today, HEATMAP_DAYS - 1);
+      const calendarFrom = subtractDays(today, CALENDAR_DAYS - 1);
+      const yesterday = subtractDays(today, 1);
+      const results = await Promise.all([
+        inventoryApi.listIssues({ dateFrom: today, dateTo: today, pageSize: DAY_SCOPE_PAGE_SIZE }).catch(() => ({ items: [] })),
+        inventoryApi.listSettlements({ dateFrom: today, dateTo: today, pageSize: DAY_SCOPE_PAGE_SIZE }).catch(() => ({ items: [] })),
+        inventoryApi.listIssues({ dateFrom: trendFrom, dateTo: today, pageSize: DAY_SCOPE_PAGE_SIZE }).catch(() => ({ items: [] })),
+        inventoryApi.listSettlements({ dateFrom: trendFrom, dateTo: today, pageSize: DAY_SCOPE_PAGE_SIZE }).catch(() => ({ items: [] })),
+        inventoryApi.listIssues({ dateFrom: heatmapFrom, dateTo: today, pageSize: HEATMAP_PAGE_SIZE }).catch(() => ({ items: [] })),
+        inventoryApi.listSettlements({ dateFrom: heatmapFrom, dateTo: today, pageSize: HEATMAP_PAGE_SIZE }).catch(() => ({ items: [] })),
+        inventoryApi.listIssues({ dateFrom: yesterday, dateTo: yesterday, pageSize: DAY_SCOPE_PAGE_SIZE }).catch(() => ({ items: [] })),
+        inventoryApi.listSettlements({ dateFrom: yesterday, dateTo: yesterday, pageSize: DAY_SCOPE_PAGE_SIZE }).catch(() => ({ items: [] })),
+        inventoryApi.listSalesInvoices({ dateFrom: today, dateTo: today, pageSize: 2000 }).catch(() => ({ items: [] })),
+        inventoryApi.listSalesInvoices({ dateFrom: trendFrom, dateTo: today, pageSize: 2000 }).catch(() => ({ items: [] })),
+        inventoryApi.getFinanceDashboard().catch(() => null),
+        inventoryApi.getCurrentRetailCashSession().catch(() => null),
+        inventoryApi.getExpenseReport({ date: today }).catch(() => null),
+        inventoryApi.getDsrTargetSummary(today.slice(0, 7)).catch(() => ({ summary: [] })),
+        inventoryApi.getMonthlyTrend().catch(() => ({ rows: [] })),
+        inventoryApi.listDsrDueLedger({ dateFrom: today, dateTo: today, pageSize: 500 }).catch(() => ({ items: [] })),
+        inventoryApi.getDailySalesReport({ dateFrom: calendarFrom, dateTo: today }).catch(() => ({ rows: [] })),
+      ]);
+      return results;
+    },
+  });
+  const [
+    todayIssuesResult = {}, todaySettlementsResult = {}, trendIssuesResult = {}, trendSettlementsResult = {},
+    heatmapIssuesResult = {}, heatmapSettlementsResult = {}, yesterdayIssuesResult = {}, yesterdaySettlementsResult = {},
+    todaySalesResult = {}, trendRetailResult = {}, financeDashboard = null, retailCashSession,
+    todayExpenseReport = null, dsrTargetSummaryResult = {}, monthlyTrendResult = {}, todayDueLedgerResult = {}, calendarDailyReportResult = {},
+  ] = dashboardQuery.data || [];
+  const todayIssues = todayIssuesResult.items || [];
+  const todaySettlements = todaySettlementsResult.items || [];
+  const trendIssues = trendIssuesResult.items || [];
+  const trendSettlements = trendSettlementsResult.items || [];
+  const heatmapIssues = heatmapIssuesResult.items || [];
+  const heatmapSettlements = heatmapSettlementsResult.items || [];
+  const yesterdayIssues = yesterdayIssuesResult.items || [];
+  const yesterdaySettlements = yesterdaySettlementsResult.items || [];
+  const todaySalesInvoices = todaySalesResult.items || [];
+  const trendRetailInvoices = trendRetailResult.items || [];
+  const dsrTargetSummary = dsrTargetSummaryResult.summary || [];
+  const monthlyTrend = formatMonthlyTrend(monthlyTrendResult.rows || [], t);
+  const todayDueLedger = todayDueLedgerResult.items || [];
+  const calendarDailyReport = calendarDailyReportResult.rows || [];
+  const loading = dashboardQuery.isPending;
+  const error = dashboardQuery.error?.message || '';
 
   const activeDsrs = dsrs.filter((dsr) => dsr.status === 'Active').length;
   const stockUnits = products.reduce((sum, product) => sum + product.stockPieces, 0);

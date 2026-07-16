@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { inventoryApi } from '../../../services/inventoryApi';
 import { todayISO } from '../../../utils/calculations.js';
+import { useTenantReportQuery } from '../../reports/queries/useTenantReportQuery.js';
 
 function defaultDateFrom() {
   const today = new Date();
@@ -21,63 +22,20 @@ export function useProfitViewModel() {
   const [dateTo, setDateTo] = useState(todayISO);
   const [view, setView] = useState('daily');
   const [tab, setTab] = useState('overview');
-
-  const [report, setReport] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-
-  const [breakdowns, setBreakdowns] = useState({});
-  const [loadedKeys, setLoadedKeys] = useState({});
-  const [breakdownLoading, setBreakdownLoading] = useState(false);
-  const [breakdownError, setBreakdownError] = useState('');
-
-  async function loadReport() {
-    try {
-      setLoading(true);
-      setError('');
-      const nextReport = await inventoryApi.getProfitReport({ dateFrom, dateTo });
-      setReport(nextReport);
-    } catch (requestError) {
-      setError(requestError.message);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    loadReport();
-  }, [dateFrom, dateTo]);
-
-  // Each non-overview tab is fetched only once it's activated, and re-fetched only when
-  // the date range actually changes while it's active — avoids firing all 4 breakdown
-  // requests up front on every page load.
-  useEffect(() => {
-    const loadBreakdown = BREAKDOWN_LOADERS[tab];
-    if (!loadBreakdown) return;
-
-    const key = `${dateFrom}:${dateTo}`;
-    if (loadedKeys[tab] === key) return;
-
-    let cancelled = false;
-    setBreakdownLoading(true);
-    setBreakdownError('');
-    loadBreakdown({ dateFrom, dateTo })
-      .then((result) => {
-        if (cancelled) return;
-        setBreakdowns((current) => ({ ...current, [tab]: result }));
-        setLoadedKeys((current) => ({ ...current, [tab]: key }));
-      })
-      .catch((requestError) => {
-        if (!cancelled) setBreakdownError(requestError.message);
-      })
-      .finally(() => {
-        if (!cancelled) setBreakdownLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [tab, dateFrom, dateTo]);
+  const filters = { dateFrom, dateTo };
+  const reportQuery = useTenantReportQuery({
+    scope: 'profit-overview',
+    params: filters,
+    queryFn: () => inventoryApi.getProfitReport(filters),
+    keepPrevious: true,
+  });
+  const breakdownQuery = useTenantReportQuery({
+    scope: `profit-${tab}`,
+    params: filters,
+    enabled: Boolean(BREAKDOWN_LOADERS[tab]),
+    queryFn: () => BREAKDOWN_LOADERS[tab](filters),
+  });
+  const breakdowns = BREAKDOWN_LOADERS[tab] && breakdownQuery.data ? { [tab]: breakdownQuery.data } : {};
 
   return {
     dateFrom,
@@ -88,11 +46,11 @@ export function useProfitViewModel() {
     setView,
     tab,
     setTab,
-    report,
-    loading,
-    error,
+    report: reportQuery.data || null,
+    loading: reportQuery.isPending,
+    error: reportQuery.error?.message || '',
     breakdowns,
-    breakdownLoading,
-    breakdownError,
+    breakdownLoading: breakdownQuery.isPending && Boolean(BREAKDOWN_LOADERS[tab]),
+    breakdownError: breakdownQuery.error?.message || '',
   };
 }

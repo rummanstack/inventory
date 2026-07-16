@@ -1,31 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { inventoryApi } from '../../../services/inventoryApi';
 import { todayISO } from '../../../utils/calculations.js';
+import { useTenantReportQuery } from '../../reports/queries/useTenantReportQuery.js';
 
 export function useBalanceSheetViewModel() {
   const [asOfDate, setAsOfDate] = useState(todayISO);
-  const [balanceSheet, setBalanceSheet] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const query = useTenantReportQuery({ scope: 'balance-sheet', params: { asOfDate }, queryFn: () => inventoryApi.getBalanceSheet({ dateTo: asOfDate }), keepPrevious: true });
 
-  useEffect(() => {
-    let cancelled = false;
-    setLoading(true);
-    setError('');
-    inventoryApi.getBalanceSheet({ dateTo: asOfDate })
-      .then((result) => {
-        if (!cancelled) setBalanceSheet(result);
-      })
-      .catch((err) => {
-        if (!cancelled) setError(err.message);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [asOfDate]);
-
-  return { asOfDate, setAsOfDate, balanceSheet, loading, error };
+  return { asOfDate, setAsOfDate, balanceSheet: query.data || null, loading: query.isPending, error: query.error?.message || '' };
 }

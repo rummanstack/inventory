@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { inventoryApi } from '../../../services/inventoryApi';
 import { todayISO } from '../../../utils/calculations.js';
+import { useTenantReportQuery } from '../../reports/queries/useTenantReportQuery.js';
 
 function addDaysIso(dateISO, days) {
   const [year, month, day] = dateISO.split('-').map(Number);
@@ -13,32 +14,18 @@ export function useDueScheduleReportViewModel() {
   const today = todayISO();
   const [dateFrom, setDateFrom] = useState(today);
   const [dateTo, setDateTo] = useState(addDaysIso(today, 7));
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-
-  async function fetchRange(from, to) {
-    try {
-      setLoading(true);
-      setError('');
-      const result = await inventoryApi.getInstallmentDueScheduleReport({ dateFrom: from, dateTo: to });
-      setData(result);
-    } catch (requestError) {
-      setError(requestError.message);
-      setData(null);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    fetchRange(dateFrom, dateTo);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const [appliedRange, setAppliedRange] = useState({ dateFrom: today, dateTo: addDaysIso(today, 7) });
+  const query = useTenantReportQuery({
+    scope: 'installment-due-schedule',
+    params: appliedRange,
+    queryFn: () => inventoryApi.getInstallmentDueScheduleReport(appliedRange),
+    keepPrevious: true,
+  });
 
   function applyRange() {
-    fetchRange(dateFrom, dateTo);
+    if (appliedRange.dateFrom === dateFrom && appliedRange.dateTo === dateTo) query.refetch();
+    else setAppliedRange({ dateFrom, dateTo });
   }
 
-  return { dateFrom, setDateFrom, dateTo, setDateTo, data, loading, error, applyRange };
+  return { dateFrom, setDateFrom, dateTo, setDateTo, data: query.data || null, loading: query.isPending, error: query.error?.message || '', applyRange };
 }

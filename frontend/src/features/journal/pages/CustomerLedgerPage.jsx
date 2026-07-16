@@ -7,39 +7,23 @@ import { formatCurrency, formatDate } from '../../../utils/calculations.js';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import { useReportReferenceData } from '../hooks/useReportReferenceData.js';
 import { Users } from 'lucide-react';
+import { useTenantReportQuery } from '../../reports/queries/useTenantReportQuery.js';
 
 function PartyLedgerPage({ title, partyKey, loader, reportId }) {
   const { language } = useInventoryApp();
   const { customers, suppliers, loading: refLoading, error: refError } = useReportReferenceData();
   const options = partyKey === 'customerId' ? customers : suppliers;
   const [filters, setFilters] = useState({ [partyKey]: '', dateFrom: '', dateTo: '' });
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    if (!filters[partyKey]) {
-      setData(null);
-      return;
-    }
-    let cancelled = false;
-    async function load() {
-      setLoading(true);
-      try {
-        const result = await loader({ ...filters });
-        if (!cancelled) {
-          setData(result);
-          setError('');
-        }
-      } catch (loadError) {
-        if (!cancelled) setError(loadError?.message || 'Failed to load ledger.');
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }
-    load();
-    return () => { cancelled = true; };
-  }, [filters, loader, partyKey]);
+  const query = useTenantReportQuery({
+    scope: `accounting-${partyKey}-ledger`,
+    params: filters,
+    enabled: Boolean(filters[partyKey]),
+    keepPrevious: true,
+    queryFn: () => loader({ ...filters }),
+  });
+  const data = filters[partyKey] ? (query.data || null) : null;
+  const loading = query.isPending && Boolean(filters[partyKey]);
+  const error = query.error?.message || '';
 
   return (
     <div>

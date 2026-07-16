@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { BriefcaseBusiness, Building2, CalendarRange, Landmark, Lock, PiggyBank, Receipt, Scale, Wallet, TrendingUp } from 'lucide-react';
 import { Alert, Badge, SectionHeader, StatCard } from '../../../components/ui.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import { formatCurrency } from '../../../utils/calculations.js';
+import { useTenantReportQuery } from '../../reports/queries/useTenantReportQuery.js';
 
 function formatDateTime(value) {
   if (!value) return '-';
@@ -11,18 +11,13 @@ function formatDateTime(value) {
 }
 
 export default function AccountingDashboardPage() {
-  const [data, setData] = useState(null);
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let cancelled = false;
-    inventoryApi.getAccountingDashboard()
-      .then((result) => { if (!cancelled) setData(result); })
-      .catch((err) => { if (!cancelled) setError(err?.message || 'Failed to load accounting dashboard.'); })
-      .finally(() => { if (!cancelled) setLoading(false); });
-    return () => { cancelled = true; };
-  }, []);
+  const query = useTenantReportQuery({
+    scope: 'accounting-dashboard',
+    queryFn: () => inventoryApi.getAccountingDashboard(),
+  });
+  const data = query.data || null;
+  const error = query.error?.message || '';
+  const loading = query.isPending;
 
   return (
     <div className="space-y-6">

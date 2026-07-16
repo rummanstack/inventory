@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { inventoryApi } from '../../../services/inventoryApi';
 import { buildSheetData, getDsrSnapshot } from '../../../models/inventoryViewData.js';
+import { useTenantReportQuery } from '../queries/useTenantReportQuery.js';
 
 const PAGE_SIZE = 200;
 
@@ -9,84 +10,60 @@ export function useDailyReportsViewModel({ products, dsrs, today, t, tenantName 
   const [dateTo, setDateTo] = useState(today);
   const [selectedSheet, setSelectedSheet] = useState(null);
 
-  const [rangeIssues, setRangeIssues] = useState([]);
-  const [rangeSettlements, setRangeSettlements] = useState([]);
-  const [rangeDueLedger, setRangeDueLedger] = useState([]);
-  const [srLedgerEntries, setSrLedgerEntries] = useState([]);
-  const [purchaseRows, setPurchaseRows] = useState([]);
-  const [expenseSummary, setExpenseSummary] = useState(null);
-  const [salaryRows, setSalaryRows] = useState([]);
-  const [profitTotals, setProfitTotals] = useState(null);
-  const [dsrDueBalances, setDsrDueBalances] = useState([]);
-  const [rangeSalesInvoices, setRangeSalesInvoices] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const filters = { dateFrom, dateTo };
+  const reportQuery = useTenantReportQuery({
+    scope: 'daily-operational-report',
+    params: filters,
+    enabled: Boolean(dateFrom && dateTo),
+    keepPrevious: true,
+    queryFn: async () => {
+      const [issuesResult, settlementsResult] = await Promise.all([
+        inventoryApi.listIssues({ dateFrom, dateTo, pageSize: PAGE_SIZE }),
+        inventoryApi.listSettlements({ dateFrom, dateTo, pageSize: PAGE_SIZE }),
+      ]);
+      const [dueLedger, srLedger, purchases, expenses, salaries, profit, salesInvoices] = await Promise.all([
+        inventoryApi.listDsrDueLedger({ dateFrom, dateTo, pageSize: PAGE_SIZE }).catch(() => ({ items: [] })),
+        inventoryApi.listSrDueLedger({ dateFrom, dateTo, pageSize: PAGE_SIZE }).catch(() => ({ items: [] })),
+        inventoryApi.getPurchaseReport(filters).catch(() => ({ rows: [] })),
+        inventoryApi.getExpenseRangeReport(filters).catch(() => ({ summary: null })),
+        inventoryApi.getSalaryPaymentsRange(filters).catch(() => ({ rows: [] })),
+        inventoryApi.getProfitReport(filters).catch(() => ({ totals: null })),
+        inventoryApi.listSalesInvoices({ dateFrom, dateTo, pageSize: 2000 }).catch(() => ({ items: [] })),
+      ]);
+      return {
+        rangeIssues: issuesResult.items || [],
+        rangeSettlements: settlementsResult.items || [],
+        rangeDueLedger: dueLedger.items || [],
+        srLedgerEntries: srLedger.items || [],
+        purchaseRows: purchases.rows || [],
+        expenseSummary: expenses.summary || null,
+        salaryRows: salaries.rows || [],
+        profitTotals: profit.totals || null,
+        rangeSalesInvoices: salesInvoices.items || [],
+      };
+    },
+  });
+  const balancesQuery = useTenantReportQuery({
+    scope: 'dsr-due-balances',
+    queryFn: () => inventoryApi.listDsrDueBalances(),
+  });
+  const report = reportQuery.data || {};
+  const rangeIssues = report.rangeIssues || [];
+  const rangeSettlements = report.rangeSettlements || [];
+  const rangeDueLedger = report.rangeDueLedger || [];
+  const srLedgerEntries = report.srLedgerEntries || [];
+  const purchaseRows = report.purchaseRows || [];
+  const expenseSummary = report.expenseSummary || null;
+  const salaryRows = report.salaryRows || [];
+  const profitTotals = report.profitTotals || null;
+  const rangeSalesInvoices = report.rangeSalesInvoices || [];
+  const dsrDueBalances = Array.isArray(balancesQuery.data) ? balancesQuery.data : [];
+  const loading = reportQuery.isPending;
+  const error = reportQuery.error?.message || '';
 
   useEffect(() => {
-    if (!dateFrom || !dateTo) return undefined;
-    let cancelled = false;
-
-    async function load() {
-      setLoading(true);
-      setError('');
-      setSelectedSheet(null);
-
-      try {
-        const [issuesResult, settlementsResult] = await Promise.all([
-          inventoryApi.listIssues({ dateFrom, dateTo, pageSize: PAGE_SIZE }),
-          inventoryApi.listSettlements({ dateFrom, dateTo, pageSize: PAGE_SIZE }),
-        ]);
-        if (cancelled) return;
-        setRangeIssues(issuesResult.items || []);
-        setRangeSettlements(settlementsResult.items || []);
-      } catch (err) {
-        if (!cancelled) {
-          setError(err.message);
-          setRangeIssues([]);
-          setRangeSettlements([]);
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-
-      inventoryApi.listDsrDueLedger({ dateFrom, dateTo, pageSize: PAGE_SIZE })
-        .then((r) => { if (!cancelled) setRangeDueLedger(r.items || []); })
-        .catch(() => { if (!cancelled) setRangeDueLedger([]); });
-
-      inventoryApi.listSrDueLedger({ dateFrom, dateTo, pageSize: PAGE_SIZE })
-        .then((r) => { if (!cancelled) setSrLedgerEntries(r.items || []); })
-        .catch(() => { if (!cancelled) setSrLedgerEntries([]); });
-
-      inventoryApi.getPurchaseReport({ dateFrom, dateTo })
-        .then((r) => { if (!cancelled) setPurchaseRows(r.rows || []); })
-        .catch(() => { if (!cancelled) setPurchaseRows([]); });
-
-      inventoryApi.getExpenseRangeReport({ dateFrom, dateTo })
-        .then((r) => { if (!cancelled) setExpenseSummary(r.summary || null); })
-        .catch(() => { if (!cancelled) setExpenseSummary(null); });
-
-      inventoryApi.getSalaryPaymentsRange({ dateFrom, dateTo })
-        .then((r) => { if (!cancelled) setSalaryRows(r.rows || []); })
-        .catch(() => { if (!cancelled) setSalaryRows([]); });
-
-      inventoryApi.getProfitReport({ dateFrom, dateTo })
-        .then((r) => { if (!cancelled) setProfitTotals(r.totals || null); })
-        .catch(() => { if (!cancelled) setProfitTotals(null); });
-
-      inventoryApi.listSalesInvoices({ dateFrom, dateTo, pageSize: 2000 })
-        .then((r) => { if (!cancelled) setRangeSalesInvoices(r.items || []); })
-        .catch(() => { if (!cancelled) setRangeSalesInvoices([]); });
-    }
-
-    load();
-    return () => { cancelled = true; };
+    setSelectedSheet(null);
   }, [dateFrom, dateTo]);
-
-  useEffect(() => {
-    inventoryApi.listDsrDueBalances()
-      .then((data) => setDsrDueBalances(Array.isArray(data) ? data : []))
-      .catch(() => setDsrDueBalances([]));
-  }, []);
 
   const rows = useMemo(() => {
     const productMap = new Map(products.map((p) => [p.id, p]));

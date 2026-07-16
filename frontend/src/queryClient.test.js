@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { queryClient } from './queryClient.js';
 import { productKeys } from './features/products/queries/productQueries.js';
 import { apiListKeys } from './queries/apiQueryKeys.js';
+import { reportKeys } from './features/reports/queries/reportQueries.js';
 
 test('queries do not refetch when the browser regains focus', () => {
   assert.equal(queryClient.getDefaultOptions().queries.refetchOnWindowFocus, false);
@@ -30,4 +31,15 @@ test('shared API list keys include tenant, pagination, and filter dependencies',
     pageSize: 20,
     dependencies: ['active', 'search'],
   }), ['api-lists', 'tenant-a', 'suppliers', 2, 20, 'active', 'search']);
+});
+
+test('dashboard and report keys isolate tenant and filter state', () => {
+  assert.deepEqual(
+    reportKeys.query('tenant-a', 'daily-sales', { dateFrom: '2026-07-01' }),
+    ['reports', 'tenant-a', 'daily-sales', { dateFrom: '2026-07-01' }],
+  );
+  assert.notDeepEqual(
+    reportKeys.query('tenant-a', 'finance-dashboard'),
+    reportKeys.query('tenant-b', 'finance-dashboard'),
+  );
 });

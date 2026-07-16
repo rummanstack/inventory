@@ -16,6 +16,7 @@ import { useEffect, useRef, useState } from 'react';
 import LanguageSwitcher from '../../../components/LanguageSwitcher.jsx';
 import { megaMenuSections, navLinks } from '../constants.js';
 import { stockLedgerLogoIcon } from '../../../assets/brandAssets.js';
+import { buildLocalizedPath, stripLangPrefix } from '../../../app/hooks/usePublicLanguage.js';
 
 const SECTION_META = [
   {
@@ -41,7 +42,8 @@ const SECTION_META = [
   },
 ];
 
-function MegaMenuPanel({ onNavigate, pathname }) {
+function MegaMenuPanel({ onNavigate, pathname, language }) {
+  const basePath = stripLangPrefix(pathname);
   return (
     <div className="fixed left-1/2 top-20 hidden w-[min(1120px,calc(100vw-1.5rem))] -translate-x-1/2 pt-3 lg:block">
       <nav
@@ -67,7 +69,7 @@ function MegaMenuPanel({ onNavigate, pathname }) {
               </div>
             </div>
             <Link
-              to="/get-started"
+              to={buildLocalizedPath(language, '/get-started')}
               className="group inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-2xl bg-[#2d2765] px-5 text-sm font-black text-white shadow-[0_12px_26px_rgba(45,39,101,0.22)] transition duration-200 hover:-translate-y-0.5 hover:bg-[#3c2a86] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-violet-200"
               onClick={onNavigate}
             >
@@ -81,12 +83,12 @@ function MegaMenuPanel({ onNavigate, pathname }) {
           {megaMenuSections.map((section, index) => {
             const meta = SECTION_META[index] ?? SECTION_META[0];
             const Icon = meta.Icon;
-            const sectionActive = pathname === section.href;
+            const sectionActive = basePath === section.href;
 
             return (
               <section key={section.title} className="min-w-0 px-3 py-2">
                 <Link
-                  to={section.href}
+                  to={buildLocalizedPath(language, section.href)}
                   className={`group flex items-start gap-3 rounded-[20px] p-3 ring-1 transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_28px_rgba(15,23,42,0.08)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3c2a86]/30 ${meta.headerClass}`}
                   onClick={onNavigate}
                   aria-current={sectionActive ? 'page' : undefined}
@@ -103,12 +105,12 @@ function MegaMenuPanel({ onNavigate, pathname }) {
 
                 <div className="mt-2 grid gap-0.5">
                   {section.links.map((link) => {
-                    const isActive = pathname === link.href;
+                    const isActive = basePath === link.href;
 
                     return (
                       <Link
                         key={link.href}
-                        to={link.href}
+                        to={buildLocalizedPath(language, link.href)}
                         className={`group flex min-w-0 items-center gap-3 rounded-2xl px-3 py-2.5 text-left transition duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3c2a86]/25 ${isActive ? meta.activeClass : 'text-slate-700 hover:bg-slate-50 hover:text-slate-950'}`}
                         onClick={onNavigate}
                         aria-current={isActive ? 'page' : undefined}
@@ -139,7 +141,7 @@ function MegaMenuPanel({ onNavigate, pathname }) {
             </div>
           </div>
           <Link
-            to="/contact"
+            to={buildLocalizedPath(language, '/contact')}
             className="group inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-2xl border border-white/15 bg-white/10 px-4 text-sm font-black text-white transition hover:-translate-y-0.5 hover:bg-white/15 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/20"
             onClick={onNavigate}
           >
@@ -193,7 +195,7 @@ export default function LandingHeader({ language, setLanguage, t }) {
   return (
     <header className="landing-header">
       <div className="landing-header-inner">
-        <Link to="/landing" className="flex items-center gap-3" aria-label={t('landing.homeAriaLabel')}>
+        <Link to={buildLocalizedPath(language, '/landing')} className="flex items-center gap-3" aria-label={t('landing.homeAriaLabel')}>
           <img src={stockLedgerLogoIcon} alt="" className="h-11 w-11 object-contain drop-shadow-[0_10px_24px_rgba(15,23,42,0.2)]" />
           <span className="hidden sm:block">
             <span className="block text-lg font-black leading-none tracking-tight text-white">StockLedger</span>
@@ -217,12 +219,12 @@ export default function LandingHeader({ language, setLanguage, t }) {
               <ChevronDown size={16} className={`transition ${desktopOpen ? 'rotate-180' : ''}`} />
             </button>
             {navLinks.filter((link) => ['workflow', 'pricing', 'getStarted', 'contact'].includes(link.key)).map((link) => (
-              <Link key={link.href} to={link.href} className="landing-nav-link">
+              <Link key={link.href} to={buildLocalizedPath(language, link.href)} className="landing-nav-link">
                 {t(`landing.nav.${link.key}`)}
               </Link>
             ))}
           </div>
-          {desktopOpen ? <MegaMenuPanel pathname={location.pathname} onNavigate={() => setDesktopOpen(false)} /> : null}
+          {desktopOpen ? <MegaMenuPanel pathname={location.pathname} language={language} onNavigate={() => setDesktopOpen(false)} /> : null}
         </div>
 
         <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
@@ -236,6 +238,7 @@ export default function LandingHeader({ language, setLanguage, t }) {
             {menuOpen ? <X size={18} /> : <Menu size={18} />}
           </button>
           <LanguageSwitcher language={language} onChange={setLanguage} t={t} compact />
+          {/* /login isn't part of the bilingual public site, so no locale prefix here */}
           <Link to="/login" className="landing-small-cta">
             <span className="hidden sm:inline">{t('landing.login')}</span>
             <ArrowRight size={16} />
@@ -256,7 +259,7 @@ export default function LandingHeader({ language, setLanguage, t }) {
               {navLinks.map((link) => (
                 <Link
                   key={link.href}
-                  to={link.href}
+                  to={buildLocalizedPath(language, link.href)}
                   className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-bold text-white transition hover:bg-white/10"
                   onClick={() => setMenuOpen(false)}
                 >
@@ -274,7 +277,7 @@ export default function LandingHeader({ language, setLanguage, t }) {
                   {section.links.slice(0, 4).map((link) => (
                     <Link
                       key={link.href}
-                      to={link.href}
+                      to={buildLocalizedPath(language, link.href)}
                       className="rounded-2xl border border-white/8 bg-white/5 px-4 py-3 text-sm font-bold text-white/90 transition hover:bg-white/10 hover:text-white"
                       onClick={() => setMenuOpen(false)}
                     >

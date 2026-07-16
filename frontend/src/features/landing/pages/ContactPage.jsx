@@ -1,50 +1,20 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Clock3, MessageCircle, Phone, Settings, Users } from 'lucide-react';
-import { useLanguage } from '../../../app/hooks/useLanguage.js';
+import { usePublicLanguage, buildLocalizedPath } from '../../../app/hooks/usePublicLanguage.js';
 import LandingHeader from '../components/LandingHeader.jsx';
 import LandingFooter from '../components/LandingFooter.jsx';
 import DeferredLandingAiChatWidget from '../components/DeferredLandingAiChatWidget.jsx';
 import ContactSection from '../components/ContactSection.jsx';
 
-const contactReasons = [
-  {
-    title: 'You want a demo matched to your business',
-    text: 'Use this page when you want to explain your operation and see the right StockLedger workflows, not a generic feature tour.',
-    Icon: MessageCircle,
-  },
-  {
-    title: 'You need pricing or commercial answers',
-    text: 'This is the right page for module scope, user count, rollout questions, pricing conversation, and proposal-oriented discussions.',
-    Icon: Settings,
-  },
-  {
-    title: 'You want to speak before choosing setup steps',
-    text: 'If you still need advice about the best path for retail, wholesale, dealer, accounting, or HR rollout, Contact is the sales conversation page.',
-    Icon: Users,
-  },
-];
-
-const nextSteps = [
-  'We review your business type, current workflow, and highest-friction problems first.',
-  'We recommend a starting module set instead of pushing every module at once.',
-  'We discuss onboarding scope, training, users, branches, and pricing direction clearly.',
-];
-
-const relatedDecisionPages = [
-  { title: 'Get Started', text: 'Use this when you already want a rollout plan and need to decide which modules should go live first.', href: '/get-started' },
-  { title: 'Pricing', text: 'Use this when you need to compare plan structure, setup scope, support, and commercial fit.', href: '/pricing' },
-  { title: 'Software Guides', text: 'Use this when you are still comparing StockLedger against intent-specific searches like POS, accounting, inventory, or DSR software.', href: '/software' },
-];
-
-const contactFaqs = [
-  ['What should I include in a contact request?', 'Your business type, branch count, current workflow problems, the modules you care about most, and whether you need a demo, pricing discussion, or rollout guidance.'],
-  ['When should I use Contact instead of Get Started?', 'Use Contact when you still need to confirm fit, ask commercial questions, or discuss pricing. Use Get Started when you are ready to plan the first implementation steps.'],
-  ['Can I ask for a demo focused on my business type?', 'Yes. The page is designed for business-specific demo requests rather than a generic product tour.'],
-];
+const contactReasonIcons = [MessageCircle, Settings, Users];
 
 export default function ContactPage() {
-  const { language, setLanguage, t } = useLanguage();
+  const { language, setLanguage, t } = usePublicLanguage();
+  const contactReasons = t('contactPage.contactReasons').map((item, index) => ({ ...item, Icon: contactReasonIcons[index] }));
+  const nextSteps = t('contactPage.nextSteps');
+  const relatedDecisionPages = t('contactPage.relatedDecisionPages');
+  const contactFaqs = t('contactPage.contactFaqs');
 
   useEffect(() => {
     document.documentElement.classList.add('landing-page-active');
@@ -64,11 +34,11 @@ export default function ContactPage() {
         style={{ background: 'linear-gradient(135deg,var(--bg-dark) 0%,var(--brand-strong) 58%,#14532d 100%)' }}
       >
         <div className="landing-container">
-          <Link to="/landing" className="text-sm font-bold text-white/70 transition hover:text-white">Home</Link>
+          <Link to={buildLocalizedPath(language, '/landing')} className="text-sm font-bold text-white/70 transition hover:text-white">{t('seoContent.breadcrumbHome')}</Link>
           <div className="mt-6 max-w-3xl">
-            <p className="landing-eyebrow !text-[var(--landing-accent-teal)]">Contact StockLedger</p>
-            <h1 className="mt-3 text-4xl font-black leading-[1.06] tracking-tight text-white sm:text-5xl">Book a demo, ask about pricing, or discuss the right rollout</h1>
-            <p className="mt-5 text-base font-medium leading-7 text-slate-200 sm:text-lg">This page is for commercial and sales conversations. Talk to the StockLedger team about your business type, users, branches, modules, setup, training, and pricing. If you already know you want to start and need onboarding guidance, the Get Started page is the better next step.</p>
+            <p className="landing-eyebrow !text-[var(--landing-accent-teal)]">{t('contactPage.eyebrow')}</p>
+            <h1 className="mt-3 text-4xl font-black leading-[1.06] tracking-tight text-white sm:text-5xl">{t('contactPage.heroTitle')}</h1>
+            <p className="mt-5 text-base font-medium leading-7 text-slate-200 sm:text-lg">{t('contactPage.heroText')}</p>
           </div>
         </div>
       </section>
@@ -91,9 +61,9 @@ export default function ContactPage() {
             <article className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_16px_44px_rgba(15,23,42,0.06)] sm:p-8">
               <div className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.16em] text-[var(--brand)]">
                 <Clock3 size={14} />
-                What happens next
+                {t('contactPage.whatsNextLabel')}
               </div>
-              <h2 className="mt-3 text-2xl font-black tracking-tight text-slate-950">A useful contact request should shorten the buying cycle</h2>
+              <h2 className="mt-3 text-2xl font-black tracking-tight text-slate-950">{t('contactPage.whatsNextTitle')}</h2>
               <div className="mt-5 space-y-3">
                 {nextSteps.map((step) => (
                   <p key={step} className="flex items-start gap-3 text-[15px] font-medium leading-7 text-slate-600">
@@ -102,19 +72,19 @@ export default function ContactPage() {
                   </p>
                 ))}
               </div>
-              <p className="mt-5 text-[15px] font-medium leading-7 text-slate-600">That is the difference between Contact and Get Started on this site. Contact is where you confirm fit, ask questions, and evaluate the commercial side. Get Started is where you move into rollout planning and first-module decisions.</p>
+              <p className="mt-5 text-[15px] font-medium leading-7 text-slate-600">{t('contactPage.whatsNextText2')}</p>
             </article>
 
             <article className="rounded-[28px] border border-[var(--brand)]/15 bg-white p-6 shadow-[0_16px_44px_rgba(15,23,42,0.06)] sm:p-8">
-              <h2 className="text-2xl font-black tracking-tight text-slate-950">Need faster action?</h2>
-              <p className="mt-3 text-sm font-medium leading-6 text-slate-600">If your main question is urgent and operational, use direct contact first. If your main question is onboarding structure, jump to Get Started.</p>
+              <h2 className="text-2xl font-black tracking-tight text-slate-950">{t('contactPage.needFasterTitle')}</h2>
+              <p className="mt-3 text-sm font-medium leading-6 text-slate-600">{t('contactPage.needFasterText')}</p>
               <div className="mt-6 flex flex-col gap-3">
                 <a href="tel:01678560660" className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-[var(--brand-strong)] px-5 text-sm font-black text-white transition hover:-translate-y-0.5">
                   <Phone size={16} />
-                  Call Sales
+                  {t('contactPage.callSales')}
                 </a>
-                <Link to="/get-started" className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 text-sm font-black text-slate-700 transition hover:-translate-y-0.5 hover:border-[var(--brand)]/30">
-                  Go to Get Started
+                <Link to={buildLocalizedPath(language, '/get-started')} className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 text-sm font-black text-slate-700 transition hover:-translate-y-0.5 hover:border-[var(--brand)]/30">
+                  {t('contactPage.goToGetStarted')}
                   <ArrowRight size={16} />
                 </Link>
               </div>
@@ -123,11 +93,11 @@ export default function ContactPage() {
 
           <div className="mt-8 grid gap-5 lg:grid-cols-[1.05fr_0.95fr]">
             <article className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_16px_44px_rgba(15,23,42,0.06)] sm:p-8">
-              <p className="text-xs font-black uppercase tracking-[0.16em] text-[var(--brand)]">Related decision pages</p>
-              <h2 className="mt-3 text-2xl font-black tracking-tight text-slate-950">Pick the page that matches your buying stage</h2>
+              <p className="text-xs font-black uppercase tracking-[0.16em] text-[var(--brand)]">{t('contactPage.relatedLabel')}</p>
+              <h2 className="mt-3 text-2xl font-black tracking-tight text-slate-950">{t('contactPage.relatedTitle')}</h2>
               <div className="mt-5 grid gap-4">
                 {relatedDecisionPages.map((item) => (
-                  <Link key={item.href} to={item.href} className="rounded-[22px] border border-slate-200 bg-slate-50 px-5 py-4 transition hover:border-[var(--brand)]/25 hover:bg-white">
+                  <Link key={item.href} to={buildLocalizedPath(language, item.href)} className="rounded-[22px] border border-slate-200 bg-slate-50 px-5 py-4 transition hover:border-[var(--brand)]/25 hover:bg-white">
                     <h3 className="text-lg font-black text-slate-950">{item.title}</h3>
                     <p className="mt-2 text-sm font-medium leading-6 text-slate-600">{item.text}</p>
                   </Link>
@@ -136,7 +106,7 @@ export default function ContactPage() {
             </article>
 
             <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_12px_36px_rgba(15,23,42,0.05)]">
-              <h2 className="text-2xl font-black tracking-tight text-slate-950">Frequently asked questions</h2>
+              <h2 className="text-2xl font-black tracking-tight text-slate-950">{t('contactPage.faqTitle')}</h2>
               <div className="mt-5 divide-y divide-slate-100">
                 {contactFaqs.map(([question, answer]) => (
                   <div key={question} className="py-4 first:pt-0 last:pb-0">
@@ -152,7 +122,7 @@ export default function ContactPage() {
 
       <ContactSection t={t} />
 
-      <LandingFooter t={t} />
+      <LandingFooter t={t} language={language} />
       <DeferredLandingAiChatWidget t={t} />
     </main>
   );

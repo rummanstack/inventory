@@ -7,6 +7,7 @@ import { InventoryAppProvider, useInventoryApp } from './useInventoryApp.jsx';
 import { LoadingState } from '../components/ui/Feedback.jsx';
 import { stockLedgerLogoHorizontal, stockLedgerLogoIcon } from '../assets/brandAssets.js';
 import SeoManager from '../seo/SeoManager.jsx';
+import { PUBLIC_MARKETING_PATHS } from '../seo/publicRoutePaths.js';
 
 const AppLayout = lazy(() => import('./AppLayout'));
 const LoginPage = lazy(() => import('../features/auth/pages/LoginPage'));
@@ -130,31 +131,48 @@ function GuardedAppRoute({ route }) {
 
 function AppFallbackRedirect() {
   const { authLoading, user } = useInventoryApp();
+  const location = useLocation();
 
   if (authLoading) {
     return <SessionLoadingScreen />;
   }
 
-  return <Navigate to={user ? getDefaultRoute(user) : '/landing'} replace />;
+  if (user) {
+    return <Navigate to={getDefaultRoute(user)} replace />;
+  }
+
+  return <Navigate to={location.pathname.startsWith('/bn') ? '/bn/landing' : '/landing'} replace />;
 }
+
+// Keyed by the paths in PUBLIC_MARKETING_PATHS so each can be rendered twice
+// below (bare + /bn-prefixed) without duplicating the <Route> declarations.
+// Language for these pages comes from the URL (usePublicLanguage), not from
+// which of the two routes matched, so the same element node is safe to reuse.
+const PUBLIC_MARKETING_ELEMENTS = {
+  '/landing': <PublicOnlyRoute><LandingPage /></PublicOnlyRoute>,
+  '/privacy-policy': <PrivacyPolicyPage />,
+  '/terms': <TermsPage />,
+  '/founder': <FounderPage />,
+  '/features': <FeatureHubPage />,
+  '/features/:slug': <FeatureDetailPage />,
+  '/solutions': <SolutionHubPage />,
+  '/solutions/:slug': <SolutionDetailPage />,
+  '/software': <SoftwareHubPage />,
+  '/software/:slug': <SoftwareDetailPage />,
+  '/pricing': <PricingPage />,
+  '/contact': <ContactPage />,
+  '/get-started': <GetStartedPage />,
+};
 
 function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<RootRedirect />} />
-      <Route path="/landing" element={<PublicOnlyRoute><LandingPage /></PublicOnlyRoute>} />
-      <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
-      <Route path="/terms" element={<TermsPage />} />
-      <Route path="/founder" element={<FounderPage />} />
-      <Route path="/features" element={<FeatureHubPage />} />
-      <Route path="/features/:slug" element={<FeatureDetailPage />} />
-      <Route path="/solutions" element={<SolutionHubPage />} />
-      <Route path="/solutions/:slug" element={<SolutionDetailPage />} />
-      <Route path="/software" element={<SoftwareHubPage />} />
-      <Route path="/software/:slug" element={<SoftwareDetailPage />} />
-      <Route path="/pricing" element={<PricingPage />} />
-      <Route path="/contact" element={<ContactPage />} />
-      <Route path="/get-started" element={<GetStartedPage />} />
+      <Route path="/bn" element={<Navigate to="/bn/landing" replace />} />
+      {PUBLIC_MARKETING_PATHS.flatMap((path) => [
+        <Route key={path} path={path} element={PUBLIC_MARKETING_ELEMENTS[path]} />,
+        <Route key={`bn:${path}`} path={`/bn${path}`} element={PUBLIC_MARKETING_ELEMENTS[path]} />,
+      ])}
       <Route path="/login" element={<PublicOnlyRoute><LoginPage /></PublicOnlyRoute>} />
       <Route path="/register" element={<PublicOnlyRoute><RegisterPage /></PublicOnlyRoute>} />
       <Route element={<ProtectedLayout />}>

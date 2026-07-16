@@ -1,5 +1,5 @@
 import { Clock, Cookie, Database, Eye, FileText, Lock, MessageCircle, RefreshCw, UserCheck, Users } from 'lucide-react';
-import { useLanguage } from '../../../app/hooks/useLanguage';
+import { usePublicLanguage } from '../../../app/hooks/usePublicLanguage.js';
 import LegalPageLayout from '../components/shared/LegalPageLayout.jsx';
 
 const SECTION_ICONS = {
@@ -16,7 +16,7 @@ const SECTION_ICONS = {
 };
 
 export default function PrivacyPolicyPage() {
-  const { language, setLanguage, t } = useLanguage();
+  const { language, setLanguage, t } = usePublicLanguage();
 
   return (
     <LegalPageLayout

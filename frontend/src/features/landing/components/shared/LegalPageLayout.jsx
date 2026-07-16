@@ -6,10 +6,11 @@ import LandingFooter from '../LandingFooter.jsx';
 import DeferredLandingAiChatWidget from '../DeferredLandingAiChatWidget.jsx';
 import { contactPhone, whatsappUrl } from '../../constants.js';
 import { stockLedgerLogoIcon } from '../../../../assets/brandAssets.js';
+import { buildLocalizedPath } from '../../../../app/hooks/usePublicLanguage.js';
 
 // Renders **bold** spans plus {email} / {privacy} placeholders so the
 // locale files can stay plain strings.
-function RichText({ text, email, t }) {
+function RichText({ text, email, t, language }) {
   const parts = String(text).split(/(\*\*[^*]+\*\*|\{email\}|\{privacy\})/g);
   return parts.map((part, index) => {
     if (part === '{email}') {
@@ -19,7 +20,7 @@ function RichText({ text, email, t }) {
     }
     if (part === '{privacy}') {
       return (
-        <Link key={index} to="/privacy-policy" className="font-semibold text-[var(--brand)] hover:underline">
+        <Link key={index} to={buildLocalizedPath(language, '/privacy-policy')} className="font-semibold text-[var(--brand)] hover:underline">
           {t('landing.footerLinks.privacy')}
         </Link>
       );
@@ -38,17 +39,17 @@ const CARD_TONES = {
   teal: 'border-[var(--landing-tone-success-border)] bg-[var(--landing-tone-success-bg)] text-[var(--landing-tone-success-text)]',
 };
 
-function Block({ block, email, t }) {
+function Block({ block, email, t, language }) {
   switch (block.type) {
     case 'p':
-      return <p><RichText text={block.text} email={email} t={t} /></p>;
+      return <p><RichText text={block.text} email={email} t={t} language={language} /></p>;
     case 'bullets':
       return (
         <ul className="space-y-2 pl-1">
           {block.items.map((item) => (
             <li key={item.slice(0, 40)} className="flex gap-3">
               <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--brand)]" />
-              <span><RichText text={item} email={email} t={t} /></span>
+              <span><RichText text={item} email={email} t={t} language={language} /></span>
             </li>
           ))}
         </ul>
@@ -56,7 +57,7 @@ function Block({ block, email, t }) {
     case 'card':
       return (
         <div className={`rounded-2xl border px-5 py-4 text-[14px] font-medium leading-6 ${CARD_TONES[block.tone] || CARD_TONES.blue}`}>
-          <RichText text={block.text} email={email} t={t} />
+          <RichText text={block.text} email={email} t={t} language={language} />
         </div>
       );
     case 'table':
@@ -203,7 +204,7 @@ export default function LegalPageLayout({ language, setLanguage, t, contentKey, 
 
         <div className="landing-container relative">
           <div className="flex items-center gap-2 text-xs font-bold text-slate-400">
-            <Link to="/landing" className="transition hover:text-white">{content.breadcrumbHome}</Link>
+            <Link to={buildLocalizedPath(language, '/landing')} className="transition hover:text-white">{content.breadcrumbHome}</Link>
             <span>/</span>
             <span className="text-slate-300">{content.breadcrumb}</span>
           </div>
@@ -284,12 +285,12 @@ export default function LegalPageLayout({ language, setLanguage, t, contentKey, 
                     <p>{content.contact?.intro}</p>
                     <ContactCards contact={content.contact || {}} email={email} />
                     {content.contact?.outro ? (
-                      <p className="text-[13px] text-slate-500"><RichText text={content.contact.outro} email={email} t={t} /></p>
+                      <p className="text-[13px] text-slate-500"><RichText text={content.contact.outro} email={email} t={t} language={language} /></p>
                     ) : null}
                   </>
                 ) : (
                   activeSection?.blocks.map((block, blockIndex) => (
-                    <Block key={blockIndex} block={block} email={email} t={t} />
+                    <Block key={blockIndex} block={block} email={email} t={t} language={language} />
                   ))
                 )}
               </div>
@@ -341,7 +342,7 @@ export default function LegalPageLayout({ language, setLanguage, t, contentKey, 
                   {content.cta?.whatsapp}
                 </a>
                 <Link
-                  to="/landing"
+                  to={buildLocalizedPath(language, '/landing')}
                   className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-6 text-sm font-black text-white transition hover:-translate-y-0.5 hover:bg-white/15"
                 >
                   {content.cta?.explore}
@@ -354,7 +355,7 @@ export default function LegalPageLayout({ language, setLanguage, t, contentKey, 
         </div>
       </div>
 
-      <LandingFooter t={t} />
+      <LandingFooter t={t} language={language} />
       <DeferredLandingAiChatWidget t={t} />
     </main>
   );

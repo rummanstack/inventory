@@ -1,38 +1,51 @@
 import { featurePages, getFeaturePage, getSolutionPage, solutionPages } from '../features/landing/data/seoPages.js';
 import { getIntentPage, intentPages } from '../features/landing/data/intentPages.js';
-import { absoluteUrl, trimTrailingSlash } from './metadata.js';
+import { absoluteUrl, stripLangPrefix, trimTrailingSlash } from './metadata.js';
 import { SCHEMA_SITE_CONFIG, STATIC_PAGE_FAQS } from './schemaConfig.js';
+import { createTranslator } from '../i18n/translations.js';
 
 const HUB_DEFINITIONS = {
   '/features': {
-    name: 'Features',
+    nameKey: 'seoContent.breadcrumbFeatures',
     pageType: 'CollectionPage',
     itemListId: 'features-list',
-    items: featurePages,
+    rawItems: featurePages,
+    getPage: getFeaturePage,
     itemPathPrefix: '/features/',
   },
   '/solutions': {
-    name: 'Solutions',
+    nameKey: 'seoContent.breadcrumbSolutions',
     pageType: 'CollectionPage',
     itemListId: 'solutions-list',
-    items: solutionPages,
+    rawItems: solutionPages,
+    getPage: getSolutionPage,
     itemPathPrefix: '/solutions/',
   },
   '/software': {
-    name: 'Software Guides',
+    nameKey: 'seoContent.breadcrumbSoftware',
     pageType: 'CollectionPage',
     itemListId: 'software-list',
-    items: intentPages,
+    rawItems: intentPages,
+    getPage: getIntentPage,
     itemPathPrefix: '/software/',
   },
 };
 
+// Normalizes a possibly /bn-prefixed pathname down to the plain English base
+// path used to key HUB_DEFINITIONS/getFeaturePage/etc. Language is read
+// separately from metadata.language, since that's already resolved by
+// getRouteMetadata().
 function normalizePublicPath(pathname) {
   const normalized = trimTrailingSlash(pathname || '/');
-  return normalized === '/' ? '/landing' : normalized;
+  const basePath = normalized === '/' ? '/landing' : normalized;
+  return stripLangPrefix(basePath).basePath;
 }
 
-function buildBreadcrumbNode(canonicalUrl, breadcrumbs) {
+function localizePath(path, language) {
+  return language === 'bn' ? `/bn${path}` : path;
+}
+
+function buildBreadcrumbNode(canonicalUrl, breadcrumbs, language) {
   if (!breadcrumbs?.length) return null;
 
   return {
@@ -42,7 +55,7 @@ function buildBreadcrumbNode(canonicalUrl, breadcrumbs) {
       '@type': 'ListItem',
       position: index + 1,
       name: item.name,
-      item: absoluteUrl(item.path),
+      item: absoluteUrl(localizePath(item.path, language)),
     })),
   };
 }
@@ -64,97 +77,100 @@ function buildFaqNode(canonicalUrl, faqs) {
   };
 }
 
-function buildItemListNode(canonicalUrl, hubDefinition) {
+function buildItemListNode(canonicalUrl, hubDefinition, language) {
   if (!hubDefinition) return null;
 
   return {
     '@type': 'ItemList',
     '@id': `${canonicalUrl}#${hubDefinition.itemListId}`,
-    itemListElement: hubDefinition.items.map((item, index) => ({
-      '@type': 'ListItem',
-      position: index + 1,
-      name: item.title,
-      url: absoluteUrl(`${hubDefinition.itemPathPrefix}${item.slug}`),
-    })),
+    itemListElement: hubDefinition.rawItems.map((raw, index) => {
+      const page = hubDefinition.getPage(raw.slug, language);
+      return {
+        '@type': 'ListItem',
+        position: index + 1,
+        name: page.title,
+        url: absoluteUrl(localizePath(`${hubDefinition.itemPathPrefix}${raw.slug}`, language)),
+      };
+    }),
   };
 }
 
-function buildStaticBreadcrumbs(pathname) {
-  if (pathname === '/landing') {
-    return [{ name: 'Home', path: '/landing' }];
+function buildStaticBreadcrumbs(basePath, t) {
+  if (basePath === '/landing') {
+    return [{ name: t('seoContent.breadcrumbHome'), path: '/landing' }];
   }
 
-  const staticTitles = {
-    '/pricing': 'Pricing',
-    '/contact': 'Contact',
-    '/get-started': 'Get Started',
-    '/founder': 'Founder',
-    '/privacy-policy': 'Privacy Policy',
-    '/terms': 'Terms and Conditions',
+  const staticKeys = {
+    '/pricing': 'seoContent.breadcrumbPricing',
+    '/contact': 'seoContent.breadcrumbContact',
+    '/get-started': 'seoContent.breadcrumbGetStarted',
+    '/founder': 'seoContent.breadcrumbFounder',
+    '/privacy-policy': 'seoContent.breadcrumbPrivacy',
+    '/terms': 'seoContent.breadcrumbTerms',
   };
 
-  const title = staticTitles[pathname];
-  if (!title) return null;
+  const titleKey = staticKeys[basePath];
+  if (!titleKey) return null;
 
   return [
-    { name: 'Home', path: '/landing' },
-    { name: title, path: pathname },
+    { name: t('seoContent.breadcrumbHome'), path: '/landing' },
+    { name: t(titleKey), path: basePath },
   ];
 }
 
-function getPageContext(pathname) {
-  const hubDefinition = HUB_DEFINITIONS[pathname];
+function getPageContext(basePath, language, t) {
+  const hubDefinition = HUB_DEFINITIONS[basePath];
   if (hubDefinition) {
     return {
       pageType: hubDefinition.pageType,
       breadcrumbs: [
-        { name: 'Home', path: '/landing' },
-        { name: hubDefinition.name, path: pathname },
+        { name: t('seoContent.breadcrumbHome'), path: '/landing' },
+        { name: t(hubDefinition.nameKey), path: basePath },
       ],
-      faqs: STATIC_PAGE_FAQS[pathname] || null,
+      faqs: STATIC_PAGE_FAQS[basePath] || null,
       hubDefinition,
     };
   }
 
-  if (pathname.startsWith('/features/')) {
-    const page = getFeaturePage(pathname.slice('/features/'.length));
+  if (basePath.startsWith('/features/')) {
+    const page = getFeaturePage(basePath.slice('/features/'.length), language);
     if (page) {
       return {
         pageType: 'WebPage',
         breadcrumbs: [
-          { name: 'Home', path: '/landing' },
-          { name: 'Features', path: '/features' },
-          { name: page.title, path: pathname },
+          { name: t('seoContent.breadcrumbHome'), path: '/landing' },
+          { name: t('seoContent.breadcrumbFeatures'), path: '/features' },
+          { name: page.title, path: basePath },
         ],
         faqs: page.faqs || null,
       };
     }
   }
 
-  if (pathname.startsWith('/solutions/')) {
-    const page = getSolutionPage(pathname.slice('/solutions/'.length));
+  if (basePath.startsWith('/solutions/')) {
+    const page = getSolutionPage(basePath.slice('/solutions/'.length), language);
     if (page) {
       return {
         pageType: 'WebPage',
         breadcrumbs: [
-          { name: 'Home', path: '/landing' },
-          { name: 'Solutions', path: '/solutions' },
-          { name: page.title, path: pathname },
+          { name: t('seoContent.breadcrumbHome'), path: '/landing' },
+          { name: t('seoContent.breadcrumbSolutions'), path: '/solutions' },
+          { name: page.title, path: basePath },
         ],
         faqs: page.faqs || null,
       };
     }
   }
 
-  if (pathname.startsWith('/software/')) {
-    const page = getIntentPage(pathname.slice('/software/'.length));
+  if (basePath.startsWith('/software/')) {
+    const page = getIntentPage(basePath.slice('/software/'.length), language);
     if (page) {
       return {
         pageType: 'WebPage',
         breadcrumbs: [
-          { name: 'Home', path: '/landing' },
-          { name: 'Software Guides', path: '/software' },
-          { name: page.title, path: pathname },
+          { name: t('seoContent.breadcrumbHome'), path: '/landing' },
+          { name: t('seoContent.breadcrumbSoftware'), path: '/software' },
+          { name: page.title, path: basePath },
         ],
         faqs: page.faqs || null,
       };
@@ -172,15 +188,17 @@ function getPageContext(pathname) {
   };
 
   return {
-    pageType: staticPageTypes[pathname] || 'WebPage',
-    breadcrumbs: buildStaticBreadcrumbs(pathname),
-    faqs: STATIC_PAGE_FAQS[pathname] || null,
+    pageType: staticPageTypes[basePath] || 'WebPage',
+    breadcrumbs: buildStaticBreadcrumbs(basePath, t),
+    faqs: STATIC_PAGE_FAQS[basePath] || null,
   };
 }
 
 export function buildStructuredData(pathname, metadata) {
-  const normalizedPath = normalizePublicPath(pathname);
-  const pageContext = getPageContext(normalizedPath);
+  const basePath = normalizePublicPath(pathname);
+  const language = metadata.language;
+  const t = createTranslator(language);
+  const pageContext = getPageContext(basePath, language, t);
   const canonicalUrl = metadata.canonicalUrl;
 
   const graph = [
@@ -242,9 +260,9 @@ export function buildStructuredData(pathname, metadata) {
     },
   ];
 
-  const breadcrumbNode = buildBreadcrumbNode(canonicalUrl, pageContext.breadcrumbs);
+  const breadcrumbNode = buildBreadcrumbNode(canonicalUrl, pageContext.breadcrumbs, language);
   const faqNode = buildFaqNode(canonicalUrl, pageContext.faqs);
-  const itemListNode = buildItemListNode(canonicalUrl, pageContext.hubDefinition);
+  const itemListNode = buildItemListNode(canonicalUrl, pageContext.hubDefinition, language);
 
   if (breadcrumbNode) graph.push(breadcrumbNode);
   if (faqNode) graph.push(faqNode);

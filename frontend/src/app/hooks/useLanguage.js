@@ -12,6 +12,16 @@ function getInitialLanguage() {
   return supportedLanguages.includes(stored) ? stored : 'en';
 }
 
+// This hook is mounted globally (InventoryAppProvider wraps the whole app,
+// including the public bilingual marketing site), but <html lang> on the
+// /bn/* public pages is owned by SeoManager/usePublicLanguage instead --
+// otherwise this effect's own unconditional write races it on every mount.
+function isPublicBilingualPath() {
+  if (typeof window === 'undefined') return false;
+  const pathname = window.location.pathname;
+  return pathname === '/bn' || pathname.startsWith('/bn/');
+}
+
 export function useLanguage() {
   const [language, setLanguageState] = useState(getInitialLanguage);
   const t = useMemo(() => createTranslator(language), [language]);
@@ -23,8 +33,10 @@ export function useLanguage() {
 
     if (typeof window !== 'undefined') {
       window.localStorage.setItem(LANGUAGE_STORAGE_KEY, nextLanguage);
-      document.documentElement.lang = nextLanguage;
-      document.documentElement.dir = 'ltr';
+      if (!isPublicBilingualPath()) {
+        document.documentElement.lang = nextLanguage;
+        document.documentElement.dir = 'ltr';
+      }
     }
 
     setLanguageState(nextLanguage);
@@ -36,8 +48,10 @@ export function useLanguage() {
     }
 
     window.localStorage.setItem(LANGUAGE_STORAGE_KEY, language);
-    document.documentElement.lang = language;
-    document.documentElement.dir = 'ltr';
+    if (!isPublicBilingualPath()) {
+      document.documentElement.lang = language;
+      document.documentElement.dir = 'ltr';
+    }
   }, [language]);
 
   return { language, setLanguage, t };

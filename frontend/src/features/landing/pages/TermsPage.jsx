@@ -1,5 +1,5 @@
 import { BadgeCheck, BookOpen, FileText, Gavel, Globe, KeyRound, MessageCircle, Scale, ShieldOff, Trash2, UserCheck, Wallet } from 'lucide-react';
-import { useLanguage } from '../../../app/hooks/useLanguage';
+import { usePublicLanguage } from '../../../app/hooks/usePublicLanguage.js';
 import LegalPageLayout from '../components/shared/LegalPageLayout.jsx';
 
 const SECTION_ICONS = {
@@ -18,7 +18,7 @@ const SECTION_ICONS = {
 };
 
 export default function TermsPage() {
-  const { language, setLanguage, t } = useLanguage();
+  const { language, setLanguage, t } = usePublicLanguage();
 
   return (
     <LegalPageLayout

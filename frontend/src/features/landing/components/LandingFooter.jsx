@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { ArrowUp, Facebook, Instagram, Linkedin, Mail, MapPin, MessageCircle, Phone, Send, Twitter } from 'lucide-react';
 import { contactEmail, contactPhone, socialLinks, whatsappUrl } from '../constants.js';
 import { stockLedgerLogoIcon } from '../../../assets/brandAssets.js';
+import { buildLocalizedPath } from '../../../app/hooks/usePublicLanguage.js';
 
 // Placeholder '#' entries in constants.js are filtered out - icons appear
 // automatically once real profile URLs are filled in.
@@ -27,7 +28,7 @@ function FooterHeading({ children }) {
 
 const footerLinkClass = 'text-sm font-semibold text-slate-300 transition hover:text-white';
 
-export default function LandingFooter({ t }) {
+export default function LandingFooter({ t, language = 'en' }) {
   return (
     <footer id="contact" className="border-t border-white/10 bg-[linear-gradient(180deg,var(--bg-dark)_0%,var(--brand-strong)_100%)] text-white">
       <div className="landing-container pb-8 pt-14">
@@ -65,7 +66,7 @@ export default function LandingFooter({ t }) {
           <nav className="flex flex-col gap-3" aria-label={t('landing.footer.product')}>
             <FooterHeading>{t('landing.footer.product')}</FooterHeading>
             {PRODUCT_LINKS.map((link) => (
-              <Link key={link.href} to={link.href} className={footerLinkClass}>
+              <Link key={link.href} to={buildLocalizedPath(language, link.href)} className={footerLinkClass}>
                 {link.label || t(`landing.nav.${link.key}`)}
               </Link>
             ))}
@@ -74,9 +75,9 @@ export default function LandingFooter({ t }) {
           {/* Company */}
           <nav className="flex flex-col gap-3" aria-label={t('landing.footer.company')}>
             <FooterHeading>{t('landing.footer.company')}</FooterHeading>
-            <Link to="/founder" className={footerLinkClass}>{t('landing.footer.aboutFounder')}</Link>
-            <Link to="/contact" className={footerLinkClass}>{t('landing.nav.contact')}</Link>
-            <Link to="/get-started" className={footerLinkClass}>{t('landing.nav.getStarted')}</Link>
+            <Link to={buildLocalizedPath(language, '/founder')} className={footerLinkClass}>{t('landing.footer.aboutFounder')}</Link>
+            <Link to={buildLocalizedPath(language, '/contact')} className={footerLinkClass}>{t('landing.nav.contact')}</Link>
+            <Link to={buildLocalizedPath(language, '/get-started')} className={footerLinkClass}>{t('landing.nav.getStarted')}</Link>
             <Link to="/login" className={footerLinkClass}>{t('landing.login')}</Link>
           </nav>
 
@@ -109,8 +110,8 @@ export default function LandingFooter({ t }) {
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-5">
             <p className="text-xs font-semibold text-slate-400">{t('landing.footer.copyright')}</p>
             <div className="flex items-center gap-4">
-              <Link to="/privacy-policy" className="text-xs font-bold text-slate-400 transition hover:text-white">{t('landing.footerLinks.privacy')}</Link>
-              <Link to="/terms" className="text-xs font-bold text-slate-400 transition hover:text-white">{t('landing.footerLinks.terms')}</Link>
+              <Link to={buildLocalizedPath(language, '/privacy-policy')} className="text-xs font-bold text-slate-400 transition hover:text-white">{t('landing.footerLinks.privacy')}</Link>
+              <Link to={buildLocalizedPath(language, '/terms')} className="text-xs font-bold text-slate-400 transition hover:text-white">{t('landing.footerLinks.terms')}</Link>
             </div>
           </div>
           <a href="#top" className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-300 transition hover:text-white">

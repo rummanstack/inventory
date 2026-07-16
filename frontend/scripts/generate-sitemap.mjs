@@ -66,20 +66,40 @@ const ROUTE_PREFIX_DEFAULTS = [
 
 const FALLBACK_DEFAULT = { changefreq: 'monthly', priority: '0.6' };
 
+// A /bn/* route inherits its English sibling's priority/changefreq curation
+// rather than needing its own ROUTE_OVERRIDES entry.
+function stripBnPrefix(route) {
+  if (route === '/bn') return '/landing';
+  return route.startsWith('/bn/') ? route.slice(3) : route;
+}
+
 function entryFor(route) {
-  if (ROUTE_OVERRIDES[route]) return ROUTE_OVERRIDES[route];
-  const prefixMatch = ROUTE_PREFIX_DEFAULTS.find(({ prefix }) => route.startsWith(prefix));
+  const basePath = stripBnPrefix(route);
+  if (ROUTE_OVERRIDES[basePath]) return ROUTE_OVERRIDES[basePath];
+  const prefixMatch = ROUTE_PREFIX_DEFAULTS.find(({ prefix }) => basePath.startsWith(prefix));
   return prefixMatch || FALLBACK_DEFAULT;
 }
 
 function buildSitemap() {
   const urls = INDEXABLE_PUBLIC_ROUTES.map((route) => {
     const { changefreq, priority } = entryFor(route);
+    const basePath = stripBnPrefix(route);
     const loc = `${SITE_URL}${route}`;
-    return `  <url><loc>${loc}</loc><changefreq>${changefreq}</changefreq><priority>${priority}</priority></url>`;
+    const enHref = `${SITE_URL}${basePath}`;
+    const bnHref = `${SITE_URL}/bn${basePath}`;
+    return [
+      `  <url>`,
+      `<loc>${loc}</loc>`,
+      `<changefreq>${changefreq}</changefreq>`,
+      `<priority>${priority}</priority>`,
+      `<xhtml:link rel="alternate" hreflang="en" href="${enHref}"/>`,
+      `<xhtml:link rel="alternate" hreflang="bn" href="${bnHref}"/>`,
+      `<xhtml:link rel="alternate" hreflang="x-default" href="${enHref}"/>`,
+      `</url>`,
+    ].join('');
   }).join('\n');
 
-  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`;
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n${urls}\n</urlset>\n`;
 }
 
 await writeFile(sitemapPath, buildSitemap(), 'utf8');

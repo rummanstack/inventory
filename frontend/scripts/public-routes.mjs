@@ -1,5 +1,11 @@
-export const PUBLIC_ROUTES = [
-  '/',
+// Hand-maintained (not generated from seoPages.js/intentPages.js): those data
+// files re-export .png assets, which a plain Node script can't import
+// (no Vite asset loader here). Keep this list in sync with
+// frontend/src/seo/publicRoutePaths.js and the slugs in
+// frontend/src/features/landing/data/{seoPages,intentPages}.js when either
+// changes. Every English route also has a /bn sibling for the bilingual
+// public site.
+const ENGLISH_ROUTES = [
   '/landing',
   '/features',
   '/features/inventory-management',
@@ -40,7 +46,10 @@ export const PUBLIC_ROUTES = [
   '/terms',
 ];
 
+export const PUBLIC_ROUTES = [
+  '/',
+  ...ENGLISH_ROUTES,
+  ...ENGLISH_ROUTES.map((route) => `/bn${route}`),
+];
+
 export const INDEXABLE_PUBLIC_ROUTES = PUBLIC_ROUTES.filter((route) => route !== '/');
-
-
-

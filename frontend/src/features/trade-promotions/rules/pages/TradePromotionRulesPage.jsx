@@ -10,6 +10,22 @@ import { useTradePromotionRulesViewModel } from '../viewmodels/useTradePromotion
 
 const TARGET_TYPES = ['ALL', 'PRODUCT', 'CATEGORY'];
 const TRADE_PROMOTION_RULES_REPORT_ID = 'trade-promotion-rules-report';
+const TRADE_PROMOTION_RULES_ADD_SHORTCUT = { alt: true, key: 'a', label: 'Alt+A' };
+const TRADE_PROMOTION_RULES_REPORT_SHORTCUTS = {
+  pdf: { alt: true, key: 'd', label: 'Alt+D' },
+  excel: { alt: true, key: 'e', label: 'Alt+E' },
+  csv: { alt: true, key: 'c', label: 'Alt+C' },
+  print: { alt: true, key: 'p', label: 'Alt+P' },
+};
+
+function matchesShortcut(event, shortcut) {
+  return (
+    event.key.toLowerCase() === shortcut.key &&
+    Boolean(event.altKey) === Boolean(shortcut.alt) &&
+    Boolean(event.shiftKey) === Boolean(shortcut.shift) &&
+    Boolean(event.ctrlKey || event.metaKey) === Boolean(shortcut.ctrlOrMeta)
+  );
+}
 
 function rewardSummary(rule, t) {
   if (rule.rewardType === 'FREE_QUANTITY') {
@@ -27,6 +43,18 @@ export default function TradePromotionRulesPage() {
   const [categories, setCategories] = useState([]);
   const [ruleModal, setRuleModal] = useState(null);
   const canManage = can('manage_trade_promotion_rules');
+
+  useEffect(() => {
+    function handleKeyDown(event) {
+      if (matchesShortcut(event, TRADE_PROMOTION_RULES_ADD_SHORTCUT) && canManage && !ruleModal) {
+        event.preventDefault();
+        setRuleModal({ mode: 'add' });
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [canManage, ruleModal]);
 
   useEffect(() => {
     let cancelled = false;
@@ -50,6 +78,7 @@ export default function TradePromotionRulesPage() {
           <button type="button" className="btn-primary" onClick={() => setRuleModal({ mode: 'add' })}>
             <Plus size={18} />
             {t('tradePromotions.rules.add')}
+            <kbd className="ml-1 rounded border border-indigo-400/40 bg-indigo-500/20 px-1 py-0.5 font-mono text-[10px] text-indigo-200">Alt+A</kbd>
           </button>
         ) : null}
       />
@@ -60,7 +89,7 @@ export default function TradePromotionRulesPage() {
             <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">{t('tradePromotions.rules.eyebrow')}</p>
             <div className="flex flex-wrap items-center justify-end gap-2 text-sm font-bold">
               <span className="muted-chip">{formatNumber(vm.total)} {t('tradePromotions.rules.count')}</span>
-              <TableReportActions targetId={TRADE_PROMOTION_RULES_REPORT_ID} title={t('tradePromotions.rules.title')} fileName="trade-promotion-rules" entityType="trade_promotion_rules" t={t} />
+              <TableReportActions targetId={TRADE_PROMOTION_RULES_REPORT_ID} title={t('tradePromotions.rules.title')} fileName="trade-promotion-rules" entityType="trade_promotion_rules" t={t} shortcuts={TRADE_PROMOTION_RULES_REPORT_SHORTCUTS} />
             </div>
           </div>
           <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">

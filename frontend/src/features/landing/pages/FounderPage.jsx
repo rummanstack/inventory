@@ -16,7 +16,7 @@ import {
   Users,
   Zap,
 } from 'lucide-react';
-import { useLanguage } from '../../../app/hooks/useLanguage';
+import { usePublicLanguage, buildLocalizedPath } from '../../../app/hooks/usePublicLanguage.js';
 import LandingHeader from '../components/LandingHeader.jsx';
 import LandingFooter from '../components/LandingFooter.jsx';
 import DeferredLandingAiChatWidget from '../components/DeferredLandingAiChatWidget.jsx';
@@ -32,14 +32,10 @@ const SOCIAL_LINKS = [
 ].filter((link) => link.href && link.href !== '#');
 
 const VALUE_ICONS = [Heart, Shield, Zap, Lightbulb, Users, Globe];
-const founderSeoReasons = [
-  'Founder pages can support branded search and trust evaluation when buyers want to know who is behind the software.',
-  'For a business platform, trust is commercial SEO, not decoration. Buyers often compare the company as much as the features.',
-  'This page works best when it explains why the founder built StockLedger and what operational problem the product exists to solve.',
-];
 
 export default function FounderPage() {
-  const { language, setLanguage, t } = useLanguage();
+  const { language, setLanguage, t } = usePublicLanguage();
+  const founderSeoReasons = t('landing.founder.seoReasons');
 
   useEffect(() => {
     document.documentElement.classList.add('landing-page-active');
@@ -81,7 +77,7 @@ export default function FounderPage() {
 
         <div className="landing-container relative">
           <div className="flex items-center gap-2 text-xs font-bold text-slate-400">
-            <Link to="/landing" className="transition hover:text-white">{t('landing.founder.breadcrumbHome')}</Link>
+            <Link to={buildLocalizedPath(language, '/landing')} className="transition hover:text-white">{t('landing.founder.breadcrumbHome')}</Link>
             <span>/</span>
             <span className="text-slate-300">{t('landing.founder.breadcrumbCurrent')}</span>
           </div>
@@ -188,9 +184,9 @@ export default function FounderPage() {
         <div className="landing-container">
           <div className="grid gap-5 lg:grid-cols-[1.1fr_0.9fr]">
             <article className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_16px_44px_rgba(15,23,42,0.06)] sm:p-8">
-              <p className="landing-eyebrow">Why this page matters</p>
-              <h2 className="mt-4 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">Founder trust is part of commercial SEO</h2>
-              <p className="mt-4 text-[15px] font-medium leading-7 text-slate-600">A buyer looking at business software often asks two questions at the same time: does the platform fit the workflow, and does the company behind it understand the business reality? That is why the founder page is not separate from SEO. It supports brand trust, product credibility, and evaluation intent.</p>
+              <p className="landing-eyebrow">{t('landing.founder.whyMattersLabel')}</p>
+              <h2 className="mt-4 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">{t('landing.founder.whyMattersTitle')}</h2>
+              <p className="mt-4 text-[15px] font-medium leading-7 text-slate-600">{t('landing.founder.whyMattersText')}</p>
               <div className="mt-5 space-y-3">
                 {founderSeoReasons.map((reason) => (
                   <p key={reason} className="flex items-start gap-3 text-sm font-medium leading-6 text-slate-600">
@@ -202,8 +198,8 @@ export default function FounderPage() {
             </article>
 
             <article className="rounded-[28px] border border-[var(--brand)]/15 bg-white p-6 shadow-[0_16px_44px_rgba(15,23,42,0.06)] sm:p-8">
-              <h2 className="text-2xl font-black tracking-tight text-slate-950">What buyers usually want from a founder page</h2>
-              <p className="mt-3 text-sm font-medium leading-6 text-slate-600">They want a credible story, a reason the software exists, and enough signal to believe the team understands daily operations in retail, wholesale, distribution, accounting, and management workflows. This page now supports that better.</p>
+              <h2 className="text-2xl font-black tracking-tight text-slate-950">{t('landing.founder.buyersWantTitle')}</h2>
+              <p className="mt-3 text-sm font-medium leading-6 text-slate-600">{t('landing.founder.buyersWantText')}</p>
             </article>
           </div>
         </div>
@@ -233,7 +229,7 @@ export default function FounderPage() {
                   <MessageCircle size={18} />
                   {t('landing.founder.talkWhatsApp')}
                 </a>
-                <Link to="/landing" className="landing-secondary-btn">
+                <Link to={buildLocalizedPath(language, '/landing')} className="landing-secondary-btn">
                   {t('landing.founder.explore')}
                   <ArrowRight size={18} />
                 </Link>
@@ -367,7 +363,7 @@ export default function FounderPage() {
         </div>
       </section>
 
-      <LandingFooter t={t} />
+      <LandingFooter t={t} language={language} />
       <DeferredLandingAiChatWidget t={t} />
     </main>
   );

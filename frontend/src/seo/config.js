@@ -1,3 +1,6 @@
+import { featurePages, solutionPages } from '../features/landing/data/seoPages.js';
+import { intentPages } from '../features/landing/data/intentPages.js';
+
 export const SEO_CONFIG = {
   siteName: 'StockLedger',
   siteUrl: import.meta.env.VITE_SITE_URL || 'https://stockledger.pro',
@@ -25,6 +28,10 @@ export const PUBLIC_ROUTE_METADATA = {
       'A complete business system for Bangladesh shops, dealers, wholesalers and DSR teams. Manage sales, stock, due, settlement, purchases, reports and profit from one dashboard.',
     canonicalPath: '/landing',
     robots: 'index,follow,max-image-preview:large',
+    bn: {
+      title: 'বাংলাদেশে দোকান, ডিলার ও ডিএসআর টিমের জন্য স্টকলেজার বিজনেস ম্যানেজমেন্ট সিস্টেম',
+      description: 'বাংলাদেশের দোকান, ডিলার, হোলসেলার এবং ডিএসআর টিমের জন্য একটি সম্পূর্ণ বিজনেস সিস্টেম। এক ড্যাশবোর্ড থেকে সেলস, স্টক, বকেয়া, সেটেলমেন্ট, পারচেজ, রিপোর্ট এবং প্রফিট পরিচালনা করুন।',
+    },
   },
   '/privacy-policy': {
     title: 'Privacy Policy',
@@ -32,6 +39,10 @@ export const PUBLIC_ROUTE_METADATA = {
       'Read the StockLedger privacy policy for how account, business, contact and usage data is handled for customers and visitors.',
     canonicalPath: '/privacy-policy',
     robots: 'index,follow,max-image-preview:large',
+    bn: {
+      title: 'প্রাইভেসি পলিসি',
+      description: 'কাস্টমার ও ভিজিটরদের জন্য অ্যাকাউন্ট, ব্যবসা, যোগাযোগ এবং ব্যবহারের ডেটা কীভাবে পরিচালিত হয় তা জানতে স্টকলেজারের প্রাইভেসি পলিসি পড়ুন।',
+    },
   },
   '/terms': {
     title: 'Terms and Conditions',
@@ -39,6 +50,10 @@ export const PUBLIC_ROUTE_METADATA = {
       'Review the StockLedger terms and conditions for using the business management platform and related services.',
     canonicalPath: '/terms',
     robots: 'index,follow,max-image-preview:large',
+    bn: {
+      title: 'শর্তাবলী',
+      description: 'বিজনেস ম্যানেজমেন্ট প্ল্যাটফর্ম ও সংশ্লিষ্ট সেবা ব্যবহারের জন্য স্টকলেজারের শর্তাবলী পর্যালোচনা করুন।',
+    },
   },
   '/founder': {
     title: 'Founder',
@@ -46,6 +61,10 @@ export const PUBLIC_ROUTE_METADATA = {
       'Learn about the founder behind StockLedger and the product vision for practical business management software in Bangladesh.',
     canonicalPath: '/founder',
     robots: 'index,follow,max-image-preview:large',
+    bn: {
+      title: 'প্রতিষ্ঠাতা',
+      description: 'স্টকলেজারের পেছনের প্রতিষ্ঠাতা এবং বাংলাদেশের ব্যবহারিক বিজনেস ম্যানেজমেন্ট সফটওয়্যারের প্রোডাক্ট ভিশন সম্পর্কে জানুন।',
+    },
   },
 };
 
@@ -64,211 +83,92 @@ export const AUTH_ROUTE_METADATA = {
   },
 };
 
-export const SEO_PAGE_METADATA = {
+const HUB_METADATA = {
   '/features': {
     title: 'StockLedger Features',
     description: 'Explore StockLedger features for inventory, retail POS, accounting, HR and payroll, purchases, due collection, DSR management, installments, reporting, and repair workflows.',
     canonicalPath: '/features',
     robots: 'index,follow,max-image-preview:large',
-  },
-  '/features/inventory-management': {
-    title: 'Inventory Management Software',
-    description: 'Control product stock, purchases, returns, damaged goods, low-stock alerts, serials, and supplier records from one connected StockLedger workspace.',
-    canonicalPath: '/features/inventory-management',
-    robots: 'index,follow,max-image-preview:large',
-  },
-  '/features/retail-pos': {
-    title: 'Retail POS Software',
-    description: 'Run quick sales, print receipts, manage cash sessions, record returns, and keep stock and customer dues updated from the sales counter.',
-    canonicalPath: '/features/retail-pos',
-    robots: 'index,follow,max-image-preview:large',
-  },
-  '/features/accounting': {
-    title: 'Accounting Software',
-    description: 'Connect daily operations with accounting reports: cash, bank, expenses, journals, general ledger, trial balance, profit and loss, and balance sheet.',
-    canonicalPath: '/features/accounting',
-    robots: 'index,follow,max-image-preview:large',
-  },
-  '/features/hr-payroll': {
-    title: 'HR and Payroll Software',
-    description: 'Manage departments, designations, employees, attendance, leave, payroll, salary payments, loans, advances, and HR reports inside StockLedger.',
-    canonicalPath: '/features/hr-payroll',
-    robots: 'index,follow,max-image-preview:large',
-  },
-  '/features/purchase-management': {
-    title: 'Purchase and Supplier Management Software',
-    description: 'Record purchase receive, purchase returns, supplier payments, supplier discounts, supplier statements, and supplier due balances.',
-    canonicalPath: '/features/purchase-management',
-    robots: 'index,follow,max-image-preview:large',
-  },
-  '/features/due-collection': {
-    title: 'Due Collection and Customer Ledger Software',
-    description: 'Track retail customer dues, shop dues, customer payments, due collection, and account statements without losing payment history.',
-    canonicalPath: '/features/due-collection',
-    robots: 'index,follow,max-image-preview:large',
-  },
-  '/features/dsr-dealer-management': {
-    title: 'DSR, Dealer, and Distributor Management Software',
-    description: 'Manage morning issue, route sales, shops, SR and DSR records, evening settlement, returns, cash, and due ledgers for field sales teams.',
-    canonicalPath: '/features/dsr-dealer-management',
-    robots: 'index,follow,max-image-preview:large',
-  },
-  '/features/installment-sales': {
-    title: 'Installment Sales Management Software',
-    description: 'Manage installment plans, guarantors, schedules, due reports, collections, late fee rules, reschedules, and customer statements.',
-    canonicalPath: '/features/installment-sales',
-    robots: 'index,follow,max-image-preview:large',
-  },
-  '/features/reporting': {
-    title: 'Business Reporting Software',
-    description: 'Use dashboards, daily sales reports, profit reports, stock movement, activity logs, financial statements, and operational reports to understand the business.',
-    canonicalPath: '/features/reporting',
-    robots: 'index,follow,max-image-preview:large',
-  },
-  '/features/repair-warranty': {
-    title: 'Repair Job and Warranty Claim Management Software',
-    description: 'Track repair jobs, warranty claims, product serial history, customer service status, and after-sales records in one system.',
-    canonicalPath: '/features/repair-warranty',
-    robots: 'index,follow,max-image-preview:large',
+    bn: {
+      title: 'অপারেশন, অ্যাকাউন্টিং, এইচআর ও গ্রোথের জন্য স্টকলেজার ফিচার',
+      description: 'ইনভেন্টরি, রিটেইল পিওএস, অ্যাকাউন্টিং, এইচআর ও পেরোল, পারচেজ, বকেয়া আদায়, ডিএসআর ম্যানেজমেন্ট, ইনস্টলমেন্ট, রিপোর্টিং এবং রিপেয়ার ওয়ার্কফ্লোর জন্য স্টকলেজার ফিচার এক্সপ্লোর করুন।',
+    },
   },
   '/solutions': {
     title: 'StockLedger Solutions by Business Type',
     description: 'See how StockLedger fits retail shops, wholesalers, dealers, distributors, DSR sales teams, pharmacies, and grocery stores in Bangladesh.',
     canonicalPath: '/solutions',
     robots: 'index,follow,max-image-preview:large',
-  },
-  '/solutions/retail-shop': {
-    title: 'Business Software for Retail Shops in Bangladesh',
-    description: 'Run sales, receipts, stock, customer dues, purchases, expenses, reports, and profit from one system built for everyday shop operations.',
-    canonicalPath: '/solutions/retail-shop',
-    robots: 'index,follow,max-image-preview:large',
-  },
-  '/solutions/wholesale-business': {
-    title: 'Wholesale Business Management Software',
-    description: 'Manage bulk sales, supplier purchases, customer balances, stock, due collection, finance, and reports for wholesale trading businesses.',
-    canonicalPath: '/solutions/wholesale-business',
-    robots: 'index,follow,max-image-preview:large',
-  },
-  '/solutions/dealer-distributor': {
-    title: 'Dealer and Distributor Management Software',
-    description: 'Control route teams, DSR issue and settlement, shop dues, supplier purchases, stock, collections, and accounting from one platform.',
-    canonicalPath: '/solutions/dealer-distributor',
-    robots: 'index,follow,max-image-preview:large',
-  },
-  '/solutions/dsr-sales-team': {
-    title: 'DSR Sales Team Management Software',
-    description: 'Track sales reps, morning issue, route activity, cash collection, returns, evening settlement, and due ledgers with clear accountability.',
-    canonicalPath: '/solutions/dsr-sales-team',
-    robots: 'index,follow,max-image-preview:large',
-  },
-  '/solutions/pharmacy': {
-    title: 'Pharmacy Management Software',
-    description: 'Manage medicine stock, purchases, customer sales, supplier records, dues, expenses, and reports for pharmacy and medical retail businesses.',
-    canonicalPath: '/solutions/pharmacy',
-    robots: 'index,follow,max-image-preview:large',
-  },
-  '/solutions/grocery-store': {
-    title: 'Grocery Store Management Software',
-    description: 'Run fast billing, product stock, customer dues, supplier purchases, cash sessions, expenses, and daily profit reports for grocery stores.',
-    canonicalPath: '/solutions/grocery-store',
-    robots: 'index,follow,max-image-preview:large',
+    bn: {
+      title: 'রিটেইলার, হোলসেলার, ডিলার, ডিএসআর টিম ও ফার্মেসির জন্য স্টকলেজার সমাধান',
+      description: 'বাংলাদেশে রিটেইল দোকান, হোলসেলার, ডিলার, ডিস্ট্রিবিউটর, ডিএসআর সেলস টিম, ফার্মেসি এবং মুদি দোকানের জন্য স্টকলেজার কীভাবে উপযুক্ত তা দেখুন।',
+    },
   },
   '/software': {
     title: 'Business Software Guides in Bangladesh',
     description: 'Explore high-intent StockLedger software guides for business management, inventory, POS, accounting, HR, DSR, wholesale, pharmacy, and shop operations in Bangladesh.',
     canonicalPath: '/software',
     robots: 'index,follow,max-image-preview:large',
-  },
-  '/software/business-management-software-bangladesh': {
-    title: 'Business Management Software in Bangladesh',
-    description: 'See how StockLedger helps Bangladeshi businesses manage sales, stock, due, accounting, HR, and reporting from one connected system.',
-    canonicalPath: '/software/business-management-software-bangladesh',
-    robots: 'index,follow,max-image-preview:large',
-  },
-  '/software/hr-payroll-software-bangladesh': {
-    title: 'HR and Payroll Software in Bangladesh',
-    description: 'Manage employee records, attendance, leave, payroll, salary payments, and HR review with StockLedger in Bangladesh.',
-    canonicalPath: '/software/hr-payroll-software-bangladesh',
-    robots: 'index,follow,max-image-preview:large',
-  },
-  '/software/inventory-software-bangladesh': {
-    title: 'Inventory Software in Bangladesh',
-    description: 'Control stock, purchase receive, returns, suppliers, and inventory visibility with StockLedger for Bangladeshi businesses.',
-    canonicalPath: '/software/inventory-software-bangladesh',
-    robots: 'index,follow,max-image-preview:large',
-  },
-  '/software/dsr-management-software-bangladesh': {
-    title: 'DSR Management Software in Bangladesh',
-    description: 'Track route sales, morning issue, collections, returns, and evening settlement for field teams with StockLedger.',
-    canonicalPath: '/software/dsr-management-software-bangladesh',
-    robots: 'index,follow,max-image-preview:large',
-  },
-  '/software/dealer-management-software-bangladesh': {
-    title: 'Dealer Management Software in Bangladesh',
-    description: 'Manage dealer routes, issue, settlement, shop balances, collections, and stock movement with StockLedger in Bangladesh.',
-    canonicalPath: '/software/dealer-management-software-bangladesh',
-    robots: 'index,follow,max-image-preview:large',
-  },
-  '/software/retail-pos-software-bangladesh': {
-    title: 'Retail POS Software in Bangladesh',
-    description: 'Run fast billing, receipts, due sales, stock updates, and daily cash review with StockLedger retail POS workflows.',
-    canonicalPath: '/software/retail-pos-software-bangladesh',
-    robots: 'index,follow,max-image-preview:large',
-  },
-  '/software/accounting-software-bangladesh': {
-    title: 'Accounting Software in Bangladesh',
-    description: 'Use StockLedger for ledgers, trial balance, P&L, balance sheet, cash, bank, and accounting tied to daily operations.',
-    canonicalPath: '/software/accounting-software-bangladesh',
-    robots: 'index,follow,max-image-preview:large',
-  },
-  '/software/business-reporting-software-bangladesh': {
-    title: 'Business Reporting Software in Bangladesh',
-    description: 'Use StockLedger for dashboards, daily sales reports, stock visibility, due review, profit reporting, and management reporting.',
-    canonicalPath: '/software/business-reporting-software-bangladesh',
-    robots: 'index,follow,max-image-preview:large',
-  },
-  '/software/pharmacy-management-software-bangladesh': {
-    title: 'Pharmacy Management Software in Bangladesh',
-    description: 'Manage medicine stock, pharmacy sales, supplier purchases, due balances, expenses, and reports with StockLedger.',
-    canonicalPath: '/software/pharmacy-management-software-bangladesh',
-    robots: 'index,follow,max-image-preview:large',
-  },
-  '/software/wholesale-software-bangladesh': {
-    title: 'Wholesale Software in Bangladesh',
-    description: 'Manage wholesale invoices, stock, supplier purchases, customer balances, collections, and reports in one StockLedger system.',
-    canonicalPath: '/software/wholesale-software-bangladesh',
-    robots: 'index,follow,max-image-preview:large',
-  },
-  '/software/shop-management-software-bangladesh': {
-    title: 'Shop Management Software in Bangladesh',
-    description: 'Manage shop sales, stock, purchases, customer due, expenses, and profit review with StockLedger in Bangladesh.',
-    canonicalPath: '/software/shop-management-software-bangladesh',
-    robots: 'index,follow,max-image-preview:large',
-  },
-  '/software/grocery-store-software-bangladesh': {
-    title: 'Grocery Store Software in Bangladesh',
-    description: 'Run grocery billing, stock control, customer due, supplier purchases, expenses, and daily sales visibility with StockLedger.',
-    canonicalPath: '/software/grocery-store-software-bangladesh',
-    robots: 'index,follow,max-image-preview:large',
+    bn: {
+      title: 'বাংলাদেশে উচ্চ-ইন্টেন্ট স্টকলেজার সফটওয়্যার গাইড',
+      description: 'বাংলাদেশে বিজনেস ম্যানেজমেন্ট, ইনভেন্টরি, পিওএস, অ্যাকাউন্টিং, এইচআর, ডিএসআর, হোলসেল, ফার্মেসি এবং শপ অপারেশনের জন্য উচ্চ-ইন্টেন্ট স্টকলেজার সফটওয়্যার গাইড এক্সপ্লোর করুন।',
+    },
   },
   '/pricing': {
     title: 'Pricing',
     description: 'Compare StockLedger plans for sales, inventory, accounting, HR, DSR, installments, reports, setup, training, and support.',
     canonicalPath: '/pricing',
     robots: 'index,follow,max-image-preview:large',
+    bn: {
+      title: 'প্রাইসিং',
+      description: 'সেলস, ইনভেন্টরি, অ্যাকাউন্টিং, এইচআর, ডিএসআর, ইনস্টলমেন্ট, রিপোর্ট, সেটআপ, ট্রেনিং এবং সাপোর্টের জন্য স্টকলেজার প্ল্যান তুলনা করুন।',
+    },
   },
   '/get-started': {
     title: 'Get Started',
     description: 'Start StockLedger with the right setup for your business workflows, modules, users, opening data, training, and onboarding path.',
     canonicalPath: '/get-started',
     robots: 'index,follow,max-image-preview:large',
+    bn: {
+      title: 'শুরু করুন',
+      description: 'আপনার বিজনেস ওয়ার্কফ্লো, মডিউল, ইউজার, ওপেনিং ডেটা, ট্রেনিং এবং অনবোর্ডিং পথের জন্য সঠিক সেটআপ দিয়ে স্টকলেজার শুরু করুন।',
+    },
   },
   '/contact': {
     title: 'Contact StockLedger',
     description: 'Book a StockLedger demo or ask about setup, pricing, modules, users, branches, training, and the right configuration for your business.',
     canonicalPath: '/contact',
     robots: 'index,follow,max-image-preview:large',
+    bn: {
+      title: 'স্টকলেজারের সাথে যোগাযোগ করুন',
+      description: 'স্টকলেজার ডেমো বুক করুন অথবা সেটআপ, প্রাইসিং, মডিউল, ইউজার, শাখা, ট্রেনিং এবং আপনার ব্যবসার সঠিক কনফিগারেশন সম্পর্কে জিজ্ঞাসা করুন।',
+    },
   },
+};
+
+// /features/*, /solutions/*, /software/* metadata is generated straight from
+// the same data files that drive the page content (seoPages.js/intentPages.js)
+// instead of being hand-duplicated a second time, so title/description can
+// never drift from the actual page body.
+function buildPageMetadataEntries(pages, basePath) {
+  return pages.reduce((acc, page) => {
+    const path = `${basePath}/${page.slug}`;
+    acc[path] = {
+      title: page.en.title,
+      description: page.en.description,
+      canonicalPath: path,
+      robots: 'index,follow,max-image-preview:large',
+      ...(page.bn ? { bn: { title: page.bn.title, description: page.bn.description } } : {}),
+    };
+    return acc;
+  }, {});
+}
+
+export const SEO_PAGE_METADATA = {
+  ...HUB_METADATA,
+  ...buildPageMetadataEntries(featurePages, '/features'),
+  ...buildPageMetadataEntries(solutionPages, '/solutions'),
+  ...buildPageMetadataEntries(intentPages, '/software'),
 };
 
 export const PRIVATE_APP_METADATA = {
@@ -277,6 +177,3 @@ export const PRIVATE_APP_METADATA = {
   canonicalPath: '/landing',
   robots: 'noindex,nofollow,noarchive',
 };
-
-
-

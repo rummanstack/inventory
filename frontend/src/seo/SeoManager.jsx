@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { buildMetadata } from './metadata';
+import { absoluteUrl, buildMetadata, stripLangPrefix } from './metadata';
 import { buildStructuredData } from './schema';
 
 function upsertMetaByName(name, content) {
@@ -50,8 +50,37 @@ function upsertJsonLd(jsonLd) {
   element.textContent = JSON.stringify(jsonLd);
 }
 
+// The English/Bengali counterpart of a canonical path -- same base path,
+// opposite language prefix. Used to point hreflang alternates at each other.
+function siblingPath(canonicalPath) {
+  const { basePath, language } = stripLangPrefix(canonicalPath);
+  return language === 'bn' ? basePath : `/bn${basePath}`;
+}
+
+function upsertHreflangLinks(metadata) {
+  document.head.querySelectorAll('link[rel="alternate"][hreflang]').forEach((element) => element.remove());
+  if (!metadata.isLocalizedPublic) return;
+
+  const isBn = metadata.language === 'bn';
+  const enPath = isBn ? siblingPath(metadata.canonicalPath) : metadata.canonicalPath;
+  const bnPath = isBn ? metadata.canonicalPath : siblingPath(metadata.canonicalPath);
+
+  [['en', enPath], ['bn', bnPath], ['x-default', enPath]].forEach(([hreflang, path]) => {
+    const link = document.createElement('link');
+    link.setAttribute('rel', 'alternate');
+    link.setAttribute('hreflang', hreflang);
+    link.setAttribute('href', absoluteUrl(path));
+    document.head.appendChild(link);
+  });
+}
+
 export function applyMetadata(metadata, pathname) {
-  document.documentElement.setAttribute('lang', metadata.language);
+  // Only own <html lang> for the bilingual public site. The authenticated
+  // app sets it independently from useLanguage.js/localStorage -- writing it
+  // here too raced against that on every navigation.
+  if (metadata.isLocalizedPublic) {
+    document.documentElement.setAttribute('lang', metadata.language);
+  }
   document.title = metadata.title;
 
   upsertMetaByName('description', metadata.description);
@@ -79,6 +108,7 @@ export function applyMetadata(metadata, pathname) {
   upsertMetaByProperty('og:image:height', metadata.imageHeight);
 
   upsertLink('canonical', metadata.canonicalUrl);
+  upsertHreflangLinks(metadata);
   upsertJsonLd(buildStructuredData(pathname, metadata));
 }
 

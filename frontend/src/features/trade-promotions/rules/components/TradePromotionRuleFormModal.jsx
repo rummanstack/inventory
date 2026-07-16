@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { Save } from 'lucide-react';
 import { Alert, Modal, Select } from '../../../../components/ui.jsx';
 import { DatePickerField } from '../../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
@@ -34,6 +35,7 @@ function emptyForm(rule) {
 
 export default function TradePromotionRuleFormModal({ rule, categories, onClose, onSave }) {
   const { t, supplierDirectory, productDirectory } = useInventoryApp();
+  const formRef = useRef(null);
   const [form, setForm] = useState(emptyForm(rule));
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);

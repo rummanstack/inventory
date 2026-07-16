@@ -119,7 +119,7 @@ export const featureHighlightImages = [
 export const featureCardIcons = [ShoppingBag, ReceiptText, WalletCards, Warehouse, Boxes, BarChart3, RefreshCw, Printer];
 
 export const solutionIcons = [Store, PackageCheck, Truck, Route];
-export const solutionShowcaseImage = S01Image;
+export const solutionShowcaseImage = F06Image;
 export const solutionHighlightImages = [
   { src: S02Image },
   { src: S06Image },
@@ -133,7 +133,7 @@ export const roleStoryImages = [
   SW11Image,
   S06Image,
   S05Image,
-  F06Image,
+  S01Image,
   S04Image,
   C01Image,
 ];
@@ -148,12 +148,8 @@ export const financeSpotlightImages = [
 
 export const showcaseImages = [
   { src: L01Image, key: 'heroDashboard', fit: 'fill', position: 'center' },
-  { src: S06Image, key: 'grocery', fit: 'cover', position: 'center' },
-  { src: S05Image, key: 'pharmacy', fit: 'cover', position: 'center' },
-  { src: S02Image, key: 'traders', fit: 'cover', position: 'center' },
-  { src: dealerImage, key: 'dealer', fit: 'cover', position: 'center' },
   { src: F01Image, key: 'warehouseStock', fit: 'cover', position: 'center' },
   { src: F03Image, key: 'profitReport', fit: 'fill', position: 'center' },
   { src: F09Image, key: 'reportsVisibility', fit: 'fill', position: 'center' },
-  { src: F02Image, key: 'accountingStatement', fit: 'fill', position: 'center' },
+  { src: F02Image, key: 'retailCounter', fit: 'fill', position: 'center' },
 ];

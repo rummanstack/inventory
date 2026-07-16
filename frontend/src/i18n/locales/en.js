@@ -2243,7 +2243,7 @@ const en = {
     supplierDiscounts: {
       eyebrow: 'Purchases',
       title: 'Supplier Discounts',
-      description: 'Discounts from suppliers via DSR settlements. Clear a discount once the cash is received from the supplier.',
+      description: 'Discounts from suppliers via DSR settlements. Clear once cash is received.',
       tableTitle: 'Supplier Discounts',
       dateRangeLabel: 'Date Range',
       dateFromPlaceholder: 'From date',

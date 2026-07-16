@@ -55,7 +55,7 @@ export default function SupplierDiscountsPage() {
             <span className="text-sm font-bold text-slate-700">{t('supplierDiscounts.tableTitle')}</span>
             <TableReportActions targetId={SUPPLIER_DISCOUNTS_REPORT_ID} title={t('supplierDiscounts.tableTitle')} fileName="supplier-discounts" entityType="supplier_discounts" t={t} shortcuts={SUPPLIER_DISCOUNTS_SHORTCUTS} />
           </div>
-          <div className="min-w-[230px]">
+          <div className="w-full sm:w-72">
             <label className="label">{t('supplierDiscounts.dateRangeLabel')}</label>
             <DateRangePickerField
               from={vm.dateFrom}

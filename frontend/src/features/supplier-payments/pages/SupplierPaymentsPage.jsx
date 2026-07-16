@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Download, FileSpreadsheet, Loader2, Pencil, Plus, Printer, Trash2, Wallet } from 'lucide-react';
 import { Alert, EmptyState, Pagination, SectionHeader, TableSkeleton, Select } from '../../../components/ui.jsx';
-import { DatePickerField } from '../../../components/DatePicker.jsx';
+import { DateRangePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import { downloadSheetPdf } from '../../../services/printService.js';
@@ -143,15 +143,20 @@ export default function SupplierPaymentsPage() {
               </button>
             </div>
           </div>
-          <div className="mt-4 grid gap-3 sm:grid-cols-3">
-            <Select className="input" value={vm.supplierId} onChange={(event) => vm.setSupplierId(event.target.value)}>
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            <Select className="input w-full sm:w-56" value={vm.supplierId} onChange={(event) => vm.setSupplierId(event.target.value)}>
               <option value="">{t('supplierPayments.allSuppliers')}</option>
               {supplierDirectory.map((supplier) => (
                 <option key={supplier.id} value={supplier.id}>{supplier.name}</option>
               ))}
             </Select>
-            <DatePickerField value={vm.dateFrom} onChange={vm.setDateFrom} placeholder={t('supplierPayments.dateFrom')} />
-            <DatePickerField value={vm.dateTo} onChange={vm.setDateTo} placeholder={t('supplierPayments.dateTo')} min={vm.dateFrom} />
+            <DateRangePickerField
+              from={vm.dateFrom}
+              to={vm.dateTo}
+              onChange={(from, to) => { vm.setDateFrom(from); vm.setDateTo(to); }}
+              placeholder={`${t('supplierPayments.dateFrom')} - ${t('supplierPayments.dateTo')}`}
+              className="w-full min-w-[260px] sm:w-auto"
+            />
           </div>
         </div>
         {vm.loading ? (

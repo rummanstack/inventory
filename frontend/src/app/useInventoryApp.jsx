@@ -7,6 +7,7 @@ import { pushToast } from './hooks/toast';
 import { useConfirmation } from './hooks/useConfirmation';
 import { useDirectories } from './hooks/useDirectories';
 import { clearCssVarCache } from '../utils/theme.js';
+import { SHARED_DATA_DOMAINS as D, subscribeToSharedDataInvalidation } from '../services/sharedDataInvalidation.js';
 
 const InventoryAppContext = createContext(null);
 
@@ -73,6 +74,13 @@ export function InventoryAppProvider({ children }) {
   const { language, setLanguage, t } = useLanguage();
   const { theme, setTheme, toggleTheme } = useTheme();
   const { confirmation, confirm, closeConfirmation } = useConfirmation(t);
+  const staleSharedDirectoryDomainsRef = useRef(new Set());
+  const sharedDirectoryRefreshPromisesRef = useRef(new Map());
+
+  function markSharedDirectoryFresh(domain) {
+    staleSharedDirectoryDomainsRef.current.delete(domain);
+  }
+
   const {
     productDirectory,
     dsrDirectory,
@@ -110,7 +118,7 @@ export function InventoryAppProvider({ children }) {
     refreshRetailCustomerDirectory,
     refreshPromotionDirectory,
     resetDirectories,
-  } = useDirectories();
+  } = useDirectories({ onDirectoryFresh: markSharedDirectoryFresh });
   const [user, setUser] = useState(null);
   const [tenant, setTenant] = useState(null);
   const [permissions, setPermissions] = useState([]);
@@ -126,6 +134,8 @@ export function InventoryAppProvider({ children }) {
     setPermissions([]);
     setTenantOptions([]);
     resetDirectories();
+    staleSharedDirectoryDomainsRef.current.clear();
+    sharedDirectoryRefreshPromisesRef.current.clear();
     setLoadError('');
     setLoading(false);
   }
@@ -171,6 +181,7 @@ export function InventoryAppProvider({ children }) {
       setShopDirectory(customersResult.items || []);
       setRetailCustomerDirectory(retailCustomersResult.items || []);
       setPromotionDirectory(promotionsResult.promotions || []);
+      staleSharedDirectoryDomainsRef.current.clear();
     } catch (error) {
       if (error.status === 401) {
         handleUnauthorized();
@@ -186,6 +197,43 @@ export function InventoryAppProvider({ children }) {
       setLoading(false);
     }
   }
+
+  function hasStaleSharedDirectories(domains) {
+    return domains.some((domain) => staleSharedDirectoryDomainsRef.current.has(domain));
+  }
+
+  function refreshStaleSharedDirectories(domains) {
+    const refreshers = {
+      [D.PRODUCTS]: refreshProductDirectory,
+      [D.DSRS]: refreshDsrDirectory,
+      [D.SRS]: refreshSrDirectory,
+      [D.SUPPLIERS]: refreshSupplierDirectory,
+      [D.SHOPS]: refreshShopDirectory,
+      [D.RETAIL_CUSTOMERS]: refreshRetailCustomerDirectory,
+      [D.PROMOTIONS]: refreshPromotionDirectory,
+    };
+
+    const requests = [...new Set(domains)]
+      .filter((domain) => staleSharedDirectoryDomainsRef.current.has(domain) && refreshers[domain])
+      .map((domain) => {
+        const existing = sharedDirectoryRefreshPromisesRef.current.get(domain);
+        if (existing) return existing;
+
+        const request = Promise.resolve(refreshers[domain]()).finally(() => {
+          if (sharedDirectoryRefreshPromisesRef.current.get(domain) === request) {
+            sharedDirectoryRefreshPromisesRef.current.delete(domain);
+          }
+        });
+        sharedDirectoryRefreshPromisesRef.current.set(domain, request);
+        return request;
+      });
+
+    return Promise.all(requests);
+  }
+
+  useEffect(() => subscribeToSharedDataInvalidation((domains) => {
+    domains.forEach((domain) => staleSharedDirectoryDomainsRef.current.add(domain));
+  }), []);
 
   useEffect(() => {
     let cancelled = false;
@@ -1621,6 +1669,8 @@ export function InventoryAppProvider({ children }) {
       shopDirectory,
       retailCustomerDirectory,
       promotionDirectory,
+      hasStaleSharedDirectories,
+      refreshStaleSharedDirectories,
       loading,
       loadError,
       pushToast,

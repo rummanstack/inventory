@@ -1,3 +1,5 @@
+import { notifySharedDataMutation } from '../sharedDataInvalidation.js';
+
 const ACTIVE_TENANT_STORAGE_KEY = "activeTenantId";
 
 export function getActiveTenantId() {
@@ -39,6 +41,7 @@ export async function apiRequest(path, options = {}) {
     error.status = response.status;
     throw error;
   }
+  notifySharedDataMutation(path, options.method);
   return data;
 }
 

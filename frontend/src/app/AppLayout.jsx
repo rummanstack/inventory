@@ -11,6 +11,7 @@ import MustChangePasswordModal from '../features/auth/pages/MustChangePasswordMo
 import AiChatWidget from '../features/ai-insights/components/AiChatWidget.jsx';
 import { getRouteLabel } from './routes';
 import TopHeader from './TopHeader';
+import { getSharedDataDependencies } from '../services/sharedDataInvalidation.js';
 
 const SIDEBAR_COLLAPSED_KEY = 'stockledger.sidebarCollapsed';
 const RECENT_PAGES_KEY = 'stockledger.recentPages';
@@ -18,10 +19,12 @@ const MAX_RECENT = 5;
 
 export default function AppLayout() {
   const location = useLocation();
+  const sharedDataDependencies = getSharedDataDependencies(location.pathname);
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
+  const [readyNavigationKey, setReadyNavigationKey] = useState(location.key);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     try { return localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === 'true'; }
     catch { return false; }
@@ -48,7 +51,32 @@ export default function AppLayout() {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  const { today, user, tenant, tenantOptions, switchTenant, loading, loadError, logout, loggingOut, t, language, setLanguage, can, hasFeature, confirmation, closeConfirmation, productDirectory } = useInventoryApp();
+  const { today, user, tenant, tenantOptions, switchTenant, loading, loadError, logout, loggingOut, t, language, setLanguage, can, hasFeature, confirmation, closeConfirmation, productDirectory, hasStaleSharedDirectories, refreshStaleSharedDirectories } = useInventoryApp();
+  const hasStaleSharedDirectoriesRef = useRef(hasStaleSharedDirectories);
+  const refreshStaleSharedDirectoriesRef = useRef(refreshStaleSharedDirectories);
+  hasStaleSharedDirectoriesRef.current = hasStaleSharedDirectories;
+  refreshStaleSharedDirectoriesRef.current = refreshStaleSharedDirectories;
+  const destinationNeedsSharedData = Boolean(user && !user.isPlatformUser
+    && hasStaleSharedDirectoriesRef.current(sharedDataDependencies));
+
+  useEffect(() => {
+    if (readyNavigationKey === location.key) return undefined;
+
+    let cancelled = false;
+    async function prepareDestination() {
+      if (destinationNeedsSharedData) {
+        await refreshStaleSharedDirectoriesRef.current(sharedDataDependencies);
+      }
+      if (!cancelled) {
+        setReadyNavigationKey(location.key);
+      }
+    }
+
+    prepareDestination();
+    return () => {
+      cancelled = true;
+    };
+  }, [location.key, readyNavigationKey, destinationNeedsSharedData]);
 
   useEffect(() => {
     if (!user || !location.pathname || location.pathname === '/') return;
@@ -89,7 +117,9 @@ export default function AppLayout() {
                 <Alert type="error">{loadError}</Alert>
               </div>
             ) : null}
-            <Outlet />
+            {readyNavigationKey === location.key || !destinationNeedsSharedData
+              ? <Outlet />
+              : <PageLoadingState title={t('app.brand')} description={t('status.loadingData')} />}
           </main>
         </div>
         <MobileTabBar onOpenMenu={() => setMenuOpen((open) => !open)} menuOpen={menuOpen} />

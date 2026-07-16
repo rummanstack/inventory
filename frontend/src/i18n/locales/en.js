@@ -3766,6 +3766,30 @@ const en = {
             question: 'Is my data safe?',
             answer: 'Your business data stays in its own account. Role-based permissions, controlled login access and backups help protect your stock, sales, due and financial records.',
           },
+          {
+            question: 'What types of businesses can use StockLedger?',
+            answer: 'StockLedger is designed for retail shops, wholesalers, dealers, distributors, pharmacies, grocery stores, DSR teams and other businesses that need connected sales, stock, dues and accounting workflows.',
+          },
+          {
+            question: 'Can multiple employees use the system?',
+            answer: 'Yes. You can create users with role-based permissions so owners, managers, cashiers, accountants and field teams only access the work relevant to them.',
+          },
+          {
+            question: 'Does a sale update stock and customer dues?',
+            answer: 'Yes. Sales activity updates connected stock and customer balance records, helping teams avoid entering the same transaction in separate places.',
+          },
+          {
+            question: 'Can I manage DSR morning issue and evening settlement?',
+            answer: 'Yes. StockLedger supports morning stock issue, route activity, cash collection, returns, shop dues and evening settlement for DSR and distribution workflows.',
+          },
+          {
+            question: 'Can I start with only the modules I need?',
+            answer: 'Yes. You can begin with priority workflows such as POS, inventory or dues, then add accounting, HR, DSR or other modules as your team becomes ready.',
+          },
+          {
+            question: 'What support is available after launch?',
+            answer: 'Support is available for workflow questions, setup guidance and operational issues. The exact support coverage and response arrangements depend on your selected plan and onboarding scope.',
+          },
         ],
       },      testimonials: {
         eyebrow: 'Customer Stories',

@@ -18,10 +18,10 @@ export default function WhoIsItForSection({ t }) {
   return (
     <section className="landing-section landing-section-brand">
       <div className="landing-container">
-        <div className="mb-10 text-center">
+        <div className="mb-10 max-w-3xl">
           <p className="landing-eyebrow">{copy.eyebrow}</p>
           <h2 className="landing-section-title mt-4">{copy.title}</h2>
-          <p className="landing-section-text mx-auto mt-4 max-w-3xl">{copy.text}</p>
+          <p className="landing-section-text mt-4">{copy.text}</p>
         </div>
 
         <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">

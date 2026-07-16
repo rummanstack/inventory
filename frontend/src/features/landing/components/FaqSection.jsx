@@ -36,13 +36,13 @@ export default function FaqSection({ t }) {
   return (
     <section className="landing-section landing-section-soft">
       <div className="landing-container">
-        <div className="text-center mb-10">
+        <div className="mb-10 max-w-3xl">
           <p className="landing-eyebrow">{t('landing.faq.eyebrow')}</p>
           <h2 className="landing-section-title mt-4">{t('landing.faq.title')}</h2>
-          <p className="landing-section-text mx-auto max-w-xl mt-4">{t('landing.faq.text')}</p>
+          <p className="landing-section-text mt-4">{t('landing.faq.text')}</p>
         </div>
 
-        <div className="mx-auto max-w-3xl grid gap-3">
+        <div className="grid items-start gap-3 lg:grid-cols-2">
           {faqs.map((faq, index) => (
             <FaqItem
               key={faq.question}

@@ -34,6 +34,10 @@ import {
   markResetTokenUsed,
 } from "../repositories/passwordResetRepository.js";
 import { findTenantById, findTenantBySlug } from "../repositories/tenantRepository.js";
+import { getAccessSnapshot } from "../repositories/accessSnapshotRepository.js";
+import { TENANT_BUSINESS_PERMISSIONS } from "../lib/permissions.js";
+import { TENANT_FEATURES } from "../lib/features.js";
+import { USER_ROLES } from "../lib/roles.js";
 
 export class AuthService {
   constructor(databaseManager, { sessionDays, auditService }) {
@@ -44,6 +48,21 @@ export class AuthService {
 
   getSessionMaxAgeMs() {
     return this.sessionDays * 24 * 60 * 60 * 1000;
+  }
+
+  async loadAccessSnapshot(client, user) {
+    if (user.role === USER_ROLES.SYSTEM_DEVELOPER) {
+      return {
+        permissions: [...TENANT_BUSINESS_PERMISSIONS],
+        features: [...TENANT_FEATURES],
+      };
+    }
+
+    const access = await getAccessSnapshot(client, user.role, user.tenantId);
+    return {
+      permissions: access.permissions,
+      features: access.features === null ? [...TENANT_FEATURES] : access.features,
+    };
   }
 
   async login(input, requestMeta = {}) {
@@ -158,10 +177,13 @@ export class AuthService {
         metadata: { email: userRow.email, role: userRow.role },
       });
 
+      const user = mapUser(userRow);
+      const access = await this.loadAccessSnapshot(client, user);
       return {
         token,
-        user: mapUser(userRow),
+        user,
         tenant,
+        ...access,
       };
     });
   }
@@ -183,6 +205,7 @@ export class AuthService {
       if (user.tenantId) {
         tenant = await findTenantById(client, user.tenantId);
       }
+      const access = await this.loadAccessSnapshot(client, user);
 
       await touchSession(client, tokenHash, {
         ipAddress: requestMeta.ip,
@@ -190,7 +213,7 @@ export class AuthService {
         newExpiresAt: new Date(Date.now() + this.getSessionMaxAgeMs()),
       });
 
-      return { user, tenant };
+      return { user, tenant, ...access };
     } finally {
       client.release();
     }

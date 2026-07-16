@@ -1,13 +1,15 @@
+import { TENANT_BUSINESS_PERMISSIONS } from "../lib/permissions.js";
+
 // One-time data backfills (permission/feature splits for pre-existing tenants).
 // Each runs exactly once per database, tracked in schema_backfills â€” re-running
 // them on every boot silently re-grants permissions and features that admins
 // have since revoked ("menus coming back after a server restart").
-async function runBackfillOnce(pool, key, sql) {
+async function runBackfillOnce(pool, key, sql, params = []) {
   const done = await pool.query("SELECT 1 FROM schema_backfills WHERE key = $1", [key]);
   if (done.rows.length > 0) {
     return;
   }
-  await pool.query(sql);
+  await pool.query(sql, params);
   await pool.query("INSERT INTO schema_backfills (key) VALUES ($1) ON CONFLICT (key) DO NOTHING", [key]);
 }
 
@@ -1235,7 +1237,7 @@ export async function createSchema(pool) {
       new_perms TEXT[] := ARRAY[
         'manage_retail_quick_sale','manage_retail_sales_invoices','manage_retail_sales_returns',
         'manage_retail_customer_due','manage_retail_due_collection','manage_retail_promotions',
-        'manage_retail_daily_sales_report','manage_retail_profit_report','manage_retail_customers_write'
+        'manage_retail_daily_sales_report','manage_profit_report','manage_retail_customers_write'
       ];
     BEGIN
       FOREACH new_perm IN ARRAY new_perms LOOP
@@ -3060,5 +3062,47 @@ export async function createSchema(pool) {
 
     ALTER TABLE installment_schedule ADD COLUMN IF NOT EXISTS late_fee_applied NUMERIC NOT NULL DEFAULT 0;
   `);
-}
 
+  await runBackfillOnce(pool, "normalize-retail-profit-permission", `
+    INSERT INTO role_permissions (role, tenant_id, permission)
+    SELECT role, tenant_id, 'manage_profit_report'
+    FROM role_permissions
+    WHERE permission = 'manage_retail_profit_report'
+    ON CONFLICT (role, tenant_id, permission) DO NOTHING;
+
+    DELETE FROM role_permissions WHERE permission = 'manage_retail_profit_report';
+  `);
+
+  await runBackfillOnce(pool, "seed-registered-owner-permissions", `
+    INSERT INTO role_permissions (role, tenant_id, permission)
+    SELECT DISTINCT 'super_admin', tenant.id, granted.permission
+    FROM tenants tenant
+    JOIN users owner
+      ON owner.tenant_id = tenant.id
+     AND owner.role = 'super_admin'
+     AND owner.deleted_at IS NULL
+    CROSS JOIN UNNEST($1::text[]) AS granted(permission)
+    WHERE COALESCE(tenant.phone, '') <> ''
+      AND NOT EXISTS (
+        SELECT 1
+        FROM role_permissions existing
+        WHERE existing.role = 'super_admin'
+          AND existing.tenant_id IN (tenant.id, 'global')
+      )
+    ON CONFLICT (role, tenant_id, permission) DO NOTHING;
+  `, [TENANT_BUSINESS_PERMISSIONS]);
+
+  await runBackfillOnce(pool, "help-desk-permission-split", `
+    INSERT INTO role_permissions (role, tenant_id, permission)
+    SELECT role, tenant_id, 'view_help_desk'
+    FROM role_permissions
+    WHERE permission = 'view_state'
+    ON CONFLICT (role, tenant_id, permission) DO NOTHING;
+
+    INSERT INTO role_permissions (role, tenant_id, permission)
+    SELECT role, tenant_id, 'manage_help_desk'
+    FROM role_permissions
+    WHERE permission = 'view_state'
+    ON CONFLICT (role, tenant_id, permission) DO NOTHING;
+  `);
+}

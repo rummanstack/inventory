@@ -4,7 +4,10 @@ import { hasPermission, PERMISSIONS } from "../lib/permissions.js";
 export function requirePermission(permission) {
   return (req, _res, next) => {
     const role = req.currentUser?.role;
-    assert(role && hasPermission(role, permission, req.currentUser?.tenantId), "Forbidden.", 403);
+    const allowed = Array.isArray(req.currentPermissions)
+      ? req.currentPermissions.includes(permission)
+      : hasPermission(role, permission, req.currentUser?.tenantId);
+    assert(role && allowed, "Forbidden.", 403);
     next();
   };
 }
@@ -13,7 +16,11 @@ export function requireAnyPermission(...permissions) {
   return (req, _res, next) => {
     const role = req.currentUser?.role;
     const tenantId = req.currentUser?.tenantId;
-    const allowed = permissions.some((permission) => role && hasPermission(role, permission, tenantId));
+    const allowed = permissions.some((permission) =>
+      role && (Array.isArray(req.currentPermissions)
+        ? req.currentPermissions.includes(permission)
+        : hasPermission(role, permission, tenantId)),
+    );
     assert(allowed, "Forbidden.", 403);
     next();
   };

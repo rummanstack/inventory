@@ -141,6 +141,47 @@ test("an explicitly-empty feature set stays empty across a cache reload (no menu
   assert.equal(allowed.status, 200);
 });
 
+test("feature replacement rolls back its rows and cache when auditing fails", async () => {
+  await databaseManager.withTransaction(async (client) => {
+    await replaceTenantFeatures(client, tenant.tenantId, ["products"]);
+  });
+  setCachedFeatures(tenant.tenantId, ["products"]);
+
+  const service = new TenantService(databaseManager, {
+    auditService: {
+      async record() {
+        throw new Error("simulated audit failure");
+      },
+    },
+  });
+
+  await assert.rejects(
+    service.updateTenantFeatures(tenant.tenantId, ["dashboard"], {
+      id: "test-user",
+      name: "Test Dev",
+      role: "system_developer",
+    }),
+    /simulated audit failure/,
+  );
+
+  await databaseManager.withClient(async (client) => {
+    assert.deepEqual(await listTenantFeatures(client, tenant.tenantId), ["products"]);
+  });
+  assert.deepEqual(getCachedFeatures(tenant.tenantId), ["products"]);
+});
+
+test("dependent features cannot be saved in a broken configuration", async () => {
+  const service = new TenantService(databaseManager);
+  await assert.rejects(
+    service.updateTenantFeatures(tenant.tenantId, ["retailer-quick-sale"], {
+      id: "test-user",
+      name: "Test Dev",
+      role: "system_developer",
+    }),
+    /requires: products, retailer-cash-sessions/,
+  );
+});
+
 test("one-time backfills are recorded and never re-run (no permission/feature resets on restart)", async () => {
   await databaseManager.withClient(async (client) => {
     const { rows } = await client.query("SELECT key FROM schema_backfills ORDER BY key");
@@ -152,6 +193,9 @@ test("one-time backfills are recorded and never re-run (no permission/feature re
       "issue-center-split",
       "hr-permission-backfill",
       "read-write-permission-split",
+      "normalize-retail-profit-permission",
+      "seed-registered-owner-permissions",
+      "help-desk-permission-split",
     ]) {
       assert.ok(keys.includes(expected), `backfill ${expected} recorded as applied`);
     }

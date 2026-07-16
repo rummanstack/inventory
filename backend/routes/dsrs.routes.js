@@ -28,7 +28,12 @@ export function createDsrsRoutes(dsrController) {
   router.put("/:id", requirePermission(PERMISSIONS.MANAGE_DSRS), dsrController.update);
   router.delete("/:id", requirePermission(PERMISSIONS.MANAGE_DSRS), dsrController.remove);
   router.post("/:id/restore", requirePermission(PERMISSIONS.MANAGE_DSRS), dsrController.restore);
-  router.delete("/:id/permanent", requirePermission(PERMISSIONS.PERMANENT_DELETE), dsrController.permanentlyDelete);
+  router.delete(
+    "/:id/permanent",
+    requirePermission(PERMISSIONS.PERMANENT_DELETE),
+    requirePermission(PERMISSIONS.MANAGE_DSRS),
+    dsrController.permanentlyDelete,
+  );
 
   return router;
 }

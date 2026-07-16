@@ -1,10 +1,36 @@
 import { Router } from "express";
-import { requireAnyPermission, requirePermission } from "../middleware/requireRole.js";
+import { requirePermission } from "../middleware/requireRole.js";
 import { requireFeature } from "../middleware/requireFeature.js";
 import { uploadVoucherDocumentMiddleware } from "../middleware/upload.js";
 import { PERMISSIONS } from "../lib/permissions.js";
 
 const VOUCHER_FEATURES = ["journal-vouchers", "receipt-vouchers", "payment-vouchers", "contra-vouchers", "voucher-register", "journal-register"];
+
+function authorizeVoucherCreate(voucherController) {
+  return (req, _res, next) => {
+    try {
+      voucherController.voucherService.assertVoucherTypeAccess(
+        req.body?.voucherType || "JOURNAL",
+        "create",
+        req.currentUser,
+      );
+      next();
+    } catch (error) {
+      next(error);
+    }
+  };
+}
+
+function authorizeVoucherAction(voucherController, action) {
+  return async (req, _res, next) => {
+    try {
+      await voucherController.voucherService.authorizeVoucher(req.params.id, action, req.currentUser);
+      next();
+    } catch (error) {
+      next(error);
+    }
+  };
+}
 
 export function createVoucherRoutes(voucherController) {
   const router = Router();
@@ -30,44 +56,37 @@ export function createVoucherRoutes(voucherController) {
   );
   router.post(
     "/",
-    requireFeature(VOUCHER_FEATURES),
-    requireAnyPermission(PERMISSIONS.JOURNAL_CREATE, PERMISSIONS.VOUCHER_RECEIPT, PERMISSIONS.VOUCHER_PAYMENT, PERMISSIONS.VOUCHER_CONTRA),
+    authorizeVoucherCreate(voucherController),
     voucherController.create,
   );
   router.put(
     "/:id",
-    requireFeature(VOUCHER_FEATURES),
-    requirePermission(PERMISSIONS.JOURNAL_EDIT),
+    authorizeVoucherAction(voucherController, "edit"),
     voucherController.update,
   );
   router.delete(
     "/:id",
-    requireFeature(VOUCHER_FEATURES),
-    requirePermission(PERMISSIONS.JOURNAL_EDIT),
+    authorizeVoucherAction(voucherController, "delete"),
     voucherController.remove,
   );
   router.post(
     "/:id/submit",
-    requireFeature(VOUCHER_FEATURES),
-    requirePermission(PERMISSIONS.JOURNAL_EDIT),
+    authorizeVoucherAction(voucherController, "submit"),
     voucherController.submit,
   );
   router.post(
     "/:id/approve",
-    requireFeature(VOUCHER_FEATURES),
-    requirePermission(PERMISSIONS.JOURNAL_APPROVE),
+    authorizeVoucherAction(voucherController, "approve"),
     voucherController.approve,
   );
   router.post(
     "/:id/post",
-    requireFeature(VOUCHER_FEATURES),
-    requirePermission(PERMISSIONS.JOURNAL_POST),
+    authorizeVoucherAction(voucherController, "post"),
     voucherController.post,
   );
   router.post(
     "/:id/reverse",
-    requireFeature(VOUCHER_FEATURES),
-    requirePermission(PERMISSIONS.JOURNAL_REVERSE),
+    authorizeVoucherAction(voucherController, "reverse"),
     voucherController.reverse,
   );
 
@@ -79,8 +98,7 @@ export function createVoucherRoutes(voucherController) {
   );
   router.post(
     "/:id/attachments",
-    requireFeature(VOUCHER_FEATURES),
-    requirePermission(PERMISSIONS.JOURNAL_EDIT),
+    authorizeVoucherAction(voucherController, "attachment"),
     uploadVoucherDocumentMiddleware,
     voucherController.uploadAttachment,
   );
@@ -92,8 +110,7 @@ export function createVoucherRoutes(voucherController) {
   );
   router.delete(
     "/:id/attachments/:attachmentId",
-    requireFeature(VOUCHER_FEATURES),
-    requirePermission(PERMISSIONS.JOURNAL_EDIT),
+    authorizeVoucherAction(voucherController, "attachment"),
     voucherController.deleteAttachment,
   );
 

@@ -3,6 +3,9 @@ import { assert } from "../lib/errors.js";
 import { createId } from "../lib/ids.js";
 import { ACCOUNTING_ACTIONS } from "../lib/auditActions.js";
 import { JOURNAL_SOURCE_TYPES } from "../lib/journalSourceTypes.js";
+import { hasPermission, PERMISSIONS } from "../lib/permissions.js";
+import { USER_ROLES } from "../lib/roles.js";
+import { getCachedFeatures } from "../lib/tenantFeatureCache.js";
 import {
   findAccountDetailedByCode,
   findCustomerReference,
@@ -44,6 +47,17 @@ const PREFIX_FIELD_BY_TYPE = {
   RECEIPT: "receiptVoucherPrefix",
   PAYMENT: "paymentVoucherPrefix",
   CONTRA: "contraVoucherPrefix",
+};
+const ACCESS_BY_VOUCHER_TYPE = {
+  JOURNAL: { feature: "journal-vouchers", permission: PERMISSIONS.JOURNAL_CREATE },
+  RECEIPT: { feature: "receipt-vouchers", permission: PERMISSIONS.VOUCHER_RECEIPT },
+  PAYMENT: { feature: "payment-vouchers", permission: PERMISSIONS.VOUCHER_PAYMENT },
+  CONTRA: { feature: "contra-vouchers", permission: PERMISSIONS.VOUCHER_CONTRA },
+};
+const WORKFLOW_PERMISSION_BY_ACTION = {
+  approve: PERMISSIONS.JOURNAL_APPROVE,
+  post: PERMISSIONS.JOURNAL_POST,
+  reverse: PERMISSIONS.JOURNAL_REVERSE,
 };
 
 function normalizeCommon(input = {}, fallbackType = "JOURNAL") {
@@ -94,6 +108,49 @@ export class VoucherService {
     this.journalService = journalService;
   }
 
+  assertVoucherTypeAccess(voucherType, action, actor) {
+    const normalizedType = String(voucherType || "").trim().toUpperCase();
+    const typeAccess = ACCESS_BY_VOUCHER_TYPE[normalizedType];
+    assert(typeAccess, "Invalid voucher type.", 400);
+
+    if (actor.role !== USER_ROLES.SYSTEM_DEVELOPER) {
+      const features = getCachedFeatures(actor.tenantId);
+      assert(
+        features === null || features.includes(typeAccess.feature),
+        "This voucher type is not enabled for your organization.",
+        403,
+      );
+    }
+
+    let permissions;
+    if (["edit", "delete", "submit", "attachment"].includes(action)) {
+      permissions = normalizedType === "JOURNAL"
+        ? [PERMISSIONS.JOURNAL_EDIT]
+        : [typeAccess.permission];
+    } else if (WORKFLOW_PERMISSION_BY_ACTION[action]) {
+      permissions = normalizedType === "JOURNAL"
+        ? [WORKFLOW_PERMISSION_BY_ACTION[action]]
+        : [typeAccess.permission, WORKFLOW_PERMISSION_BY_ACTION[action]];
+    } else {
+      permissions = [typeAccess.permission];
+    }
+
+    assert(
+      permissions.every((permission) => hasPermission(actor.role, permission, actor.tenantId)),
+      "Forbidden.",
+      403,
+    );
+  }
+
+  async authorizeVoucher(id, action, actor) {
+    return this.databaseManager.withClient(async (client) => {
+      const voucher = await findVoucherById(client, actor.tenantId, id);
+      assert(voucher, "Voucher not found.", 404);
+      this.assertVoucherTypeAccess(voucher.voucherType, action, actor);
+      return voucher;
+    });
+  }
+
   async buildVoucherNumber(client, tenantId, voucherType) {
     const settings = await getAccountingSettings(client, tenantId);
     const prefixField = PREFIX_FIELD_BY_TYPE[voucherType];
@@ -110,13 +167,40 @@ export class VoucherService {
     return { fiscalYearId: period.fiscal_year_id, accountingPeriodId: period.period_id };
   }
 
-  async assertPostingWindow(client, tenantId, voucherDate) {
+  async assertPostingWindow(client, tenantId, voucherDate, actor, purpose = "use this voucher date") {
     const period = await findPostingPeriodStatus(client, tenantId, voucherDate);
     if (!period) return { fiscalYearId: null, accountingPeriodId: null };
-    assert(period.fiscal_year_status !== "CLOSED", `Fiscal year ${period.fiscal_year_name} is closed.`, 400);
-    assert(period.period_status !== "CLOSED", `Period ${period.period_name} is closed.`, 400);
-    assert(!period.period_locked, `Period ${period.period_name} is locked.`, 400);
-    return { fiscalYearId: period.fiscal_year_id, accountingPeriodId: period.period_id };
+
+    let blockedMessage = "";
+    if (period.fiscal_year_status === "CLOSED") blockedMessage = `Fiscal year ${period.fiscal_year_name} is closed.`;
+    else if (period.period_status === "CLOSED") blockedMessage = `Period ${period.period_name} is closed.`;
+    else if (period.period_locked) blockedMessage = `Period ${period.period_name} is locked.`;
+
+    if (blockedMessage) {
+      const canOverride = actor && hasPermission(actor.role, PERMISSIONS.JOURNAL_OVERRIDE, actor.tenantId);
+      assert(canOverride, blockedMessage, 400);
+
+      await this.auditService?.record(client, {
+        tenantId,
+        userId: actor.id,
+        actionType: ACCOUNTING_ACTIONS.JOURNAL_OVERRIDE,
+        entityType: "accounting_period",
+        entityId: period.period_id || period.fiscal_year_id,
+        description: `${actor.name} overrode accounting controls to ${purpose}`,
+        metadata: {
+          voucherDate,
+          fiscalYearId: period.fiscal_year_id,
+          accountingPeriodId: period.period_id,
+          blockedReason: blockedMessage,
+        },
+      });
+    }
+
+    return {
+      fiscalYearId: period.fiscal_year_id,
+      accountingPeriodId: period.period_id,
+      overridden: Boolean(blockedMessage),
+    };
   }
 
   async resolveAccount(client, code, { cashBankOnly = false } = {}) {
@@ -154,7 +238,7 @@ export class VoucherService {
     const common = normalizeCommon(payload, payload.voucherType);
     assert(VOUCHER_TYPES.includes(common.voucherType), "Invalid voucher type.", 400);
     assert(common.voucherDate, "Voucher date is required.", 400);
-    await this.assertPostingWindow(client, actor.tenantId, common.voucherDate);
+    await this.assertPostingWindow(client, actor.tenantId, common.voucherDate, actor, "create or edit a voucher");
 
     if (common.voucherType === "JOURNAL") {
       const lines = normalizeJournalLines(payload.lines || []);
@@ -263,6 +347,7 @@ export class VoucherService {
   }
 
   async createVoucher(input, actor) {
+    this.assertVoucherTypeAccess(input?.voucherType || "JOURNAL", "create", actor);
     return this.databaseManager.withTransaction(async (client) => {
       const { common, lines } = await this.buildStoredLines(client, input, actor);
       this.assertBalanced(lines);
@@ -305,6 +390,7 @@ export class VoucherService {
     return this.databaseManager.withTransaction(async (client) => {
       const existing = await findVoucherById(client, actor.tenantId, id);
       assert(existing, "Voucher not found.", 404);
+      this.assertVoucherTypeAccess(existing.voucherType, "edit", actor);
       assert(existing.status === "DRAFT", "Only draft vouchers can be edited.", 400);
       const { common, lines } = await this.buildStoredLines(client, { ...input, voucherType: existing.voucherType }, actor);
       this.assertBalanced(lines);
@@ -344,6 +430,7 @@ export class VoucherService {
     return this.databaseManager.withTransaction(async (client) => {
       const existing = await findVoucherById(client, actor.tenantId, id);
       assert(existing, "Voucher not found.", 404);
+      this.assertVoucherTypeAccess(existing.voucherType, "submit", actor);
       assert(existing.status === "DRAFT", "Only draft vouchers can be submitted.", 400);
       const updated = await setVoucherState(client, actor.tenantId, id, { status: "SUBMITTED", submittedBy: actor.id, submittedAt: new Date().toISOString() });
       await this.auditService.record(client, {
@@ -364,6 +451,7 @@ export class VoucherService {
     return this.databaseManager.withTransaction(async (client) => {
       const existing = await findVoucherById(client, actor.tenantId, id);
       assert(existing, "Voucher not found.", 404);
+      this.assertVoucherTypeAccess(existing.voucherType, "approve", actor);
       assert(existing.status === "SUBMITTED", "Only submitted vouchers can be approved.", 400);
       const updated = await setVoucherState(client, actor.tenantId, id, { status: "APPROVED", approvedBy: actor.id, approvedAt: new Date().toISOString() });
       await this.auditService.record(client, {
@@ -384,10 +472,11 @@ export class VoucherService {
     return this.databaseManager.withTransaction(async (client) => {
       const existing = await findVoucherById(client, actor.tenantId, id);
       assert(existing, "Voucher not found.", 404);
+      this.assertVoucherTypeAccess(existing.voucherType, "post", actor);
       assert(existing.status === "APPROVED", "Only approved vouchers can be posted.", 400);
       const lines = await listVoucherLines(client, actor.tenantId, id);
       this.assertBalanced(lines);
-      await this.assertPostingWindow(client, actor.tenantId, existing.voucherDate);
+      await this.assertPostingWindow(client, actor.tenantId, existing.voucherDate, actor, `post voucher ${existing.voucherNumber}`);
       const journalEntry = await this.journalService.post(client, {
         tenantId: actor.tenantId,
         entryDate: existing.voucherDate,
@@ -424,6 +513,7 @@ export class VoucherService {
     return this.databaseManager.withTransaction(async (client) => {
       const existing = await findVoucherById(client, actor.tenantId, id);
       assert(existing, "Voucher not found.", 404);
+      this.assertVoucherTypeAccess(existing.voucherType, "reverse", actor);
       assert(existing.status === "POSTED", "Only posted vouchers can be reversed.", 400);
       const reversalJournal = await this.journalService.reverse(client, {
         tenantId: actor.tenantId,
@@ -458,6 +548,7 @@ export class VoucherService {
     return this.databaseManager.withTransaction(async (client) => {
       const existing = await findVoucherById(client, actor.tenantId, id);
       assert(existing, "Voucher not found.", 404);
+      this.assertVoucherTypeAccess(existing.voucherType, "delete", actor);
       assert(existing.status === "DRAFT", "Only draft vouchers can be deleted.", 400);
       await softDeleteVoucher(client, actor.tenantId, id, actor.id, reason);
       await this.auditService.record(client, {
@@ -490,6 +581,7 @@ export class VoucherService {
     return this.databaseManager.withTransaction(async (client) => {
       const voucher = await findVoucherById(client, actor.tenantId, voucherId);
       assert(voucher, "Voucher not found.", 404);
+      this.assertVoucherTypeAccess(voucher.voucherType, "attachment", actor);
       assert(["DRAFT", "SUBMITTED", "APPROVED"].includes(voucher.status), "Attachments can only be changed before posting.", 400);
       const attachment = await insertVoucherAttachment(client, {
         id: createId("vatt"),
@@ -521,6 +613,7 @@ export class VoucherService {
     return this.databaseManager.withTransaction(async (client) => {
       const voucher = await findVoucherById(client, actor.tenantId, voucherId);
       assert(voucher, "Voucher not found.", 404);
+      this.assertVoucherTypeAccess(voucher.voucherType, "attachment", actor);
       assert(["DRAFT", "SUBMITTED", "APPROVED"].includes(voucher.status), "Attachments can only be changed before posting.", 400);
       const attachment = await findVoucherAttachmentById(client, actor.tenantId, voucherId, attachmentId);
       assert(attachment && !attachment.deletedAt, "Attachment not found.", 404);

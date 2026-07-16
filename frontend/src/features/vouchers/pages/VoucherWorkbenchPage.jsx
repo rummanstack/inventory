@@ -37,6 +37,13 @@ const ICON_BY_TYPE = {
   CONTRA: ArrowLeftRight,
 };
 
+const TYPE_PERMISSION_BY_VOUCHER_TYPE = {
+  JOURNAL: 'journal.create',
+  RECEIPT: 'voucher.receipt',
+  PAYMENT: 'voucher.payment',
+  CONTRA: 'voucher.contra',
+};
+
 function toneForStatus(status) {
   if (status === 'POSTED') return 'emerald';
   if (status === 'APPROVED') return 'blue';
@@ -61,14 +68,14 @@ export default function VoucherWorkbenchPage({ voucherType }) {
   const title = TITLE_BY_TYPE[voucherType];
   const description = DESCRIPTION_BY_TYPE[voucherType];
   const Icon = ICON_BY_TYPE[voucherType];
-
-  const canCreate = voucherType === 'JOURNAL'
-    ? can('journal.create')
-    : voucherType === 'RECEIPT'
-      ? can('voucher.receipt')
-      : voucherType === 'PAYMENT'
-        ? can('voucher.payment')
-        : can('voucher.contra');
+  const typePermission = TYPE_PERMISSION_BY_VOUCHER_TYPE[voucherType];
+  const hasTypePermission = can(typePermission);
+  const canCreate = hasTypePermission;
+  const canEditDraft = voucherType === 'JOURNAL' ? can('journal.edit') : hasTypePermission;
+  const canSubmitDraft = canEditDraft;
+  const canApprove = can('journal.approve') && (voucherType === 'JOURNAL' || hasTypePermission);
+  const canPost = can('journal.post') && (voucherType === 'JOURNAL' || hasTypePermission);
+  const canReverse = can('journal.reverse') && (voucherType === 'JOURNAL' || hasTypePermission);
 
   const stats = useMemo(() => ({
     total: rows.length,
@@ -258,12 +265,12 @@ export default function VoucherWorkbenchPage({ voucherType }) {
                     <td className="table-cell">
                       <div className="flex flex-wrap justify-end gap-2">
                         <button type="button" className="btn-secondary" onClick={() => openDetails(voucher.id)}>View</button>
-                        {voucher.status === 'DRAFT' && can('journal.edit') ? <button type="button" className="btn-secondary" onClick={() => setFormModal({ voucher })}>Edit</button> : null}
-                        {voucher.status === 'DRAFT' && can('journal.edit') ? <button type="button" className="btn-secondary text-rose-600" onClick={() => confirmDelete(voucher)}>Delete</button> : null}
-                        {voucher.status === 'DRAFT' && can('journal.create') ? <button type="button" className="btn-secondary" onClick={() => runAction(voucher, 'submit')}>Submit</button> : null}
-                        {voucher.status === 'SUBMITTED' && can('journal.approve') ? <button type="button" className="btn-secondary" onClick={() => runAction(voucher, 'approve')}>Approve</button> : null}
-                        {voucher.status === 'APPROVED' && can('journal.post') ? <button type="button" className="btn-secondary" onClick={() => runAction(voucher, 'post')}>Post</button> : null}
-                        {voucher.status === 'POSTED' && can('journal.reverse') ? <button type="button" className="btn-secondary text-amber-700" onClick={() => runAction(voucher, 'reverse')}>Reverse</button> : null}
+                        {voucher.status === 'DRAFT' && canEditDraft ? <button type="button" className="btn-secondary" onClick={() => setFormModal({ voucher })}>Edit</button> : null}
+                        {voucher.status === 'DRAFT' && canEditDraft ? <button type="button" className="btn-secondary text-rose-600" onClick={() => confirmDelete(voucher)}>Delete</button> : null}
+                        {voucher.status === 'DRAFT' && canSubmitDraft ? <button type="button" className="btn-secondary" onClick={() => runAction(voucher, 'submit')}>Submit</button> : null}
+                        {voucher.status === 'SUBMITTED' && canApprove ? <button type="button" className="btn-secondary" onClick={() => runAction(voucher, 'approve')}>Approve</button> : null}
+                        {voucher.status === 'APPROVED' && canPost ? <button type="button" className="btn-secondary" onClick={() => runAction(voucher, 'post')}>Post</button> : null}
+                        {voucher.status === 'POSTED' && canReverse ? <button type="button" className="btn-secondary text-amber-700" onClick={() => runAction(voucher, 'reverse')}>Reverse</button> : null}
                       </div>
                     </td>
                   </tr>

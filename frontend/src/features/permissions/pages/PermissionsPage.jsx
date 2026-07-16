@@ -70,6 +70,14 @@ const PERMISSION_GROUPS = [
     ],
   },
   {
+    section: 'trade-promotions',
+    permissions: [
+      'view_trade_promotions',
+      'manage_trade_promotion_rules',
+      'manage_trade_promotion_settlements',
+    ],
+  },
+  {
     section: 'dsr',
     permissions: [
       'view_dsrs',
@@ -135,11 +143,71 @@ const PERMISSION_GROUPS = [
     ],
   },
   { section: 'reports', permissions: ['view_activity_logs', 'manage_batch_tracking'] },
-  { section: 'hr', permissions: ['view_employees', 'manage_employees', 'attendance.view', 'attendance.manage', 'manage_payroll', 'leave.manage', 'leave.approve', 'payroll.view', 'payroll.generate', 'payroll.approve', 'advance.manage', 'loan.manage', 'hr.reports'] },
-  { section: 'system', permissions: ['manage_users', 'manage_org', 'permanent_delete', 'manage_backups'] },
+  { section: 'hr', permissions: ['view_employees', 'manage_employees', 'manage_departments', 'manage_designations', 'attendance.view', 'attendance.manage', 'manage_payroll', 'leave.manage', 'leave.approve', 'payroll.view', 'payroll.generate', 'payroll.approve', 'advance.manage', 'loan.manage', 'hr.reports'] },
+  { section: 'system', permissions: ['view_help_desk', 'manage_help_desk', 'manage_users', 'manage_org', 'permanent_delete', 'manage_backups'] },
 ];
 
 const GROUPED_PERMISSIONS = new Set(PERMISSION_GROUPS.flatMap(({ permissions }) => permissions));
+
+function sanitizePermissions(permissions, allowedPermissions) {
+  const allowed = allowedPermissions instanceof Set ? allowedPermissions : new Set(allowedPermissions || []);
+  return [...new Set((Array.isArray(permissions) ? permissions : []).filter((permission) => allowed.has(permission)))];
+}
+
+function normalizeDependencyMap(rawDependencies, allowedPermissions) {
+  const allowed = new Set(allowedPermissions || []);
+  if (!rawDependencies || typeof rawDependencies !== 'object' || Array.isArray(rawDependencies)) return {};
+
+  return Object.fromEntries(
+    Object.entries(rawDependencies)
+      .filter(([permission]) => allowed.has(permission))
+      .map(([permission, dependencies]) => [
+        permission,
+        [...new Set((Array.isArray(dependencies) ? dependencies : [dependencies]).filter((dependency) => allowed.has(dependency)))],
+      ]),
+  );
+}
+
+function addPermissionWithDependencies(permissions, permission, dependencyMap, allowedPermissions) {
+  const next = new Set(sanitizePermissions(permissions, allowedPermissions));
+  const visiting = new Set();
+
+  function add(candidate) {
+    if (!allowedPermissions.has(candidate) || visiting.has(candidate)) return;
+    visiting.add(candidate);
+    for (const dependency of dependencyMap[candidate] || []) add(dependency);
+    next.add(candidate);
+    visiting.delete(candidate);
+  }
+
+  add(permission);
+  return [...next];
+}
+
+function removePermissionWithDependents(permissions, permission, dependencyMap, allowedPermissions) {
+  const next = new Set(sanitizePermissions(permissions, allowedPermissions));
+  next.delete(permission);
+
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (const grantedPermission of [...next]) {
+      const hasMissingDependency = (dependencyMap[grantedPermission] || []).some((dependency) => !next.has(dependency));
+      if (hasMissingDependency) {
+        next.delete(grantedPermission);
+        changed = true;
+      }
+    }
+  }
+
+  return [...next];
+}
+
+function arePermissionListsEqual(left, right) {
+  const sortedLeft = [...left].sort();
+  const sortedRight = [...right].sort();
+  return sortedLeft.length === sortedRight.length && sortedLeft.every((value, index) => value === sortedRight[index]);
+}
 
 export default function PermissionsPage() {
   const { t, pushToast, hasFeature, user, tenantOptions } = useInventoryApp();
@@ -152,6 +220,7 @@ export default function PermissionsPage() {
   const [error, setError] = useState('');
   const [allPermissions, setAllPermissions] = useState([]);
   const [requiredFeatures, setRequiredFeatures] = useState({});
+  const [permissionDependencies, setPermissionDependencies] = useState({});
   const [rolePermissions, setRolePermissions] = useState([]);
   const [originalPermissions, setOriginalPermissions] = useState({});
   const [savingRole, setSavingRole] = useState('');
@@ -171,11 +240,19 @@ export default function PermissionsPage() {
         setError('');
         const result = await inventoryApi.getRolePermissions(needsTenantPicker ? selectedTenantId : undefined);
         if (cancelled) return;
-        setAllPermissions(result.allPermissions || []);
+        const knownPermissions = [...new Set(result.allPermissions || [])];
+        const knownPermissionSet = new Set(knownPermissions);
+        const sanitizedRoles = (result.roles || []).map((entry) => ({
+          ...entry,
+          permissions: sanitizePermissions(entry.permissions, knownPermissionSet),
+        }));
+
+        setAllPermissions(knownPermissions);
         setRequiredFeatures(result.permissionRequiredFeatures || {});
-        setRolePermissions(result.roles || []);
+        setPermissionDependencies(normalizeDependencyMap(result.permissionDependencies, knownPermissions));
+        setRolePermissions(sanitizedRoles);
         setOriginalPermissions(
-          Object.fromEntries((result.roles || []).map((entry) => [entry.role, [...entry.permissions].sort()])),
+          Object.fromEntries(sanitizedRoles.map((entry) => [entry.role, [...entry.permissions].sort()])),
         );
       } catch (err) {
         if (!cancelled) setError(err?.message || 'Failed to load permissions.');
@@ -190,6 +267,25 @@ export default function PermissionsPage() {
     };
   }, [needsTenantPicker, selectedTenantId]);
 
+  const knownPermissionSet = useMemo(() => new Set(allPermissions), [allPermissions]);
+
+  const hasUnsavedChanges = useMemo(
+    () => rolePermissions.some((entry) => !arePermissionListsEqual(entry.permissions, originalPermissions[entry.role] || [])),
+    [originalPermissions, rolePermissions],
+  );
+
+  useEffect(() => {
+    if (!hasUnsavedChanges) return undefined;
+
+    function warnBeforeUnload(event) {
+      event.preventDefault();
+      event.returnValue = '';
+    }
+
+    window.addEventListener('beforeunload', warnBeforeUnload);
+    return () => window.removeEventListener('beforeunload', warnBeforeUnload);
+  }, [hasUnsavedChanges]);
+
   function togglePermission(role, permission) {
     setRolePermissions((current) =>
       current.map((entry) => {
@@ -197,7 +293,9 @@ export default function PermissionsPage() {
         const has = entry.permissions.includes(permission);
         return {
           ...entry,
-          permissions: has ? entry.permissions.filter((item) => item !== permission) : [...entry.permissions, permission],
+          permissions: has
+            ? removePermissionWithDependents(entry.permissions, permission, permissionDependencies, knownPermissionSet)
+            : addPermissionWithDependencies(entry.permissions, permission, permissionDependencies, knownPermissionSet),
         };
       }),
     );
@@ -211,9 +309,12 @@ export default function PermissionsPage() {
       current.map((entry) => {
         if (entry.role !== role) return entry;
         const allSelected = groupPermissions.every((permission) => entry.permissions.includes(permission));
-        const permissions = allSelected
-          ? entry.permissions.filter((permission) => !groupPermissions.includes(permission))
-          : [...new Set([...entry.permissions, ...groupPermissions])];
+        let permissions = entry.permissions;
+        for (const permission of groupPermissions) {
+          permissions = allSelected
+            ? removePermissionWithDependents(permissions, permission, permissionDependencies, knownPermissionSet)
+            : addPermissionWithDependencies(permissions, permission, permissionDependencies, knownPermissionSet);
+        }
         return { ...entry, permissions };
       }),
     );
@@ -223,9 +324,19 @@ export default function PermissionsPage() {
     const entry = rolePermissions.find((item) => item.role === role);
     if (!entry) return;
 
-    const current = [...entry.permissions].sort();
+    let sanitizedPermissions = sanitizePermissions(entry.permissions, knownPermissionSet);
+    for (const permission of [...sanitizedPermissions]) {
+      sanitizedPermissions = addPermissionWithDependencies(
+        sanitizedPermissions,
+        permission,
+        permissionDependencies,
+        knownPermissionSet,
+      );
+    }
+
+    const current = [...sanitizedPermissions].sort();
     const original = originalPermissions[role] || [];
-    const unchanged = current.length === original.length && current.every((value, index) => value === original[index]);
+    const unchanged = arePermissionListsEqual(current, original);
     if (unchanged) {
       pushToast('info', t(`permissions.roles.${role}`), t('alerts.noChanges'));
       return;
@@ -233,11 +344,19 @@ export default function PermissionsPage() {
 
     setSavingRole(role);
     try {
-      const result = await inventoryApi.updateRolePermissions(role, entry.permissions, needsTenantPicker ? selectedTenantId : undefined);
-      setRolePermissions(result.roles || []);
-      setOriginalPermissions(
-        Object.fromEntries((result.roles || []).map((item) => [item.role, [...item.permissions].sort()])),
-      );
+      const result = await inventoryApi.updateRolePermissions(role, sanitizedPermissions, needsTenantPicker ? selectedTenantId : undefined);
+      const savedRole = (result.roles || []).find((item) => item.role === role);
+      const savedPermissions = sanitizePermissions(savedRole?.permissions || sanitizedPermissions, knownPermissionSet);
+
+      setRolePermissions((roles) => roles.map((item) => (
+        item.role === role
+          ? { ...item, ...(savedRole || {}), role, permissions: savedPermissions }
+          : item
+      )));
+      setOriginalPermissions((permissions) => ({
+        ...permissions,
+        [role]: [...savedPermissions].sort(),
+      }));
       pushToast('success', t(`permissions.roles.${role}`), t('permissions.saved'));
     } catch (err) {
       const message = err?.message || 'Failed to save permissions.';
@@ -260,8 +379,9 @@ export default function PermissionsPage() {
   const visiblePermissions = useMemo(
     () =>
       allPermissions.filter((permission) => {
-        const requiredFeature = requiredFeatures[permission];
-        return !requiredFeature || hasFeature(requiredFeature);
+        const rawRequiredFeatures = requiredFeatures[permission];
+        const permissionFeatures = (Array.isArray(rawRequiredFeatures) ? rawRequiredFeatures : [rawRequiredFeatures]).filter(Boolean);
+        return permissionFeatures.length === 0 || permissionFeatures.some((feature) => hasFeature(feature));
       }),
     [allPermissions, requiredFeatures, hasFeature],
   );
@@ -280,10 +400,17 @@ export default function PermissionsPage() {
     return groups;
   }, [visiblePermissions]);
 
+  function handleTenantChange(event) {
+    const nextTenantId = event.target.value;
+    if (nextTenantId === selectedTenantId) return;
+    if (hasUnsavedChanges && !window.confirm(t('permissions.unsavedTenantSwitch'))) return;
+    setSelectedTenantId(nextTenantId);
+  }
+
   const tenantPicker = needsTenantPicker ? (
     <label className="block max-w-xs">
       <span className="label">{t('permissions.selectTenant')}</span>
-      <Select value={selectedTenantId} onChange={(event) => setSelectedTenantId(event.target.value)}>
+      <Select value={selectedTenantId} onChange={handleTenantChange} disabled={Boolean(savingRole)}>
         <option value="">{t('permissions.selectTenantPlaceholder')}</option>
         {(tenantOptions || []).map((option) => (
           <option key={option.id} value={option.id}>{option.name}</option>
@@ -400,5 +527,3 @@ export default function PermissionsPage() {
     </div>
   );
 }
-
-

@@ -5,7 +5,9 @@ import { createTenantAndAdmin, cleanupTenant } from "./helpers/fixtures.js";
 import { createProduct, addStock } from "./helpers/seeders.js";
 import { PERMISSIONS } from "../lib/permissions.js";
 import { setCachedPermissions } from "../lib/permissionCache.js";
+import { setCachedFeatures } from "../lib/tenantFeatureCache.js";
 import { replaceRolePermissions } from "../repositories/rolePermissionRepository.js";
+import { replaceTenantFeatures } from "../repositories/tenantFeatureRepository.js";
 
 let databaseManager;
 let tenant;
@@ -43,12 +45,7 @@ test("a walk-in QUICK_SALE sale completes, decrements stock, and requires full p
   assert.equal(updated.stockPieces, 26);
 });
 
-// The Quick Sale page (frontend) is gated by manage_retail_quick_sale, but it submits
-// through the same POST /api/sales-invoices endpoint used by the full Sales Invoices
-// page, which is gated by manage_retail_sales_invoices. A role granted only the former
-// can open the Quick Sale terminal but gets a 403 the moment it tries to complete a sale.
-// This test documents that current cross-permission gap rather than asserting it's desired.
-test("a role granted only manage_retail_quick_sale (not manage_retail_sales_invoices) cannot actually submit a sale", async () => {
+test("quick-sale creation uses the quick-sale permission and feature instead of sales-invoice access", async () => {
   const limitedTenant = await createTenantAndAdmin(databaseManager, (await getTestApp()).app, { name: "Quick Sale Limited Tenant" });
 
   // Seed the product while the fixture still has full permissions, then downgrade to
@@ -58,8 +55,10 @@ test("a role granted only manage_retail_quick_sale (not manage_retail_sales_invo
 
   await databaseManager.withTransaction(async (client) => {
     await replaceRolePermissions(client, "super_admin", limitedTenant.tenantId, [PERMISSIONS.MANAGE_RETAIL_QUICK_SALE]);
+    await replaceTenantFeatures(client, limitedTenant.tenantId, ["retailer-quick-sale"]);
   });
   setCachedPermissions("super_admin", limitedTenant.tenantId, [PERMISSIONS.MANAGE_RETAIL_QUICK_SALE]);
+  setCachedFeatures(limitedTenant.tenantId, ["retailer-quick-sale"]);
 
   const response = await limitedTenant.agent.post("/api/sales-invoices").send({
     customerType: "WALK_IN",
@@ -70,7 +69,36 @@ test("a role granted only manage_retail_quick_sale (not manage_retail_sales_invo
     paidAmount: 50,
     paymentMethod: "CASH",
   });
-  assert.equal(response.status, 403);
+  assert.equal(response.status, 201);
+  assert.equal(response.body.invoice.saleType, "QUICK_SALE");
+
+  await databaseManager.withTransaction(async (client) => {
+    await replaceRolePermissions(client, "super_admin", limitedTenant.tenantId, [PERMISSIONS.MANAGE_RETAIL_SALES_INVOICES]);
+    await replaceTenantFeatures(client, limitedTenant.tenantId, ["retailer-sales-invoices"]);
+  });
+  setCachedPermissions("super_admin", limitedTenant.tenantId, [PERMISSIONS.MANAGE_RETAIL_SALES_INVOICES]);
+  setCachedFeatures(limitedTenant.tenantId, ["retailer-sales-invoices"]);
+
+  const blockedQuickSale = await limitedTenant.agent.post("/api/sales-invoices").send({
+    customerType: "WALK_IN",
+    saleType: "QUICK_SALE",
+    invoiceDate: "2026-04-01",
+    items: [{ productId: product.id, quantityPieces: 1, actualSalePrice: 50 }],
+    paidAmount: 50,
+    paymentMethod: "CASH",
+  });
+  assert.equal(blockedQuickSale.status, 403);
+
+  const regularSale = await limitedTenant.agent.post("/api/sales-invoices").send({
+    customerType: "WALK_IN",
+    saleType: "RETAIL",
+    invoiceDate: "2026-04-01",
+    items: [{ productId: product.id, quantityPieces: 1, actualSalePrice: 50 }],
+    paidAmount: 50,
+    paymentMethod: "CASH",
+  });
+  assert.equal(regularSale.status, 201);
+  assert.equal(regularSale.body.invoice.saleType, "RETAIL");
 
   await cleanupTenant(databaseManager, limitedTenant.tenantId);
 });

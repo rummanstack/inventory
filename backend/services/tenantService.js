@@ -90,6 +90,17 @@ const FEATURE_ALIASES = new Map([
   ["salary-structure", "payroll"],
 ]);
 
+export const FEATURE_DEPENDENCIES = {
+  "retailer-quick-sale": ["products", "retailer-cash-sessions"],
+  "retailer-sales-return": ["retailer-sales-invoices"],
+  "installment-sales": ["products", "retail-customers", "retailer-sales-invoices"],
+  "product-serials": ["products"],
+  "purchase-returns": ["purchase-receive"],
+  "supplier-discounts": ["supplier-payments"],
+  "warranty-claims": ["product-serials"],
+  "repair-jobs": ["product-serials"],
+};
+
 function normalizeTenantFeature(feature) {
   return FEATURE_ALIASES.get(feature) || feature;
 }
@@ -122,7 +133,7 @@ export class TenantService {
 
   async createTenant({ name, slug, email, plan = "starter", address, logoUrl, taxRate = 0, loyaltyEnabled = false, loyaltyPointsPer100 = 1, loyaltyPointValue = 1, businessType, sellerType }, actor) {
     assert(name && slug && email, "name, slug and email are required", 400);
-    return this.databaseManager.withTransaction(async (client) => {
+    const result = await this.databaseManager.withTransaction(async (client) => {
       const existing = await findTenantBySlug(client, slug);
       assert(!existing, "Organization code already in use", 409);
       const tenant = {
@@ -144,7 +155,6 @@ export class TenantService {
       const created = await insertTenant(client, tenant);
       const defaultFeatures = defaultFeaturesForBusinessType(created.businessType);
       await replaceTenantFeatures(client, created.id, defaultFeatures);
-      setCachedFeatures(created.id, defaultFeatures);
       await logActivity(this.auditService, client, actor, {
         actionType: TENANT_ACTIONS.CREATE,
         entityType: "tenant",
@@ -166,8 +176,14 @@ export class TenantService {
           sellerType: created.sellerType,
         },
       });
-      return created;
+      return { created, defaultFeatures };
     });
+
+    // Access caches must only reflect committed state. Updating the cache from
+    // inside the transaction can briefly expose features for a tenant whose
+    // insert is later rolled back by the audit write or commit itself.
+    setCachedFeatures(result.created.id, result.defaultFeatures);
+    return result.created;
   }
 
   async updateTenant(tenantId, fields, actor) {
@@ -271,16 +287,22 @@ export class TenantService {
     const cleanFeatures = normalizeTenantFeatures(features);
     for (const feature of cleanFeatures) {
       assert(TENANT_FEATURES.includes(feature), `Unknown feature: ${feature}`, 400);
+      const missingDependencies = (FEATURE_DEPENDENCIES[feature] || []).filter(
+        (dependency) => !cleanFeatures.includes(dependency),
+      );
+      assert(
+        missingDependencies.length === 0,
+        `Feature ${feature} requires: ${missingDependencies.join(", ")}`,
+        400,
+      );
     }
 
-    const client = await this.databaseManager.getPool().connect();
-    try {
+    const savedFeatures = await this.databaseManager.withTransaction(async (client) => {
       const existing = await findTenantById(client, tenantId);
       assert(existing, "Organization not found", 404);
       const configured = await hasTenantFeatureConfig(client, tenantId);
       const previousFeatures = configured ? normalizeTenantFeatures(await listTenantFeatures(client, tenantId)) : [...TENANT_FEATURES];
       await replaceTenantFeatures(client, tenantId, cleanFeatures);
-      setCachedFeatures(tenantId, cleanFeatures);
       await logActivity(this.auditService, client, actor, {
         actionType: TENANT_ACTIONS.FEATURES_UPDATE,
         entityType: "tenant",
@@ -291,8 +313,11 @@ export class TenantService {
         metadata: { name: existing.name, featureCount: cleanFeatures.length },
       });
       return cleanFeatures;
-    } finally {
-      client.release();
-    }
+    });
+
+    // Publish the new feature set only after the replacement and its audit
+    // record have committed together.
+    setCachedFeatures(tenantId, savedFeatures);
+    return savedFeatures;
   }
 }

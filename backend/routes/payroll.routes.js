@@ -1,10 +1,17 @@
 import { Router } from "express";
-import { requirePermission } from "../middleware/requireRole.js";
+import { requireAnyPermission, requirePermission } from "../middleware/requireRole.js";
 import { requireFeature } from "../middleware/requireFeature.js";
 import { PERMISSIONS } from "../lib/permissions.js";
 
 export function createPayrollRoutes(payrollController) {
   const router = Router();
+
+  router.get(
+    "/register",
+    requireFeature(["payroll", "hr-reports"]),
+    requireAnyPermission(PERMISSIONS.VIEW_PAYROLL, PERMISSIONS.HR_REPORTS),
+    payrollController.register,
+  );
 
   router.use(requireFeature("payroll"));
 
@@ -16,7 +23,6 @@ export function createPayrollRoutes(payrollController) {
   router.post("/runs/:id/approve", requirePermission(PERMISSIONS.APPROVE_PAYROLL), payrollController.approve);
   router.post("/runs/:id/pay", requirePermission(PERMISSIONS.APPROVE_PAYROLL), payrollController.pay);
   router.get("/runs/:id/payslips/:employeeId", requirePermission(PERMISSIONS.VIEW_PAYROLL), payrollController.payslip);
-  router.get("/register", requirePermission(PERMISSIONS.VIEW_PAYROLL), payrollController.register);
 
   return router;
 }

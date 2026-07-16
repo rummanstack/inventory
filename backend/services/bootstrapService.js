@@ -32,13 +32,14 @@ export async function initializeDatabase(databaseManager, env) {
 
     try {
       await client.query("BEGIN");
-      await client.query("SELECT pg_advisory_lock($1)", [824928173]);
+      // Transaction-scoped locking is released automatically on both COMMIT
+      // and ROLLBACK, so a failed migration cannot poison a pooled session.
+      await client.query("SELECT pg_advisory_xact_lock($1)", [824928173]);
 
       await createSchema(client);
 
       await seedSystemDeveloperIfEmpty(client, env);
 
-      await client.query("SELECT pg_advisory_unlock($1)", [824928173]);
       await client.query("COMMIT");
       break;
     } catch (error) {

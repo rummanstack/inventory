@@ -15,7 +15,12 @@ export function createExpensesRoutes(expenseController) {
   router.patch("/:id", requirePermission(PERMISSIONS.MANAGE_EXPENSES), expenseController.update);
   router.delete("/:id", requirePermission(PERMISSIONS.MANAGE_EXPENSES), expenseController.remove);
   router.post("/:id/restore", requirePermission(PERMISSIONS.MANAGE_EXPENSES), expenseController.restore);
-  router.delete("/:id/permanent", requirePermission(PERMISSIONS.PERMANENT_DELETE), expenseController.permanentlyDelete);
+  router.delete(
+    "/:id/permanent",
+    requirePermission(PERMISSIONS.PERMANENT_DELETE),
+    requirePermission(PERMISSIONS.MANAGE_EXPENSES),
+    expenseController.permanentlyDelete,
+  );
 
   return router;
 }

@@ -3,6 +3,10 @@ import { refreshAccessCachesIfStale } from "./accessCacheRefresh.js";
 const cache = new Map();
 
 export const GLOBAL_SCOPE = "global";
+// A persisted marker distinguishes an intentionally empty role configuration
+// from a role that has never been configured and should inherit GLOBAL_SCOPE.
+// It is an implementation detail and must never be exposed as a permission.
+export const EMPTY_PERMISSION_SENTINEL = "__none__";
 
 // Every role, including super_admin, is scoped per-tenant now — a tenant
 // with no explicit override falls through to the GLOBAL_SCOPE bucket (used
@@ -41,7 +45,9 @@ export async function loadPermissionCache(pool) {
     if (!grouped.has(key)) {
       grouped.set(key, []);
     }
-    grouped.get(key).push(row.permission);
+    if (row.permission !== EMPTY_PERMISSION_SENTINEL) {
+      grouped.get(key).push(row.permission);
+    }
   }
 
   cache.clear();

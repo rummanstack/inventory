@@ -2,6 +2,8 @@ import { readCookie } from "../lib/cookies.js";
 import { findTenantById } from "../repositories/tenantRepository.js";
 import { getSessionActiveTenantId, setSessionActiveTenantId } from "../repositories/userRepository.js";
 import { hashSessionToken } from "../lib/sessionTokens.js";
+import { setCachedPermissions } from "../lib/permissionCache.js";
+import { setCachedFeatures } from "../lib/tenantFeatureCache.js";
 
 function readBearerToken(req) {
   const header = req.headers.authorization || "";
@@ -63,6 +65,16 @@ export function requireAuth(authService, env, auditService) {
 
       req.currentUser = result.user;
       req.currentTenant = result.tenant;
+      req.currentPermissions = result.permissions || [];
+      req.currentFeatures = result.features || [];
+
+      // Refresh the handling instance from the authoritative database snapshot
+      // loaded with this session. Revocations therefore take effect on the very
+      // next request, including inside services that use the synchronous cache.
+      if (result.user.tenantId) {
+        setCachedPermissions(result.user.role, result.user.tenantId, req.currentPermissions);
+        setCachedFeatures(result.user.tenantId, req.currentFeatures);
+      }
 
       const isPlatformUser = !result.user.tenantId;
       req.currentUser.isPlatformUser = isPlatformUser;

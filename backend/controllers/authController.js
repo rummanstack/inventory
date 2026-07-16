@@ -29,20 +29,22 @@ export class AuthController {
     this.tenantService = tenantService;
   }
 
-  async withFeatures(tenant) {
+  async withFeatures(tenant, knownFeatures) {
     if (!tenant) return tenant;
-    const features = await this.tenantService.getTenantFeatures(tenant.id);
+    const features = Array.isArray(knownFeatures)
+      ? knownFeatures
+      : await this.tenantService.getTenantFeatures(tenant.id);
     return { ...tenant, features };
   }
 
   login = async (req, res, next) => {
     try {
-      const { token, user, tenant } = await this.authService.login(req.body, {
+      const { token, user, tenant, permissions, features } = await this.authService.login(req.body, {
         ip: req.ip,
         userAgent: req.headers["user-agent"] || "",
       });
       res.cookie(this.env.SESSION_COOKIE_NAME, token, createCookieOptions(this.env));
-      res.json({ user, tenant: await this.withFeatures(tenant), permissions: getRolePermissions(user.role, user.tenantId) });
+      res.json({ user, tenant: await this.withFeatures(tenant, features), permissions });
     } catch (error) {
       next(error);
     }
@@ -114,8 +116,11 @@ export class AuthController {
     try {
       res.json({
         user: req.currentUser,
-        tenant: await this.withFeatures(req.currentTenant),
-        permissions: getRolePermissions(req.currentUser.role, req.currentUser.tenantId),
+        tenant: await this.withFeatures(
+          req.currentTenant,
+          req.currentUser.isPlatformUser ? undefined : req.currentFeatures,
+        ),
+        permissions: req.currentPermissions || getRolePermissions(req.currentUser.role, req.currentUser.tenantId),
       });
     } catch (error) {
       next(error);

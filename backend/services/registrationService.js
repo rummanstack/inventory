@@ -7,10 +7,14 @@ import { USER_ROLES } from "../lib/roles.js";
 import { BUSINESS_TYPES, BUSINESS_TYPE_VALUES, SELLER_TYPES, SELLER_TYPE_VALUES } from "../lib/businessTypes.js";
 import { TENANT_ACTIONS } from "../lib/auditActions.js";
 import { setCachedFeatures } from "../lib/tenantFeatureCache.js";
+import { setCachedPermissions } from "../lib/permissionCache.js";
+import { TENANT_BUSINESS_PERMISSIONS } from "../lib/permissions.js";
 import { findTenantById, findTenantBySlug, insertTenant, listRegistrationTenants, setTenantStatus } from "../repositories/tenantRepository.js";
 import { replaceTenantFeatures } from "../repositories/tenantFeatureRepository.js";
+import { replaceRolePermissions } from "../repositories/rolePermissionRepository.js";
 import { findUserByEmail, insertUser } from "../repositories/userRepository.js";
 import { defaultFeaturesForBusinessType } from "./tenantService.js";
+import { permissionMatchesEnabledFeatures } from "./permissionService.js";
 import { logActivity } from "./shared/inventoryHelpers.js";
 
 function slugify(name) {
@@ -62,7 +66,7 @@ export class RegistrationService {
 
     const passwordHash = await hashPassword(password);
 
-    return this.databaseManager.withTransaction(async (client) => {
+    const result = await this.databaseManager.withTransaction(async (client) => {
       const existingUser = await findUserByEmail(client, email);
       assert(!existingUser, "An account with this email already exists.", 409);
 
@@ -86,7 +90,6 @@ export class RegistrationService {
 
       const defaultFeatures = defaultFeaturesForBusinessType(tenant.businessType);
       await replaceTenantFeatures(client, tenant.id, defaultFeatures);
-      setCachedFeatures(tenant.id, defaultFeatures);
 
       const owner = {
         id: createId("user"),
@@ -98,6 +101,15 @@ export class RegistrationService {
         tenantId: tenant.id,
       };
       await insertUser(client, owner);
+
+      // A self-registration must become usable as soon as the platform
+      // approves it. Seed its owner with the complete permission ceiling for
+      // the features included in this tenant's plan; feature middleware still
+      // remains an independent runtime gate.
+      const ownerPermissions = TENANT_BUSINESS_PERMISSIONS.filter((permission) =>
+        permissionMatchesEnabledFeatures(permission, defaultFeatures),
+      );
+      await replaceRolePermissions(client, USER_ROLES.SUPER_ADMIN, tenant.id, ownerPermissions);
 
       await logActivity(this.auditService, client, { ...owner, tenantId: tenant.id }, {
         actionType: TENANT_ACTIONS.REGISTER,
@@ -114,8 +126,18 @@ export class RegistrationService {
         after: { name: tenant.name, slug: tenant.slug, status: tenant.status },
       });
 
-      return { id: tenant.id, name: tenant.name, slug: tenant.slug, status: tenant.status };
+      return {
+        response: { id: tenant.id, name: tenant.name, slug: tenant.slug, status: tenant.status },
+        tenantId: tenant.id,
+        defaultFeatures,
+        ownerPermissions,
+      };
     });
+
+    // Do not publish uncommitted access data if a later write or COMMIT fails.
+    setCachedFeatures(result.tenantId, result.defaultFeatures);
+    setCachedPermissions(USER_ROLES.SUPER_ADMIN, result.tenantId, result.ownerPermissions);
+    return result.response;
   }
 
   async listRegistrations() {

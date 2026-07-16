@@ -1,10 +1,11 @@
 import { Suspense, lazy, useEffect } from 'react';
 import { BrowserRouter, Navigate, Route, Routes, useLocation, useSearchParams } from 'react-router-dom';
 import { Toaster } from 'sonner';
-import { APP_ROUTES } from './routes';
+import { ShieldAlert } from 'lucide-react';
+import { APP_ROUTES, canAccessRoute, getFirstAccessibleRoute } from './routes';
 import { ErrorBoundary } from './ErrorBoundary.jsx';
 import { InventoryAppProvider, useInventoryApp } from './useInventoryApp.jsx';
-import { LoadingState } from '../components/ui/Feedback.jsx';
+import { EmptyState, LoadingState } from '../components/ui/Feedback.jsx';
 import { stockLedgerLogoHorizontal, stockLedgerLogoIcon } from '../assets/brandAssets.js';
 import SeoManager from '../seo/SeoManager.jsx';
 import { PUBLIC_MARKETING_PATHS } from '../seo/publicRoutePaths.js';
@@ -55,12 +56,27 @@ function SessionLoadingScreen() {
   );
 }
 
-function getDefaultRoute(user) {
-  return user?.role === 'system_developer' ? '/platform' : '/dashboard';
+function getDefaultRoute(access) {
+  const route = getFirstAccessibleRoute(access);
+  return route ? route.path : '';
+}
+
+function NoAccessibleRoute() {
+  const { t } = useInventoryApp();
+  return (
+    <div className={'mx-auto flex min-h-[60vh] max-w-xl items-center justify-center p-6'}>
+      <EmptyState
+        title={t('permissions.noAccessibleTitle')}
+        description={t('permissions.noAccessibleDescription')}
+        icon={ShieldAlert}
+      />
+    </div>
+  );
 }
 
 function PublicOnlyRoute({ children }) {
-  const { authLoading, user } = useInventoryApp();
+  const access = useInventoryApp();
+  const { authLoading, user } = access;
   const [searchParams] = useSearchParams();
 
   if (authLoading) {
@@ -68,7 +84,8 @@ function PublicOnlyRoute({ children }) {
   }
 
   if (user && !searchParams.has('token')) {
-    return <Navigate to={getDefaultRoute(user)} replace />;
+    const defaultRoute = getDefaultRoute(access);
+    return defaultRoute ? <Navigate to={defaultRoute} replace /> : <NoAccessibleRoute />;
   }
 
   return children;
@@ -89,18 +106,23 @@ function ProtectedLayout() {
 }
 
 function RootRedirect() {
-  const { authLoading, user } = useInventoryApp();
+  const access = useInventoryApp();
+  const { authLoading, user } = access;
 
   if (authLoading) {
     return <SessionLoadingScreen />;
   }
 
-  return <Navigate to={user ? getDefaultRoute(user) : '/landing'} replace />;
+  if (!user) return <Navigate to="/landing" replace />;
+
+  const defaultRoute = getDefaultRoute(access);
+  return defaultRoute ? <Navigate to={defaultRoute} replace /> : <NoAccessibleRoute />;
 }
 
 function GuardedAppRoute({ route }) {
-  const { authLoading, user, can, hasFeature } = useInventoryApp();
-  const defaultRoute = getDefaultRoute(user);
+  const access = useInventoryApp();
+  const { authLoading, user } = access;
+  const defaultRoute = getDefaultRoute(access);
 
   if (authLoading) {
     return <SessionLoadingScreen />;
@@ -111,15 +133,12 @@ function GuardedAppRoute({ route }) {
   }
 
   const RouteComponent = route.component;
-  const blocked = user?.role !== 'system_developer' && (
-    (route.permission && !can(route.permission)) ||
-    (route.role && user?.role !== route.role) ||
-    (route.roles && !route.roles.includes(user?.role)) ||
-    !hasFeature(route.feature)
-  );
+  const blocked = !canAccessRoute(route, access);
 
   if (blocked) {
-    return <Navigate to={defaultRoute} replace />;
+    return defaultRoute && defaultRoute !== route.path
+      ? <Navigate to={defaultRoute} replace />
+      : <NoAccessibleRoute />;
   }
 
   return (
@@ -130,7 +149,8 @@ function GuardedAppRoute({ route }) {
 }
 
 function AppFallbackRedirect() {
-  const { authLoading, user } = useInventoryApp();
+  const access = useInventoryApp();
+  const { authLoading, user } = access;
   const location = useLocation();
 
   if (authLoading) {
@@ -138,7 +158,8 @@ function AppFallbackRedirect() {
   }
 
   if (user) {
-    return <Navigate to={getDefaultRoute(user)} replace />;
+    const defaultRoute = getDefaultRoute(access);
+    return defaultRoute ? <Navigate to={defaultRoute} replace /> : <NoAccessibleRoute />;
   }
 
   return <Navigate to={location.pathname.startsWith('/bn') ? '/bn/landing' : '/landing'} replace />;

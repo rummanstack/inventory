@@ -32,7 +32,12 @@ export function createSuppliersRoutes(supplierController) {
   router.put("/:id", requirePermission(PERMISSIONS.MANAGE_SUPPLIERS), supplierController.update);
   router.delete("/:id", requirePermission(PERMISSIONS.MANAGE_SUPPLIERS), supplierController.remove);
   router.post("/:id/restore", requirePermission(PERMISSIONS.MANAGE_SUPPLIERS), supplierController.restore);
-  router.delete("/:id/permanent", requirePermission(PERMISSIONS.PERMANENT_DELETE), supplierController.permanentlyDelete);
+  router.delete(
+    "/:id/permanent",
+    requirePermission(PERMISSIONS.PERMANENT_DELETE),
+    requirePermission(PERMISSIONS.MANAGE_SUPPLIERS),
+    supplierController.permanentlyDelete,
+  );
 
   return router;
 }

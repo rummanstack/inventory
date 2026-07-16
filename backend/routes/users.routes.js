@@ -16,7 +16,12 @@ export function createUsersRoutes(userController) {
   router.post("/:id/reset-password", requirePermission(PERMISSIONS.MANAGE_USERS), userController.resetPassword);
   router.post("/:id/unlock", requirePermission(PERMISSIONS.MANAGE_USERS), userController.unlock);
   router.post("/:id/restore", requirePermission(PERMISSIONS.MANAGE_USERS), userController.restore);
-  router.delete("/:id/permanent", requirePermission(PERMISSIONS.PERMANENT_DELETE), userController.permanentlyDelete);
+  router.delete(
+    "/:id/permanent",
+    requirePermission(PERMISSIONS.PERMANENT_DELETE),
+    requirePermission(PERMISSIONS.MANAGE_USERS),
+    userController.permanentlyDelete,
+  );
 
   return router;
 }

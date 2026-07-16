@@ -6,8 +6,9 @@ import { PERMISSIONS } from "../lib/permissions.js";
 export function createSupplierPaymentsRoutes(supplierPaymentController) {
   const router = Router();
 
-  router.get("/trash", requirePermission(PERMISSIONS.MANAGE_SUPPLIER_PAYMENTS), supplierPaymentController.listTrash);
   router.get("/reports", requireFeature("supplier-payment-report"), requirePermission(PERMISSIONS.MANAGE_SUPPLIER_PAYMENTS), supplierPaymentController.supplierPaymentReport);
+  router.use(requireFeature("supplier-payments"));
+  router.get("/trash", requirePermission(PERMISSIONS.MANAGE_SUPPLIER_PAYMENTS), supplierPaymentController.listTrash);
   router.get("/", requirePermission(PERMISSIONS.VIEW_SUPPLIER_PAYMENTS), supplierPaymentController.list);
   router.get("/:id", requirePermission(PERMISSIONS.VIEW_SUPPLIER_PAYMENTS), supplierPaymentController.get);
   router.post("/", requirePermission(PERMISSIONS.MANAGE_SUPPLIER_PAYMENTS), supplierPaymentController.create);

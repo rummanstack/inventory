@@ -6,19 +6,13 @@ import PasswordInput from '../../../components/PasswordInput.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import { useFormState } from '../../../hooks/useFormState';
-
-const ROLE_OPTIONS_BY_ACTOR = {
-  system_developer: ['super_admin', 'admin', 'manager', 'operator'],
-  super_admin: ['super_admin', 'admin', 'manager', 'operator'],
-};
-
-const DEFAULT_ROLE_OPTIONS = ['admin', 'manager', 'operator'];
+import { getAssignableRoles } from '../userRoleHierarchy.js';
 
 export default function UserFormModal({ user, onClose, onSave }) {
   const { t, user: actor, pushToast } = useInventoryApp();
   const isEdit = Boolean(user);
   const needsTenant = actor?.role === 'system_developer' && !isEdit;
-  const roleOptions = ROLE_OPTIONS_BY_ACTOR[actor?.role] || DEFAULT_ROLE_OPTIONS;
+  const roleOptions = getAssignableRoles(actor?.role);
   const { form, setForm, updateField, error, setError, saving, setSaving } = useFormState({
     name: user?.name || '',
     email: user?.email || '',

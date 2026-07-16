@@ -32,7 +32,13 @@ export function createRetailCustomersRoutes(retailCustomerController) {
   router.put("/:id", requireFeature("retail-customers"), requirePermission(PERMISSIONS.MANAGE_RETAIL_CUSTOMERS_WRITE), retailCustomerController.update);
   router.delete("/:id", requireFeature("retail-customers"), requirePermission(PERMISSIONS.MANAGE_RETAIL_CUSTOMERS_WRITE), retailCustomerController.remove);
   router.post("/:id/restore", requireFeature("retail-customers"), requirePermission(PERMISSIONS.MANAGE_RETAIL_CUSTOMERS_WRITE), retailCustomerController.restore);
-  router.delete("/:id/permanent", requireFeature("retail-customers"), requirePermission(PERMISSIONS.PERMANENT_DELETE), retailCustomerController.permanentlyDelete);
+  router.delete(
+    "/:id/permanent",
+    requireFeature("retail-customers"),
+    requirePermission(PERMISSIONS.PERMANENT_DELETE),
+    requirePermission(PERMISSIONS.MANAGE_RETAIL_CUSTOMERS_WRITE),
+    retailCustomerController.permanentlyDelete,
+  );
 
   return router;
 }

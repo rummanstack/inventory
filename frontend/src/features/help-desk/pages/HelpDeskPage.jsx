@@ -248,7 +248,8 @@ function HelpDeskTicketRow({ ticket, active, onSelect, t, language }) {
 }
 
 export default function HelpDeskPage() {
-  const { t, tenant, user, language, pushToast } = useInventoryApp();
+  const { t, tenant, user, language, pushToast, can } = useInventoryApp();
+  const canManage = can('manage_help_desk');
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
@@ -367,6 +368,7 @@ export default function HelpDeskPage() {
   }, [selectedTicket, filteredTickets]);
 
   async function createOrUpdateTicket(payload) {
+    if (!canManage) return { ok: false, message: t('alerts.forbidden') };
     try {
       const request = editingTicket
         ? inventoryApi.updateHelpDeskTicket({ ...editingTicket, ...payload })
@@ -389,6 +391,7 @@ export default function HelpDeskPage() {
   }
 
   async function addNote(ticketId) {
+    if (!canManage) return;
     const body = draftNote.trim();
     if (!body) {
       return;
@@ -410,6 +413,7 @@ export default function HelpDeskPage() {
   }
 
   async function transitionTicket(ticketId, nextStatus, options = {}) {
+    if (!canManage) return;
     try {
       const result = await inventoryApi.transitionHelpDeskTicket(ticketId, {
         status: nextStatus,
@@ -435,11 +439,13 @@ export default function HelpDeskPage() {
   }
 
   function openNewTicket() {
+    if (!canManage) return;
     setEditingTicket(null);
     setEditorOpen(true);
   }
 
   function openEditTicket(ticket) {
+    if (!canManage) return;
     setEditingTicket(ticket);
     setEditorOpen(true);
   }
@@ -484,10 +490,12 @@ export default function HelpDeskPage() {
         description={t('helpDesk.description')}
         action={(
           <div className="flex flex-wrap gap-2">
-            <button type="button" className="btn-secondary" onClick={openNewTicket}>
-              <MessageSquarePlus size={16} />
-              {t('helpDesk.newTicket')}
-            </button>
+            {canManage ? (
+              <button type="button" className="btn-secondary" onClick={openNewTicket}>
+                <MessageSquarePlus size={16} />
+                {t('helpDesk.newTicket')}
+              </button>
+            ) : null}
             <button type="button" className="btn-secondary" onClick={refreshTickets}>
               <RefreshCw size={16} />
               {t('helpDesk.reload')}
@@ -630,9 +638,11 @@ export default function HelpDeskPage() {
                               <h3 className="mt-3 text-lg font-semibold text-slate-950">{selectedTicket.subject}</h3>
                               <p className="mt-1 text-sm text-slate-600">{selectedTicket.ticketNumber}</p>
                             </div>
-                            <button type="button" className="btn-secondary h-9 px-3" onClick={() => openEditTicket(selectedTicket)}>
-                              {t('helpDesk.editTicket')}
-                            </button>
+                            {canManage ? (
+                              <button type="button" className="btn-secondary h-9 px-3" onClick={() => openEditTicket(selectedTicket)}>
+                                {t('helpDesk.editTicket')}
+                              </button>
+                            ) : null}
                           </div>
 
                           <div className="mt-4 grid gap-3 text-sm">
@@ -659,7 +669,8 @@ export default function HelpDeskPage() {
                             <p className="mt-2 text-sm text-slate-700">{selectedTicket.description || '-'}</p>
                           </div>
 
-                          <div className="mt-4 flex flex-wrap gap-2">
+                          {canManage ? (
+                            <div className="mt-4 flex flex-wrap gap-2">
                             {!(selectedTicket.status === 'IN_PROGRESS' && selectedTicket.assigneeId === user?.id) ? (
                               <button type="button" className="btn-secondary h-9 px-3" onClick={() => transitionTicket(selectedTicket.id, 'IN_PROGRESS', { assigneeId: user?.id || '', assigneeName: user?.name || t('helpDesk.systemUser'), note: t('helpDesk.notes.assignedToMe') })}>
                                 {t('helpDesk.assignToMe')}
@@ -695,7 +706,8 @@ export default function HelpDeskPage() {
                                 {t('helpDesk.escalate')}
                               </button>
                             ) : null}
-                          </div>
+                            </div>
+                          ) : null}
                         </div>
 
                         <div className="rounded-card border border-slate-200 bg-white p-4">
@@ -723,19 +735,21 @@ export default function HelpDeskPage() {
                               </div>
                             ))}
                           </div>
-                          <div className="mt-3">
-                            <textarea
-                              className="input min-h-[92px] resize-y"
-                              value={draftNote}
-                              onChange={(event) => setDraftNote(event.target.value)}
-                              placeholder={t('helpDesk.addNotePlaceholder')}
-                            />
-                            <div className="mt-2 flex justify-end">
-                              <button type="button" className="btn-secondary" onClick={() => addNote(selectedTicket.id)}>
-                                {t('helpDesk.addNote')}
-                              </button>
+                          {canManage ? (
+                            <div className="mt-3">
+                              <textarea
+                                className="input min-h-[92px] resize-y"
+                                value={draftNote}
+                                onChange={(event) => setDraftNote(event.target.value)}
+                                placeholder={t('helpDesk.addNotePlaceholder')}
+                              />
+                              <div className="mt-2 flex justify-end">
+                                <button type="button" className="btn-secondary" onClick={() => addNote(selectedTicket.id)}>
+                                  {t('helpDesk.addNote')}
+                                </button>
+                              </div>
                             </div>
-                          </div>
+                          ) : null}
                         </div>
                       </div>
                     ) : (
@@ -786,10 +800,12 @@ export default function HelpDeskPage() {
               <div className="border-t border-slate-100 px-5 py-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <p className="text-sm font-semibold text-slate-500">{t('helpDesk.quickActionHint')}</p>
-                  <button type="button" className="btn-secondary h-9 px-3" onClick={openNewTicket}>
-                    <ArrowRight size={16} />
-                    {t('helpDesk.newTicket')}
-                  </button>
+                  {canManage ? (
+                    <button type="button" className="btn-secondary h-9 px-3" onClick={openNewTicket}>
+                      <ArrowRight size={16} />
+                      {t('helpDesk.newTicket')}
+                    </button>
+                  ) : null}
                 </div>
               </div>
             </div>
@@ -797,7 +813,7 @@ export default function HelpDeskPage() {
         </>
       )}
 
-      {editorOpen ? (
+      {canManage && editorOpen ? (
         <TicketEditorModal
           ticket={editingTicket}
           onClose={() => {
@@ -810,4 +826,3 @@ export default function HelpDeskPage() {
     </div>
   );
 }
-

@@ -10,8 +10,10 @@ export function requireFeature(featureKey) {
       return next();
     }
 
-    const cached = getCachedFeatures(req.currentUser?.tenantId);
-    const enabled = cached === null || featureKeys.some((key) => cached.includes(key));
+    const features = Array.isArray(req.currentFeatures)
+      ? req.currentFeatures
+      : getCachedFeatures(req.currentUser?.tenantId);
+    const enabled = features === null || featureKeys.some((key) => features.includes(key));
     assert(enabled, "This feature is not enabled for your organization.", 403);
     next();
   };

@@ -12,7 +12,12 @@ export function createTradePromotionRulesRoutes(tradePromotionRuleController) {
   router.get("/:id", requirePermission(PERMISSIONS.VIEW_TRADE_PROMOTIONS), tradePromotionRuleController.get);
   router.post("/", requirePermission(PERMISSIONS.MANAGE_TRADE_PROMOTION_RULES), tradePromotionRuleController.create);
   router.patch("/:id", requirePermission(PERMISSIONS.MANAGE_TRADE_PROMOTION_RULES), tradePromotionRuleController.update);
-  router.delete("/:id/permanent", requirePermission(PERMISSIONS.MANAGE_TRADE_PROMOTION_RULES), tradePromotionRuleController.permanentlyDelete);
+  router.delete(
+    "/:id/permanent",
+    requirePermission(PERMISSIONS.PERMANENT_DELETE),
+    requirePermission(PERMISSIONS.MANAGE_TRADE_PROMOTION_RULES),
+    tradePromotionRuleController.permanentlyDelete,
+  );
   router.delete("/:id", requirePermission(PERMISSIONS.MANAGE_TRADE_PROMOTION_RULES), tradePromotionRuleController.remove);
   router.post("/:id/restore", requirePermission(PERMISSIONS.MANAGE_TRADE_PROMOTION_RULES), tradePromotionRuleController.restore);
 

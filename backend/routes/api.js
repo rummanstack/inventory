@@ -192,11 +192,15 @@ export function createApiRouter({ controllers, authService, env, auditService })
   // System developer routes - no tenant required, system_developer only
   router.use("/system", createSystemRoutes(systemController));
 
+  // A platform developer chooses the permission target with ?tenantId=... and
+  // does not need to switch the whole session into that organization first.
+  // Tenant users are still scoped and checked inside PermissionService.
+  router.use("/permissions", createPermissionsRoutes(permissionController));
+
   // All business routes require an active tenant subscription
   router.use(requireActiveTenant);
 
   router.use("/org", createOrgRoutes(orgController));
-  router.use("/permissions", createPermissionsRoutes(permissionController));
   router.use("/users", createUsersRoutes(userController));
   router.use("/activity-logs", createActivityLogsRoutes(activityLogController));
   router.use("/audit", createAuditRoutes(auditController));
@@ -261,7 +265,6 @@ export function createApiRouter({ controllers, authService, env, auditService })
 
   return router;
 }
-
 
 
 

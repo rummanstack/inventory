@@ -1,4 +1,4 @@
-import { GLOBAL_SCOPE } from "../lib/permissionCache.js";
+import { EMPTY_PERMISSION_SENTINEL, GLOBAL_SCOPE } from "../lib/permissionCache.js";
 
 function scopeFor(tenantId) {
   return tenantId || GLOBAL_SCOPE;
@@ -10,14 +10,17 @@ export async function listRolePermissions(client, role, tenantId) {
     role,
     scope,
   ]);
-  return result.rows.map((row) => row.permission);
+  return result.rows
+    .map((row) => row.permission)
+    .filter((permission) => permission !== EMPTY_PERMISSION_SENTINEL);
 }
 
 export async function replaceRolePermissions(client, role, tenantId, permissions) {
   const scope = scopeFor(tenantId);
   await client.query("DELETE FROM role_permissions WHERE role = $1 AND tenant_id = $2", [role, scope]);
 
-  for (const permission of permissions) {
+  const storedPermissions = permissions.length > 0 ? permissions : [EMPTY_PERMISSION_SENTINEL];
+  for (const permission of storedPermissions) {
     await client.query("INSERT INTO role_permissions (role, tenant_id, permission) VALUES ($1, $2, $3)", [
       role,
       scope,
@@ -32,7 +35,7 @@ export async function replaceRolePermissions(client, role, tenantId, permissions
 // inherited permissions — and saving from that view wipes them.
 export async function listEffectiveRolePermissions(client, role, tenantId) {
   const scoped = await listRolePermissions(client, role, tenantId);
-  if (scoped.length > 0 || scopeFor(tenantId) === GLOBAL_SCOPE) {
+  if ((await hasAnyRolePermissions(client, role, tenantId)) || scopeFor(tenantId) === GLOBAL_SCOPE) {
     return scoped;
   }
   return listRolePermissions(client, role, null);

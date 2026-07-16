@@ -43,7 +43,12 @@ export function createProductsRoutes(productController) {
   router.post("/:id/opening-stock", requirePermission(PERMISSIONS.MANAGE_PRODUCTS), productController.setOpeningStock);
   router.post("/:id/clear-damage", requireFeature("damaged-stock"), requirePermission(PERMISSIONS.MANAGE_PRODUCTS), productController.clearDamage);
   router.post("/:id/restore", requirePermission(PERMISSIONS.MANAGE_PRODUCTS), productController.restore);
-  router.delete("/:id/permanent", requirePermission(PERMISSIONS.PERMANENT_DELETE), productController.permanentlyDelete);
+  router.delete(
+    "/:id/permanent",
+    requirePermission(PERMISSIONS.PERMANENT_DELETE),
+    requirePermission(PERMISSIONS.MANAGE_PRODUCTS),
+    productController.permanentlyDelete,
+  );
 
   return router;
 }

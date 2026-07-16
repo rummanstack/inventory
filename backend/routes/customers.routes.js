@@ -25,7 +25,12 @@ export function createCustomersRoutes(customerController) {
   router.put("/:id", requirePermission(PERMISSIONS.MANAGE_CUSTOMERS), customerController.update);
   router.delete("/:id", requirePermission(PERMISSIONS.MANAGE_CUSTOMERS), customerController.remove);
   router.post("/:id/restore", requirePermission(PERMISSIONS.MANAGE_CUSTOMERS), customerController.restore);
-  router.delete("/:id/permanent", requirePermission(PERMISSIONS.PERMANENT_DELETE), customerController.permanentlyDelete);
+  router.delete(
+    "/:id/permanent",
+    requirePermission(PERMISSIONS.PERMANENT_DELETE),
+    requirePermission(PERMISSIONS.MANAGE_CUSTOMERS),
+    customerController.permanentlyDelete,
+  );
 
   return router;
 }

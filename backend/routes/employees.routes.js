@@ -1,5 +1,5 @@
 ﻿import { Router } from "express";
-import { requirePermission } from "../middleware/requireRole.js";
+import { requireAnyPermission, requirePermission } from "../middleware/requireRole.js";
 import { requireFeature } from "../middleware/requireFeature.js";
 import { uploadEmployeeDocumentMiddleware } from "../middleware/upload.js";
 import { PERMISSIONS } from "../lib/permissions.js";
@@ -7,10 +7,20 @@ import { PERMISSIONS } from "../lib/permissions.js";
 export function createEmployeesRoutes(employeeController) {
   const router = Router();
 
-  router.use(requireFeature("employees"));
+  router.get(
+    "/active",
+    requireFeature(["employees", "hr-reports"]),
+    requireAnyPermission(PERMISSIONS.VIEW_EMPLOYEES, PERMISSIONS.HR_REPORTS),
+    employeeController.listActive,
+  );
+  router.get(
+    "/",
+    requireFeature(["employees", "hr-reports"]),
+    requireAnyPermission(PERMISSIONS.VIEW_EMPLOYEES, PERMISSIONS.HR_REPORTS),
+    employeeController.list,
+  );
 
-  router.get("/active", requirePermission(PERMISSIONS.VIEW_EMPLOYEES), employeeController.listActive);
-  router.get("/", requirePermission(PERMISSIONS.VIEW_EMPLOYEES), employeeController.list);
+  router.use(requireFeature("employees"));
   router.get("/:id", requirePermission(PERMISSIONS.VIEW_EMPLOYEES), employeeController.get);
   router.post("/", requirePermission(PERMISSIONS.MANAGE_EMPLOYEES), employeeController.create);
   router.put("/:id", requirePermission(PERMISSIONS.MANAGE_EMPLOYEES), employeeController.update);

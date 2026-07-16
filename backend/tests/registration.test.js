@@ -127,6 +127,14 @@ test("approving activates the tenant and the owner can log in", async () => {
 
   const loginRes = await request(app).post("/api/auth/login").send({ email: ownerEmail, password: ownerPassword });
   assert.equal(loginRes.status, 200);
+  assert.ok(loginRes.body.permissions.length > 0, "approved owner receives a usable permission ceiling");
+  assert.ok(loginRes.body.permissions.includes("view_products"));
+
+  const ownerAgent = request.agent(app);
+  const ownerLogin = await ownerAgent.post("/api/auth/login").send({ email: ownerEmail, password: ownerPassword });
+  assert.equal(ownerLogin.status, 200);
+  const productsRes = await ownerAgent.get("/api/products");
+  assert.equal(productsRes.status, 200, "approved owner can use an enabled business module");
 
   const queueRes = await devAgent.get("/api/platform/registrations");
   assert.ok(!queueRes.body.items.some((row) => row.id === registeredTenantIds[0]), "approved tenant leaves the queue");

@@ -15,7 +15,12 @@ export function createSrsRoutes(srController) {
   router.put("/:id", requirePermission(PERMISSIONS.MANAGE_SRS), srController.update);
   router.delete("/:id", requirePermission(PERMISSIONS.MANAGE_SRS), srController.remove);
   router.post("/:id/restore", requirePermission(PERMISSIONS.MANAGE_SRS), srController.restore);
-  router.delete("/:id/permanent", requirePermission(PERMISSIONS.PERMANENT_DELETE), srController.permanentlyDelete);
+  router.delete(
+    "/:id/permanent",
+    requirePermission(PERMISSIONS.PERMANENT_DELETE),
+    requirePermission(PERMISSIONS.MANAGE_SRS),
+    srController.permanentlyDelete,
+  );
 
   return router;
 }

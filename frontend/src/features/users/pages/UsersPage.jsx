@@ -5,18 +5,14 @@ import TableReportActions from '../../../components/TableReportActions.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import UserFormModal from '../components/UserFormModal';
-
-const MANAGEABLE_ROLES = {
-  system_developer: ['super_admin', 'admin', 'manager', 'operator'],
-  super_admin: ['super_admin', 'admin', 'manager', 'operator'],
-};
+import { canManageUser, getAssignableRoles } from '../userRoleHierarchy.js';
 
 const USERS_REPORT_ID = 'users-report';
 
 export default function UsersPage() {
   const { t, user: actor, confirm, pushToast } = useInventoryApp();
   const isSystemDeveloper = actor?.role === 'system_developer';
-  const manageableRoles = MANAGEABLE_ROLES[actor?.role] || ['admin', 'manager', 'operator'];
+  const assignableRoles = getAssignableRoles(actor?.role);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -139,12 +135,12 @@ export default function UsersPage() {
         eyebrow={t('users.eyebrow')}
         title={t('users.title')}
         description={t('users.description')}
-        action={(
+        action={assignableRoles.length ? (
           <button type="button" className="btn-primary" onClick={() => setUserModal({ mode: 'add' })}>
             <Plus size={18} />
             {t('users.add')}
           </button>
-        )}
+        ) : null}
       />
 
       <div id={USERS_REPORT_ID} className="surface overflow-hidden">
@@ -200,7 +196,7 @@ export default function UsersPage() {
                     </td>
                     <td className="table-cell">
                       <div className="row-actions flex justify-end gap-2">
-                        {manageableRoles.includes(user.role) ? (
+                        {canManageUser(actor, user) ? (
                           <>
                             <button type="button" className="icon-btn" title={t('common.edit')} onClick={() => setUserModal({ mode: 'edit', user })}>
                               <Pencil size={16} />

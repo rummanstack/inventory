@@ -251,6 +251,9 @@ const en = {
       saved: 'Permissions saved.',
       selectTenant: 'Organization',
       selectTenantPlaceholder: 'Select an organization to configure',
+      unsavedTenantSwitch: 'You have unsaved permission changes. Switch organizations and discard them?',
+      noAccessibleTitle: 'No accessible pages',
+      noAccessibleDescription: 'Your role does not currently have access to an enabled page. Ask an administrator to review your permissions.',
       roles: {
         system_developer: 'System Developer',
         super_admin: 'Super Admin',
@@ -260,6 +263,8 @@ const en = {
       },
       items: {
         view_state: 'View Dashboard & Shared Pages',
+        view_help_desk: 'View Help Desk',
+        manage_help_desk: 'Manage Help Desk Tickets',
         view_products: 'View Products & Stock',
         manage_products: 'Manage Products',
         view_dsrs: 'View DSRs',

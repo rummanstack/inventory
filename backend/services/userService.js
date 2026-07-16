@@ -35,20 +35,19 @@ function normalizeName(name) {
 }
 
 function allowedRolesForActor(actorRole) {
-  if (actorRole === USER_ROLES.SYSTEM_DEVELOPER) {
-    return TENANT_ROLE_VALUES;
-  }
-
-  if (actorRole === USER_ROLES.SUPER_ADMIN) {
-    return TENANT_ROLE_VALUES;
-  }
-
-  return TENANT_ROLE_VALUES.filter((role) => role !== USER_ROLES.SUPER_ADMIN);
+  const hierarchy = {
+    [USER_ROLES.SYSTEM_DEVELOPER]: TENANT_ROLE_VALUES,
+    [USER_ROLES.SUPER_ADMIN]: [USER_ROLES.ADMIN, USER_ROLES.MANAGER, USER_ROLES.OPERATOR],
+    [USER_ROLES.ADMIN]: [USER_ROLES.MANAGER, USER_ROLES.OPERATOR],
+    [USER_ROLES.MANAGER]: [USER_ROLES.OPERATOR],
+    [USER_ROLES.OPERATOR]: [],
+  };
+  return hierarchy[actorRole] || [];
 }
 
 function normalizeRole(role, actor) {
   const value = String(role || "").trim();
-  assert(allowedRolesForActor(actor.role).includes(value), "Invalid role.");
+  assert(allowedRolesForActor(actor.role).includes(value), "You cannot assign that role.", 403);
   return value;
 }
 
@@ -147,6 +146,7 @@ export class UserService {
         assert(existingUser.tenant_id === actor.tenantId, "User not found.", 404);
       }
 
+      assert(existingUser.id !== actor.id, "Use your profile to update your own account.", 403);
       assert(allowedRolesForActor(actor.role).includes(existingUser.role), "Forbidden.", 403);
 
       const nextName = input.name === undefined ? existingUser.name : normalizeName(input.name);
@@ -283,7 +283,7 @@ export class UserService {
         assert(existingUser.tenant_id === actor.tenantId, "User not found.", 404);
       }
 
-      assert(existingUser.id !== actor.id, "You cannot delete your own account.");
+      assert(existingUser.id !== actor.id, "You cannot delete your own account.", 403);
       assert(allowedRolesForActor(actor.role).includes(existingUser.role), "Forbidden.", 403);
 
       const result = await softDeleteUser(client, userId, existingUser.tenant_id, {
@@ -388,6 +388,7 @@ export class UserService {
         assert(existingUser.tenant_id === actor.tenantId, "User not found.", 404);
       }
 
+      assert(existingUser.id !== actor.id, "Use your profile to change your own password.", 403);
       assert(allowedRolesForActor(actor.role).includes(existingUser.role), "Forbidden.", 403);
 
       tempPassword = generateTempPassword();

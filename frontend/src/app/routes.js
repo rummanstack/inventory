@@ -75,6 +75,8 @@ const JournalRegisterPage = lazy(() => import('../features/vouchers/pages/Journa
 const MorningIssuePage = lazy(() => import('../features/morning-issue/pages/MorningIssuePage'));
 const ProductsPage = lazy(() => import('../features/products/pages/ProductsPage'));
 const DailyReportsPage = lazy(() => import('../features/reports/pages/DailyReportsPage'));
+const HistoryPage = lazy(() => import('../features/history/pages/HistoryPage'));
+const BatchSalesReportPage = lazy(() => import('../features/pharmacy/pages/BatchSalesReportPage'));
 const EveningSettlementPage = lazy(() => import('../features/settlements/pages/EveningSettlementPage'));
 const DatabaseBackupPage = lazy(() => import('../features/database-backup/pages/DatabaseBackupPage'));
 const OrgSettingsPage = lazy(() => import('../features/settings/pages/OrgSettingsPage'));
@@ -235,6 +237,8 @@ export const APP_ROUTES = [
   // 9. Reports
   { id: 'retailer-daily-sales-report', path: '/retailer/daily-sales-report', labelKey: 'nav.retailerDailySalesReport', icon: FileText, component: DailySalesReportPage, group: 'reports', permission: 'manage_retail_daily_sales_report', feature: 'retailer-daily-sales-report' },
   { id: 'reports', path: '/reports', labelKey: 'nav.reports', icon: FileText, component: DailyReportsPage, group: 'reports', permission: 'view_state', feature: 'reports' },
+  { id: 'history', path: '/history', labelKey: 'nav.history', icon: RotateCcw, component: HistoryPage, group: 'reports', permission: 'view_state', feature: 'history' },
+  { id: 'batch-sales-report', path: '/reports/batch-sales', labelKey: 'nav.batchSalesReport', icon: ClipboardList, component: BatchSalesReportPage, group: 'reports', permission: 'manage_batch_tracking', feature: 'batch-tracking' },
   { id: 'activity-logs', path: '/activity-logs', labelKey: 'nav.activityLogs', icon: ClipboardList, component: ActivityLogsPage, group: 'reports', permission: 'view_activity_logs', feature: 'activity-logs' },
 
   // 10. System & Settings
@@ -247,7 +251,7 @@ export const APP_ROUTES = [
   // removed from sidebar — page still routable via user avatar dropdown
   { id: 'profile', path: '/profile', labelKey: 'nav.profile', icon: UserCog, component: ProfilePage, group: 'hidden', feature: 'my-profile' },
   // removed from sidebar — will be floating button
-  { id: 'help-desk', path: '/help-desk', labelKey: 'nav.helpDesk', icon: ShieldCheck, component: HelpDeskPage, group: 'hidden', feature: 'help-desk' },
+  { id: 'help-desk', path: '/help-desk', labelKey: 'nav.helpDesk', icon: ShieldCheck, component: HelpDeskPage, group: 'hidden', permission: 'view_help_desk', feature: 'help-desk' },
 
   // 9.5 HR / Salary
   { id: 'departments', path: '/hr/departments', labelKey: 'nav.departments', icon: Building2, component: DepartmentsPage, group: 'hr', permission: 'manage_departments', feature: 'departments' },
@@ -289,6 +293,16 @@ export function canAccessRoute(route, { user, can, hasFeature }) {
   return hasFeature(route.feature);
 }
 
+export function getFirstAccessibleRoute(access) {
+  if (access?.user?.role === 'system_developer') {
+    const platformRoute = APP_ROUTES.find((route) => route.id === 'platform' && canAccessRoute(route, access));
+    if (platformRoute) return platformRoute;
+  }
+
+  const visibleRoute = APP_ROUTES.find((route) => route.group !== 'hidden' && canAccessRoute(route, access));
+  return visibleRoute || APP_ROUTES.find((route) => canAccessRoute(route, access)) || null;
+}
+
 export function buildGroupedRoutes(access) {
   return SIDEBAR_SECTIONS
     .map((section) => ({
@@ -305,8 +319,6 @@ export function getRouteLabel(pathname, t = (key) => key) {
 
   return matchedRoute ? t(matchedRoute.labelKey) : t('nav.dashboard');
 }
-
-
 
 
 

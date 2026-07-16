@@ -3,6 +3,8 @@ import { getCachedPermissions } from "./permissionCache.js";
 
 export const PERMISSIONS = {
   VIEW_STATE: "view_state",
+  VIEW_HELP_DESK: "view_help_desk",
+  MANAGE_HELP_DESK: "manage_help_desk",
   VIEW_PRODUCTS: "view_products",
   MANAGE_PRODUCTS: "manage_products",
   VIEW_DSRS: "view_dsrs",
@@ -133,6 +135,8 @@ export const PERMISSIONS = {
 // role_permissions table (see permissionService.js).
 export const TENANT_BUSINESS_PERMISSIONS = [
   PERMISSIONS.VIEW_STATE,
+  PERMISSIONS.VIEW_HELP_DESK,
+  PERMISSIONS.MANAGE_HELP_DESK,
   PERMISSIONS.VIEW_PRODUCTS,
   PERMISSIONS.MANAGE_PRODUCTS,
   PERMISSIONS.VIEW_DSRS,
@@ -282,7 +286,6 @@ export function hasPermission(role, permission, tenantId) {
 
   return getRolePermissions(role, tenantId).includes(permission);
 }
-
 
 
 

@@ -53,13 +53,21 @@ export function createAccountingRoutes(accountingController) {
   router.get(
     "/fiscal-years/:id/close-preview",
     requireFeature("fiscal-years"),
-    requireAnyPermission(PERMISSIONS.FISCAL_YEAR_CLOSE, PERMISSIONS.ACCOUNTING_ADMIN),
+    requireAnyPermission(
+      PERMISSIONS.FISCAL_YEAR_CLOSE,
+      PERMISSIONS.CLOSING_EXECUTE,
+      PERMISSIONS.ACCOUNTING_ADMIN,
+    ),
     accountingController.closeFiscalYearPreview,
   );
   router.post(
     "/fiscal-years/:id/close",
     requireFeature("fiscal-years"),
-    requireAnyPermission(PERMISSIONS.FISCAL_YEAR_CLOSE, PERMISSIONS.ACCOUNTING_ADMIN),
+    requireAnyPermission(
+      PERMISSIONS.FISCAL_YEAR_CLOSE,
+      PERMISSIONS.CLOSING_EXECUTE,
+      PERMISSIONS.ACCOUNTING_ADMIN,
+    ),
     accountingController.closeFiscalYear,
   );
   router.post(

@@ -1,50 +1,35 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useMutation } from '@tanstack/react-query';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi';
 import { usePagedList } from '../../../hooks/usePagedList';
-import { useRefetchOnVisible } from '../../../app/hooks/useRefetchOnVisible.js';
+import { useTenantReportQuery } from '../../reports/queries/useTenantReportQuery.js';
+import { transactionKeys } from '../../transactions/queries/transactionQueries.js';
+import { getActiveTenantId } from '../../../services/api/client.js';
 
 export function useFinanceAccountsViewModel({ confirm }) {
   const { t, pushToast } = useInventoryApp();
-  const [accounts, setAccounts] = useState([]);
-  const [accountsLoading, setAccountsLoading] = useState(true);
-  const [accountsError, setAccountsError] = useState('');
   const [accountType, setAccountType] = useState('');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
-  const [totalDsrDue, setTotalDsrDue] = useState(0);
-  const [totalCustomerDue, setTotalCustomerDue] = useState(0);
-
-  const loadAccounts = useCallback(async () => {
-    try {
-      setAccountsLoading(true);
-      setAccountsError('');
-      const result = await inventoryApi.listFinanceAccounts();
-      setAccounts(result.accounts || []);
-    } catch (requestError) {
-      setAccountsError(requestError.message);
-      setAccounts([]);
-    } finally {
-      setAccountsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    loadAccounts();
-  }, [loadAccounts]);
-
-  useEffect(() => {
-    inventoryApi
-      .getFinanceDashboard()
-      .then((result) => {
-        setTotalDsrDue(result?.totalDsrDue || 0);
-        setTotalCustomerDue(result?.totalCustomerDue || 0);
-      })
-      .catch(() => {
-        setTotalDsrDue(0);
-        setTotalCustomerDue(0);
-      });
-  }, []);
+  const accountsQuery = useTenantReportQuery({
+    scope: 'finance-accounts',
+    queryFn: () => inventoryApi.listFinanceAccounts(),
+    staleTime: 30_000,
+  });
+  const dashboardQuery = useTenantReportQuery({
+    scope: 'finance-account-due-totals',
+    queryFn: () => inventoryApi.getFinanceDashboard(),
+    staleTime: 30_000,
+  });
+  const actionMutation = useMutation({
+    mutationKey: transactionKeys.mutation(getActiveTenantId(), 'finance-account-action'),
+    mutationFn: ({ action, payload, transactionId, reason }) => {
+      if (action === 'transaction') return inventoryApi.createFinanceAccountTransaction(payload);
+      if (action === 'transfer') return inventoryApi.createFinanceAccountTransfer(payload);
+      return inventoryApi.deleteFinanceAccountTransaction(transactionId, reason);
+    },
+  });
 
   const list = usePagedList(
     ({ page, pageSize }) => inventoryApi.listFinanceAccountTransactions({
@@ -55,6 +40,7 @@ export function useFinanceAccountsViewModel({ confirm }) {
       dateTo: dateTo || undefined,
     }),
     [accountType, dateFrom, dateTo],
+    'finance-account-transactions',
   );
 
   useEffect(() => {
@@ -63,34 +49,18 @@ export function useFinanceAccountsViewModel({ confirm }) {
   }, [accountType, dateFrom, dateTo]);
 
   async function refreshAll() {
-    await Promise.all([loadAccounts(), list.reload()]);
+    await Promise.all([accountsQuery.refetch(), dashboardQuery.refetch(), list.reload()]);
   }
 
-  useRefetchOnVisible(loadAccounts);
-
-  async function saveTransaction(payload) {
+  async function runSave(action, payload, titleKey) {
     try {
-      await inventoryApi.createFinanceAccountTransaction(payload);
-      await loadAccounts();
-      list.reload();
-      pushToast('success', t('financeAccounts.addTransactionTitle'), t('alerts.created'));
+      await actionMutation.mutateAsync({ action, payload });
+      await refreshAll();
+      pushToast('success', t(titleKey), t('alerts.created'));
       return { ok: true };
-    } catch (requestError) {
-      pushToast('error', t('alerts.requestFailed'), requestError.message);
-      return { ok: false, message: requestError.message };
-    }
-  }
-
-  async function saveTransfer(payload) {
-    try {
-      await inventoryApi.createFinanceAccountTransfer(payload);
-      await loadAccounts();
-      list.reload();
-      pushToast('success', t('financeAccounts.transferTitle'), t('alerts.created'));
-      return { ok: true };
-    } catch (requestError) {
-      pushToast('error', t('alerts.requestFailed'), requestError.message);
-      return { ok: false, message: requestError.message };
+    } catch (error) {
+      pushToast('error', t('alerts.requestFailed'), error.message);
+      return { ok: false, message: error.message };
     }
   }
 
@@ -104,33 +74,26 @@ export function useFinanceAccountsViewModel({ confirm }) {
       reasonLabel: t('common.deleteReasonLabel'),
       reasonPlaceholder: t('common.deleteReasonPlaceholder'),
     });
-    if (!confirmed) {
-      return;
-    }
+    if (!confirmed) return;
 
     try {
-      await inventoryApi.deleteFinanceAccountTransaction(transactionId, reason);
+      await actionMutation.mutateAsync({ action: 'delete', transactionId, reason });
       await refreshAll();
       pushToast('success', t('common.delete'), t('alerts.deleted'));
-    } catch (requestError) {
-      pushToast('error', t('alerts.deleteFailed'), requestError.message);
+    } catch (error) {
+      pushToast('error', t('alerts.deleteFailed'), error.message);
     }
   }
 
   return {
-    accounts,
-    accountsLoading,
-    accountsError,
-    totalDsrDue,
-    totalCustomerDue,
-    accountType,
-    setAccountType,
-    dateFrom,
-    setDateFrom,
-    dateTo,
-    setDateTo,
-    saveTransaction,
-    saveTransfer,
+    accounts: accountsQuery.data?.accounts || [],
+    accountsLoading: accountsQuery.isPending,
+    accountsError: accountsQuery.error?.message || '',
+    totalDsrDue: dashboardQuery.data?.totalDsrDue || 0,
+    totalCustomerDue: dashboardQuery.data?.totalCustomerDue || 0,
+    accountType, setAccountType, dateFrom, setDateFrom, dateTo, setDateTo,
+    saveTransaction: (payload) => runSave('transaction', payload, 'financeAccounts.addTransactionTitle'),
+    saveTransfer: (payload) => runSave('transfer', payload, 'financeAccounts.transferTitle'),
     deleteTransaction,
     ...list,
   };

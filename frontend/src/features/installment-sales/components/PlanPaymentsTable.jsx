@@ -1,5 +1,5 @@
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
-import { EmptyState } from '../../../components/ui.jsx';
+import { EmptyState, MobileCardList, MobileListCard } from '../../../components/ui.jsx';
 import { Receipt } from 'lucide-react';
 import { formatCurrency, formatDate } from '../../../utils/calculations.js';
 
@@ -11,7 +11,19 @@ export default function PlanPaymentsTable({ payments = [] }) {
   }
 
   return (
-    <div className="overflow-x-auto">
+    <>
+    <MobileCardList>
+      {payments.map((payment) => (
+        <MobileListCard
+          key={payment.id}
+          title={formatDate(payment.paymentDate, language)}
+          subtitle={`${t(`installments.payment.methods.${payment.paymentMethod}`)}${payment.note ? ` · ${payment.note}` : ''}`}
+          value={formatCurrency(payment.amount, language)}
+          valueClass="text-emerald-600"
+        />
+      ))}
+    </MobileCardList>
+    <div className="hidden overflow-x-auto md:block">
       <table className="w-full text-sm">
         <thead className="table-head">
           <tr>
@@ -33,5 +45,6 @@ export default function PlanPaymentsTable({ payments = [] }) {
         </tbody>
       </table>
     </div>
+    </>
   );
 }

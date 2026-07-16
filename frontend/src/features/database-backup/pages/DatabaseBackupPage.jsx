@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { ClipboardList, Download } from 'lucide-react';
-import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
+import { Alert, Badge, EmptyState, MobileCardList, MobileListCard, Pagination, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
 import TableReportActions from '../../../components/TableReportActions.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi';
 import { formatDateTime } from '../../../utils/calculations.js';
 import { usePagination } from '../../../hooks/usePagination';
+import { useTenantApiQuery } from '../../../queries/useTenantApiQuery.js';
 
 const BACKUP_HISTORY_REPORT_ID = 'backup-history-report';
 const BACKUP_SQL_SHORTCUT = { alt: true, key: 's', label: 'Alt+S' };
@@ -31,30 +32,19 @@ export default function DatabaseBackupPage() {
   const [loadingFormat, setLoadingFormat] = useState(null);
   const [error, setError] = useState('');
   const { page, setPage, pageSize, resetPage } = usePagination();
-  const [history, setHistory] = useState([]);
-  const [historyTotal, setHistoryTotal] = useState(0);
-  const [historyTotalPages, setHistoryTotalPages] = useState(0);
-  const [historyLoading, setHistoryLoading] = useState(true);
-  const [historyError, setHistoryError] = useState('');
-
-  async function loadHistory() {
-    try {
-      setHistoryLoading(true);
-      setHistoryError('');
-      const result = await inventoryApi.listBackupHistory({ page, pageSize });
-      setHistory(result.items || []);
-      setHistoryTotal(result.total || 0);
-      setHistoryTotalPages(result.totalPages || 0);
-    } catch (requestError) {
-      setHistoryError(requestError.message || t('backup.history.loadFailed'));
-    } finally {
-      setHistoryLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    loadHistory();
-  }, [page, pageSize]);
+  const historyQuery = useTenantApiQuery({
+    scope: 'database-backup-history',
+    params: { page, pageSize },
+    queryFn: () => inventoryApi.listBackupHistory({ page, pageSize }),
+    requireTenant: false,
+    keepPrevious: true,
+  });
+  const history = historyQuery.data?.items || [];
+  const historyTotal = historyQuery.data?.total || 0;
+  const historyTotalPages = historyQuery.data?.totalPages || 0;
+  const historyLoading = historyQuery.isLoading || historyQuery.isFetching;
+  const historyError = historyQuery.error?.message || '';
+  const loadHistory = () => historyQuery.refetch();
 
   async function handleDownload(format) {
     try {
@@ -142,7 +132,24 @@ export default function DatabaseBackupPage() {
             <Alert type="error">{historyError}</Alert>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+          {historyLoading ? (
+            <div className="p-5 md:hidden">
+              <TableSkeleton columns={4} showHeader={false} />
+            </div>
+          ) : (
+            <MobileCardList>
+              {history.map((log) => (
+                <MobileListCard
+                  key={log.id}
+                  title={log.metadata?.filename || '-'}
+                  badge={<Badge tone="blue">{(log.metadata?.format || 'sql').toUpperCase()}</Badge>}
+                  subtitle={`${log.userName || '-'} · ${formatDateTime(log.createdAt)}`}
+                />
+              ))}
+            </MobileCardList>
+          )}
+          <div className="hidden overflow-x-auto md:block">
             <table className="w-full">
               <thead className="table-head">
                 <tr>
@@ -176,6 +183,7 @@ export default function DatabaseBackupPage() {
               </div>
             ) : null}
           </div>
+          </>
         )}
 
         {!historyLoading && !historyError && !history.length ? (

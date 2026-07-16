@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { BriefcaseBusiness, Building2, CalendarRange, Landmark, Lock, PiggyBank, Receipt, Scale, Wallet, TrendingUp } from 'lucide-react';
-import { Alert, Badge, SectionHeader, StatCard } from '../../../components/ui.jsx';
+import { Alert, Badge, MobileCardList, MobileListCard, SectionHeader, StatCard } from '../../../components/ui.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import { formatCurrency } from '../../../utils/calculations.js';
 import { useTenantReportQuery } from '../../reports/queries/useTenantReportQuery.js';
@@ -103,7 +103,20 @@ export default function AccountingDashboardPage() {
             <p className="text-sm text-slate-500">Recent period, fiscal year, opening balance, voucher, and report actions.</p>
           </div>
         </div>
-        <div className="mt-4 overflow-x-auto">
+        <div className="mt-4">
+          <MobileCardList>
+            {(data?.recentActivities || []).map((item) => (
+              <MobileListCard
+                key={item.id}
+                title={item.description || item.actionType}
+                subtitle={`${item.entityType || '-'} · ${formatDateTime(item.createdAt)}`}
+              />
+            ))}
+          </MobileCardList>
+          {!loading && !(data?.recentActivities || []).length ? (
+            <p className="px-1 py-3 text-sm text-slate-500 md:hidden">No recent accounting activity.</p>
+          ) : null}
+          <div className="hidden overflow-x-auto md:block">
           <table className="w-full">
             <thead className="table-head">
               <tr>
@@ -127,6 +140,7 @@ export default function AccountingDashboardPage() {
               ) : null}
             </tbody>
           </table>
+          </div>
         </div>
       </section>
     </div>

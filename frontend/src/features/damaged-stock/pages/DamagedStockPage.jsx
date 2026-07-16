@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Download, FileSpreadsheet, Loader2, PackageX, Printer } from 'lucide-react';
-import { EmptyState, SectionHeader, cx } from '../../../components/ui.jsx';
+import { EmptyState, MobileCardList, MobileListCard, SectionHeader, cx } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../services/printService.js';
 import { inventoryApi } from '../../../services/inventoryApi.js';
@@ -170,7 +170,26 @@ export default function DamagedStockPage() {
             </div>
           </div>
           {vm.damagedProducts.length ? (
-            <div className="overflow-x-auto">
+            <>
+            <MobileCardList>
+              {vm.damagedProducts.map((product) => (
+                <MobileListCard
+                  key={product.id}
+                  title={product.name}
+                  subtitle={product.category}
+                  value={isElectronics ? `${formatNumber(product.damagedPieces)} ${t('common.pcs')}` : formatCasePiece(product.damagedPieces, product.piecesPerCase)}
+                  valueClass="text-rose-600"
+                  valueSub={isElectronics ? null : `${formatNumber(product.damagedPieces)} ${t('common.pcs')}`}
+                  action={canManageProducts ? (
+                    <button type="button" className="btn-secondary h-9 px-3" onClick={() => vm.openClearModal(product)}>
+                      <PackageX size={16} />
+                      {t('damagedStock.clearButton')}
+                    </button>
+                  ) : null}
+                />
+              ))}
+            </MobileCardList>
+            <div className="hidden overflow-x-auto md:block">
               <table className="w-full">
                 <thead className="table-head">
                   <tr>
@@ -210,6 +229,7 @@ export default function DamagedStockPage() {
                 </tbody>
               </table>
             </div>
+            </>
           ) : (
             <div className="p-5">
               <EmptyState title={t('damagedStock.emptyTitle')} description={t('damagedStock.emptyDescription')} icon={PackageX} />

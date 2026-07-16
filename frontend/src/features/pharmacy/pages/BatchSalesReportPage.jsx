@@ -1,5 +1,5 @@
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
-import { Alert, Pagination, SectionHeader, Select } from '../../../components/ui.jsx';
+import { Alert, Badge, MobileCardList, MobileListCard, Pagination, SectionHeader, Select } from '../../../components/ui.jsx';
 import TableReportActions from '../../../components/TableReportActions.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { formatDate, formatCurrency } from '../../../utils/calculations.js';
@@ -65,7 +65,23 @@ export default function BatchSalesReportPage() {
           <span className="text-sm font-bold text-slate-700">{t('pharmacy.batchSalesReport')}</span>
           <TableReportActions targetId={BATCH_SALES_REPORT_ID} title={t('pharmacy.batchSalesReport')} fileName="batch-sales-report" entityType="batch_sales_report" t={t} />
         </div>
-        <div className="overflow-x-auto">
+        <MobileCardList>
+          {vm.loading ? (
+            <p className="px-4 py-8 text-center text-slate-500">{t('common.loading')}</p>
+          ) : vm.rows.length === 0 ? (
+            <p className="px-4 py-8 text-center text-slate-500">{t('common.noResults')}</p>
+          ) : vm.rows.map((row) => (
+            <MobileListCard
+              key={row.id}
+              title={row.productName}
+              badge={row.batchNumber ? <Badge tone="blue">{row.batchNumber}</Badge> : null}
+              subtitle={`${row.invoiceNumber} · ${formatDate(row.invoiceDate, language)}`}
+              value={formatCurrency(row.actualSalePrice)}
+              valueSub={row.quantityFromBatch != null ? String(row.quantityFromBatch) : null}
+            />
+          ))}
+        </MobileCardList>
+        <div className="hidden overflow-x-auto md:block">
         <table className="w-full">
           <thead className="table-head">
             <tr>

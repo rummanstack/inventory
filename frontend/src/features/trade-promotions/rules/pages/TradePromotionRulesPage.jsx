@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Gift, Pencil, Plus, Search, Trash2 } from 'lucide-react';
-import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton, Select } from '../../../../components/ui.jsx';
+import { Alert, Badge, EmptyState, MobileCardList, MobileListCard, Pagination, SectionHeader, TableSkeleton, Select } from '../../../../components/ui.jsx';
 import TableReportActions from '../../../../components/TableReportActions.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../../services/inventoryApi.js';
 import { formatDate, formatNumber } from '../../../../utils/calculations.js';
 import TradePromotionRuleFormModal from '../components/TradePromotionRuleFormModal.jsx';
 import { useTradePromotionRulesViewModel } from '../viewmodels/useTradePromotionRulesViewModel.js';
+import { useTenantApiQuery } from '../../../../queries/useTenantApiQuery.js';
 
 const TARGET_TYPES = ['ALL', 'PRODUCT', 'CATEGORY'];
 const TRADE_PROMOTION_RULES_REPORT_ID = 'trade-promotion-rules-report';
@@ -40,7 +41,6 @@ function rewardSummary(rule, t) {
 export default function TradePromotionRulesPage() {
   const { saveTradePromotionRule, deleteTradePromotionRule, t, can, supplierDirectory } = useInventoryApp();
   const vm = useTradePromotionRulesViewModel();
-  const [categories, setCategories] = useState([]);
   const [ruleModal, setRuleModal] = useState(null);
   const canManage = can('manage_trade_promotion_rules');
 
@@ -56,17 +56,12 @@ export default function TradePromotionRulesPage() {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [canManage, ruleModal]);
 
-  useEffect(() => {
-    let cancelled = false;
-    inventoryApi.listCategories()
-      .then((result) => {
-        if (!cancelled) setCategories((result.categories || []).map((category) => ({ id: category.id, name: category.name })));
-      })
-      .catch(() => {});
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const categoriesQuery = useTenantApiQuery({
+    scope: 'trade-promotion-categories',
+    queryFn: () => inventoryApi.listCategories(),
+    staleTime: 60_000,
+  });
+  const categories = (categoriesQuery.data?.categories || []).map((category) => ({ id: category.id, name: category.name }));
 
   return (
     <div>
@@ -126,7 +121,21 @@ export default function TradePromotionRulesPage() {
             <Alert type="error">{vm.error}</Alert>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+          <MobileCardList>
+            {vm.items.map((rule) => (
+              <MobileListCard
+                key={rule.id}
+                onClick={canManage ? () => setRuleModal({ mode: 'edit', rule }) : undefined}
+                title={rule.name}
+                badge={<Badge tone={rule.active ? 'emerald' : 'slate'}>{rule.active ? t('tradePromotions.rules.active') : t('tradePromotions.rules.inactive')}</Badge>}
+                subtitle={`${rule.supplierScope === 'ALL' ? t('tradePromotions.rules.supplierScopes.ALL') : (rule.supplierName || '-')} · ${rule.targetType === 'ALL' ? t('tradePromotions.rules.targetTypes.ALL') : (rule.targetName || '-')}`}
+                value={rewardSummary(rule, t)}
+                valueSub={`${formatNumber(rule.buyQuantity)} ${t(`tradePromotions.rules.units.${rule.buyUnit}`)}`}
+              />
+            ))}
+          </MobileCardList>
+          <div className="hidden overflow-x-auto md:block">
             <table className="w-full">
               <thead className="table-head">
                 <tr>
@@ -186,6 +195,7 @@ export default function TradePromotionRulesPage() {
               </tbody>
             </table>
           </div>
+          </>
         )}
 
         {!vm.loading && !vm.error && !vm.items.length ? (

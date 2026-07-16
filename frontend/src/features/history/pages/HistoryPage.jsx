@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Download, FileSpreadsheet, FileText, Loader2, Printer, RotateCcw, Search, Truck } from 'lucide-react';
-import { Alert, Badge, EmptyState, Pagination, SectionHeader, StatCard, TableSkeleton } from '../../../components/ui.jsx';
+import { Alert, Badge, EmptyState, MobileCardList, MobileListCard, Pagination, SectionHeader, StatCard, TableSkeleton } from '../../../components/ui.jsx';
 import { statusTone } from '../../../models/inventoryViewData.js';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../services/printService.js';
@@ -105,7 +105,25 @@ export default function HistoryPage() {
             </button>
           </div>
         </div>
-        <div className="overflow-x-auto">
+        {vm.loading ? (
+          <div className="p-5 md:hidden">
+            <TableSkeleton columns={9} showHeader={false} />
+          </div>
+        ) : (
+          <MobileCardList>
+            {vm.rows.map((row) => (
+              <MobileListCard
+                key={row.id}
+                title={row.dsrName}
+                badge={<Badge tone={row.type === 'Morning Issue' ? 'amber' : 'emerald'}>{row.type === 'Morning Issue' ? t('history.issueType') : t('history.settlementType')}</Badge>}
+                subtitle={`${row.area} · ${formatDate(row.date)}`}
+                value={formatCurrency(row.amount)}
+                valueSub={Number(row.dueAmount || 0) > 0 ? formatCurrency(row.dueAmount) : null}
+              />
+            ))}
+          </MobileCardList>
+        )}
+        <div className="hidden overflow-x-auto md:block">
           <table className="w-full">
             <thead className="table-head">
               <tr>

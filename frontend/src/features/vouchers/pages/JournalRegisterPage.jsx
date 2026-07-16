@@ -1,38 +1,25 @@
 ﻿import { useEffect, useState } from 'react';
 import { BookOpen } from 'lucide-react';
 import TableReportActions from '../../../components/TableReportActions.jsx';
-import { Alert, CopyableText, EmptyState, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
+import { Alert, CopyableText, EmptyState, MobileCardList, MobileListCard, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import { formatCurrency, formatDate } from '../../../utils/calculations.js';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
+import { useTenantReportQuery } from '../../reports/queries/useTenantReportQuery.js';
 
 export default function JournalRegisterPage() {
   const { language } = useInventoryApp();
-  const [rows, setRows] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
   const [filters, setFilters] = useState({ voucherType: '', dateFrom: '', dateTo: '' });
-
-  useEffect(() => {
-    let cancelled = false;
-    async function load() {
-      setLoading(true);
-      try {
-        const result = await inventoryApi.getJournalRegister(filters);
-        if (!cancelled) {
-          setRows(result.rows || []);
-          setError('');
-        }
-      } catch (loadError) {
-        if (!cancelled) setError(loadError?.message || 'Failed to load journal register.');
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }
-    load();
-    return () => { cancelled = true; };
-  }, [filters.voucherType, filters.dateFrom, filters.dateTo]);
+  const registerQuery = useTenantReportQuery({
+    scope: 'journal-register',
+    params: filters,
+    queryFn: () => inventoryApi.getJournalRegister(filters),
+    keepPrevious: true,
+  });
+  const rows = registerQuery.data?.rows || [];
+  const loading = registerQuery.isPending;
+  const error = registerQuery.error?.message || '';
 
   return (
     <div>
@@ -56,7 +43,20 @@ export default function JournalRegisterPage() {
         {error ? <div className="p-5"><Alert type="error">{error}</Alert></div> : null}
         {!loading && !error ? (
           rows.length ? (
-            <div id="journal-register-report" className="overflow-x-auto">
+            <div id="journal-register-report">
+              <MobileCardList>
+                {rows.map((row) => (
+                  <MobileListCard
+                    key={`${row.voucherNumber}-${row.journalEntryId}`}
+                    title={row.voucherNumber}
+                    subtitle={`${row.voucherType} · ${formatDate(row.voucherDate, language)}`}
+                    value={formatCurrency(row.totalDebit, language)}
+                    valueClass="text-emerald-700"
+                    valueSub={formatCurrency(row.totalCredit, language)}
+                  />
+                ))}
+              </MobileCardList>
+              <div className="hidden overflow-x-auto md:block">
               <table className="w-full min-w-[1080px]">
                 <thead className="table-head">
                   <tr>
@@ -86,6 +86,7 @@ export default function JournalRegisterPage() {
                   ))}
                 </tbody>
               </table>
+              </div>
             </div>
           ) : (
             <div className="p-10"><EmptyState icon={BookOpen} title="No posted vouchers yet" description="Journal register rows appear after vouchers are posted." /></div>

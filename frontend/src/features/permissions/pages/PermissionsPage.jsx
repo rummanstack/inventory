@@ -3,6 +3,8 @@ import { Loader2, Save } from 'lucide-react';
 import { Alert, Select, SectionHeader } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
+import { useMutation } from '@tanstack/react-query';
+import { useTenantApiQuery } from '../../../queries/useTenantApiQuery.js';
 import { APP_ROUTES } from '../../../app/routes.js';
 
 // Mirrors the sidebar structure so the permission matrix reads like the app.
@@ -216,14 +218,25 @@ export default function PermissionsPage() {
   // own tenant on the backend, so no picker is needed for them.
   const needsTenantPicker = Boolean(user?.isPlatformUser);
   const [selectedTenantId, setSelectedTenantId] = useState('');
-  const [loading, setLoading] = useState(!needsTenantPicker);
-  const [error, setError] = useState('');
   const [allPermissions, setAllPermissions] = useState([]);
   const [requiredFeatures, setRequiredFeatures] = useState({});
   const [permissionDependencies, setPermissionDependencies] = useState({});
   const [rolePermissions, setRolePermissions] = useState([]);
   const [originalPermissions, setOriginalPermissions] = useState({});
   const [savingRole, setSavingRole] = useState('');
+  const permissionsQuery = useTenantApiQuery({
+    scope: 'role-permissions',
+    params: { selectedTenantId: needsTenantPicker ? selectedTenantId : undefined },
+    queryFn: () => inventoryApi.getRolePermissions(needsTenantPicker ? selectedTenantId : undefined),
+    enabled: !needsTenantPicker || Boolean(selectedTenantId),
+    requireTenant: !needsTenantPicker,
+  });
+  const saveMutation = useMutation({
+    mutationFn: ({ role, permissions }) =>
+      inventoryApi.updateRolePermissions(role, permissions, needsTenantPicker ? selectedTenantId : undefined),
+  });
+  const loading = permissionsQuery.isLoading;
+  const error = permissionsQuery.error?.message || '';
 
   useEffect(() => {
     if (needsTenantPicker && !selectedTenantId) {
@@ -232,14 +245,8 @@ export default function PermissionsPage() {
       return;
     }
 
-    let cancelled = false;
-
-    async function load() {
-      try {
-        setLoading(true);
-        setError('');
-        const result = await inventoryApi.getRolePermissions(needsTenantPicker ? selectedTenantId : undefined);
-        if (cancelled) return;
+    const result = permissionsQuery.data;
+    if (result) {
         const knownPermissions = [...new Set(result.allPermissions || [])];
         const knownPermissionSet = new Set(knownPermissions);
         const sanitizedRoles = (result.roles || []).map((entry) => ({
@@ -254,18 +261,8 @@ export default function PermissionsPage() {
         setOriginalPermissions(
           Object.fromEntries(sanitizedRoles.map((entry) => [entry.role, [...entry.permissions].sort()])),
         );
-      } catch (err) {
-        if (!cancelled) setError(err?.message || 'Failed to load permissions.');
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
     }
-
-    load();
-    return () => {
-      cancelled = true;
-    };
-  }, [needsTenantPicker, selectedTenantId]);
+  }, [needsTenantPicker, selectedTenantId, permissionsQuery.data]);
 
   const knownPermissionSet = useMemo(() => new Set(allPermissions), [allPermissions]);
 
@@ -344,7 +341,7 @@ export default function PermissionsPage() {
 
     setSavingRole(role);
     try {
-      const result = await inventoryApi.updateRolePermissions(role, sanitizedPermissions, needsTenantPicker ? selectedTenantId : undefined);
+      const result = await saveMutation.mutateAsync({ role, permissions: sanitizedPermissions });
       const savedRole = (result.roles || []).find((item) => item.role === role);
       const savedPermissions = sanitizePermissions(savedRole?.permissions || sanitizedPermissions, knownPermissionSet);
 

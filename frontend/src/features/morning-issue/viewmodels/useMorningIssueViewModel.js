@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { inventoryApi } from '../../../services/inventoryApi';
 import { toPieces } from '../../../utils/calculations.js';
+import { useTenantApiQuery } from '../../../queries/useTenantApiQuery.js';
 
 const SCOPED_LOOKUP_PAGE_SIZE = 10;
 
@@ -12,9 +13,6 @@ export function useMorningIssueViewModel({ products, dsrs, today, saveIssueActio
   const [quantities, setQuantities] = useState({});
   const [message, setMessage] = useState(null);
   const [saving, setSaving] = useState(false);
-  const [existingIssue, setExistingIssue] = useState(null);
-  const [existingSettlement, setExistingSettlement] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
@@ -25,46 +23,24 @@ export function useMorningIssueViewModel({ products, dsrs, today, saveIssueActio
 
   const selectedDsr = dsrs.find((dsr) => dsr.id === dsrId);
 
-  useEffect(() => {
-    let cancelled = false;
-
-    if (!date || !dsrId) {
-      setExistingIssue(null);
-      setExistingSettlement(null);
-      setLoading(false);
-      return undefined;
-    }
-
-    setLoading(true);
-
-    Promise.all([
+  const scopedQuery = useTenantApiQuery({
+    scope: 'morning-issue-scoped',
+    params: { date, dsrId, refreshKey },
+    enabled: Boolean(date && dsrId),
+    queryFn: async () => {
+      const [issueResult, settlementResult] = await Promise.all([
       inventoryApi.listIssues({ dsrId, dateFrom: date, dateTo: date, pageSize: SCOPED_LOOKUP_PAGE_SIZE }),
       inventoryApi.listSettlements({ dsrId, dateFrom: date, dateTo: date, pageSize: SCOPED_LOOKUP_PAGE_SIZE }),
-    ])
-      .then(([issueResult, settlementResult]) => {
-        if (cancelled) {
-          return;
-        }
-
-        setExistingIssue((issueResult.items || []).find((issue) => issue.date === date && issue.dsrId === dsrId) || null);
-        setExistingSettlement((settlementResult.items || []).find((settlement) => settlement.date === date && settlement.dsrId === dsrId) || null);
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setExistingIssue(null);
-          setExistingSettlement(null);
-        }
-      })
-      .finally(() => {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [date, dsrId, refreshKey]);
+      ]);
+      return {
+        issue: (issueResult.items || []).find((issue) => issue.date === date && issue.dsrId === dsrId) || null,
+        settlement: (settlementResult.items || []).find((settlement) => settlement.date === date && settlement.dsrId === dsrId) || null,
+      };
+    },
+  });
+  const existingIssue = scopedQuery.data?.issue || null;
+  const existingSettlement = scopedQuery.data?.settlement || null;
+  const loading = scopedQuery.isLoading || scopedQuery.isFetching;
 
   useEffect(() => {
     if (!existingIssue) {

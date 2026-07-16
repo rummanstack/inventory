@@ -324,13 +324,38 @@ async function saveBlob(blob, fileName) {
   URL.revokeObjectURL(url);
 }
 
-async function exportReportFile(format, payload, fileName, fallback) {
+// Day 12 (MOBILE-15-DAY-PLAN.md): reports need to travel to WhatsApp from a phone.
+// Tries the native share sheet with the PDF file attached; falls back to a plain
+// download if the browser lacks file-sharing support or the user cancels the sheet.
+async function shareOrSaveBlob(blob, fileName, { title } = {}) {
+  if (typeof navigator !== 'undefined' && navigator.share && navigator.canShare) {
+    const file = new File([blob], fileName, { type: blob.type || 'application/pdf' });
+    if (navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({ files: [file], title: title || fileName });
+        return;
+      } catch (error) {
+        if (error?.name === 'AbortError') {
+          return;
+        }
+        // any other share failure — fall through to a plain download
+      }
+    }
+  }
+  await saveBlob(blob, fileName);
+}
+
+async function exportReportFile(format, payload, fileName, fallback, options = {}) {
   try {
     const { blob } = await downloadRequest(`/report-exports/${format}`, {
       method: 'POST',
       body: JSON.stringify(payload),
     });
-    await saveBlob(blob, fileName);
+    if (options.share) {
+      await shareOrSaveBlob(blob, fileName, { title: payload.title });
+    } else {
+      await saveBlob(blob, fileName);
+    }
     return;
   } catch (error) {
     if (!fallback) {
@@ -378,11 +403,15 @@ export async function downloadSheetPdf(targetId, fileName, options = {}) {
         pdf.addImage(imageData, 'PNG', 0, 0, pageWidth, pageHeight, undefined, 'FAST');
       }
 
-      pdf.save(fileName);
+      if (options.share) {
+        await shareOrSaveBlob(pdf.output('blob'), fileName, { title });
+      } else {
+        pdf.save(fileName);
+      }
     } finally {
       host.remove();
     }
-  });
+  }, { share: options.share });
 }
 
 export async function exportTableElementToExcel(targetId, fileName, sheetName = 'Report', options = {}) {

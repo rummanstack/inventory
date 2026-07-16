@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react';
 import { Activity, Clock, Database, Server, Users } from 'lucide-react';
 import { Alert, SectionHeader, StatCard, TableSkeleton } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { formatNumber } from '../../../utils/calculations.js';
 import { inventoryApi } from '../../../services/inventoryApi';
+import { useTenantApiQuery } from '../../../queries/useTenantApiQuery.js';
 
 function formatUptime(seconds = 0) {
   const days = Math.floor(seconds / 86400);
@@ -14,37 +14,15 @@ function formatUptime(seconds = 0) {
 
 export default function SystemHealthPage() {
   const { t } = useInventoryApp();
-  const [health, setHealth] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadHealth() {
-      try {
-        setLoading(true);
-        setError('');
-        const result = await inventoryApi.getSystemHealth();
-        if (!cancelled) {
-          setHealth(result);
-        }
-      } catch (requestError) {
-        if (!cancelled) {
-          setError(requestError.message);
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    }
-
-    loadHealth();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const healthQuery = useTenantApiQuery({
+    scope: 'system-health',
+    queryFn: () => inventoryApi.getSystemHealth(),
+    requireTenant: false,
+    staleTime: 30_000,
+  });
+  const health = healthQuery.data || null;
+  const loading = healthQuery.isLoading;
+  const error = healthQuery.error?.message || '';
 
   return (
     <div>

@@ -1,11 +1,12 @@
 ﻿import { useEffect, useState } from 'react';
 import { BookOpen } from 'lucide-react';
 import TableReportActions from '../../../components/TableReportActions.jsx';
-import { Alert, Badge, CopyableText, EmptyState, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
+import { Alert, Badge, CopyableText, EmptyState, MobileCardList, MobileListCard, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import { formatCurrency, formatDate, formatDateTime } from '../../../utils/calculations.js';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
+import { useTenantReportQuery } from '../../reports/queries/useTenantReportQuery.js';
 
 function toneForStatus(status) {
   if (status === 'POSTED') return 'emerald';
@@ -17,30 +18,16 @@ function toneForStatus(status) {
 
 export default function VoucherRegisterPage() {
   const { language } = useInventoryApp();
-  const [rows, setRows] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
   const [filters, setFilters] = useState({ voucherNumber: '', voucherType: '', status: '', dateFrom: '', dateTo: '' });
-
-  useEffect(() => {
-    let cancelled = false;
-    async function load() {
-      setLoading(true);
-      try {
-        const result = await inventoryApi.listVouchers(filters);
-        if (!cancelled) {
-          setRows(result.vouchers || []);
-          setError('');
-        }
-      } catch (loadError) {
-        if (!cancelled) setError(loadError?.message || 'Failed to load voucher register.');
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }
-    load();
-    return () => { cancelled = true; };
-  }, [filters.voucherNumber, filters.voucherType, filters.status, filters.dateFrom, filters.dateTo]);
+  const registerQuery = useTenantReportQuery({
+    scope: 'voucher-register',
+    params: filters,
+    queryFn: () => inventoryApi.listVouchers(filters),
+    keepPrevious: true,
+  });
+  const rows = registerQuery.data?.vouchers || [];
+  const loading = registerQuery.isPending;
+  const error = registerQuery.error?.message || '';
 
   return (
     <div>
@@ -73,7 +60,19 @@ export default function VoucherRegisterPage() {
         {error ? <div className="p-5"><Alert type="error">{error}</Alert></div> : null}
         {!loading && !error ? (
           rows.length ? (
-            <div id="voucher-register-report" className="overflow-x-auto">
+            <div id="voucher-register-report">
+              <MobileCardList>
+                {rows.map((row) => (
+                  <MobileListCard
+                    key={row.id}
+                    title={row.voucherNumber}
+                    badge={<Badge tone={toneForStatus(row.status)}>{row.status}</Badge>}
+                    subtitle={`${row.voucherType} · ${formatDate(row.voucherDate, language)}`}
+                    value={formatCurrency(row.totalDebit, language)}
+                  />
+                ))}
+              </MobileCardList>
+              <div className="hidden overflow-x-auto md:block">
               <table className="w-full min-w-[980px]">
                 <thead className="table-head">
                   <tr>
@@ -100,6 +99,7 @@ export default function VoucherRegisterPage() {
                   ))}
                 </tbody>
               </table>
+              </div>
             </div>
           ) : (
             <div className="p-10"><EmptyState icon={BookOpen} title="No vouchers found" description="The register will populate once vouchers are created." /></div>

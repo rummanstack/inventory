@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Alert, CopyableText, Modal, SectionHeader } from '../../../components/ui.jsx';
+import { Alert, CopyableText, MobileCardList, MobileListCard, Modal, SectionHeader } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import { formatCurrency } from '../../../utils/calculations.js';
+import { useTenantApiQuery } from '../../../queries/useTenantApiQuery.js';
 
 function OpeningBalanceFormModal({ item, accounts, customers, suppliers, financeAccounts, onClose, onSave }) {
   const [form, setForm] = useState({
@@ -91,16 +92,10 @@ function OpeningBalanceFormModal({ item, accounts, customers, suppliers, finance
 export default function OpeningBalancesPage() {
   const { can, language, pushToast } = useInventoryApp();
   const canManage = can('manage_opening_balances');
-  const [items, setItems] = useState([]);
-  const [accounts, setAccounts] = useState([]);
-  const [customers, setCustomers] = useState([]);
-  const [suppliers, setSuppliers] = useState([]);
-  const [financeAccounts, setFinanceAccounts] = useState([]);
-  const [error, setError] = useState('');
   const [modal, setModal] = useState(null);
-
-  async function load() {
-    try {
+  const balancesQuery = useTenantApiQuery({
+    scope: 'opening-balances',
+    queryFn: async () => {
       const [balances, coa, retailCustomers, supplierRows, accountRows] = await Promise.all([
         inventoryApi.listOpeningBalances(),
         inventoryApi.listChartAccounts(),
@@ -108,18 +103,16 @@ export default function OpeningBalancesPage() {
         inventoryApi.getActiveSuppliers(),
         inventoryApi.listFinanceAccounts(),
       ]);
-      setItems(balances.openingBalances || []);
-      setAccounts(coa.accounts || []);
-      setCustomers(retailCustomers.items || retailCustomers.customers || []);
-      setSuppliers(supplierRows.items || []);
-      setFinanceAccounts(accountRows.accounts || []);
-      setError('');
-    } catch (err) {
-      setError(err?.message || 'Failed to load opening balances.');
-    }
-  }
-
-  useEffect(() => { load(); }, []);
+      return { balances, coa, retailCustomers, supplierRows, accountRows };
+    },
+  });
+  const items = balancesQuery.data?.balances?.openingBalances || [];
+  const accounts = balancesQuery.data?.coa?.accounts || [];
+  const customers = balancesQuery.data?.retailCustomers?.items || balancesQuery.data?.retailCustomers?.customers || [];
+  const suppliers = balancesQuery.data?.supplierRows?.items || [];
+  const financeAccounts = balancesQuery.data?.accountRows?.accounts || [];
+  const error = balancesQuery.error?.message || '';
+  const load = () => balancesQuery.refetch();
 
   async function handleSave(form) {
     try {
@@ -139,9 +132,22 @@ export default function OpeningBalancesPage() {
 
   return (
     <div>
-      <SectionHeader eyebrow="Accounting" title="Opening Balances" description="Each opening balance posts a proper journal entry against owner’s equity and stays inside the journal engine." action={canManage ? <button type="button" className="btn-primary" onClick={() => setModal({})}>Add Opening Balance</button> : null} />
+      <SectionHeader eyebrow="Accounting" title="Opening Balances" description="Each opening balance posts a proper journal entry against ownerï¿½s equity and stays inside the journal engine." action={canManage ? <button type="button" className="btn-primary" onClick={() => setModal({})}>Add Opening Balance</button> : null} />
       {error ? <Alert type="error">{error}</Alert> : null}
-      <div className="surface overflow-x-auto">
+      <div className="surface overflow-hidden">
+        <MobileCardList>
+          {items.map((item) => (
+            <MobileListCard
+              key={item.id}
+              onClick={canManage ? () => setModal({ item }) : undefined}
+              title={`${item.accountCode} - ${item.accountName}`}
+              subtitle={`${item.referenceType} Â· ${item.balanceDate}`}
+              value={formatCurrency(item.amount, language)}
+              valueSub={item.balanceSide}
+            />
+          ))}
+        </MobileCardList>
+        <div className="hidden overflow-x-auto md:block">
         <table className="w-full">
           <thead className="table-head">
             <tr>
@@ -168,6 +174,7 @@ export default function OpeningBalancesPage() {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
       {modal ? <OpeningBalanceFormModal item={modal.item} accounts={accounts} customers={customers} suppliers={suppliers} financeAccounts={financeAccounts} onClose={() => setModal(null)} onSave={handleSave} /> : null}
     </div>

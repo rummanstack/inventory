@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Tag, Pencil, Plus, Search, Trash2 } from 'lucide-react';
-import { Alert, Badge, EmptyState, Modal, Pagination, SectionHeader, TableSkeleton, Select } from '../../../../components/ui.jsx';
+import { Alert, Badge, EmptyState, MobileCardList, MobileListCard, Modal, Pagination, SectionHeader, TableSkeleton, Select } from '../../../../components/ui.jsx';
 import TableReportActions from '../../../../components/TableReportActions.jsx';
 import { DatePickerField } from '../../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../../services/inventoryApi.js';
+import { useTenantApiQuery } from '../../../../queries/useTenantApiQuery.js';
 import { formatCurrency, formatDate } from '../../../../utils/calculations.js';
 
 const TARGET_OPTIONS = [
@@ -219,35 +220,18 @@ function PromotionFormModal({ promotion, products, categories, onClose, onSave }
 
 export default function RetailPromotionsPage() {
   const { promotionDirectory, productDirectory, saveRetailPromotion, deleteRetailPromotion, t, can } = useInventoryApp();
-  const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
   const [search, setSearch] = useState('');
   const [promotionModal, setPromotionModal] = useState(null);
   const canManageRetailers = can('manage_retail_promotions');
 
-  useEffect(() => {
-    let cancelled = false;
-    inventoryApi.listCategories()
-      .then((result) => {
-        if (!cancelled) {
-          setCategories((result.categories || []).map((category) => ({ id: category.id, name: category.name })));
-        }
-      })
-      .catch((err) => {
-        if (!cancelled) {
-          setError(err?.message || t('retailer.promotions.loadFailed'));
-        }
-      })
-      .finally(() => {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [t]);
+  const categoriesQuery = useTenantApiQuery({
+    scope: 'retail-promotion-categories',
+    queryFn: () => inventoryApi.listCategories(),
+    staleTime: 60_000,
+  });
+  const categories = (categoriesQuery.data?.categories || []).map((category) => ({ id: category.id, name: category.name }));
+  const loading = categoriesQuery.isLoading;
+  const error = categoriesQuery.error?.message || '';
 
   const filteredPromotions = useMemo(() => {
     const needle = search.trim().toLowerCase();
@@ -318,7 +302,29 @@ export default function RetailPromotionsPage() {
             <Alert type="error">{error}</Alert>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+          <MobileCardList>
+            {filteredPromotions.map((promotion) => (
+              <MobileListCard
+                key={promotion.id}
+                title={promotion.name}
+                badge={<Badge tone={promotion.active ? 'emerald' : 'slate'}>{promotion.active ? t('retailer.promotions.active') : t('retailer.promotions.inactive')}</Badge>}
+                subtitle={`${promotionTargetName(promotion)} · ${t(`retailer.promotions.saleTypes.${promotion.saleType}`)}`}
+                value={promotion.discountType === 'PERCENT' ? `${promotion.discountValue}%` : formatCurrency(promotion.discountValue)}
+                action={canManageRetailers ? (
+                  <>
+                    <button type="button" className="icon-btn" title={t('common.edit')} onClick={() => setPromotionModal({ mode: 'edit', promotion })}>
+                      <Pencil size={16} />
+                    </button>
+                    <button type="button" className="icon-btn text-rose-600 hover:text-rose-700" title={t('common.delete')} onClick={async () => { const result = await handleDelete(promotion); if (result?.ok === false) return; }}>
+                      <Trash2 size={16} />
+                    </button>
+                  </>
+                ) : null}
+              />
+            ))}
+          </MobileCardList>
+          <div className="hidden overflow-x-auto md:block">
             <table className="w-full">
               <thead className="table-head">
                 <tr>
@@ -378,6 +384,7 @@ export default function RetailPromotionsPage() {
               </tbody>
             </table>
           </div>
+          </>
         )}
 
         {!loading && !error && !filteredPromotions.length ? (
@@ -405,4 +412,3 @@ export default function RetailPromotionsPage() {
     </div>
   );
 }
-

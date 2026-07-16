@@ -1,12 +1,13 @@
 ﻿import { useEffect, useState } from 'react';
 import { Pencil, Plus, Trash2, Users } from 'lucide-react';
-import { Alert, EmptyState, Pagination, SectionHeader, TableSkeleton, Select } from '../../../../components/ui.jsx';
+import { Alert, EmptyState, MobileCardList, MobileListCard, Pagination, SectionHeader, TableSkeleton, Select } from '../../../../components/ui.jsx';
 import TableReportActions from '../../../../components/TableReportActions.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../../services/inventoryApi.js';
 import { formatDate } from '../../../../utils/calculations.js';
 import { useEmployeesViewModel } from '../viewmodels/useEmployeesViewModel.js';
 import EmployeeFormModal from '../components/EmployeeFormModal.jsx';
+import { useTenantApiQuery } from '../../../../queries/useTenantApiQuery.js';
 
 const EMPLOYEES_REPORT_ID = 'employees-report';
 const EMPLOYEES_ADD_SHORTCUT = { alt: true, key: 'a', label: 'Alt+A' };
@@ -30,8 +31,6 @@ export default function EmployeesPage() {
   const { t, can, language, confirm, pushToast } = useInventoryApp();
   const vm = useEmployeesViewModel();
   const [formModal, setFormModal] = useState(null);
-  const [departments, setDepartments] = useState([]);
-  const [designations, setDesignations] = useState([]);
   const canManage = can('manage_employees');
 
   useEffect(() => {
@@ -46,18 +45,22 @@ export default function EmployeesPage() {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [canManage, formModal]);
 
-  useEffect(() => {
-    let cancelled = false;
-    Promise.all([
-      inventoryApi.getActiveDepartments().catch(() => ({ items: [] })),
-      inventoryApi.getActiveDesignations().catch(() => ({ items: [] })),
-    ]).then(([departmentResult, designationResult]) => {
-      if (cancelled) return;
-      setDepartments(Array.isArray(departmentResult.items) ? departmentResult.items : []);
-      setDesignations(Array.isArray(designationResult.items) ? designationResult.items : []);
-    });
-    return () => { cancelled = true; };
-  }, []);
+  const referencesQuery = useTenantApiQuery({
+    scope: 'employee-form-references',
+    queryFn: async () => {
+      const [departmentResult, designationResult] = await Promise.all([
+        inventoryApi.getActiveDepartments().catch(() => ({ items: [] })),
+        inventoryApi.getActiveDesignations().catch(() => ({ items: [] })),
+      ]);
+      return {
+        departments: Array.isArray(departmentResult.items) ? departmentResult.items : [],
+        designations: Array.isArray(designationResult.items) ? designationResult.items : [],
+      };
+    },
+    staleTime: 30_000,
+  });
+  const departments = referencesQuery.data?.departments || [];
+  const designations = referencesQuery.data?.designations || [];
 
   async function handleDelete(emp) {
     const { confirmed, reason } = await confirm({
@@ -139,7 +142,39 @@ export default function EmployeesPage() {
         ) : vm.error ? (
           <div className="p-5"><Alert type="error">{vm.error}</Alert></div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+          <MobileCardList>
+            {vm.items.map((emp) => (
+              <MobileListCard
+                key={emp.id}
+                leading={
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-100 text-xs font-semibold text-slate-500">
+                    {emp.photoUrl ? <img src={emp.photoUrl} alt="" className="h-full w-full object-cover" /> : emp.name?.slice(0, 1)}
+                  </div>
+                }
+                title={emp.name}
+                badge={
+                  <span className={`muted-chip ${emp.status === 'ACTIVE' ? 'text-emerald-700' : 'text-slate-400'}`}>
+                    {emp.status === 'ACTIVE' ? t('employees.active') : t('employees.inactive')}
+                  </span>
+                }
+                subtitle={`${emp.departmentName || emp.department || '-'} · ${emp.designationName || emp.designation || '-'}`}
+                value={emp.phone || '-'}
+                valueSub={emp.joinDate ? formatDate(emp.joinDate, language) : null}
+                action={canManage ? (
+                  <>
+                    <button type="button" className="icon-btn" onClick={() => setFormModal({ mode: 'edit', employee: emp })} title={t('common.edit')}>
+                      <Pencil size={16} />
+                    </button>
+                    <button type="button" className="icon-btn text-rose-600 hover:text-rose-700" onClick={() => handleDelete(emp)} title={t('common.delete')}>
+                      <Trash2 size={16} />
+                    </button>
+                  </>
+                ) : null}
+              />
+            ))}
+          </MobileCardList>
+          <div className="hidden overflow-x-auto md:block">
             <table className="w-full">
               <thead className="table-head">
                 <tr>
@@ -196,6 +231,7 @@ export default function EmployeesPage() {
               </tbody>
             </table>
           </div>
+          </>
         )}
 
         {!vm.loading && !vm.error && !vm.items.length ? (

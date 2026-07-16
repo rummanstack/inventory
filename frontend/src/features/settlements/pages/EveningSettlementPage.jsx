@@ -1,6 +1,6 @@
 import { AlertTriangle, CheckCircle2, ClipboardList, Download, Loader2, Plus, Printer, Trash2 } from 'lucide-react';
 import PrintableSheet from '../../../components/PrintableSheet.jsx';
-import { Alert, Badge, EmptyState, SectionHeader, TableSkeleton, cx, Select } from '../../../components/ui.jsx';
+import { Alert, Badge, EmptyState, MobileCardList, SectionHeader, TableSkeleton, cx, Select } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import AuditHistory from '../../../components/AuditHistory.jsx';
@@ -71,7 +71,7 @@ export default function EveningSettlementPage() {
   }, [canEditSettlement, canUpdateSettlement, downloadingPdf, vm.saving, vm.hasErrors, vm.completeSettlement, vm.completedSettlement, vm.sheet]);
 
   return (
-    <div>
+    <div className={vm.displayRows.length && canEditSettlement ? 'max-lg:pb-24' : undefined}>
       <SectionHeader eyebrow={t('nav.eveningSettlement')} title={t('nav.eveningSettlement')} description={t('settlement.description')} />
 
       <div className="surface p-5">
@@ -135,7 +135,43 @@ export default function EveningSettlementPage() {
 
         {vm.displayRows.length ? (
           <>
-            <div className="overflow-x-auto">
+            <MobileCardList>
+              {vm.displayRows.map((row) => (
+                <div key={row.key || `${row.productId}-${row.rate}`} className={cx('px-4 py-3', row.invalid && 'bg-rose-50')}>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-bold text-slate-950">{row.productName}</p>
+                      <p className="mt-0.5 truncate text-xs font-medium text-slate-500">
+                        {t('settlement.issued')} {formatCasePiece(row.issuedPieces, row.piecesPerCase)} · {formatCurrency(row.rate)}
+                      </p>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <p className="text-sm font-bold tabular-nums text-slate-950">{formatCurrency(row.payable)}</p>
+                      <p className="mt-0.5 text-xs font-medium tabular-nums text-slate-500">{formatCasePiece(row.soldPieces, row.piecesPerCase)} {t('settlement.sold')}</p>
+                    </div>
+                  </div>
+                  <div className="mt-2.5 grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-slate-400">{t('settlement.returnCase')}</label>
+                      <input className="input" type="number" inputMode="decimal" min="0" value={vm.returns[row.key]?.caseQty || ''} onChange={(event) => vm.updateReturn(row.key, 'caseQty', event.target.value)} disabled={vm.saving} />
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-slate-400">{t('settlement.returnPiece')}</label>
+                      <input className="input" type="number" inputMode="decimal" min="0" value={vm.returns[row.key]?.pieceQty || ''} onChange={(event) => vm.updateReturn(row.key, 'pieceQty', event.target.value)} disabled={vm.saving} />
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-slate-400">{t('settlement.damagedCase')}</label>
+                      <input className="input" type="number" inputMode="decimal" min="0" value={vm.returns[row.key]?.damagedCaseQty || ''} onChange={(event) => vm.updateReturn(row.key, 'damagedCaseQty', event.target.value)} disabled={vm.saving} />
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-slate-400">{t('settlement.damagedPiece')}</label>
+                      <input className="input" type="number" inputMode="decimal" min="0" value={vm.returns[row.key]?.damagedPieceQty || ''} onChange={(event) => vm.updateReturn(row.key, 'damagedPieceQty', event.target.value)} disabled={vm.saving} />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </MobileCardList>
+            <div className="hidden overflow-x-auto md:block">
               <table className="w-full">
                 <thead className="table-head">
                   <tr>
@@ -482,7 +518,7 @@ export default function EveningSettlementPage() {
                       </button>
                     ) : null}
                     {canEditSettlement ? (
-                      <button type="button" className="btn-primary justify-center" onClick={vm.completeSettlement} disabled={vm.saving || vm.hasErrors}>
+                      <button type="button" className="btn-primary max-lg:hidden justify-center" onClick={vm.completeSettlement} disabled={vm.saving || vm.hasErrors}>
                         <CheckCircle2 size={18} />
                         {vm.saving ? t('common.saving') : vm.completedSettlement ? t('settlement.updateSettlement') : t('settlement.completeSettlement')}
                         <kbd className="ml-1 rounded border border-indigo-400/40 bg-indigo-500/20 px-1 py-0.5 font-mono text-[10px] text-indigo-200">Ctrl+S</kbd>
@@ -530,6 +566,23 @@ export default function EveningSettlementPage() {
           <PrintableSheet sheet={vm.sheet} printTarget targetId="settlement-print-sheet" t={t} language={language} />
           <div className="surface mt-4 p-5">
             <AuditHistory entityType="settlement" entityId={vm.completedSettlement.id} />
+          </div>
+        </div>
+      ) : null}
+
+      {!vm.loading && vm.displayRows.length && canEditSettlement ? (
+        <div className="fixed inset-x-0 bottom-[calc(3.75rem+env(safe-area-inset-bottom))] z-30 border-t border-slate-200 bg-[rgb(var(--white))] px-4 py-3 shadow-[0_-4px_16px_rgba(15,23,42,0.08)] lg:hidden">
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">{t('settlement.newDue')}</p>
+              <p className={cx('text-lg font-bold tabular-nums', vm.dueAmount > 0 ? 'text-rose-700' : 'text-emerald-700')}>
+                {formatCurrency(Math.max(0, vm.dueAmount), language)}
+              </p>
+            </div>
+            <button type="button" className="btn-primary shrink-0" onClick={vm.completeSettlement} disabled={vm.saving || vm.hasErrors}>
+              <CheckCircle2 size={18} />
+              {vm.saving ? t('common.saving') : vm.completedSettlement ? t('settlement.updateSettlement') : t('settlement.completeSettlement')}
+            </button>
           </div>
         </div>
       ) : null}

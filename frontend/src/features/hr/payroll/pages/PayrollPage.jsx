@@ -1,9 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { CheckCircle2, Plus } from 'lucide-react';
-import { Alert, EmptyState, SectionHeader, Select, TableSkeleton } from '../../../../components/ui.jsx';
+import { Alert, EmptyState, MobileCardList, MobileListCard, SectionHeader, Select, TableSkeleton } from '../../../../components/ui.jsx';
 import TableReportActions from '../../../../components/TableReportActions.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../../services/inventoryApi.js';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useTenantApiQuery } from '../../../../queries/useTenantApiQuery.js';
+import { transactionKeys } from '../../../transactions/queries/transactionQueries.js';
+import { getActiveTenantId } from '../../../../services/api/client.js';
 
 const currentMonth = () => new Date().toISOString().slice(0, 7);
 const money = (value) => new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 }).format(Number(value || 0));
@@ -17,12 +21,8 @@ const PAYROLL_REPORT_SHORTCUTS = {
 };
 
 export default function PayrollPage() {
+  const queryClient = useQueryClient();
   const { can, pushToast, t } = useInventoryApp();
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [employees, setEmployees] = useState([]);
-  const [structures, setStructures] = useState([]);
-  const [runs, setRuns] = useState([]);
   const [selectedRun, setSelectedRun] = useState(null);
   const [month, setMonth] = useState(currentMonth());
   const [structureForm, setStructureForm] = useState({ employeeId: '', basicSalary: 0, allowances: 0, deductions: 0, grossSalary: 0 });
@@ -31,35 +31,49 @@ export default function PayrollPage() {
 
   const selectedEmployee = useMemo(() => employees.find((employee) => employee.id === structureForm.employeeId), [employees, structureForm.employeeId]);
 
-  async function load() {
-    setLoading(true);
-    setError('');
-    try {
-      const [employeeRows, structureResult, runResult] = await Promise.all([
+  const payrollQuery = useTenantApiQuery({
+    scope: 'payroll',
+    queryFn: async () => {
+      const [employees, structures, runs] = await Promise.all([
         inventoryApi.getActiveEmployees(),
         inventoryApi.listSalaryStructures(),
         inventoryApi.listPayrollRuns(),
       ]);
-      setEmployees(Array.isArray(employeeRows) ? employeeRows : []);
-      setStructures(structureResult.items || []);
-      setRuns(runResult.items || []);
-      if (!selectedRun && runResult.items?.[0]) loadRun(runResult.items[0].id);
-    } catch (err) {
-      setError(err?.message || t('payroll.loadFailed'));
-    } finally {
-      setLoading(false);
-    }
-  }
+      return { employees, structures: structures.items || [], runs: runs.items || [] };
+    },
+  });
+  const payrollMutation = useMutation({
+    mutationKey: transactionKeys.mutation(getActiveTenantId(), 'payroll-action'),
+    mutationFn: ({ action, id, payload }) => {
+      if (action === 'structure') return inventoryApi.saveSalaryStructure(payload);
+      if (action === 'generate') return inventoryApi.generatePayroll(payload);
+      if (action === 'approve') return inventoryApi.approvePayrollRun(id);
+      return inventoryApi.payPayrollRun(id, payload);
+    },
+  });
+  const employees = Array.isArray(payrollQuery.data?.employees) ? payrollQuery.data.employees : [];
+  const structures = payrollQuery.data?.structures || [];
+  const runs = payrollQuery.data?.runs || [];
+  const loading = payrollQuery.isPending;
+  const error = payrollQuery.error?.message || '';
+  const load = payrollQuery.refetch;
 
   async function loadRun(id) {
     try {
-      setSelectedRun(await inventoryApi.getPayrollRun(id));
+      const result = await queryClient.fetchQuery({
+        queryKey: transactionKeys.detail(getActiveTenantId(), 'payroll-run', id),
+        queryFn: () => inventoryApi.getPayrollRun(id),
+        staleTime: 30_000,
+      });
+      setSelectedRun(result);
     } catch (err) {
       pushToast('error', t('payroll.title'), err?.message || t('alerts.requestFailed'));
     }
   }
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    if (!selectedRun && runs[0]) loadRun(runs[0].id);
+  }, [runs, selectedRun]);
 
   useEffect(() => {
     if (!selectedEmployee || Number(structureForm.grossSalary || 0) > 0) return;
@@ -70,7 +84,7 @@ export default function PayrollPage() {
   async function saveStructure(event) {
     event.preventDefault();
     try {
-      await inventoryApi.saveSalaryStructure(structureForm);
+      await payrollMutation.mutateAsync({ action: 'structure', payload: structureForm });
       setStructureForm({ employeeId: '', basicSalary: 0, allowances: 0, deductions: 0, grossSalary: 0 });
       pushToast('success', t('payroll.title'), t('payroll.structureSaved'));
       load();
@@ -82,7 +96,7 @@ export default function PayrollPage() {
   async function generate(event) {
     event.preventDefault();
     try {
-      const result = await inventoryApi.generatePayroll({ month });
+      const result = await payrollMutation.mutateAsync({ action: 'generate', payload: { month } });
       pushToast('success', t('payroll.title'), t('payroll.generated'));
       await load();
       await loadRun(result.run.id);
@@ -93,7 +107,7 @@ export default function PayrollPage() {
 
   async function approve(id) {
     try {
-      await inventoryApi.approvePayrollRun(id);
+      await payrollMutation.mutateAsync({ action: 'approve', id });
       pushToast('success', t('payroll.title'), t('payroll.approvedToast'));
       await load();
       await loadRun(id);
@@ -104,7 +118,7 @@ export default function PayrollPage() {
 
   async function pay(id, paymentMethod = 'CASH') {
     try {
-      await inventoryApi.payPayrollRun(id, { paymentMethod });
+      await payrollMutation.mutateAsync({ action: 'pay', id, payload: { paymentMethod } });
       pushToast('success', t('payroll.title'), t('payroll.paidToast'));
       await load();
       await loadRun(id);
@@ -191,7 +205,18 @@ export default function PayrollPage() {
           {!selectedRun ? (
             <div className="p-5"><EmptyState title={t('payroll.selectRunTitle')} description={t('payroll.selectRunDesc')} /></div>
           ) : (
-            <div className="overflow-x-auto">
+            <>
+            <MobileCardList>
+              {selectedRun.items.map((item) => (
+                <MobileListCard
+                  key={item.id}
+                  title={item.employeeName}
+                  value={money(item.netPay)}
+                  valueSub={money(item.grossSalary)}
+                />
+              ))}
+            </MobileCardList>
+            <div className="hidden overflow-x-auto md:block">
               <table className="w-full">
                 <thead className="table-head"><tr><th className="px-4 py-3">{t('payroll.columnEmployee')}</th><th className="px-4 py-3 text-right">{t('payroll.columnGross')}</th><th className="px-4 py-3 text-right">{t('payroll.columnAttendance')}</th><th className="px-4 py-3 text-right">{t('payroll.columnAdvance')}</th><th className="px-4 py-3 text-right">{t('payroll.columnLoan')}</th><th className="px-4 py-3 text-right">{t('payroll.columnNet')}</th></tr></thead>
                 <tbody className="divide-y divide-slate-100">
@@ -208,6 +233,7 @@ export default function PayrollPage() {
                 </tbody>
               </table>
             </div>
+            </>
           )}
         </div>
       </div>

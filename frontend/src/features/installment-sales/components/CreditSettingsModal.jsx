@@ -3,29 +3,30 @@ import { Alert, Modal } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import CreditCheckPanel from './CreditCheckPanel.jsx';
+import { useTenantReportQuery } from '../../reports/queries/useTenantReportQuery.js';
 
 export default function CreditSettingsModal({ customerId, onClose, onSaved }) {
   const { t, updateInstallmentCreditSettings } = useInventoryApp();
-  const [creditCheck, setCreditCheck] = useState(null);
   const [creditLimit, setCreditLimit] = useState(0);
   const [isCreditBlocked, setIsCreditBlocked] = useState(false);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const creditQuery = useTenantReportQuery({
+    scope: 'installment-credit-check',
+    params: { customerId },
+    queryFn: () => inventoryApi.getInstallmentCreditCheck({ customerId }),
+    enabled: Boolean(customerId),
+    staleTime: 30_000,
+  });
+  const creditCheck = creditQuery.data || null;
+  const loading = creditQuery.isPending;
 
   useEffect(() => {
-    let cancelled = false;
-    inventoryApi.getInstallmentCreditCheck({ customerId })
-      .then((result) => {
-        if (cancelled) return;
-        setCreditCheck(result);
-        setCreditLimit(result.creditLimit || 0);
-        setIsCreditBlocked(Boolean(result.isBlocked));
-      })
-      .catch((requestError) => { if (!cancelled) setError(requestError.message); })
-      .finally(() => { if (!cancelled) setLoading(false); });
-    return () => { cancelled = true; };
-  }, [customerId]);
+    if (creditQuery.data) {
+      setCreditLimit(creditQuery.data.creditLimit || 0);
+      setIsCreditBlocked(Boolean(creditQuery.data.isBlocked));
+    }
+  }, [creditQuery.data]);
 
   async function submitForm(event) {
     event.preventDefault();

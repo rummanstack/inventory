@@ -1,9 +1,13 @@
 import { useEffect, useState } from 'react';
 import { CalendarClock, Plus } from 'lucide-react';
-import { Alert, EmptyState, SectionHeader, Select, TableSkeleton } from '../../../../components/ui.jsx';
+import { Alert, EmptyState, MobileCardList, MobileListCard, SectionHeader, Select, TableSkeleton } from '../../../../components/ui.jsx';
 import TableReportActions from '../../../../components/TableReportActions.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../../services/inventoryApi.js';
+import { useMutation } from '@tanstack/react-query';
+import { useTenantApiQuery } from '../../../../queries/useTenantApiQuery.js';
+import { transactionKeys } from '../../../transactions/queries/transactionQueries.js';
+import { getActiveTenantId } from '../../../../services/api/client.js';
 
 const today = () => new Date().toISOString().slice(0, 10);
 const monthNow = () => new Date().toISOString().slice(0, 7);
@@ -20,45 +24,43 @@ export default function AttendancePage() {
   const { can, pushToast, t } = useInventoryApp();
   const [date, setDate] = useState(today());
   const [month, setMonth] = useState(monthNow());
-  const [employees, setEmployees] = useState([]);
-  const [daily, setDaily] = useState([]);
-  const [monthly, setMonthly] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
   const [form, setForm] = useState({ employeeId: '', status: 'PRESENT', checkInTime: '', checkOutTime: '', lateMinutes: 0, overtimeMinutes: 0, note: '' });
   const canManage = can('attendance.manage');
-
-  async function load() {
-    setLoading(true);
-    setError('');
-    try {
-      const [employeeRows, dailyRows, monthRows] = await Promise.all([
+  const attendanceQuery = useTenantApiQuery({
+    scope: 'attendance',
+    params: { date, month },
+    queryFn: async () => {
+      const [employees, daily, monthly] = await Promise.all([
         inventoryApi.getActiveEmployees(),
         inventoryApi.listDailyAttendance({ date }),
         inventoryApi.getMonthlyAttendanceReport({ month }),
       ]);
-      setEmployees(Array.isArray(employeeRows) ? employeeRows : []);
-      setDaily(dailyRows.items || dailyRows || []);
-      setMonthly(monthRows);
-    } catch (err) {
-      setError(err?.message || t('attendance.loadFailed'));
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => { load(); }, [date, month]);
+      return { employees, daily, monthly };
+    },
+    keepPrevious: true,
+  });
+  const saveMutation = useMutation({
+    mutationKey: transactionKeys.mutation(getActiveTenantId(), 'save-attendance'),
+    mutationFn: ({ existing, payload }) => existing
+      ? inventoryApi.updateAttendance({ ...payload, id: existing.id })
+      : inventoryApi.createAttendance(payload),
+  });
+  const employees = Array.isArray(attendanceQuery.data?.employees) ? attendanceQuery.data.employees : [];
+  const dailyRows = attendanceQuery.data?.daily;
+  const daily = dailyRows?.items || dailyRows || [];
+  const monthly = attendanceQuery.data?.monthly || null;
+  const loading = attendanceQuery.isPending;
+  const error = attendanceQuery.error?.message || '';
 
   async function save(event) {
     event.preventDefault();
     try {
       const existing = daily.find((row) => row.employeeId === form.employeeId);
       const payload = { ...form, attendanceDate: date };
-      if (existing) await inventoryApi.updateAttendance({ ...payload, id: existing.id });
-      else await inventoryApi.createAttendance(payload);
+      await saveMutation.mutateAsync({ existing, payload });
       setForm({ employeeId: '', status: 'PRESENT', checkInTime: '', checkOutTime: '', lateMinutes: 0, overtimeMinutes: 0, note: '' });
       pushToast('success', t('attendance.title'), existing ? t('alerts.updated') : t('alerts.created'));
-      load();
+      attendanceQuery.refetch();
     } catch (err) {
       pushToast('error', t('attendance.title'), err?.message || t('alerts.requestFailed'));
     }
@@ -102,7 +104,20 @@ export default function AttendancePage() {
           {loading ? <div className="p-5"><TableSkeleton columns={6} /></div> : daily.length === 0 ? (
             <div className="p-5"><EmptyState title={t('attendance.noAttendanceTitle')} description={t('attendance.noAttendanceDesc')} icon={CalendarClock} /></div>
           ) : (
-            <div className="overflow-x-auto">
+            <>
+            <MobileCardList>
+              {daily.map((row) => (
+                <MobileListCard
+                  key={row.id}
+                  title={row.employeeName}
+                  badge={<span className="muted-chip">{row.status}</span>}
+                  subtitle={`${row.checkInTime || '-'} – ${row.checkOutTime || '-'}`}
+                  value={row.lateMinutes ? `${row.lateMinutes}m` : null}
+                  valueSub={row.overtimeMinutes ? `${row.overtimeMinutes}m` : null}
+                />
+              ))}
+            </MobileCardList>
+            <div className="hidden overflow-x-auto md:block">
               <table className="w-full">
                 <thead className="table-head"><tr><th className="px-4 py-3">{t('attendance.columnEmployee')}</th><th className="px-4 py-3">{t('attendance.columnStatus')}</th><th className="px-4 py-3">{t('attendance.columnIn')}</th><th className="px-4 py-3">{t('attendance.columnOut')}</th><th className="px-4 py-3">{t('attendance.columnLate')}</th><th className="px-4 py-3">{t('attendance.columnOvertime')}</th></tr></thead>
                 <tbody className="divide-y divide-slate-100">
@@ -119,6 +134,7 @@ export default function AttendancePage() {
                 </tbody>
               </table>
             </div>
+            </>
           )}
         </div>
 
@@ -133,7 +149,19 @@ export default function AttendancePage() {
           {loading ? <div className="p-5"><TableSkeleton columns={7} /></div> : !monthly?.items?.length ? (
             <div className="p-5"><EmptyState title={t('attendance.noMonthlyTitle')} description={t('attendance.noMonthlyDesc')} icon={CalendarClock} /></div>
           ) : (
-            <div className="overflow-x-auto">
+            <>
+            <MobileCardList>
+              {monthly.items.map((row) => (
+                <MobileListCard
+                  key={row.employeeId}
+                  title={row.employeeName}
+                  subtitle={`${t('attendance.columnLeave')} ${row.leaveDays} · ${t('attendance.columnHoliday')} ${row.holidayDays}`}
+                  value={row.presentDays}
+                  valueSub={row.absentDays}
+                />
+              ))}
+            </MobileCardList>
+            <div className="hidden overflow-x-auto md:block">
               <table className="w-full">
                 <thead className="table-head"><tr><th className="px-4 py-3">{t('attendance.columnEmployee')}</th><th className="px-4 py-3">{t('attendance.columnPresent')}</th><th className="px-4 py-3">{t('attendance.columnAbsent')}</th><th className="px-4 py-3">{t('attendance.columnLeave')}</th><th className="px-4 py-3">{t('attendance.columnHoliday')}</th><th className="px-4 py-3">{t('attendance.columnLate')}</th><th className="px-4 py-3">{t('attendance.columnOvertime')}</th></tr></thead>
                 <tbody className="divide-y divide-slate-100">
@@ -151,6 +179,7 @@ export default function AttendancePage() {
                 </tbody>
               </table>
             </div>
+            </>
           )}
         </div>
       </div>

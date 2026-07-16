@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Boxes, Building2, CircleDollarSign, RotateCcw, ShoppingCart, Store, Trash2, UserCog, Users, Wallet } from 'lucide-react';
-import { Alert, EmptyState, Pagination, SectionHeader, TableSkeleton, cx } from '../../../components/ui.jsx';
+import { Alert, EmptyState, MobileCardList, MobileListCard, Pagination, SectionHeader, TableSkeleton, cx } from '../../../components/ui.jsx';
 import TableReportActions from '../../../components/TableReportActions.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import { formatDateTime } from '../../../utils/calculations.js';
+import { useTenantApiQuery } from '../../../queries/useTenantApiQuery.js';
 
 const TRASH_REPORT_ID = 'trash-report';
 const TAB_SHORTCUTS = ['Alt+1', 'Alt+2', 'Alt+3', 'Alt+4', 'Alt+5', 'Alt+6', 'Alt+7', 'Alt+8'];
@@ -156,58 +157,24 @@ export default function TrashPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visibleTabs.map((tab) => tab.key).join(',')]);
 
-  const [items, setItems] = useState([]);
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(0);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
 
   useEffect(() => {
     setPage(1);
   }, [activeKey]);
 
-  useEffect(() => {
-    if (!activeTab) {
-      return;
-    }
-
-    let cancelled = false;
-
-    async function load() {
-      setLoading(true);
-      setError('');
-      try {
-        const result = await activeTab.list({ page, pageSize: 20 });
-        if (cancelled) return;
-        setItems(result.items || []);
-        setTotalPages(result.totalPages || 0);
-      } catch (err) {
-        if (cancelled) return;
-        setError(err?.message || t('alerts.requestFailed'));
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }
-
-    load();
-    return () => {
-      cancelled = true;
-    };
-  }, [activeTab, page, t]);
-
-  async function reload() {
-    if (!activeTab) return;
-    setLoading(true);
-    try {
-      const result = await activeTab.list({ page, pageSize: 20 });
-      setItems(result.items || []);
-      setTotalPages(result.totalPages || 0);
-    } catch (err) {
-      setError(err?.message || t('alerts.requestFailed'));
-    } finally {
-      setLoading(false);
-    }
-  }
+  const trashQuery = useTenantApiQuery({
+    scope: 'trash',
+    params: { activeKey, page, pageSize: 20 },
+    queryFn: () => activeTab.list({ page, pageSize: 20 }),
+    enabled: Boolean(activeTab),
+    keepPrevious: true,
+  });
+  const items = trashQuery.data?.items || [];
+  const totalPages = trashQuery.data?.totalPages || 0;
+  const loading = trashQuery.isLoading || trashQuery.isFetching;
+  const error = trashQuery.error?.message || '';
+  const reload = () => trashQuery.refetch();
 
   async function handleRestore(item) {
     const result = await activeTab.restore(item);
@@ -279,7 +246,29 @@ export default function TrashPage() {
             <EmptyState title={t('trash.emptyTitle')} description={t('trash.emptyDescription')} icon={Trash2} />
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+          <MobileCardList>
+            {items.map((item) => (
+              <MobileListCard
+                key={item.id}
+                title={activeTab.getName(item) || '-'}
+                subtitle={`${item.deletedByName || '-'} · ${formatDateTime(item.deletedAt)}`}
+                action={(
+                  <div className="flex items-center gap-1">
+                    <button type="button" className="icon-btn text-emerald-600 hover:text-emerald-700" title={t('trash.restore')} onClick={() => handleRestore(item)}>
+                      <RotateCcw size={16} />
+                    </button>
+                    {canPermanentDelete && activeTab.permanentlyDelete ? (
+                      <button type="button" className="icon-btn text-rose-600 hover:text-rose-700" title={t('trash.permanentDelete')} onClick={() => handlePermanentDelete(item)}>
+                        <Trash2 size={16} />
+                      </button>
+                    ) : null}
+                  </div>
+                )}
+              />
+            ))}
+          </MobileCardList>
+          <div className="hidden overflow-x-auto md:block">
             <table className="w-full">
               <thead className="table-head">
                 <tr>
@@ -314,6 +303,7 @@ export default function TrashPage() {
               </tbody>
             </table>
           </div>
+          </>
         )}
         {!loading && !error && items.length ? (
           <div className="border-t border-slate-100 px-5 py-4">

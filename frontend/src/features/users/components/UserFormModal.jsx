@@ -7,6 +7,7 @@ import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import { useFormState } from '../../../hooks/useFormState';
 import { getAssignableRoles } from '../userRoleHierarchy.js';
+import { useTenantApiQuery } from '../../../queries/useTenantApiQuery.js';
 
 export default function UserFormModal({ user, onClose, onSave }) {
   const { t, user: actor, pushToast } = useInventoryApp();
@@ -23,21 +24,20 @@ export default function UserFormModal({ user, onClose, onSave }) {
     tenantId: '',
     avatarUrl: user?.avatarUrl || '',
   });
-  const [tenants, setTenants] = useState([]);
+  const tenantsQuery = useTenantApiQuery({
+    scope: 'platform-tenants',
+    queryFn: () => inventoryApi.listTenants(),
+    enabled: needsTenant,
+    requireTenant: false,
+    staleTime: 30_000,
+  });
+  const tenants = tenantsQuery.data?.tenants || [];
 
   useEffect(() => {
-    if (!needsTenant) return;
-    let cancelled = false;
-    inventoryApi.listTenants().then((result) => {
-      if (cancelled) return;
-      const list = result.tenants || [];
-      setTenants(list);
-      setForm((current) => ({ ...current, tenantId: current.tenantId || list[0]?.id || '' }));
-    }).catch(() => {});
-    return () => {
-      cancelled = true;
-    };
-  }, [needsTenant]);
+    if (needsTenant && tenants.length) {
+      setForm((current) => ({ ...current, tenantId: current.tenantId || tenants[0].id || '' }));
+    }
+  }, [needsTenant, tenants]);
 
   async function submitForm(event) {
     event.preventDefault();
@@ -159,4 +159,3 @@ export default function UserFormModal({ user, onClose, onSave }) {
     </Modal>
   );
 }
-

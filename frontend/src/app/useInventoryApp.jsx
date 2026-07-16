@@ -8,7 +8,7 @@ import { pushToast } from './hooks/toast';
 import { useConfirmation } from './hooks/useConfirmation';
 import { useDirectories } from './hooks/useDirectories';
 import { clearCssVarCache } from '../utils/theme.js';
-import { SHARED_DATA_DOMAINS as D, subscribeToSharedDataInvalidation } from '../services/sharedDataInvalidation.js';
+import { SHARED_DATA_DOMAINS as D, shouldInvalidateApiListScope, subscribeToSharedDataInvalidation } from '../services/sharedDataInvalidation.js';
 import { fetchProductDirectory, productKeys } from '../features/products/queries/productQueries.js';
 import { apiListKeys } from '../queries/apiQueryKeys.js';
 import { reportKeys } from '../features/reports/queries/reportQueries.js';
@@ -214,6 +214,104 @@ export function InventoryAppProvider({ children }) {
     mutationKey: transactionKeys.mutation(productTenantId, 'save-sales-return'),
     mutationFn: (salesReturn) => inventoryApi.createSalesReturn(salesReturn),
   });
+  const saveShopMutation = useMutation({
+    mutationKey: transactionKeys.mutation(productTenantId, 'save-customer'),
+    mutationFn: (shop) => shop.id ? inventoryApi.updateCustomer(shop) : inventoryApi.createCustomer(shop),
+  });
+  const deleteShopMutation = useMutation({
+    mutationKey: transactionKeys.mutation(productTenantId, 'delete-customer'),
+    mutationFn: ({ id, reason }) => inventoryApi.deleteCustomer(id, reason),
+  });
+  const saveRetailCustomerMutation = useMutation({
+    mutationKey: transactionKeys.mutation(productTenantId, 'save-retail-customer'),
+    mutationFn: (customer) => customer.id
+      ? inventoryApi.updateRetailCustomer(customer)
+      : inventoryApi.createRetailCustomer(customer),
+  });
+  const deleteRetailCustomerMutation = useMutation({
+    mutationKey: transactionKeys.mutation(productTenantId, 'delete-retail-customer'),
+    mutationFn: ({ id, reason }) => inventoryApi.deleteRetailCustomer(id, reason),
+  });
+  const saveSupplierMutation = useMutation({
+    mutationKey: transactionKeys.mutation(productTenantId, 'save-supplier'),
+    mutationFn: (supplier) => supplier.id
+      ? inventoryApi.updateSupplier(supplier)
+      : inventoryApi.createSupplier(supplier),
+  });
+  const deleteSupplierMutation = useMutation({
+    mutationKey: transactionKeys.mutation(productTenantId, 'delete-supplier'),
+    mutationFn: ({ id, reason }) => inventoryApi.deleteSupplier(id, reason),
+  });
+  const saveCustomerPaymentMutation = useMutation({
+    mutationKey: transactionKeys.mutation(productTenantId, 'save-customer-payment'),
+    mutationFn: (payment) => payment.id
+      ? inventoryApi.updateCustomerPayment(payment)
+      : inventoryApi.createCustomerPayment(payment),
+  });
+  const deleteCustomerPaymentMutation = useMutation({
+    mutationKey: transactionKeys.mutation(productTenantId, 'delete-customer-payment'),
+    mutationFn: ({ id, reason }) => inventoryApi.deleteCustomerPayment(id, reason),
+  });
+  const createInstallmentPlanMutation = useMutation({
+    mutationKey: transactionKeys.mutation(productTenantId, 'create-installment-plan'),
+    mutationFn: (payload) => inventoryApi.createInstallmentPlan(payload),
+  });
+  const collectInstallmentPaymentMutation = useMutation({
+    mutationKey: transactionKeys.mutation(productTenantId, 'collect-installment-payment'),
+    mutationFn: (payload) => inventoryApi.collectInstallmentPayment(payload),
+  });
+  const rescheduleInstallmentPlanMutation = useMutation({
+    mutationKey: transactionKeys.mutation(productTenantId, 'reschedule-installment-plan'),
+    mutationFn: ({ planId, payload }) => inventoryApi.reschedulePlan(planId, payload),
+  });
+  const settleInstallmentPlanMutation = useMutation({
+    mutationKey: transactionKeys.mutation(productTenantId, 'settle-installment-plan'),
+    mutationFn: ({ planId, payload }) => inventoryApi.settlePlan(planId, payload),
+  });
+  const writeOffInstallmentPlanMutation = useMutation({
+    mutationKey: transactionKeys.mutation(productTenantId, 'write-off-installment-plan'),
+    mutationFn: ({ planId, reason }) => inventoryApi.writeOffPlan(planId, { reason }),
+  });
+  const cancelInstallmentPlanMutation = useMutation({
+    mutationKey: transactionKeys.mutation(productTenantId, 'cancel-installment-plan'),
+    mutationFn: ({ planId, reason }) => inventoryApi.cancelPlan(planId, { reason }),
+  });
+  const addInstallmentGuarantorMutation = useMutation({
+    mutationKey: transactionKeys.mutation(productTenantId, 'add-installment-guarantor'),
+    mutationFn: ({ planId, payload }) => inventoryApi.addInstallmentGuarantor(planId, payload),
+  });
+  const removeInstallmentGuarantorMutation = useMutation({
+    mutationKey: transactionKeys.mutation(productTenantId, 'remove-installment-guarantor'),
+    mutationFn: ({ planId, guarantorId }) => inventoryApi.removeInstallmentGuarantor(planId, guarantorId),
+  });
+  const addInstallmentDocumentMutation = useMutation({
+    mutationKey: transactionKeys.mutation(productTenantId, 'add-installment-document'),
+    mutationFn: ({ planId, payload }) => inventoryApi.addInstallmentDocument(planId, payload),
+  });
+  const removeInstallmentDocumentMutation = useMutation({
+    mutationKey: transactionKeys.mutation(productTenantId, 'remove-installment-document'),
+    mutationFn: ({ planId, documentId }) => inventoryApi.removeInstallmentDocument(planId, documentId),
+  });
+  const updateInstallmentCreditMutation = useMutation({
+    mutationKey: transactionKeys.mutation(productTenantId, 'update-installment-credit'),
+    mutationFn: ({ customerId, payload }) => inventoryApi.updateInstallmentCreditSettings(customerId, payload),
+  });
+  const saveInstallmentLateFeeRuleMutation = useMutation({
+    mutationKey: transactionKeys.mutation(productTenantId, 'save-installment-late-fee-rule'),
+    mutationFn: (rule) => inventoryApi.saveInstallmentLateFeeRule(rule),
+  });
+  const applyInstallmentLateFeeMutation = useMutation({
+    mutationKey: transactionKeys.mutation(productTenantId, 'apply-installment-late-fee'),
+    mutationFn: (scheduleId) => inventoryApi.applyInstallmentLateFee(scheduleId),
+  });
+  const saveIssueMutation = useMutation({
+    mutationKey: transactionKeys.mutation(productTenantId, 'save-morning-issue'),
+    mutationFn: (issue) => inventoryApi.saveIssue(issue),
+  });
+  const saveSettlementMutation = useMutation({
+    mutationKey: transactionKeys.mutation(productTenantId, 'save-evening-settlement'),
+    mutationFn: (settlement) => inventoryApi.saveSettlement(settlement),
+  });
 
   function invalidateProductDerivedQueries() {
     if (!productTenantId) return;
@@ -365,7 +463,11 @@ export function InventoryAppProvider({ children }) {
 
   useEffect(() => subscribeToSharedDataInvalidation((domains) => {
     domains.forEach((domain) => staleSharedDirectoryDomainsRef.current.add(domain));
-    queryClient.invalidateQueries({ queryKey: apiListKeys.all, refetchType: 'none' });
+    queryClient.invalidateQueries({
+      predicate: (query) => query.queryKey[0] === apiListKeys.all[0]
+        && shouldInvalidateApiListScope(query.queryKey[2], domains),
+      refetchType: 'none',
+    });
     queryClient.invalidateQueries({ queryKey: ['api-data'], refetchType: 'none' });
     queryClient.invalidateQueries({ queryKey: reportKeys.all, refetchType: 'none' });
     queryClient.invalidateQueries({ queryKey: transactionKeys.all, refetchType: 'none' });
@@ -635,7 +737,7 @@ export function InventoryAppProvider({ children }) {
 
   async function saveShop(shop) {
     try {
-      const result = shop.id ? await inventoryApi.updateCustomer(shop) : await inventoryApi.createCustomer(shop);
+      const result = await saveShopMutation.mutateAsync(shop);
       if (result.customer.status === 'ACTIVE') {
         upsertShopDirectory(result.customer);
       } else {
@@ -652,7 +754,7 @@ export function InventoryAppProvider({ children }) {
 
   async function saveRetailCustomer(customer) {
     try {
-      const result = customer.id ? await inventoryApi.updateRetailCustomer(customer) : await inventoryApi.createRetailCustomer(customer);
+      const result = await saveRetailCustomerMutation.mutateAsync(customer);
       if (result.retailCustomer.status === 'ACTIVE') {
         upsertRetailCustomerDirectory(result.retailCustomer);
       } else {
@@ -664,6 +766,25 @@ export function InventoryAppProvider({ children }) {
       const message = getFriendlyError(error, t);
       pushToast('error', t('alerts.requestFailed'), message);
       return { ok: false, message };
+    }
+  }
+
+  async function deleteRetailCustomer(customer) {
+    const { confirmed, reason } = await confirm({
+      title: t('retailCustomers.deleteTitle'),
+      description: t('retailCustomers.deleteConfirm', { name: customer.name }),
+      requireReason: false,
+    });
+    if (!confirmed) return { ok: false };
+
+    try {
+      await deleteRetailCustomerMutation.mutateAsync({ id: customer.id, reason });
+      removeFromRetailCustomerDirectory(customer.id);
+      pushToast('success', t('common.delete'), customer.name + ' ' + t('alerts.deleted'));
+      return { ok: true };
+    } catch (error) {
+      pushToast('error', t('alerts.deleteFailed'), getFriendlyError(error, t));
+      return { ok: false };
     }
   }
 
@@ -684,7 +805,7 @@ export function InventoryAppProvider({ children }) {
     }
 
     try {
-      await inventoryApi.deleteCustomer(shop.id, reason);
+      await deleteShopMutation.mutateAsync({ id: shop.id, reason });
       removeFromShopDirectory(shop.id);
       pushToast('success', t('common.delete'), `${shop.shopName} ${t('alerts.deleted')}`);
       return { ok: true };
@@ -697,7 +818,7 @@ export function InventoryAppProvider({ children }) {
 
   async function saveSupplier(supplier) {
     try {
-      const result = supplier.id ? await inventoryApi.updateSupplier(supplier) : await inventoryApi.createSupplier(supplier);
+      const result = await saveSupplierMutation.mutateAsync(supplier);
       if (result.supplier.status === 'ACTIVE') {
         upsertSupplierDirectory(result.supplier);
       } else {
@@ -729,7 +850,7 @@ export function InventoryAppProvider({ children }) {
     }
 
     try {
-      await inventoryApi.deleteSupplier(supplier.id, reason);
+      await deleteSupplierMutation.mutateAsync({ id: supplier.id, reason });
       removeFromSupplierDirectory(supplier.id);
       pushToast('success', t('common.delete'), `${supplier.name} ${t('alerts.deleted')}`);
       return { ok: true };
@@ -1104,7 +1225,7 @@ export function InventoryAppProvider({ children }) {
 
   async function saveCustomerPayment(payment) {
     try {
-      const result = payment.id ? await inventoryApi.updateCustomerPayment(payment) : await inventoryApi.createCustomerPayment(payment);
+      const result = await saveCustomerPaymentMutation.mutateAsync(payment);
       await refreshRetailCustomerDirectory();
       pushToast('success', payment.id ? t('retailer.dueCollection.editTitle') : t('retailer.dueCollection.addTitle'), payment.id ? t('alerts.updated') : t('alerts.created'));
       return { ok: true, payment: result.payment };
@@ -1131,7 +1252,7 @@ export function InventoryAppProvider({ children }) {
     }
 
     try {
-      await inventoryApi.deleteCustomerPayment(payment.id, reason);
+      await deleteCustomerPaymentMutation.mutateAsync({ id: payment.id, reason });
       await refreshRetailCustomerDirectory();
       pushToast('success', t('common.delete'), t('alerts.deleted'));
       return { ok: true };
@@ -1463,7 +1584,7 @@ export function InventoryAppProvider({ children }) {
 
   async function saveIssue(issue) {
     try {
-      await inventoryApi.saveIssue(issue);
+      await saveIssueMutation.mutateAsync(issue);
       await refreshProductDirectory();
       pushToast('success', t('nav.morningIssue'), `${issue.dsrName} - ${formatDate(issue.date)}`);
       return { ok: true };
@@ -1476,7 +1597,7 @@ export function InventoryAppProvider({ children }) {
 
   async function saveSettlement(settlement) {
     try {
-      await inventoryApi.saveSettlement(settlement);
+      await saveSettlementMutation.mutateAsync(settlement);
       await refreshProductDirectory();
       pushToast('success', t('nav.eveningSettlement'), `${settlement.dsrName} - ${formatCurrency(settlement.totalPayable)}`);
       return { ok: true };
@@ -1573,7 +1694,7 @@ export function InventoryAppProvider({ children }) {
 
   async function createInstallmentPlan(payload) {
     try {
-      const result = await inventoryApi.createInstallmentPlan(payload);
+      const result = await createInstallmentPlanMutation.mutateAsync(payload);
       pushToast('success', t('installments.plans.addTitle'), `${result.plan.planNumber} ${t('alerts.created')}`);
       return { ok: true, ...result };
     } catch (error) {
@@ -1585,7 +1706,7 @@ export function InventoryAppProvider({ children }) {
 
   async function collectInstallmentPayment(payload) {
     try {
-      const result = await inventoryApi.collectInstallmentPayment(payload);
+      const result = await collectInstallmentPaymentMutation.mutateAsync(payload);
       pushToast('success', t('installments.payment.title'), `${result.plan.planNumber} ${t('alerts.updated')}`);
       return { ok: true, ...result };
     } catch (error) {
@@ -1597,7 +1718,7 @@ export function InventoryAppProvider({ children }) {
 
   async function rescheduleInstallmentPlan(planId, payload) {
     try {
-      const plan = await inventoryApi.reschedulePlan(planId, payload);
+      const plan = await rescheduleInstallmentPlanMutation.mutateAsync({ planId, payload });
       pushToast('success', t('installments.detail.reschedule'), `${plan.planNumber} ${t('alerts.updated')}`);
       return { ok: true, plan };
     } catch (error) {
@@ -1609,7 +1730,7 @@ export function InventoryAppProvider({ children }) {
 
   async function settleInstallmentPlan(planId, payload) {
     try {
-      const plan = await inventoryApi.settlePlan(planId, payload);
+      const plan = await settleInstallmentPlanMutation.mutateAsync({ planId, payload });
       pushToast('success', t('installments.detail.settle'), `${plan.planNumber} ${t('alerts.updated')}`);
       return { ok: true, plan };
     } catch (error) {
@@ -1633,7 +1754,7 @@ export function InventoryAppProvider({ children }) {
     if (!confirmed) return { ok: false };
 
     try {
-      const updated = await inventoryApi.writeOffPlan(plan.id, { reason });
+      const updated = await writeOffInstallmentPlanMutation.mutateAsync({ planId: plan.id, reason });
       pushToast('success', t('installments.detail.writeOff'), `${updated.planNumber} ${t('alerts.updated')}`);
       return { ok: true, plan: updated };
     } catch (error) {
@@ -1657,7 +1778,7 @@ export function InventoryAppProvider({ children }) {
     if (!confirmed) return { ok: false };
 
     try {
-      const updated = await inventoryApi.cancelPlan(plan.id, { reason });
+      const updated = await cancelInstallmentPlanMutation.mutateAsync({ planId: plan.id, reason });
       pushToast('success', t('installments.detail.cancel'), `${updated.planNumber} ${t('alerts.updated')}`);
       return { ok: true, plan: updated };
     } catch (error) {
@@ -1669,7 +1790,7 @@ export function InventoryAppProvider({ children }) {
 
   async function addInstallmentGuarantor(planId, payload) {
     try {
-      const guarantor = await inventoryApi.addInstallmentGuarantor(planId, payload);
+      const guarantor = await addInstallmentGuarantorMutation.mutateAsync({ planId, payload });
       pushToast('success', t('installments.guarantors.add'), guarantor.name);
       return { ok: true, guarantor };
     } catch (error) {
@@ -1688,7 +1809,7 @@ export function InventoryAppProvider({ children }) {
     if (!confirmed) return { ok: false };
 
     try {
-      await inventoryApi.removeInstallmentGuarantor(planId, guarantor.id);
+      await removeInstallmentGuarantorMutation.mutateAsync({ planId, guarantorId: guarantor.id });
       pushToast('success', t('common.delete'), `${guarantor.name} ${t('alerts.deleted')}`);
       return { ok: true };
     } catch (error) {
@@ -1699,7 +1820,7 @@ export function InventoryAppProvider({ children }) {
 
   async function addInstallmentDocument(planId, payload) {
     try {
-      const document = await inventoryApi.addInstallmentDocument(planId, payload);
+      const document = await addInstallmentDocumentMutation.mutateAsync({ planId, payload });
       pushToast('success', t('installments.documents.add'), t(`installments.documents.types.${document.documentType}`));
       return { ok: true, document };
     } catch (error) {
@@ -1718,7 +1839,7 @@ export function InventoryAppProvider({ children }) {
     if (!confirmed) return { ok: false };
 
     try {
-      await inventoryApi.removeInstallmentDocument(planId, document.id);
+      await removeInstallmentDocumentMutation.mutateAsync({ planId, documentId: document.id });
       pushToast('success', t('common.delete'), t('alerts.deleted'));
       return { ok: true };
     } catch (error) {
@@ -1729,7 +1850,7 @@ export function InventoryAppProvider({ children }) {
 
   async function updateInstallmentCreditSettings(customerId, payload) {
     try {
-      const customer = await inventoryApi.updateInstallmentCreditSettings(customerId, payload);
+      const customer = await updateInstallmentCreditMutation.mutateAsync({ customerId, payload });
       pushToast('success', t('installments.creditSettings.title'), t('alerts.updated'));
       return { ok: true, customer };
     } catch (error) {
@@ -1741,7 +1862,7 @@ export function InventoryAppProvider({ children }) {
 
   async function saveInstallmentLateFeeRule(rule) {
     try {
-      const result = await inventoryApi.saveInstallmentLateFeeRule(rule);
+      const result = await saveInstallmentLateFeeRuleMutation.mutateAsync(rule);
       pushToast('success', rule.id ? t('installments.lateFeeRules.editTitle') : t('installments.lateFeeRules.addTitle'), t(rule.id ? 'alerts.updated' : 'alerts.created'));
       return { ok: true, rule: result };
     } catch (error) {
@@ -1753,7 +1874,7 @@ export function InventoryAppProvider({ children }) {
 
   async function applyInstallmentLateFee(scheduleId) {
     try {
-      const result = await inventoryApi.applyInstallmentLateFee(scheduleId);
+      const result = await applyInstallmentLateFeeMutation.mutateAsync(scheduleId);
       pushToast('success', t('installments.reports.applyLateFee'), t('alerts.updated'));
       return { ok: true, ...result };
     } catch (error) {
@@ -1839,6 +1960,7 @@ export function InventoryAppProvider({ children }) {
       saveShop,
       deleteShop,
       saveRetailCustomer,
+      deleteRetailCustomer,
       restoreShop,
       permanentlyDeleteShop,
       restoreExpense,

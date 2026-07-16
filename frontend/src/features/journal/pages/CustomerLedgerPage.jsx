@@ -1,6 +1,6 @@
 ﻿import { useEffect, useState } from 'react';
 import TableReportActions from '../../../components/TableReportActions.jsx';
-import { Alert, CopyableText, EmptyState, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
+import { Alert, CopyableText, EmptyState, MobileCardList, MobileListCard, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { formatCurrency, formatDate } from '../../../utils/calculations.js';
@@ -50,6 +50,19 @@ function PartyLedgerPage({ title, partyKey, loader, reportId }) {
               <div><div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Opening Balance</div><div className="mt-1 text-lg font-semibold text-slate-950">{formatCurrency(data.openingBalance || 0, language)}</div></div>
               <div><div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Outstanding</div><div className="mt-1 text-lg font-semibold text-slate-950">{formatCurrency(data.outstanding || 0, language)}</div></div>
             </div>
+            <MobileCardList>
+              {data.lines.map((line) => (
+                <MobileListCard
+                  key={line.id}
+                  title={line.voucherNumber || line.documentNumber || line.voucherType}
+                  subtitle={`${formatDate(line.entryDate, language)} · ${line.referenceNumber || line.memo || line.voucherType}`}
+                  value={line.debit ? formatCurrency(line.debit, language) : line.credit ? `- ${formatCurrency(line.credit, language)}` : '-'}
+                  valueClass={line.debit ? 'text-emerald-700' : line.credit ? 'text-rose-600' : undefined}
+                  valueSub={formatCurrency(line.runningBalance, language)}
+                />
+              ))}
+            </MobileCardList>
+            <div className="hidden overflow-x-auto md:block">
             <table className="w-full min-w-[1120px]">
               <thead className="table-head">
                 <tr>
@@ -76,6 +89,7 @@ function PartyLedgerPage({ title, partyKey, loader, reportId }) {
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
         ) : null}
       </div>

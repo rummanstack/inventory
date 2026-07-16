@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Plus } from 'lucide-react';
 import { Alert, EmptyState, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
@@ -7,66 +7,64 @@ import TenantsTable from '../components/TenantsTable.jsx';
 import TenantEditModal from '../components/TenantEditModal.jsx';
 import TenantCreateModal from '../components/TenantCreateModal.jsx';
 import TenantFeaturesModal from '../components/TenantFeaturesModal.jsx';
+import { useMutation } from '@tanstack/react-query';
+import { useTenantApiQuery } from '../../../queries/useTenantApiQuery.js';
 
 export default function PlatformAdminPage() {
   const { t, pushToast } = useInventoryApp();
-  const [tenants, setTenants] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [togglingId, setTogglingId] = useState(null);
   const [showCreate, setShowCreate] = useState(false);
   const [editingTenant, setEditingTenant] = useState(null);
   const [featuresTenant, setFeaturesTenant] = useState(null);
 
-  useEffect(() => {
-    loadTenants();
-  }, []);
-
-  async function loadTenants() {
-    setLoading(true);
-    setError('');
-    try {
-      const result = await inventoryApi.listTenants();
-      setTenants(result.tenants || []);
-    } catch (err) {
-      setError(err?.message || t('organizations.loadFailed'));
-    } finally {
-      setLoading(false);
-    }
-  }
+  const tenantsQuery = useTenantApiQuery({
+    scope: 'platform-tenants',
+    queryFn: () => inventoryApi.listTenants(),
+    requireTenant: false,
+  });
+  const tenantMutation = useMutation({
+    mutationFn: ({ action, id, payload }) => {
+      if (action === 'status') return inventoryApi.setTenantStatus(id, payload);
+      if (action === 'update') return inventoryApi.updateTenant(id, payload);
+      if (action === 'features') return inventoryApi.updateTenantFeatures(id, payload);
+      return inventoryApi.createTenant(payload);
+    },
+  });
+  const tenants = tenantsQuery.data?.tenants || [];
+  const loading = tenantsQuery.isLoading;
+  const error = tenantsQuery.error?.message || '';
+  const togglingId = tenantMutation.isPending && tenantMutation.variables?.action === 'status'
+    ? tenantMutation.variables.id
+    : null;
 
   async function toggleStatus(tenant) {
     const next = tenant.status === 'active' ? 'inactive' : 'active';
-    setTogglingId(tenant.id);
     try {
-      const result = await inventoryApi.setTenantStatus(tenant.id, next);
-      setTenants((current) => current.map((entry) => (entry.id === tenant.id ? result.tenant : entry)));
+      const result = await tenantMutation.mutateAsync({ action: 'status', id: tenant.id, payload: next });
+      await tenantsQuery.refetch();
       pushToast('success', result.tenant.name, next === 'active' ? t('organizations.activate') : t('organizations.deactivate'));
     } catch (err) {
       const message = err?.message || t('organizations.statusFailed');
-      setError(message);
       pushToast('error', t('alerts.updateFailed'), message);
-    } finally {
-      setTogglingId(null);
     }
   }
 
   async function handleEditTenant(fields) {
-    const result = await inventoryApi.updateTenant(editingTenant.id, fields);
-    setTenants((current) => current.map((entry) => (entry.id === editingTenant.id ? result.tenant : entry)));
+    const result = await tenantMutation.mutateAsync({ action: 'update', id: editingTenant.id, payload: fields });
+    await tenantsQuery.refetch();
     setEditingTenant(null);
     pushToast('success', t('organizations.editTitle'), `${result.tenant.name} ${t('alerts.updated')}`);
   }
 
   async function handleSaveFeatures(features) {
-    await inventoryApi.updateTenantFeatures(featuresTenant.id, features);
+    await tenantMutation.mutateAsync({ action: 'features', id: featuresTenant.id, payload: features });
+    await tenantsQuery.refetch();
     setFeaturesTenant(null);
     pushToast('success', t('organizations.featuresTitle'), t('organizations.featuresUpdated'));
   }
 
   async function handleCreate(fields) {
-    const result = await inventoryApi.createTenant(fields);
-    setTenants((current) => [...current, result.tenant]);
+    const result = await tenantMutation.mutateAsync({ action: 'create', payload: fields });
+    await tenantsQuery.refetch();
     setShowCreate(false);
     pushToast('success', t('organizations.createTitle'), `${result.tenant.name} ${t('alerts.created')}`);
   }

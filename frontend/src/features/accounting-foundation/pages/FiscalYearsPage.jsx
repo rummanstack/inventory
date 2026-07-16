@@ -2,6 +2,10 @@ import { useEffect, useMemo, useState } from 'react';
 import { Alert, Badge, Modal, SectionHeader } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useTenantReportQuery } from '../../reports/queries/useTenantReportQuery.js';
+import { transactionKeys } from '../../transactions/queries/transactionQueries.js';
+import { getActiveTenantId } from '../../../services/api/client.js';
 
 function FiscalYearFormModal({ onClose, onSave }) {
   const [form, setForm] = useState({ name: '', startDate: '', endDate: '', isActive: true });
@@ -126,6 +130,7 @@ function GenerateOpeningModal({ targetYear, years, onClose, onConfirm }) {
 }
 
 export default function FiscalYearsPage() {
+  const queryClient = useQueryClient();
   const { can, pushToast } = useInventoryApp();
   const canManage = can('manage_fiscal_years');
   const canManagePeriods = can('manage_accounting_periods');
@@ -135,8 +140,7 @@ export default function FiscalYearsPage() {
   const canLockPeriod = can('period.lock') || can('accounting.admin') || canManagePeriods;
   const canUnlockPeriod = can('period.unlock') || can('accounting.admin');
 
-  const [items, setItems] = useState([]);
-  const [error, setError] = useState('');
+  const [actionError, setError] = useState('');
   const [showCreate, setShowCreate] = useState(false);
   const [closeTarget, setCloseTarget] = useState(null);
   const [closePreview, setClosePreview] = useState(null);
@@ -144,22 +148,22 @@ export default function FiscalYearsPage() {
   const [closingYear, setClosingYear] = useState(false);
   const [reopenTarget, setReopenTarget] = useState(null);
   const [openingTarget, setOpeningTarget] = useState(null);
-
-  async function load() {
-    try {
-      const result = await inventoryApi.listFiscalYears();
-      setItems(result.fiscalYears || []);
-      setError('');
-    } catch (err) {
-      setError(err?.message || 'Failed to load fiscal years.');
-    }
-  }
-
-  useEffect(() => { load(); }, []);
+  const yearsQuery = useTenantReportQuery({
+    scope: 'fiscal-years',
+    queryFn: () => inventoryApi.listFiscalYears(),
+    staleTime: 60_000,
+  });
+  const accountingMutation = useMutation({
+    mutationKey: transactionKeys.mutation(getActiveTenantId(), 'fiscal-year-workflow'),
+    mutationFn: ({ fn, args = [] }) => fn(...args),
+  });
+  const items = yearsQuery.data?.fiscalYears || [];
+  const error = actionError || yearsQuery.error?.message || '';
+  const load = yearsQuery.refetch;
 
   async function createYear(form) {
     try {
-      await inventoryApi.createFiscalYear(form);
+      await accountingMutation.mutateAsync({ fn: inventoryApi.createFiscalYear, args: [form] });
       setShowCreate(false);
       await load();
       pushToast('success', 'Fiscal Years', 'Fiscal year created.');
@@ -171,7 +175,7 @@ export default function FiscalYearsPage() {
 
   async function transition(fn, id, message) {
     try {
-      await fn(id);
+      await accountingMutation.mutateAsync({ fn, args: [id] });
       await load();
       pushToast('success', 'Fiscal Years', message);
     } catch (err) {
@@ -183,7 +187,11 @@ export default function FiscalYearsPage() {
     setLoadingPreview(true);
     setError('');
     try {
-      const result = await inventoryApi.previewFiscalYearClose(year.id);
+      const result = await queryClient.fetchQuery({
+        queryKey: transactionKeys.detail(getActiveTenantId(), 'fiscal-year-close-preview', year.id),
+        queryFn: () => inventoryApi.previewFiscalYearClose(year.id),
+        staleTime: 30_000,
+      });
       setCloseTarget(year);
       setClosePreview(result.preview || null);
     } catch (err) {
@@ -197,7 +205,7 @@ export default function FiscalYearsPage() {
     if (!closeTarget) return;
     setClosingYear(true);
     try {
-      await inventoryApi.closeFiscalYear(closeTarget.id);
+      await accountingMutation.mutateAsync({ fn: inventoryApi.closeFiscalYear, args: [closeTarget.id] });
       setCloseTarget(null);
       setClosePreview(null);
       await load();
@@ -211,7 +219,7 @@ export default function FiscalYearsPage() {
 
   async function confirmReopenYear(reason) {
     try {
-      await inventoryApi.reopenFiscalYear(reopenTarget.id, { reason });
+      await accountingMutation.mutateAsync({ fn: inventoryApi.reopenFiscalYear, args: [reopenTarget.id, { reason }] });
       setReopenTarget(null);
       await load();
       pushToast('success', 'Fiscal Years', 'Fiscal year reopened.');
@@ -223,7 +231,7 @@ export default function FiscalYearsPage() {
 
   async function confirmGenerateOpening(sourceFiscalYearId) {
     try {
-      const result = await inventoryApi.generateYearOpening(openingTarget.id, { sourceFiscalYearId });
+      const result = await accountingMutation.mutateAsync({ fn: inventoryApi.generateYearOpening, args: [openingTarget.id, { sourceFiscalYearId }] });
       setOpeningTarget(null);
       await load();
       pushToast('success', 'Opening Balances', `${result.createdCount || 0} opening balances generated.`);
@@ -262,7 +270,35 @@ export default function FiscalYearsPage() {
                 {canGenerateOpening && year.status !== 'CLOSED' ? <button type="button" className="btn-secondary" onClick={() => setOpeningTarget(year)}>Generate Openings</button> : null}
               </div>
             </div>
-            <div className="overflow-x-auto">
+            <div className="divide-y divide-slate-100 md:hidden">
+              {year.periods?.map((period) => (
+                <div key={period.id} className="px-4 py-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-bold text-slate-950">{period.name}</p>
+                      <p className="mt-0.5 truncate text-xs font-medium text-slate-500">{period.startDate} to {period.endDate}</p>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <Badge tone={period.status === 'CLOSED' ? 'rose' : 'blue'}>{period.status}</Badge>
+                      <p className="mt-0.5 text-xs font-medium text-slate-500">{period.locked ? 'Locked' : 'Unlocked'}</p>
+                    </div>
+                  </div>
+                  {(canManagePeriods || canUnlockPeriod || canLockPeriod) ? (
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {canLockPeriod && !period.locked ? <button type="button" className="btn-secondary h-8 px-2.5 text-xs" onClick={() => transition(inventoryApi.lockAccountingPeriod, period.id, 'Period locked.')}>Lock</button> : null}
+                      {canUnlockPeriod && period.locked ? <button type="button" className="btn-secondary h-8 px-2.5 text-xs" onClick={() => transition(inventoryApi.unlockAccountingPeriod, period.id, 'Period unlocked.')}>Unlock</button> : null}
+                      {canManagePeriods ? (
+                        period.status !== 'CLOSED'
+                          ? <button type="button" className="btn-secondary h-8 px-2.5 text-xs" onClick={() => transition(inventoryApi.closeAccountingPeriod, period.id, 'Period closed.')}>Close</button>
+                          : <button type="button" className="btn-secondary h-8 px-2.5 text-xs" onClick={() => transition(inventoryApi.reopenAccountingPeriod, period.id, 'Period reopened.')}>Reopen</button>
+                      ) : null}
+                      {canManagePeriods && period.status !== 'CLOSED' ? <button type="button" className="btn-secondary h-8 px-2.5 text-xs" onClick={() => transition(inventoryApi.openAccountingPeriod, period.id, 'Period opened.')}>Open</button> : null}
+                    </div>
+                  ) : null}
+                </div>
+              ))}
+            </div>
+            <div className="hidden overflow-x-auto md:block">
               <table className="w-full">
                 <thead className="table-head">
                   <tr>
@@ -309,4 +345,3 @@ export default function FiscalYearsPage() {
     </div>
   );
 }
-

@@ -73,7 +73,62 @@ export default function SalesReturnFormModal({ onClose, onSave }) {
         ) : null}
 
         {vm.lineRows.length ? (
-          <div className="overflow-x-auto">
+          <>
+          <div className="space-y-3 md:hidden">
+            {vm.lineRows.map((row) => (
+              <div key={row.rowId} className="space-y-2 rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="truncate text-sm font-bold text-slate-950">{row.productName}</p>
+                  <p className="shrink-0 text-sm font-bold tabular-nums text-slate-950">{formatCurrency(row.lineTotal)}</p>
+                </div>
+                <p className="text-xs font-medium text-slate-500">{t('retailer.salesReturn.soldQuantity')}: {row.originalQuantity} · {t('retailer.shared.priceLabel')}: {formatCurrency(row.actualSalePrice)}</p>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-slate-400">{t('retailer.salesReturn.returnQuantity')}</label>
+                    {row.serialRequired ? (
+                      <div className={`input flex items-center justify-center font-semibold ${row.selectedSerialIds.length ? 'text-emerald-600' : 'text-rose-600'}`}>
+                        {t('retailer.salesReturn.serialsSelectedCount', { count: row.selectedSerialIds.length })}
+                      </div>
+                    ) : (
+                      <input className="input text-right" type="number" inputMode="decimal" min="0" max={row.originalQuantity} value={row.returnQuantity} onChange={(event) => vm.updateReturnQuantity(row.rowId, event.target.value)} disabled={saving} />
+                    )}
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-slate-400">{t('retailer.salesReturn.conditionLabel')}</label>
+                    <Select className="input" value={row.condition} onChange={(event) => vm.updateReturnCondition(row.rowId, event.target.value)} disabled={saving}>
+                      <option value="GOOD">{t('retailer.salesReturn.conditionGood')}</option>
+                      <option value="DAMAGED">{t('retailer.salesReturn.conditionDamaged')}</option>
+                      <option value="WARRANTY">{t('retailer.salesReturn.conditionWarranty')}</option>
+                    </Select>
+                  </div>
+                </div>
+                {row.serialRequired ? (
+                  <div className="rounded-lg border border-slate-200 bg-white p-2.5">
+                    <p className="label mb-1">{t('retailer.salesReturn.selectSerialsLabel')}</p>
+                    {row.soldSerials.length ? (
+                      <div className="grid gap-2 sm:grid-cols-2">
+                        {row.soldSerials.map((serial) => (
+                          <label key={serial.productSerialId} className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700">
+                            <input
+                              type="checkbox"
+                              className="h-4 w-4 rounded border-slate-300"
+                              checked={row.selectedSerialIds.includes(serial.productSerialId)}
+                              onChange={() => vm.toggleReturnSerial(row.rowId, serial.productSerialId)}
+                              disabled={saving}
+                            />
+                            {serial.serialNumber || serial.imei1 || serial.imei2}
+                          </label>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-xs font-semibold text-rose-600">{t('retailer.salesReturn.noSoldSerials')}</p>
+                    )}
+                  </div>
+                ) : null}
+              </div>
+            ))}
+          </div>
+          <div className="hidden overflow-x-auto md:block">
             <table className="w-full text-sm">
               <thead className="table-head">
                 <tr>
@@ -140,6 +195,7 @@ export default function SalesReturnFormModal({ onClose, onSave }) {
               </tbody>
             </table>
           </div>
+          </>
         ) : null}
 
         {vm.lineRows.length ? (

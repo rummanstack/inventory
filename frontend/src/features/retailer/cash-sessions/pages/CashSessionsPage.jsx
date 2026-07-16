@@ -1,5 +1,5 @@
 import { Download, FileSpreadsheet, Loader2, Printer, Vault } from 'lucide-react';
-import { Alert, Badge, CopyableText, EmptyState, Pagination, SectionHeader, TableSkeleton } from '../../../../components/ui.jsx';
+import { Alert, Badge, CopyableText, EmptyState, MobileCardList, MobileListCard, Pagination, SectionHeader, TableSkeleton } from '../../../../components/ui.jsx';
 import { DatePickerField } from '../../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../../services/inventoryApi.js';
@@ -143,7 +143,25 @@ export default function CashSessionsPage() {
             <Alert type="error">{vm.error}</Alert>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+          <MobileCardList>
+            {sessions.map((session) => (
+              <MobileListCard
+                key={session.id}
+                title={formatDateTime(session.startedAt)}
+                badge={
+                  <Badge tone={session.isOpen ? 'blue' : 'slate'}>
+                    {session.isOpen ? t('cashSessions.statusOpen') : t('cashSessions.statusClosed')}
+                  </Badge>
+                }
+                subtitle={session.openedByName || undefined}
+                value={formatCurrency(session.cashSalesAmount)}
+                valueSub={!session.isOpen ? varianceLabel(session.variance) : null}
+                valueClass={!session.isOpen && session.variance !== 0 ? (session.variance > 0 ? 'text-emerald-700' : 'text-rose-700') : undefined}
+              />
+            ))}
+          </MobileCardList>
+          <div className="hidden overflow-x-auto md:block">
             <table className="w-full">
               <thead className="table-head">
                 <tr>
@@ -207,6 +225,7 @@ export default function CashSessionsPage() {
               </tbody>
             </table>
           </div>
+          </>
         )}
 
         {!vm.loading && !vm.error && sessions.length === 0 ? (

@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { AlertTriangle, Save, Truck } from 'lucide-react';
-import { Alert, EmptyState, SectionHeader, TableSkeleton, cx, Select } from '../../../components/ui.jsx';
+import { Alert, EmptyState, MobileCardList, SectionHeader, TableSkeleton, cx, Select } from '../../../components/ui.jsx';
 import TableReportActions from '../../../components/TableReportActions.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
@@ -101,7 +101,7 @@ export default function MorningIssuePage() {
           <div className="flex flex-wrap items-center gap-2 sm:justify-end">
             <TableReportActions targetId={MORNING_ISSUE_REPORT_ID} title={t('morningIssue.sheetTitle')} fileName="morning-issue" entityType="morning_issue" t={t} shortcuts={MORNING_ISSUE_REPORT_SHORTCUTS} />
             {canEditIssue ? (
-              <button type="button" className="btn-primary" onClick={vm.saveIssue} disabled={vm.saving || !productDirectory.length || Boolean(vm.invalidRows.length) || Boolean(vm.existingSettlement)}>
+              <button type="button" className="btn-primary max-lg:hidden" onClick={vm.saveIssue} disabled={vm.saving || !productDirectory.length || Boolean(vm.invalidRows.length) || Boolean(vm.existingSettlement)}>
                 <Save size={18} />
                 {vm.saving ? t('common.saving') : vm.existingIssue ? t('morningIssue.updateIssue') : t('morningIssue.saveIssue')}
                 <kbd className="ml-1 rounded border border-indigo-400/40 bg-indigo-500/20 px-1 py-0.5 font-mono text-[10px] text-indigo-200">Ctrl+S</kbd>
@@ -114,7 +114,41 @@ export default function MorningIssuePage() {
 
         {productDirectory.length ? (
           <>
-            <div className="overflow-x-auto">
+            <MobileCardList>
+              {vm.visibleRows.map((row) => {
+                const quantity = vm.quantities[row.id] || {};
+                return (
+                  <div key={row.id} className={cx('px-4 py-3', row.invalid && 'bg-rose-50')}>
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-bold text-slate-950">{row.name}</p>
+                        <p className="mt-0.5 truncate text-xs font-medium text-slate-500">
+                          {row.category} · {formatNumber(row.availableStock)} {t('common.pcs')} {t('morningIssue.availableStock')}
+                        </p>
+                      </div>
+                      <div className="shrink-0 text-right">
+                        <p className={cx('text-sm font-bold tabular-nums', row.invalid ? 'text-rose-700' : 'text-slate-950')}>
+                          {formatCasePiece(row.issuedPieces, row.piecesPerCase)}
+                        </p>
+                        <p className="mt-0.5 text-xs font-medium tabular-nums text-slate-500">{formatCurrency(row.issueValue)}</p>
+                      </div>
+                    </div>
+                    <div className="mt-2.5 grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-slate-400">{t('common.case')}</label>
+                        <input className="input" type="number" inputMode="decimal" min="0" value={quantity.caseQty || ''} onFocus={autoSelect} onChange={(event) => vm.updateQuantity(row.id, 'caseQty', event.target.value)} disabled={vm.saving} />
+                      </div>
+                      <div>
+                        <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-slate-400">{t('common.piece')}</label>
+                        <input className="input" type="number" inputMode="decimal" min="0" value={quantity.pieceQty || ''} onFocus={autoSelect} onChange={(event) => vm.updateQuantity(row.id, 'pieceQty', event.target.value)} disabled={vm.saving} />
+                      </div>
+                    </div>
+                    {row.invalid ? <p className="mt-1.5 text-xs font-semibold text-rose-700">{t('morningIssue.exceedsStock')}</p> : null}
+                  </div>
+                );
+              })}
+            </MobileCardList>
+            <div className="hidden overflow-x-auto md:block">
               <table className="w-full">
                 <thead className="table-head">
                   <tr>
@@ -158,18 +192,26 @@ export default function MorningIssuePage() {
                 </tbody>
               </table>
             </div>
-            <div className="flex flex-col gap-3 border-t border-slate-100 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-3 border-t border-slate-100 p-4 sm:flex-row sm:items-center sm:justify-between max-lg:sticky max-lg:bottom-[calc(3.75rem+env(safe-area-inset-bottom))] max-lg:z-10 max-lg:bg-[rgb(var(--white))] max-lg:shadow-[0_-4px_16px_rgba(15,23,42,0.08)]">
               {vm.invalidRows.length ? (
                 <div className="inline-flex items-center gap-2 text-sm font-semibold text-rose-700">
                   <AlertTriangle size={17} />
                   {t('morningIssue.invalidRows', { count: vm.invalidRows.length })}
                 </div>
               ) : (
-                <div className="text-sm font-semibold text-slate-600">{t('morningIssue.saveHint')}</div>
+                <div className="text-sm font-semibold text-slate-600 max-lg:hidden">{t('morningIssue.saveHint')}</div>
               )}
-              <div className="text-right text-sm">
-                <p className="font-semibold text-slate-600">{t('morningIssue.totalIssueValue')}</p>
-                <p className="text-2xl font-semibold text-slate-950">{formatCurrency(vm.totalIssueValue)}</p>
+              <div className="flex items-center gap-3">
+                <div className="text-right text-sm">
+                  <p className="font-semibold text-slate-600 max-lg:text-xs">{t('morningIssue.totalIssueValue')}</p>
+                  <p className="text-2xl font-semibold text-slate-950 max-lg:text-lg">{formatCurrency(vm.totalIssueValue)}</p>
+                </div>
+                {canEditIssue ? (
+                  <button type="button" className="btn-primary shrink-0 lg:hidden" onClick={vm.saveIssue} disabled={vm.saving || !productDirectory.length || Boolean(vm.invalidRows.length) || Boolean(vm.existingSettlement)}>
+                    <Save size={18} />
+                    {vm.saving ? t('common.saving') : t('common.save')}
+                  </button>
+                ) : null}
               </div>
             </div>
           </>

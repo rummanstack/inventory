@@ -1,29 +1,18 @@
-import { useCallback, useEffect, useState } from 'react';
 import { inventoryApi } from '../../../services/inventoryApi';
+import { useTenantReportQuery } from '../../reports/queries/useTenantReportQuery.js';
 
 export function useInstallmentPlanDetailViewModel(planId) {
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const query = useTenantReportQuery({
+    scope: 'installment-plan-detail',
+    params: { planId },
+    queryFn: () => inventoryApi.getInstallmentPlan(planId),
+    enabled: Boolean(planId),
+  });
 
-  const load = useCallback(async () => {
-    if (!planId) return;
-    try {
-      setLoading(true);
-      setError('');
-      const result = await inventoryApi.getInstallmentPlan(planId);
-      setData(result);
-    } catch (requestError) {
-      setError(requestError.message);
-      setData(null);
-    } finally {
-      setLoading(false);
-    }
-  }, [planId]);
-
-  useEffect(() => {
-    load();
-  }, [load]);
-
-  return { data, loading, error, refresh: load };
+  return {
+    data: query.data || null,
+    loading: query.isPending,
+    error: query.error?.message || '',
+    refresh: query.refetch,
+  };
 }

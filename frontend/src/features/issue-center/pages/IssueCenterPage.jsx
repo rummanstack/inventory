@@ -9,6 +9,7 @@ import { actionTone } from '../../../models/inventoryViewData.js';
 import { useDashboardViewModel } from '../../dashboard/viewmodels/useDashboardViewModel.js';
 import { useActivityLogsViewModel } from '../../activity-logs/viewmodels/useActivityLogsViewModel.js';
 import { inventoryApi } from '../../../services/inventoryApi.js';
+import { useTenantApiQuery } from '../../../queries/useTenantApiQuery.js';
 
 function getIssueRoute(log) {
   const entityType = String(log?.entityType || '').toLowerCase();
@@ -88,10 +89,24 @@ export default function IssueCenterPage() {
   const logsVm = useActivityLogsViewModel();
   const canOpenActivityLogs = hasFeature('activity-logs');
   const [selectedLog, setSelectedLog] = useState(null);
-  const [currentCashSession, setCurrentCashSession] = useState(null);
-  const [smartAlertsLoading, setSmartAlertsLoading] = useState(true);
-  const [smartAlertsError, setSmartAlertsError] = useState('');
-  const [duplicateInvoiceGroups, setDuplicateInvoiceGroups] = useState([]);
+  const smartAlertsQuery = useTenantApiQuery({
+    scope: 'issue-center-smart-alerts',
+    params: { today },
+    queryFn: async () => {
+      const [cashSessionResult, invoiceResult] = await Promise.all([
+        inventoryApi.getCurrentRetailCashSession(),
+        inventoryApi.listSalesInvoices({ dateFrom: today, dateTo: today, pageSize: 100 }),
+      ]);
+      return {
+        currentCashSession: cashSessionResult || { session: null },
+        duplicateInvoiceGroups: groupInvoicesByPotentialDuplicate(invoiceResult.items || []),
+      };
+    },
+  });
+  const currentCashSession = smartAlertsQuery.data?.currentCashSession || { session: null };
+  const duplicateInvoiceGroups = smartAlertsQuery.data?.duplicateInvoiceGroups || [];
+  const smartAlertsLoading = smartAlertsQuery.isLoading || smartAlertsQuery.isFetching;
+  const smartAlertsError = smartAlertsQuery.error?.message || '';
 
   const lowStockProducts = useMemo(
     () => [...(dashboardVm.lowStockAll || [])].sort((left, right) => left.stockPieces - right.stockPieces).slice(0, 5),
@@ -123,42 +138,6 @@ export default function IssueCenterPage() {
       setSelectedLog(recentFixes[0]);
     }
   }, [selectedLog, recentFixes]);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadSmartAlerts() {
-      try {
-        setSmartAlertsLoading(true);
-        setSmartAlertsError('');
-        const [cashSessionResult, invoiceResult] = await Promise.all([
-          inventoryApi.getCurrentRetailCashSession(),
-          inventoryApi.listSalesInvoices({ dateFrom: today, dateTo: today, pageSize: 100 }),
-        ]);
-        if (cancelled) {
-          return;
-        }
-
-        setCurrentCashSession(cashSessionResult || { session: null });
-        setDuplicateInvoiceGroups(groupInvoicesByPotentialDuplicate(invoiceResult.items || []));
-      } catch (error) {
-        if (!cancelled) {
-          setSmartAlertsError(error?.message || t('alerts.requestFailed'));
-          setCurrentCashSession({ session: null });
-          setDuplicateInvoiceGroups([]);
-        }
-      } finally {
-        if (!cancelled) {
-          setSmartAlertsLoading(false);
-        }
-      }
-    }
-
-    loadSmartAlerts();
-    return () => {
-      cancelled = true;
-    };
-  }, [today, t]);
 
   function openIssueRoute(log) {
     const { path } = getIssueRoute(log);

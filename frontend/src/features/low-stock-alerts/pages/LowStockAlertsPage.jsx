@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { AlertTriangle, Download, FileSpreadsheet, Loader2, Printer } from 'lucide-react';
-import { Alert, Badge, EmptyState, SectionHeader } from '../../../components/ui.jsx';
+import { Alert, Badge, EmptyState, MobileCardList, MobileListCard, SectionHeader } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../services/printService.js';
 import { inventoryApi } from '../../../services/inventoryApi.js';
@@ -124,7 +124,24 @@ export default function LowStockAlertsPage() {
         </div>
 
         {lowStockProducts.length ? (
-          <div className="overflow-x-auto">
+          <>
+          <MobileCardList>
+            {lowStockProducts.map((product) => (
+              <MobileListCard
+                key={product.id}
+                title={product.name}
+                badge={
+                  <Badge tone={product.stockPieces === 0 ? 'rose' : 'amber'}>
+                    {product.stockPieces === 0 ? t('lowStockAlerts.outOfStock') : t('lowStockAlerts.lowStock')}
+                  </Badge>
+                }
+                subtitle={product.category}
+                value={formatStock(product.stockPieces, product.piecesPerCase)}
+                valueSub={formatStock(getLowStockThreshold(product), product.piecesPerCase)}
+              />
+            ))}
+          </MobileCardList>
+          <div className="hidden overflow-x-auto md:block">
             <table className="w-full">
               <thead className="table-head">
                 <tr>
@@ -156,6 +173,7 @@ export default function LowStockAlertsPage() {
               </tbody>
             </table>
           </div>
+          </>
         ) : (
           <div className="p-5">
             <EmptyState title={t('lowStockAlerts.emptyTitle')} description={t('lowStockAlerts.emptyDescription')} icon={AlertTriangle} />

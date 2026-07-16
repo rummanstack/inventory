@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Download, Loader2, PackageX, RefreshCw } from 'lucide-react';
-import { Alert, EmptyState, Pagination, TableSkeleton, Select } from '../../../components/ui.jsx';
+import { Alert, EmptyState, MobileCardList, MobileListCard, Pagination, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../services/printService.js';
@@ -132,7 +132,21 @@ export default function DamageClearHistoryPanel({ products, refreshKey = 0, flus
         <div className="p-5"><Alert type="error">{error}</Alert></div>
       ) : null}
 
-      <div className="overflow-x-auto">
+      {loading ? null : (
+        <MobileCardList>
+          {records.map((record) => (
+            <MobileListCard
+              key={record.id}
+              title={record.productName}
+              subtitle={`${formatDateTime(record.createdAt)}${record.productCategory ? ` · ${record.productCategory}` : ''}`}
+              value={formatNumber(record.quantityIn || record.quantityOut || 0)}
+              valueClass="text-emerald-700"
+              valueSub={record.createdByName || null}
+            />
+          ))}
+        </MobileCardList>
+      )}
+      <div className="hidden overflow-x-auto md:block">
         <table className="w-full">
           <thead className="table-head">
             <tr>
@@ -170,10 +184,10 @@ export default function DamageClearHistoryPanel({ products, refreshKey = 0, flus
             </tbody>
           )}
         </table>
-        {loading ? (
-          <div className="p-5"><TableSkeleton columns={6} showHeader={false} /></div>
-        ) : null}
       </div>
+      {loading ? (
+        <div className="p-5"><TableSkeleton columns={6} showHeader={false} /></div>
+      ) : null}
 
       {!loading && !error && !records.length ? (
         <div className="p-5">

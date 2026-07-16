@@ -1,5 +1,5 @@
 import { Download, FileSpreadsheet, Loader2, Printer, Wallet } from 'lucide-react';
-import { Alert, EmptyState, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton, Select } from '../../../../components/ui.jsx';
+import { Alert, EmptyState, MobileCardList, MobileListCard, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton, Select } from '../../../../components/ui.jsx';
 import { DatePickerField } from '../../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../../services/printService.js';
@@ -134,7 +134,18 @@ export default function DailySalesReportPage() {
             <div className="border-b border-slate-100 px-5 py-4">
               <h2 className="section-title">{t('retailer.dailySalesReport.tableTitle')}</h2>
             </div>
-            <div className="overflow-x-auto">
+            <MobileCardList>
+              {rows.map((row) => (
+                <MobileListCard
+                  key={row.date}
+                  title={formatDate(row.date, language)}
+                  subtitle={`${formatNumber(row.invoiceCount, language)} ${t('retailer.dailySalesReport.invoiceCount')}`}
+                  value={formatCurrency(row.totalAmount, language)}
+                  valueSub={row.dueAmount > 0 ? formatCurrency(row.dueAmount, language) : null}
+                />
+              ))}
+            </MobileCardList>
+            <div className="hidden overflow-x-auto md:block">
               <table className="w-full">
                 <thead className="table-head">
                   <tr>

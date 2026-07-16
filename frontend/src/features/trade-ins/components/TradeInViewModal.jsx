@@ -1,4 +1,4 @@
-import { Badge, Modal } from '../../../components/ui.jsx';
+import { Badge, MobileCardList, MobileListCard, Modal } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { tradeInConditionTone } from '../../../models/inventoryViewData.js';
 import { formatCurrency, formatDate } from '../../../utils/calculations.js';
@@ -43,7 +43,20 @@ export default function TradeInViewModal({ tradeIn, onClose }) {
         {/* Received devices */}
         <div>
           <p className="text-sm font-semibold text-emerald-700 mb-2">{t('tradeIns.receivedSectionLabel')}</p>
-          <div className="rounded-xl border border-emerald-200 overflow-hidden">
+          <MobileCardList className="rounded-xl border border-emerald-200">
+            {received.map((item, i) => (
+              <MobileListCard
+                key={i}
+                title={item.productName}
+                badge={<Badge tone={tradeInConditionTone(item.condition)}>{t(`tradeIns.conditions.${item.condition}`)}</Badge>}
+                subtitle={item.serialNumber || undefined}
+                value={formatCurrency(item.tradeInValue, language)}
+                valueClass="text-emerald-700"
+                valueSub={`${t('tradeIns.qtyLabel')}: ${item.quantity}`}
+              />
+            ))}
+          </MobileCardList>
+          <div className="hidden overflow-hidden rounded-xl border border-emerald-200 md:block">
             <table className="w-full text-sm">
               <thead className="bg-emerald-50 text-left text-[11px] font-semibold uppercase tracking-[0.14em] text-emerald-600">
                 <tr>
@@ -76,7 +89,18 @@ export default function TradeInViewModal({ tradeIn, onClose }) {
         {/* Sold devices */}
         <div>
           <p className="text-sm font-semibold text-indigo-700 mb-2">{t('tradeIns.soldSectionLabel')}</p>
-          <div className="rounded-xl border border-indigo-200 overflow-hidden">
+          <MobileCardList className="rounded-xl border border-indigo-200">
+            {sold.map((item, i) => (
+              <MobileListCard
+                key={i}
+                title={item.productName}
+                subtitle={`${item.quantity} × ${formatCurrency(item.unitPrice, language)}`}
+                value={formatCurrency(item.lineTotal, language)}
+                valueClass="text-indigo-700"
+              />
+            ))}
+          </MobileCardList>
+          <div className="hidden overflow-hidden rounded-xl border border-indigo-200 md:block">
             <table className="w-full text-sm">
               <thead className="bg-indigo-50 text-left text-[11px] font-semibold uppercase tracking-[0.14em] text-indigo-600">
                 <tr>

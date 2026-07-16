@@ -144,6 +144,18 @@
 9. **Stock Movements / Suppliers / Shops / DSR Finance / Purchase Receive / Expenses etc.** — same table-page template as 6–8; inherit whatever Day 6–7 card pattern ships.
 10. **Login/Register** — actually in good shape (single column, `h-11` inputs, no tables); only needs the 16px input font + `inputmode="email"` polish on Day 5/9.
 
+### Implementation status update — 2026-07-17
+
+Days 1–9 were already complete from earlier sessions (tab bar, mobile menu, compact headers, touch/type CSS, card-list pattern, bottom sheets, forms one-hand pass). This session closed out the rest:
+
+- **Day 7 (finish):** turned out to already be done — `StockMovementPage` renders through the shared `StockLedgerPanel`, which already had the mobile card list.
+- **Day 10:** `TrendChart` now reads a `--chart-h` CSS var (180px on mobile) instead of a fixed inline height; the Financial Health / Today's Profit grids and Retail POS snap-scroll row were already compliant.
+- **Day 11:** Morning Issue and Evening Settlement (the #1 and #2 worst screens) now have mobile card lists for their product/return rows plus a sticky/fixed bottom bar (total + primary action) so the save button never has to be hunted for.
+- **Day 12:** all 7 Daily Reports tables converted to card lists on mobile; added a native `navigator.share` action (falls back to download) next to PDF download in `TableReportActions` and the per-DSR printable sheet. Daily Close was already card-shaped, no change needed.
+- **Day 13:** `EmptyState` description now hides on mobile (title + icon only, per the copy rule).
+- **Day 14:** added mobile-only `active:scale` press feedback to `.btn-primary` / `.btn-secondary` / `.btn-danger` / `.icon-btn` app-wide (cards and the tab bar already had it from Days 2/6).
+- **Day 15** (device QA, Lighthouse) still requires a real phone — not code-verifiable, left open.
+
 ### Manifest / PWA status (verified + fixed on Day 1)
 
 - ✅ `display: "standalone"` was already set; 192/512 icons existed.

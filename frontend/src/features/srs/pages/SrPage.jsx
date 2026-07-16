@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { HandCoins, Pencil, Phone, Plus, Search, Trash2, Users } from 'lucide-react';
-import { Alert, Badge, EmptyState, Modal, Pagination, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
+import { Alert, Badge, EmptyState, MobileCardList, MobileListCard, Modal, Pagination, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
 import TableReportActions from '../../../components/TableReportActions.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { statusTone } from '../../../models/inventoryViewData.js';
@@ -140,7 +140,43 @@ export default function SrPage() {
             <Alert type="error">{vm.error}</Alert>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+          <MobileCardList>
+            {vm.items.map((sr) => (
+              <MobileListCard
+                key={sr.id}
+                title={sr.name}
+                badge={<Badge tone={statusTone(sr.status)}>{sr.status}</Badge>}
+                subtitle={sr.phone}
+                value={formatCurrency(sr.currentDue || 0)}
+                valueClass={Number(sr.currentDue) > 0 ? 'text-rose-700' : undefined}
+                action={canManageSrs ? (
+                  <>
+                    {Number(sr.currentDue) > 0 ? (
+                      <button type="button" className="icon-btn" title={t('srs.collectDue')} onClick={() => setCollectModal(sr)}>
+                        <HandCoins size={16} />
+                      </button>
+                    ) : null}
+                    <button type="button" className="icon-btn" title={t('srs.edit')} onClick={() => setSrModal({ mode: 'edit', sr })}>
+                      <Pencil size={16} />
+                    </button>
+                    <button
+                      type="button"
+                      className="icon-btn text-rose-600 hover:text-rose-700"
+                      title={t('srs.delete')}
+                      onClick={async () => {
+                        const r = await deleteSr(sr);
+                        if (r.ok) vm.reload();
+                      }}
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </>
+                ) : null}
+              />
+            ))}
+          </MobileCardList>
+          <div className="hidden overflow-x-auto md:block">
             <table className="w-full">
               <thead className="table-head">
                 <tr>
@@ -206,6 +242,7 @@ export default function SrPage() {
               </tbody>
             </table>
           </div>
+          </>
         )}
 
         {!vm.loading && !vm.error && !vm.items.length ? (

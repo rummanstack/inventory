@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { CheckSquare, Save, Sparkles, Square } from 'lucide-react';
 import { Alert, Modal } from '../../../components/ui.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
+import { useTenantApiQuery } from '../../../queries/useTenantApiQuery.js';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { APP_ROUTES, SIDEBAR_SECTIONS } from '../../../app/routes.js';
 
@@ -139,27 +140,19 @@ const FEATURE_DESCRIPTIONS = {
 export default function TenantFeaturesModal({ tenant, onClose, onSave }) {
   const { t } = useInventoryApp();
   const [selected, setSelected] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
+  const featuresQuery = useTenantApiQuery({
+    scope: 'platform-tenant-features',
+    params: { tenantId: tenant.id },
+    queryFn: () => inventoryApi.getTenantFeatures(tenant.id),
+    requireTenant: false,
+  });
+  const loading = featuresQuery.isLoading;
+  const error = featuresQuery.error?.message || '';
 
   useEffect(() => {
-    let cancelled = false;
-    async function loadFeatures() {
-      setLoading(true);
-      setError('');
-      try {
-        const result = await inventoryApi.getTenantFeatures(tenant.id);
-        if (!cancelled) setSelected(result.features || []);
-      } catch (err) {
-        if (!cancelled) setError(err?.message || t('organizations.featuresSaveFailed'));
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }
-    loadFeatures();
-    return () => { cancelled = true; };
-  }, [tenant.id]);
+    if (featuresQuery.data) setSelected(featuresQuery.data.features || []);
+  }, [featuresQuery.data]);
 
   const featureMeta = useMemo(() => {
     const meta = {};
@@ -357,6 +350,5 @@ export default function TenantFeaturesModal({ tenant, onClose, onSave }) {
     </Modal>
   );
 }
-
 
 

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { CheckCircle2, Loader2, Plus, Save, Trash2 } from 'lucide-react';
-import { Alert, Modal, Select } from '../../../components/ui.jsx';
+import { Alert, MobileCardList, MobileListCard, Modal, Select } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { useFormState } from '../../../hooks/useFormState';
@@ -61,7 +61,19 @@ function TradeInReceipt({ receipt, onClose }) {
 
       <div>
         <p className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">{t('tradeIns.devicesTakenInTitle')}</p>
-        <div className="overflow-hidden rounded-xl border border-emerald-200">
+        <MobileCardList className="rounded-xl border border-emerald-200">
+          {receipt.receivedItems.map((item, i) => (
+            <MobileListCard
+              key={i}
+              title={item.productName || item.productId || '—'}
+              subtitle={item.serialNumber || undefined}
+              value={formatCurrency(Number(item.tradeInValue || 0))}
+              valueClass="text-emerald-700"
+              valueSub={`${t(`tradeIns.conditions.${item.condition}`)} · ${t('tradeIns.qtyColumn')}: ${item.quantity}`}
+            />
+          ))}
+        </MobileCardList>
+        <div className="hidden overflow-hidden rounded-xl border border-emerald-200 md:block">
           <table className="w-full text-sm">
             <thead className="bg-emerald-50 text-left text-[11px] font-semibold uppercase tracking-[0.14em] text-emerald-600">
               <tr>
@@ -89,7 +101,21 @@ function TradeInReceipt({ receipt, onClose }) {
 
       <div>
         <p className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">{t('tradeIns.devicesSoldTitle')}</p>
-        <div className="overflow-hidden rounded-xl border border-indigo-200">
+        <MobileCardList className="rounded-xl border border-indigo-200">
+          {receipt.soldItems.map((item, i) => {
+            const lineTotal = (Number(item.quantity) || 1) * (Number(item.unitPrice) || 0);
+            return (
+              <MobileListCard
+                key={i}
+                title={item.productName || item.productId || '—'}
+                subtitle={`${item.quantity} × ${formatCurrency(Number(item.unitPrice || 0))}`}
+                value={formatCurrency(lineTotal)}
+                valueClass="text-indigo-700"
+              />
+            );
+          })}
+        </MobileCardList>
+        <div className="hidden overflow-hidden rounded-xl border border-indigo-200 md:block">
           <table className="w-full text-sm">
             <thead className="bg-indigo-50 text-left text-[11px] font-semibold uppercase tracking-[0.14em] text-indigo-600">
               <tr>
@@ -300,7 +326,44 @@ export default function TradeInFormModal({ onClose, onSave }) {
                 {t('tradeIns.addReceivedItem')}
               </button>
             </div>
-            <div className="overflow-hidden rounded-xl border border-emerald-200 bg-emerald-50/40">
+            <div className="space-y-3 md:hidden">
+              {receivedItems.map((item, i) => (
+                <div key={item._key} className="space-y-2 rounded-2xl border border-emerald-200 bg-emerald-50/40 p-3">
+                  <Select className="input" value={item.productId} onChange={(e) => updateReceived(i, 'productId', e.target.value)}>
+                    <option value="">— {t('tradeIns.productPlaceholder')} —</option>
+                    {productDirectory.map((p) => (
+                      <option key={p.id} value={p.id}>{p.name}</option>
+                    ))}
+                  </Select>
+                  {!item.productId ? (
+                    <input className="input" placeholder={t('tradeIns.deviceNameModelPlaceholder')} value={item.productName} onChange={(e) => updateReceived(i, 'productName', e.target.value)} />
+                  ) : null}
+                  <input className="input" placeholder={t('tradeIns.imeiSerialPlaceholder')} value={item.serialNumber} onChange={(e) => updateReceived(i, 'serialNumber', e.target.value)} />
+                  <Select className="input" value={item.condition} onChange={(e) => updateReceived(i, 'condition', e.target.value)}>
+                    {CONDITIONS.map((c) => (
+                      <option key={c} value={c}>{t(`tradeIns.conditions.${c}`)}</option>
+                    ))}
+                  </Select>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-emerald-500">{t('tradeIns.qtyLabel')}</label>
+                      <input className="input text-right" type="number" inputMode="decimal" min="0.001" step="any" value={item.quantity} onChange={(e) => updateReceived(i, 'quantity', e.target.value)} />
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-emerald-500">{t('tradeIns.tradeInValueLabel')}</label>
+                      <input className="input text-right" type="number" inputMode="decimal" min="0" step="any" value={item.tradeInValue} onChange={(e) => updateReceived(i, 'tradeInValue', e.target.value)} />
+                    </div>
+                  </div>
+                  {receivedItems.length > 1 ? (
+                    <button type="button" className="btn-secondary w-full justify-center text-rose-600" onClick={() => setReceivedItems((p) => p.filter((_, idx) => idx !== i))}>
+                      <Trash2 size={14} />
+                      {t('common.delete')}
+                    </button>
+                  ) : null}
+                </div>
+              ))}
+            </div>
+            <div className="hidden overflow-hidden rounded-xl border border-emerald-200 bg-emerald-50/40 md:block">
               <table className="w-full text-sm">
                 <thead className="bg-emerald-50 text-left text-[11px] font-semibold uppercase tracking-[0.14em] text-emerald-600">
                   <tr>
@@ -404,7 +467,45 @@ export default function TradeInFormModal({ onClose, onSave }) {
                 {t('tradeIns.addSoldItem')}
               </button>
             </div>
-            <div className="overflow-hidden rounded-xl border border-indigo-200 bg-indigo-50/40">
+            <div className="space-y-3 md:hidden">
+              {soldItems.map((item, i) => {
+                const lineTotal = Math.max(0, (Number(item.quantity) || 1) * (Number(item.unitPrice) || 0));
+                return (
+                  <div key={item._key} className="space-y-2 rounded-2xl border border-indigo-200 bg-indigo-50/40 p-3">
+                    <Select className="input" value={item.productId} onChange={(e) => updateSold(i, 'productId', e.target.value)}>
+                      <option value="">— {t('tradeIns.productPlaceholder')} —</option>
+                      {productDirectory.map((p) => (
+                        <option key={p.id} value={p.id}>{p.name}</option>
+                      ))}
+                    </Select>
+                    {!item.productId ? (
+                      <input className="input" placeholder={t('tradeIns.deviceNameModelPlaceholder')} value={item.productName} onChange={(e) => updateSold(i, 'productName', e.target.value)} />
+                    ) : null}
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-indigo-500">{t('tradeIns.qtyLabel')}</label>
+                        <input className="input text-right" type="number" inputMode="decimal" min="0.001" step="any" value={item.quantity} onChange={(e) => updateSold(i, 'quantity', e.target.value)} />
+                      </div>
+                      <div>
+                        <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-indigo-500">{t('tradeIns.unitPriceLabel')}</label>
+                        <input className="input text-right" type="number" inputMode="decimal" min="0" step="any" value={item.unitPrice} onChange={(e) => updateSold(i, 'unitPrice', e.target.value)} />
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between rounded-lg bg-white/70 px-3 py-2 text-sm">
+                      <span className="font-medium text-slate-500">{t('tradeIns.lineTotalLabel')}</span>
+                      <span className="font-semibold text-slate-900">{formatCurrency(lineTotal, language)}</span>
+                    </div>
+                    {soldItems.length > 1 ? (
+                      <button type="button" className="btn-secondary w-full justify-center text-rose-600" onClick={() => setSoldItems((p) => p.filter((_, idx) => idx !== i))}>
+                        <Trash2 size={14} />
+                        {t('common.delete')}
+                      </button>
+                    ) : null}
+                  </div>
+                );
+              })}
+            </div>
+            <div className="hidden overflow-hidden rounded-xl border border-indigo-200 bg-indigo-50/40 md:block">
               <table className="w-full text-sm">
                 <thead className="bg-indigo-50 text-left text-[11px] font-semibold uppercase tracking-[0.14em] text-indigo-600">
                   <tr>

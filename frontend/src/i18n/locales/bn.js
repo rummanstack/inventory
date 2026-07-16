@@ -377,6 +377,7 @@ const bn = {
       cancel: 'বাতিল',
       save: 'সংরক্ষণ',
       saving: 'সংরক্ষণ করা হচ্ছে...',
+      share: 'শেয়ার',
       selectAll: 'সব নির্বাচন করুন',
       clearAll: 'সব বাতিল করুন',
       loading: 'লোড হচ্ছে...',

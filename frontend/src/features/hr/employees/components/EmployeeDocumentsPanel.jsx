@@ -3,6 +3,8 @@ import { Download, FileText, Loader2, Trash2, Upload } from 'lucide-react';
 import { Alert, Select } from '../../../../components/ui.jsx';
 import { inventoryApi } from '../../../../services/inventoryApi.js';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
+import { useMutation } from '@tanstack/react-query';
+import { useTenantApiQuery } from '../../../../queries/useTenantApiQuery.js';
 
 const DOCUMENT_TYPES = [
   ['NID', 'NID'],
@@ -25,47 +27,40 @@ function saveBlob(blob, filename) {
 export default function EmployeeDocumentsPanel({ employeeId }) {
   const { t, confirm, pushToast } = useInventoryApp();
   const inputRef = useRef(null);
-  const [documents, setDocuments] = useState([]);
   const [documentType, setDocumentType] = useState('NID');
   const [title, setTitle] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
-
-  async function loadDocuments() {
-    if (!employeeId) return;
-    setLoading(true);
-    setError('');
-    try {
-      const result = await inventoryApi.listEmployeeDocuments(employeeId);
-      setDocuments(Array.isArray(result.items) ? result.items : []);
-    } catch (err) {
-      setError(err?.message || t('alerts.requestFailed'));
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    loadDocuments();
-  }, [employeeId]);
+  const documentsQuery = useTenantApiQuery({
+    scope: 'employee-documents',
+    params: { employeeId },
+    queryFn: () => inventoryApi.listEmployeeDocuments(employeeId),
+    enabled: Boolean(employeeId),
+  });
+  const uploadMutation = useMutation({
+    mutationFn: ({ file, documentType: type, title: documentTitle }) =>
+      inventoryApi.uploadEmployeeDocument(employeeId, { file, documentType: type, title: documentTitle }),
+  });
+  const deleteMutation = useMutation({
+    mutationFn: ({ documentId, reason }) => inventoryApi.deleteEmployeeDocument(employeeId, documentId, reason),
+  });
+  const documents = Array.isArray(documentsQuery.data?.items) ? documentsQuery.data.items : [];
+  const loading = documentsQuery.isLoading;
+  const uploading = uploadMutation.isPending;
+  const loadDocuments = () => documentsQuery.refetch();
 
   async function handleFileChange(event) {
     const file = event.target.files?.[0];
     event.target.value = '';
     if (!file) return;
 
-    setUploading(true);
     setError('');
     try {
-      await inventoryApi.uploadEmployeeDocument(employeeId, { file, documentType, title });
+      await uploadMutation.mutateAsync({ file, documentType, title });
       setTitle('');
       await loadDocuments();
       pushToast('success', t('employees.documents'), t('alerts.created'));
     } catch (err) {
       setError(err?.message || t('alerts.requestFailed'));
-    } finally {
-      setUploading(false);
     }
   }
 
@@ -91,7 +86,7 @@ export default function EmployeeDocumentsPanel({ employeeId }) {
     if (!confirmed) return;
 
     try {
-      await inventoryApi.deleteEmployeeDocument(employeeId, document.id, reason);
+      await deleteMutation.mutateAsync({ documentId: document.id, reason });
       await loadDocuments();
       pushToast('success', t('employees.documents'), t('alerts.deleted'));
     } catch (err) {

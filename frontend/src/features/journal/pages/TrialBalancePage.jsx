@@ -1,5 +1,5 @@
 ﻿import TableReportActions from '../../../components/TableReportActions.jsx';
-import { Alert, Badge, CopyableText, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
+import { Alert, Badge, CopyableText, MobileCardList, MobileListCard, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { formatCurrency } from '../../../utils/calculations.js';
@@ -63,6 +63,23 @@ export default function TrialBalancePage() {
         {loading || refLoading ? <div className="p-5"><TableSkeleton columns={8} /></div> : null}
         {!loading && !refLoading && data ? (
           <div id="trial-balance-report" className="overflow-x-auto">
+            <div className="flex items-center gap-2 px-4 pb-3 pt-4 md:hidden">
+              {data.balanced ? <Badge tone="emerald">Balanced</Badge> : <Badge tone="rose">Out of Balance</Badge>}
+              <span className="muted-chip">Dr {formatCurrency(data.closingDebit, language)}</span>
+              <span className="muted-chip">Cr {formatCurrency(data.closingCredit, language)}</span>
+            </div>
+            <MobileCardList>
+              {data.rows.map((row) => (
+                <MobileListCard
+                  key={row.code}
+                  title={`${row.code} - ${row.name}`}
+                  subtitle={row.type}
+                  value={row.closingDebit ? formatCurrency(row.closingDebit, language) : row.closingCredit ? `- ${formatCurrency(row.closingCredit, language)}` : '-'}
+                  valueClass={row.closingDebit ? 'text-emerald-700' : row.closingCredit ? 'text-rose-600' : undefined}
+                />
+              ))}
+            </MobileCardList>
+            <div className="hidden overflow-x-auto md:block">
             <table className="w-full min-w-[1320px]">
               <thead className="table-head">
                 <tr>
@@ -102,6 +119,7 @@ export default function TrialBalancePage() {
                 </tr>
               </tfoot>
             </table>
+            </div>
           </div>
         ) : null}
       </div>

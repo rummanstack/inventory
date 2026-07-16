@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Download, FileSpreadsheet, Loader2, Pencil, Plus, Printer, Trash2, Wallet } from 'lucide-react';
-import { Alert, CopyableText, EmptyState, Pagination, SectionHeader, TableSkeleton, Select } from '../../../../components/ui.jsx';
+import { Alert, CopyableText, EmptyState, MobileCardList, MobileListCard, Pagination, SectionHeader, TableSkeleton, Select } from '../../../../components/ui.jsx';
 import { DatePickerField } from '../../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../../services/printService.js';
@@ -99,7 +99,29 @@ export default function DueCollectionPage() {
             <Alert type="error">{vm.error}</Alert>
           </div>
         ) : (
-        <div className="overflow-x-auto">
+        <>
+        <MobileCardList>
+          {vm.items.map((payment) => (
+            <MobileListCard
+              key={payment.id}
+              title={payment.customerName || '-'}
+              subtitle={`${t(`purchaseReceive.paymentMethods.${payment.paymentMethod}`)} · ${formatDateTime(payment.paymentDate, language)}`}
+              value={formatCurrency(payment.amount, language)}
+              valueClass="text-emerald-700"
+              action={canManageRetailers ? (
+                <>
+                  <button type="button" className="icon-btn" title={t('common.edit')} onClick={() => setFormModal({ mode: 'edit', payment })}>
+                    <Pencil size={16} />
+                  </button>
+                  <button type="button" className="icon-btn text-rose-600 hover:text-rose-700" title={t('common.delete')} onClick={async () => { const r = await deleteCustomerPayment(payment); if (r.ok) vm.reload(); }}>
+                    <Trash2 size={16} />
+                  </button>
+                </>
+              ) : null}
+            />
+          ))}
+        </MobileCardList>
+        <div className="hidden overflow-x-auto md:block">
           <table className="w-full">
             <thead className="table-head">
               <tr>
@@ -141,6 +163,7 @@ export default function DueCollectionPage() {
             </tbody>
           </table>
         </div>
+        </>
         )}
         {!vm.loading && !vm.error && !vm.items.length ? (
           <div className="p-5">

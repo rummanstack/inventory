@@ -13,7 +13,7 @@ export function EmptyState({ title = 'No data found', description = 'Add records
         <Icon size={24} />
       </div>
       <h3 className="mt-4 text-base font-bold text-slate-900">{resolvedTitle}</h3>
-      <p className="mt-1 max-w-md text-sm font-medium text-slate-500">{resolvedDescription}</p>
+      <p className="mt-1 max-w-md text-sm font-medium text-slate-500 max-lg:hidden">{resolvedDescription}</p>
     </div>
   );
 }

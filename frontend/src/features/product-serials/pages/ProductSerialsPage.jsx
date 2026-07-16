@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Download, Eye, FileSpreadsheet, Fingerprint, Loader2, Pencil, Plus, Printer, Search, Trash2 } from 'lucide-react';
-import { Alert, Badge, CopyableText, EmptyState, Pagination, SectionHeader, TableSkeleton, Select } from '../../../components/ui.jsx';
+import { Alert, Badge, CopyableText, EmptyState, MobileCardList, MobileListCard, Pagination, SectionHeader, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import { downloadSheetPdf } from '../../../services/printService.js';
@@ -124,7 +124,20 @@ export default function ProductSerialsPage() {
             <Alert type="error">{vm.error}</Alert>
           </div>
         ) : (
-        <div className="overflow-x-auto">
+        <>
+        <MobileCardList>
+          {vm.items.map((serial) => (
+            <MobileListCard
+              key={serial.id}
+              onClick={() => setViewSerial(serial)}
+              title={serial.productName || '-'}
+              badge={<Badge tone={productSerialStatusTone(serial.status)}>{t(`productSerials.statuses.${serial.status}`)}</Badge>}
+              subtitle={`${serial.serialNumber || ''}${serial.imei1 ? ` · ${serial.imei1}` : ''}`}
+              value={serial.invoiceNumber || '-'}
+            />
+          ))}
+        </MobileCardList>
+        <div className="hidden overflow-x-auto md:block">
           <table className="w-full">
             <thead className="table-head">
               <tr>
@@ -170,6 +183,7 @@ export default function ProductSerialsPage() {
             </tbody>
           </table>
         </div>
+        </>
         )}
         {!vm.loading && !vm.error && !vm.items.length ? (
           <div className="p-5">

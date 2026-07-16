@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Building2, CircleDollarSign, Download, FileSpreadsheet, HandCoins, Landmark, Loader2, Printer, RotateCcw, Scale, ShoppingBag, Store, TrendingDown, TrendingUp, Wallet } from 'lucide-react';
-import { Alert, cx, EmptyState, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton } from '../../../components/ui.jsx';
+import { Alert, cx, EmptyState, MobileCardList, MobileListCard, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../services/printService.js';
@@ -468,37 +468,58 @@ export default function FinanceDashboardPage() {
                     {t('common.print')}
                   </button>
                 </div>
-                <table className="w-full text-sm">
-                  <thead className="table-head">
-                    <tr>
-                      <th className="px-4 py-3">{t('financeAccounts.date')}</th>
-                      <th className="px-4 py-3">{t('financeAccounts.account')}</th>
-                      <th className="px-4 py-3">{t('financeAccounts.type')}</th>
-                      <th className="px-4 py-3 text-right">{t('financeAccounts.amount')}</th>
-                      <th className="px-4 py-3">{t('financeAccounts.note')}</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {data.recentTransactions.map((tx) => {
-                      const style = TRANSACTION_TYPE_STYLES[tx.type] || {};
-                      return (
-                        <tr key={tx.id} className="hover:bg-slate-50">
-                          <td className="whitespace-nowrap px-4 py-3 font-medium text-slate-700">{formatDate(tx.transactionDate, language)}</td>
-                          <td className="px-4 py-3 text-slate-600">{tx.accountName}</td>
-                          <td className="px-4 py-3">
-                            <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${style.className}`}>
-                              {t(style.labelKey)}
-                            </span>
-                          </td>
-                          <td className={`whitespace-nowrap px-4 py-3 text-right ${transactionAmountClass(tx)}`}>
-                            {formatCurrency(transactionAmount(tx), language)}
-                          </td>
-                          <td className="max-w-xs truncate px-4 py-3 text-slate-500">{tx.note}</td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                <MobileCardList>
+                  {data.recentTransactions.map((tx) => {
+                    const style = TRANSACTION_TYPE_STYLES[tx.type] || {};
+                    return (
+                      <MobileListCard
+                        key={tx.id}
+                        title={tx.accountName}
+                        badge={
+                          <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${style.className}`}>
+                            {t(style.labelKey)}
+                          </span>
+                        }
+                        subtitle={`${formatDate(tx.transactionDate, language)}${tx.note ? ` · ${tx.note}` : ''}`}
+                        value={formatCurrency(transactionAmount(tx), language)}
+                        valueClass={transactionAmountClass(tx)}
+                      />
+                    );
+                  })}
+                </MobileCardList>
+                <div className="hidden overflow-x-auto md:block">
+                  <table className="w-full text-sm">
+                    <thead className="table-head">
+                      <tr>
+                        <th className="px-4 py-3">{t('financeAccounts.date')}</th>
+                        <th className="px-4 py-3">{t('financeAccounts.account')}</th>
+                        <th className="px-4 py-3">{t('financeAccounts.type')}</th>
+                        <th className="px-4 py-3 text-right">{t('financeAccounts.amount')}</th>
+                        <th className="px-4 py-3">{t('financeAccounts.note')}</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {data.recentTransactions.map((tx) => {
+                        const style = TRANSACTION_TYPE_STYLES[tx.type] || {};
+                        return (
+                          <tr key={tx.id} className="hover:bg-slate-50">
+                            <td className="whitespace-nowrap px-4 py-3 font-medium text-slate-700">{formatDate(tx.transactionDate, language)}</td>
+                            <td className="px-4 py-3 text-slate-600">{tx.accountName}</td>
+                            <td className="px-4 py-3">
+                              <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${style.className}`}>
+                                {t(style.labelKey)}
+                              </span>
+                            </td>
+                            <td className={`whitespace-nowrap px-4 py-3 text-right ${transactionAmountClass(tx)}`}>
+                              {formatCurrency(transactionAmount(tx), language)}
+                            </td>
+                            <td className="max-w-xs truncate px-4 py-3 text-slate-500">{tx.note}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             )}
           </div>

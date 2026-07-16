@@ -11,6 +11,9 @@ import RetailCustomerFormModal from '../components/RetailCustomerFormModal.jsx';
 import CreditSettingsModal from '../../installment-sales/components/CreditSettingsModal.jsx';
 import { useRetailCustomersViewModel } from '../viewmodels/useRetailCustomersViewModel';
 import { useAsyncAction } from '../../../hooks/useAsyncAction.js';
+import { useMutation } from '@tanstack/react-query';
+import { getActiveTenantId } from '../../../services/api/client.js';
+import { transactionKeys } from '../../transactions/queries/transactionQueries.js';
 
 const RETAIL_CUSTOMERS_PRINT_ID = 'retail-customers-print';
 
@@ -23,6 +26,17 @@ export default function RetailCustomersPage() {
   const canManage = can('manage_retail_customers_write');
   const canManageInstallmentCredit = hasFeature('installment-sales') && can('manage_installment_credit_settings');
   const [downloadingPdf, downloadPdf] = useAsyncAction();
+  const tenantId = getActiveTenantId() || 'session-tenant';
+  const saveCustomerMutation = useMutation({
+    mutationKey: transactionKeys.mutation(tenantId, 'save-retail-customer'),
+    mutationFn: (payload) => payload.id
+      ? inventoryApi.updateRetailCustomer(payload)
+      : inventoryApi.createRetailCustomer(payload),
+  });
+  const deleteCustomerMutation = useMutation({
+    mutationKey: transactionKeys.mutation(tenantId, 'delete-retail-customer'),
+    mutationFn: ({ id, reason }) => inventoryApi.deleteRetailCustomer(id, reason),
+  });
 
   async function handleExportExcel() {
     const result = await inventoryApi.listRetailCustomers({ search: vm.search || undefined, status: vm.status || undefined, page: 1, pageSize: 10000 });
@@ -47,9 +61,7 @@ export default function RetailCustomersPage() {
 
   async function saveRetailCustomer(payload) {
     try {
-      const result = payload.id
-        ? await inventoryApi.updateRetailCustomer(payload)
-        : await inventoryApi.createRetailCustomer(payload);
+      const result = await saveCustomerMutation.mutateAsync(payload);
       pushToast('success', payload.id ? t('retailCustomers.editTitle') : t('retailCustomers.addTitle'), `${payload.name} ${payload.id ? t('alerts.updated') : t('alerts.created')}`);
       setFormModal(null);
       vm.reload();
@@ -70,7 +82,7 @@ export default function RetailCustomersPage() {
     if (!confirmed) return { ok: false };
 
     try {
-      await inventoryApi.deleteRetailCustomer(customer.id, reason);
+      await deleteCustomerMutation.mutateAsync({ id: customer.id, reason });
       pushToast('success', t('common.delete'), `${customer.name} ${t('alerts.deleted')}`);
       vm.reload();
       return { ok: true };

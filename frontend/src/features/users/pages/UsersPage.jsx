@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Copy, KeyRound, Loader2, Pencil, Plus, Trash2, UserCog, Unlock } from 'lucide-react';
-import { Alert, Avatar, Badge, EmptyState, Modal, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
+import { Alert, Avatar, Badge, EmptyState, MobileCardList, MobileListCard, Modal, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
 import TableReportActions from '../../../components/TableReportActions.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import UserFormModal from '../components/UserFormModal';
 import { canManageUser, getAssignableRoles } from '../userRoleHierarchy.js';
+import { useMutation } from '@tanstack/react-query';
+import { useTenantApiQuery } from '../../../queries/useTenantApiQuery.js';
 
 const USERS_REPORT_ID = 'users-report';
 const USERS_ADD_SHORTCUT = { alt: true, key: 'a', label: 'Alt+A' };
@@ -29,35 +31,34 @@ export default function UsersPage() {
   const { t, user: actor, confirm, pushToast } = useInventoryApp();
   const isSystemDeveloper = actor?.role === 'system_developer';
   const assignableRoles = getAssignableRoles(actor?.role);
-  const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
   const [userModal, setUserModal] = useState(null);
   const [tempPassword, setTempPassword] = useState(null);
   const [copied, setCopied] = useState(false);
-  const [deletingUserId, setDeletingUserId] = useState(null);
-
-  async function load() {
-    try {
-      setLoading(true);
-      const result = await inventoryApi.listUsers();
-      setUsers(result.users || []);
-      setError('');
-    } catch (err) {
-      setError(err?.message || t('users.loadFailed'));
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    load();
-  }, []);
+  const usersQuery = useTenantApiQuery({
+    scope: 'users',
+    queryFn: () => inventoryApi.listUsers(),
+    requireTenant: !isSystemDeveloper,
+  });
+  const userMutation = useMutation({
+    mutationFn: ({ action, id, payload }) => {
+      if (action === 'update') return inventoryApi.updateUser(id, payload);
+      if (action === 'create') return inventoryApi.createUser(payload);
+      if (action === 'delete') return inventoryApi.deleteUser(id);
+      if (action === 'reset') return inventoryApi.adminResetUserPassword(id);
+      return inventoryApi.unlockUser(id);
+    },
+  });
+  const users = usersQuery.data?.users || [];
+  const loading = usersQuery.isLoading;
+  const error = usersQuery.error?.message || '';
+  const deletingUserId = userMutation.isPending && userMutation.variables?.action === 'delete'
+    ? userMutation.variables.id
+    : null;
 
   async function handleSave(user) {
     try {
-      const result = user.id ? await inventoryApi.updateUser(user.id, user) : await inventoryApi.createUser(user);
-      setUsers(result.users || []);
+      await userMutation.mutateAsync({ action: user.id ? 'update' : 'create', id: user.id, payload: user });
+      await usersQuery.refetch();
       pushToast('success', user.id ? t('users.editTitle') : t('users.addTitle'), `${user.name} ${user.id ? t('alerts.updated') : t('alerts.created')}`);
       return { ok: true };
     } catch (err) {
@@ -78,17 +79,13 @@ export default function UsersPage() {
       return;
     }
 
-    setDeletingUserId(user.id);
     try {
-      const result = await inventoryApi.deleteUser(user.id);
-      setUsers(result.users || []);
+      await userMutation.mutateAsync({ action: 'delete', id: user.id });
+      await usersQuery.refetch();
       pushToast('success', t('common.delete'), `${user.name} ${t('alerts.deleted')}`);
     } catch (err) {
       const message = err?.message || t('users.deleteFailed');
-      setError(message);
       pushToast('error', t('alerts.deleteFailed'), message);
-    } finally {
-      setDeletingUserId(null);
     }
   }
 
@@ -104,8 +101,8 @@ export default function UsersPage() {
     }
 
     try {
-      const result = await inventoryApi.adminResetUserPassword(user.id);
-      setUsers(result.users || []);
+      const result = await userMutation.mutateAsync({ action: 'reset', id: user.id });
+      await usersQuery.refetch();
       setCopied(false);
       setTempPassword({ name: user.name, password: result.tempPassword });
       pushToast('success', t('users.resetPassword'), t('users.resetPasswordSuccess'));
@@ -127,8 +124,8 @@ export default function UsersPage() {
     }
 
     try {
-      const result = await inventoryApi.unlockUser(user.id);
-      setUsers(result.users || []);
+      await userMutation.mutateAsync({ action: 'unlock', id: user.id });
+      await usersQuery.refetch();
       pushToast('success', t('users.unlock'), t('users.unlockSuccess'));
     } catch (err) {
       const message = err?.message || t('users.saveFailed');
@@ -186,7 +183,46 @@ export default function UsersPage() {
             <Alert type="error">{error}</Alert>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+          <MobileCardList>
+            {users.map((user) => (
+              <MobileListCard
+                key={user.id}
+                leading={<Avatar name={user.name} imageUrl={user.avatarUrl} size={32} />}
+                title={user.name}
+                badge={<Badge tone={user.status === 'active' ? 'emerald' : 'rose'}>{user.status === 'active' ? t('users.statusActive') : t('users.statusInactive')}</Badge>}
+                subtitle={user.email}
+                value={t(`permissions.roles.${user.role}`) || user.role}
+                action={canManageUser(actor, user) ? (
+                  <div className="flex items-center gap-1">
+                    <button type="button" className="icon-btn" title={t('common.edit')} onClick={() => setUserModal({ mode: 'edit', user })}>
+                      <Pencil size={16} />
+                    </button>
+                    <button type="button" className="icon-btn" title={t('users.resetPassword')} onClick={() => handleResetPassword(user)}>
+                      <KeyRound size={16} />
+                    </button>
+                    {user.lockedUntil && new Date(user.lockedUntil) > new Date() ? (
+                      <button type="button" className="icon-btn" title={t('users.unlock')} onClick={() => handleUnlock(user)}>
+                        <Unlock size={16} />
+                      </button>
+                    ) : null}
+                    {user.id !== actor?.id ? (
+                      <button
+                        type="button"
+                        className="icon-btn text-rose-600 hover:text-rose-700 disabled:opacity-50"
+                        title={t('common.delete')}
+                        onClick={() => handleDelete(user)}
+                        disabled={deletingUserId === user.id}
+                      >
+                        {deletingUserId === user.id ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
+                      </button>
+                    ) : null}
+                  </div>
+                ) : null}
+              />
+            ))}
+          </MobileCardList>
+          <div className="hidden overflow-x-auto md:block">
             <table className="w-full">
               <thead className="table-head">
                 <tr>
@@ -260,6 +296,7 @@ export default function UsersPage() {
               </tbody>
             </table>
           </div>
+          </>
         )}
         {!loading && !error && !users.length ? (
           <div className="p-5">

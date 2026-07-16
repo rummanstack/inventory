@@ -30,7 +30,35 @@ function JournalLineEditor({ lines, setLines, accounts, directories }) {
 
   return (
     <div className="space-y-3">
-      <div className="overflow-x-auto rounded-xl border border-slate-200">
+      <div className="space-y-3 md:hidden">
+        {lines.map((line, index) => {
+          const referenceOptions = buildReferenceOptions(line.referenceType, directories);
+          return (
+            <div key={index} className="space-y-2 rounded-2xl border border-slate-200 bg-slate-50 p-3">
+              <select className="input" value={line.accountCode} onChange={(event) => updateLine(index, { accountCode: event.target.value })}>
+                <option value="">Select account</option>
+                {accounts.map((account) => <option key={account.code} value={account.code}>{account.code} - {account.name}</option>)}
+              </select>
+              <div className="grid grid-cols-2 gap-2">
+                <select className="input" value={line.referenceType} onChange={(event) => updateLine(index, { referenceType: event.target.value, referenceId: '' })}>
+                  {REFERENCE_TYPE_OPTIONS.map((option) => <option key={option.value || 'none'} value={option.value}>{option.label}</option>)}
+                </select>
+                <select className="input" value={line.referenceId} onChange={(event) => updateLine(index, { referenceId: event.target.value })} disabled={!line.referenceType}>
+                  <option value="">Select reference</option>
+                  {referenceOptions.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+                </select>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <input type="number" min="0" step="0.01" placeholder="Debit" className="input text-right" value={line.debit} onChange={(event) => updateLine(index, { debit: event.target.value, credit: event.target.value ? '' : line.credit })} />
+                <input type="number" min="0" step="0.01" placeholder="Credit" className="input text-right" value={line.credit} onChange={(event) => updateLine(index, { credit: event.target.value, debit: event.target.value ? '' : line.debit })} />
+              </div>
+              <input placeholder="Note" className="input" value={line.note} onChange={(event) => updateLine(index, { note: event.target.value })} />
+              <button type="button" className="btn-secondary w-full justify-center" onClick={() => removeLine(index)} disabled={lines.length <= 2}>Remove</button>
+            </div>
+          );
+        })}
+      </div>
+      <div className="hidden overflow-x-auto rounded-xl border border-slate-200 md:block">
         <table className="w-full min-w-[840px]">
           <thead className="table-head">
             <tr>
@@ -95,7 +123,32 @@ function AllocationLineEditor({ lines, setLines, accounts, directories, sideLabe
 
   return (
     <div className="space-y-3">
-      <div className="overflow-x-auto rounded-xl border border-slate-200">
+      <div className="space-y-3 md:hidden">
+        {lines.map((line, index) => {
+          const referenceOptions = buildReferenceOptions(line.referenceType, directories);
+          return (
+            <div key={index} className="space-y-2 rounded-2xl border border-slate-200 bg-slate-50 p-3">
+              <select className="input" value={line.accountCode} onChange={(event) => updateLine(index, { accountCode: event.target.value })}>
+                <option value="">Select {sideLabel.toLowerCase()} account</option>
+                {accounts.map((account) => <option key={account.code} value={account.code}>{account.code} - {account.name}</option>)}
+              </select>
+              <div className="grid grid-cols-2 gap-2">
+                <select className="input" value={line.referenceType} onChange={(event) => updateLine(index, { referenceType: event.target.value, referenceId: '' })}>
+                  {REFERENCE_TYPE_OPTIONS.map((option) => <option key={option.value || 'none'} value={option.value}>{option.label}</option>)}
+                </select>
+                <select className="input" value={line.referenceId} onChange={(event) => updateLine(index, { referenceId: event.target.value })} disabled={!line.referenceType}>
+                  <option value="">Select reference</option>
+                  {referenceOptions.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+                </select>
+              </div>
+              <input type="number" min="0" step="0.01" placeholder="Amount" className="input text-right" value={line.amount} onChange={(event) => updateLine(index, { amount: event.target.value })} />
+              <input placeholder="Note" className="input" value={line.note} onChange={(event) => updateLine(index, { note: event.target.value })} />
+              <button type="button" className="btn-secondary w-full justify-center" onClick={() => removeLine(index)} disabled={lines.length <= 1}>Remove</button>
+            </div>
+          );
+        })}
+      </div>
+      <div className="hidden overflow-x-auto rounded-xl border border-slate-200 md:block">
         <table className="w-full min-w-[760px]">
           <thead className="table-head">
             <tr>

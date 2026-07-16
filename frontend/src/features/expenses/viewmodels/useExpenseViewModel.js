@@ -1,45 +1,39 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useMutation } from '@tanstack/react-query';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi';
 import { todayISO } from '../../../utils/calculations';
-import { useRefetchOnVisible } from '../../../app/hooks/useRefetchOnVisible.js';
+import { useTenantReportQuery } from '../../reports/queries/useTenantReportQuery.js';
+import { transactionKeys } from '../../transactions/queries/transactionQueries.js';
 
 export function useExpenseViewModel({ confirm }) {
-  const { t, pushToast } = useInventoryApp();
+  const { t, pushToast, tenant, user } = useInventoryApp();
   const today = todayISO();
+  const tenantId = tenant?.id || user?.tenantId || '';
   const [date, setDate] = useState(today);
   const [month, setMonth] = useState(today.slice(0, 7));
-  const [report, setReport] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-
-  async function loadReport(nextDate = date, nextMonth = month) {
-    try {
-      setLoading(true);
-      setError('');
-      const nextReport = await inventoryApi.getExpenseReport({ date: nextDate, month: nextMonth });
-      setReport(nextReport);
-    } catch (requestError) {
-      setError(requestError.message);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    loadReport(date, month);
-  }, [date, month]);
-
-  async function refreshReport() {
-    await loadReport(date, month);
-  }
-
-  useRefetchOnVisible(refreshReport);
+  const [actionError, setActionError] = useState('');
+  const reportQuery = useTenantReportQuery({
+    scope: 'expense-report',
+    params: { date, month },
+    queryFn: () => inventoryApi.getExpenseReport({ date, month }),
+    keepPrevious: true,
+  });
+  const saveMutation = useMutation({
+    mutationKey: transactionKeys.mutation(tenantId, 'save-expense'),
+    mutationFn: (expense) => expense.id
+      ? inventoryApi.updateExpense(expense)
+      : inventoryApi.createExpense(expense),
+  });
+  const deleteMutation = useMutation({
+    mutationKey: transactionKeys.mutation(tenantId, 'delete-expense'),
+    mutationFn: ({ expenseId, reason }) => inventoryApi.deleteExpense(expenseId, reason),
+  });
 
   async function saveExpense(expense) {
     try {
-      const response = expense.id ? await inventoryApi.updateExpense(expense) : await inventoryApi.createExpense(expense);
-      await refreshReport();
+      const response = await saveMutation.mutateAsync(expense);
+      await reportQuery.refetch();
       pushToast('success', expense.id ? t('expenses.editTitle') : t('expenses.addTitle'), expense.id ? t('alerts.updated') : t('alerts.created'));
       return { ok: true, expense: response.expense };
     } catch (requestError) {
@@ -50,16 +44,14 @@ export function useExpenseViewModel({ confirm }) {
 
   async function deleteExpense(expenseId, confirmOptions) {
     const { confirmed, reason } = await confirm(confirmOptions);
-    if (!confirmed) {
-      return;
-    }
+    if (!confirmed) return;
 
     try {
-      await inventoryApi.deleteExpense(expenseId, reason);
-      await refreshReport();
+      await deleteMutation.mutateAsync({ expenseId, reason });
+      await reportQuery.refetch();
       pushToast('success', t('common.delete'), t('alerts.deleted'));
     } catch (requestError) {
-      setError(requestError.message);
+      setActionError(requestError.message);
       pushToast('error', t('alerts.deleteFailed'), requestError.message);
     }
   }
@@ -69,11 +61,11 @@ export function useExpenseViewModel({ confirm }) {
     month,
     setDate,
     setMonth,
-    report,
-    loading,
-    error,
-    setError,
-    refreshReport,
+    report: reportQuery.data || null,
+    loading: reportQuery.isPending,
+    error: actionError || reportQuery.error?.message || '',
+    setError: setActionError,
+    refreshReport: reportQuery.refetch,
     saveExpense,
     deleteExpense,
   };

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { inventoryApi } from '../../../services/inventoryApi';
 import { aggregateIssuesFor, buildSheetData, getSettlementFor } from '../../../models/inventoryViewData.js';
 import { calculatePayable, calculateSold, createId, toPieces } from '../../../utils/calculations.js';
+import { useTenantApiQuery } from '../../../queries/useTenantApiQuery.js';
 
 const SCOPED_LOOKUP_PAGE_SIZE = 10;
 
@@ -36,9 +37,6 @@ export function useSettlementViewModel({ products, dsrs, today, saveSettlementAc
   const [reasonInput, setReasonInput] = useState('');
   const [message, setMessage] = useState(null);
   const [saving, setSaving] = useState(false);
-  const [scopedIssues, setScopedIssues] = useState([]);
-  const [scopedSettlements, setScopedSettlements] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
@@ -47,46 +45,21 @@ export function useSettlementViewModel({ products, dsrs, today, saveSettlementAc
     }
   }, [activeDsrs, dsrId]);
 
-  useEffect(() => {
-    let cancelled = false;
-
-    if (!date || !dsrId) {
-      setScopedIssues([]);
-      setScopedSettlements([]);
-      setLoading(false);
-      return undefined;
-    }
-
-    setLoading(true);
-
-    Promise.all([
+  const scopedQuery = useTenantApiQuery({
+    scope: 'settlement-scoped',
+    params: { date, dsrId, refreshKey },
+    enabled: Boolean(date && dsrId),
+    queryFn: async () => {
+      const [issuesResult, settlementsResult] = await Promise.all([
       inventoryApi.listIssues({ dsrId, dateFrom: date, dateTo: date, pageSize: SCOPED_LOOKUP_PAGE_SIZE }),
       inventoryApi.listSettlements({ dsrId, dateFrom: date, dateTo: date, pageSize: SCOPED_LOOKUP_PAGE_SIZE }),
-    ])
-      .then(([issuesResult, settlementsResult]) => {
-        if (cancelled) {
-          return;
-        }
-
-        setScopedIssues(issuesResult.items || []);
-        setScopedSettlements(settlementsResult.items || []);
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setScopedIssues([]);
-          setScopedSettlements([]);
-        }
-      })
-      .finally(() => {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [date, dsrId, refreshKey]);
+      ]);
+      return { issues: issuesResult.items || [], settlements: settlementsResult.items || [] };
+    },
+  });
+  const scopedIssues = scopedQuery.data?.issues || [];
+  const scopedSettlements = scopedQuery.data?.settlements || [];
+  const loading = scopedQuery.isLoading || scopedQuery.isFetching;
 
   const issueData = useMemo(() => aggregateIssuesFor(scopedIssues, products, date, dsrId), [scopedIssues, products, date, dsrId]);
   const completedSettlement = getSettlementFor(scopedSettlements, date, dsrId);

@@ -1,56 +1,51 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Copy, KeyRound, LogOut, ShieldCheck } from 'lucide-react';
-import { Alert, Badge, CopyableText, EmptyState, SectionHeader } from '../../../components/ui.jsx';
+import { Alert, Badge, CopyableText, EmptyState, MobileCardList, MobileListCard, SectionHeader } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import { formatDateTime } from '../../../utils/calculations.js';
+import { useMutation } from '@tanstack/react-query';
+import { useTenantApiQuery } from '../../../queries/useTenantApiQuery.js';
 
 export default function SecurityPage() {
   const { t, can, confirm, pushToast } = useInventoryApp();
   const canManageUsers = can('manage_users');
 
-  const [sessions, setSessions] = useState([]);
-  const [history, setHistory] = useState([]);
-  const [resetRequests, setResetRequests] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [busyId, setBusyId] = useState('');
-
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError('');
-    try {
-      const [sessionsResult, historyResult] = await Promise.all([
+  const securityQuery = useTenantApiQuery({
+    scope: 'security-overview',
+    params: { canManageUsers },
+    queryFn: async () => {
+      const [sessionsResult, historyResult, requestsResult] = await Promise.all([
         inventoryApi.listSessions(),
         inventoryApi.getLoginHistory(),
+        canManageUsers ? inventoryApi.listPasswordResetRequests() : Promise.resolve({ requests: [] }),
       ]);
-      setSessions(sessionsResult.sessions || []);
-      setHistory(historyResult.history || []);
-      if (canManageUsers) {
-        const requestsResult = await inventoryApi.listPasswordResetRequests();
-        setResetRequests(requestsResult.requests || []);
-      }
-    } catch (err) {
-      setError(err.message || t('alerts.requestFailed'));
-    } finally {
-      setLoading(false);
-    }
-  }, [canManageUsers, t]);
-
-  useEffect(() => {
-    load();
-  }, [load]);
+      return {
+        sessions: sessionsResult.sessions || [],
+        history: historyResult.history || [],
+        resetRequests: requestsResult.requests || [],
+      };
+    },
+  });
+  const revokeMutation = useMutation({
+    mutationFn: (sessionId) => sessionId === 'others'
+      ? inventoryApi.revokeOtherSessions()
+      : inventoryApi.revokeSession(sessionId),
+  });
+  const sessions = securityQuery.data?.sessions || [];
+  const history = securityQuery.data?.history || [];
+  const resetRequests = securityQuery.data?.resetRequests || [];
+  const loading = securityQuery.isLoading;
+  const error = securityQuery.error?.message || '';
+  const busyId = revokeMutation.isPending ? revokeMutation.variables : '';
 
   async function handleRevoke(sessionId) {
-    setBusyId(sessionId);
     try {
-      const result = await inventoryApi.revokeSession(sessionId);
-      setSessions(result.sessions || []);
+      await revokeMutation.mutateAsync(sessionId);
+      await securityQuery.refetch();
       pushToast('success', t('security.title'), t('security.revokeSuccess'));
     } catch (err) {
       pushToast('error', t('alerts.requestFailed'), err.message || t('alerts.requestFailed'));
-    } finally {
-      setBusyId('');
     }
   }
 
@@ -63,15 +58,12 @@ export default function SecurityPage() {
     });
     if (!confirmed) return;
 
-    setBusyId('others');
     try {
-      const result = await inventoryApi.revokeOtherSessions();
-      setSessions(result.sessions || []);
+      await revokeMutation.mutateAsync('others');
+      await securityQuery.refetch();
       pushToast('success', t('security.title'), t('security.revokeOthersSuccess'));
     } catch (err) {
       pushToast('error', t('alerts.requestFailed'), err.message || t('alerts.requestFailed'));
-    } finally {
-      setBusyId('');
     }
   }
 
@@ -113,7 +105,23 @@ export default function SecurityPage() {
             <EmptyState title={t('security.noSessions')} description="" />
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+          <MobileCardList>
+            {sessions.map((session) => (
+              <MobileListCard
+                key={session.id}
+                title={session.userAgent || '-'}
+                badge={session.current ? <Badge tone="emerald">{t('security.thisDevice')}</Badge> : null}
+                subtitle={`${session.ipAddress || '-'} · ${formatDateTime(session.lastSeenAt)}`}
+                action={!session.current ? (
+                  <button type="button" className="btn-secondary py-1.5 text-xs" onClick={() => handleRevoke(session.id)} disabled={busyId === session.id}>
+                    {t('security.revoke')}
+                  </button>
+                ) : null}
+              />
+            ))}
+          </MobileCardList>
+          <div className="hidden overflow-x-auto md:block">
             <table className="w-full">
               <thead className="table-head">
                 <tr>
@@ -154,6 +162,7 @@ export default function SecurityPage() {
               </tbody>
             </table>
           </div>
+          </>
         )}
       </div>
 
@@ -167,7 +176,18 @@ export default function SecurityPage() {
             <EmptyState title={t('security.noHistory')} description="" />
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+          <MobileCardList>
+            {history.map((entry) => (
+              <MobileListCard
+                key={entry.id}
+                title={entry.userAgent || '-'}
+                badge={entry.success ? <Badge tone="emerald">{t('security.success')}</Badge> : <Badge tone="rose">{t('security.failed')}</Badge>}
+                subtitle={`${entry.ipAddress || '-'} · ${formatDateTime(entry.createdAt)}`}
+              />
+            ))}
+          </MobileCardList>
+          <div className="hidden overflow-x-auto md:block">
             <table className="w-full">
               <thead className="table-head">
                 <tr>
@@ -196,6 +216,7 @@ export default function SecurityPage() {
               </tbody>
             </table>
           </div>
+          </>
         )}
       </div>
 
@@ -225,7 +246,23 @@ export default function SecurityPage() {
               <EmptyState title={t('security.noPendingRequests')} description="" icon={ShieldCheck} />
             </div>
           ) : (
-            <div className="overflow-x-auto">
+            <>
+            <MobileCardList>
+              {resetRequests.map((request) => (
+                <MobileListCard
+                  key={request.id}
+                  title={request.userName}
+                  subtitle={`${request.userEmail} · ${formatDateTime(request.createdAt)}`}
+                  action={(
+                    <button type="button" className="btn-secondary py-1.5 text-xs" onClick={() => handleCopyLink(request.token)}>
+                      <Copy size={14} />
+                      {t('security.copyLink')}
+                    </button>
+                  )}
+                />
+              ))}
+            </MobileCardList>
+            <div className="hidden overflow-x-auto md:block">
               <table className="w-full">
                 <thead className="table-head">
                   <tr>
@@ -254,6 +291,7 @@ export default function SecurityPage() {
                 </tbody>
               </table>
             </div>
+            </>
           )}
         </div>
       ) : null}

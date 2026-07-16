@@ -1,5 +1,5 @@
 import { BriefcaseBusiness, Pencil, Plus, Trash2 } from 'lucide-react';
-import { Alert, EmptyState, Pagination, SectionHeader, Select, TableSkeleton } from '../../../../components/ui.jsx';
+import { Alert, EmptyState, MobileCardList, MobileListCard, Pagination, SectionHeader, Select, TableSkeleton } from '../../../../components/ui.jsx';
 import TableReportActions from '../../../../components/TableReportActions.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../../services/inventoryApi.js';
@@ -116,7 +116,33 @@ export default function DesignationsPage() {
         ) : vm.error ? (
           <div className="p-5"><Alert type="error">{vm.error}</Alert></div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+          <MobileCardList>
+            {vm.items.map((designation) => (
+              <MobileListCard
+                key={designation.id}
+                title={designation.name}
+                badge={
+                  <span className={`muted-chip ${designation.status === 'ACTIVE' ? 'text-emerald-700' : 'text-slate-400'}`}>
+                    {designation.status === 'ACTIVE' ? t('designations.active') : t('designations.inactive')}
+                  </span>
+                }
+                subtitle={designation.code || '-'}
+                value={designation.employeeCount}
+                action={canManage ? (
+                  <>
+                    <button type="button" className="icon-btn" onClick={() => setFormModal({ mode: 'edit', designation })} title={t('common.edit')}>
+                      <Pencil size={16} />
+                    </button>
+                    <button type="button" className="icon-btn text-rose-600 hover:text-rose-700" onClick={() => handleDelete(designation)} title={t('common.delete')}>
+                      <Trash2 size={16} />
+                    </button>
+                  </>
+                ) : null}
+              />
+            ))}
+          </MobileCardList>
+          <div className="hidden overflow-x-auto md:block">
             <table className="w-full">
               <thead className="table-head">
                 <tr>
@@ -157,6 +183,7 @@ export default function DesignationsPage() {
               </tbody>
             </table>
           </div>
+          </>
         )}
 
         {!vm.loading && !vm.error && !vm.items.length ? (

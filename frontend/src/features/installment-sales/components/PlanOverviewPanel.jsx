@@ -5,6 +5,7 @@ import { inventoryApi } from '../../../services/inventoryApi.js';
 import { formatCurrency, formatDate, formatDateTime } from '../../../utils/calculations.js';
 import CreditCheckPanel from './CreditCheckPanel.jsx';
 import CreditSettingsModal from './CreditSettingsModal.jsx';
+import { useTenantReportQuery } from '../../reports/queries/useTenantReportQuery.js';
 
 function SummaryItem({ label, value, valueClass }) {
   return (
@@ -18,16 +19,15 @@ function SummaryItem({ label, value, valueClass }) {
 export default function PlanOverviewPanel({ plan, rescheduleLog = [], onCreditSettingsChanged }) {
   const { t, language, can } = useInventoryApp();
   const canManageCredit = can('manage_installment_credit_settings');
-  const [creditCheck, setCreditCheck] = useState(null);
   const [creditModalOpen, setCreditModalOpen] = useState(false);
-
-  useEffect(() => {
-    let cancelled = false;
-    inventoryApi.getInstallmentCreditCheck({ customerId: plan.customerId })
-      .then((result) => { if (!cancelled) setCreditCheck(result); })
-      .catch(() => { if (!cancelled) setCreditCheck(null); });
-    return () => { cancelled = true; };
-  }, [plan.customerId]);
+  const creditQuery = useTenantReportQuery({
+    scope: 'installment-credit-check',
+    params: { customerId: plan.customerId },
+    queryFn: () => inventoryApi.getInstallmentCreditCheck({ customerId: plan.customerId }),
+    enabled: Boolean(plan.customerId),
+    staleTime: 30_000,
+  });
+  const creditCheck = creditQuery.data || null;
 
   return (
     <div className="space-y-6">
@@ -97,7 +97,7 @@ export default function PlanOverviewPanel({ plan, rescheduleLog = [], onCreditSe
           onClose={() => setCreditModalOpen(false)}
           onSaved={() => {
             setCreditModalOpen(false);
-            inventoryApi.getInstallmentCreditCheck({ customerId: plan.customerId }).then(setCreditCheck).catch(() => {});
+            creditQuery.refetch();
             onCreditSettingsChanged?.();
           }}
         />

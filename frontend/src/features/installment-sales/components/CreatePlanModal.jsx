@@ -8,6 +8,7 @@ import { formatCurrency, todayISO } from '../../../utils/calculations.js';
 import { computeSchedulePreview } from '../utils/scheduleMath.js';
 import CreditCheckPanel from './CreditCheckPanel.jsx';
 import SchedulePreviewTable from './SchedulePreviewTable.jsx';
+import { useTenantReportQuery } from '../../reports/queries/useTenantReportQuery.js';
 
 const MARKUP_TYPES = ['PERCENT', 'FIXED'];
 
@@ -29,7 +30,6 @@ export default function CreatePlanModal({ onClose, onSave }) {
   const [numberOfMonths, setNumberOfMonths] = useState(6);
   const [firstPaymentDate, setFirstPaymentDate] = useState('');
   const [overrideCreditLimit, setOverrideCreditLimit] = useState(false);
-  const [creditCheck, setCreditCheck] = useState(null);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -44,17 +44,14 @@ export default function CreatePlanModal({ onClose, onSave }) {
     sublabel: formatCurrency(product.retailPrice || 0, language),
   }));
 
-  useEffect(() => {
-    let cancelled = false;
-    if (!customerId) {
-      setCreditCheck(null);
-      return undefined;
-    }
-    inventoryApi.getInstallmentCreditCheck({ customerId })
-      .then((result) => { if (!cancelled) setCreditCheck(result); })
-      .catch(() => { if (!cancelled) setCreditCheck(null); });
-    return () => { cancelled = true; };
-  }, [customerId]);
+  const creditQuery = useTenantReportQuery({
+    scope: 'installment-credit-check',
+    params: { customerId },
+    queryFn: () => inventoryApi.getInstallmentCreditCheck({ customerId }),
+    enabled: Boolean(customerId),
+    staleTime: 30_000,
+  });
+  const creditCheck = creditQuery.data || null;
 
   function updateItem(index, field, value) {
     setItems((current) => current.map((item, i) => (i === index ? { ...item, [field]: value } : item)));

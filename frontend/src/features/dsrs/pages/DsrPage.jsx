@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { CheckCircle2, Download, FileSpreadsheet, Loader2, MapPin, Pencil, Phone, Plus, Printer, Search, Target, Trash2, Users } from 'lucide-react';
-import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
+import { Alert, Badge, EmptyState, MobileCardList, MobileListCard, Pagination, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
 import { statusTone } from '../../../models/inventoryViewData.js';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../services/printService.js';
@@ -10,6 +10,7 @@ import DsrFormModal from '../components/DsrFormModal';
 import DsrTargetModal from '../components/DsrTargetModal';
 import { useDsrViewModel } from '../viewmodels/useDsrViewModel';
 import { useAsyncAction } from '../../../hooks/useAsyncAction.js';
+import { useTenantApiQuery } from '../../../queries/useTenantApiQuery.js';
 
 const DSR_PRINT_ID = 'dsr-print';
 const DSR_REPORT_SHORTCUTS = {
@@ -23,21 +24,18 @@ export default function DsrPage() {
   const vm = useDsrViewModel({ today });
   const [dsrModal, setDsrModal] = useState(null);
   const [targetModal, setTargetModal] = useState(false);
-  const [targetSummary, setTargetSummary] = useState([]);
   const canManageDsrs = can('manage_dsrs');
   const [downloadingPdf, downloadPdf] = useAsyncAction();
 
   const currentMonth = today ? today.slice(0, 7) : new Date().toISOString().slice(0, 7);
 
-  function loadTargetSummary() {
-    inventoryApi.getDsrTargetSummary(currentMonth)
-      .then((res) => setTargetSummary(res.summary || []))
-      .catch(() => {});
-  }
-
-  useEffect(() => {
-    loadTargetSummary();
-  }, [currentMonth]);
+  const targetSummaryQuery = useTenantApiQuery({
+    scope: 'dsr-target-summary',
+    params: { currentMonth },
+    queryFn: () => inventoryApi.getDsrTargetSummary(currentMonth),
+  });
+  const targetSummary = targetSummaryQuery.data?.summary || [];
+  const loadTargetSummary = () => targetSummaryQuery.refetch();
 
   const targetMap = new Map(targetSummary.map((r) => [r.dsrId, r]));
 
@@ -163,7 +161,42 @@ export default function DsrPage() {
             <Alert type="error">{vm.error}</Alert>
           </div>
         ) : (
-        <div className="overflow-x-auto">
+        <>
+        <MobileCardList>
+          {vm.items.map((dsr) => {
+            const t2 = targetMap.get(dsr.id);
+            const target = t2?.targetAmount ?? 0;
+            const achieved = t2?.actualAmount ?? 0;
+            const pct = target > 0 ? Math.min(Math.round((achieved / target) * 100), 999) : null;
+            return (
+              <MobileListCard
+                key={dsr.id}
+                title={dsr.name}
+                badge={
+                  <>
+                    <Badge tone={statusTone(dsr.status)}>{dsr.status}</Badge>
+                    {vm.inProgressDsrIds.has(dsr.id) ? <Badge tone="amber">{t('dsr.outside')}</Badge> : null}
+                  </>
+                }
+                subtitle={[dsr.phone, dsr.area].filter(Boolean).join(' · ')}
+                value={formatCurrency(dsr.currentDue || 0)}
+                valueClass={dsr.currentDue > 0 ? 'text-rose-700' : undefined}
+                valueSub={pct !== null ? `${pct}% of target` : null}
+                action={canManageDsrs ? (
+                  <>
+                    <button type="button" className="icon-btn" title={t('common.edit')} onClick={() => setDsrModal({ mode: 'edit', dsr })}>
+                      <Pencil size={16} />
+                    </button>
+                    <button type="button" className="icon-btn text-rose-600 hover:text-rose-700" title={t('common.delete')} onClick={async () => { const r = await deleteDsr(dsr); if (r.ok) vm.reload(); }}>
+                      <Trash2 size={16} />
+                    </button>
+                  </>
+                ) : null}
+              />
+            );
+          })}
+        </MobileCardList>
+        <div className="hidden overflow-x-auto md:block">
           <table className="w-full">
             <thead className="table-head">
               <tr>
@@ -257,6 +290,7 @@ export default function DsrPage() {
             </tbody>
           </table>
         </div>
+        </>
         )}
         {!vm.loading && !vm.error && !vm.items.length ? (
           <div className="p-5">

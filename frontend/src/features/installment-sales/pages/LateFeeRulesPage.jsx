@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Gift, Pencil, Plus } from 'lucide-react';
-import { Alert, Badge, EmptyState, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
+import { Alert, Badge, EmptyState, MobileCardList, MobileListCard, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { formatCurrency } from '../../../utils/calculations.js';
 import { useLateFeeRulesViewModel } from '../viewmodels/useLateFeeRulesViewModel.js';
@@ -45,7 +45,25 @@ export default function LateFeeRulesPage() {
             <EmptyState title={t('installments.lateFeeRules.emptyTitle')} icon={Gift} />
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+          <MobileCardList>
+            {vm.rules.map((rule) => (
+              <MobileListCard
+                key={rule.id}
+                title={t(`installments.lateFeeRules.feeTypes.${rule.feeType}`)}
+                badge={<Badge tone={rule.active ? 'emerald' : 'slate'}>{rule.active ? t('installments.lateFeeRules.activeYes') : t('installments.lateFeeRules.activeNo')}</Badge>}
+                subtitle={`${t('installments.lateFeeRules.gracePeriodDays')}: ${rule.gracePeriodDays}`}
+                value={feeValueSummary(rule, t, language)}
+                valueSub={rule.maxPenaltyAmount > 0 ? formatCurrency(rule.maxPenaltyAmount, language) : null}
+                action={canManage ? (
+                  <button type="button" className="icon-btn" title={t('common.edit')} onClick={() => setRuleModal({ mode: 'edit', rule })}>
+                    <Pencil size={16} />
+                  </button>
+                ) : null}
+              />
+            ))}
+          </MobileCardList>
+          <div className="hidden overflow-x-auto md:block">
             <table className="w-full">
               <thead className="table-head">
                 <tr>
@@ -83,6 +101,7 @@ export default function LateFeeRulesPage() {
               </tbody>
             </table>
           </div>
+          </>
         )}
       </div>
 

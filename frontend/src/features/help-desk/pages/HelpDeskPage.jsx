@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { AlertCircle, ArrowRight, CalendarClock, CheckCircle2, History, Loader2, MessageSquarePlus, RefreshCw, ShieldQuestion, Sparkles, Ticket, TriangleAlert, Users } from 'lucide-react';
 import { Alert, Badge, EmptyState, Modal, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
+import { useTenantApiQuery } from '../../../queries/useTenantApiQuery.js';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { formatDateTime, formatNumber } from '../../../utils/calculations.js';
 
@@ -251,8 +252,6 @@ export default function HelpDeskPage() {
   const { t, tenant, user, language, pushToast, can } = useInventoryApp();
   const canManage = can('manage_help_desk');
   const [tickets, setTickets] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState('');
   const [activeTab, setActiveTab] = useState('tickets');
   const [statusFilter, setStatusFilter] = useState('OPEN');
   const [priorityFilter, setPriorityFilter] = useState('');
@@ -262,6 +261,12 @@ export default function HelpDeskPage() {
   const [draftNote, setDraftNote] = useState('');
   const [editorOpen, setEditorOpen] = useState(false);
   const [editingTicket, setEditingTicket] = useState(null);
+  const ticketsQuery = useTenantApiQuery({
+    scope: 'help-desk-tickets',
+    queryFn: () => inventoryApi.listHelpDeskTickets(),
+  });
+  const loading = ticketsQuery.isLoading || ticketsQuery.isFetching;
+  const loadError = ticketsQuery.error?.message || '';
 
   function applyTicket(nextTicket) {
     setTickets((current) => {
@@ -274,12 +279,10 @@ export default function HelpDeskPage() {
     setSelectedTicketId(nextTicket.id);
   }
 
-  async function refreshTickets() {
-    setLoading(true);
-    setLoadError('');
-    try {
-      const result = await inventoryApi.listHelpDeskTickets();
-      const loaded = Array.isArray(result.items) ? result.items : [];
+  const refreshTickets = () => ticketsQuery.refetch();
+
+  useEffect(() => {
+      const loaded = Array.isArray(ticketsQuery.data?.items) ? ticketsQuery.data.items : [];
       setTickets(loaded);
       setSelectedTicketId((current) => {
         if (current && loaded.some((ticket) => ticket.id === current)) {
@@ -287,18 +290,7 @@ export default function HelpDeskPage() {
         }
         return loaded[0]?.id || '';
       });
-    } catch (error) {
-      const message = error?.message || t('alerts.requestFailed');
-      setLoadError(message);
-      pushToast('error', t('alerts.unableToLoad'), message);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    void refreshTickets();
-  }, [tenant?.id, user?.id]);
+  }, [ticketsQuery.data]);
 
   const stats = useMemo(() => {
     const openTickets = tickets.filter((ticket) => ticket.status === 'OPEN').length;

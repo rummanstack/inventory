@@ -3,6 +3,8 @@ import { Save, Target } from 'lucide-react';
 import { Alert, Modal } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
+import { useMutation } from '@tanstack/react-query';
+import { useTenantApiQuery } from '../../../queries/useTenantApiQuery.js';
 
 export default function DsrTargetModal({ onClose, onSaved }) {
   const { dsrDirectory, language, t } = useInventoryApp();
@@ -11,47 +13,36 @@ export default function DsrTargetModal({ onClose, onSaved }) {
 
   const [month, setMonth] = useState(defaultMonth);
   const [targets, setTargets] = useState({});
-  const [loading, setLoading] = useState(false);
-  const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
   const activeDsrs = dsrDirectory.filter((d) => d.status === 'Active');
 
+  const targetsQuery = useTenantApiQuery({
+    scope: 'dsr-targets',
+    params: { month },
+    queryFn: () => inventoryApi.getDsrTargets(month),
+  });
+  const saveMutation = useMutation({ mutationFn: (payload) => inventoryApi.setDsrTargets(payload) });
+  const loading = targetsQuery.isLoading;
+  const saving = saveMutation.isPending;
+
   useEffect(() => {
-    let cancelled = false;
-    async function load() {
-      setLoading(true);
-      try {
-        const data = await inventoryApi.getDsrTargets(month);
-        if (!cancelled) {
-          const map = {};
-          (data.targets || []).forEach((t) => { map[t.dsrId] = String(t.targetAmount); });
-          setTargets(map);
-        }
-      } catch {
-        // leave empty on error
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }
-    load();
-    return () => { cancelled = true; };
-  }, [month]);
+    const map = {};
+    (targetsQuery.data?.targets || []).forEach((target) => { map[target.dsrId] = String(target.targetAmount); });
+    setTargets(map);
+  }, [targetsQuery.data]);
 
   async function handleSave(e) {
     e.preventDefault();
-    setSaving(true);
     setError('');
     try {
       const payload = activeDsrs
         .filter((d) => targets[d.id] !== undefined && targets[d.id] !== '')
         .map((d) => ({ dsrId: d.id, month, targetAmount: Number(targets[d.id]) || 0 }));
-      await inventoryApi.setDsrTargets(payload);
+      await saveMutation.mutateAsync(payload);
       onSaved();
     } catch (err) {
       setError(err.message);
-    } finally {
-      setSaving(false);
     }
   }
 

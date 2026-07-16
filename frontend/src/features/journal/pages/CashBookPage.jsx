@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Wallet } from 'lucide-react';
 import TableReportActions from '../../../components/TableReportActions.jsx';
-import { Alert, CopyableText, EmptyState, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
+import { Alert, CopyableText, EmptyState, MobileCardList, MobileListCard, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { formatCurrency, formatDate } from '../../../utils/calculations.js';
@@ -55,6 +55,19 @@ function CashOrBankBookPage({ title, kind, reportId }) {
               <div><div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Opening Balance</div><div className="mt-1 text-lg font-semibold text-slate-950">{formatCurrency(data.openingBalance || 0, language)}</div></div>
               <div><div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Closing Balance</div><div className="mt-1 text-lg font-semibold text-slate-950">{formatCurrency(data.closingBalance || 0, language)}</div></div>
             </div>
+            <MobileCardList>
+              {data.lines.map((line) => (
+                <MobileListCard
+                  key={line.id}
+                  title={line.accountName || line.accountCode}
+                  subtitle={`${formatDate(line.entryDate, language)} · ${line.voucherNumber || line.documentNumber || line.voucherType}`}
+                  value={line.debit ? formatCurrency(line.debit, language) : line.credit ? `- ${formatCurrency(line.credit, language)}` : '-'}
+                  valueClass={line.debit ? 'text-emerald-700' : line.credit ? 'text-rose-600' : undefined}
+                  valueSub={formatCurrency(line.runningBalance, language)}
+                />
+              ))}
+            </MobileCardList>
+            <div className="hidden overflow-x-auto md:block">
             <table className="w-full min-w-[1280px]">
               <thead className="table-head">
                 <tr>
@@ -83,6 +96,7 @@ function CashOrBankBookPage({ title, kind, reportId }) {
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
         ) : null}
       </div>

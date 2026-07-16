@@ -1,5 +1,5 @@
 import { ClipboardList, Download, FileSpreadsheet, Loader2, Printer, Search } from 'lucide-react';
-import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton, Select } from '../../../components/ui.jsx';
+import { Alert, Badge, EmptyState, MobileCardList, MobileListCard, Pagination, SectionHeader, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { DateRangePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../services/printService.js';
@@ -160,7 +160,23 @@ export default function ActivityLogsPage() {
             </div>
           </div>
         </div>
-        <div className="overflow-x-auto">
+        {vm.loading ? (
+          <div className="p-5 md:hidden">
+            <TableSkeleton columns={7} showHeader={false} />
+          </div>
+        ) : (
+          <MobileCardList>
+            {vm.logs.map((log) => (
+              <MobileListCard
+                key={log.id}
+                title={log.description || log.actionType}
+                badge={<Badge tone={actionTone(log.actionType)}>{log.actionType}</Badge>}
+                subtitle={`${log.userName || '-'} · ${formatDateTime(log.createdAt)}`}
+              />
+            ))}
+          </MobileCardList>
+        )}
+        <div className="hidden overflow-x-auto md:block">
           <table className="w-full">
             <thead className="table-head">
               <tr>

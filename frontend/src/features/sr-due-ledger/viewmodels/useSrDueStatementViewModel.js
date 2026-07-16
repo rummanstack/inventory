@@ -1,8 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useMutation } from '@tanstack/react-query';
 import { inventoryApi } from '../../../services/inventoryApi';
 import { todayISO } from '../../../utils/calculations.js';
-import { useRefetchOnVisible } from '../../../app/hooks/useRefetchOnVisible.js';
+import { useTenantReportQuery } from '../../reports/queries/useTenantReportQuery.js';
+import { transactionKeys } from '../../transactions/queries/transactionQueries.js';
+import { getActiveTenantId } from '../../../services/api/client.js';
 
 function subtractDays(dateISO, days) {
   const date = new Date(`${dateISO}T00:00:00`);
@@ -16,12 +19,6 @@ export function useSrDueStatementViewModel({ srs }) {
   const [srId, setSrId] = useState(searchParams.get('srId') || '');
   const [dateFrom, setDateFrom] = useState(subtractDays(today, 29));
   const [dateTo, setDateTo] = useState(today);
-  const [statement, setStatement] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [version, setVersion] = useState(0);
-  const [actionLoading, setActionLoading] = useState(false);
-
   const hasAutoSelected = useRef(Boolean(srId));
 
   useEffect(() => {
@@ -31,64 +28,35 @@ export function useSrDueStatementViewModel({ srs }) {
     }
   }, [srs, srId]);
 
-  useEffect(() => {
-    let cancelled = false;
+  const query = useTenantReportQuery({
+    scope: 'sr-due-statement',
+    params: { srId, dateFrom, dateTo },
+    queryFn: () => inventoryApi.getSrDueLedgerStatement({ srId, dateFrom, dateTo }),
+    enabled: Boolean(srId),
+    keepPrevious: true,
+  });
+  const collectMutation = useMutation({
+    mutationKey: transactionKeys.mutation(getActiveTenantId(), 'collect-sr-due'),
+    mutationFn: (payload) => inventoryApi.collectSrDue(payload),
+  });
 
-    if (!srId) {
-      setStatement(null);
-      setLoading(false);
-      return undefined;
-    }
-
-    setLoading(true);
-    setError('');
-
-    inventoryApi
-      .getSrDueLedgerStatement({ srId, dateFrom, dateTo })
-      .then((result) => {
-        if (!cancelled) setStatement(result);
-      })
-      .catch((requestError) => {
-        if (!cancelled) {
-          setError(requestError.message);
-          setStatement(null);
-        }
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-
-    return () => { cancelled = true; };
-  }, [srId, dateFrom, dateTo, version]);
-
-  async function collectDue({ amount, note, businessDate, financeAccountId }) {
-    setActionLoading(true);
+  async function collectDue(values) {
     try {
-      await inventoryApi.collectSrDue({ srId, amount, note, businessDate, financeAccountId });
-      setVersion((v) => v + 1);
+      await collectMutation.mutateAsync({ srId, ...values });
+      await query.refetch();
       return { ok: true };
     } catch (err) {
       return { ok: false, error: err.message };
-    } finally {
-      setActionLoading(false);
     }
   }
 
-  const refresh = () => setVersion((v) => v + 1);
-  useRefetchOnVisible(refresh);
-
   return {
-    srId,
-    setSrId,
-    dateFrom,
-    setDateFrom,
-    dateTo,
-    setDateTo,
-    statement,
-    loading,
-    error,
-    actionLoading,
-    refresh,
+    srId, setSrId, dateFrom, setDateFrom, dateTo, setDateTo,
+    statement: query.data || null,
+    loading: query.isPending,
+    error: query.error?.message || '',
+    actionLoading: collectMutation.isPending,
+    refresh: query.refetch,
     collectDue,
   };
 }

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
+import { useTenantApiQuery } from '../../../queries/useTenantApiQuery.js';
 
 const INITIAL_MESSAGES = [
   {
@@ -21,50 +22,41 @@ export const QUICK_PROMPTS = [
 export function useAiChatWidgetViewModel() {
   const { t, can, hasFeature } = useInventoryApp();
   const [open, setOpen] = useState(false);
-  const [status, setStatus] = useState(null);
-  const [customers, setCustomers] = useState([]);
   const [customerId, setCustomerId] = useState('');
   const [contextType, setContextType] = useState('general');
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState(INITIAL_MESSAGES);
-  const [loading, setLoading] = useState(false);
-  const [loaded, setLoaded] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
 
-  const selectedCustomer = useMemo(() => customers.find((customer) => customer.id === customerId) || null, [customers, customerId]);
-  const canUseCustomer = can('view_retail_customers') && hasFeature('retail-customers');
-  const canUseLowStock = can('view_products') && hasFeature('low-stock-alerts');
-
-  async function loadInitial() {
-    try {
-      setLoading(true);
-      setError('');
+  const initialQuery = useTenantApiQuery({
+    scope: 'ai-chat-initial',
+    enabled: open,
+    staleTime: 60_000,
+    queryFn: async () => {
       const [statusResult, customerResultData] = await Promise.all([
         inventoryApi.getAiInsightStatus(),
         inventoryApi.getActiveRetailCustomers().catch(() => ({ items: [] })),
       ]);
-      const rows = customerResultData.items || customerResultData.customers || [];
-      setStatus(statusResult);
-      setCustomers(rows);
-      setCustomerId((current) => current || rows[0]?.id || '');
-    } catch (requestError) {
-      setError(requestError?.message || t('alerts.requestFailed'));
-    } finally {
-      setLoading(false);
-      setLoaded(true);
-    }
-  }
+      return {
+        status: statusResult,
+        customers: customerResultData.items || customerResultData.customers || [],
+      };
+    },
+  });
+  const status = initialQuery.data?.status || null;
+  const customers = initialQuery.data?.customers || [];
+  const loading = initialQuery.isLoading;
+  const selectedCustomer = useMemo(() => customers.find((customer) => customer.id === customerId) || null, [customers, customerId]);
+  const canUseCustomer = can('view_retail_customers') && hasFeature('retail-customers');
+  const canUseLowStock = can('view_products') && hasFeature('low-stock-alerts');
 
   // Loaded lazily on first open, not on mount — the widget is now mounted
   // globally for the whole session, so there is no natural "page visit" moment
   // to trigger this from.
   useEffect(() => {
-    if (open && !loaded) {
-      loadInitial();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, loaded]);
+    if (customers.length) setCustomerId((current) => current || customers[0].id);
+  }, [customers]);
 
   function setPrompt(prompt) {
     if (prompt.contextType === 'customer' && !canUseCustomer) return;

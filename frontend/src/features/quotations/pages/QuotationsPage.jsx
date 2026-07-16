@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Download, Eye, FileSpreadsheet, Loader2, Pencil, Plus, Printer, Search, Tag, Trash2 } from 'lucide-react';
-import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton, Select } from '../../../components/ui.jsx';
+import { Alert, Badge, EmptyState, MobileCardList, MobileListCard, Pagination, SectionHeader, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
@@ -178,7 +178,34 @@ export default function QuotationsPage() {
             <Alert type="error">{vm.error}</Alert>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+          <MobileCardList>
+            {items.map((quotation) => (
+              <MobileListCard
+                key={quotation.id}
+                onClick={() => openViewForId(quotation.id)}
+                title={quotation.quoteNumber}
+                badge={<Badge tone={quotationStatusTone(quotation.status)}>{t(`quotations.statuses.${quotation.status}`)}</Badge>}
+                subtitle={`${quotation.customerName || '—'} · ${formatDateHuman(quotation.quoteDate, language)}`}
+                value={formatCurrency(quotation.totalAmount, language)}
+                action={(
+                  <>
+                    {canManage && quotation.status !== 'CONVERTED' ? (
+                      <button type="button" className="icon-btn" title={t('quotations.editTitle')} onClick={() => setFormModal(quotation)}>
+                        <Pencil size={16} />
+                      </button>
+                    ) : null}
+                    {canManage ? (
+                      <button type="button" className="icon-btn text-rose-600 hover:text-rose-700" title={t('common.delete')} onClick={() => handleDelete(quotation)}>
+                        <Trash2 size={16} />
+                      </button>
+                    ) : null}
+                  </>
+                )}
+              />
+            ))}
+          </MobileCardList>
+          <div className="hidden overflow-x-auto md:block">
             <table className="w-full">
               <thead className="table-head">
                 <tr>
@@ -256,6 +283,7 @@ export default function QuotationsPage() {
               </tbody>
             </table>
           </div>
+          </>
         )}
 
         {!vm.loading && !vm.error && items.length === 0 ? (

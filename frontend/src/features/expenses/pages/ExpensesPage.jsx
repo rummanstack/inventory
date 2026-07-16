@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { CircleDollarSign, Download, FileSpreadsheet, Loader2, Pencil, Plus, Trash2 } from 'lucide-react';
-import { Alert, Badge, ChartPanel, ChartPanelSkeleton, EmptyState, Pagination, SectionHeader, HorizontalBarChart, StatCard, TableSkeleton } from '../../../components/ui.jsx';
+import { Alert, Badge, ChartPanel, ChartPanelSkeleton, EmptyState, MobileCardList, MobileListCard, Pagination, SectionHeader, HorizontalBarChart, StatCard, TableSkeleton } from '../../../components/ui.jsx';
 import { DatePickerField, MonthPickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../services/printService.js';
@@ -195,7 +195,28 @@ export default function ExpensesPage() {
                   </div>
                 </div>
               </div>
-              <div className="overflow-x-auto">
+              <MobileCardList>
+                {dailyPaged.map((expense) => (
+                  <MobileListCard
+                    key={expense.id}
+                    title={tCategory(expense.category)}
+                    subtitle={`${formatDate(expense.date)}${expense.note ? ` · ${expense.note}` : ''}`}
+                    value={formatCurrency(expense.amount)}
+                    valueSub={expense.createdByName || null}
+                    action={canManageExpenses ? (
+                      <>
+                        <button type="button" className="icon-btn" title={t('common.edit')} onClick={() => setModal(expense)}>
+                          <Pencil size={16} />
+                        </button>
+                        <button type="button" className="icon-btn text-rose-600 hover:text-rose-700" title={t('common.delete')} onClick={() => handleDelete(expense.id)}>
+                          <Trash2 size={16} />
+                        </button>
+                      </>
+                    ) : null}
+                  />
+                ))}
+              </MobileCardList>
+              <div className="hidden overflow-x-auto md:block">
                 <table className="w-full">
                   <thead className="table-head">
                     <tr>
@@ -275,7 +296,18 @@ export default function ExpensesPage() {
                   </div>
                 </div>
               </div>
-              <div className="overflow-x-auto">
+              <MobileCardList>
+                {monthlyPaged.map((expense) => (
+                  <MobileListCard
+                    key={expense.id}
+                    title={tCategory(expense.category)}
+                    subtitle={`${formatDate(expense.date)}${expense.note ? ` · ${expense.note}` : ''}`}
+                    value={formatCurrency(expense.amount)}
+                    valueSub={expense.createdByName || null}
+                  />
+                ))}
+              </MobileCardList>
+              <div className="hidden overflow-x-auto md:block">
                 <table className="w-full">
                   <thead className="table-head">
                     <tr>

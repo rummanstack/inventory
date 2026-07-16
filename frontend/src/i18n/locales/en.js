@@ -399,6 +399,7 @@ const en = {
       cancel: 'Cancel',
       save: 'Save',
       saving: 'Saving...',
+      share: 'Share',
       selectAll: 'Select all',
       clearAll: 'Clear all',
       loading: 'Loading...',

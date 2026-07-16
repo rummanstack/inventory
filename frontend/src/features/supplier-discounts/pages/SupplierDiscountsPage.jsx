@@ -1,11 +1,14 @@
 import { HandCoins, Tag } from 'lucide-react';
-import { Alert, EmptyState, Pagination, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
+import { Alert, EmptyState, MobileCardList, MobileListCard, Pagination, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
 import TableReportActions from '../../../components/TableReportActions.jsx';
 import { DateRangePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import { formatCurrency, formatDateTime } from '../../../utils/calculations.js';
 import { useSupplierDiscountsViewModel } from '../viewmodels/useSupplierDiscountsViewModel.js';
+import { useMutation } from '@tanstack/react-query';
+import { getActiveTenantId } from '../../../services/api/client.js';
+import { transactionKeys } from '../../transactions/queries/transactionQueries.js';
 
 const SUPPLIER_DISCOUNTS_REPORT_ID = 'supplier-discounts-report';
 const SUPPLIER_DISCOUNTS_SHORTCUTS = {
@@ -19,6 +22,10 @@ export default function SupplierDiscountsPage() {
   const { confirm, pushToast, can, t } = useInventoryApp();
   const vm = useSupplierDiscountsViewModel();
   const canManagePayments = can('manage_supplier_payments');
+  const clearDiscountMutation = useMutation({
+    mutationKey: transactionKeys.mutation(getActiveTenantId(), 'clear-supplier-discount'),
+    mutationFn: (id) => inventoryApi.deleteSupplierDiscount(id),
+  });
 
   async function handleClear(discount) {
     const { confirmed } = await confirm({
@@ -33,7 +40,7 @@ export default function SupplierDiscountsPage() {
     });
     if (!confirmed) return;
     try {
-      await inventoryApi.deleteSupplierDiscount(discount.id);
+      await clearDiscountMutation.mutateAsync(discount.id);
       pushToast('success', t('supplierDiscounts.cleared'));
       vm.reload();
     } catch (err) {
@@ -71,7 +78,29 @@ export default function SupplierDiscountsPage() {
         ) : vm.error ? (
           <div className="p-5"><Alert type="error">{vm.error}</Alert></div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+          <MobileCardList>
+            {vm.items.map((discount) => (
+              <MobileListCard
+                key={discount.id}
+                title={discount.dsrName || '-'}
+                subtitle={`${discount.supplierName || '-'} · ${formatDateTime(discount.discountDate)}`}
+                value={formatCurrency(discount.amount)}
+                valueClass="text-emerald-700"
+                action={canManagePayments ? (
+                  <button
+                    type="button"
+                    className="icon-btn text-emerald-600 hover:text-emerald-700"
+                    title={t('supplierDiscounts.clearDiscountTitle')}
+                    onClick={() => handleClear(discount)}
+                  >
+                    <HandCoins size={16} />
+                  </button>
+                ) : null}
+              />
+            ))}
+          </MobileCardList>
+          <div className="hidden overflow-x-auto md:block">
             <table className="w-full">
               <thead className="table-head">
                 <tr>
@@ -112,6 +141,7 @@ export default function SupplierDiscountsPage() {
               </tbody>
             </table>
           </div>
+          </>
         )}
 
         {!vm.loading && !vm.error && !vm.items.length ? (

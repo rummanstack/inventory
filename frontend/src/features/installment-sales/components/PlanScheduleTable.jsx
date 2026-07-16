@@ -1,5 +1,5 @@
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
-import { Badge, EmptyState } from '../../../components/ui.jsx';
+import { Badge, EmptyState, MobileCardList, MobileListCard } from '../../../components/ui.jsx';
 import { CalendarClock } from 'lucide-react';
 import { formatCurrency, formatDate } from '../../../utils/calculations.js';
 
@@ -19,7 +19,21 @@ export default function PlanScheduleTable({ schedule = [] }) {
   }
 
   return (
-    <div className="overflow-x-auto">
+    <>
+    <MobileCardList>
+      {schedule.map((row) => (
+        <MobileListCard
+          key={row.id}
+          title={`#${row.installmentNo} · ${formatDate(row.dueDate, language)}`}
+          badge={<Badge tone={STATUS_TONES[row.status] || 'slate'}>{t(`installments.plans.scheduleStatus.${row.status}`)}</Badge>}
+          subtitle={`${t('installments.detail.paidAmount')}: ${formatCurrency(row.paidAmount, language)}`}
+          value={formatCurrency(row.dueAmount, language)}
+          valueSub={formatCurrency(row.remainingAmount, language)}
+          valueClass="text-slate-950"
+        />
+      ))}
+    </MobileCardList>
+    <div className="hidden overflow-x-auto md:block">
       <table className="w-full text-sm">
         <thead className="table-head">
           <tr>
@@ -49,5 +63,6 @@ export default function PlanScheduleTable({ schedule = [] }) {
         </tbody>
       </table>
     </div>
+    </>
   );
 }

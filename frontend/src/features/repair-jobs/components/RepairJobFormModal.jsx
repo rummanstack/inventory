@@ -5,6 +5,7 @@ import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { useFormState } from '../../../hooks/useFormState';
 import { inventoryApi } from '../../../services/inventoryApi';
+import { useTenantApiQuery } from '../../../queries/useTenantApiQuery.js';
 
 const JOB_STATUS_VALUES = ['RECEIVED', 'DIAGNOSING', 'AWAITING_PARTS', 'IN_REPAIR', 'READY', 'DELIVERED', 'CANCELLED'];
 const APPROVAL_STATUS_VALUES = ['PENDING', 'APPROVED', 'DECLINED'];
@@ -31,13 +32,15 @@ export default function RepairJobFormModal({ job, onClose, onSave }) {
     resolutionNote: job?.resolutionNote || '',
   });
 
-  const [technicians, setTechnicians] = useState([]);
-
-  useEffect(() => {
-    inventoryApi.listUsers().then((result) => {
-      setTechnicians(Array.isArray(result) ? result : (result?.items || []));
-    }).catch(() => {});
-  }, []);
+  const techniciansQuery = useTenantApiQuery({
+    scope: 'repair-technicians',
+    queryFn: () => inventoryApi.listUsers(),
+    staleTime: 30_000,
+  });
+  const techniciansResult = techniciansQuery.data;
+  const technicians = Array.isArray(techniciansResult)
+    ? techniciansResult
+    : (techniciansResult?.users || techniciansResult?.items || []);
 
   async function submitForm(event) {
     event.preventDefault();
@@ -286,4 +289,3 @@ export default function RepairJobFormModal({ job, onClose, onSave }) {
     </Modal>
   );
 }
-

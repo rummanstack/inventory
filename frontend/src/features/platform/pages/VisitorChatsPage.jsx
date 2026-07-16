@@ -5,6 +5,7 @@ import { inventoryApi } from '../../../services/inventoryApi.js';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { usePolling } from '../../../hooks/usePolling.js';
 import { formatDateTime } from '../../../utils/calculations.js';
+import { useTenantApiQuery } from '../../../queries/useTenantApiQuery.js';
 
 function VisitorChatRow({ chat, active, onSelect, t, language }) {
   return (
@@ -29,21 +30,33 @@ function VisitorChatRow({ chat, active, onSelect, t, language }) {
 export default function VisitorChatsPage() {
   const { t, language, pushToast } = useInventoryApp();
   const [chats, setChats] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState('');
   const [statusFilter, setStatusFilter] = useState('OPEN');
   const [selectedChatId, setSelectedChatId] = useState('');
   const [messages, setMessages] = useState([]);
   const [draftReply, setDraftReply] = useState('');
   const [sending, setSending] = useState(false);
   const afterIdRef = useRef(0);
+  const markedReadRef = useRef('');
+  const chatsQuery = useTenantApiQuery({
+    scope: 'platform-visitor-chats',
+    params: { statusFilter },
+    queryFn: () => inventoryApi.listVisitorChats({ status: statusFilter || undefined }),
+    requireTenant: false,
+  });
+  const messagesQuery = useTenantApiQuery({
+    scope: 'platform-visitor-chat-messages',
+    params: { selectedChatId },
+    queryFn: () => inventoryApi.listVisitorChatMessages(selectedChatId, 0),
+    enabled: Boolean(selectedChatId),
+    requireTenant: false,
+  });
+  const loading = chatsQuery.isLoading || chatsQuery.isFetching;
+  const loadError = chatsQuery.error?.message || '';
+  const refreshChats = () => chatsQuery.refetch();
 
-  async function refreshChats() {
-    setLoading(true);
-    setLoadError('');
-    try {
-      const result = await inventoryApi.listVisitorChats({ status: statusFilter || undefined });
-      const loaded = Array.isArray(result.items) ? result.items : [];
+  useEffect(() => {
+      const result = chatsQuery.data;
+      const loaded = Array.isArray(result?.items) ? result.items : [];
       setChats(loaded);
       setSelectedChatId((current) => {
         if (current && loaded.some((chat) => chat.id === current)) {
@@ -51,18 +64,7 @@ export default function VisitorChatsPage() {
         }
         return loaded[0]?.id || '';
       });
-    } catch (error) {
-      const message = error?.message || t('alerts.requestFailed');
-      setLoadError(message);
-      pushToast('error', t('alerts.unableToLoad'), message);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    void refreshChats();
-  }, [statusFilter]);
+  }, [chatsQuery.data]);
 
   useEffect(() => {
     afterIdRef.current = 0;
@@ -71,19 +73,23 @@ export default function VisitorChatsPage() {
       return;
     }
 
-    (async () => {
+    if (messagesQuery.data) {
+      (async () => {
       try {
-        const result = await inventoryApi.listVisitorChatMessages(selectedChatId, 0);
-        const loaded = result?.messages || [];
+        const loaded = messagesQuery.data?.messages || [];
         setMessages(loaded);
         afterIdRef.current = loaded.length ? loaded[loaded.length - 1].id : 0;
-        await inventoryApi.markVisitorChatRead(selectedChatId);
-        setChats((current) => current.map((chat) => (chat.id === selectedChatId ? { ...chat, unreadForAdmin: false } : chat)));
+        if (markedReadRef.current !== selectedChatId) {
+          markedReadRef.current = selectedChatId;
+          await inventoryApi.markVisitorChatRead(selectedChatId);
+          setChats((current) => current.map((chat) => (chat.id === selectedChatId ? { ...chat, unreadForAdmin: false } : chat)));
+        }
       } catch (error) {
         pushToast('error', t('alerts.requestFailed'), error?.message || t('alerts.requestFailed'));
       }
-    })();
-  }, [selectedChatId]);
+      })();
+    }
+  }, [selectedChatId, messagesQuery.data]);
 
   async function pollSelectedChatMessages() {
     if (!selectedChatId) {

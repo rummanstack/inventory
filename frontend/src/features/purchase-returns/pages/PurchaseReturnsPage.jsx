@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Download, FileSpreadsheet, Loader2, Plus, Printer, Trash2, Undo2 } from 'lucide-react';
-import { Alert, CopyableText, EmptyState, Pagination, SectionHeader, TableSkeleton, Select } from '../../../components/ui.jsx';
+import { Alert, CopyableText, EmptyState, MobileCardList, MobileListCard, Pagination, SectionHeader, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { DateRangePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
@@ -162,7 +162,29 @@ export default function PurchaseReturnsPage() {
             <Alert type="error">{vm.error}</Alert>
           </div>
         ) : (
-        <div className="overflow-x-auto">
+        <>
+        <MobileCardList>
+          {vm.items.map((purchaseReturn) => (
+            <MobileListCard
+              key={purchaseReturn.id}
+              title={purchaseReturn.returnNumber}
+              subtitle={`${purchaseReturn.supplierName || '-'} · ${formatDateTime(purchaseReturn.returnDate)}`}
+              value={formatCurrency(purchaseReturn.totalAmount)}
+              valueClass="text-rose-700"
+              action={canManage ? (
+                <button
+                  type="button"
+                  className="icon-btn text-rose-600 hover:text-rose-700"
+                  title={t('common.delete')}
+                  onClick={async () => { const r = await deletePurchaseReturn(purchaseReturn); if (r.ok) vm.reload(); }}
+                >
+                  <Trash2 size={16} />
+                </button>
+              ) : null}
+            />
+          ))}
+        </MobileCardList>
+        <div className="hidden overflow-x-auto md:block">
           <table className="w-full">
             <thead className="table-head">
               <tr>
@@ -209,6 +231,7 @@ export default function PurchaseReturnsPage() {
             </tbody>
           </table>
         </div>
+        </>
         )}
         {!vm.loading && !vm.error && !vm.items.length ? (
           <div className="p-5">

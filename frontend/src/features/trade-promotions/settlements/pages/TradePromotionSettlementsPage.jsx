@@ -1,5 +1,5 @@
 import { CircleDollarSign, Trash2 } from 'lucide-react';
-import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton, Select } from '../../../../components/ui.jsx';
+import { Alert, Badge, EmptyState, MobileCardList, MobileListCard, Pagination, SectionHeader, TableSkeleton, Select } from '../../../../components/ui.jsx';
 import TableReportActions from '../../../../components/TableReportActions.jsx';
 import { DatePickerField } from '../../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
@@ -61,7 +61,26 @@ export default function TradePromotionSettlementsPage() {
             <Alert type="error">{vm.error}</Alert>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+          <MobileCardList>
+            {vm.items.map((settlement) => (
+              <MobileListCard
+                key={settlement.id}
+                title={settlement.supplierName || '-'}
+                badge={<Badge tone={METHOD_TONES[settlement.method] || 'slate'}>{t(`tradePromotions.settlements.methods.${settlement.method}`)}</Badge>}
+                subtitle={`${settlement.productName || t('tradePromotions.rules.targetTypes.ALL')} · ${formatDate(settlement.settlementDate)}`}
+                value={settlement.method === 'STOCK'
+                  ? `${formatNumber(settlement.quantityPieces)} ${t('tradePromotions.rules.units.PIECE')}`
+                  : formatCurrency(settlement.amount)}
+                action={canManage ? (
+                  <button type="button" className="icon-btn text-rose-600 hover:text-rose-700" title={t('tradePromotions.settlements.void')} onClick={async () => { const result = await deleteTradePromotionSettlement(settlement); if (result?.ok) vm.reload(); }}>
+                    <Trash2 size={16} />
+                  </button>
+                ) : null}
+              />
+            ))}
+          </MobileCardList>
+          <div className="hidden overflow-x-auto md:block">
             <table className="w-full">
               <thead className="table-head">
                 <tr>
@@ -105,6 +124,7 @@ export default function TradePromotionSettlementsPage() {
               </tbody>
             </table>
           </div>
+          </>
         )}
 
         {!vm.loading && !vm.error && !vm.items.length ? (

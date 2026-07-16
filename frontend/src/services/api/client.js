@@ -61,6 +61,7 @@ export async function uploadRequest(path, formData) {
     error.status = response.status;
     throw error;
   }
+  notifySharedDataMutation(path, 'POST');
   return data;
 }
 

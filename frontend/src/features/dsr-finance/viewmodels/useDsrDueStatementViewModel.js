@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
+import { useMutation } from '@tanstack/react-query';
 import { inventoryApi } from '../../../services/inventoryApi';
 import { todayISO } from '../../../utils/calculations.js';
-import { useRefetchOnVisible } from '../../../app/hooks/useRefetchOnVisible.js';
+import { useTenantReportQuery } from '../../reports/queries/useTenantReportQuery.js';
+import { transactionKeys } from '../../transactions/queries/transactionQueries.js';
+import { getActiveTenantId } from '../../../services/api/client.js';
 
 function subtractDays(dateISO, days) {
   const date = new Date(`${dateISO}T00:00:00`);
@@ -14,84 +17,46 @@ export function useDsrDueStatementViewModel({ dsrs }) {
   const [dsrId, setDsrId] = useState('');
   const [dateFrom, setDateFrom] = useState(subtractDays(today, 29));
   const [dateTo, setDateTo] = useState(today);
-  const [statement, setStatement] = useState(null);
-  const [currentBalance, setCurrentBalance] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [version, setVersion] = useState(0);
 
   useEffect(() => {
-    if (!dsrId && dsrs[0]) {
-      setDsrId(dsrs[0].id);
-    }
+    if (!dsrId && dsrs[0]) setDsrId(dsrs[0].id);
   }, [dsrs, dsrId]);
 
-  useEffect(() => {
-    let cancelled = false;
-
-    if (!dsrId) {
-      setStatement(null);
-      setCurrentBalance(null);
-      setLoading(false);
-      return undefined;
-    }
-
-    setLoading(true);
-    setError('');
-
-    Promise.all([
-      inventoryApi.getDsrDueStatement({ dsrId, dateFrom, dateTo }),
-      inventoryApi.getDsrDueBalance(dsrId),
-    ])
-      .then(([statementResult, balanceResult]) => {
-        if (!cancelled) {
-          setStatement(statementResult);
-          setCurrentBalance(balanceResult?.balance ?? null);
-        }
-      })
-      .catch((requestError) => {
-        if (!cancelled) {
-          setError(requestError.message);
-          setStatement(null);
-          setCurrentBalance(null);
-        }
-      })
-      .finally(() => {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [dsrId, dateFrom, dateTo, version]);
+  const query = useTenantReportQuery({
+    scope: 'dsr-due-statement',
+    params: { dsrId, dateFrom, dateTo },
+    queryFn: async () => {
+      const [statement, balance] = await Promise.all([
+        inventoryApi.getDsrDueStatement({ dsrId, dateFrom, dateTo }),
+        inventoryApi.getDsrDueBalance(dsrId),
+      ]);
+      return { statement, currentBalance: balance?.balance ?? null };
+    },
+    enabled: Boolean(dsrId),
+    keepPrevious: true,
+  });
+  const settleMutation = useMutation({
+    mutationKey: transactionKeys.mutation(getActiveTenantId(), 'settle-dsr-due'),
+    mutationFn: (payload) => inventoryApi.settleDsrDue(payload),
+  });
 
   async function settleDue({ amount, note }) {
     try {
-      await inventoryApi.settleDsrDue({ dsrId, amount, note });
-      setVersion((value) => value + 1);
+      await settleMutation.mutateAsync({ dsrId, amount, note });
+      await query.refetch();
       return { ok: true };
-    } catch (requestError) {
-      return { ok: false, message: requestError.message };
+    } catch (error) {
+      return { ok: false, message: error.message };
     }
   }
 
-  const refresh = () => setVersion((value) => value + 1);
-  useRefetchOnVisible(refresh);
-
   return {
-    dsrId,
-    setDsrId,
-    dateFrom,
-    setDateFrom,
-    dateTo,
-    setDateTo,
-    statement,
-    currentBalance,
-    loading,
-    error,
-    refresh,
+    dsrId, setDsrId, dateFrom, setDateFrom, dateTo, setDateTo,
+    statement: query.data?.statement || null,
+    currentBalance: query.data?.currentBalance ?? null,
+    loading: query.isPending,
+    error: query.error?.message || '',
+    refresh: query.refetch,
     settleDue,
   };
 }

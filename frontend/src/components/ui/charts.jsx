@@ -255,8 +255,8 @@ export function TrendChart({ data, series, valueFormatter = (value) => value, he
         ))}
       </div>
       <div
-        className="rounded-card border border-slate-100 bg-white p-4"
-        style={{ height }}
+        className="chart-frame rounded-card border border-slate-100 bg-white p-4"
+        style={{ height: `var(--chart-h, ${height}px)` }}
       >
         <Line data={chartData} options={options} />
       </div>

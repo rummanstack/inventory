@@ -1,5 +1,5 @@
 import { Download, Loader2, Printer } from 'lucide-react';
-import { Badge, CopyableText, Modal } from '../../../components/ui.jsx';
+import { Badge, CopyableText, MobileCardList, MobileListCard, Modal } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import AuditHistory from '../../../components/AuditHistory.jsx';
 import { downloadSheetPdf, printElementById } from '../../../services/printService.js';
@@ -42,7 +42,22 @@ export default function PurchaseReceiptViewModal({ purchaseReceipt, onClose }) {
           <Field label={t('purchaseReceive.paymentMethodLabel')} value={t(`purchaseReceive.paymentMethods.${purchaseReceipt.paymentMethod}`)} />
         </div>
 
-        <div className="mt-4 overflow-x-auto">
+        <MobileCardList className="mt-4 rounded-xl border border-slate-100">
+          {items.map((item, index) => {
+            const quantityText = isElectronics ? `${formatNumber(item.quantityPieces)} ${t('common.pcs')}` : formatCasePiece(item.quantityPieces, item.piecesPerCase);
+            const batchText = isPharmacy && item.batchNumber ? `${item.batchNumber} · ${quantityText}` : quantityText;
+            return (
+              <MobileListCard
+                key={item.id || index}
+                title={item.productName}
+                subtitle={`${batchText} · ${formatCurrency(item.purchasePrice)}`}
+                value={formatCurrency(item.lineTotal)}
+                valueSub={Number(item.lineDiscount) > 0 ? `- ${formatCurrency(item.lineDiscount)}` : null}
+              />
+            );
+          })}
+        </MobileCardList>
+        <div className="mt-4 hidden overflow-x-auto md:block">
           <table className="w-full text-sm">
             <thead className="table-head">
               <tr>

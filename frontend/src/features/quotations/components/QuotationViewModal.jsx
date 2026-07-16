@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ArrowRight, Printer, RefreshCw } from 'lucide-react';
-import { Alert, Badge, Modal, Select } from '../../../components/ui.jsx';
+import { Alert, Badge, MobileCardList, MobileListCard, Modal, Select } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { quotationStatusTone } from '../../../models/inventoryViewData.js';
@@ -95,7 +95,17 @@ export default function QuotationViewModal({ quotation, onClose, onConverted }) 
         )}
 
         {/* Items */}
-        <div className="rounded-xl border border-slate-200 overflow-hidden">
+        <MobileCardList className="rounded-xl border border-slate-200">
+          {items.map((item, i) => (
+            <MobileListCard
+              key={i}
+              title={item.productName}
+              subtitle={`${item.quantity} × ${formatCurrency(item.unitPrice, language)}${Number(item.discountAmount || 0) > 0 ? ` · −${formatCurrency(item.discountAmount, language)}` : ''}`}
+              value={formatCurrency(item.lineTotal, language)}
+            />
+          ))}
+        </MobileCardList>
+        <div className="hidden overflow-hidden rounded-xl border border-slate-200 md:block">
           <table className="w-full text-sm">
             <thead className="table-head">
               <tr>

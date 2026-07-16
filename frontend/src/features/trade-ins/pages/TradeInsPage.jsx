@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ArrowLeftRight, Download, Eye, FileSpreadsheet, Loader2, Plus, Printer, Search, Trash2 } from 'lucide-react';
-import { Alert, EmptyState, Pagination, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
+import { Alert, EmptyState, MobileCardList, MobileListCard, Pagination, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
@@ -152,7 +152,29 @@ export default function TradeInsPage() {
             <Alert type="error">{vm.error}</Alert>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+          <MobileCardList>
+            {items.map((tradeIn) => {
+              const payment = Number(tradeIn.paymentAmount);
+              return (
+                <MobileListCard
+                  key={tradeIn.id}
+                  onClick={() => openView(tradeIn.id)}
+                  title={tradeIn.tradeInNumber}
+                  subtitle={`${tradeIn.customerName || '—'} · ${formatDateHuman(tradeIn.tradeInDate, language)}`}
+                  value={formatCurrency(tradeIn.totalTradeInValue, language)}
+                  valueClass="text-emerald-700"
+                  valueSub={`${payment < 0 ? '← ' : ''}${formatCurrency(Math.abs(payment), language)}`}
+                  action={canManage ? (
+                    <button type="button" className="icon-btn text-rose-600 hover:text-rose-700" title={t('common.delete')} onClick={() => handleDelete(tradeIn)}>
+                      <Trash2 size={16} />
+                    </button>
+                  ) : null}
+                />
+              );
+            })}
+          </MobileCardList>
+          <div className="hidden overflow-x-auto md:block">
             <table className="w-full">
               <thead className="table-head">
                 <tr>
@@ -225,6 +247,7 @@ export default function TradeInsPage() {
               </tbody>
             </table>
           </div>
+          </>
         )}
 
         {!vm.loading && !vm.error && items.length === 0 ? (

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Download, FileSpreadsheet, Loader2, Pencil, Plus, Printer, Receipt, Search, Trash2, Wrench } from 'lucide-react';
-import { Alert, Badge, CopyableText, EmptyState, Pagination, SectionHeader, TableSkeleton, Select } from '../../../components/ui.jsx';
+import { Alert, Badge, CopyableText, EmptyState, MobileCardList, MobileListCard, Pagination, SectionHeader, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
@@ -141,7 +141,21 @@ export default function WarrantyClaimsPage() {
             <Alert type="error">{vm.error}</Alert>
           </div>
         ) : (
-        <div className="overflow-x-auto">
+        <>
+        <MobileCardList>
+          {vm.items.map((claim) => (
+            <MobileListCard
+              key={claim.id}
+              onClick={canManage ? () => setFormModal({ mode: 'edit', claim }) : undefined}
+              title={claim.claimNumber}
+              badge={<Badge tone={warrantyClaimStatusTone(claim.status)}>{t(`warrantyClaims.statuses.${claim.status}`)}</Badge>}
+              subtitle={`${claim.productName || '-'} · ${claim.customerName || '-'}`}
+              value={formatDateTime(claim.receivedDate)}
+              valueSub={claim.serialNumber || claim.imei1 || claim.imei2 || null}
+            />
+          ))}
+        </MobileCardList>
+        <div className="hidden overflow-x-auto md:block">
           <table className="w-full">
             <thead className="table-head">
               <tr>
@@ -192,6 +206,7 @@ export default function WarrantyClaimsPage() {
             </tbody>
           </table>
         </div>
+        </>
         )}
         {!vm.loading && !vm.error && !vm.items.length ? (
           <div className="p-5">

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Alert, Badge, EmptyState, SectionHeader, Select, TableSkeleton } from '../../../components/ui.jsx';
+import { Alert, Badge, EmptyState, MobileCardList, MobileListCard, SectionHeader, Select, TableSkeleton } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { FileText } from 'lucide-react';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
@@ -38,7 +38,19 @@ function DueScheduleTab() {
           {!rr.data.rows.length ? (
             <div className="p-5"><EmptyState title={t('installments.reports.noRows')} icon={FileText} /></div>
           ) : (
-            <div className="overflow-x-auto">
+            <>
+            <MobileCardList>
+              {rr.data.rows.map((row) => (
+                <MobileListCard
+                  key={row.id}
+                  title={row.planNumber}
+                  subtitle={`${row.customerName || '-'} · ${formatDate(row.dueDate, language)}`}
+                  value={formatCurrency(row.remainingAmount, language)}
+                  valueClass="text-amber-600"
+                />
+              ))}
+            </MobileCardList>
+            <div className="hidden overflow-x-auto md:block">
               <table className="w-full text-sm">
                 <thead className="table-head">
                   <tr>
@@ -60,6 +72,7 @@ function DueScheduleTab() {
                 </tbody>
               </table>
             </div>
+            </>
           )}
         </div>
       ) : null}
@@ -92,7 +105,30 @@ function OverdueTab() {
       {!data.rows.length ? (
         <div className="p-5"><EmptyState title={t('installments.reports.noOverdue')} icon={FileText} /></div>
       ) : (
-        <div className="overflow-x-auto">
+        <>
+        <MobileCardList>
+          {data.rows.map((row) => (
+            <MobileListCard
+              key={row.id}
+              title={row.planNumber}
+              subtitle={`${row.customerName || '-'} · ${formatDate(row.dueDate, language)}`}
+              value={formatCurrency(row.remainingAmount, language)}
+              valueClass="text-amber-600"
+              valueSub={`${row.daysOverdue} ${t('installments.reports.daysOverdue')}`}
+              action={canManage ? (
+                <button
+                  type="button"
+                  className="btn-secondary py-1 text-xs disabled:cursor-not-allowed disabled:opacity-50"
+                  disabled={!data.lateFeeRuleActive || !(row.previewLateFee > 0)}
+                  onClick={() => handleApply(row.id)}
+                >
+                  {t('installments.reports.applyLateFee')}
+                </button>
+              ) : null}
+            />
+          ))}
+        </MobileCardList>
+        <div className="hidden overflow-x-auto md:block">
           <table className="w-full text-sm">
             <thead className="table-head">
               <tr>
@@ -131,6 +167,7 @@ function OverdueTab() {
             </tbody>
           </table>
         </div>
+        </>
       )}
     </div>
   );
@@ -163,7 +200,20 @@ function CollectionTab() {
           {!rr.data.rows.length ? (
             <div className="p-5"><EmptyState title={t('installments.reports.noCollections')} icon={FileText} /></div>
           ) : (
-            <div className="overflow-x-auto">
+            <>
+            <MobileCardList>
+              {rr.data.rows.map((row) => (
+                <MobileListCard
+                  key={row.id}
+                  title={row.planNumber}
+                  subtitle={`${row.customerName || '-'} · ${formatDate(row.paymentDate, language)}`}
+                  value={formatCurrency(row.amount, language)}
+                  valueClass="text-emerald-600"
+                  valueSub={t(`installments.payment.methods.${row.paymentMethod}`)}
+                />
+              ))}
+            </MobileCardList>
+            <div className="hidden overflow-x-auto md:block">
               <table className="w-full text-sm">
                 <thead className="table-head">
                   <tr>
@@ -189,6 +239,7 @@ function CollectionTab() {
                 </tbody>
               </table>
             </div>
+            </>
           )}
         </div>
       ) : null}
@@ -221,7 +272,20 @@ function CustomerStatementTab() {
               <span><span className="text-slate-500">{t('installments.detail.totalPaid')}: </span><span className="font-bold text-emerald-600">{formatCurrency(vm.statement.totals.totalPaid, language)}</span></span>
               <span><span className="text-slate-500">{t('installments.plans.outstandingAmount')}: </span><span className="font-bold text-amber-600">{formatCurrency(vm.statement.totals.outstandingAmount, language)}</span></span>
             </div>
-            <div className="overflow-x-auto">
+            <MobileCardList>
+              {vm.statement.plans.map(({ plan }) => (
+                <MobileListCard
+                  key={plan.id}
+                  title={plan.planNumber}
+                  badge={<Badge tone="slate">{t(`installments.plans.status.${plan.status}`)}</Badge>}
+                  subtitle={formatDate(plan.saleDate, language)}
+                  value={formatCurrency(plan.outstandingAmount, language)}
+                  valueClass="text-amber-600"
+                  valueSub={formatCurrency(plan.totalPaid, language)}
+                />
+              ))}
+            </MobileCardList>
+            <div className="hidden overflow-x-auto md:block">
               <table className="w-full text-sm">
                 <thead className="table-head">
                   <tr>

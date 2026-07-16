@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { RefreshCw } from 'lucide-react';
 import { EmptyState, SectionHeader } from '../../../components/ui.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { formatDateTime } from '../../../utils/calculations.js';
+import { useTenantApiQuery } from '../../../queries/useTenantApiQuery.js';
 
 function ContactMessageRow({ item, language }) {
   return (
@@ -22,22 +23,16 @@ function ContactMessageRow({ item, language }) {
 
 export default function ContactMessagesPage() {
   const { t, language, pushToast } = useInventoryApp();
-  const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  async function load() {
-    setLoading(true);
-    try {
-      const result = await inventoryApi.getContactMessages();
-      setItems(Array.isArray(result.items) ? result.items : []);
-    } catch (error) {
-      pushToast('error', 'Failed to load', error?.message || 'Could not load contact messages.');
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => { load(); }, []);
+  const messagesQuery = useTenantApiQuery({
+    scope: 'platform-contact-messages',
+    queryFn: () => inventoryApi.getContactMessages(),
+    requireTenant: false,
+  });
+  const items = Array.isArray(messagesQuery.data?.items) ? messagesQuery.data.items : [];
+  const loading = messagesQuery.isLoading || messagesQuery.isFetching;
+  const load = () => messagesQuery.refetch().catch((error) => {
+    pushToast('error', 'Failed to load', error?.message || 'Could not load contact messages.');
+  });
 
   return (
     <div className="page-container">

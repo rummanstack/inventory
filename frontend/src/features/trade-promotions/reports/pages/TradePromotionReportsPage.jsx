@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { BarChart3 } from 'lucide-react';
-import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton, Select, cx } from '../../../../components/ui.jsx';
+import { Alert, Badge, EmptyState, MobileCardList, MobileListCard, Pagination, SectionHeader, TableSkeleton, Select, cx } from '../../../../components/ui.jsx';
 import TableReportActions from '../../../../components/TableReportActions.jsx';
 import { DatePickerField } from '../../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
@@ -103,7 +103,36 @@ export default function TradePromotionReportsPage() {
             <Alert type="error">{vm.error}</Alert>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+          <MobileCardList>
+            {isSummaryTab ? (
+              vm.items.map((row, index) => (
+                <MobileListCard
+                  key={row.supplierId || row.productId || row.date || index}
+                  title={vm.tab === 'supplier' ? (row.supplierName || t('tradePromotions.reports.unknown')) : vm.tab === 'product' ? row.productName : formatDate(row.date)}
+                  subtitle={`${formatNumber(row.earningCount)} ${t('tradePromotions.reports.earningCount')}`}
+                  value={formatCurrency(row.totalEarnedAmount)}
+                  valueSub={formatCurrency(row.totalSettledAmount)}
+                />
+              ))
+            ) : (
+              vm.items.map((earning) => (
+                <MobileListCard
+                  key={earning.id}
+                  title={earning.purchaseNumber || '-'}
+                  badge={<Badge tone={STATUS_TONES[earning.status] || 'slate'}>{t(`tradePromotions.earnings.statuses.${earning.status}`)}</Badge>}
+                  subtitle={`${earning.supplierName || '-'} · ${earning.productName || t('tradePromotions.rules.targetTypes.ALL')}`}
+                  value={earning.rewardKind === 'QUANTITY'
+                    ? `${formatNumber(earning.earnedQuantityPieces)} ${t('tradePromotions.rules.units.PIECE')}`
+                    : formatCurrency(earning.earnedAmount)}
+                  valueSub={earning.rewardKind === 'QUANTITY'
+                    ? `${formatNumber(earning.remainingQuantityPieces)} ${t('tradePromotions.rules.units.PIECE')}`
+                    : formatCurrency(earning.remainingAmount)}
+                />
+              ))
+            )}
+          </MobileCardList>
+          <div className="hidden overflow-x-auto md:block">
             {isSummaryTab ? (
               <table className="w-full">
                 <thead className="table-head">
@@ -173,6 +202,7 @@ export default function TradePromotionReportsPage() {
               </table>
             )}
           </div>
+          </>
         )}
 
         {!vm.loading && !vm.error && !vm.items.length ? (

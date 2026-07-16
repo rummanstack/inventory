@@ -1,9 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Check, Plus, X, CalendarOff } from 'lucide-react';
-import { Alert, EmptyState, SectionHeader, Select, TableSkeleton } from '../../../../components/ui.jsx';
+import { Alert, EmptyState, MobileCardList, MobileListCard, SectionHeader, Select, TableSkeleton } from '../../../../components/ui.jsx';
 import TableReportActions from '../../../../components/TableReportActions.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../../services/inventoryApi.js';
+import { useMutation } from '@tanstack/react-query';
+import { useTenantApiQuery } from '../../../../queries/useTenantApiQuery.js';
+import { transactionKeys } from '../../../transactions/queries/transactionQueries.js';
+import { getActiveTenantId } from '../../../../services/api/client.js';
 
 const today = () => new Date().toISOString().slice(0, 10);
 const LEAVE_REQUESTS_REPORT_ID = 'leave-requests-report';
@@ -16,45 +20,47 @@ const LEAVE_REPORT_SHORTCUTS = {
 
 export default function LeavePage() {
   const { t, can, pushToast } = useInventoryApp();
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [employees, setEmployees] = useState([]);
-  const [types, setTypes] = useState([]);
-  const [requests, setRequests] = useState([]);
   const [status, setStatus] = useState('');
   const [typeForm, setTypeForm] = useState({ name: '', code: '', annualDays: 0, paid: true });
   const [requestForm, setRequestForm] = useState({ employeeId: '', leaveTypeId: '', startDate: today(), endDate: today(), reason: '' });
   const canManage = can('leave.manage');
   const canApprove = can('leave.approve');
 
-  async function load() {
-    setLoading(true);
-    setError('');
-    try {
-      const [employeeRows, typeResult, requestResult] = await Promise.all([
+  const leaveQuery = useTenantApiQuery({
+    scope: 'leave-management',
+    params: { status },
+    queryFn: async () => {
+      const [employees, types, requests] = await Promise.all([
         inventoryApi.getActiveEmployees(),
         inventoryApi.listLeaveTypes({ pageSize: 200 }),
         inventoryApi.listLeaveRequests({ status, pageSize: 200 }),
       ]);
-      setEmployees(Array.isArray(employeeRows) ? employeeRows : []);
-      setTypes(typeResult.items || []);
-      setRequests(requestResult.items || []);
-    } catch (err) {
-      setError(err?.message || t('leave.loadFailed'));
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => { load(); }, [status]);
+      return { employees, types: types.items || [], requests: requests.items || [] };
+    },
+    keepPrevious: true,
+  });
+  const actionMutation = useMutation({
+    mutationKey: transactionKeys.mutation(getActiveTenantId(), 'leave-action'),
+    mutationFn: ({ action, id, payload }) => {
+      if (action === 'type') return inventoryApi.createLeaveType(payload);
+      if (action === 'apply') return inventoryApi.applyLeave(payload);
+      if (action === 'approve') return inventoryApi.approveLeave(id);
+      return inventoryApi.rejectLeave(id);
+    },
+  });
+  const employees = Array.isArray(leaveQuery.data?.employees) ? leaveQuery.data.employees : [];
+  const types = leaveQuery.data?.types || [];
+  const requests = leaveQuery.data?.requests || [];
+  const loading = leaveQuery.isPending;
+  const error = leaveQuery.error?.message || '';
 
   async function saveType(event) {
     event.preventDefault();
     try {
-      await inventoryApi.createLeaveType(typeForm);
+      await actionMutation.mutateAsync({ action: 'type', payload: typeForm });
       setTypeForm({ name: '', code: '', annualDays: 0, paid: true });
       pushToast('success', t('leave.title'), t('leave.typeCreated'));
-      load();
+      leaveQuery.refetch();
     } catch (err) {
       pushToast('error', t('leave.title'), err?.message || t('alerts.requestFailed'));
     }
@@ -63,10 +69,10 @@ export default function LeavePage() {
   async function applyLeave(event) {
     event.preventDefault();
     try {
-      await inventoryApi.applyLeave(requestForm);
+      await actionMutation.mutateAsync({ action: 'apply', payload: requestForm });
       setRequestForm({ employeeId: '', leaveTypeId: '', startDate: today(), endDate: today(), reason: '' });
       pushToast('success', t('leave.title'), t('leave.applyCreated'));
-      load();
+      leaveQuery.refetch();
     } catch (err) {
       pushToast('error', t('leave.title'), err?.message || t('alerts.requestFailed'));
     }
@@ -74,10 +80,10 @@ export default function LeavePage() {
 
   async function decide(id, approved) {
     try {
-      if (approved) await inventoryApi.approveLeave(id);
-      else await inventoryApi.rejectLeave(id);
+      if (approved) await actionMutation.mutateAsync({ action: 'approve', id });
+      else await actionMutation.mutateAsync({ action: 'reject', id });
       pushToast('success', t('leave.title'), approved ? t('leave.approvedToast') : t('leave.rejectedToast'));
-      load();
+      leaveQuery.refetch();
     } catch (err) {
       pushToast('error', t('leave.title'), err?.message || t('alerts.requestFailed'));
     }
@@ -140,7 +146,25 @@ export default function LeavePage() {
         {loading ? <div className="p-5"><TableSkeleton columns={7} /></div> : requests.length === 0 ? (
           <div className="p-5"><EmptyState title={t('leave.noRequestsTitle')} description={t('leave.noRequestsDesc')} icon={CalendarOff} /></div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+          <MobileCardList>
+            {requests.map((request) => (
+              <MobileListCard
+                key={request.id}
+                title={request.employeeName}
+                badge={<span className="muted-chip">{request.status}</span>}
+                subtitle={`${request.leaveTypeName} · ${request.startDate} - ${request.endDate}`}
+                value={request.totalDays}
+                action={canApprove && request.status === 'PENDING' ? (
+                  <>
+                    <button type="button" className="icon-btn text-emerald-600" onClick={() => decide(request.id, true)} title={t('leave.approve')}><Check size={16} /></button>
+                    <button type="button" className="icon-btn text-rose-600" onClick={() => decide(request.id, false)} title={t('leave.reject')}><X size={16} /></button>
+                  </>
+                ) : null}
+              />
+            ))}
+          </MobileCardList>
+          <div className="hidden overflow-x-auto md:block">
             <table className="w-full">
               <thead className="table-head">
                 <tr>
@@ -177,6 +201,7 @@ export default function LeavePage() {
               </tbody>
             </table>
           </div>
+          </>
         )}
       </div>
     </div>

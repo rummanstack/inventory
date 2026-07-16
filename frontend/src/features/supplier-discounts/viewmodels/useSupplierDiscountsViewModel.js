@@ -16,6 +16,7 @@ export function useSupplierDiscountsViewModel() {
       dateTo: dateTo || undefined,
     }),
     [supplierId, dateFrom, dateTo],
+    'supplier-discounts',
   );
 
   useEffect(() => {

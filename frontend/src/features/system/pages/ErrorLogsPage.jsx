@@ -1,6 +1,6 @@
 import { Fragment, useState } from 'react';
 import { Bug } from 'lucide-react';
-import { Alert, Badge, EmptyState, Pagination, SectionHeader, StatCard, TableSkeleton } from '../../../components/ui.jsx';
+import { Alert, Badge, EmptyState, MobileCardList, MobileListCard, Pagination, SectionHeader, StatCard, TableSkeleton } from '../../../components/ui.jsx';
 import TableReportActions from '../../../components/TableReportActions.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { formatDateTime, formatNumber } from '../../../utils/calculations.js';
@@ -51,7 +51,30 @@ export default function ErrorLogsPage() {
             </div>
           </div>
         </div>
-        <div className="overflow-x-auto">
+        {vm.loading ? (
+          <div className="p-5 md:hidden">
+            <TableSkeleton columns={5} showHeader={false} />
+          </div>
+        ) : (
+          <MobileCardList>
+            {vm.logs.map((log) => (
+              <Fragment key={log.id}>
+                <MobileListCard
+                  onClick={() => setExpandedId(expandedId === log.id ? null : log.id)}
+                  title={log.message}
+                  badge={<Badge tone={statusTone(log.statusCode)}>{log.statusCode}</Badge>}
+                  subtitle={`${log.method} ${log.path} · ${formatDateTime(log.createdAt)}`}
+                />
+                {expandedId === log.id ? (
+                  <div className="bg-slate-50 px-4 py-3">
+                    <pre className="max-h-64 overflow-auto whitespace-pre-wrap text-xs text-slate-600">{log.stack || log.message}</pre>
+                  </div>
+                ) : null}
+              </Fragment>
+            ))}
+          </MobileCardList>
+        )}
+        <div className="hidden overflow-x-auto md:block">
           <table className="w-full">
             <thead className="table-head">
               <tr>

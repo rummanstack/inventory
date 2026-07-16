@@ -1,7 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Badge, CopyableText, Modal, SectionHeader, Alert } from '../../../components/ui.jsx';
+import { Badge, CopyableText, MobileCardList, MobileListCard, Modal, SectionHeader, Alert } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
+import { useMutation } from '@tanstack/react-query';
+import { useTenantReportQuery } from '../../reports/queries/useTenantReportQuery.js';
+import { transactionKeys } from '../../transactions/queries/transactionQueries.js';
+import { getActiveTenantId } from '../../../services/api/client.js';
 
 const ACCOUNT_TYPES = ['ASSET', 'LIABILITY', 'EQUITY', 'REVENUE', 'EXPENSE'];
 
@@ -89,34 +93,27 @@ function AccountFormModal({ account, accounts, onClose, onSave }) {
 
 export default function ChartOfAccountsPage() {
   const { can, pushToast } = useInventoryApp();
-  const [accounts, setAccounts] = useState([]);
-  const [error, setError] = useState('');
   const [modal, setModal] = useState(null);
   const canManage = can('manage_chart_of_accounts');
-
-  const rows = useMemo(() => accounts, [accounts]);
-
-  async function load() {
-    try {
-      const result = await inventoryApi.listChartAccounts();
-      setAccounts(result.accounts || []);
-      setError('');
-    } catch (err) {
-      setError(err?.message || 'Failed to load chart of accounts.');
-    }
-  }
-
-  useEffect(() => { load(); }, []);
+  const accountsQuery = useTenantReportQuery({
+    scope: 'chart-of-accounts-admin',
+    queryFn: () => inventoryApi.listChartAccounts(),
+    staleTime: 60_000,
+  });
+  const saveMutation = useMutation({
+    mutationKey: transactionKeys.mutation(getActiveTenantId(), 'save-chart-account'),
+    mutationFn: ({ code, form }) => code
+      ? inventoryApi.updateChartAccount(code, form)
+      : inventoryApi.createChartAccount(form),
+  });
+  const rows = useMemo(() => accountsQuery.data?.accounts || [], [accountsQuery.data]);
+  const error = accountsQuery.error?.message || '';
 
   async function handleSave(form) {
     try {
-      if (modal?.account) {
-        await inventoryApi.updateChartAccount(modal.account.code, form);
-      } else {
-        await inventoryApi.createChartAccount(form);
-      }
+      await saveMutation.mutateAsync({ code: modal?.account?.code, form });
       setModal(null);
-      await load();
+      await accountsQuery.refetch();
       pushToast('success', 'Chart of Accounts', modal?.account ? 'Account updated.' : 'Account created.');
       return { ok: true };
     } catch (err) {
@@ -133,7 +130,20 @@ export default function ChartOfAccountsPage() {
         action={canManage ? <button type="button" className="btn-primary" onClick={() => setModal({})}>Add Account</button> : null}
       />
       {error ? <Alert type="error">{error}</Alert> : null}
-      <div className="surface overflow-x-auto">
+      <div className="surface overflow-hidden">
+        <MobileCardList>
+          {rows.map((account) => (
+            <MobileListCard
+              key={account.code}
+              onClick={canManage ? () => setModal({ account }) : undefined}
+              title={account.name}
+              badge={<Badge tone={account.isActive ? 'emerald' : 'slate'}>{account.isActive ? 'Active' : 'Inactive'}</Badge>}
+              subtitle={`${account.code} · ${account.type}`}
+              value={account.isSystem ? 'System' : null}
+            />
+          ))}
+        </MobileCardList>
+        <div className="hidden overflow-x-auto md:block">
         <table className="w-full">
           <thead className="table-head">
             <tr>
@@ -170,8 +180,9 @@ export default function ChartOfAccountsPage() {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
-      {modal ? <AccountFormModal account={modal.account} accounts={accounts} onClose={() => setModal(null)} onSave={handleSave} /> : null}
+      {modal ? <AccountFormModal account={modal.account} accounts={rows} onClose={() => setModal(null)} onSave={handleSave} /> : null}
     </div>
   );
 }

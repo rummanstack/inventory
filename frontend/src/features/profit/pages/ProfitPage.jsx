@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { BadgeDollarSign, PiggyBank, TrendingDown, TrendingUp, Wallet } from 'lucide-react';
-import { Alert, ChartPanel, ChartPanelSkeleton, EmptyState, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton, TrendChart, cx } from '../../../components/ui.jsx';
+import { Alert, ChartPanel, ChartPanelSkeleton, EmptyState, MobileCardList, MobileListCard, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton, TrendChart, cx } from '../../../components/ui.jsx';
 import { DateRangePickerField } from '../../../components/DatePicker.jsx';
 import TableReportActions from '../../../components/TableReportActions.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
@@ -45,6 +45,12 @@ function marginOf(row) {
 }
 
 function BreakdownTable({ t, columns, rows, emptyIcon, fileName, sheetName, printId }) {
+  const titleCol = columns.find((column) => column.key === 'name') || columns[0];
+  const boldCol = columns.find((column) => column.bold) || columns[columns.length - 1];
+  const revenueCol = columns.find((column) => column.key === 'revenue');
+  const marginCol = columns.find((column) => column.key === 'margin');
+  const renderCol = (column, row) => (column.render ? column.render(row) : column.value(row));
+
   return (
     <div id={printId} className="surface overflow-hidden">
       <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
@@ -54,7 +60,19 @@ function BreakdownTable({ t, columns, rows, emptyIcon, fileName, sheetName, prin
         ) : null}
       </div>
       {rows.length ? (
-        <div className="overflow-x-auto">
+        <>
+        <MobileCardList>
+          {rows.map((row, index) => (
+            <MobileListCard
+              key={row.key ?? index}
+              title={renderCol(titleCol, row)}
+              subtitle={revenueCol ? `${revenueCol.label}: ${renderCol(revenueCol, row)}` : null}
+              value={renderCol(boldCol, row)}
+              valueSub={marginCol ? renderCol(marginCol, row) : null}
+            />
+          ))}
+        </MobileCardList>
+        <div className="hidden overflow-x-auto md:block">
           <table className="w-full">
             <thead className="table-head">
               <tr>
@@ -78,6 +96,7 @@ function BreakdownTable({ t, columns, rows, emptyIcon, fileName, sheetName, prin
             </tbody>
           </table>
         </div>
+        </>
       ) : (
         <div className="p-5">
           <EmptyState title={t('profit.noDataTitle')} description={t('profit.noDataDescription')} icon={emptyIcon} />
@@ -244,7 +263,19 @@ export default function ProfitPage() {
                 <TableReportActions targetId="profit-report-table" title={t('profit.tableTitle')} fileName={`profit-report-${vm.dateFrom}-to-${vm.dateTo}`} entityType="profit_report" t={t} shortcuts={PROFIT_REPORT_SHORTCUTS} />
               </div>
             </div>
-            <div className="overflow-x-auto">
+            <MobileCardList>
+              {rows.map((row) => (
+                <MobileListCard
+                  key={getPeriodLabel(row, activeView.key)}
+                  title={getPeriodLabel(row, activeView.key)}
+                  subtitle={`${t('profit.revenue')}: ${formatCurrency(row.revenue)} · ${t('profit.cost')}: ${formatCurrency(row.cost)}`}
+                  value={formatCurrency(row.profit)}
+                  valueClass={row.profit >= 0 ? 'text-emerald-600' : 'text-rose-600'}
+                  valueSub={formatCurrency(row.grossProfit)}
+                />
+              ))}
+            </MobileCardList>
+            <div className="hidden overflow-x-auto md:block">
               <table className="w-full">
                 <thead className="table-head">
                   <tr>

@@ -1,9 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Check, HandCoins, Plus, X } from 'lucide-react';
-import { Alert, EmptyState, SectionHeader, Select, TableSkeleton } from '../../../../components/ui.jsx';
+import { Alert, EmptyState, MobileCardList, MobileListCard, SectionHeader, Select, TableSkeleton } from '../../../../components/ui.jsx';
 import TableReportActions from '../../../../components/TableReportActions.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../../services/inventoryApi.js';
+import { useMutation } from '@tanstack/react-query';
+import { useTenantApiQuery } from '../../../../queries/useTenantApiQuery.js';
+import { transactionKeys } from '../../../transactions/queries/transactionQueries.js';
+import { getActiveTenantId } from '../../../../services/api/client.js';
 
 const today = () => new Date().toISOString().slice(0, 10);
 const money = (value) => new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 }).format(Number(value || 0));
@@ -17,10 +21,6 @@ const EMPLOYEE_FINANCE_REPORT_SHORTCUTS = {
 export default function EmployeeFinancePage({ mode = 'advances' }) {
   const isLoan = mode === 'loans';
   const { can, pushToast, t } = useInventoryApp();
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [employees, setEmployees] = useState([]);
-  const [items, setItems] = useState([]);
   const [status, setStatus] = useState('');
   const [form, setForm] = useState({ employeeId: '', requestDate: today(), amount: 0, principalAmount: 0, monthlyRecovery: 0, installmentAmount: 0, reason: '' });
   const permission = isLoan ? 'loan.manage' : 'advance.manage';
@@ -34,48 +34,57 @@ export default function EmployeeFinancePage({ mode = 'advances' }) {
     outstanding: acc.outstanding + item.outstandingAmount,
   }), { requested: 0, outstanding: 0 }), [items, isLoan]);
 
-  async function load() {
-    setLoading(true);
-    setError('');
-    try {
-      const [employeeRows, result] = await Promise.all([
+  const financeQuery = useTenantApiQuery({
+    scope: 'employee-finance',
+    params: { mode, status },
+    queryFn: async () => {
+      const [employees, result] = await Promise.all([
         inventoryApi.getActiveEmployees(),
         isLoan ? inventoryApi.listEmployeeLoans({ status }) : inventoryApi.listEmployeeAdvances({ status }),
       ]);
-      setEmployees(Array.isArray(employeeRows) ? employeeRows : []);
-      setItems(result.items || []);
-    } catch (err) {
-      setError(err?.message || (isLoan ? t('employeeFinance.loadFailedLoans') : t('employeeFinance.loadFailedAdvances')));
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => { load(); }, [mode, status]);
+      return { employees, items: result.items || [] };
+    },
+    keepPrevious: true,
+  });
+  const actionMutation = useMutation({
+    mutationKey: transactionKeys.mutation(getActiveTenantId(), 'employee-finance-action'),
+    mutationFn: ({ action, id, payload }) => {
+      if (action === 'request-loan') return inventoryApi.requestEmployeeLoan(payload);
+      if (action === 'request-advance') return inventoryApi.requestEmployeeAdvance(payload);
+      if (action === 'approve-loan') return inventoryApi.approveEmployeeLoan(id);
+      if (action === 'reject-loan') return inventoryApi.rejectEmployeeLoan(id);
+      if (action === 'approve-advance') return inventoryApi.approveEmployeeAdvance(id);
+      return inventoryApi.rejectEmployeeAdvance(id);
+    },
+  });
+  const employees = Array.isArray(financeQuery.data?.employees) ? financeQuery.data.employees : [];
+  const items = financeQuery.data?.items || [];
+  const loading = financeQuery.isPending;
+  const error = financeQuery.error?.message || '';
 
   async function submit(event) {
     event.preventDefault();
     try {
       if (isLoan) {
-        await inventoryApi.requestEmployeeLoan({
+        await actionMutation.mutateAsync({ action: 'request-loan', payload: {
           employeeId: form.employeeId,
           requestDate: form.requestDate,
           principalAmount: form.principalAmount,
           installmentAmount: form.installmentAmount,
           reason: form.reason,
-        });
+        } });
       } else {
-        await inventoryApi.requestEmployeeAdvance({
+        await actionMutation.mutateAsync({ action: 'request-advance', payload: {
           employeeId: form.employeeId,
           requestDate: form.requestDate,
           amount: form.amount,
           monthlyRecovery: form.monthlyRecovery,
           reason: form.reason,
-        });
+        } });
       }
       setForm({ employeeId: '', requestDate: today(), amount: 0, principalAmount: 0, monthlyRecovery: 0, installmentAmount: 0, reason: '' });
       pushToast('success', title, t('employeeFinance.createdToast'));
-      load();
+      financeQuery.refetch();
     } catch (err) {
       pushToast('error', title, err?.message || t('alerts.requestFailed'));
     }
@@ -84,15 +93,15 @@ export default function EmployeeFinancePage({ mode = 'advances' }) {
   async function decide(id, approved) {
     try {
       if (isLoan) {
-        if (approved) await inventoryApi.approveEmployeeLoan(id);
-        else await inventoryApi.rejectEmployeeLoan(id);
+        if (approved) await actionMutation.mutateAsync({ action: 'approve-loan', id });
+        else await actionMutation.mutateAsync({ action: 'reject-loan', id });
       } else if (approved) {
-        await inventoryApi.approveEmployeeAdvance(id);
+        await actionMutation.mutateAsync({ action: 'approve-advance', id });
       } else {
-        await inventoryApi.rejectEmployeeAdvance(id);
+        await actionMutation.mutateAsync({ action: 'reject-advance', id });
       }
       pushToast('success', title, approved ? t('employeeFinance.approvedToast') : t('employeeFinance.rejectedToast'));
-      load();
+      financeQuery.refetch();
     } catch (err) {
       pushToast('error', title, err?.message || t('alerts.requestFailed'));
     }
@@ -151,7 +160,26 @@ export default function EmployeeFinancePage({ mode = 'advances' }) {
         {loading ? <div className="p-5"><TableSkeleton columns={7} /></div> : items.length === 0 ? (
           <div className="p-5"><EmptyState title={isLoan ? t('employeeFinance.noLoansTitle') : t('employeeFinance.noAdvancesTitle')} description={t('employeeFinance.noRecordsDesc')} icon={HandCoins} /></div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+          <MobileCardList>
+            {items.map((item) => (
+              <MobileListCard
+                key={item.id}
+                title={item.employeeName}
+                badge={<span className="muted-chip">{item.status}</span>}
+                subtitle={item.requestDate}
+                value={money(isLoan ? item.principalAmount : item.amount)}
+                valueSub={Number(item.outstandingAmount) > 0 ? money(item.outstandingAmount) : null}
+                action={canManage && item.status === 'PENDING' ? (
+                  <>
+                    <button type="button" className="icon-btn text-emerald-600" onClick={() => decide(item.id, true)} title={t('employeeFinance.approve')}><Check size={16} /></button>
+                    <button type="button" className="icon-btn text-rose-600" onClick={() => decide(item.id, false)} title={t('employeeFinance.reject')}><X size={16} /></button>
+                  </>
+                ) : null}
+              />
+            ))}
+          </MobileCardList>
+          <div className="hidden overflow-x-auto md:block">
             <table className="w-full">
               <thead className="table-head">
                 <tr>
@@ -188,6 +216,7 @@ export default function EmployeeFinancePage({ mode = 'advances' }) {
               </tbody>
             </table>
           </div>
+          </>
         )}
       </div>
     </div>

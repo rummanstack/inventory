@@ -13,6 +13,7 @@ export function useRetailCustomersViewModel() {
   const list = usePagedList(
     ({ page, pageSize }) => inventoryApi.listRetailCustomers({ page, pageSize, search: debouncedSearch, status: status || undefined }),
     [debouncedSearch, status],
+    'retail-customers',
   );
 
   useEffect(() => {

@@ -65,6 +65,35 @@
   }
 }
 
+/* Chart mobile heights (Day 10): TrendChart reads --chart-h via
+   `var(--chart-h, <desktop height>px)`, so this is the only override needed. */
+@media (max-width: 1023.98px) {
+  .chart-frame {
+    --chart-h: 180px;
+  }
+}
+
+/* Press feedback (Day 14): buttons compress slightly on touch instead of relying
+   on :hover (which sticks after a tap on touchscreens). Cards and the tab bar
+   already carry their own active: states from Day 2/6; this covers every
+   .btn-primary / .btn-secondary / .btn-danger / .icon-btn app-wide. */
+@media (max-width: 1023.98px) {
+  .btn-primary,
+  .btn-secondary,
+  .btn-danger,
+  .icon-btn {
+    transition: transform 120ms ease, opacity 120ms ease;
+  }
+
+  .btn-primary:active,
+  .btn-secondary:active,
+  .btn-danger:active,
+  .icon-btn:active {
+    transform: scale(0.96);
+    opacity: 0.85;
+  }
+}
+
 /* Safe-area helpers (any breakpoint) */
 .pb-safe {
   padding-bottom: env(safe-area-inset-bottom);

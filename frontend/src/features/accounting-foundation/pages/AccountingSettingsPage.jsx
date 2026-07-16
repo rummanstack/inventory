@@ -2,6 +2,10 @@ import { useEffect, useState } from 'react';
 import { Alert, SectionHeader } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
+import { useMutation } from '@tanstack/react-query';
+import { useTenantReportQuery } from '../../reports/queries/useTenantReportQuery.js';
+import { transactionKeys } from '../../transactions/queries/transactionQueries.js';
+import { getActiveTenantId } from '../../../services/api/client.js';
 
 export default function AccountingSettingsPage() {
   const { pushToast } = useInventoryApp();
@@ -19,25 +23,28 @@ export default function AccountingSettingsPage() {
   });
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+  const settingsQuery = useTenantReportQuery({
+    scope: 'accounting-settings',
+    queryFn: () => inventoryApi.getAccountingSettings(),
+    staleTime: 60_000,
+  });
+  const saveMutation = useMutation({
+    mutationKey: transactionKeys.mutation(getActiveTenantId(), 'save-accounting-settings'),
+    mutationFn: (payload) => inventoryApi.updateAccountingSettings(payload),
+  });
 
   useEffect(() => {
-    let cancelled = false;
-    inventoryApi.getAccountingSettings()
-      .then((result) => {
-        if (!cancelled && result.settings) {
-          setForm((current) => ({ ...current, ...result.settings }));
-        }
-      })
-      .catch((err) => { if (!cancelled) setError(err?.message || 'Failed to load accounting settings.'); });
-    return () => { cancelled = true; };
-  }, []);
+    if (settingsQuery.data?.settings) {
+      setForm((current) => ({ ...current, ...settingsQuery.data.settings }));
+    }
+  }, [settingsQuery.data]);
 
   async function submit(event) {
     event.preventDefault();
     setSaving(true);
     setError('');
     try {
-      const result = await inventoryApi.updateAccountingSettings(form);
+      const result = await saveMutation.mutateAsync(form);
       setForm((current) => ({ ...current, ...(result.settings || {}) }));
       pushToast('success', 'Accounting Settings', 'Settings updated.');
     } catch (err) {

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { inventoryApi } from '../../../services/inventoryApi';
 import { todayISO } from '../../../utils/calculations.js';
-import { useRefetchOnVisible } from '../../../app/hooks/useRefetchOnVisible.js';
+import { useTenantReportQuery } from '../../reports/queries/useTenantReportQuery.js';
 
 function subtractDays(dateISO, days) {
   const date = new Date(`${dateISO}T00:00:00`);
@@ -16,11 +16,6 @@ export function useSupplierStatementViewModel({ suppliers }) {
   const [supplierId, setSupplierId] = useState(searchParams.get('supplierId') || '');
   const [dateFrom, setDateFrom] = useState(subtractDays(today, 29));
   const [dateTo, setDateTo] = useState(today);
-  const [statement, setStatement] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [version, setVersion] = useState(0);
-
   const hasAutoSelected = useRef(Boolean(supplierId));
 
   useEffect(() => {
@@ -30,55 +25,19 @@ export function useSupplierStatementViewModel({ suppliers }) {
     }
   }, [suppliers, supplierId]);
 
-  useEffect(() => {
-    let cancelled = false;
-
-    if (!supplierId) {
-      setStatement(null);
-      setLoading(false);
-      return undefined;
-    }
-
-    setLoading(true);
-    setError('');
-
-    inventoryApi
-      .getSupplierDueStatement({ supplierId, dateFrom, dateTo })
-      .then((result) => {
-        if (!cancelled) {
-          setStatement(result);
-        }
-      })
-      .catch((requestError) => {
-        if (!cancelled) {
-          setError(requestError.message);
-          setStatement(null);
-        }
-      })
-      .finally(() => {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [supplierId, dateFrom, dateTo, version]);
-
-  const refresh = () => setVersion((value) => value + 1);
-  useRefetchOnVisible(refresh);
+  const query = useTenantReportQuery({
+    scope: 'supplier-due-statement',
+    params: { supplierId, dateFrom, dateTo },
+    queryFn: () => inventoryApi.getSupplierDueStatement({ supplierId, dateFrom, dateTo }),
+    enabled: Boolean(supplierId),
+    keepPrevious: true,
+  });
 
   return {
-    supplierId,
-    setSupplierId,
-    dateFrom,
-    setDateFrom,
-    dateTo,
-    setDateTo,
-    statement,
-    loading,
-    error,
-    refresh,
+    supplierId, setSupplierId, dateFrom, setDateFrom, dateTo, setDateTo,
+    statement: query.data || null,
+    loading: query.isPending,
+    error: query.error?.message || '',
+    refresh: query.refetch,
   };
 }

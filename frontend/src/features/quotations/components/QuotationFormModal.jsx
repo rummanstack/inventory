@@ -203,7 +203,55 @@ export default function QuotationFormModal({ quotation, onClose, onSave }) {
               {t('quotations.addItem')}
             </button>
           </div>
-          <div className="overflow-hidden rounded-xl border border-slate-200">
+          <div className="space-y-3 md:hidden">
+            {items.map((item, i) => (
+              <div key={item._key} className="space-y-2 rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                <Select
+                  className="input"
+                  value={item.productId}
+                  onChange={(e) => updateItem(i, 'productId', e.target.value)}
+                >
+                  <option value="">— {t('quotations.itemProductPlaceholder')} —</option>
+                  {productDirectory.map((p) => (
+                    <option key={p.id} value={p.id}>{p.name}</option>
+                  ))}
+                </Select>
+                {!item.productId ? (
+                  <input
+                    className="input"
+                    placeholder={t('quotations.customItemNamePlaceholder')}
+                    value={item.productName}
+                    onChange={(e) => updateItem(i, 'productName', e.target.value)}
+                  />
+                ) : null}
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-slate-400">{t('quotations.itemQtyLabel')}</label>
+                    <input className="input text-right" type="number" inputMode="decimal" min="0.001" step="any" value={item.quantity} onChange={(e) => updateItem(i, 'quantity', e.target.value)} />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-slate-400">{t('quotations.itemPriceLabel')}</label>
+                    <input className="input text-right" type="number" inputMode="decimal" min="0" step="any" value={item.unitPrice} onChange={(e) => updateItem(i, 'unitPrice', e.target.value)} />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-slate-400">{t('quotations.itemDiscountLabel')}</label>
+                    <input className="input text-right" type="number" inputMode="decimal" min="0" step="any" value={item.discountAmount} onChange={(e) => updateItem(i, 'discountAmount', e.target.value)} />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-slate-400">{t('quotations.itemTotalLabel')}</label>
+                    <div className="input flex items-center justify-end bg-slate-100/80 font-semibold text-slate-900">{formatCurrency(itemTotal(item), language)}</div>
+                  </div>
+                </div>
+                {items.length > 1 ? (
+                  <button type="button" className="btn-secondary w-full justify-center text-rose-600" onClick={() => removeItem(i)}>
+                    <Trash2 size={14} />
+                    {t('common.delete')}
+                  </button>
+                ) : null}
+              </div>
+            ))}
+          </div>
+          <div className="hidden overflow-hidden rounded-xl border border-slate-200 md:block">
             <table className="w-full text-sm">
               <thead className="table-head">
                 <tr>

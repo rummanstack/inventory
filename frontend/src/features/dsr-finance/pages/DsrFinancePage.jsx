@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Download, HandCoins, Loader2, Printer, RefreshCw, Wallet } from 'lucide-react';
-import { Alert, Badge, CopyableText, EmptyState, SectionHeader, StatCard, TableSkeleton, Select } from '../../../components/ui.jsx';
+import { Alert, Badge, CopyableText, EmptyState, MobileCardList, MobileListCard, SectionHeader, StatCard, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { DateRangePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../services/printService.js';
@@ -170,7 +170,20 @@ export default function DsrFinancePage() {
             <div className="border-b border-slate-100 px-5 py-4">
               <h2 className="section-title">{t('dsrDueLedger.entriesTitle')}</h2>
             </div>
-            <div className="overflow-x-auto">
+            <MobileCardList>
+              {dueEntries.map((entry) => (
+                <MobileListCard
+                  key={entry.id}
+                  title={formatDateTime(entry.createdAt)}
+                  badge={<Badge tone={ledgerTone(entry.type)}>{t(`dsrDueLedger.types.${entry.type}`)}</Badge>}
+                  subtitle={entry.note || formatReference(entry)}
+                  value={entry.debit ? formatCurrency(entry.debit) : entry.credit ? formatCurrency(entry.credit) : '-'}
+                  valueClass={entry.debit ? 'text-rose-700' : entry.credit ? 'text-emerald-700' : undefined}
+                  valueSub={formatCurrency(entry.balanceAfter)}
+                />
+              ))}
+            </MobileCardList>
+            <div className="hidden overflow-x-auto md:block">
               <table className="w-full">
                 <thead className="table-head">
                   <tr>

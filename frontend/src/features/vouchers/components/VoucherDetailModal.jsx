@@ -4,6 +4,9 @@ import { Badge, CopyableText, Modal } from '../../../components/ui.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import { formatCurrency, formatDate, formatDateTime } from '../../../utils/calculations.js';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { getActiveTenantId } from '../../../services/api/client.js';
+import { transactionKeys } from '../../transactions/queries/transactionQueries.js';
 
 function toneForStatus(status) {
   if (status === 'POSTED') return 'emerald';
@@ -15,18 +18,27 @@ function toneForStatus(status) {
 
 export default function VoucherDetailModal({ voucher, onClose, onRefresh }) {
   const { language, pushToast, confirm } = useInventoryApp();
-  const [attachments, setAttachments] = useState(voucher.attachments || []);
   const [uploading, setUploading] = useState(false);
   const editableAttachments = ['DRAFT', 'SUBMITTED', 'APPROVED'].includes(voucher.status);
-
-  useEffect(() => {
-    setAttachments(voucher.attachments || []);
-  }, [voucher]);
+  const attachmentsQuery = useQuery({
+    queryKey: transactionKeys.detail(getActiveTenantId(), 'voucher-attachments', voucher.id),
+    queryFn: () => inventoryApi.listVoucherAttachments(voucher.id),
+    initialData: { attachments: voucher.attachments || [] },
+    staleTime: 30_000,
+  });
+  const attachments = attachmentsQuery.data?.attachments || [];
+  const uploadMutation = useMutation({
+    mutationKey: transactionKeys.mutation(getActiveTenantId(), 'upload-voucher-attachment'),
+    mutationFn: ({ voucherId, file }) => inventoryApi.uploadVoucherAttachment(voucherId, { file, title: file.name }),
+  });
+  const deleteAttachmentMutation = useMutation({
+    mutationKey: transactionKeys.mutation(getActiveTenantId(), 'delete-voucher-attachment'),
+    mutationFn: ({ voucherId, attachmentId, reason }) => inventoryApi.deleteVoucherAttachment(voucherId, attachmentId, reason),
+  });
 
   async function reloadAttachments() {
     try {
-      const result = await inventoryApi.listVoucherAttachments(voucher.id);
-      setAttachments(result.attachments || []);
+      await attachmentsQuery.refetch();
       onRefresh?.();
     } catch {
       // ignore attachment refresh failures inside the modal
@@ -38,7 +50,7 @@ export default function VoucherDetailModal({ voucher, onClose, onRefresh }) {
     if (!file) return;
     setUploading(true);
     try {
-      await inventoryApi.uploadVoucherAttachment(voucher.id, { file, title: file.name });
+      await uploadMutation.mutateAsync({ voucherId: voucher.id, file });
       await reloadAttachments();
       pushToast('success', 'Voucher Attachment', 'Attachment uploaded.');
     } catch (error) {
@@ -61,7 +73,7 @@ export default function VoucherDetailModal({ voucher, onClose, onRefresh }) {
     });
     if (!confirmed) return;
     try {
-      await inventoryApi.deleteVoucherAttachment(voucher.id, attachment.id, reason);
+      await deleteAttachmentMutation.mutateAsync({ voucherId: voucher.id, attachmentId: attachment.id, reason });
       await reloadAttachments();
       pushToast('success', 'Voucher Attachment', 'Attachment deleted.');
     } catch (error) {

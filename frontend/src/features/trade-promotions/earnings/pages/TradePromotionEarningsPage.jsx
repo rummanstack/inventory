@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Gift, HandCoins, Search } from 'lucide-react';
-import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton, Select } from '../../../../components/ui.jsx';
+import { Alert, Badge, EmptyState, MobileCardList, MobileListCard, Pagination, SectionHeader, TableSkeleton, Select } from '../../../../components/ui.jsx';
 import TableReportActions from '../../../../components/TableReportActions.jsx';
 import { DateRangePickerField } from '../../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
@@ -83,7 +83,29 @@ export default function TradePromotionEarningsPage() {
             <Alert type="error">{vm.error}</Alert>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+          <MobileCardList>
+            {vm.items.map((earning) => (
+              <MobileListCard
+                key={earning.id}
+                title={earning.purchaseNumber || '-'}
+                badge={<Badge tone={STATUS_TONES[earning.status] || 'slate'}>{t(`tradePromotions.earnings.statuses.${earning.status}`)}</Badge>}
+                subtitle={`${earning.supplierName || '-'} · ${earning.productName || t('tradePromotions.rules.targetTypes.ALL')}`}
+                value={earning.rewardKind === 'QUANTITY'
+                  ? `${formatNumber(earning.earnedQuantityPieces)} ${t('tradePromotions.rules.units.PIECE')}`
+                  : formatCurrency(earning.earnedAmount)}
+                valueSub={earning.rewardKind === 'QUANTITY'
+                  ? `${formatNumber(earning.remainingQuantityPieces)} ${t('tradePromotions.rules.units.PIECE')}`
+                  : formatCurrency(earning.remainingAmount)}
+                action={canSettle && (earning.status === 'PENDING' || earning.status === 'PARTIALLY_SETTLED') ? (
+                  <button type="button" className="icon-btn" title={t('tradePromotions.earnings.settle.title')} onClick={() => setSettleModal({ earning })}>
+                    <HandCoins size={16} />
+                  </button>
+                ) : null}
+              />
+            ))}
+          </MobileCardList>
+          <div className="hidden overflow-x-auto md:block">
             <table className="w-full">
               <thead className="table-head">
                 <tr>
@@ -136,6 +158,7 @@ export default function TradePromotionEarningsPage() {
               </tbody>
             </table>
           </div>
+          </>
         )}
 
         {!vm.loading && !vm.error && !vm.items.length ? (

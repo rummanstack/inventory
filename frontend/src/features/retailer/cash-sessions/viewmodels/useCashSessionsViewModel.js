@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { inventoryApi } from '../../../../services/inventoryApi';
 import { usePagedList } from '../../../../hooks/usePagedList';
+import { usePolling } from '../../../../hooks/usePolling.js';
 
 const OPEN_SESSION_POLL_MS = 30_000;
 
@@ -23,17 +24,8 @@ export function useCashSessionsViewModel() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dateFrom, dateTo]);
 
-  // Keep a stable ref so the interval always calls the latest reload
-  const reloadRef = useRef(list.reload);
-  reloadRef.current = list.reload;
-
   const hasOpenSession = list.items.some((s) => s.isOpen);
-
-  useEffect(() => {
-    if (!hasOpenSession) return;
-    const id = setInterval(() => reloadRef.current(), OPEN_SESSION_POLL_MS);
-    return () => clearInterval(id);
-  }, [hasOpenSession]);
+  usePolling(list.reload, OPEN_SESSION_POLL_MS, { enabled: hasOpenSession });
 
   return {
     ...list,

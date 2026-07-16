@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { FileText } from 'lucide-react';
-import { Alert, EmptyState, SectionHeader, TableSkeleton } from '../../../../components/ui.jsx';
+import { Alert, EmptyState, MobileCardList, MobileListCard, SectionHeader, TableSkeleton } from '../../../../components/ui.jsx';
 import TableReportActions from '../../../../components/TableReportActions.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../../services/inventoryApi.js';
@@ -15,7 +15,7 @@ const HR_REPORTS_SHORTCUTS = {
   print: { alt: true, key: 'p', label: 'Alt+P' },
 };
 
-function MiniTable({ title, rows, columns, reportId, t, noDataDesc }) {
+function MiniTable({ title, rows, columns, reportId, t, noDataDesc, renderCard }) {
   return (
     <div id={reportId} className="surface overflow-hidden">
       <div className="flex items-center justify-between gap-3 border-b border-slate-100 p-5">
@@ -25,7 +25,13 @@ function MiniTable({ title, rows, columns, reportId, t, noDataDesc }) {
       {!rows.length ? (
         <div className="p-5"><EmptyState title={title} description={noDataDesc} icon={FileText} /></div>
       ) : (
-        <div className="overflow-x-auto">
+        <>
+        <MobileCardList>
+          {rows.map((row, index) => (
+            <MobileListCard key={row.id || row.employeeId || row.status || row.name || index} {...renderCard(row)} />
+          ))}
+        </MobileCardList>
+        <div className="hidden overflow-x-auto md:block">
           <table className="w-full">
             <thead className="table-head"><tr>{columns.map((column) => <th key={column.key} className={`px-4 py-3 ${column.align === 'right' ? 'text-right' : ''}`}>{column.label}</th>)}</tr></thead>
             <tbody className="divide-y divide-slate-100">
@@ -37,6 +43,7 @@ function MiniTable({ title, rows, columns, reportId, t, noDataDesc }) {
             </tbody>
           </table>
         </div>
+        </>
       )}
     </div>
   );
@@ -89,7 +96,11 @@ export default function HrReportsPage() {
             <div className="surface p-4"><p className="text-xs uppercase text-slate-400">{t('hrReports.openRecoveries')}</p><p className="text-2xl font-semibold">{money([...data.advances, ...data.loans].reduce((sum, row) => sum + row.outstandingAmount, 0))}</p></div>
           </div>
 
-          <MiniTable t={t} noDataDesc={t('hrReports.noDataDesc')} title={t('hrReports.employeeListTitle')} reportId="hr-report-employees" rows={data.employees} columns={[
+          <MiniTable t={t} noDataDesc={t('hrReports.noDataDesc')} title={t('hrReports.employeeListTitle')} reportId="hr-report-employees" rows={data.employees} renderCard={(row) => ({
+            title: row.name,
+            badge: <span className="muted-chip">{row.status}</span>,
+            subtitle: `${row.employeeNumber} · ${row.departmentName || row.department || '-'}`,
+          })} columns={[
             { key: 'employeeNumber', label: t('hrReports.columnEmployeeNumber') },
             { key: 'name', label: t('hrReports.columnName') },
             { key: 'departmentName', label: t('hrReports.columnDepartment'), render: (row) => row.departmentName || row.department || '-' },
@@ -97,7 +108,12 @@ export default function HrReportsPage() {
             { key: 'status', label: t('hrReports.columnStatus') },
           ]} />
 
-          <MiniTable t={t} noDataDesc={t('hrReports.noDataDesc')} title={t('hrReports.attendanceReportTitle')} reportId="hr-report-attendance" rows={data.attendance} columns={[
+          <MiniTable t={t} noDataDesc={t('hrReports.noDataDesc')} title={t('hrReports.attendanceReportTitle')} reportId="hr-report-attendance" rows={data.attendance} renderCard={(row) => ({
+            title: row.employeeName,
+            subtitle: `${t('hrReports.columnPresent')} ${row.presentDays} · ${t('hrReports.columnAbsent')} ${row.absentDays}`,
+            value: row.lateMinutes,
+            valueSub: row.overtimeMinutes,
+          })} columns={[
             { key: 'employeeName', label: t('hrReports.columnEmployee') },
             { key: 'presentDays', label: t('hrReports.columnPresent') },
             { key: 'absentDays', label: t('hrReports.columnAbsent') },
@@ -106,13 +122,23 @@ export default function HrReportsPage() {
             { key: 'overtimeMinutes', label: t('hrReports.columnOvertime') },
           ]} />
 
-          <MiniTable t={t} noDataDesc={t('hrReports.noDataDesc')} title={t('hrReports.leaveReportTitle')} reportId="hr-report-leave" rows={data.leave} columns={[
+          <MiniTable t={t} noDataDesc={t('hrReports.noDataDesc')} title={t('hrReports.leaveReportTitle')} reportId="hr-report-leave" rows={data.leave} renderCard={(row) => ({
+            title: row.status,
+            value: row.requestCount,
+            valueSub: row.totalDays,
+          })} columns={[
             { key: 'status', label: t('hrReports.columnStatus') },
             { key: 'requestCount', label: t('hrReports.columnRequests') },
             { key: 'totalDays', label: t('hrReports.columnDays') },
           ]} />
 
-          <MiniTable t={t} noDataDesc={t('hrReports.noDataDesc')} title={t('hrReports.payrollRegisterTitle')} reportId="hr-report-payroll" rows={data.payroll} columns={[
+          <MiniTable t={t} noDataDesc={t('hrReports.noDataDesc')} title={t('hrReports.payrollRegisterTitle')} reportId="hr-report-payroll" rows={data.payroll} renderCard={(row) => ({
+            title: row.payrollMonth,
+            badge: <span className="muted-chip">{row.status}</span>,
+            subtitle: row.paymentStatus,
+            value: money(row.netTotal),
+            valueSub: money(row.grossTotal),
+          })} columns={[
             { key: 'payrollMonth', label: t('hrReports.columnMonth') },
             { key: 'status', label: t('hrReports.columnStatus') },
             { key: 'paymentStatus', label: t('hrReports.columnPayment') },
@@ -121,7 +147,12 @@ export default function HrReportsPage() {
             { key: 'netTotal', label: t('hrReports.columnNet'), align: 'right', render: (row) => money(row.netTotal) },
           ]} />
 
-          <MiniTable t={t} noDataDesc={t('hrReports.noDataDesc')} title={t('hrReports.advanceReportTitle')} reportId="hr-report-advances" rows={data.advances} columns={[
+          <MiniTable t={t} noDataDesc={t('hrReports.noDataDesc')} title={t('hrReports.advanceReportTitle')} reportId="hr-report-advances" rows={data.advances} renderCard={(row) => ({
+            title: row.employeeName,
+            badge: <span className="muted-chip">{row.status}</span>,
+            value: money(row.amount),
+            valueSub: Number(row.outstandingAmount) > 0 ? money(row.outstandingAmount) : null,
+          })} columns={[
             { key: 'employeeName', label: t('hrReports.columnEmployee') },
             { key: 'status', label: t('hrReports.columnStatus') },
             { key: 'amount', label: t('hrReports.columnAmount'), align: 'right', render: (row) => money(row.amount) },
@@ -129,7 +160,12 @@ export default function HrReportsPage() {
             { key: 'outstandingAmount', label: t('hrReports.columnOutstanding'), align: 'right', render: (row) => money(row.outstandingAmount) },
           ]} />
 
-          <MiniTable t={t} noDataDesc={t('hrReports.noDataDesc')} title={t('hrReports.loanReportTitle')} reportId="hr-report-loans" rows={data.loans} columns={[
+          <MiniTable t={t} noDataDesc={t('hrReports.noDataDesc')} title={t('hrReports.loanReportTitle')} reportId="hr-report-loans" rows={data.loans} renderCard={(row) => ({
+            title: row.employeeName,
+            badge: <span className="muted-chip">{row.status}</span>,
+            value: money(row.principalAmount),
+            valueSub: Number(row.outstandingAmount) > 0 ? money(row.outstandingAmount) : null,
+          })} columns={[
             { key: 'employeeName', label: t('hrReports.columnEmployee') },
             { key: 'status', label: t('hrReports.columnStatus') },
             { key: 'principalAmount', label: t('hrReports.columnAmount'), align: 'right', render: (row) => money(row.principalAmount) },
@@ -137,7 +173,12 @@ export default function HrReportsPage() {
             { key: 'outstandingAmount', label: t('hrReports.columnOutstanding'), align: 'right', render: (row) => money(row.outstandingAmount) },
           ]} />
 
-          <MiniTable t={t} noDataDesc={t('hrReports.noDataDesc')} title={t('hrReports.departmentSummaryTitle')} reportId="hr-report-departments" rows={data.departments} columns={[
+          <MiniTable t={t} noDataDesc={t('hrReports.noDataDesc')} title={t('hrReports.departmentSummaryTitle')} reportId="hr-report-departments" rows={data.departments} renderCard={(row) => ({
+            title: row.name,
+            badge: <span className="muted-chip">{row.status}</span>,
+            subtitle: row.headEmployeeName || '-',
+            value: row.employeeCount,
+          })} columns={[
             { key: 'name', label: t('hrReports.columnDepartment') },
             { key: 'headEmployeeName', label: t('hrReports.columnHead'), render: (row) => row.headEmployeeName || '-' },
             { key: 'employeeCount', label: t('hrReports.columnEmployees') },

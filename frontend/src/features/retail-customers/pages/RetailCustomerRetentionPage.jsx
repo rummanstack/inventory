@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ArrowRight, Download, FileSpreadsheet, Loader2, Printer, RefreshCw, Sparkles, TrendingUp, Users, UserRound } from 'lucide-react';
-import { Alert, Badge, EmptyState, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton, Select } from '../../../components/ui.jsx';
+import { Alert, Badge, EmptyState, MobileCardList, MobileListCard, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../services/printService.js';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import { formatCurrency, formatDate, formatNumber } from '../../../utils/calculations.js';
 import { useAsyncAction } from '../../../hooks/useAsyncAction.js';
+import { useTenantApiQuery } from '../../../queries/useTenantApiQuery.js';
 
 const RETENTION_PRINT_ID = 'retail-customer-retention-print';
 
@@ -39,12 +40,18 @@ function useRetentionSelection(rows, selectedId, setSelectedId) {
 export default function RetailCustomerRetentionPage() {
   const { t, language } = useInventoryApp();
   const [inactiveWindowDays, setInactiveWindowDays] = useState(30);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [response, setResponse] = useState(null);
   const [selectedCustomerId, setSelectedCustomerId] = useState('');
   const [downloadingPdf, downloadPdf] = useAsyncAction();
 
+  const retentionQuery = useTenantApiQuery({
+    scope: 'retail-customer-retention',
+    params: { inactiveWindowDays },
+    queryFn: () => inventoryApi.getRetailCustomerRetentionInsights({ inactiveWindowDays }),
+    keepPrevious: true,
+  });
+  const response = retentionQuery.data;
+  const loading = retentionQuery.isLoading || retentionQuery.isFetching;
+  const error = retentionQuery.error?.message || '';
   const customers = response?.customers || [];
   const repeatCustomers = response?.repeatCustomers || [];
   const inactiveCustomers = response?.inactiveCustomers || [];
@@ -70,22 +77,7 @@ export default function RetailCustomerRetentionPage() {
     return 'retailCustomers.retention.followUpHealthy';
   }
 
-  async function loadRetention() {
-    try {
-      setLoading(true);
-      setError('');
-      const result = await inventoryApi.getRetailCustomerRetentionInsights({ inactiveWindowDays });
-      setResponse(result);
-    } catch (requestError) {
-      setError(requestError?.message || t('alerts.requestFailed'));
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    loadRetention();
-  }, [inactiveWindowDays, t]);
+  const loadRetention = () => retentionQuery.refetch();
 
   async function handleExportExcel() {
     const { utils, writeFile } = await import('xlsx');
@@ -242,7 +234,20 @@ export default function RetailCustomerRetentionPage() {
                 <Badge tone="emerald">{formatNumber(summary.repeatPurchaseRate || 0, language)}%</Badge>
               </div>
             </div>
-            <div className="overflow-x-auto">
+            <MobileCardList>
+              {repeatCustomers.map((customer) => (
+                <MobileListCard
+                  key={customer.id}
+                  onClick={() => setSelectedCustomerId(customer.id)}
+                  title={customer.name}
+                  badge={<Badge tone={retentionTone(customer)}>{t(`retailCustomers.retention.tiers.${customer.customerTier}`)}</Badge>}
+                  subtitle={`${customer.phone || '-'} · ${customer.lastPurchaseAt ? formatDate(customer.lastPurchaseAt, language) : t('retailCustomers.retention.neverPurchased')}`}
+                  value={formatCurrency(customer.totalSpent || 0, language)}
+                  valueSub={formatNumber(customer.pointsBalance || 0, language)}
+                />
+              ))}
+            </MobileCardList>
+            <div className="hidden overflow-x-auto md:block">
               <table className="w-full">
                 <thead className="table-head">
                   <tr>
@@ -285,7 +290,20 @@ export default function RetailCustomerRetentionPage() {
               <h2 className="section-title">{t('retailCustomers.retention.inactiveTitle')}</h2>
               <p className="mt-1 text-sm text-slate-500">{t('retailCustomers.retention.inactiveDescription', { count: inactiveWindowDays })}</p>
             </div>
-            <div className="overflow-x-auto">
+            <MobileCardList>
+              {inactiveCustomers.map((customer) => (
+                <MobileListCard
+                  key={customer.id}
+                  onClick={() => setSelectedCustomerId(customer.id)}
+                  title={customer.name}
+                  subtitle={`${customer.phone || '-'} · ${customer.lastPurchaseAt ? formatDate(customer.lastPurchaseAt, language) : t('retailCustomers.retention.neverPurchased')}`}
+                  value={formatDays(customer.daysSinceLastPurchase, t, language)}
+                  valueClass="text-rose-700"
+                  valueSub={formatNumber(customer.pointsBalance || 0, language)}
+                />
+              ))}
+            </MobileCardList>
+            <div className="hidden overflow-x-auto md:block">
               <table className="w-full">
                 <thead className="table-head">
                   <tr>
@@ -390,7 +408,20 @@ export default function RetailCustomerRetentionPage() {
               <h2 className="section-title">{t('retailCustomers.retention.rewardTitle')}</h2>
               <p className="mt-1 text-sm text-slate-500">{t('retailCustomers.retention.rewardDescription')}</p>
             </div>
-            <div className="overflow-x-auto">
+            <MobileCardList>
+              {rewardCandidates.map((customer) => (
+                <MobileListCard
+                  key={customer.id}
+                  onClick={() => setSelectedCustomerId(customer.id)}
+                  title={customer.name}
+                  subtitle={customer.phone || '-'}
+                  value={formatNumber(customer.pointsBalance || 0, language)}
+                  valueClass="text-emerald-700"
+                  valueSub={customer.pointsToNextReward === 0 ? t('retailCustomers.retention.rewardReady') : formatNumber(customer.pointsToNextReward, language)}
+                />
+              ))}
+            </MobileCardList>
+            <div className="hidden overflow-x-auto md:block">
               <table className="w-full">
                 <thead className="table-head">
                   <tr>
@@ -425,4 +456,3 @@ export default function RetailCustomerRetentionPage() {
     </div>
   );
 }
-

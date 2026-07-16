@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Building2, Pencil, Plus, Trash2 } from 'lucide-react';
-import { Alert, EmptyState, Pagination, SectionHeader, Select, TableSkeleton } from '../../../../components/ui.jsx';
+import { Alert, EmptyState, MobileCardList, MobileListCard, Pagination, SectionHeader, Select, TableSkeleton } from '../../../../components/ui.jsx';
 import TableReportActions from '../../../../components/TableReportActions.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../../services/inventoryApi.js';
 import { useDepartmentsViewModel } from '../viewmodels/useDepartmentsViewModel.js';
 import DepartmentFormModal from '../components/DepartmentFormModal.jsx';
+import { useTenantApiQuery } from '../../../../queries/useTenantApiQuery.js';
 
 const DEPARTMENTS_REPORT_ID = 'departments-report';
 const DEPARTMENTS_ADD_SHORTCUT = { alt: true, key: 'a', label: 'Alt+A' };
@@ -29,7 +30,6 @@ export default function DepartmentsPage() {
   const { t, can, confirm, pushToast } = useInventoryApp();
   const vm = useDepartmentsViewModel();
   const [formModal, setFormModal] = useState(null);
-  const [employees, setEmployees] = useState([]);
   const canManage = can('manage_departments');
 
   useEffect(() => {
@@ -44,17 +44,12 @@ export default function DepartmentsPage() {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [canManage, formModal]);
 
-  useEffect(() => {
-    let cancelled = false;
-    inventoryApi.getActiveEmployees()
-      .then((items) => {
-        if (!cancelled) setEmployees(Array.isArray(items) ? items : []);
-      })
-      .catch(() => {
-        if (!cancelled) setEmployees([]);
-      });
-    return () => { cancelled = true; };
-  }, []);
+  const employeesQuery = useTenantApiQuery({
+    scope: 'active-employees',
+    queryFn: () => inventoryApi.getActiveEmployees(),
+    staleTime: 30_000,
+  });
+  const employees = Array.isArray(employeesQuery.data) ? employeesQuery.data : [];
 
   async function handleSave(data) {
     try {
@@ -129,7 +124,33 @@ export default function DepartmentsPage() {
         ) : vm.error ? (
           <div className="p-5"><Alert type="error">{vm.error}</Alert></div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+          <MobileCardList>
+            {vm.items.map((department) => (
+              <MobileListCard
+                key={department.id}
+                title={department.name}
+                badge={
+                  <span className={`muted-chip ${department.status === 'ACTIVE' ? 'text-emerald-700' : 'text-slate-400'}`}>
+                    {department.status === 'ACTIVE' ? t('departments.active') : t('departments.inactive')}
+                  </span>
+                }
+                subtitle={`${department.code || '-'} · ${department.headEmployeeName || '-'}`}
+                value={department.employeeCount}
+                action={canManage ? (
+                  <>
+                    <button type="button" className="icon-btn" onClick={() => setFormModal({ mode: 'edit', department })} title={t('common.edit')}>
+                      <Pencil size={16} />
+                    </button>
+                    <button type="button" className="icon-btn text-rose-600 hover:text-rose-700" onClick={() => handleDelete(department)} title={t('common.delete')}>
+                      <Trash2 size={16} />
+                    </button>
+                  </>
+                ) : null}
+              />
+            ))}
+          </MobileCardList>
+          <div className="hidden overflow-x-auto md:block">
             <table className="w-full">
               <thead className="table-head">
                 <tr>
@@ -172,6 +193,7 @@ export default function DepartmentsPage() {
               </tbody>
             </table>
           </div>
+          </>
         )}
 
         {!vm.loading && !vm.error && !vm.items.length ? (

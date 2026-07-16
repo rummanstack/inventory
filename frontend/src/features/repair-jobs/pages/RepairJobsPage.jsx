@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { AlertTriangle, CheckCircle2, Clock, LayoutGrid, Package, Pencil, Plus, Search, ShieldAlert, Table2, Trash2, Wrench } from 'lucide-react';
-import { Alert, Badge, CopyableText, EmptyState, Pagination, SectionHeader, TableSkeleton, Select } from '../../../components/ui.jsx';
+import { Alert, Badge, CopyableText, EmptyState, MobileCardList, MobileListCard, Pagination, SectionHeader, TableSkeleton, Select } from '../../../components/ui.jsx';
 import TableReportActions from '../../../components/TableReportActions.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
+import { useTenantApiQuery } from '../../../queries/useTenantApiQuery.js';
 import { formatCurrency, formatDate, formatDateTime } from '../../../utils/calculations.js';
 import { repairJobStatusTone, repairJobApprovalTone } from '../../../models/inventoryViewData.js';
 import RepairJobFormModal from '../components/RepairJobFormModal';
@@ -170,29 +171,33 @@ export default function RepairJobsPage() {
   const [viewMode, setViewMode] = useState('board');
   const [formModal, setFormModal] = useState(null);
   const [escalateModal, setEscalateModal] = useState(null);
-  const [technicians, setTechnicians] = useState([]);
   const [boardJobs, setBoardJobs] = useState([]);
-  const [boardLoading, setBoardLoading] = useState(false);
   const [boardVersion, setBoardVersion] = useState(0);
   const [dragJobId, setDragJobId] = useState(null);
   const [dragOverCol, setDragOverCol] = useState(null);
   const dragCounters = useRef({});
   const canManage = can('manage_repair_jobs');
 
-  useEffect(() => {
-    inventoryApi.listUsers().then((result) => {
-      setTechnicians(Array.isArray(result) ? result : (result?.items || []));
-    }).catch(() => {});
-  }, []);
+  const techniciansQuery = useTenantApiQuery({
+    scope: 'repair-technicians',
+    queryFn: () => inventoryApi.listUsers(),
+    staleTime: 30_000,
+  });
+  const boardQuery = useTenantApiQuery({
+    scope: 'repair-jobs-board',
+    params: { boardVersion },
+    queryFn: () => inventoryApi.listRepairJobs({ page: 1, pageSize: 500 }),
+    enabled: viewMode === 'board',
+  });
+  const techniciansResult = techniciansQuery.data;
+  const technicians = Array.isArray(techniciansResult)
+    ? techniciansResult
+    : (techniciansResult?.users || techniciansResult?.items || []);
+  const boardLoading = boardQuery.isLoading || boardQuery.isFetching;
 
   useEffect(() => {
-    if (viewMode !== 'board') return;
-    setBoardLoading(true);
-    inventoryApi.listRepairJobs({ page: 1, pageSize: 500 })
-      .then((result) => setBoardJobs(result.items || []))
-      .catch(() => {})
-      .finally(() => setBoardLoading(false));
-  }, [viewMode, boardVersion]);
+    if (boardQuery.data) setBoardJobs(boardQuery.data.items || []);
+  }, [boardQuery.data]);
 
   async function handleSave(value) {
     const result = await saveRepairJob(value);
@@ -443,7 +448,20 @@ export default function RepairJobsPage() {
             <div className="p-5"><EmptyState title={t('repairJobs.noMatchTitle')} description={t('repairJobs.noMatchDescription')} icon={Wrench} /></div>
           ) : (
             <>
-              <div className="overflow-x-auto">
+              <MobileCardList>
+                {vm.items.map((job) => (
+                  <MobileListCard
+                    key={job.id}
+                    onClick={canManage ? () => setFormModal({ mode: 'edit', job }) : undefined}
+                    title={job.jobNumber}
+                    badge={<Badge tone={repairJobStatusTone(job.status)}>{t(`repairJobs.statuses.${job.status}`)}</Badge>}
+                    subtitle={`${job.customerName || '-'} · ${formatDateTime(job.receivedDate)}`}
+                    value={job.technicianName || '-'}
+                    valueSub={t(`repairJobs.approvalStatuses.${job.approvalStatus}`)}
+                  />
+                ))}
+              </MobileCardList>
+              <div className="hidden overflow-x-auto md:block">
                 <table className="w-full">
                   <thead className="table-head">
                     <tr>

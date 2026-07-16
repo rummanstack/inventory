@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ArrowLeftRight, Boxes, Download, FileSpreadsheet, HandCoins, Landmark, Loader2, Plus, Printer, Scale, Trash2, Wallet } from 'lucide-react';
-import { Alert, Badge, CopyableText, EmptyState, Pagination, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton, Select } from '../../../components/ui.jsx';
+import { Alert, Badge, CopyableText, EmptyState, MobileCardList, MobileListCard, Pagination, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../services/printService.js';
@@ -176,7 +176,26 @@ export default function FinanceAccountsPage() {
             <Alert type="error">{vm.error}</Alert>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+          <MobileCardList>
+            {vm.items.map((transaction) => (
+              <MobileListCard
+                key={transaction.id}
+                title={transaction.accountName}
+                badge={<Badge tone={TYPE_TONES[transaction.type] || 'slate'}>{t(`financeAccounts.${transaction.type === 'DEPOSIT' ? 'deposit' : transaction.type === 'WITHDRAWAL' ? 'withdrawal' : transaction.type === 'TRANSFER_IN' ? 'transferIn' : 'transferOut'}`)}</Badge>}
+                subtitle={`${formatDateTime(transaction.transactionDate)}${transaction.note ? ` · ${transaction.note}` : ''}`}
+                value={transaction.debit > 0 ? `+${formatCurrency(transaction.debit)}` : `-${formatCurrency(transaction.credit)}`}
+                valueClass={transaction.debit > 0 ? 'text-emerald-700' : 'text-rose-600'}
+                valueSub={formatCurrency(transaction.balanceAfter)}
+                action={canManage ? (
+                  <button type="button" className="icon-btn text-rose-600 hover:text-rose-700" title={t('common.delete')} onClick={() => vm.deleteTransaction(transaction.id)}>
+                    <Trash2 size={16} />
+                  </button>
+                ) : null}
+              />
+            ))}
+          </MobileCardList>
+          <div className="hidden overflow-x-auto md:block">
             <table className="w-full">
               <thead className="table-head">
                 <tr>
@@ -225,6 +244,7 @@ export default function FinanceAccountsPage() {
               </tbody>
             </table>
           </div>
+          </>
         )}
 
         {!vm.loading && !vm.error && !vm.items.length ? (

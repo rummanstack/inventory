@@ -1,5 +1,5 @@
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
-import { Badge } from '../../../components/ui.jsx';
+import { Badge, MobileCardList, MobileListCard } from '../../../components/ui.jsx';
 import { formatCurrency, formatDate } from '../../../utils/calculations.js';
 
 const STATUS_TONES = {
@@ -17,7 +17,18 @@ export default function SchedulePreviewTable({ rows = [] }) {
 
   return (
     <div className="overflow-hidden rounded-2xl border border-slate-200">
-      <div className="overflow-x-auto">
+      <MobileCardList>
+        {rows.map((row) => (
+          <MobileListCard
+            key={row.installmentNo}
+            title={`#${row.installmentNo} · ${formatDate(row.dueDate, language)}`}
+            badge={row.status ? <Badge tone={STATUS_TONES[row.status] || 'slate'}>{t(`installments.plans.scheduleStatus.${row.status}`)}</Badge> : null}
+            value={formatCurrency(row.dueAmount, language)}
+            valueSub={row.lateFeeApplied != null && row.lateFeeApplied > 0 ? formatCurrency(row.lateFeeApplied, language) : null}
+          />
+        ))}
+      </MobileCardList>
+      <div className="hidden overflow-x-auto md:block">
         <table className="w-full text-sm">
           <thead className="table-head">
             <tr>

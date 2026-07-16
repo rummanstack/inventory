@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Download, Eye, FileSpreadsheet, Loader2, Pencil, Plus, Printer, Search, ShoppingCart, Trash2 } from 'lucide-react';
-import { Alert, Badge, CopyableText, EmptyState, Pagination, SectionHeader, TableSkeleton, Select } from '../../../components/ui.jsx';
+import { Alert, Badge, CopyableText, EmptyState, MobileCardList, MobileListCard, Pagination, SectionHeader, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { DateRangePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi';
@@ -186,7 +186,25 @@ export default function PurchaseReceivePage() {
             <Alert type="error">{vm.error}</Alert>
           </div>
         ) : (
-        <div className="overflow-x-auto">
+        <>
+        <MobileCardList>
+          {vm.items.map((receipt) => (
+            <MobileListCard
+              key={receipt.id}
+              onClick={() => setViewReceipt(receipt)}
+              title={receipt.purchaseNumber}
+              badge={
+                <Badge tone={paymentStatusTone(paymentStatusOf(receipt))}>
+                  {t(`purchaseReceive.paymentStatuses.${paymentStatusOf(receipt)}`)}
+                </Badge>
+              }
+              subtitle={`${receipt.supplierName || '-'} · ${formatDateTime(receipt.purchaseDate)}`}
+              value={formatCurrency(receipt.totalAmount)}
+              valueSub={Number(receipt.dueAmount) > 0 ? formatCurrency(receipt.dueAmount) : null}
+            />
+          ))}
+        </MobileCardList>
+        <div className="hidden overflow-x-auto md:block">
           <table className="w-full">
             <thead className="table-head">
               <tr>
@@ -238,6 +256,7 @@ export default function PurchaseReceivePage() {
             </tbody>
           </table>
         </div>
+        </>
         )}
         {!vm.loading && !vm.error && !vm.items.length ? (
           <div className="p-5">

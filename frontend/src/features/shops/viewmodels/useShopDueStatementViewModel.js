@@ -1,8 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useMutation } from '@tanstack/react-query';
 import { inventoryApi } from '../../../services/inventoryApi';
 import { todayISO } from '../../../utils/calculations.js';
-import { useRefetchOnVisible } from '../../../app/hooks/useRefetchOnVisible.js';
+import { useTenantReportQuery } from '../../reports/queries/useTenantReportQuery.js';
+import { transactionKeys } from '../../transactions/queries/transactionQueries.js';
+import { getActiveTenantId } from '../../../services/api/client.js';
 
 function subtractDays(dateISO, days) {
   const date = new Date(`${dateISO}T00:00:00`);
@@ -16,13 +19,7 @@ export function useShopDueStatementViewModel({ shops }) {
   const [shopId, setShopId] = useState(searchParams.get('shopId') || '');
   const [dateFrom, setDateFrom] = useState(subtractDays(today, 29));
   const [dateTo, setDateTo] = useState(today);
-  const [statement, setStatement] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [version, setVersion] = useState(0);
   const [actionError, setActionError] = useState('');
-  const [actionLoading, setActionLoading] = useState(false);
-
   const hasAutoSelected = useRef(Boolean(shopId));
 
   useEffect(() => {
@@ -32,83 +29,41 @@ export function useShopDueStatementViewModel({ shops }) {
     }
   }, [shops, shopId]);
 
-  useEffect(() => {
-    let cancelled = false;
+  const query = useTenantReportQuery({
+    scope: 'shop-due-statement',
+    params: { shopId, dateFrom, dateTo },
+    queryFn: () => inventoryApi.getShopDueStatement({ shopId, dateFrom, dateTo }),
+    enabled: Boolean(shopId),
+    keepPrevious: true,
+  });
+  const actionMutation = useMutation({
+    mutationKey: transactionKeys.mutation(getActiveTenantId(), 'shop-due-action'),
+    mutationFn: ({ action, payload }) => action === 'record'
+      ? inventoryApi.recordShopDue(payload)
+      : inventoryApi.collectShopDue(payload),
+  });
 
-    if (!shopId) {
-      setStatement(null);
-      setLoading(false);
-      return undefined;
-    }
-
-    setLoading(true);
-    setError('');
-
-    inventoryApi
-      .getShopDueStatement({ shopId, dateFrom, dateTo })
-      .then((result) => {
-        if (!cancelled) setStatement(result);
-      })
-      .catch((requestError) => {
-        if (!cancelled) {
-          setError(requestError.message);
-          setStatement(null);
-        }
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-
-    return () => { cancelled = true; };
-  }, [shopId, dateFrom, dateTo, version]);
-
-  async function recordDue({ amount, note, businessDate }) {
+  async function runAction(action, values) {
     setActionError('');
-    setActionLoading(true);
     try {
-      await inventoryApi.recordShopDue({ shopId, amount, note, businessDate });
-      setVersion((v) => v + 1);
+      await actionMutation.mutateAsync({ action, payload: { shopId, ...values } });
+      await query.refetch();
       return { ok: true };
     } catch (err) {
       setActionError(err.message);
       return { ok: false, error: err.message };
-    } finally {
-      setActionLoading(false);
     }
   }
-
-  async function collectDue({ amount, note, businessDate }) {
-    setActionError('');
-    setActionLoading(true);
-    try {
-      await inventoryApi.collectShopDue({ shopId, amount, note, businessDate });
-      setVersion((v) => v + 1);
-      return { ok: true };
-    } catch (err) {
-      setActionError(err.message);
-      return { ok: false, error: err.message };
-    } finally {
-      setActionLoading(false);
-    }
-  }
-
-  const refresh = () => setVersion((v) => v + 1);
-  useRefetchOnVisible(refresh);
 
   return {
-    shopId,
-    setShopId,
-    dateFrom,
-    setDateFrom,
-    dateTo,
-    setDateTo,
-    statement,
-    loading,
-    error,
+    shopId, setShopId, dateFrom, setDateFrom, dateTo, setDateTo,
+    statement: query.data || null,
+    loading: query.isPending,
+    error: query.error?.message || '',
     actionError,
-    actionLoading,
-    refresh,
-    recordDue,
-    collectDue,
+    actionLoading: actionMutation.isPending,
+    refresh: query.refetch,
+    recordDue: (values) => runAction('record', values),
+    collectDue: (values) => runAction('collect', values),
   };
 }

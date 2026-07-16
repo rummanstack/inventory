@@ -1,5 +1,5 @@
 import { LayoutGrid, Loader2, Pencil } from 'lucide-react';
-import { Badge, cx } from '../../../components/ui.jsx';
+import { Badge, MobileCardList, MobileListCard, cx } from '../../../components/ui.jsx';
 import TableReportActions from '../../../components/TableReportActions.jsx';
 
 const TENANTS_REPORT_ID = 'platform-tenants-report';
@@ -11,6 +11,49 @@ export default function TenantsTable({ tenants, togglingId, t, onEdit, onFeature
         <span className="text-sm font-bold text-slate-700">{t('nav.platform')}</span>
         <TableReportActions targetId={TENANTS_REPORT_ID} title={t('nav.platform')} fileName="platform-tenants" entityType="platform_tenants" t={t} />
       </div>
+      <MobileCardList>
+        {tenants.map((tenant) => (
+          <MobileListCard
+            key={tenant.id}
+            title={tenant.name}
+            badge={<Badge tone={tenant.status === 'active' ? 'emerald' : 'rose'}>{tenant.status}</Badge>}
+            subtitle={`${tenant.email} · ${tenant.slug}`}
+            value={<Badge tone="blue">{tenant.plan}</Badge>}
+            action={(
+              <div className="flex items-center gap-1">
+                <button type="button" className="icon-btn" title={t('common.edit')} onClick={() => onEdit(tenant)}>
+                  <Pencil size={16} />
+                </button>
+                <button type="button" className="icon-btn" title={t('organizations.featuresTitle')} onClick={() => onFeatures(tenant)}>
+                  <LayoutGrid size={16} />
+                </button>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={tenant.status === 'active'}
+                  title={tenant.status === 'active' ? t('organizations.deactivate') : t('organizations.activate')}
+                  disabled={togglingId === tenant.id}
+                  onClick={() => onToggleStatus(tenant)}
+                  className={cx(
+                    'relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors disabled:opacity-60',
+                    tenant.status === 'active' ? 'bg-emerald-500' : 'bg-slate-300',
+                  )}
+                >
+                  <span
+                    className={cx(
+                      'inline-flex h-4 w-4 items-center justify-center rounded-full bg-white shadow transition-transform',
+                      tenant.status === 'active' ? 'translate-x-6' : 'translate-x-1',
+                    )}
+                  >
+                    {togglingId === tenant.id ? <Loader2 size={12} className="animate-spin text-slate-400" /> : null}
+                  </span>
+                </button>
+              </div>
+            )}
+          />
+        ))}
+      </MobileCardList>
+      <div className="hidden overflow-x-auto md:block">
       <table className="w-full text-sm">
         <thead className="table-head">
           <tr className="border-b border-slate-200">
@@ -74,6 +117,7 @@ export default function TenantsTable({ tenants, togglingId, t, onEdit, onFeature
           ))}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }

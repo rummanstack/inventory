@@ -13,6 +13,7 @@ export function useSuppliersViewModel() {
   const list = usePagedList(
     ({ page, pageSize }) => inventoryApi.listSuppliers({ page, pageSize, search: debouncedSearch, status: status || undefined }),
     [debouncedSearch, status],
+    'suppliers',
   );
 
   useEffect(() => {

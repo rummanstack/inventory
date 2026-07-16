@@ -1,9 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Building2, Check, Mail, Phone, RefreshCw, X } from 'lucide-react';
 import { Badge, EmptyState, SectionHeader } from '../../../components/ui.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { formatDateTime } from '../../../utils/calculations.js';
+import { useMutation } from '@tanstack/react-query';
+import { useTenantApiQuery } from '../../../queries/useTenantApiQuery.js';
 
 const BUSINESS_TYPE_LABELS = {
   ELECTRONICS: 'Electronics',
@@ -65,23 +67,22 @@ function RegistrationCard({ item, language, busy, onApprove, onReject }) {
 
 export default function RegistrationRequestsPage() {
   const { language, pushToast, confirm } = useInventoryApp();
-  const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [busyId, setBusyId] = useState('');
-
-  async function load() {
-    setLoading(true);
-    try {
-      const result = await inventoryApi.getRegistrationRequests();
-      setItems(Array.isArray(result.items) ? result.items : []);
-    } catch (error) {
-      pushToast('error', 'Failed to load', error?.message || 'Could not load registration requests.');
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => { load(); }, []);
+  const requestsQuery = useTenantApiQuery({
+    scope: 'platform-registration-requests',
+    queryFn: () => inventoryApi.getRegistrationRequests(),
+    requireTenant: false,
+  });
+  const actionMutation = useMutation({
+    mutationFn: ({ id, action }) => action === 'approve'
+      ? inventoryApi.approveRegistration(id)
+      : inventoryApi.rejectRegistration(id),
+  });
+  const items = Array.isArray(requestsQuery.data?.items) ? requestsQuery.data.items : [];
+  const loading = requestsQuery.isLoading || requestsQuery.isFetching;
+  const busyId = actionMutation.isPending ? actionMutation.variables?.id : '';
+  const load = () => requestsQuery.refetch().catch((error) => {
+    pushToast('error', 'Failed to load', error?.message || 'Could not load registration requests.');
+  });
 
   async function handleApprove(item) {
     const ok = await confirm({
@@ -90,15 +91,12 @@ export default function RegistrationRequestsPage() {
       tone: 'emerald',
     });
     if (!ok) return;
-    setBusyId(item.id);
     try {
-      await inventoryApi.approveRegistration(item.id);
+      await actionMutation.mutateAsync({ id: item.id, action: 'approve' });
       pushToast('success', 'Registration approved', `${item.name} is now active.`);
       await load();
     } catch (error) {
       pushToast('error', 'Approval failed', error?.message);
-    } finally {
-      setBusyId('');
     }
   }
 
@@ -109,15 +107,12 @@ export default function RegistrationRequestsPage() {
       tone: 'rose',
     });
     if (!ok) return;
-    setBusyId(item.id);
     try {
-      await inventoryApi.rejectRegistration(item.id);
+      await actionMutation.mutateAsync({ id: item.id, action: 'reject' });
       pushToast('success', 'Registration rejected', `${item.name} was rejected.`);
       await load();
     } catch (error) {
       pushToast('error', 'Rejection failed', error?.message);
-    } finally {
-      setBusyId('');
     }
   }
 

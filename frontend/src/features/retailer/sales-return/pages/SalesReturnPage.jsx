@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Download, FileSpreadsheet, Loader2, Plus, Printer, RotateCcw } from 'lucide-react';
-import { Alert, CopyableText, EmptyState, Pagination, SectionHeader, TableSkeleton, Select } from '../../../../components/ui.jsx';
+import { Alert, CopyableText, EmptyState, MobileCardList, MobileListCard, Pagination, SectionHeader, TableSkeleton, Select } from '../../../../components/ui.jsx';
 import { DatePickerField } from '../../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../../services/printService.js';
@@ -99,7 +99,18 @@ export default function SalesReturnPage() {
             <Alert type="error">{vm.error}</Alert>
           </div>
         ) : (
-        <div className="overflow-x-auto">
+        <>
+        <MobileCardList>
+          {vm.items.map((salesReturn) => (
+            <MobileListCard
+              key={salesReturn.id}
+              title={salesReturn.returnNumber}
+              subtitle={`${salesReturn.customerName || t('retailer.shared.customerTypes.WALK_IN')} · ${formatDateTime(salesReturn.returnDate, language)}`}
+              value={formatCurrency(salesReturn.totalAmount, language)}
+            />
+          ))}
+        </MobileCardList>
+        <div className="hidden overflow-x-auto md:block">
           <table className="w-full">
             <thead className="table-head">
               <tr>
@@ -125,6 +136,7 @@ export default function SalesReturnPage() {
             </tbody>
           </table>
         </div>
+        </>
         )}
         {!vm.loading && !vm.error && !vm.items.length ? (
           <div className="p-5">

@@ -16,6 +16,7 @@ export function useDueCollectionViewModel() {
       dateTo: dateTo || undefined,
     }),
     [customerId, dateFrom, dateTo],
+    'customer-payments',
   );
 
   useEffect(() => {

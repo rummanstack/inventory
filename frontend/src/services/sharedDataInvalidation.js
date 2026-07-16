@@ -6,12 +6,40 @@ export const SHARED_DATA_DOMAINS = Object.freeze({
   SHOPS: 'shops',
   RETAIL_CUSTOMERS: 'retailCustomers',
   PROMOTIONS: 'promotions',
+  ACCOUNTING: 'accounting',
+  PEOPLE: 'people',
+  PLATFORM: 'platform',
+  ADMIN: 'admin',
+  OPERATIONS: 'operations',
 });
 
 const D = SHARED_DATA_DOMAINS;
 const mutationListeners = new Set();
+const API_LIST_SCOPE_DOMAINS = Object.freeze({
+  'sales-invoices': [D.PRODUCTS, D.RETAIL_CUSTOMERS],
+  'sales-returns': [D.PRODUCTS, D.RETAIL_CUSTOMERS],
+  quotations: [D.PRODUCTS, D.RETAIL_CUSTOMERS],
+  'retail-customers': [D.RETAIL_CUSTOMERS],
+  'customer-payments': [D.RETAIL_CUSTOMERS],
+  'purchase-receipts': [D.PRODUCTS, D.SUPPLIERS],
+  'purchase-returns': [D.PRODUCTS, D.SUPPLIERS],
+  suppliers: [D.SUPPLIERS],
+  'supplier-payments': [D.SUPPLIERS],
+  'supplier-discounts': [D.SUPPLIERS],
+  'finance-account-transactions': [D.ACCOUNTING],
+});
 
 const MUTATION_RULES = [
+  { pattern: /^[/](?:employees|departments|designations|attendance|leave|payroll|salary-payments|employee-finance)(?:[/]|$)/, domains: [D.PEOPLE] },
+  { pattern: /^[/](?:users|permissions|security)(?:[/]|$)/, domains: [D.ADMIN] },
+  { pattern: /^[/]auth[/]sessions(?:[/]|$)/, domains: [D.ADMIN] },
+  { pattern: /^[/]platform(?:[/]|$)/, domains: [D.PLATFORM] },
+  { pattern: /^[/](?:help-desk|issue-center)(?:[/]|$)/, domains: [D.OPERATIONS] },
+  { pattern: /^[/]dsr-targets(?:[/]|$)/, domains: [D.DSRS] },
+  { pattern: /^[/]trade-promotions?(?:[/]|$)/, domains: [D.PROMOTIONS] },
+  { pattern: /^[/]retail-cash-sessions(?:[/]|$)/, domains: [D.ACCOUNTING] },
+  { pattern: /^[/](?:repair-jobs|warranty-claims)(?:[/]|$)/, domains: [D.PRODUCTS, D.SUPPLIERS] },
+  { pattern: /^[/]damaged-stock(?:[/]|$)/, domains: [D.PRODUCTS] },
   { pattern: /^\/products(?:\/|$)/, domains: [D.PRODUCTS] },
   { pattern: /^\/(?:categories|brands|manufacturers|generic-medicines)(?:\/|$)/, domains: [D.PRODUCTS] },
   { pattern: /^\/product-serials(?:\/|$)/, domains: [D.PRODUCTS] },
@@ -31,9 +59,16 @@ const MUTATION_RULES = [
   { pattern: /^\/customers(?:\/|$)/, domains: [D.SHOPS] },
   { pattern: /^\/(?:issues|settlements)(?:\/|$)/, domains: [D.PRODUCTS, D.DSRS, D.SHOPS] },
   { pattern: /^\/retail-promotions(?:\/|$)/, domains: [D.PROMOTIONS] },
+  { pattern: /^\/(?:expenses|vouchers)(?:\/|$)/, domains: [D.ACCOUNTING] },
+  { pattern: /^\/accounting\/(?:accounts|fiscal-years|periods|opening-balances|settings|journals)(?:\/|$)/, domains: [D.ACCOUNTING] },
+  { pattern: /^\/finance-accounts(?:\/|$)/, domains: [D.ACCOUNTING] },
 ];
 
 const ROUTE_RULES = [
+  { pattern: /^[/]hr(?:[/]|$)/, domains: [D.PEOPLE] },
+  { pattern: /^[/](?:users|permissions|security)(?:[/]|$)/, domains: [D.ADMIN] },
+  { pattern: /^[/]platform(?:[/]|$)/, domains: [D.PLATFORM] },
+  { pattern: /^[/](?:help-desk|system-health|trash)(?:[/]|$)/, domains: [D.OPERATIONS] },
   { pattern: /^\/dashboard(?:\/|$)/, domains: [D.PRODUCTS, D.DSRS, D.SHOPS] },
   { pattern: /^\/products(?:\/|$)/, domains: [D.PRODUCTS, D.SUPPLIERS] },
   { pattern: /^\/(?:stock-movement|low-stock-alerts|product-serials|damaged-stock)(?:\/|$)/, domains: [D.PRODUCTS] },
@@ -74,6 +109,12 @@ export function getSharedDataDomainsForMutation(path) {
 
 export function getSharedDataDependencies(pathname) {
   return matchingDomains(pathname, ROUTE_RULES);
+}
+
+export function shouldInvalidateApiListScope(scope, domains) {
+  const scopedDomains = API_LIST_SCOPE_DOMAINS[scope];
+  if (!scopedDomains) return true;
+  return domains.some((domain) => scopedDomains.includes(domain));
 }
 
 export function notifySharedDataMutation(path, method = 'GET') {

@@ -3,6 +3,7 @@ import { Clock3, Loader2, Play, Printer, Save, Square } from 'lucide-react';
 import { Alert, Modal, SectionHeader } from '../../../../components/ui.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../../services/inventoryApi.js';
+import { useTenantApiQuery } from '../../../../queries/useTenantApiQuery.js';
 import { printRetailReceipt } from '../../../../services/receiptService.js';
 import { formatCurrency, formatDateTime, formatNumber } from '../../../../utils/calculations.js';
 import { useSalesInvoiceFormViewModel } from '../../sales-invoices/viewmodels/useSalesInvoiceFormViewModel';
@@ -250,7 +251,6 @@ export default function QuickSalePage() {
   const [lastInvoice, setLastInvoice] = useState(null);
   const [session, setSession] = useState(null);
   const [lastClosedSession, setLastClosedSession] = useState(null);
-  const [sessionLoading, setSessionLoading] = useState(cashSessionEnabled);
   const [sessionLoaded, setSessionLoaded] = useState(false);
   const [sessionError, setSessionError] = useState('');
   const [savingSession, setSavingSession] = useState(false);
@@ -258,6 +258,12 @@ export default function QuickSalePage() {
   const [showStopModal, setShowStopModal] = useState(false);
   const [startCashInput, setStartCashInput] = useState('0');
   const [stopCashInput, setStopCashInput] = useState('0');
+  const sessionQuery = useTenantApiQuery({
+    scope: 'current-retail-cash-session',
+    queryFn: () => inventoryApi.getCurrentRetailCashSession(),
+    enabled: cashSessionEnabled,
+  });
+  const sessionLoading = sessionQuery.isLoading || sessionQuery.isFetching;
 
   useEffect(() => {
     const snapshot = readCashSessionSnapshot();
@@ -265,6 +271,16 @@ export default function QuickSalePage() {
       setSession(snapshot);
     }
   }, []);
+
+  useEffect(() => {
+    if (sessionQuery.data) {
+      setSession(mergeCashSessionSnapshots(sessionQuery.data.session || null, readCashSessionSnapshot()));
+      setSessionLoaded(true);
+      setSessionError('');
+    } else if (sessionQuery.error) {
+      setSessionError(sessionQuery.error?.message || t('alerts.requestFailed'));
+    }
+  }, [sessionQuery.data, sessionQuery.error, t]);
 
   useEffect(() => {
     if (session) {
@@ -276,22 +292,8 @@ export default function QuickSalePage() {
 
   async function loadSession() {
     if (!cashSessionEnabled) return;
-    try {
-      setSessionLoading(true);
-      setSessionError('');
-      const result = await inventoryApi.getCurrentRetailCashSession();
-      setSession(mergeCashSessionSnapshots(result.session || null, readCashSessionSnapshot()));
-      setSessionLoaded(true);
-    } catch (error) {
-      setSessionError(error?.message || t('alerts.requestFailed'));
-    } finally {
-      setSessionLoading(false);
-    }
+    await sessionQuery.refetch();
   }
-
-  useEffect(() => {
-    loadSession();
-  }, []);
 
   async function handlePrintReceipt() {
     if (!lastInvoice) {

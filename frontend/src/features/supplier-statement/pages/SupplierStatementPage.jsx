@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { Download, FileSpreadsheet, Loader2, Printer, RefreshCw, Wallet } from 'lucide-react';
-import { Badge, CopyableText, EmptyState, SectionHeader, StatCard, TableSkeleton, Select } from '../../../components/ui.jsx';
+import { Badge, CopyableText, EmptyState, MobileCardList, MobileListCard, SectionHeader, StatCard, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { DateRangePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf, printElementById } from '../../../services/printService.js';
@@ -201,7 +201,20 @@ export default function SupplierStatementPage() {
             <div className="border-b border-slate-100 px-5 py-4">
               <h2 className="section-title">{t('supplierStatement.entriesTitle')}</h2>
             </div>
-            <div className="overflow-x-auto">
+            <MobileCardList>
+              {entries.map((entry) => (
+                <MobileListCard
+                  key={entry.id}
+                  title={entry.note || t(`supplierStatement.types.${entry.type}`)}
+                  badge={<Badge tone={ledgerTone(entry.type)}>{t(`supplierStatement.types.${entry.type}`)}</Badge>}
+                  subtitle={formatDateTime(entry.createdAt)}
+                  value={entry.debit ? formatCurrency(entry.debit) : formatCurrency(entry.credit)}
+                  valueClass={entry.debit ? 'text-rose-700' : 'text-emerald-700'}
+                  valueSub={formatCurrency(entry.balanceAfter)}
+                />
+              ))}
+            </MobileCardList>
+            <div className="hidden overflow-x-auto md:block">
               <table className="w-full">
                 <thead className="table-head">
                   <tr>

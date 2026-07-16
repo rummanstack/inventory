@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { CircleDollarSign, Download, Eye, FileSpreadsheet, FileText, Loader2, Package, PackageCheck, Printer, RotateCcw, Truck, TrendingUp, Percent, Users, ReceiptText, Wallet, BadgeDollarSign, CheckCircle2 } from 'lucide-react';
+import { CircleDollarSign, Download, Eye, FileSpreadsheet, FileText, Loader2, Package, PackageCheck, Printer, RotateCcw, Share2, Truck, TrendingUp, Percent, Users, ReceiptText, Wallet, BadgeDollarSign, CheckCircle2 } from 'lucide-react';
 import PrintableSheet from '../../../components/PrintableSheet.jsx';
 import TableReportActions from '../../../components/TableReportActions.jsx';
-import { Alert, EmptyState, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton, cx } from '../../../components/ui.jsx';
+import { Alert, EmptyState, MobileCardList, MobileListCard, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton, cx } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { buildPdfFileName, downloadSheetPdf } from '../../../services/printService.js';
@@ -24,6 +24,7 @@ export default function DailyReportsPage() {
   const { productDirectory, dsrDirectory, today, t, tenant, language } = useInventoryApp();
   const vm = useDailyReportsViewModel({ products: productDirectory, dsrs: dsrDirectory, today, t, tenantName: tenant?.name });
   const [downloadingSheetPdf, downloadSheetPdfAction] = useAsyncAction();
+  const [sharingSheetPdf, shareSheetPdfAction] = useAsyncAction();
   const [activeTab, setActiveTab] = useState('dsr');
   const dueCollectedTotal = vm.dueCollectionRows.reduce((sum, r) => sum + r.total, 0);
   const reportFileSuffix = vm.isSingleDay ? vm.dateFrom : `${vm.dateFrom}-to-${vm.dateTo}`;
@@ -204,7 +205,28 @@ export default function DailyReportsPage() {
                 </div>
               </div>
             </div>
-            <div className="overflow-x-auto">
+            <MobileCardList>
+              {vm.rows.map((row) => {
+                const rowDue = Math.max(0, row.totalPayable - row.discount - row.amountPaid);
+                return (
+                  <MobileListCard
+                    key={row.dsrId}
+                    onClick={vm.isSingleDay && row.settlementCount > 0 ? () => vm.viewSheet(row) : undefined}
+                    title={row.dsrName}
+                    subtitle={`${row.area} · ${formatNumber(row.soldPieces)} ${t('common.pcs')}`}
+                    value={formatCurrency(row.totalPayable)}
+                    valueSub={rowDue > 0 ? formatCurrency(rowDue) : null}
+                    valueClass={rowDue > 0 ? 'text-rose-600' : undefined}
+                  />
+                );
+              })}
+              {vm.rows.length === 0 ? (
+                <div className="p-5">
+                  <EmptyState title={t('reports.noRouteTitle')} description={t('reports.noRouteDescription')} icon={FileText} />
+                </div>
+              ) : null}
+            </MobileCardList>
+            <div className="hidden overflow-x-auto md:block">
               <table className="w-full">
                 <thead className="table-head">
                   <tr>
@@ -298,7 +320,20 @@ export default function DailyReportsPage() {
             {vm.productRows.length === 0 ? (
               <EmptyState title={t('reports.noProductSales')} description={t('reports.noProductSalesDescription')} icon={Package} />
             ) : (
-              <div className="overflow-x-auto">
+              <>
+              <MobileCardList>
+                {vm.productRows.map((row) => (
+                  <MobileListCard
+                    key={row.productId}
+                    title={row.productName}
+                    subtitle={`${formatNumber(row.quantitySold)} ${t('common.pcs')} ${t('reports.sold')}`}
+                    value={formatCurrency(row.revenue)}
+                    valueSub={formatCurrency(row.profit)}
+                    valueClass={row.profit >= 0 ? 'text-emerald-600' : 'text-rose-600'}
+                  />
+                ))}
+              </MobileCardList>
+              <div className="hidden overflow-x-auto md:block">
                 <table className="w-full">
                   <thead className="table-head">
                     <tr>
@@ -320,6 +355,7 @@ export default function DailyReportsPage() {
                   </tbody>
                 </table>
               </div>
+              </>
             )}
           </div>
           ) : null}
@@ -351,7 +387,20 @@ export default function DailyReportsPage() {
             {vm.srRows.length === 0 ? (
               <EmptyState title={t('reports.noSrData')} description={t('reports.noSrDataDescription')} icon={Users} />
             ) : (
-              <div className="overflow-x-auto">
+              <>
+              <MobileCardList>
+                {vm.srRows.map((row) => (
+                  <MobileListCard
+                    key={row.srId}
+                    title={row.srName}
+                    subtitle={`${t('reports.handover')} ${formatCurrency(row.handover)}`}
+                    value={formatCurrency(row.collected)}
+                    valueSub={formatCurrency(Math.max(0, row.handover - row.collected))}
+                    valueClass="text-emerald-600"
+                  />
+                ))}
+              </MobileCardList>
+              <div className="hidden overflow-x-auto md:block">
                 <table className="w-full">
                   <thead className="table-head">
                     <tr>
@@ -375,6 +424,7 @@ export default function DailyReportsPage() {
                   </tbody>
                 </table>
               </div>
+              </>
             )}
           </div>
           ) : null}
@@ -408,7 +458,18 @@ export default function DailyReportsPage() {
             {vm.expenseRows.length === 0 ? (
               <EmptyState title={t('reports.noExpenses')} description={t('reports.noExpensesDescription')} icon={ReceiptText} />
             ) : (
-              <div className="overflow-x-auto">
+              <>
+              <MobileCardList>
+                {vm.expenseRows.map((row) => (
+                  <MobileListCard
+                    key={row.category}
+                    title={row.category}
+                    value={formatCurrency(row.totalAmount)}
+                    valueClass="text-rose-600"
+                  />
+                ))}
+              </MobileCardList>
+              <div className="hidden overflow-x-auto md:block">
                 <table className="w-full">
                   <thead className="table-head">
                     <tr>
@@ -426,6 +487,7 @@ export default function DailyReportsPage() {
                   </tbody>
                 </table>
               </div>
+              </>
             )}
           </div>
           ) : null}
@@ -459,7 +521,18 @@ export default function DailyReportsPage() {
             {vm.salaryRows.length === 0 ? (
               <EmptyState title={t('reports.noSalary')} description={t('reports.noSalaryDescription')} icon={BadgeDollarSign} />
             ) : (
-              <div className="overflow-x-auto">
+              <>
+              <MobileCardList>
+                {vm.salaryRows.map((row) => (
+                  <MobileListCard
+                    key={row.employeeId}
+                    title={row.employeeName}
+                    value={formatCurrency(row.totalPaid)}
+                    valueClass="text-emerald-600"
+                  />
+                ))}
+              </MobileCardList>
+              <div className="hidden overflow-x-auto md:block">
                 <table className="w-full">
                   <thead className="table-head">
                     <tr>
@@ -477,6 +550,7 @@ export default function DailyReportsPage() {
                   </tbody>
                 </table>
               </div>
+              </>
             )}
           </div>
           ) : null}
@@ -508,7 +582,19 @@ export default function DailyReportsPage() {
             {vm.dueCollectionRows.length === 0 ? (
               <EmptyState title={t('reports.noDueCollections')} description={t('reports.noDueCollectionsDescription')} icon={CircleDollarSign} />
             ) : (
-              <div className="overflow-x-auto">
+              <>
+              <MobileCardList>
+                {vm.dueCollectionRows.map((row) => (
+                  <MobileListCard
+                    key={row.dsrId}
+                    title={row.dsrName}
+                    subtitle={row.area}
+                    value={formatCurrency(row.total)}
+                    valueClass="text-emerald-600"
+                  />
+                ))}
+              </MobileCardList>
+              <div className="hidden overflow-x-auto md:block">
                 <table className="w-full">
                   <thead className="table-head">
                     <tr>
@@ -528,6 +614,7 @@ export default function DailyReportsPage() {
                   </tbody>
                 </table>
               </div>
+              </>
             )}
           </div>
           ) : null}
@@ -561,7 +648,19 @@ export default function DailyReportsPage() {
             {vm.dsrDueBalanceRows.length === 0 ? (
               <EmptyState title={t('reports.noDueBalances')} description={t('reports.noDueBalancesDescription')} icon={Wallet} />
             ) : (
-              <div className="overflow-x-auto">
+              <>
+              <MobileCardList>
+                {vm.dsrDueBalanceRows.map((row) => (
+                  <MobileListCard
+                    key={row.id}
+                    title={row.dsrName}
+                    subtitle={row.area}
+                    value={formatCurrency(row.balance)}
+                    valueClass="text-rose-600"
+                  />
+                ))}
+              </MobileCardList>
+              <div className="hidden overflow-x-auto md:block">
                 <table className="w-full">
                   <thead className="table-head">
                     <tr>
@@ -581,6 +680,7 @@ export default function DailyReportsPage() {
                   </tbody>
                 </table>
               </div>
+              </>
             )}
           </div>
           ) : null}
@@ -617,6 +717,18 @@ export default function DailyReportsPage() {
                   >
                     {downloadingSheetPdf ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />}
                     {t('reports.downloadPdf')}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-secondary lg:hidden disabled:cursor-not-allowed disabled:opacity-60"
+                    onClick={() => shareSheetPdfAction(async () => {
+                      recordReportPrint('share');
+                      await downloadSheetPdf('report-print-sheet', buildPdfFileName(vm.selectedSheet), { share: true });
+                    })}
+                    disabled={sharingSheetPdf}
+                  >
+                    {sharingSheetPdf ? <Loader2 size={18} className="animate-spin" /> : <Share2 size={18} />}
+                    {t('common.share')}
                   </button>
                   <button type="button" className="btn-secondary" onClick={handleExportSheetExcel}>
                     <FileSpreadsheet size={18} />

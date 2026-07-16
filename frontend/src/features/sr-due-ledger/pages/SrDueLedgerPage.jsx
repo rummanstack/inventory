@@ -232,8 +232,8 @@ export default function SrDueLedgerPage() {
               ))}
             </Select>
           </div>
-          <div className="min-w-[220px]">
-            <label className="label">{t('srDueLedgerPage.dateFromPlaceholder')}</label>
+          <div className="min-w-[280px]">
+            <label className="label">{t('srDueLedgerPage.dateRangeLabel')}</label>
             <DateRangePickerField
               from={vm.dateFrom}
               to={vm.dateTo}

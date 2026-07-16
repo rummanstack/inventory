@@ -1,11 +1,9 @@
 import { useEffect } from 'react';
-import { BadgeDollarSign, Download, FileSpreadsheet, Loader2, PiggyBank, Printer, TrendingDown, TrendingUp, Wallet } from 'lucide-react';
+import { BadgeDollarSign, PiggyBank, TrendingDown, TrendingUp, Wallet } from 'lucide-react';
 import { Alert, ChartPanel, ChartPanelSkeleton, EmptyState, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton, TrendChart, cx } from '../../../components/ui.jsx';
-import { DatePickerField } from '../../../components/DatePicker.jsx';
+import { DateRangePickerField } from '../../../components/DatePicker.jsx';
+import TableReportActions from '../../../components/TableReportActions.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
-import { downloadSheetPdf } from '../../../services/printService.js';
-import { inventoryApi } from '../../../services/inventoryApi';
-import { useAsyncAction } from '../../../hooks/useAsyncAction.js';
 import { formatCurrency, formatDate, formatNumber } from '../../../utils/calculations.js';
 import { getCssVar } from '../../../utils/theme.js';
 import { useProfitViewModel } from '../viewmodels/useProfitViewModel';
@@ -23,6 +21,13 @@ const BREAKDOWN_TABS = [
   { key: 'category', labelKey: 'profit.tabByCategory' },
 ];
 
+const PROFIT_REPORT_SHORTCUTS = {
+  pdf: { alt: true, key: 'd', label: 'Alt+D' },
+  excel: { alt: true, key: 'e', label: 'Alt+E' },
+  csv: { alt: true, key: 'c', label: 'Alt+C' },
+  print: { alt: true, key: 'p', label: 'Alt+P' },
+};
+
 function getPeriodLabel(row, view) {
   if (view === 'weekly') {
     return `${formatDate(row.weekStart)} - ${formatDate(row.weekEnd)}`;
@@ -39,48 +44,13 @@ function marginOf(row) {
   return (row.grossProfit / row.cost) * 100;
 }
 
-function BreakdownTable({ t, language, columns, rows, emptyIcon, exportFileName, pdfFileName, sheetName, printId }) {
-  const [downloadingBreakdownPdf, downloadBreakdownPdf] = useAsyncAction();
-
-  async function handleExportExcel() {
-    const { utils, writeFile } = await import('xlsx');
-    const header = columns.map((column) => column.label);
-    const data = rows.map((row) => columns.map((column) => column.value(row)));
-    const ws = utils.aoa_to_sheet([header, ...data]);
-    ws['!cols'] = columns.map((column) => ({ wch: column.width || 16 }));
-    const wb = utils.book_new();
-    utils.book_append_sheet(wb, ws, sheetName);
-    writeFile(wb, exportFileName);
-  }
-
+function BreakdownTable({ t, columns, rows, emptyIcon, fileName, sheetName, printId }) {
   return (
-    <div id={printId} className="surface overflow-hidden print-target">
+    <div id={printId} className="surface overflow-hidden">
       <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
         <h2 className="section-title">{t('profit.tableTitle')}</h2>
         {rows.length ? (
-          <div className="flex items-center gap-2 no-print">
-            <button
-              type="button"
-              className="btn-secondary py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-60"
-              onClick={() => downloadBreakdownPdf(async () => { await inventoryApi.recordPrint({ entityType: 'profit_breakdown', entityId: null, label: 'pdf' }).catch(() => {}); await downloadSheetPdf(printId, pdfFileName); })}
-              disabled={downloadingBreakdownPdf}
-            >
-              {downloadingBreakdownPdf ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
-              {t('purchaseReceive.downloadPdf')}
-            </button>
-            <button type="button" className="btn-secondary py-1.5 text-xs" onClick={handleExportExcel}>
-              <FileSpreadsheet size={14} />
-              {t('common.exportExcel')}
-            </button>
-            <button
-              type="button"
-              className="btn-secondary py-1.5 text-xs"
-              onClick={() => { inventoryApi.recordPrint({ entityType: 'profit_breakdown', entityId: null, label: 'print' }).catch(() => {}); window.print(); }}
-            >
-              <Printer size={14} />
-              {t('common.print')}
-            </button>
-          </div>
+          <TableReportActions targetId={printId} title={sheetName} fileName={fileName} entityType="profit_breakdown" t={t} shortcuts={PROFIT_REPORT_SHORTCUTS} />
         ) : null}
       </div>
       {rows.length ? (
@@ -120,7 +90,6 @@ function BreakdownTable({ t, language, columns, rows, emptyIcon, exportFileName,
 export default function ProfitPage() {
   const { t, language, hasFeature } = useInventoryApp();
   const vm = useProfitViewModel();
-  const [downloadingReportPdf, downloadReportPdf] = useAsyncAction();
 
   const tabs = [
     { key: 'overview', labelKey: 'profit.tabOverview' },
@@ -144,33 +113,7 @@ export default function ProfitPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tabs.map((tab) => tab.key).join(','), vm.setTab]);
 
-  if (vm.loading && !vm.report) {
-    return (
-      <div>
-        <SectionHeader eyebrow={t('nav.profit')} description={t('profit.description')} />
-        <div className="surface mb-6 grid gap-4 p-5 md:grid-cols-2">
-          <div className="space-y-2">
-            <div className="h-4 w-24 skeleton rounded-full" />
-            <div className="h-11 skeleton rounded-2xl" />
-          </div>
-          <div className="space-y-2">
-            <div className="h-4 w-24 skeleton rounded-full" />
-            <div className="h-11 skeleton rounded-2xl" />
-          </div>
-        </div>
-        <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {Array.from({ length: 4 }).map((_, i) => <StatCardSkeleton key={i} />)}
-        </div>
-        <div className="mb-6">
-          <ChartPanelSkeleton height="h-80" />
-        </div>
-        <div>
-          <TableSkeleton rows={6} columns={5} />
-        </div>
-      </div>
-    );
-  }
-
+  const showSkeleton = vm.loading && !vm.report;
   const totals = vm.report?.totals || { revenue: 0, cost: 0, expenses: 0, grossProfit: 0, profit: 0 };
   const isProfit = totals.profit >= 0;
   const activeView = VIEWS.find((entry) => entry.key === vm.view) || VIEWS[0];
@@ -182,23 +125,11 @@ export default function ProfitPage() {
     profit: row.profit,
   }));
 
-  function handleDownloadPdf() {
-    return downloadReportPdf(async () => {
-      await inventoryApi.recordPrint({ entityType: 'report', entityId: `${vm.dateFrom}_to_${vm.dateTo}`, label: `profit ${vm.dateFrom} to ${vm.dateTo}` }).catch(() => {});
-      await downloadSheetPdf('profit-report-table', `profit-report-${vm.dateFrom}-to-${vm.dateTo}.pdf`);
-    });
-  }
-
-  function handlePrintOverview() {
-    inventoryApi.recordPrint({ entityType: 'report', entityId: `${vm.dateFrom}_to_${vm.dateTo}`, label: `profit ${vm.dateFrom} to ${vm.dateTo} print` }).catch(() => {});
-    window.print();
-  }
-
   const breakdownRows = (vm.breakdowns[vm.tab]?.rows || []);
 
   return (
     <div>
-      <SectionHeader eyebrow={t('nav.profit')} description={t('profit.description')} />
+      <SectionHeader eyebrow={t('nav.profit')} title={t('profit.title')} description={t('profit.description')} />
 
       {vm.error ? (
         <div className="mb-6">
@@ -206,17 +137,31 @@ export default function ProfitPage() {
         </div>
       ) : null}
 
-      <div className="surface mb-6 grid gap-4 p-5 md:grid-cols-2">
-        <div>
-          <label className="label">{t('profit.dateFrom')}</label>
-          <DatePickerField value={vm.dateFrom} onChange={vm.setDateFrom} />
-        </div>
-        <div>
-          <label className="label">{t('profit.dateTo')}</label>
-          <DatePickerField value={vm.dateTo} onChange={vm.setDateTo} min={vm.dateFrom} />
-        </div>
+      <div className="surface mb-6 p-5">
+        <label className="label">{t('profit.dateRangeLabel')}</label>
+        <DateRangePickerField
+          from={vm.dateFrom}
+          to={vm.dateTo}
+          onChange={(from, to) => { vm.setDateFrom(from); vm.setDateTo(to); }}
+          placeholder={`${t('profit.dateFrom')} - ${t('profit.dateTo')}`}
+          className="max-w-sm"
+        />
       </div>
 
+      {showSkeleton ? (
+        <>
+          <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, i) => <StatCardSkeleton key={i} />)}
+          </div>
+          <div className="mb-6">
+            <ChartPanelSkeleton height="h-80" />
+          </div>
+          <div>
+            <TableSkeleton rows={6} columns={5} />
+          </div>
+        </>
+      ) : (
+      <>
       <div className="no-print mb-6 overflow-x-auto">
         <div className="inline-flex min-w-full gap-1 rounded-lg border border-slate-200 bg-slate-50 p-1 sm:min-w-0">
           {tabs.map((entry, index) => {
@@ -242,17 +187,6 @@ export default function ProfitPage() {
 
       {vm.tab === 'overview' ? (
         <>
-          <div className="mb-6 flex justify-end gap-2">
-            <button type="button" className="btn-secondary disabled:cursor-not-allowed disabled:opacity-60" onClick={handleDownloadPdf} disabled={downloadingReportPdf}>
-              {downloadingReportPdf ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />}
-              {t('profit.downloadPdf')}
-            </button>
-            <button type="button" className="btn-secondary" onClick={handlePrintOverview}>
-              <Printer size={18} />
-              {t('common.print')}
-            </button>
-          </div>
-
           <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
             <StatCard title={t('profit.revenue')} value={formatCurrency(totals.revenue)} icon={Wallet} tone="blue" helper={t('profit.revenueHelper')} />
             <StatCard title={t('profit.cost')} value={formatCurrency(totals.cost)} icon={BadgeDollarSign} tone="amber" helper={t('profit.costHelper')} />
@@ -267,17 +201,24 @@ export default function ProfitPage() {
             />
           </div>
 
-          <div className="mb-6 flex flex-wrap gap-2">
-            {VIEWS.map((entry) => (
-              <button
-                key={entry.key}
-                type="button"
-                className={entry.key === vm.view ? 'btn-primary' : 'btn-secondary'}
-                onClick={() => vm.setView(entry.key)}
-              >
-                {t(entry.labelKey)}
-              </button>
-            ))}
+          <div className="no-print mb-6 inline-flex gap-1 rounded-lg border border-slate-200 bg-slate-50 p-1">
+            {VIEWS.map((entry) => {
+              const selected = entry.key === vm.view;
+              return (
+                <button
+                  key={entry.key}
+                  type="button"
+                  className={cx(
+                    'min-h-10 rounded-md px-3 text-sm font-bold transition',
+                    selected ? 'border border-indigo-200 bg-indigo-50 text-indigo-800 shadow-sm ring-2 ring-indigo-100' : 'border border-transparent text-slate-500 hover:bg-white/70 hover:text-slate-800',
+                  )}
+                  aria-pressed={selected}
+                  onClick={() => vm.setView(entry.key)}
+                >
+                  {t(entry.labelKey)}
+                </button>
+              );
+            })}
           </div>
 
           <ChartPanel title={t('profit.chartTitle')} description={t('profit.chartDescription')}>
@@ -296,9 +237,12 @@ export default function ProfitPage() {
             )}
           </ChartPanel>
 
-          <div id="profit-report-table" className="mt-6 surface overflow-hidden print-target">
+          <div id="profit-report-table" className="mt-6 surface overflow-hidden">
             <div className="border-b border-slate-100 px-5 py-4">
-              <h2 className="section-title">{t('profit.tableTitle')}</h2>
+              <div className="flex items-center justify-between gap-3">
+                <h2 className="section-title">{t('profit.tableTitle')}</h2>
+                <TableReportActions targetId="profit-report-table" title={t('profit.tableTitle')} fileName={`profit-report-${vm.dateFrom}-to-${vm.dateTo}`} entityType="profit_report" t={t} shortcuts={PROFIT_REPORT_SHORTCUTS} />
+              </div>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full">
@@ -352,12 +296,10 @@ export default function ProfitPage() {
           ) : vm.tab === 'dsr' ? (
             <BreakdownTable
               t={t}
-              language={language}
               emptyIcon={Wallet}
               sheetName={t('profit.tabByDsr')}
               printId="profit-breakdown-dsr"
-              exportFileName={`profit-by-dsr-${vm.dateFrom}-${vm.dateTo}.xlsx`}
-              pdfFileName={`profit-by-dsr-${vm.dateFrom}-${vm.dateTo}.pdf`}
+              fileName={`profit-by-dsr-${vm.dateFrom}-${vm.dateTo}`}
               rows={breakdownRows.map((row) => ({ key: row.dsrId, ...row }))}
               columns={[
                 { key: 'name', label: t('profit.dsrName'), value: (row) => row.dsrName || row.dsrId },
@@ -370,12 +312,10 @@ export default function ProfitPage() {
           ) : vm.tab === 'product' ? (
             <BreakdownTable
               t={t}
-              language={language}
               emptyIcon={Wallet}
               sheetName={t('profit.tabByProduct')}
               printId="profit-breakdown-product"
-              exportFileName={`profit-by-product-${vm.dateFrom}-${vm.dateTo}.xlsx`}
-              pdfFileName={`profit-by-product-${vm.dateFrom}-${vm.dateTo}.pdf`}
+              fileName={`profit-by-product-${vm.dateFrom}-${vm.dateTo}`}
               rows={breakdownRows.map((row) => ({ key: row.productId, ...row }))}
               columns={[
                 { key: 'name', label: t('profit.productName'), value: (row) => row.productName },
@@ -390,12 +330,10 @@ export default function ProfitPage() {
           ) : vm.tab === 'customer' ? (
             <BreakdownTable
               t={t}
-              language={language}
               emptyIcon={Wallet}
               sheetName={t('profit.tabByCustomer')}
               printId="profit-breakdown-customer"
-              exportFileName={`profit-by-customer-${vm.dateFrom}-${vm.dateTo}.xlsx`}
-              pdfFileName={`profit-by-customer-${vm.dateFrom}-${vm.dateTo}.pdf`}
+              fileName={`profit-by-customer-${vm.dateFrom}-${vm.dateTo}`}
               rows={breakdownRows.map((row, index) => ({ key: row.customerId || `walk-in-${index}`, ...row }))}
               columns={[
                 { key: 'name', label: t('profit.customerName'), value: (row) => row.customerName || t('profit.walkInCustomer') },
@@ -408,12 +346,10 @@ export default function ProfitPage() {
           ) : (
             <BreakdownTable
               t={t}
-              language={language}
               emptyIcon={Wallet}
               sheetName={t('profit.tabByCategory')}
               printId="profit-breakdown-category"
-              exportFileName={`profit-by-category-${vm.dateFrom}-${vm.dateTo}.xlsx`}
-              pdfFileName={`profit-by-category-${vm.dateFrom}-${vm.dateTo}.pdf`}
+              fileName={`profit-by-category-${vm.dateFrom}-${vm.dateTo}`}
               rows={breakdownRows.map((row, index) => ({ key: row.categoryId || `uncategorized-${index}`, ...row }))}
               columns={[
                 { key: 'name', label: t('profit.categoryName'), value: (row) => row.categoryName || t('profit.uncategorized') },
@@ -426,6 +362,8 @@ export default function ProfitPage() {
             />
           )}
         </>
+      )}
+      </>
       )}
     </div>
   );

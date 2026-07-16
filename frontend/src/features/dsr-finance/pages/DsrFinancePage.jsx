@@ -111,8 +111,8 @@ export default function DsrFinancePage() {
               ))}
             </Select>
           </div>
-          <div className="min-w-[220px]">
-            <label className="label">{t('dsrDueLedger.dateFrom')}</label>
+          <div className="min-w-[280px]">
+            <label className="label">{t('dsrDueLedger.dateRangeLabel')}</label>
             <DateRangePickerField
               from={dueVm.dateFrom}
               to={dueVm.dateTo}

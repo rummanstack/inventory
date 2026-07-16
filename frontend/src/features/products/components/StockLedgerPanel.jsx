@@ -328,7 +328,7 @@ export default function StockLedgerPanel({ products, t, refreshKey = 0, fixedTyp
       ) : null}
 
       {!loading && !error && movements.length ? (
-        <div className="flex flex-col gap-3 border-t border-slate-100 px-5 py-4 no-print sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col items-center gap-3 border-t border-slate-100 px-5 py-4 no-print sm:flex-row sm:justify-center">
           <span className="muted-chip">{formatNumber(total)} {t('common.records')}</span>
           <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
         </div>

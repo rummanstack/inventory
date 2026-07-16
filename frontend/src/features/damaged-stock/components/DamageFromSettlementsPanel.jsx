@@ -183,7 +183,7 @@ export default function DamageFromSettlementsPanel({ products, flushTop = false 
       ) : null}
 
       {!loading && !error && records.length ? (
-        <div className="flex flex-col gap-3 border-t border-slate-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col items-center gap-3 border-t border-slate-100 px-5 py-4 sm:flex-row sm:justify-center">
           <span className="muted-chip">{formatNumber(total, language)} {t('common.records')}</span>
           <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
         </div>

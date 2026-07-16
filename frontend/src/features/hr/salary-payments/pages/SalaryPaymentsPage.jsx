@@ -7,6 +7,7 @@ import { formatCurrency, formatDate } from '../../../../utils/calculations.js';
 import { inventoryApi } from '../../../../services/inventoryApi.js';
 import { useSalaryPaymentsViewModel } from '../viewmodels/useSalaryPaymentsViewModel.js';
 import RecordPaymentModal from '../components/RecordPaymentModal.jsx';
+import { useMutation } from '@tanstack/react-query';
 
 function monthLabel(month) {
   if (!month) return '';
@@ -57,23 +58,23 @@ function PaymentStatusBadge({ emp, t }) {
 
 function ActiveDaysInput({ emp, month, onSaved, canManage, t }) {
   const [value, setValue] = useState(emp.activeDays !== null ? String(emp.activeDays) : '');
-  const [saving, setSaving] = useState(false);
   const prevValue = useRef(value);
+  const activeDaysMutation = useMutation({
+    mutationFn: (activeDays) => inventoryApi.setSalaryActiveDays(emp.employeeId, month, activeDays),
+  });
+  const saving = activeDaysMutation.isPending;
 
   async function save() {
     const num = value === '' ? null : Number(value);
     if (num !== null && (isNaN(num) || num < 0)) return;
     if (String(num ?? '') === String(emp.activeDays ?? '')) return;
     if (num !== null && num > emp.daysInMonth) return;
-    setSaving(true);
     try {
-      await inventoryApi.setSalaryActiveDays(emp.employeeId, month, num ?? 0);
+      await activeDaysMutation.mutateAsync(num ?? 0);
       prevValue.current = value;
       onSaved();
     } catch {
       setValue(prevValue.current);
-    } finally {
-      setSaving(false);
     }
   }
 
@@ -119,6 +120,9 @@ export default function SalaryPaymentsPage() {
   const [payModal, setPayModal] = useState(null);
   const [expanded, setExpanded] = useState({});
   const [deletingId, setDeletingId] = useState(null);
+  const deletePaymentMutation = useMutation({
+    mutationFn: (paymentId) => inventoryApi.deleteSalaryPayment(paymentId),
+  });
 
   const canManage = can('manage_payroll');
   const employees = vm.data?.employees || [];
@@ -137,7 +141,7 @@ export default function SalaryPaymentsPage() {
     if (!confirmed) return;
     setDeletingId(payment.id);
     try {
-      await inventoryApi.deleteSalaryPayment(payment.id);
+      await deletePaymentMutation.mutateAsync(payment.id);
       pushToast('success', t('salary.deletedToast'), t('salary.deletedToastDescription'));
       vm.reload();
     } catch (err) {
@@ -419,4 +423,3 @@ export default function SalaryPaymentsPage() {
     </div>
   );
 }
-

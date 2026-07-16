@@ -3,6 +3,7 @@ import { Alert, EmptyState, MobileCardList, MobileListCard, Pagination, SectionH
 import TableReportActions from '../../../../components/TableReportActions.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../../services/inventoryApi.js';
+import { useMutation } from '@tanstack/react-query';
 import { useDesignationsViewModel } from '../viewmodels/useDesignationsViewModel.js';
 import DesignationFormModal from '../components/DesignationFormModal.jsx';
 import { useEffect, useState } from 'react';
@@ -30,6 +31,13 @@ export default function DesignationsPage() {
   const vm = useDesignationsViewModel();
   const [formModal, setFormModal] = useState(null);
   const canManage = can('manage_designations');
+  const designationMutation = useMutation({
+    mutationFn: ({ action, data, reason }) => {
+      if (action === 'update') return inventoryApi.updateDesignation(data);
+      if (action === 'create') return inventoryApi.createDesignation(data);
+      return inventoryApi.deleteDesignation(data.id, reason);
+    },
+  });
 
   useEffect(() => {
     function handleKeyDown(event) {
@@ -46,9 +54,9 @@ export default function DesignationsPage() {
   async function handleSave(data) {
     try {
       if (data.id) {
-        await inventoryApi.updateDesignation(data);
+        await designationMutation.mutateAsync({ action: 'update', data });
       } else {
-        await inventoryApi.createDesignation(data);
+        await designationMutation.mutateAsync({ action: 'create', data });
       }
       setFormModal(null);
       vm.reload();
@@ -72,7 +80,7 @@ export default function DesignationsPage() {
     if (!confirmed) return;
 
     try {
-      await inventoryApi.deleteDesignation(designation.id, reason);
+      await designationMutation.mutateAsync({ action: 'delete', data: designation, reason });
       pushToast('success', t('common.delete'), `${designation.name} ${t('alerts.deleted')}`);
       vm.reload();
     } catch (error) {

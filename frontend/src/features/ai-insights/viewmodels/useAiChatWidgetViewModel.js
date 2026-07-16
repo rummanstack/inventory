@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { useTenantApiQuery } from '../../../queries/useTenantApiQuery.js';
+import { useMutation } from '@tanstack/react-query';
 
 const INITIAL_MESSAGES = [
   {
@@ -26,7 +27,6 @@ export function useAiChatWidgetViewModel() {
   const [contextType, setContextType] = useState('general');
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState(INITIAL_MESSAGES);
-  const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
 
   const initialQuery = useTenantApiQuery({
@@ -44,6 +44,10 @@ export function useAiChatWidgetViewModel() {
       };
     },
   });
+  const chatMutation = useMutation({
+    mutationFn: (payload) => inventoryApi.sendAiChatMessage(payload),
+  });
+  const sending = chatMutation.isPending;
   const status = initialQuery.data?.status || null;
   const customers = initialQuery.data?.customers || [];
   const loading = initialQuery.isLoading;
@@ -82,11 +86,10 @@ export function useAiChatWidgetViewModel() {
     const nextMessages = [...messages, userMessage];
     setMessages(nextMessages);
     setMessage('');
-    setSending(true);
     setError('');
 
     try {
-      const result = await inventoryApi.sendAiChatMessage({
+      const result = await chatMutation.mutateAsync({
         message: text,
         contextType,
         customerId: contextType === 'customer' ? customerId : undefined,
@@ -105,8 +108,6 @@ export function useAiChatWidgetViewModel() {
         content: requestError?.message || t('alerts.requestFailed'),
         meta: t('aiChat.requestFailed'),
       }]);
-    } finally {
-      setSending(false);
     }
   }
 

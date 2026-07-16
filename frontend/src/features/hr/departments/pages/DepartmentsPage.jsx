@@ -7,6 +7,7 @@ import { inventoryApi } from '../../../../services/inventoryApi.js';
 import { useDepartmentsViewModel } from '../viewmodels/useDepartmentsViewModel.js';
 import DepartmentFormModal from '../components/DepartmentFormModal.jsx';
 import { useTenantApiQuery } from '../../../../queries/useTenantApiQuery.js';
+import { useMutation } from '@tanstack/react-query';
 
 const DEPARTMENTS_REPORT_ID = 'departments-report';
 const DEPARTMENTS_ADD_SHORTCUT = { alt: true, key: 'a', label: 'Alt+A' };
@@ -50,13 +51,20 @@ export default function DepartmentsPage() {
     staleTime: 30_000,
   });
   const employees = Array.isArray(employeesQuery.data) ? employeesQuery.data : [];
+  const departmentMutation = useMutation({
+    mutationFn: ({ action, data, reason }) => {
+      if (action === 'update') return inventoryApi.updateDepartment(data);
+      if (action === 'create') return inventoryApi.createDepartment(data);
+      return inventoryApi.deleteDepartment(data.id, reason);
+    },
+  });
 
   async function handleSave(data) {
     try {
       if (data.id) {
-        await inventoryApi.updateDepartment(data);
+        await departmentMutation.mutateAsync({ action: 'update', data });
       } else {
-        await inventoryApi.createDepartment(data);
+        await departmentMutation.mutateAsync({ action: 'create', data });
       }
       setFormModal(null);
       vm.reload();
@@ -80,7 +88,7 @@ export default function DepartmentsPage() {
     if (!confirmed) return;
 
     try {
-      await inventoryApi.deleteDepartment(department.id, reason);
+      await departmentMutation.mutateAsync({ action: 'delete', data: department, reason });
       pushToast('success', t('common.delete'), `${department.name} ${t('alerts.deleted')}`);
       vm.reload();
     } catch (error) {

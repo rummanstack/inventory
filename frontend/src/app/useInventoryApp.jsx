@@ -312,6 +312,70 @@ export function InventoryAppProvider({ children }) {
     mutationKey: transactionKeys.mutation(productTenantId, 'save-evening-settlement'),
     mutationFn: (settlement) => inventoryApi.saveSettlement(settlement),
   });
+  const saveDsrMutation = useMutation({
+    mutationFn: (dsr) => dsr.id ? inventoryApi.updateDsr(dsr) : inventoryApi.createDsr(dsr),
+  });
+  const deleteDsrMutation = useMutation({
+    mutationFn: ({ id, reason }) => inventoryApi.deleteDsr(id, reason),
+  });
+  const saveSrMutation = useMutation({
+    mutationFn: (sr) => sr.id ? inventoryApi.updateSr(sr) : inventoryApi.createSr(sr),
+  });
+  const deleteSrMutation = useMutation({
+    mutationFn: ({ id, reason }) => inventoryApi.deleteSr(id, reason),
+  });
+  const saveProductSerialMutation = useMutation({
+    mutationFn: (serial) => serial.id ? inventoryApi.updateProductSerial(serial) : inventoryApi.createProductSerial(serial),
+  });
+  const deleteProductSerialMutation = useMutation({
+    mutationFn: ({ id, reason }) => inventoryApi.deleteProductSerial(id, reason),
+  });
+  const saveWarrantyClaimMutation = useMutation({
+    mutationFn: (claim) => claim.id ? inventoryApi.updateWarrantyClaim(claim) : inventoryApi.createWarrantyClaim(claim),
+  });
+  const deleteWarrantyClaimMutation = useMutation({
+    mutationFn: ({ id, reason }) => inventoryApi.deleteWarrantyClaim(id, reason),
+  });
+  const saveRepairJobMutation = useMutation({
+    mutationFn: (job) => job.id ? inventoryApi.updateRepairJob(job) : inventoryApi.createRepairJob(job),
+  });
+  const deleteRepairJobMutation = useMutation({
+    mutationFn: ({ id, reason }) => inventoryApi.deleteRepairJob(id, reason),
+  });
+  const saveTradeInMutation = useMutation({
+    mutationFn: (tradeIn) => inventoryApi.createTradeIn(tradeIn),
+  });
+  const deleteTradeInMutation = useMutation({
+    mutationFn: ({ id, reason }) => inventoryApi.deleteTradeIn(id, reason),
+  });
+  const saveRetailPromotionMutation = useMutation({
+    mutationFn: (promotion) => promotion.id
+      ? inventoryApi.updateRetailPromotion(promotion)
+      : inventoryApi.createRetailPromotion(promotion),
+  });
+  const deleteRetailPromotionMutation = useMutation({
+    mutationFn: (id) => inventoryApi.deleteRetailPromotion(id),
+  });
+  const saveTradePromotionRuleMutation = useMutation({
+    mutationFn: (rule) => rule.id
+      ? inventoryApi.updateTradePromotionRule(rule)
+      : inventoryApi.createTradePromotionRule(rule),
+  });
+  const deleteTradePromotionRuleMutation = useMutation({
+    mutationFn: ({ id, reason }) => inventoryApi.deleteTradePromotionRule(id, reason),
+  });
+  const createTradePromotionSettlementMutation = useMutation({
+    mutationFn: (settlement) => inventoryApi.createTradePromotionSettlement(settlement),
+  });
+  const deleteTradePromotionSettlementMutation = useMutation({
+    mutationFn: ({ id, reason }) => inventoryApi.deleteTradePromotionSettlement(id, reason),
+  });
+  const trashActionMutation = useMutation({
+    mutationFn: (action) => action(),
+  });
+  const updateProfileMutation = useMutation({
+    mutationFn: (fields) => inventoryApi.updateProfile(fields),
+  });
 
   function invalidateProductDerivedQueries() {
     if (!productTenantId) return;
@@ -656,7 +720,7 @@ export function InventoryAppProvider({ children }) {
 
   async function saveDsr(dsr) {
     try {
-      const result = dsr.id ? await inventoryApi.updateDsr(dsr) : await inventoryApi.createDsr(dsr);
+      const result = await saveDsrMutation.mutateAsync(dsr);
       upsertDsrDirectory(result.dsr);
       pushToast('success', dsr.id ? t('dsr.editTitle') : t('dsr.addTitle'), `${dsr.name} ${dsr.id ? t('alerts.updated') : t('alerts.created')}`);
       return { ok: true };
@@ -684,7 +748,7 @@ export function InventoryAppProvider({ children }) {
     }
 
     try {
-      await inventoryApi.deleteDsr(dsr.id, reason);
+      await deleteDsrMutation.mutateAsync({ id: dsr.id, reason });
       removeFromDsrDirectory(dsr.id);
       pushToast('success', t('common.delete'), `${dsr.name} ${t('alerts.deleted')}`);
       return { ok: true };
@@ -697,7 +761,7 @@ export function InventoryAppProvider({ children }) {
 
   async function saveSr(sr) {
     try {
-      const result = sr.id ? await inventoryApi.updateSr(sr) : await inventoryApi.createSr(sr);
+      const result = await saveSrMutation.mutateAsync(sr);
       upsertSrDirectory(result.sr);
       pushToast('success', sr.id ? t('srs.updatedToast') : t('srs.addedToast'), `${sr.name} ${sr.id ? t('alerts.updated') : t('alerts.created')}`);
       return { ok: true };
@@ -724,7 +788,7 @@ export function InventoryAppProvider({ children }) {
     }
 
     try {
-      await inventoryApi.deleteSr(sr.id, reason);
+      await deleteSrMutation.mutateAsync({ id: sr.id, reason });
       removeFromSrDirectory(sr.id);
       pushToast('success', t('common.delete'), `${sr.name} ${t('alerts.deleted')}`);
       return { ok: true };
@@ -863,7 +927,7 @@ export function InventoryAppProvider({ children }) {
 
   async function saveProductSerial(serial) {
     try {
-      const result = serial.id ? await inventoryApi.updateProductSerial(serial) : await inventoryApi.createProductSerial(serial);
+      const result = await saveProductSerialMutation.mutateAsync(serial);
       pushToast('success', serial.id ? t('productSerials.editTitle') : t('productSerials.addTitle'), serial.id ? t('alerts.updated') : t('alerts.created'));
       return { ok: true, serial: result.serial || result };
     } catch (error) {
@@ -889,7 +953,7 @@ export function InventoryAppProvider({ children }) {
     }
 
     try {
-      await inventoryApi.deleteProductSerial(serial.id, reason);
+      await deleteProductSerialMutation.mutateAsync({ id: serial.id, reason });
       pushToast('success', t('common.delete'), t('alerts.deleted'));
       return { ok: true };
     } catch (error) {
@@ -901,7 +965,7 @@ export function InventoryAppProvider({ children }) {
 
   async function saveWarrantyClaim(claim) {
     try {
-      const result = claim.id ? await inventoryApi.updateWarrantyClaim(claim) : await inventoryApi.createWarrantyClaim(claim);
+      const result = await saveWarrantyClaimMutation.mutateAsync(claim);
       pushToast('success', claim.id ? t('warrantyClaims.editTitle') : t('warrantyClaims.addTitle'), claim.id ? t('alerts.updated') : t('alerts.created'));
       return { ok: true, claim: result.claim || result };
     } catch (error) {
@@ -928,7 +992,7 @@ export function InventoryAppProvider({ children }) {
     }
 
     try {
-      await inventoryApi.deleteWarrantyClaim(claim.id, reason);
+      await deleteWarrantyClaimMutation.mutateAsync({ id: claim.id, reason });
       pushToast('success', t('common.delete'), `${claim.claimNumber} ${t('alerts.deleted')}`);
       return { ok: true };
     } catch (error) {
@@ -940,7 +1004,7 @@ export function InventoryAppProvider({ children }) {
 
   async function saveRepairJob(job) {
     try {
-      const result = job.id ? await inventoryApi.updateRepairJob(job) : await inventoryApi.createRepairJob(job);
+      const result = await saveRepairJobMutation.mutateAsync(job);
       pushToast('success', job.id ? t('repairJobs.editTitle') : t('repairJobs.addTitle'), job.id ? t('alerts.updated') : t('alerts.created'));
       return { ok: true, job: result };
     } catch (error) {
@@ -967,7 +1031,7 @@ export function InventoryAppProvider({ children }) {
     }
 
     try {
-      await inventoryApi.deleteRepairJob(job.id, reason);
+      await deleteRepairJobMutation.mutateAsync({ id: job.id, reason });
       pushToast('success', t('common.delete'), `${job.jobNumber} ${t('alerts.deleted')}`);
       return { ok: true };
     } catch (error) {
@@ -979,7 +1043,7 @@ export function InventoryAppProvider({ children }) {
 
   async function saveTradeIn(tradeIn) {
     try {
-      const result = await inventoryApi.createTradeIn(tradeIn);
+      const result = await saveTradeInMutation.mutateAsync(tradeIn);
       pushToast('success', t('tradeIns.addTitle'), t('alerts.created'));
       return { ok: true, tradeIn: result };
     } catch (error) {
@@ -1003,7 +1067,7 @@ export function InventoryAppProvider({ children }) {
     });
     if (!confirmed) return { ok: false };
     try {
-      await inventoryApi.deleteTradeIn(tradeIn.id, reason);
+      await deleteTradeInMutation.mutateAsync({ id: tradeIn.id, reason });
       pushToast('success', t('common.delete'), `${tradeIn.tradeInNumber} ${t('alerts.deleted')}`);
       return { ok: true };
     } catch (error) {
@@ -1278,9 +1342,7 @@ export function InventoryAppProvider({ children }) {
 
   async function saveRetailPromotion(promotion) {
     try {
-      const result = promotion.id
-        ? await inventoryApi.updateRetailPromotion(promotion)
-        : await inventoryApi.createRetailPromotion(promotion);
+      const result = await saveRetailPromotionMutation.mutateAsync(promotion);
       upsertPromotionDirectory(result.promotion);
       pushToast('success', promotion.id ? t('retailer.promotions.editTitle') : t('retailer.promotions.addTitle'), `${result.promotion.name} ${promotion.id ? t('alerts.updated') : t('alerts.created')}`);
       return { ok: true, promotion: result.promotion };
@@ -1306,7 +1368,7 @@ export function InventoryAppProvider({ children }) {
     }
 
     try {
-      await inventoryApi.deleteRetailPromotion(promotion.id);
+      await deleteRetailPromotionMutation.mutateAsync(promotion.id);
       removeFromPromotionDirectory(promotion.id);
       pushToast('success', t('common.delete'), `${promotion.name} ${t('alerts.deleted')}`);
       return { ok: true };
@@ -1319,9 +1381,7 @@ export function InventoryAppProvider({ children }) {
 
   async function saveTradePromotionRule(rule) {
     try {
-      const result = rule.id
-        ? await inventoryApi.updateTradePromotionRule(rule)
-        : await inventoryApi.createTradePromotionRule(rule);
+      const result = await saveTradePromotionRuleMutation.mutateAsync(rule);
       pushToast('success', rule.id ? t('tradePromotions.rules.editTitle') : t('tradePromotions.rules.addTitle'), `${result.name} ${rule.id ? t('alerts.updated') : t('alerts.created')}`);
       return { ok: true, rule: result };
     } catch (error) {
@@ -1348,7 +1408,7 @@ export function InventoryAppProvider({ children }) {
     }
 
     try {
-      await inventoryApi.deleteTradePromotionRule(rule.id, reason);
+      await deleteTradePromotionRuleMutation.mutateAsync({ id: rule.id, reason });
       pushToast('success', t('common.delete'), `${rule.name} ${t('alerts.deleted')}`);
       return { ok: true };
     } catch (error) {
@@ -1360,7 +1420,7 @@ export function InventoryAppProvider({ children }) {
 
   async function createTradePromotionSettlement(settlement) {
     try {
-      const result = await inventoryApi.createTradePromotionSettlement(settlement);
+      const result = await createTradePromotionSettlementMutation.mutateAsync(settlement);
       pushToast('success', t('tradePromotions.settlements.addTitle'), t('alerts.created'));
       return { ok: true, settlement: result };
     } catch (error) {
@@ -1386,7 +1446,7 @@ export function InventoryAppProvider({ children }) {
     }
 
     try {
-      await inventoryApi.deleteTradePromotionSettlement(settlement.id, reason);
+      await deleteTradePromotionSettlementMutation.mutateAsync({ id: settlement.id, reason });
       pushToast('success', t('tradePromotions.settlements.void'), t('alerts.deleted'));
       return { ok: true };
     } catch (error) {
@@ -1408,7 +1468,7 @@ export function InventoryAppProvider({ children }) {
     }
 
     try {
-      await restoreFn();
+      await trashActionMutation.mutateAsync(restoreFn);
       await onRestored?.();
       pushToast('success', t('trash.restore'), `${name} ${t('trash.restoreSuccess')}`);
       return { ok: true };
@@ -1432,7 +1492,7 @@ export function InventoryAppProvider({ children }) {
     }
 
     try {
-      await deleteFn();
+      await trashActionMutation.mutateAsync(deleteFn);
       pushToast('success', t('trash.permanentDelete'), `${name} ${t('trash.permanentDeleteSuccess')}`);
       return { ok: true };
     } catch (error) {
@@ -1681,7 +1741,7 @@ export function InventoryAppProvider({ children }) {
 
   async function updateProfile(fields) {
     try {
-      const result = await inventoryApi.updateProfile(fields);
+      const result = await updateProfileMutation.mutateAsync(fields);
       setUser((current) => (current ? { ...current, ...result.user } : result.user));
       pushToast('success', t('profile.title'), t('profile.updateSuccess'));
       return { ok: true };

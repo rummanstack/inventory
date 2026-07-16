@@ -3,6 +3,7 @@ import { AlertCircle, ArrowRight, CalendarClock, CheckCircle2, History, Loader2,
 import { Alert, Badge, EmptyState, Modal, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import { useTenantApiQuery } from '../../../queries/useTenantApiQuery.js';
+import { useMutation } from '@tanstack/react-query';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { formatDateTime, formatNumber } from '../../../utils/calculations.js';
 
@@ -265,6 +266,14 @@ export default function HelpDeskPage() {
     scope: 'help-desk-tickets',
     queryFn: () => inventoryApi.listHelpDeskTickets(),
   });
+  const ticketMutation = useMutation({
+    mutationFn: ({ action, ticketId, payload }) => {
+      if (action === 'update') return inventoryApi.updateHelpDeskTicket(payload);
+      if (action === 'create') return inventoryApi.createHelpDeskTicket(payload);
+      if (action === 'note') return inventoryApi.addHelpDeskTicketNote(ticketId, payload);
+      return inventoryApi.transitionHelpDeskTicket(ticketId, payload);
+    },
+  });
   const loading = ticketsQuery.isLoading || ticketsQuery.isFetching;
   const loadError = ticketsQuery.error?.message || '';
 
@@ -362,10 +371,10 @@ export default function HelpDeskPage() {
   async function createOrUpdateTicket(payload) {
     if (!canManage) return { ok: false, message: t('alerts.forbidden') };
     try {
-      const request = editingTicket
-        ? inventoryApi.updateHelpDeskTicket({ ...editingTicket, ...payload })
-        : inventoryApi.createHelpDeskTicket(payload);
-      const result = await request;
+      const result = await ticketMutation.mutateAsync({
+        action: editingTicket ? 'update' : 'create',
+        payload: editingTicket ? { ...editingTicket, ...payload } : payload,
+      });
       if (!result?.ticket) {
         throw new Error(t('alerts.requestFailed'));
       }
@@ -390,7 +399,7 @@ export default function HelpDeskPage() {
     }
 
     try {
-      const result = await inventoryApi.addHelpDeskTicketNote(ticketId, body);
+      const result = await ticketMutation.mutateAsync({ action: 'note', ticketId, payload: body });
       if (!result?.ticket) {
         throw new Error(t('alerts.requestFailed'));
       }
@@ -407,14 +416,14 @@ export default function HelpDeskPage() {
   async function transitionTicket(ticketId, nextStatus, options = {}) {
     if (!canManage) return;
     try {
-      const result = await inventoryApi.transitionHelpDeskTicket(ticketId, {
+      const result = await ticketMutation.mutateAsync({ action: 'transition', ticketId, payload: {
         status: nextStatus,
         priority: options.priority,
         assigneeId: options.assigneeId,
         assigneeName: options.assigneeName,
         escalated: Boolean(options.escalated),
         note: options.note,
-      });
+      } });
       if (!result?.ticket) {
         throw new Error(t('alerts.requestFailed'));
       }

@@ -1,14 +1,18 @@
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
 import { Camera, Loader2, X } from 'lucide-react';
 import { useInventoryApp } from '../app/useInventoryApp.jsx';
 import { inventoryApi } from '../services/inventoryApi.js';
+import { useMutation } from '@tanstack/react-query';
 
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;
 
 export default function PhotoUploadField({ label, value, onChange, shape = 'circle', disabled = false }) {
   const { t, pushToast } = useInventoryApp();
   const inputRef = useRef(null);
-  const [uploading, setUploading] = useState(false);
+  const uploadMutation = useMutation({
+    mutationFn: (file) => inventoryApi.uploadPhoto(file),
+  });
+  const uploading = uploadMutation.isPending;
 
   async function handleFileChange(event) {
     const file = event.target.files?.[0];
@@ -24,14 +28,11 @@ export default function PhotoUploadField({ label, value, onChange, shape = 'circ
       return;
     }
 
-    setUploading(true);
     try {
-      const result = await inventoryApi.uploadPhoto(file);
+      const result = await uploadMutation.mutateAsync(file);
       onChange(result.url);
     } catch (error) {
       pushToast('error', t('photoUpload.title'), error?.message || t('photoUpload.uploadFailed'));
-    } finally {
-      setUploading(false);
     }
   }
 

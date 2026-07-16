@@ -4,6 +4,7 @@ import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import { formatCurrency } from '../../../utils/calculations.js';
 import { useTenantApiQuery } from '../../../queries/useTenantApiQuery.js';
+import { useMutation } from '@tanstack/react-query';
 
 function OpeningBalanceFormModal({ item, accounts, customers, suppliers, financeAccounts, onClose, onSave }) {
   const [form, setForm] = useState({
@@ -106,6 +107,11 @@ export default function OpeningBalancesPage() {
       return { balances, coa, retailCustomers, supplierRows, accountRows };
     },
   });
+  const balanceMutation = useMutation({
+    mutationFn: ({ id, form }) => id
+      ? inventoryApi.updateOpeningBalance(id, form)
+      : inventoryApi.createOpeningBalance(form),
+  });
   const items = balancesQuery.data?.balances?.openingBalances || [];
   const accounts = balancesQuery.data?.coa?.accounts || [];
   const customers = balancesQuery.data?.retailCustomers?.items || balancesQuery.data?.retailCustomers?.customers || [];
@@ -116,11 +122,7 @@ export default function OpeningBalancesPage() {
 
   async function handleSave(form) {
     try {
-      if (modal?.item) {
-        await inventoryApi.updateOpeningBalance(modal.item.id, form);
-      } else {
-        await inventoryApi.createOpeningBalance(form);
-      }
+      await balanceMutation.mutateAsync({ id: modal?.item?.id, form });
       setModal(null);
       await load();
       pushToast('success', 'Opening Balances', modal?.item ? 'Opening balance updated.' : 'Opening balance created.');

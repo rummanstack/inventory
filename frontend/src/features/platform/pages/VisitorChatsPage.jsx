@@ -6,6 +6,7 @@ import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { usePolling } from '../../../hooks/usePolling.js';
 import { formatDateTime } from '../../../utils/calculations.js';
 import { useTenantApiQuery } from '../../../queries/useTenantApiQuery.js';
+import { useMutation } from '@tanstack/react-query';
 
 function VisitorChatRow({ chat, active, onSelect, t, language }) {
   return (
@@ -34,9 +35,16 @@ export default function VisitorChatsPage() {
   const [selectedChatId, setSelectedChatId] = useState('');
   const [messages, setMessages] = useState([]);
   const [draftReply, setDraftReply] = useState('');
-  const [sending, setSending] = useState(false);
   const afterIdRef = useRef(0);
   const markedReadRef = useRef('');
+  const chatMutation = useMutation({
+    mutationFn: ({ action, chatId, body }) => {
+      if (action === 'read') return inventoryApi.markVisitorChatRead(chatId);
+      if (action === 'reply') return inventoryApi.postVisitorChatReply(chatId, body);
+      return inventoryApi.closeVisitorChat(chatId);
+    },
+  });
+  const sending = chatMutation.isPending && chatMutation.variables?.action === 'reply';
   const chatsQuery = useTenantApiQuery({
     scope: 'platform-visitor-chats',
     params: { statusFilter },
@@ -81,7 +89,7 @@ export default function VisitorChatsPage() {
         afterIdRef.current = loaded.length ? loaded[loaded.length - 1].id : 0;
         if (markedReadRef.current !== selectedChatId) {
           markedReadRef.current = selectedChatId;
-          await inventoryApi.markVisitorChatRead(selectedChatId);
+          await chatMutation.mutateAsync({ action: 'read', chatId: selectedChatId });
           setChats((current) => current.map((chat) => (chat.id === selectedChatId ? { ...chat, unreadForAdmin: false } : chat)));
         }
       } catch (error) {
@@ -115,21 +123,18 @@ export default function VisitorChatsPage() {
       return;
     }
 
-    setSending(true);
     try {
-      await inventoryApi.postVisitorChatReply(selectedChatId, body);
+      await chatMutation.mutateAsync({ action: 'reply', chatId: selectedChatId, body });
       setDraftReply('');
       await pollSelectedChatMessages();
     } catch (error) {
       pushToast('error', t('visitorChats.replyFailed'), error?.message || t('alerts.requestFailed'));
-    } finally {
-      setSending(false);
     }
   }
 
   async function closeChat(chatId) {
     try {
-      const result = await inventoryApi.closeVisitorChat(chatId);
+      const result = await chatMutation.mutateAsync({ action: 'close', chatId });
       setChats((current) => current.map((chat) => (chat.id === chatId ? result.chat : chat)));
       pushToast('success', t('visitorChats.title'), t('visitorChats.closed'));
     } catch (error) {

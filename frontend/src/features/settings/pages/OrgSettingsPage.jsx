@@ -4,6 +4,7 @@ import { Alert, SectionHeader, Select } from '../../../components/ui.jsx';
 import PhotoUploadField from '../../../components/PhotoUploadField.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
+import { useMutation } from '@tanstack/react-query';
 
 export default function OrgSettingsPage() {
   const { tenant, user, t, setTenant, pushToast } = useInventoryApp();
@@ -18,8 +19,11 @@ export default function OrgSettingsPage() {
     loyaltyPointValue: String(Number(tenant?.loyaltyPointValue ?? 1)),
     businessType: tenant?.businessType || 'ELECTRONICS',
   });
-  const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const settingsMutation = useMutation({
+    mutationFn: (payload) => inventoryApi.updateOrgSettings(payload),
+  });
+  const saving = settingsMutation.isPending;
 
   useEffect(() => {
     if (!tenant) return;
@@ -45,10 +49,9 @@ export default function OrgSettingsPage() {
 
   async function handleSubmit(event) {
     event.preventDefault();
-    setSaving(true);
     setError('');
     try {
-      const result = await inventoryApi.updateOrgSettings(form);
+      const result = await settingsMutation.mutateAsync(form);
       if (result?.tenant) {
         setTenant((current) => (current ? { ...current, ...result.tenant } : result.tenant));
       }
@@ -57,8 +60,6 @@ export default function OrgSettingsPage() {
       const message = err?.message || t('orgSettings.saveFailed');
       setError(message);
       pushToast('error', t('alerts.requestFailed'), message);
-    } finally {
-      setSaving(false);
     }
   }
 
@@ -206,4 +207,3 @@ export default function OrgSettingsPage() {
     </div>
   );
 }
-

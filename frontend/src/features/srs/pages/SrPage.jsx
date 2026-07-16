@@ -9,6 +9,7 @@ import { formatCurrency } from '../../../utils/calculations.js';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import SrFormModal from '../components/SrFormModal';
 import { useSrViewModel } from '../viewmodels/useSrViewModel';
+import { useMutation } from '@tanstack/react-query';
 
 const SRS_REPORT_ID = 'srs-report';
 const SRS_REPORT_SHORTCUTS = {
@@ -84,6 +85,9 @@ function CollectDueModal({ sr, onClose, onSave, t }) {
 export default function SrPage() {
   const { saveSr, deleteSr, can, t } = useInventoryApp();
   const vm = useSrViewModel();
+  const collectionMutation = useMutation({
+    mutationFn: (payload) => inventoryApi.collectSrDue(payload),
+  });
   const [srModal, setSrModal] = useState(null);
   const [collectModal, setCollectModal] = useState(null);
   const canManageSrs = can('manage_srs');
@@ -280,7 +284,7 @@ export default function SrPage() {
           onClose={() => setCollectModal(null)}
           onSave={async (payload) => {
             try {
-              await inventoryApi.collectSrDue({ srId: collectModal.id, ...payload });
+              await collectionMutation.mutateAsync({ srId: collectModal.id, ...payload });
               setCollectModal(null);
               vm.reload();
               return { ok: true };

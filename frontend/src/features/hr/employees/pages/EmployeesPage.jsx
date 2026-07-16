@@ -8,6 +8,7 @@ import { formatDate } from '../../../../utils/calculations.js';
 import { useEmployeesViewModel } from '../viewmodels/useEmployeesViewModel.js';
 import EmployeeFormModal from '../components/EmployeeFormModal.jsx';
 import { useTenantApiQuery } from '../../../../queries/useTenantApiQuery.js';
+import { useMutation } from '@tanstack/react-query';
 
 const EMPLOYEES_REPORT_ID = 'employees-report';
 const EMPLOYEES_ADD_SHORTCUT = { alt: true, key: 'a', label: 'Alt+A' };
@@ -61,6 +62,13 @@ export default function EmployeesPage() {
   });
   const departments = referencesQuery.data?.departments || [];
   const designations = referencesQuery.data?.designations || [];
+  const employeeMutation = useMutation({
+    mutationFn: ({ action, data, reason }) => {
+      if (action === 'update') return inventoryApi.updateEmployee(data);
+      if (action === 'create') return inventoryApi.createEmployee(data);
+      return inventoryApi.deleteEmployee(data.id, reason);
+    },
+  });
 
   async function handleDelete(emp) {
     const { confirmed, reason } = await confirm({
@@ -74,7 +82,7 @@ export default function EmployeesPage() {
     });
     if (!confirmed) return;
     try {
-      await inventoryApi.deleteEmployee(emp.id, reason);
+      await employeeMutation.mutateAsync({ action: 'delete', data: emp, reason });
       pushToast('success', t('employees.title'), t('alerts.deleted'));
       vm.reload();
     } catch (err) {
@@ -85,9 +93,9 @@ export default function EmployeesPage() {
   async function handleSave(data) {
     try {
       if (data.id) {
-        await inventoryApi.updateEmployee(data);
+        await employeeMutation.mutateAsync({ action: 'update', data });
       } else {
-        await inventoryApi.createEmployee(data);
+        await employeeMutation.mutateAsync({ action: 'create', data });
       }
       setFormModal(null);
       vm.reload();

@@ -4,6 +4,7 @@ import { Alert, Modal, Select } from '../../../../components/ui.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
 import { formatCurrency } from '../../../../utils/calculations.js';
 import { inventoryApi } from '../../../../services/inventoryApi.js';
+import { useMutation } from '@tanstack/react-query';
 
 export default function RecordPaymentModal({ employee, onClose, onSaved }) {
   const { t, language } = useInventoryApp();
@@ -12,8 +13,11 @@ export default function RecordPaymentModal({ employee, onClose, onSaved }) {
   const [paymentMethod, setPaymentMethod] = useState('CASH');
   const [paymentDate, setPaymentDate] = useState(new Date().toISOString().slice(0, 10));
   const [note, setNote] = useState('');
-  const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const paymentMutation = useMutation({
+    mutationFn: (payload) => inventoryApi.recordSalaryPayment(payload),
+  });
+  const saving = paymentMutation.isPending;
 
   const salaryAmount = Number(employee?.salaryAmount || 0);
   const earnedAmount = employee?.earnedAmount !== null && employee?.earnedAmount !== undefined
@@ -38,10 +42,9 @@ export default function RecordPaymentModal({ employee, onClose, onSaved }) {
       setError(t('salary.amountRequired'));
       return;
     }
-    setSaving(true);
     setError('');
     try {
-      await inventoryApi.recordSalaryPayment({
+      await paymentMutation.mutateAsync({
         employeeId: employee.employeeId,
         amount: enteredAmount,
         paymentMethod,
@@ -51,7 +54,6 @@ export default function RecordPaymentModal({ employee, onClose, onSaved }) {
       onSaved?.();
     } catch (err) {
       setError(err?.message || t('salary.saveFailed'));
-      setSaving(false);
     }
   }
 
@@ -179,4 +181,3 @@ export default function RecordPaymentModal({ employee, onClose, onSaved }) {
     </Modal>
   );
 }
-

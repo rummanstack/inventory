@@ -4,6 +4,7 @@ import { Alert, Modal, SectionHeader } from '../../../../components/ui.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../../services/inventoryApi.js';
 import { useTenantApiQuery } from '../../../../queries/useTenantApiQuery.js';
+import { useMutation } from '@tanstack/react-query';
 import { printRetailReceipt } from '../../../../services/receiptService.js';
 import { formatCurrency, formatDateTime, formatNumber } from '../../../../utils/calculations.js';
 import { useSalesInvoiceFormViewModel } from '../../sales-invoices/viewmodels/useSalesInvoiceFormViewModel';
@@ -253,7 +254,6 @@ export default function QuickSalePage() {
   const [lastClosedSession, setLastClosedSession] = useState(null);
   const [sessionLoaded, setSessionLoaded] = useState(false);
   const [sessionError, setSessionError] = useState('');
-  const [savingSession, setSavingSession] = useState(false);
   const [showStartModal, setShowStartModal] = useState(false);
   const [showStopModal, setShowStopModal] = useState(false);
   const [startCashInput, setStartCashInput] = useState('0');
@@ -263,6 +263,12 @@ export default function QuickSalePage() {
     queryFn: () => inventoryApi.getCurrentRetailCashSession(),
     enabled: cashSessionEnabled,
   });
+  const sessionMutation = useMutation({
+    mutationFn: ({ action, sessionId, payload }) => action === 'start'
+      ? inventoryApi.startRetailCashSession(payload)
+      : inventoryApi.stopRetailCashSession(sessionId, payload),
+  });
+  const savingSession = sessionMutation.isPending;
   const sessionLoading = sessionQuery.isLoading || sessionQuery.isFetching;
 
   useEffect(() => {
@@ -323,8 +329,7 @@ export default function QuickSalePage() {
 
     try {
       setSessionError('');
-      setSavingSession(true);
-      const result = await inventoryApi.startRetailCashSession({ openingCash });
+      const result = await sessionMutation.mutateAsync({ action: 'start', payload: { openingCash } });
       setSession(mergeCashSessionSnapshots(result.session || null, {
         ...(result.session || {}),
         openingCash,
@@ -337,8 +342,6 @@ export default function QuickSalePage() {
       const message = error?.message || t('retailer.cashSession.startFailed');
       setSessionError(message);
       pushToast('error', t('retailer.cashSession.title'), message);
-    } finally {
-      setSavingSession(false);
     }
   }
 
@@ -355,8 +358,7 @@ export default function QuickSalePage() {
 
     try {
       setSessionError('');
-      setSavingSession(true);
-      const result = await inventoryApi.stopRetailCashSession(session.id, { countedCash });
+      const result = await sessionMutation.mutateAsync({ action: 'stop', sessionId: session.id, payload: { countedCash } });
       setLastClosedSession(result.session || null);
       setSession(null);
       setSessionLoaded(true);
@@ -367,8 +369,6 @@ export default function QuickSalePage() {
       const message = error?.message || t('retailer.cashSession.stopFailed');
       setSessionError(message);
       pushToast('error', t('retailer.cashSession.title'), message);
-    } finally {
-      setSavingSession(false);
     }
   }
 

@@ -7,7 +7,13 @@ const translations = {
 };
 
 function resolvePath(source, key) {
-  return key.split('.').reduce((current, part) => (current && typeof current === 'object' ? current[part] : undefined), source);
+  if (!source || typeof source !== 'object') return undefined;
+  // Prefer an exact match at this level first — some leaf keys (e.g. permission
+  // names like "voucher.view") contain literal dots and aren't nested objects.
+  if (Object.prototype.hasOwnProperty.call(source, key)) return source[key];
+  const dotIndex = key.indexOf('.');
+  if (dotIndex === -1) return undefined;
+  return resolvePath(source[key.slice(0, dotIndex)], key.slice(dotIndex + 1));
 }
 
 export function createTranslator(language) {

@@ -12,6 +12,7 @@ import { SHARED_DATA_DOMAINS as D, subscribeToSharedDataInvalidation } from '../
 import { fetchProductDirectory, productKeys } from '../features/products/queries/productQueries.js';
 import { apiListKeys } from '../queries/apiQueryKeys.js';
 import { reportKeys } from '../features/reports/queries/reportQueries.js';
+import { transactionKeys } from '../features/transactions/queries/transactionQueries.js';
 
 const InventoryAppContext = createContext(null);
 
@@ -158,6 +159,60 @@ export function InventoryAppProvider({ children }) {
   const clearDamagedStockMutation = useMutation({
     mutationFn: ({ productId, quantity, note }) => inventoryApi.clearDamagedStock(productId, quantity, note),
     onSuccess: (result) => updateProductCaches(result.product),
+  });
+  const saveQuotationMutation = useMutation({
+    mutationKey: transactionKeys.mutation(productTenantId, 'save-quotation'),
+    mutationFn: (quotation) => quotation.id
+      ? inventoryApi.updateQuotation(quotation)
+      : inventoryApi.createQuotation(quotation),
+  });
+  const deleteQuotationMutation = useMutation({
+    mutationKey: transactionKeys.mutation(productTenantId, 'delete-quotation'),
+    mutationFn: ({ id, reason }) => inventoryApi.deleteQuotation(id, reason),
+  });
+  const convertQuotationMutation = useMutation({
+    mutationKey: transactionKeys.mutation(productTenantId, 'convert-quotation'),
+    mutationFn: ({ id, payload }) => inventoryApi.convertQuotation(id, payload),
+  });
+  const savePurchaseReceiptMutation = useMutation({
+    mutationKey: transactionKeys.mutation(productTenantId, 'save-purchase-receipt'),
+    mutationFn: (receipt) => receipt.id
+      ? inventoryApi.updatePurchaseReceipt(receipt)
+      : inventoryApi.createPurchaseReceipt(receipt),
+  });
+  const deletePurchaseReceiptMutation = useMutation({
+    mutationKey: transactionKeys.mutation(productTenantId, 'delete-purchase-receipt'),
+    mutationFn: ({ id, reason }) => inventoryApi.deletePurchaseReceipt(id, reason),
+  });
+  const savePurchaseReturnMutation = useMutation({
+    mutationKey: transactionKeys.mutation(productTenantId, 'save-purchase-return'),
+    mutationFn: (purchaseReturn) => inventoryApi.createPurchaseReturn(purchaseReturn),
+  });
+  const deletePurchaseReturnMutation = useMutation({
+    mutationKey: transactionKeys.mutation(productTenantId, 'delete-purchase-return'),
+    mutationFn: ({ id, reason }) => inventoryApi.deletePurchaseReturn(id, reason),
+  });
+  const saveSupplierPaymentMutation = useMutation({
+    mutationKey: transactionKeys.mutation(productTenantId, 'save-supplier-payment'),
+    mutationFn: (payment) => payment.id
+      ? inventoryApi.updateSupplierPayment(payment)
+      : inventoryApi.createSupplierPayment(payment),
+  });
+  const deleteSupplierPaymentMutation = useMutation({
+    mutationKey: transactionKeys.mutation(productTenantId, 'delete-supplier-payment'),
+    mutationFn: ({ id, reason }) => inventoryApi.deleteSupplierPayment(id, reason),
+  });
+  const saveSalesInvoiceMutation = useMutation({
+    mutationKey: transactionKeys.mutation(productTenantId, 'save-sales-invoice'),
+    mutationFn: (invoice) => inventoryApi.createSalesInvoice(invoice),
+  });
+  const deleteSalesInvoiceMutation = useMutation({
+    mutationKey: transactionKeys.mutation(productTenantId, 'delete-sales-invoice'),
+    mutationFn: ({ id, reason }) => inventoryApi.deleteSalesInvoice(id, reason),
+  });
+  const saveSalesReturnMutation = useMutation({
+    mutationKey: transactionKeys.mutation(productTenantId, 'save-sales-return'),
+    mutationFn: (salesReturn) => inventoryApi.createSalesReturn(salesReturn),
   });
 
   function invalidateProductDerivedQueries() {
@@ -313,6 +368,7 @@ export function InventoryAppProvider({ children }) {
     queryClient.invalidateQueries({ queryKey: apiListKeys.all, refetchType: 'none' });
     queryClient.invalidateQueries({ queryKey: ['api-data'], refetchType: 'none' });
     queryClient.invalidateQueries({ queryKey: reportKeys.all, refetchType: 'none' });
+    queryClient.invalidateQueries({ queryKey: transactionKeys.all, refetchType: 'none' });
     if (domains.includes(D.PRODUCTS)) {
       queryClient.invalidateQueries({ queryKey: productKeys.all, refetchType: 'none' });
     }
@@ -838,7 +894,7 @@ export function InventoryAppProvider({ children }) {
 
   async function saveQuotation(quotation) {
     try {
-      const result = quotation.id ? await inventoryApi.updateQuotation(quotation) : await inventoryApi.createQuotation(quotation);
+      const result = await saveQuotationMutation.mutateAsync(quotation);
       pushToast('success', quotation.id ? t('quotations.editTitle') : t('quotations.addTitle'), quotation.id ? t('alerts.updated') : t('alerts.created'));
       return { ok: true, quotation: result };
     } catch (error) {
@@ -862,7 +918,7 @@ export function InventoryAppProvider({ children }) {
     });
     if (!confirmed) return { ok: false };
     try {
-      await inventoryApi.deleteQuotation(quotation.id, reason);
+      await deleteQuotationMutation.mutateAsync({ id: quotation.id, reason });
       pushToast('success', t('common.delete'), `${quotation.quoteNumber} ${t('alerts.deleted')}`);
       return { ok: true };
     } catch (error) {
@@ -874,7 +930,7 @@ export function InventoryAppProvider({ children }) {
 
   async function convertQuotation(id, payload) {
     try {
-      const result = await inventoryApi.convertQuotation(id, payload);
+      const result = await convertQuotationMutation.mutateAsync({ id, payload });
       pushToast('success', t('quotations.convertTitle'), t('quotations.convertSuccess', { number: result.invoiceNumber }));
       return { ok: true, ...result };
     } catch (error) {
@@ -886,7 +942,7 @@ export function InventoryAppProvider({ children }) {
 
   async function savePurchaseReceipt(purchaseReceipt) {
     try {
-      const result = purchaseReceipt.id ? await inventoryApi.updatePurchaseReceipt(purchaseReceipt) : await inventoryApi.createPurchaseReceipt(purchaseReceipt);
+      const result = await savePurchaseReceiptMutation.mutateAsync(purchaseReceipt);
       await Promise.all([refreshProductDirectory(), refreshSupplierDirectory()]);
       pushToast('success', purchaseReceipt.id ? t('purchaseReceive.editTitle') : t('purchaseReceive.addTitle'), `${result.purchaseReceipt.purchaseNumber} ${purchaseReceipt.id ? t('alerts.updated') : t('alerts.created')}`);
       return { ok: true, purchaseReceipt: result.purchaseReceipt };
@@ -914,7 +970,7 @@ export function InventoryAppProvider({ children }) {
     }
 
     try {
-      await inventoryApi.deletePurchaseReceipt(purchaseReceipt.id, reason);
+      await deletePurchaseReceiptMutation.mutateAsync({ id: purchaseReceipt.id, reason });
       await Promise.all([refreshProductDirectory(), refreshSupplierDirectory()]);
       pushToast('success', t('common.delete'), `${purchaseReceipt.purchaseNumber} ${t('alerts.deleted')}`);
       return { ok: true };
@@ -927,7 +983,7 @@ export function InventoryAppProvider({ children }) {
 
   async function savePurchaseReturn(purchaseReturn) {
     try {
-      const result = await inventoryApi.createPurchaseReturn(purchaseReturn);
+      const result = await savePurchaseReturnMutation.mutateAsync(purchaseReturn);
       await Promise.all([refreshProductDirectory(), refreshSupplierDirectory()]);
       pushToast('success', t('purchaseReturns.addTitle'), `${result.purchaseReturn.returnNumber} ${t('alerts.created')}`);
       return { ok: true, purchaseReturn: result.purchaseReturn };
@@ -954,7 +1010,7 @@ export function InventoryAppProvider({ children }) {
     }
 
     try {
-      await inventoryApi.deletePurchaseReturn(purchaseReturn.id, reason);
+      await deletePurchaseReturnMutation.mutateAsync({ id: purchaseReturn.id, reason });
       await Promise.all([refreshProductDirectory(), refreshSupplierDirectory()]);
       pushToast('success', t('common.delete'), `${purchaseReturn.returnNumber} ${t('alerts.deleted')}`);
       return { ok: true };
@@ -967,7 +1023,7 @@ export function InventoryAppProvider({ children }) {
 
   async function saveSupplierPayment(payment) {
     try {
-      const result = payment.id ? await inventoryApi.updateSupplierPayment(payment) : await inventoryApi.createSupplierPayment(payment);
+      const result = await saveSupplierPaymentMutation.mutateAsync(payment);
       await refreshSupplierDirectory();
       pushToast('success', payment.id ? t('supplierPayments.editTitle') : t('supplierPayments.addTitle'), payment.id ? t('alerts.updated') : t('alerts.created'));
       return { ok: true, payment: result.payment };
@@ -994,7 +1050,7 @@ export function InventoryAppProvider({ children }) {
     }
 
     try {
-      await inventoryApi.deleteSupplierPayment(payment.id, reason);
+      await deleteSupplierPaymentMutation.mutateAsync({ id: payment.id, reason });
       await refreshSupplierDirectory();
       pushToast('success', t('common.delete'), t('alerts.deleted'));
       return { ok: true };
@@ -1007,7 +1063,7 @@ export function InventoryAppProvider({ children }) {
 
   async function saveSalesInvoice(invoice) {
     try {
-      const result = await inventoryApi.createSalesInvoice(invoice);
+      const result = await saveSalesInvoiceMutation.mutateAsync(invoice);
       await Promise.all([refreshProductDirectory(), refreshRetailCustomerDirectory()]);
       pushToast('success', t('retailer.salesInvoices.addTitle'), `${result.invoice.invoiceNumber} ${t('alerts.created')}`);
       return { ok: true, salesInvoice: result.invoice };
@@ -1035,7 +1091,8 @@ export function InventoryAppProvider({ children }) {
     }
 
     try {
-      await inventoryApi.deleteSalesInvoice(invoice.id, reason);
+      await deleteSalesInvoiceMutation.mutateAsync({ id: invoice.id, reason });
+      await Promise.all([refreshProductDirectory(), refreshRetailCustomerDirectory()]);
       pushToast('success', t('common.delete'), `${invoice.invoiceNumber} ${t('alerts.deleted')}`);
       return { ok: true };
     } catch (error) {
@@ -1087,7 +1144,7 @@ export function InventoryAppProvider({ children }) {
 
   async function saveSalesReturn(salesReturn) {
     try {
-      const result = await inventoryApi.createSalesReturn(salesReturn);
+      const result = await saveSalesReturnMutation.mutateAsync(salesReturn);
       await Promise.all([refreshProductDirectory(), refreshRetailCustomerDirectory()]);
       pushToast('success', t('retailer.salesReturn.addTitle'), `${result.salesReturn.returnNumber} ${t('alerts.created')}`);
       return { ok: true, salesReturn: result.salesReturn };

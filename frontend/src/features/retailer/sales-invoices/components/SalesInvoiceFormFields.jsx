@@ -5,6 +5,9 @@ import { formatCurrency } from '../../../../utils/calculations.js';
 import { inventoryApi } from '../../../../services/inventoryApi.js';
 import RetailCustomerFormModal from '../../../retail-customers/components/RetailCustomerFormModal.jsx';
 import { Select } from '../../../../components/ui.jsx';
+import { useQueries } from '@tanstack/react-query';
+import { getActiveTenantId } from '../../../../services/api/client.js';
+import { productKeys } from '../../../products/queries/productQueries.js';
 
 function matchesProductQuery(product, query) {
   const normalizedQuery = query.trim().toLowerCase();
@@ -48,13 +51,44 @@ function PromoBadge({ promotion, size = 'md' }) {
 
 export default function SalesInvoiceFormFields({ vm, t, productDirectory, retailCustomerDirectory, saving, saveRetailCustomer, isPharmacy }) {
   const [showAddCustomer, setShowAddCustomer] = useState(false);
-  const [availableSerialsByProduct, setAvailableSerialsByProduct] = useState({});
-  const [batchInfoByProductId, setBatchInfoByProductId] = useState({});
   const [productPickerRowId, setProductPickerRowId] = useState(null);
   const [productQueries, setProductQueries] = useState({});
   const [highlightedIndexes, setHighlightedIndexes] = useState({});
   const searchRefs = useRef({});
   const prevRowCount = useRef(0);
+  const tenantId = getActiveTenantId() || 'session-tenant';
+  const serialProductIds = [...new Set(
+    vm.lineRows.filter((row) => row.serialRequired && row.productId).map((row) => row.productId),
+  )];
+  const batchProductIds = isPharmacy
+    ? [...new Set(vm.lineRows.filter((row) => row.productId).map((row) => row.productId))]
+    : [];
+  const serialQueries = useQueries({
+    queries: serialProductIds.map((productId) => ({
+      queryKey: productKeys.availableSerials(tenantId, productId),
+      queryFn: async () => {
+        const result = await inventoryApi.listAvailableProductSerials(productId);
+        return result.serials || [];
+      },
+      staleTime: 30_000,
+    })),
+  });
+  const batchQueries = useQueries({
+    queries: batchProductIds.map((productId) => ({
+      queryKey: productKeys.batches(tenantId, productId),
+      queryFn: async () => {
+        const result = await inventoryApi.listByProduct(productId);
+        return result.batches || [];
+      },
+      staleTime: 30_000,
+    })),
+  });
+  const availableSerialsByProduct = Object.fromEntries(
+    serialProductIds.map((productId, index) => [productId, serialQueries[index]?.data || []]),
+  );
+  const batchInfoByProductId = Object.fromEntries(
+    batchProductIds.map((productId, index) => [productId, batchQueries[index]?.data || []]),
+  );
 
   useEffect(() => {
     if (vm.lineRows.length > prevRowCount.current) {
@@ -63,50 +97,6 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, retail
     }
     prevRowCount.current = vm.lineRows.length;
   }, [vm.lineRows.length]);
-
-  useEffect(() => {
-    const neededProductIds = [...new Set(
-      vm.lineRows.filter((row) => row.serialRequired && row.productId).map((row) => row.productId),
-    )];
-    const missingProductIds = neededProductIds.filter((productId) => !(productId in availableSerialsByProduct));
-    if (!missingProductIds.length) return;
-
-    let cancelled = false;
-    Promise.all(
-      missingProductIds.map((productId) =>
-        inventoryApi.listAvailableProductSerials(productId).then((result) => [productId, result.serials || []])),
-    ).then((entries) => {
-      if (cancelled) return;
-      setAvailableSerialsByProduct((current) => {
-        const next = { ...current };
-        for (const [productId, serials] of entries) next[productId] = serials;
-        return next;
-      });
-    }).catch(() => {});
-
-    return () => { cancelled = true; };
-  }, [vm.lineRows, availableSerialsByProduct]);
-
-  useEffect(() => {
-    if (!isPharmacy) return;
-    const neededProductIds = [...new Set(vm.lineRows.filter((row) => row.productId).map((row) => row.productId))];
-    const missingProductIds = neededProductIds.filter((pid) => !(pid in batchInfoByProductId));
-    if (!missingProductIds.length) return;
-
-    let cancelled = false;
-    Promise.all(
-      missingProductIds.map((productId) =>
-        inventoryApi.listByProduct(productId).then((result) => [productId, result.batches || []])),
-    ).then((entries) => {
-      if (cancelled) return;
-      setBatchInfoByProductId((current) => {
-        const next = { ...current };
-        for (const [productId, batches] of entries) next[productId] = batches;
-        return next;
-      });
-    }).catch(() => {});
-    return () => { cancelled = true; };
-  }, [isPharmacy, vm.lineRows, batchInfoByProductId]);
 
   function handleProductKeyDown(event, row, filteredProducts) {
     if (event.key === 'ArrowDown') {
@@ -602,5 +592,4 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, retail
     </>
   );
 }
-
 

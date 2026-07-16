@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { inventoryApi } from '../../../services/inventoryApi';
 import { usePagedList } from '../../../hooks/usePagedList';
-import { useRefetchOnVisible } from '../../../app/hooks/useRefetchOnVisible.js';
 
 export function usePurchaseReturnsViewModel() {
   const [supplierId, setSupplierId] = useState('');
@@ -17,14 +16,13 @@ export function usePurchaseReturnsViewModel() {
       dateTo: dateTo || undefined,
     }),
     [supplierId, dateFrom, dateTo],
+    'purchase-returns',
   );
 
   useEffect(() => {
     list.resetPage();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [supplierId, dateFrom, dateTo]);
-
-  useRefetchOnVisible(list.reload);
 
   return {
     supplierId,

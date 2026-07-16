@@ -22,6 +22,7 @@ export function useQuotationsViewModel() {
       dateTo: dateTo || undefined,
     }),
     [debouncedSearch, status, dateFrom, dateTo],
+    'quotations',
   );
 
   useEffect(() => {

@@ -1,8 +1,12 @@
 import { useState } from 'react';
 import { inventoryApi } from '../../../../services/inventoryApi';
 import { todayISO } from '../../../../utils/calculations.js';
+import { useQueryClient } from '@tanstack/react-query';
+import { getActiveTenantId } from '../../../../services/api/client.js';
+import { transactionKeys } from '../../../transactions/queries/transactionQueries.js';
 
 export function useSalesReturnFormViewModel() {
+  const queryClient = useQueryClient();
   const [invoiceNumberInput, setInvoiceNumberInput] = useState('');
   const [salesInvoiceId, setSalesInvoiceId] = useState('');
   const [invoiceNumber, setInvoiceNumber] = useState('');
@@ -22,14 +26,23 @@ export function useSalesReturnFormViewModel() {
     setLoading(true);
     setLoadError('');
     try {
-      const result = await inventoryApi.listSalesInvoices({ invoiceNumber: trimmed, page: 1, pageSize: 1 });
+      const tenantId = getActiveTenantId() || 'session-tenant';
+      const result = await queryClient.fetchQuery({
+        queryKey: transactionKeys.lookup(tenantId, 'sales-invoice-number', trimmed.toLowerCase()),
+        queryFn: () => inventoryApi.listSalesInvoices({ invoiceNumber: trimmed, page: 1, pageSize: 1 }),
+        staleTime: 30_000,
+      });
       const match = (result.items || []).find((invoice) => invoice.invoiceNumber.toLowerCase() === trimmed.toLowerCase()) || result.items?.[0];
       if (!match) {
         setLoadError('notFound');
         return;
       }
 
-      const detail = await inventoryApi.getSalesInvoice(match.id);
+      const detail = await queryClient.fetchQuery({
+        queryKey: transactionKeys.detail(tenantId, 'sales-invoice', match.id),
+        queryFn: () => inventoryApi.getSalesInvoice(match.id),
+        staleTime: 30_000,
+      });
       const invoice = detail.invoice;
       setSalesInvoiceId(invoice.id);
       setInvoiceNumber(invoice.invoiceNumber);

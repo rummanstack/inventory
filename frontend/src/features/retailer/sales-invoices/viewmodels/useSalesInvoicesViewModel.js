@@ -28,6 +28,7 @@ export function useSalesInvoicesViewModel() {
       dateTo: dateTo || undefined,
     }),
     [customerId, debouncedInvoiceNumber, saleType, paymentStatus, dateFrom, dateTo],
+    'sales-invoices',
   );
 
   useEffect(() => {

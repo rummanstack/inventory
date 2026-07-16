@@ -4,6 +4,7 @@ import { queryClient } from './queryClient.js';
 import { productKeys } from './features/products/queries/productQueries.js';
 import { apiListKeys } from './queries/apiQueryKeys.js';
 import { reportKeys } from './features/reports/queries/reportQueries.js';
+import { transactionKeys } from './features/transactions/queries/transactionQueries.js';
 
 test('queries do not refetch when the browser regains focus', () => {
   assert.equal(queryClient.getDefaultOptions().queries.refetchOnWindowFocus, false);
@@ -41,5 +42,16 @@ test('dashboard and report keys isolate tenant and filter state', () => {
   assert.notDeepEqual(
     reportKeys.query('tenant-a', 'finance-dashboard'),
     reportKeys.query('tenant-b', 'finance-dashboard'),
+  );
+});
+
+test('transaction keys isolate tenant, resource, and record state', () => {
+  assert.deepEqual(
+    transactionKeys.detail('tenant-a', 'sales-invoice', 'invoice-7'),
+    ['transactions', 'tenant-a', 'sales-invoice', 'detail', 'invoice-7'],
+  );
+  assert.notDeepEqual(
+    transactionKeys.mutation('tenant-a', 'save-purchase-receipt'),
+    transactionKeys.mutation('tenant-b', 'save-purchase-receipt'),
   );
 });

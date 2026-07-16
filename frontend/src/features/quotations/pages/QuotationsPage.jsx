@@ -11,11 +11,15 @@ import QuotationFormModal from '../components/QuotationFormModal';
 import QuotationViewModal from '../components/QuotationViewModal';
 import { useQuotationsViewModel } from '../viewmodels/useQuotationsViewModel';
 import { formatCurrency, formatNumber, formatDateHuman } from '../../../utils/calculations.js';
+import { useQueryClient } from '@tanstack/react-query';
+import { getActiveTenantId } from '../../../services/api/client.js';
+import { transactionKeys } from '../../transactions/queries/transactionQueries.js';
 
 const QUOTATION_STATUS_VALUES = ['DRAFT', 'SENT', 'ACCEPTED', 'REJECTED', 'EXPIRED', 'CONVERTED'];
 const QUOTATIONS_PRINT_ID = 'quotations-print';
 
 export default function QuotationsPage() {
+  const queryClient = useQueryClient();
   const { saveQuotation, deleteQuotation, t, can, language } = useInventoryApp();
   const vm = useQuotationsViewModel();
   const [formModal, setFormModal] = useState(null);
@@ -82,7 +86,12 @@ export default function QuotationsPage() {
 
   async function openViewForId(id) {
     try {
-      const detail = await inventoryApi.getQuotation(id);
+      const tenantId = getActiveTenantId() || 'session-tenant';
+      const detail = await queryClient.fetchQuery({
+        queryKey: transactionKeys.detail(tenantId, 'quotation', id),
+        queryFn: () => inventoryApi.getQuotation(id),
+        staleTime: 30_000,
+      });
       setViewModal(detail);
     } catch {
       // ignore

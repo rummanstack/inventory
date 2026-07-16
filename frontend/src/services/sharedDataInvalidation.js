@@ -21,6 +21,7 @@ const MUTATION_RULES = [
   { pattern: /^\/supplier-(?:payments|discounts)(?:\/|$)/, domains: [D.SUPPLIERS] },
   { pattern: /^\/sales-invoices(?:\/|$)/, domains: [D.PRODUCTS, D.RETAIL_CUSTOMERS] },
   { pattern: /^\/sales-returns(?:\/|$)/, domains: [D.PRODUCTS, D.RETAIL_CUSTOMERS] },
+  { pattern: /^\/quotations(?:\/|$)/, domains: [D.PRODUCTS, D.RETAIL_CUSTOMERS] },
   { pattern: /^\/customer-payments(?:\/|$)/, domains: [D.RETAIL_CUSTOMERS] },
   { pattern: /^\/retail-customers(?:\/|$)/, domains: [D.RETAIL_CUSTOMERS] },
   { pattern: /^\/installments(?:\/|$)/, domains: [D.PRODUCTS, D.RETAIL_CUSTOMERS] },

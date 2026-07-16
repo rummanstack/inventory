@@ -16,6 +16,7 @@ export function useSalesReturnsViewModel() {
       dateTo: dateTo || undefined,
     }),
     [customerId, dateFrom, dateTo],
+    'sales-returns',
   );
 
   useEffect(() => {

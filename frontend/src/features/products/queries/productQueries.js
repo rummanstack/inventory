@@ -15,6 +15,8 @@ export const productKeys = {
   activeGenericMedicines: (tenantId) => ['products', 'references', tenantId, 'generic-medicines', 'active'],
   stockMovementLists: (tenantId) => ['products', 'stock-movements', tenantId],
   stockMovements: (tenantId, filters) => ['products', 'stock-movements', tenantId, filters],
+  availableSerials: (tenantId, productId) => ['products', 'available-serials', tenantId, productId],
+  batches: (tenantId, productId) => ['products', 'batches', tenantId, productId],
 };
 
 export async function fetchProductDirectory() {

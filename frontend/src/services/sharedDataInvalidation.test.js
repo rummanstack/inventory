@@ -12,6 +12,10 @@ test('maps cross-menu sales mutations to only affected shared domains', () => {
     getSharedDataDomainsForMutation('/sales-invoices/42'),
     ['products', 'retailCustomers'],
   );
+  assert.deepEqual(
+    getSharedDataDomainsForMutation('/quotations/42/convert'),
+    ['products', 'retailCustomers'],
+  );
 });
 
 test('maps destination routes to their shared dependencies', () => {

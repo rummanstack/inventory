@@ -27,6 +27,7 @@ export function usePurchaseReceiveViewModel() {
       paymentStatus: paymentStatus || undefined,
     }),
     [supplierId, debouncedPurchaseNumber, debouncedSupplierInvoiceNo, dateFrom, dateTo, paymentStatus],
+    'purchase-receipts',
   );
 
   useEffect(() => {

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { createTranslator, supportedLanguages } from '../../i18n/translations';
+import { createTranslator, loadLanguage, supportedLanguages } from '../../i18n/translations';
 
 const LANGUAGE_STORAGE_KEY = 'stockledger.language';
 
@@ -26,8 +26,14 @@ export function useLanguage() {
   const [language, setLanguageState] = useState(getInitialLanguage);
   const t = useMemo(() => createTranslator(language), [language]);
 
-  function setLanguage(nextLanguage) {
+  async function setLanguage(nextLanguage) {
     if (!supportedLanguages.includes(nextLanguage)) {
+      return;
+    }
+
+    try {
+      await loadLanguage(nextLanguage);
+    } catch {
       return;
     }
 

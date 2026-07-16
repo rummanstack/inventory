@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { createTranslator } from '../../i18n/translations';
+import { createTranslator, loadLanguage } from '../../i18n/translations';
 
 // Strips a leading `/bn` (or bare `/bn`) segment, returning the equivalent
 // English-URL path. Used both to detect the current language from the URL
@@ -28,8 +28,13 @@ export function usePublicLanguage() {
   const language = location.pathname === '/bn' || location.pathname.startsWith('/bn/') ? 'bn' : 'en';
   const t = useMemo(() => createTranslator(language), [language]);
 
-  function setLanguage(nextLanguage) {
+  async function setLanguage(nextLanguage) {
     if (nextLanguage === language) return;
+    try {
+      await loadLanguage(nextLanguage);
+    } catch {
+      return;
+    }
     navigate(`${buildLocalizedPath(nextLanguage, location.pathname)}${location.search}${location.hash}`);
   }
 

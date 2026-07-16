@@ -1,10 +1,33 @@
-import en from './locales/en.js';
-import bn from './locales/bn.js';
-
-const translations = {
-  en,
-  bn,
+const translations = {};
+const loadingBundles = {};
+const bundleLoaders = {
+  en: () => import('./locales/en.js'),
+  bn: () => import('./locales/bn.js'),
 };
+
+export const supportedLanguages = ['en', 'bn'];
+
+async function loadBundle(language) {
+  if (translations[language]) return translations[language];
+
+  if (!loadingBundles[language]) {
+    loadingBundles[language] = bundleLoaders[language]().then((module) => {
+      translations[language] = module.default;
+      return translations[language];
+    }).finally(() => {
+      delete loadingBundles[language];
+    });
+  }
+
+  return loadingBundles[language];
+}
+
+export async function loadLanguage(language) {
+  const locale = supportedLanguages.includes(language) ? language : 'en';
+  const requiredBundles = locale === 'en' ? ['en'] : ['en', locale];
+  await Promise.all(requiredBundles.map(loadBundle));
+  return locale;
+}
 
 function resolvePath(source, key) {
   if (!source || typeof source !== 'object') return undefined;
@@ -18,7 +41,7 @@ function resolvePath(source, key) {
 
 export function createTranslator(language) {
   const locale = translations[language] ? language : 'en';
-  const bundle = translations[locale];
+  const bundle = translations[locale] || translations.en;
 
   return function t(key, values = {}) {
     if (locale === 'bn' && key === 'app.subtitle') {
@@ -38,5 +61,3 @@ export function createTranslator(language) {
     });
   };
 }
-
-export const supportedLanguages = ['en', 'bn'];

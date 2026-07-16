@@ -1,11 +1,20 @@
 import { useEffect, useMemo, useState } from 'react';
 import { CheckCircle2, Plus } from 'lucide-react';
 import { Alert, EmptyState, SectionHeader, Select, TableSkeleton } from '../../../../components/ui.jsx';
+import TableReportActions from '../../../../components/TableReportActions.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../../services/inventoryApi.js';
 
 const currentMonth = () => new Date().toISOString().slice(0, 7);
 const money = (value) => new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 }).format(Number(value || 0));
+const PAYROLL_RUNS_REPORT_ID = 'payroll-runs-report';
+const PAYROLL_DETAILS_REPORT_ID = 'payroll-run-details-report';
+const PAYROLL_REPORT_SHORTCUTS = {
+  pdf: { alt: true, key: 'd', label: 'Alt+D' },
+  excel: { alt: true, key: 'e', label: 'Alt+E' },
+  csv: { alt: true, key: 'c', label: 'Alt+C' },
+  print: { alt: true, key: 'p', label: 'Alt+P' },
+};
 
 export default function PayrollPage() {
   const { can, pushToast, t } = useInventoryApp();
@@ -36,7 +45,7 @@ export default function PayrollPage() {
       setRuns(runResult.items || []);
       if (!selectedRun && runResult.items?.[0]) loadRun(runResult.items[0].id);
     } catch (err) {
-      setError(err?.message || 'Failed to load payroll data.');
+      setError(err?.message || t('payroll.loadFailed'));
     } finally {
       setLoading(false);
     }
@@ -46,7 +55,7 @@ export default function PayrollPage() {
     try {
       setSelectedRun(await inventoryApi.getPayrollRun(id));
     } catch (err) {
-      pushToast('error', 'Payroll', err?.message || t('alerts.requestFailed'));
+      pushToast('error', t('payroll.title'), err?.message || t('alerts.requestFailed'));
     }
   }
 
@@ -63,10 +72,10 @@ export default function PayrollPage() {
     try {
       await inventoryApi.saveSalaryStructure(structureForm);
       setStructureForm({ employeeId: '', basicSalary: 0, allowances: 0, deductions: 0, grossSalary: 0 });
-      pushToast('success', 'Payroll', 'Salary structure saved.');
+      pushToast('success', t('payroll.title'), t('payroll.structureSaved'));
       load();
     } catch (err) {
-      pushToast('error', 'Payroll', err?.message || t('alerts.requestFailed'));
+      pushToast('error', t('payroll.title'), err?.message || t('alerts.requestFailed'));
     }
   }
 
@@ -74,85 +83,88 @@ export default function PayrollPage() {
     event.preventDefault();
     try {
       const result = await inventoryApi.generatePayroll({ month });
-      pushToast('success', 'Payroll', 'Payroll generated.');
+      pushToast('success', t('payroll.title'), t('payroll.generated'));
       await load();
       await loadRun(result.run.id);
     } catch (err) {
-      pushToast('error', 'Payroll', err?.message || t('alerts.requestFailed'));
+      pushToast('error', t('payroll.title'), err?.message || t('alerts.requestFailed'));
     }
   }
 
   async function approve(id) {
     try {
       await inventoryApi.approvePayrollRun(id);
-      pushToast('success', 'Payroll', 'Payroll approved and journal posted.');
+      pushToast('success', t('payroll.title'), t('payroll.approvedToast'));
       await load();
       await loadRun(id);
     } catch (err) {
-      pushToast('error', 'Payroll', err?.message || t('alerts.requestFailed'));
+      pushToast('error', t('payroll.title'), err?.message || t('alerts.requestFailed'));
     }
   }
 
   async function pay(id, paymentMethod = 'CASH') {
     try {
       await inventoryApi.payPayrollRun(id, { paymentMethod });
-      pushToast('success', 'Payroll', 'Payroll paid and journal posted.');
+      pushToast('success', t('payroll.title'), t('payroll.paidToast'));
       await load();
       await loadRun(id);
     } catch (err) {
-      pushToast('error', 'Payroll', err?.message || t('alerts.requestFailed'));
+      pushToast('error', t('payroll.title'), err?.message || t('alerts.requestFailed'));
     }
   }
 
   return (
     <div>
-      <SectionHeader eyebrow="HR" title="Payroll" description="Manage salary structures, monthly payroll runs, approvals, and payslip data." />
+      <SectionHeader eyebrow={t('payroll.eyebrow')} title={t('payroll.title')} description={t('payroll.description')} />
       {error ? <Alert type="error">{error}</Alert> : null}
 
       <div className="mb-5 grid gap-4 lg:grid-cols-2">
         {canGenerate ? (
           <form className="surface p-5" onSubmit={saveStructure}>
-            <h2 className="section-title mb-4">Salary Structure</h2>
+            <h2 className="section-title mb-4">{t('payroll.structureTitle')}</h2>
             <div className="grid gap-3 sm:grid-cols-2">
               <Select className="input sm:col-span-2" value={structureForm.employeeId} onChange={(e) => setStructureForm({ ...structureForm, employeeId: e.target.value, grossSalary: 0 })}>
-                <option value="">Employee</option>
+                <option value="">{t('payroll.employeeLabel')}</option>
                 {employees.map((employee) => <option key={employee.id} value={employee.id}>{employee.name}</option>)}
               </Select>
-              <input className="input" type="number" min="0" placeholder="Basic" value={structureForm.basicSalary} onChange={(e) => setStructureForm({ ...structureForm, basicSalary: e.target.value })} />
-              <input className="input" type="number" min="0" placeholder="Allowances" value={structureForm.allowances} onChange={(e) => setStructureForm({ ...structureForm, allowances: e.target.value })} />
-              <input className="input" type="number" min="0" placeholder="Deductions" value={structureForm.deductions} onChange={(e) => setStructureForm({ ...structureForm, deductions: e.target.value })} />
-              <input className="input" type="number" min="0" placeholder="Gross" value={structureForm.grossSalary} onChange={(e) => setStructureForm({ ...structureForm, grossSalary: e.target.value })} />
+              <input className="input" type="number" min="0" placeholder={t('payroll.basicLabel')} value={structureForm.basicSalary} onChange={(e) => setStructureForm({ ...structureForm, basicSalary: e.target.value })} />
+              <input className="input" type="number" min="0" placeholder={t('payroll.allowancesLabel')} value={structureForm.allowances} onChange={(e) => setStructureForm({ ...structureForm, allowances: e.target.value })} />
+              <input className="input" type="number" min="0" placeholder={t('payroll.deductionsLabel')} value={structureForm.deductions} onChange={(e) => setStructureForm({ ...structureForm, deductions: e.target.value })} />
+              <input className="input" type="number" min="0" placeholder={t('payroll.grossLabel')} value={structureForm.grossSalary} onChange={(e) => setStructureForm({ ...structureForm, grossSalary: e.target.value })} />
             </div>
-            <button type="submit" className="btn-primary mt-4"><Plus size={16} /> Save Structure</button>
+            <button type="submit" className="btn-primary mt-4"><Plus size={16} /> {t('payroll.saveStructure')}</button>
           </form>
         ) : null}
 
         {canGenerate ? (
           <form className="surface p-5" onSubmit={generate}>
-            <h2 className="section-title mb-4">Generate Monthly Payroll</h2>
+            <h2 className="section-title mb-4">{t('payroll.generateTitle')}</h2>
             <div className="flex flex-col gap-3 sm:flex-row">
               <input className="input" type="month" value={month} onChange={(e) => setMonth(e.target.value)} />
-              <button type="submit" className="btn-primary"><Plus size={16} /> Generate</button>
+              <button type="submit" className="btn-primary"><Plus size={16} /> {t('payroll.generate')}</button>
             </div>
             <div className="mt-5 grid grid-cols-3 gap-3 text-sm">
-              <div><p className="text-slate-400">Structures</p><p className="font-semibold">{structures.length}</p></div>
-              <div><p className="text-slate-400">Runs</p><p className="font-semibold">{runs.length}</p></div>
-              <div><p className="text-slate-400">Approved</p><p className="font-semibold">{runs.filter((run) => run.status === 'APPROVED').length}</p></div>
+              <div><p className="text-slate-400">{t('payroll.structures')}</p><p className="font-semibold">{structures.length}</p></div>
+              <div><p className="text-slate-400">{t('payroll.runs')}</p><p className="font-semibold">{runs.length}</p></div>
+              <div><p className="text-slate-400">{t('payroll.approved')}</p><p className="font-semibold">{runs.filter((run) => run.status === 'APPROVED').length}</p></div>
             </div>
           </form>
         ) : null}
       </div>
 
       <div className="grid gap-4 xl:grid-cols-[360px_1fr]">
-        <div className="surface overflow-hidden">
-          <div className="border-b border-slate-100 p-5"><h2 className="section-title">Payroll Runs</h2></div>
+        <div id={PAYROLL_RUNS_REPORT_ID} className="surface overflow-hidden">
+          <div className="flex items-center justify-between gap-3 border-b border-slate-100 p-5">
+            <h2 className="section-title">{t('payroll.runsTitle')}</h2>
+            <TableReportActions targetId={PAYROLL_RUNS_REPORT_ID} title={t('payroll.runsTitle')} fileName="payroll-runs" entityType="payroll_runs" t={t} shortcuts={PAYROLL_REPORT_SHORTCUTS} />
+          </div>
           {loading ? <div className="p-5"><TableSkeleton columns={4} /></div> : runs.length === 0 ? (
-            <div className="p-5"><EmptyState title="No payroll runs" description="Generate a monthly payroll run to begin." /></div>
+            <div className="p-5"><EmptyState title={t('payroll.noRunsTitle')} description={t('payroll.noRunsDesc')} /></div>
           ) : (
-            <div className="divide-y divide-slate-100">
+            <div className="divide-y divide-slate-100 no-print">
               {runs.map((run) => (
                 <button key={run.id} type="button" className="flex w-full items-center justify-between gap-3 px-5 py-4 text-left hover:bg-slate-50" onClick={() => loadRun(run.id)}>
-                  <span><span className="block font-semibold">{run.payrollMonth}</span><span className="text-xs text-slate-400">{run.totalEmployees} employees</span></span>
+                  <span><span className="block font-semibold">{run.payrollMonth}</span><span className="text-xs text-slate-400">{t('payroll.employeesCount', { count: run.totalEmployees })}</span></span>
                   <span className="text-right"><span className="block font-semibold">{money(run.netTotal)}</span><span className="muted-chip">{run.status}</span></span>
                 </button>
               ))}
@@ -160,25 +172,28 @@ export default function PayrollPage() {
           )}
         </div>
 
-        <div className="surface overflow-hidden">
+        <div id={PAYROLL_DETAILS_REPORT_ID} className="surface overflow-hidden">
           <div className="flex items-center justify-between gap-3 border-b border-slate-100 p-5">
-            <h2 className="section-title">{selectedRun?.run ? `Run ${selectedRun.run.payrollMonth}` : 'Payroll Details'}</h2>
-            {selectedRun?.run?.status === 'DRAFT' && canApprove ? (
-              <button type="button" className="btn-primary" onClick={() => approve(selectedRun.run.id)}><CheckCircle2 size={16} /> Approve</button>
-            ) : null}
-            {selectedRun?.run?.status === 'APPROVED' && selectedRun?.run?.paymentStatus !== 'PAID' && canApprove ? (
-              <div className="flex gap-2">
-                <button type="button" className="btn-secondary" onClick={() => pay(selectedRun.run.id, 'CASH')}>Pay Cash</button>
-                <button type="button" className="btn-primary" onClick={() => pay(selectedRun.run.id, 'BANK')}>Pay Bank</button>
-              </div>
-            ) : null}
+            <h2 className="section-title">{selectedRun?.run ? t('payroll.runLabel', { month: selectedRun.run.payrollMonth }) : t('payroll.runDetailsTitle')}</h2>
+            <div className="flex flex-wrap items-center gap-2 no-print">
+              <TableReportActions targetId={PAYROLL_DETAILS_REPORT_ID} title={t('payroll.runDetailsTitle')} fileName="payroll-run-details" entityType="payroll_run_details" t={t} shortcuts={PAYROLL_REPORT_SHORTCUTS} />
+              {selectedRun?.run?.status === 'DRAFT' && canApprove ? (
+                <button type="button" className="btn-primary" onClick={() => approve(selectedRun.run.id)}><CheckCircle2 size={16} /> {t('payroll.approveAction')}</button>
+              ) : null}
+              {selectedRun?.run?.status === 'APPROVED' && selectedRun?.run?.paymentStatus !== 'PAID' && canApprove ? (
+                <div className="flex gap-2">
+                  <button type="button" className="btn-secondary" onClick={() => pay(selectedRun.run.id, 'CASH')}>{t('payroll.payCash')}</button>
+                  <button type="button" className="btn-primary" onClick={() => pay(selectedRun.run.id, 'BANK')}>{t('payroll.payBank')}</button>
+                </div>
+              ) : null}
+            </div>
           </div>
           {!selectedRun ? (
-            <div className="p-5"><EmptyState title="Select a payroll run" description="Run details and payslip rows will appear here." /></div>
+            <div className="p-5"><EmptyState title={t('payroll.selectRunTitle')} description={t('payroll.selectRunDesc')} /></div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="table-head"><tr><th className="px-4 py-3">Employee</th><th className="px-4 py-3 text-right">Gross</th><th className="px-4 py-3 text-right">Attendance</th><th className="px-4 py-3 text-right">Advance</th><th className="px-4 py-3 text-right">Loan</th><th className="px-4 py-3 text-right">Net</th></tr></thead>
+                <thead className="table-head"><tr><th className="px-4 py-3">{t('payroll.columnEmployee')}</th><th className="px-4 py-3 text-right">{t('payroll.columnGross')}</th><th className="px-4 py-3 text-right">{t('payroll.columnAttendance')}</th><th className="px-4 py-3 text-right">{t('payroll.columnAdvance')}</th><th className="px-4 py-3 text-right">{t('payroll.columnLoan')}</th><th className="px-4 py-3 text-right">{t('payroll.columnNet')}</th></tr></thead>
                 <tbody className="divide-y divide-slate-100">
                   {selectedRun.items.map((item) => (
                     <tr key={item.id}>
@@ -199,4 +214,3 @@ export default function PayrollPage() {
     </div>
   );
 }
-

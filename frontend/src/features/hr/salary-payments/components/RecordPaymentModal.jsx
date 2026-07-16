@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AlertTriangle, Save, Zap } from 'lucide-react';
 import { Alert, Modal, Select } from '../../../../components/ui.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
@@ -7,6 +7,7 @@ import { inventoryApi } from '../../../../services/inventoryApi.js';
 
 export default function RecordPaymentModal({ employee, onClose, onSaved }) {
   const { t, language } = useInventoryApp();
+  const formRef = useRef(null);
   const [amount, setAmount] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('CASH');
   const [paymentDate, setPaymentDate] = useState(new Date().toISOString().slice(0, 10));
@@ -54,6 +55,18 @@ export default function RecordPaymentModal({ employee, onClose, onSaved }) {
     }
   }
 
+  useEffect(() => {
+    function handleKeyDown(event) {
+      if (event.key.toLowerCase() === 's' && (event.ctrlKey || event.metaKey) && !saving) {
+        event.preventDefault();
+        formRef.current?.requestSubmit();
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [saving]);
+
   return (
     <Modal
       title={t('salary.recordPaymentTitle')}
@@ -61,7 +74,7 @@ export default function RecordPaymentModal({ employee, onClose, onSaved }) {
       onClose={onClose}
       width="max-w-md"
     >
-      <form className="space-y-4" onSubmit={handleSubmit}>
+      <form ref={formRef} className="space-y-4" onSubmit={handleSubmit}>
         {error ? <Alert type="error">{error}</Alert> : null}
 
         {/* Salary summary */}
@@ -159,6 +172,7 @@ export default function RecordPaymentModal({ employee, onClose, onSaved }) {
           <button type="submit" className="btn-primary" disabled={saving}>
             <Save size={16} />
             {saving ? t('common.saving') : t('salary.recordPayment')}
+            <kbd className="ml-1 rounded border border-indigo-400/40 bg-indigo-500/20 px-1 py-0.5 font-mono text-[10px] text-indigo-200">Ctrl+S</kbd>
           </button>
         </div>
       </form>

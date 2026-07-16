@@ -8,6 +8,22 @@ import { useDepartmentsViewModel } from '../viewmodels/useDepartmentsViewModel.j
 import DepartmentFormModal from '../components/DepartmentFormModal.jsx';
 
 const DEPARTMENTS_REPORT_ID = 'departments-report';
+const DEPARTMENTS_ADD_SHORTCUT = { alt: true, key: 'a', label: 'Alt+A' };
+const DEPARTMENTS_REPORT_SHORTCUTS = {
+  pdf: { alt: true, key: 'd', label: 'Alt+D' },
+  excel: { alt: true, key: 'e', label: 'Alt+E' },
+  csv: { alt: true, key: 'c', label: 'Alt+C' },
+  print: { alt: true, key: 'p', label: 'Alt+P' },
+};
+
+function matchesShortcut(event, shortcut) {
+  return (
+    event.key.toLowerCase() === shortcut.key &&
+    Boolean(event.altKey) === Boolean(shortcut.alt) &&
+    Boolean(event.shiftKey) === Boolean(shortcut.shift) &&
+    Boolean(event.ctrlKey || event.metaKey) === Boolean(shortcut.ctrlOrMeta)
+  );
+}
 
 export default function DepartmentsPage() {
   const { t, can, confirm, pushToast } = useInventoryApp();
@@ -15,6 +31,18 @@ export default function DepartmentsPage() {
   const [formModal, setFormModal] = useState(null);
   const [employees, setEmployees] = useState([]);
   const canManage = can('manage_departments');
+
+  useEffect(() => {
+    function handleKeyDown(event) {
+      if (matchesShortcut(event, DEPARTMENTS_ADD_SHORTCUT) && canManage && !formModal) {
+        event.preventDefault();
+        setFormModal({ mode: 'add' });
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [canManage, formModal]);
 
   useEffect(() => {
     let cancelled = false;
@@ -75,6 +103,7 @@ export default function DepartmentsPage() {
           <button type="button" className="btn-primary" onClick={() => setFormModal({ mode: 'add' })}>
             <Plus size={18} />
             {t('departments.add')}
+            <kbd className="ml-1 rounded border border-indigo-400/40 bg-indigo-500/20 px-1 py-0.5 font-mono text-[10px] text-indigo-200">Alt+A</kbd>
           </button>
         ) : null}
       />
@@ -84,7 +113,7 @@ export default function DepartmentsPage() {
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">{t('departments.eyebrow')}</p>
             <div className="flex flex-1 flex-wrap gap-2 sm:justify-end">
-              <TableReportActions targetId={DEPARTMENTS_REPORT_ID} title={t('departments.title')} fileName="departments" entityType="departments" t={t} />
+              <TableReportActions targetId={DEPARTMENTS_REPORT_ID} title={t('departments.title')} fileName="departments" entityType="departments" t={t} shortcuts={DEPARTMENTS_REPORT_SHORTCUTS} />
               <input className="input w-full sm:w-56" placeholder={t('common.search')} value={vm.search} onChange={(e) => vm.setSearch(e.target.value)} />
               <Select className="input w-full sm:w-40" value={vm.status} onChange={(e) => vm.setStatus(e.target.value)}>
                 <option value="">{t('departments.allStatuses')}</option>

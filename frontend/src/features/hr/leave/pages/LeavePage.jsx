@@ -1,10 +1,18 @@
 import { useEffect, useState } from 'react';
-import { Check, Plus, X } from 'lucide-react';
+import { Check, Plus, X, CalendarOff } from 'lucide-react';
 import { Alert, EmptyState, SectionHeader, Select, TableSkeleton } from '../../../../components/ui.jsx';
+import TableReportActions from '../../../../components/TableReportActions.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../../services/inventoryApi.js';
 
 const today = () => new Date().toISOString().slice(0, 10);
+const LEAVE_REQUESTS_REPORT_ID = 'leave-requests-report';
+const LEAVE_REPORT_SHORTCUTS = {
+  pdf: { alt: true, key: 'd', label: 'Alt+D' },
+  excel: { alt: true, key: 'e', label: 'Alt+E' },
+  csv: { alt: true, key: 'c', label: 'Alt+C' },
+  print: { alt: true, key: 'p', label: 'Alt+P' },
+};
 
 export default function LeavePage() {
   const { t, can, pushToast } = useInventoryApp();
@@ -32,7 +40,7 @@ export default function LeavePage() {
       setTypes(typeResult.items || []);
       setRequests(requestResult.items || []);
     } catch (err) {
-      setError(err?.message || 'Failed to load leave data.');
+      setError(err?.message || t('leave.loadFailed'));
     } finally {
       setLoading(false);
     }
@@ -45,10 +53,10 @@ export default function LeavePage() {
     try {
       await inventoryApi.createLeaveType(typeForm);
       setTypeForm({ name: '', code: '', annualDays: 0, paid: true });
-      pushToast('success', 'Leave', t('alerts.created'));
+      pushToast('success', t('leave.title'), t('leave.typeCreated'));
       load();
     } catch (err) {
-      pushToast('error', 'Leave', err?.message || t('alerts.requestFailed'));
+      pushToast('error', t('leave.title'), err?.message || t('alerts.requestFailed'));
     }
   }
 
@@ -57,10 +65,10 @@ export default function LeavePage() {
     try {
       await inventoryApi.applyLeave(requestForm);
       setRequestForm({ employeeId: '', leaveTypeId: '', startDate: today(), endDate: today(), reason: '' });
-      pushToast('success', 'Leave', t('alerts.created'));
+      pushToast('success', t('leave.title'), t('leave.applyCreated'));
       load();
     } catch (err) {
-      pushToast('error', 'Leave', err?.message || t('alerts.requestFailed'));
+      pushToast('error', t('leave.title'), err?.message || t('alerts.requestFailed'));
     }
   }
 
@@ -68,70 +76,83 @@ export default function LeavePage() {
     try {
       if (approved) await inventoryApi.approveLeave(id);
       else await inventoryApi.rejectLeave(id);
-      pushToast('success', 'Leave', approved ? 'Leave approved.' : 'Leave rejected.');
+      pushToast('success', t('leave.title'), approved ? t('leave.approvedToast') : t('leave.rejectedToast'));
       load();
     } catch (err) {
-      pushToast('error', 'Leave', err?.message || t('alerts.requestFailed'));
+      pushToast('error', t('leave.title'), err?.message || t('alerts.requestFailed'));
     }
   }
 
   return (
     <div>
-      <SectionHeader eyebrow="HR" title="Leave Management" description="Manage leave types, applications, approvals, and history." />
+      <SectionHeader eyebrow={t('leave.eyebrow')} title={t('leave.title')} description={t('leave.description')} />
       {error ? <Alert type="error">{error}</Alert> : null}
 
       {canManage ? (
         <div className="mb-5 grid gap-4 lg:grid-cols-2">
           <form className="surface p-5" onSubmit={saveType}>
-            <h2 className="section-title mb-4">Leave Types</h2>
+            <h2 className="section-title mb-4">{t('leave.typesTitle')}</h2>
             <div className="grid gap-3 sm:grid-cols-2">
-              <input className="input" placeholder="Name" value={typeForm.name} onChange={(e) => setTypeForm({ ...typeForm, name: e.target.value })} />
-              <input className="input" placeholder="Code" value={typeForm.code} onChange={(e) => setTypeForm({ ...typeForm, code: e.target.value })} />
-              <input className="input" type="number" min="0" placeholder="Annual days" value={typeForm.annualDays} onChange={(e) => setTypeForm({ ...typeForm, annualDays: e.target.value })} />
+              <input className="input" placeholder={t('leave.nameLabel')} value={typeForm.name} onChange={(e) => setTypeForm({ ...typeForm, name: e.target.value })} />
+              <input className="input" placeholder={t('leave.codeLabel')} value={typeForm.code} onChange={(e) => setTypeForm({ ...typeForm, code: e.target.value })} />
+              <input className="input" type="number" min="0" placeholder={t('leave.annualDaysLabel')} value={typeForm.annualDays} onChange={(e) => setTypeForm({ ...typeForm, annualDays: e.target.value })} />
               <label className="flex items-center gap-2 text-sm font-semibold text-slate-600">
                 <input type="checkbox" checked={typeForm.paid} onChange={(e) => setTypeForm({ ...typeForm, paid: e.target.checked })} />
-                Paid leave
+                {t('leave.paidLeaveLabel')}
               </label>
             </div>
-            <button type="submit" className="btn-primary mt-4"><Plus size={16} /> Add Type</button>
+            <button type="submit" className="btn-primary mt-4"><Plus size={16} /> {t('leave.addType')}</button>
           </form>
 
           <form className="surface p-5" onSubmit={applyLeave}>
-            <h2 className="section-title mb-4">Apply Leave</h2>
+            <h2 className="section-title mb-4">{t('leave.applyTitle')}</h2>
             <div className="grid gap-3 sm:grid-cols-2">
               <Select className="input" value={requestForm.employeeId} onChange={(e) => setRequestForm({ ...requestForm, employeeId: e.target.value })}>
-                <option value="">Employee</option>
+                <option value="">{t('leave.employeeLabel')}</option>
                 {employees.map((employee) => <option key={employee.id} value={employee.id}>{employee.name}</option>)}
               </Select>
               <Select className="input" value={requestForm.leaveTypeId} onChange={(e) => setRequestForm({ ...requestForm, leaveTypeId: e.target.value })}>
-                <option value="">Leave type</option>
+                <option value="">{t('leave.leaveTypeLabel')}</option>
                 {types.filter((type) => type.status === 'ACTIVE').map((type) => <option key={type.id} value={type.id}>{type.name}</option>)}
               </Select>
               <input className="input" type="date" value={requestForm.startDate} onChange={(e) => setRequestForm({ ...requestForm, startDate: e.target.value })} />
               <input className="input" type="date" value={requestForm.endDate} onChange={(e) => setRequestForm({ ...requestForm, endDate: e.target.value })} />
-              <input className="input sm:col-span-2" placeholder="Reason" value={requestForm.reason} onChange={(e) => setRequestForm({ ...requestForm, reason: e.target.value })} />
+              <input className="input sm:col-span-2" placeholder={t('leave.reasonLabel')} value={requestForm.reason} onChange={(e) => setRequestForm({ ...requestForm, reason: e.target.value })} />
             </div>
-            <button type="submit" className="btn-primary mt-4"><Plus size={16} /> Apply</button>
+            <button type="submit" className="btn-primary mt-4"><Plus size={16} /> {t('leave.apply')}</button>
           </form>
         </div>
       ) : null}
 
-      <div className="surface overflow-hidden">
+      <div id={LEAVE_REQUESTS_REPORT_ID} className="surface overflow-hidden">
         <div className="flex flex-col gap-3 border-b border-slate-100 p-5 sm:flex-row sm:items-center sm:justify-between">
-          <h2 className="section-title">Leave Requests</h2>
-          <Select className="input w-full sm:w-44" value={status} onChange={(e) => setStatus(e.target.value)}>
-            <option value="">All statuses</option>
-            <option value="PENDING">Pending</option>
-            <option value="APPROVED">Approved</option>
-            <option value="REJECTED">Rejected</option>
-          </Select>
+          <h2 className="section-title">{t('leave.requestsTitle')}</h2>
+          <div className="flex flex-wrap items-center gap-2">
+            <TableReportActions targetId={LEAVE_REQUESTS_REPORT_ID} title={t('leave.requestsTitle')} fileName="leave-requests" entityType="leave_requests" t={t} shortcuts={LEAVE_REPORT_SHORTCUTS} />
+            <Select className="input w-full sm:w-44" value={status} onChange={(e) => setStatus(e.target.value)}>
+              <option value="">{t('leave.allStatuses')}</option>
+              <option value="PENDING">{t('leave.statusPending')}</option>
+              <option value="APPROVED">{t('leave.statusApproved')}</option>
+              <option value="REJECTED">{t('leave.statusRejected')}</option>
+            </Select>
+          </div>
         </div>
         {loading ? <div className="p-5"><TableSkeleton columns={7} /></div> : requests.length === 0 ? (
-          <div className="p-5"><EmptyState title="No leave requests" description="Leave applications will appear here." /></div>
+          <div className="p-5"><EmptyState title={t('leave.noRequestsTitle')} description={t('leave.noRequestsDesc')} icon={CalendarOff} /></div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="table-head"><tr><th className="px-4 py-3">Employee</th><th className="px-4 py-3">Type</th><th className="px-4 py-3">From</th><th className="px-4 py-3">To</th><th className="px-4 py-3">Days</th><th className="px-4 py-3">Status</th>{canApprove ? <th className="px-4 py-3 text-right">Actions</th> : null}</tr></thead>
+              <thead className="table-head">
+                <tr>
+                  <th className="px-4 py-3">{t('leave.columnEmployee')}</th>
+                  <th className="px-4 py-3">{t('leave.columnType')}</th>
+                  <th className="px-4 py-3">{t('leave.columnFrom')}</th>
+                  <th className="px-4 py-3">{t('leave.columnTo')}</th>
+                  <th className="px-4 py-3">{t('leave.columnDays')}</th>
+                  <th className="px-4 py-3">{t('leave.columnStatus')}</th>
+                  {canApprove ? <th className="px-4 py-3 text-right no-print">{t('common.actions')}</th> : null}
+                </tr>
+              </thead>
               <tbody className="divide-y divide-slate-100">
                 {requests.map((request) => (
                   <tr key={request.id}>
@@ -142,11 +163,11 @@ export default function LeavePage() {
                     <td className="table-cell">{request.totalDays}</td>
                     <td className="table-cell"><span className="muted-chip">{request.status}</span></td>
                     {canApprove ? (
-                      <td className="table-cell">
+                      <td className="table-cell no-print">
                         {request.status === 'PENDING' ? (
                           <div className="flex justify-end gap-2">
-                            <button type="button" className="icon-btn text-emerald-600" onClick={() => decide(request.id, true)} title="Approve"><Check size={16} /></button>
-                            <button type="button" className="icon-btn text-rose-600" onClick={() => decide(request.id, false)} title="Reject"><X size={16} /></button>
+                            <button type="button" className="icon-btn text-emerald-600" onClick={() => decide(request.id, true)} title={t('leave.approve')}><Check size={16} /></button>
+                            <button type="button" className="icon-btn text-rose-600" onClick={() => decide(request.id, false)} title={t('leave.reject')}><X size={16} /></button>
                           </div>
                         ) : null}
                       </td>

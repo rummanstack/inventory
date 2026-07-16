@@ -27,6 +27,12 @@ function nextMonth(month) {
 }
 
 const SALARY_PAYMENTS_REPORT_ID = 'salary-payments-report';
+const SALARY_PAYMENTS_REPORT_SHORTCUTS = {
+  pdf: { alt: true, key: 'd', label: 'Alt+D' },
+  excel: { alt: true, key: 'e', label: 'Alt+E' },
+  csv: { alt: true, key: 'c', label: 'Alt+C' },
+  print: { alt: true, key: 'p', label: 'Alt+P' },
+};
 
 function PaymentStatusBadge({ emp, t }) {
   const earned = emp.earnedAmount;
@@ -212,7 +218,7 @@ export default function SalaryPaymentsPage() {
       <div id={SALARY_PAYMENTS_REPORT_ID} className="surface overflow-hidden">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-5 py-3 no-print">
           <span className="text-sm font-bold text-slate-700">{t('salary.title')}</span>
-          <TableReportActions targetId={SALARY_PAYMENTS_REPORT_ID} title={t('salary.title')} fileName={`salary-payments-${vm.month}`} entityType="salary_payments" t={t} />
+          <TableReportActions targetId={SALARY_PAYMENTS_REPORT_ID} title={t('salary.title')} fileName={`salary-payments-${vm.month}`} entityType="salary_payments" t={t} shortcuts={SALARY_PAYMENTS_REPORT_SHORTCUTS} />
         </div>
         {vm.loading ? (
           <div className="p-5"><TableSkeleton columns={5} /></div>

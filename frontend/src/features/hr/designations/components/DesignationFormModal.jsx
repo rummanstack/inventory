@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { Save } from 'lucide-react';
 import { Alert, Modal, Select } from '../../../../components/ui.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
@@ -6,6 +7,7 @@ import { useFormState } from '../../../../hooks/useFormState.js';
 export default function DesignationFormModal({ designation, onClose, onSave }) {
   const { t } = useInventoryApp();
   const isEdit = Boolean(designation);
+  const formRef = useRef(null);
   const { form, updateField, error, setError, saving, setSaving } = useFormState({
     name: designation?.name || '',
     code: designation?.code || '',
@@ -33,6 +35,18 @@ export default function DesignationFormModal({ designation, onClose, onSave }) {
     if (result?.error) setError(result.error);
   }
 
+  useEffect(() => {
+    function handleKeyDown(event) {
+      if (event.key.toLowerCase() === 's' && (event.ctrlKey || event.metaKey) && !saving) {
+        event.preventDefault();
+        formRef.current?.requestSubmit();
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [saving]);
+
   return (
     <Modal
       title={isEdit ? t('designations.editTitle') : t('designations.addTitle')}
@@ -40,7 +54,7 @@ export default function DesignationFormModal({ designation, onClose, onSave }) {
       onClose={onClose}
       width="max-w-xl"
     >
-      <form className="space-y-4" onSubmit={submitForm}>
+      <form ref={formRef} className="space-y-4" onSubmit={submitForm}>
         {error ? <Alert type="error">{error}</Alert> : null}
 
         <div className="grid gap-4 sm:grid-cols-2">
@@ -70,6 +84,7 @@ export default function DesignationFormModal({ designation, onClose, onSave }) {
           <button type="submit" className="btn-primary" disabled={saving}>
             <Save size={18} />
             {saving ? t('common.saving') : t('common.save')}
+            <kbd className="ml-1 rounded border border-indigo-400/40 bg-indigo-500/20 px-1 py-0.5 font-mono text-[10px] text-indigo-200">Ctrl+S</kbd>
           </button>
         </div>
       </form>

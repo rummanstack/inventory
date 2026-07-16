@@ -1,11 +1,20 @@
 import { useEffect, useState } from 'react';
-import { Plus } from 'lucide-react';
+import { CalendarClock, Plus } from 'lucide-react';
 import { Alert, EmptyState, SectionHeader, Select, TableSkeleton } from '../../../../components/ui.jsx';
+import TableReportActions from '../../../../components/TableReportActions.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../../services/inventoryApi.js';
 
 const today = () => new Date().toISOString().slice(0, 10);
 const monthNow = () => new Date().toISOString().slice(0, 7);
+const DAILY_ATTENDANCE_REPORT_ID = 'daily-attendance-report';
+const MONTHLY_ATTENDANCE_REPORT_ID = 'monthly-attendance-report';
+const ATTENDANCE_REPORT_SHORTCUTS = {
+  pdf: { alt: true, key: 'd', label: 'Alt+D' },
+  excel: { alt: true, key: 'e', label: 'Alt+E' },
+  csv: { alt: true, key: 'c', label: 'Alt+C' },
+  print: { alt: true, key: 'p', label: 'Alt+P' },
+};
 
 export default function AttendancePage() {
   const { can, pushToast, t } = useInventoryApp();
@@ -32,7 +41,7 @@ export default function AttendancePage() {
       setDaily(dailyRows.items || dailyRows || []);
       setMonthly(monthRows);
     } catch (err) {
-      setError(err?.message || 'Failed to load attendance.');
+      setError(err?.message || t('attendance.loadFailed'));
     } finally {
       setLoading(false);
     }
@@ -48,16 +57,16 @@ export default function AttendancePage() {
       if (existing) await inventoryApi.updateAttendance({ ...payload, id: existing.id });
       else await inventoryApi.createAttendance(payload);
       setForm({ employeeId: '', status: 'PRESENT', checkInTime: '', checkOutTime: '', lateMinutes: 0, overtimeMinutes: 0, note: '' });
-      pushToast('success', 'Attendance', existing ? t('alerts.updated') : t('alerts.created'));
+      pushToast('success', t('attendance.title'), existing ? t('alerts.updated') : t('alerts.created'));
       load();
     } catch (err) {
-      pushToast('error', 'Attendance', err?.message || t('alerts.requestFailed'));
+      pushToast('error', t('attendance.title'), err?.message || t('alerts.requestFailed'));
     }
   }
 
   return (
     <div>
-      <SectionHeader eyebrow="HR" title="Attendance" description="Record daily manual attendance and review monthly totals." />
+      <SectionHeader eyebrow={t('attendance.eyebrow')} title={t('attendance.title')} description={t('attendance.description')} />
       {error ? <Alert type="error">{error}</Alert> : null}
 
       {canManage ? (
@@ -65,34 +74,37 @@ export default function AttendancePage() {
           <div className="grid gap-3 md:grid-cols-4">
             <input className="input" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
             <Select className="input" value={form.employeeId} onChange={(e) => setForm({ ...form, employeeId: e.target.value })}>
-              <option value="">Employee</option>
+              <option value="">{t('attendance.employeeLabel')}</option>
               {employees.map((employee) => <option key={employee.id} value={employee.id}>{employee.name}</option>)}
             </Select>
             <Select className="input" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
-              <option value="PRESENT">Present</option>
-              <option value="ABSENT">Absent</option>
-              <option value="LEAVE">Leave</option>
-              <option value="HOLIDAY">Holiday</option>
+              <option value="PRESENT">{t('attendance.statusPresent')}</option>
+              <option value="ABSENT">{t('attendance.statusAbsent')}</option>
+              <option value="LEAVE">{t('attendance.statusLeave')}</option>
+              <option value="HOLIDAY">{t('attendance.statusHoliday')}</option>
             </Select>
-            <button type="submit" className="btn-primary"><Plus size={16} /> Save</button>
+            <button type="submit" className="btn-primary"><Plus size={16} /> {t('attendance.save')}</button>
             <input className="input" type="time" value={form.checkInTime} onChange={(e) => setForm({ ...form, checkInTime: e.target.value })} />
             <input className="input" type="time" value={form.checkOutTime} onChange={(e) => setForm({ ...form, checkOutTime: e.target.value })} />
-            <input className="input" type="number" min="0" placeholder="Late minutes" value={form.lateMinutes} onChange={(e) => setForm({ ...form, lateMinutes: e.target.value })} />
-            <input className="input" type="number" min="0" placeholder="Overtime minutes" value={form.overtimeMinutes} onChange={(e) => setForm({ ...form, overtimeMinutes: e.target.value })} />
-            <input className="input md:col-span-4" placeholder="Note" value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })} />
+            <input className="input" type="number" min="0" placeholder={t('attendance.lateMinutesLabel')} value={form.lateMinutes} onChange={(e) => setForm({ ...form, lateMinutes: e.target.value })} />
+            <input className="input" type="number" min="0" placeholder={t('attendance.overtimeMinutesLabel')} value={form.overtimeMinutes} onChange={(e) => setForm({ ...form, overtimeMinutes: e.target.value })} />
+            <input className="input md:col-span-4" placeholder={t('attendance.noteLabel')} value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })} />
           </div>
         </form>
       ) : null}
 
       <div className="grid gap-5 xl:grid-cols-2">
-        <div className="surface overflow-hidden">
-          <div className="border-b border-slate-100 p-5"><h2 className="section-title">Daily Attendance</h2></div>
+        <div id={DAILY_ATTENDANCE_REPORT_ID} className="surface overflow-hidden">
+          <div className="flex items-center justify-between gap-3 border-b border-slate-100 p-5">
+            <h2 className="section-title">{t('attendance.dailyTitle')}</h2>
+            <TableReportActions targetId={DAILY_ATTENDANCE_REPORT_ID} title={t('attendance.dailyTitle')} fileName="daily-attendance" entityType="daily_attendance" t={t} shortcuts={ATTENDANCE_REPORT_SHORTCUTS} />
+          </div>
           {loading ? <div className="p-5"><TableSkeleton columns={6} /></div> : daily.length === 0 ? (
-            <div className="p-5"><EmptyState title="No attendance" description="No attendance has been recorded for this date." /></div>
+            <div className="p-5"><EmptyState title={t('attendance.noAttendanceTitle')} description={t('attendance.noAttendanceDesc')} icon={CalendarClock} /></div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="table-head"><tr><th className="px-4 py-3">Employee</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">In</th><th className="px-4 py-3">Out</th><th className="px-4 py-3">Late</th><th className="px-4 py-3">OT</th></tr></thead>
+                <thead className="table-head"><tr><th className="px-4 py-3">{t('attendance.columnEmployee')}</th><th className="px-4 py-3">{t('attendance.columnStatus')}</th><th className="px-4 py-3">{t('attendance.columnIn')}</th><th className="px-4 py-3">{t('attendance.columnOut')}</th><th className="px-4 py-3">{t('attendance.columnLate')}</th><th className="px-4 py-3">{t('attendance.columnOvertime')}</th></tr></thead>
                 <tbody className="divide-y divide-slate-100">
                   {daily.map((row) => (
                     <tr key={row.id}>
@@ -110,17 +122,20 @@ export default function AttendancePage() {
           )}
         </div>
 
-        <div className="surface overflow-hidden">
-          <div className="flex items-center justify-between gap-3 border-b border-slate-100 p-5">
-            <h2 className="section-title">Monthly Report</h2>
-            <input className="input w-40" type="month" value={month} onChange={(e) => setMonth(e.target.value)} />
+        <div id={MONTHLY_ATTENDANCE_REPORT_ID} className="surface overflow-hidden">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 p-5">
+            <h2 className="section-title">{t('attendance.monthlyTitle')}</h2>
+            <div className="flex flex-wrap items-center gap-2">
+              <TableReportActions targetId={MONTHLY_ATTENDANCE_REPORT_ID} title={t('attendance.monthlyTitle')} fileName="monthly-attendance" entityType="monthly_attendance" t={t} shortcuts={ATTENDANCE_REPORT_SHORTCUTS} />
+              <input className="input w-40" type="month" value={month} onChange={(e) => setMonth(e.target.value)} />
+            </div>
           </div>
           {loading ? <div className="p-5"><TableSkeleton columns={7} /></div> : !monthly?.items?.length ? (
-            <div className="p-5"><EmptyState title="No monthly data" description="Attendance totals will appear after records are added." /></div>
+            <div className="p-5"><EmptyState title={t('attendance.noMonthlyTitle')} description={t('attendance.noMonthlyDesc')} icon={CalendarClock} /></div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="table-head"><tr><th className="px-4 py-3">Employee</th><th className="px-4 py-3">Present</th><th className="px-4 py-3">Absent</th><th className="px-4 py-3">Leave</th><th className="px-4 py-3">Holiday</th><th className="px-4 py-3">Late</th><th className="px-4 py-3">OT</th></tr></thead>
+                <thead className="table-head"><tr><th className="px-4 py-3">{t('attendance.columnEmployee')}</th><th className="px-4 py-3">{t('attendance.columnPresent')}</th><th className="px-4 py-3">{t('attendance.columnAbsent')}</th><th className="px-4 py-3">{t('attendance.columnLeave')}</th><th className="px-4 py-3">{t('attendance.columnHoliday')}</th><th className="px-4 py-3">{t('attendance.columnLate')}</th><th className="px-4 py-3">{t('attendance.columnOvertime')}</th></tr></thead>
                 <tbody className="divide-y divide-slate-100">
                   {monthly.items.map((row) => (
                     <tr key={row.employeeId}>

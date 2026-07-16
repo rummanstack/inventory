@@ -1,4 +1,5 @@
-﻿import { Save } from 'lucide-react';
+﻿import { useEffect, useRef } from 'react';
+import { Save } from 'lucide-react';
 import { Alert, Modal, Select } from '../../../../components/ui.jsx';
 import PhotoUploadField from '../../../../components/PhotoUploadField.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
@@ -11,6 +12,7 @@ const BLOOD_GROUPS = ['', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 export default function EmployeeFormModal({ employee, departments = [], designations = [], onClose, onSave }) {
   const { t } = useInventoryApp();
   const isEdit = Boolean(employee);
+  const formRef = useRef(null);
   const { form, updateField, error, setError, saving, setSaving } = useFormState({
     name: employee?.name || '',
     photoUrl: employee?.photoUrl || '',
@@ -79,6 +81,18 @@ export default function EmployeeFormModal({ employee, departments = [], designat
     if (result?.error) setError(result.error);
   }
 
+  useEffect(() => {
+    function handleKeyDown(event) {
+      if (event.key.toLowerCase() === 's' && (event.ctrlKey || event.metaKey) && !saving) {
+        event.preventDefault();
+        formRef.current?.requestSubmit();
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [saving]);
+
   return (
     <Modal
       title={isEdit ? t('employees.editTitle') : t('employees.addTitle')}
@@ -86,7 +100,7 @@ export default function EmployeeFormModal({ employee, departments = [], designat
       onClose={onClose}
       width="max-w-5xl"
     >
-      <form className="space-y-5" onSubmit={submitForm}>
+      <form ref={formRef} className="space-y-5" onSubmit={submitForm}>
         {error ? <Alert type="error">{error}</Alert> : null}
 
         <PhotoUploadField label={t('employees.photo')} value={form.photoUrl} onChange={(url) => updateField('photoUrl', url)} />
@@ -233,6 +247,7 @@ export default function EmployeeFormModal({ employee, departments = [], designat
           <button type="submit" className="btn-primary" disabled={saving}>
             <Save size={18} />
             {saving ? t('common.saving') : t('common.save')}
+            <kbd className="ml-1 rounded border border-indigo-400/40 bg-indigo-500/20 px-1 py-0.5 font-mono text-[10px] text-indigo-200">Ctrl+S</kbd>
           </button>
         </div>
       </form>

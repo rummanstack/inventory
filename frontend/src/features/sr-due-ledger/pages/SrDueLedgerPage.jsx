@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Download, FileSpreadsheet, HandCoins, Loader2, Printer, RefreshCw, Wallet } from 'lucide-react';
 import { Alert, Badge, EmptyState, Modal, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton, Select } from '../../../components/ui.jsx';
-import { DatePickerField } from '../../../components/DatePicker.jsx';
+import { DatePickerField, DateRangePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../services/printService.js';
 import { inventoryApi } from '../../../services/inventoryApi.js';
@@ -11,6 +11,7 @@ import { useSrDueStatementViewModel } from '../viewmodels/useSrDueStatementViewM
 
 const PRINT_ID = 'sr-due-statement-print';
 const SR_DUE_LEDGER_SHORTCUTS = {
+  collect: { alt: true, key: 's', label: 'Alt+S' },
   refresh: { alt: true, key: 'r', label: 'Alt+R' },
   pdf: { alt: true, key: 'd', label: 'Alt+D' },
   excel: { alt: true, key: 'e', label: 'Alt+E' },
@@ -41,6 +42,7 @@ function CollectModal({ balance, srName, onClose, onSave, t }) {
   const [businessDate, setBusinessDate] = useState(new Date().toISOString().slice(0, 10));
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+  const formRef = useRef(null);
 
   async function submitForm(event) {
     event.preventDefault();
@@ -58,9 +60,21 @@ function CollectModal({ balance, srName, onClose, onSave, t }) {
     }
   }
 
+  useEffect(() => {
+    function handleKeyDown(event) {
+      if (event.key.toLowerCase() === 's' && (event.ctrlKey || event.metaKey) && !saving) {
+        event.preventDefault();
+        formRef.current?.requestSubmit();
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [saving]);
+
   return (
     <Modal title={t('srDueLedgerPage.collectModal.title')} description={srName} onClose={onClose} width="max-w-lg">
-      <form className="space-y-4" onSubmit={submitForm}>
+      <form ref={formRef} className="space-y-4" onSubmit={submitForm}>
         {error ? <Alert type="error">{error}</Alert> : null}
         <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
           <p className="text-xs font-bold uppercase text-slate-500">{t('srDueLedgerPage.collectModal.dueAmount')}</p>
@@ -83,6 +97,7 @@ function CollectModal({ balance, srName, onClose, onSave, t }) {
           <button type="submit" className="btn-primary" disabled={saving}>
             <HandCoins size={18} />
             {saving ? t('common.saving') : t('srDueLedgerPage.collectModal.collect')}
+            <kbd className="ml-1 rounded border border-white/40 bg-white/20 px-1 py-0.5 font-mono text-[10px] text-white">Ctrl+S</kbd>
           </button>
         </div>
       </form>
@@ -165,6 +180,11 @@ export default function SrDueLedgerPage() {
         vm.refresh();
         return;
       }
+      if (matchesShortcut(event, SR_DUE_LEDGER_SHORTCUTS.collect) && canManage && vm.srId && vm.statement && !showCollect) {
+        event.preventDefault();
+        setShowCollect(true);
+        return;
+      }
       if (!vm.statement) return;
       if (matchesShortcut(event, SR_DUE_LEDGER_SHORTCUTS.pdf) && !downloadingPdf) {
         event.preventDefault();
@@ -180,7 +200,7 @@ export default function SrDueLedgerPage() {
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [downloadingPdf, vm.statement, vm.srId, vm.refresh, entries, t]);
+  }, [downloadingPdf, vm.statement, vm.srId, vm.refresh, canManage, showCollect, entries, t]);
 
   return (
     <div>
@@ -192,13 +212,14 @@ export default function SrDueLedgerPage() {
           <button type="button" className="btn-primary" onClick={() => setShowCollect(true)}>
             <HandCoins size={18} />
             {t('srDueLedgerPage.collectDue')}
+            <kbd className="ml-1 rounded border border-white/40 bg-white/20 px-1 py-0.5 font-mono text-[10px] text-white">Alt+S</kbd>
           </button>
         ) : null}
       />
 
       <div className="surface p-5">
         <div className="flex flex-wrap items-end gap-3">
-          <div className="w-48">
+          <div className="w-72">
             <label className="label">{t('srDueLedgerPage.srNameLabel')}</label>
             <Select
               className="input"
@@ -211,13 +232,14 @@ export default function SrDueLedgerPage() {
               ))}
             </Select>
           </div>
-          <div className="min-w-[150px]">
+          <div className="min-w-[220px]">
             <label className="label">{t('srDueLedgerPage.dateFromPlaceholder')}</label>
-            <DatePickerField value={vm.dateFrom} onChange={vm.setDateFrom} placeholder={t('srDueLedgerPage.dateFromPlaceholder')} />
-          </div>
-          <div className="min-w-[150px]">
-            <label className="label">{t('srDueLedgerPage.dateToPlaceholder')}</label>
-            <DatePickerField value={vm.dateTo} onChange={vm.setDateTo} placeholder={t('srDueLedgerPage.dateToPlaceholder')} min={vm.dateFrom} />
+            <DateRangePickerField
+              from={vm.dateFrom}
+              to={vm.dateTo}
+              onChange={(from, to) => { vm.setDateFrom(from); vm.setDateTo(to); }}
+              placeholder={`${t('srDueLedgerPage.dateFromPlaceholder')} - ${t('srDueLedgerPage.dateToPlaceholder')}`}
+            />
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <button type="button" className="btn-secondary" onClick={vm.refresh}>

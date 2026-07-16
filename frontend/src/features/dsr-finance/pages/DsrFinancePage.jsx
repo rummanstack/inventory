@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Download, HandCoins, Loader2, Printer, RefreshCw, Wallet } from 'lucide-react';
 import { Alert, Badge, CopyableText, EmptyState, SectionHeader, StatCard, TableSkeleton, Select } from '../../../components/ui.jsx';
-import { DatePickerField } from '../../../components/DatePicker.jsx';
+import { DateRangePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../services/printService.js';
 import { inventoryApi } from '../../../services/inventoryApi.js';
@@ -101,7 +101,7 @@ export default function DsrFinancePage() {
 
       <div className="surface p-5">
         <div className="flex flex-wrap items-end gap-3">
-          <div className="w-48">
+          <div className="w-72">
             <label className="label">{t('dsrDueLedger.dsr')}</label>
             <Select className="input" value={dueVm.dsrId} onChange={(event) => dueVm.setDsrId(event.target.value)}>
               {dsrDirectory.map((dsr) => (
@@ -111,13 +111,14 @@ export default function DsrFinancePage() {
               ))}
             </Select>
           </div>
-          <div className="min-w-[150px]">
+          <div className="min-w-[220px]">
             <label className="label">{t('dsrDueLedger.dateFrom')}</label>
-            <DatePickerField value={dueVm.dateFrom} onChange={dueVm.setDateFrom} />
-          </div>
-          <div className="min-w-[150px]">
-            <label className="label">{t('dsrDueLedger.dateTo')}</label>
-            <DatePickerField value={dueVm.dateTo} onChange={dueVm.setDateTo} min={dueVm.dateFrom} />
+            <DateRangePickerField
+              from={dueVm.dateFrom}
+              to={dueVm.dateTo}
+              onChange={(from, to) => { dueVm.setDateFrom(from); dueVm.setDateTo(to); }}
+              placeholder={`${t('dsrDueLedger.dateFrom')} - ${t('dsrDueLedger.dateTo')}`}
+            />
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <button type="button" className="btn-secondary" onClick={dueVm.refresh}>

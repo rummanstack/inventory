@@ -18,12 +18,9 @@ export function usePolling(callback, intervalMs, { enabled = true } = {}) {
 
     tick();
     const intervalId = setInterval(tick, intervalMs);
-    document.addEventListener('visibilitychange', tick);
-
     return () => {
       cancelled = true;
       clearInterval(intervalId);
-      document.removeEventListener('visibilitychange', tick);
     };
   }, [intervalMs, enabled]);
 }

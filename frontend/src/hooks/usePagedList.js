@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { usePagination } from './usePagination';
 
 export function usePagedList(fetcher, deps = []) {
@@ -9,25 +9,6 @@ export function usePagedList(fetcher, deps = []) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [version, setVersion] = useState(0);
-
-  const versionRef = useRef(null);
-  versionRef.current = () => setVersion((v) => v + 1);
-  useEffect(() => {
-    let last = 0;
-    function trigger() {
-      const now = Date.now();
-      if (now - last > 1000) { last = now; versionRef.current(); }
-    }
-    function handleVisibility() {
-      if (document.visibilityState === 'visible') trigger();
-    }
-    document.addEventListener('visibilitychange', handleVisibility);
-    window.addEventListener('focus', trigger);
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibility);
-      window.removeEventListener('focus', trigger);
-    };
-  }, []);
 
   useEffect(() => {
     let cancelled = false;

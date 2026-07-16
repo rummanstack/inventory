@@ -229,42 +229,57 @@ export default function ProductsPage() {
             <Alert type="error">{vm.error}</Alert>
           </div>
         ) : viewMode === 'grid' ? (
-        <div className="grid grid-cols-2 gap-4 p-5 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-          {vm.items.map((product) => (
-            <div key={product.id} className="flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white">
-              <div className="relative aspect-square w-full bg-slate-50">
+        <div className="grid grid-cols-2 gap-4 p-5 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4 xl:grid-cols-5">
+          {vm.items.map((product) => {
+            const isOut = product.stockPieces === 0;
+            const isLow = product.stockPieces > 0 && product.stockPieces <= product.piecesPerCase;
+            return (
+            <div
+              key={product.id}
+              className="group flex flex-col overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition-all duration-200 ease-out hover:-translate-y-1 hover:border-[var(--brand)]/30 hover:shadow-[0_16px_32px_rgba(15,23,42,0.10)]"
+            >
+              <div className="relative aspect-square w-full overflow-hidden bg-gradient-to-br from-slate-50 to-slate-100">
                 {product.imageUrl ? (
-                  <img src={product.imageUrl} alt={product.name} className="h-full w-full object-cover" />
+                  <img
+                    src={product.imageUrl}
+                    alt={product.name}
+                    loading="lazy"
+                    className="h-full w-full object-cover transition-transform duration-300 ease-out group-hover:scale-[1.06]"
+                  />
                 ) : (
-                  <div className="flex h-full w-full flex-col items-center justify-center gap-1 text-slate-300">
-                    <ImageOff size={28} />
-                    <span className="text-[10px] font-semibold uppercase tracking-wide">{t('products.noImage')}</span>
+                  <div className="flex h-full w-full flex-col items-center justify-center gap-1.5 text-slate-300">
+                    <ImageOff size={26} strokeWidth={1.5} />
+                    <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">{t('products.noImage')}</span>
                   </div>
                 )}
-                <div className="absolute left-2 top-2 flex flex-col gap-1">
-                  {product.stockPieces === 0 ? <Badge tone="rose">{t('products.outShort')}</Badge> : null}
-                  {product.stockPieces > 0 && product.stockPieces <= product.piecesPerCase ? <Badge tone="amber">{t('products.lowShort')}</Badge> : null}
-                </div>
+                {isOut || isLow ? (
+                  <div className="absolute inset-x-0 top-0 flex justify-between gap-1 bg-gradient-to-b from-black/35 to-transparent p-2">
+                    <div className="flex flex-col gap-1">
+                      {isOut ? <Badge tone="rose">{t('products.outShort')}</Badge> : null}
+                      {isLow ? <Badge tone="amber">{t('products.lowShort')}</Badge> : null}
+                    </div>
+                  </div>
+                ) : null}
               </div>
-              <div className="flex flex-1 flex-col gap-2 p-3">
+              <div className="flex flex-1 flex-col gap-2.5 p-3.5">
                 <div>
-                  <p className="font-semibold text-slate-950">{product.name}</p>
-                  <p className="text-xs text-slate-500">{product.category}</p>
+                  <p className="line-clamp-2 text-[13.5px] font-bold leading-snug text-slate-950" title={product.name}>{product.name}</p>
+                  <p className="mt-1 truncate text-[11px] font-semibold uppercase tracking-wide text-slate-400">{product.category}</p>
                 </div>
-                <div className="mt-auto space-y-1 border-t border-slate-100 pt-2 text-sm">
+                <div className="mt-auto space-y-1.5 border-t border-slate-100 pt-2.5 text-sm">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-semibold text-slate-500">{t('products.retailPrice')}</span>
-                    <span className="font-bold text-slate-950">{formatCurrency(product.retailPrice, language)}</span>
+                    <span className="text-[15px] font-black text-slate-950">{formatCurrency(product.retailPrice, language)}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-semibold text-slate-500">{t('products.stock')}</span>
-                    <span className="font-semibold text-slate-950">
+                    <span className={cx('font-bold', isOut ? 'text-rose-600' : isLow ? 'text-amber-600' : 'text-slate-950')}>
                       {isElectronics ? `${formatNumber(product.stockPieces, language)} ${t('common.pcs')}` : formatCasePiece(product.stockPieces, product.piecesPerCase, language)}
                     </span>
                   </div>
                 </div>
                 {canManageProducts ? (
-                  <div className="mt-1 flex items-center gap-2">
+                  <div className="flex items-center gap-1.5 border-t border-slate-100 pt-2.5">
                     {product.serialRequired ? (
                       <span className="flex h-8 flex-1 items-center justify-center rounded-lg bg-slate-100 px-2 text-xs font-semibold text-slate-400" title={t('products.viaPurchaseOnlyTooltip')}>
                         {t('products.viaPurchaseOnly')}
@@ -275,17 +290,18 @@ export default function ProductsPage() {
                         {t('products.stockActions')}
                       </button>
                     )}
-                    <button type="button" className="icon-btn" title={t('common.edit')} onClick={() => setProductModal({ mode: 'edit', product })}>
+                    <button type="button" className="icon-btn h-8 w-8" title={t('common.edit')} onClick={() => setProductModal({ mode: 'edit', product })}>
                       <Pencil size={14} />
                     </button>
-                    <button type="button" className="icon-btn text-rose-600 hover:text-rose-700" title={t('common.delete')} onClick={async () => { const r = await deleteProduct(product); if (r.ok) vm.reload(); }}>
+                    <button type="button" className="icon-btn h-8 w-8 text-rose-600 hover:border-rose-200 hover:bg-rose-50 hover:text-rose-700" title={t('common.delete')} onClick={async () => { const r = await deleteProduct(product); if (r.ok) vm.reload(); }}>
                       <Trash2 size={14} />
                     </button>
                   </div>
                 ) : null}
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
         ) : (
         <>

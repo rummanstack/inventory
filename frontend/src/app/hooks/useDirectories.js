@@ -3,33 +3,12 @@ import { inventoryApi } from '../../services/inventoryApi';
 import { SHARED_DATA_DOMAINS as D } from '../../services/sharedDataInvalidation.js';
 
 export function useDirectories({ onDirectoryFresh } = {}) {
-  const [productDirectory, setProductDirectory] = useState([]);
   const [dsrDirectory, setDsrDirectory] = useState([]);
   const [srDirectory, setSrDirectory] = useState([]);
   const [supplierDirectory, setSupplierDirectory] = useState([]);
   const [shopDirectory, setShopDirectory] = useState([]);
   const [retailCustomerDirectory, setRetailCustomerDirectory] = useState([]);
   const [promotionDirectory, setPromotionDirectory] = useState([]);
-
-  function upsertProductDirectory(product) {
-    onDirectoryFresh?.(D.PRODUCTS);
-    setProductDirectory((current) => {
-      const next = current.some((item) => item.id === product.id)
-        ? current.map((item) => (item.id === product.id ? product : item))
-        : [...current, product];
-      return next.sort((a, b) => {
-        const aOrder = a.orderIndex ?? 9999;
-        const bOrder = b.orderIndex ?? 9999;
-        if (aOrder !== bOrder) return aOrder - bOrder;
-        return a.name.localeCompare(b.name);
-      });
-    });
-  }
-
-  function removeFromProductDirectory(productId) {
-    onDirectoryFresh?.(D.PRODUCTS);
-    setProductDirectory((current) => current.filter((item) => item.id !== productId));
-  }
 
   function upsertDsrDirectory(dsr) {
     onDirectoryFresh?.(D.DSRS);
@@ -185,18 +164,6 @@ export function useDirectories({ onDirectoryFresh } = {}) {
     }
   }
 
-  async function refreshProductDirectory() {
-    try {
-      const result = await inventoryApi.getProductsDirectory();
-      setProductDirectory(result.products || []);
-      onDirectoryFresh?.(D.PRODUCTS);
-      return true;
-    } catch {
-      // Best effort - the directory will catch up on the next full refresh.
-      return false;
-    }
-  }
-
   async function refreshDsrDirectory() {
     try {
       const result = await inventoryApi.getDsrsDirectory();
@@ -210,7 +177,6 @@ export function useDirectories({ onDirectoryFresh } = {}) {
   }
 
   function resetDirectories() {
-    setProductDirectory([]);
     setDsrDirectory([]);
     setSrDirectory([]);
     setSupplierDirectory([]);
@@ -220,22 +186,18 @@ export function useDirectories({ onDirectoryFresh } = {}) {
   }
 
   return {
-    productDirectory,
     dsrDirectory,
     srDirectory,
     supplierDirectory,
     shopDirectory,
     retailCustomerDirectory,
     promotionDirectory,
-    setProductDirectory,
     setDsrDirectory,
     setSrDirectory,
     setSupplierDirectory,
     setShopDirectory,
     setRetailCustomerDirectory,
     setPromotionDirectory,
-    upsertProductDirectory,
-    removeFromProductDirectory,
     upsertDsrDirectory,
     removeFromDsrDirectory,
     upsertSrDirectory,
@@ -248,7 +210,6 @@ export function useDirectories({ onDirectoryFresh } = {}) {
     removeFromRetailCustomerDirectory,
     upsertPromotionDirectory,
     removeFromPromotionDirectory,
-    refreshProductDirectory,
     refreshDsrDirectory,
     refreshSrDirectory,
     refreshSupplierDirectory,

@@ -7,6 +7,7 @@ import { downloadSheetPdf } from '../../../services/printService.js';
 import { useAsyncAction } from '../../../hooks/useAsyncAction.js';
 import { formatDateTime, formatNumber, todayISO } from '../../../utils/calculations.js';
 import { usePagination } from '../../../hooks/usePagination.js';
+import { useStockMovementsQuery } from '../queries/useStockMovementsQuery.js';
 
 const LEDGER_PAGE_SIZE = 10;
 const STOCK_LEDGER_PRINT_ID = 'stock-ledger-panel-print';
@@ -44,13 +45,21 @@ export default function StockLedgerPanel({ products, t, refreshKey = 0, fixedTyp
   const [productId, setProductId] = useState('');
   const [dateFrom, setDateFrom] = useState(subtractDays(today, 29));
   const [dateTo, setDateTo] = useState(today);
-  const [movements, setMovements] = useState([]);
-  const [total, setTotal] = useState(0);
-  const [totalPages, setTotalPages] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [version, setVersion] = useState(0);
   const { page, setPage, resetPage } = usePagination({ pageSize: LEDGER_PAGE_SIZE });
+  const movementsQuery = useStockMovementsQuery({
+    page,
+    pageSize: LEDGER_PAGE_SIZE,
+    productId,
+    type: fixedType,
+    dateFrom,
+    dateTo,
+  }, { refreshKey });
+  const movementResult = movementsQuery.data || {};
+  const movements = movementResult.items || [];
+  const total = movementResult.total || 0;
+  const totalPages = movementResult.totalPages || 0;
+  const loading = movementsQuery.isPending;
+  const error = movementsQuery.error?.message || '';
   const [downloadingPdf, downloadPdf] = useAsyncAction();
   const exportShortcutKey = shortcutKeys.exportExcel || 'l';
   const refreshShortcutKey = shortcutKeys.refresh || 'r';
@@ -61,49 +70,8 @@ export default function StockLedgerPanel({ products, t, refreshKey = 0, fixedTyp
     resetPage();
   }, [productId, dateFrom, dateTo, resetPage]);
 
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadMovements() {
-      try {
-        setLoading(true);
-        setError('');
-        const result = await inventoryApi.listStockMovements({
-          page,
-          pageSize: LEDGER_PAGE_SIZE,
-          productId,
-          type: fixedType,
-          dateFrom,
-          dateTo,
-        });
-
-        if (!cancelled) {
-          setMovements(result.items || []);
-          setTotal(result.total || 0);
-          setTotalPages(result.totalPages || 0);
-        }
-      } catch (requestError) {
-        if (!cancelled) {
-          setError(requestError.message);
-          setMovements([]);
-          setTotal(0);
-          setTotalPages(0);
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    }
-
-    loadMovements();
-    return () => {
-      cancelled = true;
-    };
-  }, [page, productId, dateFrom, dateTo, version, refreshKey, fixedType]);
-
   function handleRefresh() {
-    setVersion((value) => value + 1);
+    movementsQuery.refetch();
   }
 
   function handleDownloadPdf() {

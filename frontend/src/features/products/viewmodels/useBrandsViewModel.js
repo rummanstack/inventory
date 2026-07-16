@@ -1,34 +1,30 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi';
+import { fetchBrands, productKeys } from '../queries/productQueries.js';
 
 export function useBrandsViewModel() {
-  const { t, pushToast } = useInventoryApp();
-  const [brands, setBrands] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-
-  const load = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError('');
-      const result = await inventoryApi.listBrands();
-      setBrands(result.brands || []);
-    } catch (requestError) {
-      setError(requestError.message || t('brands.loadFailed'));
-    } finally {
-      setLoading(false);
-    }
-  }, [t]);
-
-  useEffect(() => {
-    load();
-  }, [load]);
+  const { t, pushToast, tenant, user } = useInventoryApp();
+  const queryClient = useQueryClient();
+  const tenantId = tenant?.id || user?.tenantId || '';
+  const brandsQuery = useQuery({
+    queryKey: productKeys.brands(tenantId),
+    queryFn: fetchBrands,
+    enabled: Boolean(tenantId),
+    staleTime: 5 * 60_000,
+  });
+  const brandMutation = useMutation({
+    mutationFn: ({ action, brandId, name }) => {
+      if (action === 'create') return inventoryApi.createBrand({ name });
+      if (action === 'rename') return inventoryApi.updateBrand(brandId, { name });
+      return inventoryApi.deleteBrand(brandId);
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: productKeys.brands(tenantId) }),
+  });
 
   async function createBrand(name) {
     try {
-      await inventoryApi.createBrand({ name });
-      await load();
+      await brandMutation.mutateAsync({ action: 'create', name });
       pushToast('success', t('brands.title'), t('alerts.created'));
       return { ok: true };
     } catch (requestError) {
@@ -40,8 +36,7 @@ export function useBrandsViewModel() {
 
   async function renameBrand(brandId, name) {
     try {
-      await inventoryApi.updateBrand(brandId, { name });
-      await load();
+      await brandMutation.mutateAsync({ action: 'rename', brandId, name });
       pushToast('success', t('brands.title'), t('alerts.updated'));
       return { ok: true };
     } catch (requestError) {
@@ -53,8 +48,7 @@ export function useBrandsViewModel() {
 
   async function deleteBrand(brandId) {
     try {
-      await inventoryApi.deleteBrand(brandId);
-      await load();
+      await brandMutation.mutateAsync({ action: 'delete', brandId });
       pushToast('success', t('common.delete'), t('alerts.deleted'));
       return { ok: true };
     } catch (requestError) {
@@ -64,5 +58,13 @@ export function useBrandsViewModel() {
     }
   }
 
-  return { brands, loading, error, createBrand, renameBrand, deleteBrand, reload: load };
+  return {
+    brands: brandsQuery.data || [],
+    loading: brandsQuery.isPending,
+    error: brandsQuery.error?.message || '',
+    createBrand,
+    renameBrand,
+    deleteBrand,
+    reload: brandsQuery.refetch,
+  };
 }

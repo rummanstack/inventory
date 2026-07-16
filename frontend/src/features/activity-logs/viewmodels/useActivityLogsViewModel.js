@@ -3,6 +3,7 @@ import { inventoryApi } from '../../../services/inventoryApi';
 import { usePagedList } from '../../../hooks/usePagedList';
 import { useDebouncedValue } from '../../../hooks/useDebouncedValue';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
+import { useQuery } from '@tanstack/react-query';
 
 const SEARCH_DEBOUNCE_MS = 300;
 
@@ -17,7 +18,6 @@ export function useActivityLogsViewModel() {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [tenantId, setTenantId] = useState('');
-  const [tenants, setTenants] = useState([]);
 
   const list = usePagedList(
     ({ page, pageSize }) => inventoryApi.listActivityLogs({
@@ -37,16 +37,13 @@ export function useActivityLogsViewModel() {
     list.resetPage();
   }, [debouncedSearch, debouncedActionType, module, dateFrom, dateTo, tenantId, list.resetPage]);
 
-  useEffect(() => {
-    if (!canFilterByOrg) {
-      return;
-    }
-
-    inventoryApi
-      .listTenants()
-      .then((result) => setTenants(result.tenants || result.items || []))
-      .catch(() => setTenants([]));
-  }, [canFilterByOrg]);
+  const tenantsQuery = useQuery({
+    queryKey: ['api-data', 'activity-log-tenants'],
+    queryFn: () => inventoryApi.listTenants(),
+    enabled: canFilterByOrg,
+    staleTime: 5 * 60_000,
+  });
+  const tenants = tenantsQuery.data?.tenants || tenantsQuery.data?.items || [];
 
   return {
     search,

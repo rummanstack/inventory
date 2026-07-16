@@ -1,13 +1,15 @@
 import { useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Check, Loader2, Pencil, Plus, Trash2, X } from 'lucide-react';
 import { Alert, Badge, EmptyState, Modal, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
+import { fetchGenericMedicines, productKeys } from '../queries/productQueries.js';
 
 export default function GenericMedicinesManagerModal({ onClose, onChanged }) {
-  const { t, confirm, pushToast } = useInventoryApp();
-  const [items, setItems] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { t, confirm, pushToast, tenant, user } = useInventoryApp();
+  const queryClient = useQueryClient();
+  const tenantId = tenant?.id || user?.tenantId || '';
   const [form, setForm] = useState({ name: '', description: '' });
   const [adding, setAdding] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -15,13 +17,28 @@ export default function GenericMedicinesManagerModal({ onClose, onChanged }) {
   const [savingId, setSavingId] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
   const [error, setError] = useState('');
-
-  useState(() => {
-    inventoryApi.listGenericMedicines()
-      .then((r) => setItems(r.genericMedicines || []))
-      .catch(() => setError('Failed to load.'))
-      .finally(() => setLoading(false));
+  const genericMedicinesQuery = useQuery({
+    queryKey: productKeys.genericMedicines(tenantId),
+    queryFn: () => fetchGenericMedicines(),
+    enabled: Boolean(tenantId),
+    staleTime: 5 * 60_000,
   });
+  const genericMedicineMutation = useMutation({
+    mutationFn: ({ action, id, data }) => {
+      if (action === 'create') return inventoryApi.createGenericMedicine(data);
+      if (action === 'update') return inventoryApi.updateGenericMedicine(id, data);
+      return inventoryApi.deleteGenericMedicine(id);
+    },
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: productKeys.genericMedicines(tenantId) }),
+        queryClient.invalidateQueries({ queryKey: productKeys.activeGenericMedicines(tenantId) }),
+      ]);
+    },
+  });
+  const items = genericMedicinesQuery.data || [];
+  const loading = genericMedicinesQuery.isPending;
+  const displayError = error || genericMedicinesQuery.error?.message || '';
 
   async function handleAdd(event) {
     event.preventDefault();
@@ -29,10 +46,8 @@ export default function GenericMedicinesManagerModal({ onClose, onChanged }) {
     setAdding(true);
     setError('');
     try {
-      await inventoryApi.createGenericMedicine({ name: form.name.trim(), description: form.description.trim() });
+      await genericMedicineMutation.mutateAsync({ action: 'create', data: { name: form.name.trim(), description: form.description.trim() } });
       setForm({ name: '', description: '' });
-      const r = await inventoryApi.listGenericMedicines();
-      setItems(r.genericMedicines || []);
       onChanged?.();
     } catch (err) {
       setError(err.message || 'Failed to add.');
@@ -51,10 +66,8 @@ export default function GenericMedicinesManagerModal({ onClose, onChanged }) {
     setSavingId(item.id);
     setError('');
     try {
-      await inventoryApi.updateGenericMedicine(item.id, editForm);
+      await genericMedicineMutation.mutateAsync({ action: 'update', id: item.id, data: editForm });
       setEditingId(null);
-      const r = await inventoryApi.listGenericMedicines();
-      setItems(r.genericMedicines || []);
       onChanged?.();
     } catch (err) {
       setError(err.message || 'Failed to save.');
@@ -73,9 +86,7 @@ export default function GenericMedicinesManagerModal({ onClose, onChanged }) {
     if (!confirmed) return;
     setDeletingId(item.id);
     try {
-      await inventoryApi.deleteGenericMedicine(item.id);
-      const r = await inventoryApi.listGenericMedicines();
-      setItems(r.genericMedicines || []);
+      await genericMedicineMutation.mutateAsync({ action: 'delete', id: item.id });
       onChanged?.();
     } catch (err) {
       pushToast('error', 'Error', err.message || 'Cannot delete — it may still have products.');
@@ -109,7 +120,7 @@ export default function GenericMedicinesManagerModal({ onClose, onChanged }) {
         />
       </form>
 
-      {error ? <Alert type="error">{error}</Alert> : null}
+      {displayError ? <Alert type="error">{displayError}</Alert> : null}
 
       {loading ? (
         <TableSkeleton columns={1} rows={4} showHeader={false} />

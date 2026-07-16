@@ -8,6 +8,7 @@ import { inventoryApi } from '../../../services/inventoryApi.js';
 import { formatDate, formatDateTime, formatNumber, todayISO } from '../../../utils/calculations.js';
 import { usePagination } from '../../../hooks/usePagination.js';
 import { useAsyncAction } from '../../../hooks/useAsyncAction.js';
+import { useStockMovementsQuery } from '../../products/queries/useStockMovementsQuery.js';
 
 const PAGE_SIZE = 15;
 
@@ -23,57 +24,29 @@ export default function DamageClearHistoryPanel({ products, refreshKey = 0, flus
   const [productId, setProductId] = useState('');
   const [dateFrom, setDateFrom] = useState(subtractDays(today, 29));
   const [dateTo, setDateTo] = useState(today);
-  const [records, setRecords] = useState([]);
-  const [total, setTotal] = useState(0);
-  const [totalPages, setTotalPages] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [version, setVersion] = useState(0);
   const { page, setPage, resetPage } = usePagination({ pageSize: PAGE_SIZE });
+  const movementsQuery = useStockMovementsQuery({
+    page,
+    pageSize: PAGE_SIZE,
+    productId,
+    type: 'DAMAGE_CLEAR',
+    dateFrom,
+    dateTo,
+  }, { refreshKey });
+  const movementResult = movementsQuery.data || {};
+  const records = movementResult.items || [];
+  const total = movementResult.total || 0;
+  const totalPages = movementResult.totalPages || 0;
+  const loading = movementsQuery.isPending;
+  const error = movementsQuery.error?.message || '';
   const [downloadingPdf, downloadPdf] = useAsyncAction();
 
   useEffect(() => {
     resetPage();
   }, [productId, dateFrom, dateTo, resetPage]);
 
-  useEffect(() => {
-    let cancelled = false;
-
-    async function load() {
-      try {
-        setLoading(true);
-        setError('');
-        const result = await inventoryApi.listStockMovements({
-          page,
-          pageSize: PAGE_SIZE,
-          productId,
-          type: 'DAMAGE_CLEAR',
-          dateFrom,
-          dateTo,
-        });
-        if (!cancelled) {
-          setRecords(result.items || []);
-          setTotal(result.total || 0);
-          setTotalPages(result.totalPages || 0);
-        }
-      } catch (err) {
-        if (!cancelled) {
-          setError(err.message);
-          setRecords([]);
-          setTotal(0);
-          setTotalPages(0);
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }
-
-    load();
-    return () => { cancelled = true; };
-  }, [page, productId, dateFrom, dateTo, version, refreshKey]);
-
   function handleRefresh() {
-    setVersion((v) => v + 1);
+    movementsQuery.refetch();
   }
 
   function handleDownloadPdf() {

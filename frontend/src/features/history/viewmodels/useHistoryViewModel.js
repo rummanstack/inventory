@@ -18,7 +18,8 @@ export function useHistoryViewModel(type) {
 
   const list = usePagedList(
     ({ page, pageSize }) => loadPage({ page, pageSize, search: debouncedSearch }),
-    [debouncedSearch],
+    [type, debouncedSearch],
+    `history-${type}`,
   );
 
   useEffect(() => {

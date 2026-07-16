@@ -1,8 +1,10 @@
 import { useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Check, Loader2, Pencil, Plus, Trash2, X } from 'lucide-react';
 import { Alert, Badge, EmptyState, Modal, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
+import { fetchManufacturers, productKeys } from '../queries/productQueries.js';
 
 const COUNTRIES = ['Bangladesh', 'India', 'China', 'USA', 'UK', 'Germany', 'Switzerland', 'South Korea', 'Japan', 'Pakistan', 'Other'];
 
@@ -11,9 +13,9 @@ function emptyEdit(m) {
 }
 
 export default function ManufacturersManagerModal({ onClose, onChanged }) {
-  const { t, confirm, pushToast } = useInventoryApp();
-  const [items, setItems] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { t, confirm, pushToast, tenant, user } = useInventoryApp();
+  const queryClient = useQueryClient();
+  const tenantId = tenant?.id || user?.tenantId || '';
   const [newName, setNewName] = useState('');
   const [adding, setAdding] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -21,13 +23,28 @@ export default function ManufacturersManagerModal({ onClose, onChanged }) {
   const [savingId, setSavingId] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
   const [error, setError] = useState('');
-
-  useState(() => {
-    inventoryApi.listManufacturers()
-      .then((r) => setItems(r.manufacturers || []))
-      .catch(() => setError('Failed to load.'))
-      .finally(() => setLoading(false));
+  const manufacturersQuery = useQuery({
+    queryKey: productKeys.manufacturers(tenantId),
+    queryFn: () => fetchManufacturers(),
+    enabled: Boolean(tenantId),
+    staleTime: 5 * 60_000,
   });
+  const manufacturerMutation = useMutation({
+    mutationFn: ({ action, id, data }) => {
+      if (action === 'create') return inventoryApi.createManufacturer(data);
+      if (action === 'update') return inventoryApi.updateManufacturer(id, data);
+      return inventoryApi.deleteManufacturer(id);
+    },
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: productKeys.manufacturers(tenantId) }),
+        queryClient.invalidateQueries({ queryKey: productKeys.activeManufacturers(tenantId) }),
+      ]);
+    },
+  });
+  const items = manufacturersQuery.data || [];
+  const loading = manufacturersQuery.isPending;
+  const displayError = error || manufacturersQuery.error?.message || '';
 
   async function handleAdd(event) {
     event.preventDefault();
@@ -35,10 +52,8 @@ export default function ManufacturersManagerModal({ onClose, onChanged }) {
     setAdding(true);
     setError('');
     try {
-      await inventoryApi.createManufacturer({ name: newName.trim() });
+      await manufacturerMutation.mutateAsync({ action: 'create', data: { name: newName.trim() } });
       setNewName('');
-      const r = await inventoryApi.listManufacturers();
-      setItems(r.manufacturers || []);
       onChanged?.();
     } catch (err) {
       setError(err.message || 'Failed to add.');
@@ -52,10 +67,8 @@ export default function ManufacturersManagerModal({ onClose, onChanged }) {
     setSavingId(item.id);
     setError('');
     try {
-      await inventoryApi.updateManufacturer(item.id, editForm);
+      await manufacturerMutation.mutateAsync({ action: 'update', id: item.id, data: editForm });
       setEditingId(null);
-      const r = await inventoryApi.listManufacturers();
-      setItems(r.manufacturers || []);
       onChanged?.();
     } catch (err) {
       setError(err.message || 'Failed to save.');
@@ -74,9 +87,7 @@ export default function ManufacturersManagerModal({ onClose, onChanged }) {
     if (!confirmed) return;
     setDeletingId(item.id);
     try {
-      await inventoryApi.deleteManufacturer(item.id);
-      const r = await inventoryApi.listManufacturers();
-      setItems(r.manufacturers || []);
+      await manufacturerMutation.mutateAsync({ action: 'delete', id: item.id });
       onChanged?.();
     } catch (err) {
       pushToast('error', 'Error', err.message || 'Cannot delete — it may still have products.');
@@ -101,7 +112,7 @@ export default function ManufacturersManagerModal({ onClose, onChanged }) {
         </button>
       </form>
 
-      {error ? <Alert type="error">{error}</Alert> : null}
+      {displayError ? <Alert type="error">{displayError}</Alert> : null}
 
       {loading ? (
         <TableSkeleton columns={1} rows={4} showHeader={false} />

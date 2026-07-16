@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { inventoryApi } from '../services/inventoryApi';
 import { getActiveTenantId, setActiveTenantId } from '../services/api/client.js';
 import { formatCurrency, formatDate, todayISO } from '../utils/calculations';
@@ -8,6 +9,8 @@ import { useConfirmation } from './hooks/useConfirmation';
 import { useDirectories } from './hooks/useDirectories';
 import { clearCssVarCache } from '../utils/theme.js';
 import { SHARED_DATA_DOMAINS as D, subscribeToSharedDataInvalidation } from '../services/sharedDataInvalidation.js';
+import { fetchProductDirectory, productKeys } from '../features/products/queries/productQueries.js';
+import { apiListKeys } from '../queries/apiQueryKeys.js';
 
 const InventoryAppContext = createContext(null);
 
@@ -70,6 +73,7 @@ function buildConsequences(t, key, variants) {
 }
 
 export function InventoryAppProvider({ children }) {
+  const queryClient = useQueryClient();
   const today = todayISO();
   const { language, setLanguage, t } = useLanguage();
   const { theme, setTheme, toggleTheme } = useTheme();
@@ -82,22 +86,18 @@ export function InventoryAppProvider({ children }) {
   }
 
   const {
-    productDirectory,
     dsrDirectory,
     srDirectory,
     supplierDirectory,
     shopDirectory,
     retailCustomerDirectory,
     promotionDirectory,
-    setProductDirectory,
     setDsrDirectory,
     setSrDirectory,
     setSupplierDirectory,
     setShopDirectory,
     setRetailCustomerDirectory,
     setPromotionDirectory,
-    upsertProductDirectory,
-    removeFromProductDirectory,
     upsertDsrDirectory,
     removeFromDsrDirectory,
     upsertSrDirectory,
@@ -110,7 +110,6 @@ export function InventoryAppProvider({ children }) {
     removeFromRetailCustomerDirectory,
     upsertPromotionDirectory,
     removeFromPromotionDirectory,
-    refreshProductDirectory,
     refreshDsrDirectory,
     refreshSrDirectory,
     refreshSupplierDirectory,
@@ -127,6 +126,81 @@ export function InventoryAppProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [tenantOptions, setTenantOptions] = useState([]);
+  const productTenantId = tenant?.id || user?.tenantId || '';
+  const productDirectoryKey = productKeys.directory(productTenantId);
+  const productDirectoryQuery = useQuery({
+    queryKey: productDirectoryKey,
+    queryFn: fetchProductDirectory,
+    enabled: Boolean(user && productTenantId),
+    staleTime: 60_000,
+  });
+  const productDirectory = productDirectoryQuery.data || [];
+  const saveProductMutation = useMutation({
+    mutationFn: (product) => product.id ? inventoryApi.updateProduct(product) : inventoryApi.createProduct(product),
+    onSuccess: (result) => updateProductCaches(result.product),
+  });
+  const deleteProductMutation = useMutation({
+    mutationFn: ({ product, reason }) => inventoryApi.deleteProduct(product.id, reason),
+    onSuccess: (_result, { product }) => {
+      removeFromProductDirectory(product.id);
+      invalidateProductDerivedQueries();
+    },
+  });
+  const addStockMutation = useMutation({
+    mutationFn: ({ productId, addPieces, reason }) => inventoryApi.addProductStock(productId, addPieces, reason),
+    onSuccess: (result) => updateProductCaches(result.product),
+  });
+  const openingStockMutation = useMutation({
+    mutationFn: ({ productId, quantity, note }) => inventoryApi.setOpeningStock(productId, quantity, note),
+    onSuccess: (result) => updateProductCaches(result.product),
+  });
+  const clearDamagedStockMutation = useMutation({
+    mutationFn: ({ productId, quantity, note }) => inventoryApi.clearDamagedStock(productId, quantity, note),
+    onSuccess: (result) => updateProductCaches(result.product),
+  });
+
+  function invalidateProductDerivedQueries() {
+    if (!productTenantId) return;
+    queryClient.invalidateQueries({ queryKey: productKeys.lists(productTenantId), refetchType: 'none' });
+    queryClient.invalidateQueries({ queryKey: productKeys.stockMovementLists(productTenantId), refetchType: 'none' });
+  }
+
+  function updateProductCaches(product) {
+    upsertProductDirectory(product);
+    invalidateProductDerivedQueries();
+  }
+
+  function upsertProductDirectory(product) {
+    if (!productTenantId) return;
+    queryClient.setQueryData(productDirectoryKey, (current = []) => {
+      const next = current.some((item) => item.id === product.id)
+        ? current.map((item) => (item.id === product.id ? product : item))
+        : [...current, product];
+      return next.sort((a, b) => {
+        const orderDifference = (a.orderIndex ?? 9999) - (b.orderIndex ?? 9999);
+        return orderDifference || a.name.localeCompare(b.name);
+      });
+    });
+    markSharedDirectoryFresh(D.PRODUCTS);
+  }
+
+  function removeFromProductDirectory(productId) {
+    if (!productTenantId) return;
+    queryClient.setQueryData(productDirectoryKey, (current = []) => current.filter((item) => item.id !== productId));
+    markSharedDirectoryFresh(D.PRODUCTS);
+  }
+
+  async function refreshProductDirectory() {
+    if (!productTenantId) return false;
+    try {
+      await queryClient.invalidateQueries({ queryKey: productDirectoryKey, exact: true, refetchType: 'none' });
+      await queryClient.fetchQuery({ queryKey: productDirectoryKey, queryFn: fetchProductDirectory, staleTime: 0 });
+      markSharedDirectoryFresh(D.PRODUCTS);
+      return true;
+    } catch {
+      return false;
+    }
+  }
 
   function handleUnauthorized() {
     setUser(null);
@@ -134,6 +208,7 @@ export function InventoryAppProvider({ children }) {
     setPermissions([]);
     setTenantOptions([]);
     resetDirectories();
+    queryClient.clear();
     staleSharedDirectoryDomainsRef.current.clear();
     sharedDirectoryRefreshPromisesRef.current.clear();
     setLoadError('');
@@ -151,7 +226,7 @@ export function InventoryAppProvider({ children }) {
       setUser(result.user);
       setTenant(result.tenant || null);
       setPermissions(result.permissions || []);
-      await refreshState();
+      await refreshState(result.tenant?.id || result.user?.tenantId);
       pushToast('success', t('organizations.switchedOrg'), result.tenant?.name || t('organizations.noOrgSelected'));
       return { ok: true };
     } catch (error) {
@@ -161,12 +236,14 @@ export function InventoryAppProvider({ children }) {
     }
   }
 
-  async function refreshState() {
+  async function refreshState(tenantId = productTenantId) {
     try {
       setLoading(true);
       setLoadError('');
-      const [productsResult, dsrsResult, srsResult, suppliersResult, customersResult, retailCustomersResult, promotionsResult] = await Promise.all([
-        inventoryApi.getProductsDirectory().catch(() => ({ products: [] })),
+      const [, dsrsResult, srsResult, suppliersResult, customersResult, retailCustomersResult, promotionsResult] = await Promise.all([
+        tenantId
+          ? queryClient.fetchQuery({ queryKey: productKeys.directory(tenantId), queryFn: fetchProductDirectory, staleTime: 60_000 }).catch(() => [])
+          : Promise.resolve([]),
         inventoryApi.getDsrsDirectory().catch(() => ({ dsrs: [] })),
         inventoryApi.getSrsDirectory().catch(() => ({ srs: [] })),
         inventoryApi.getActiveSuppliers().catch(() => ({ items: [] })),
@@ -174,7 +251,6 @@ export function InventoryAppProvider({ children }) {
         inventoryApi.getActiveRetailCustomers().catch(() => ({ items: [] })),
         inventoryApi.listRetailPromotions().catch(() => ({ promotions: [] })),
       ]);
-      setProductDirectory(productsResult.products || []);
       setDsrDirectory(dsrsResult.dsrs || []);
       setSrDirectory(srsResult.srs || []);
       setSupplierDirectory(suppliersResult.items || []);
@@ -233,7 +309,15 @@ export function InventoryAppProvider({ children }) {
 
   useEffect(() => subscribeToSharedDataInvalidation((domains) => {
     domains.forEach((domain) => staleSharedDirectoryDomainsRef.current.add(domain));
-  }), []);
+    queryClient.invalidateQueries({ queryKey: apiListKeys.all, refetchType: 'none' });
+    queryClient.invalidateQueries({ queryKey: ['api-data'], refetchType: 'none' });
+    if (domains.includes(D.PRODUCTS)) {
+      queryClient.invalidateQueries({ queryKey: productKeys.all, refetchType: 'none' });
+    }
+    if (domains.includes(D.SUPPLIERS)) {
+      queryClient.invalidateQueries({ queryKey: productKeys.references, refetchType: 'none' });
+    }
+  }), [queryClient]);
 
   useEffect(() => {
     let cancelled = false;
@@ -265,7 +349,7 @@ export function InventoryAppProvider({ children }) {
         }
 
         if (!currentUser.isPlatformUser) {
-          await refreshState();
+          await refreshState(result.tenant?.id || currentUser.tenantId);
         } else {
           setLoading(false);
         }
@@ -337,8 +421,7 @@ export function InventoryAppProvider({ children }) {
 
   async function saveProduct(product) {
     try {
-      const result = product.id ? await inventoryApi.updateProduct(product) : await inventoryApi.createProduct(product);
-      upsertProductDirectory(result.product);
+      const result = await saveProductMutation.mutateAsync(product);
       pushToast('success', product.id ? t('products.editTitle') : t('products.addTitle'), `${product.name} ${product.id ? t('alerts.updated') : t('alerts.created')}`);
       return { ok: true, product: result.product };
     } catch (error) {
@@ -365,8 +448,7 @@ export function InventoryAppProvider({ children }) {
     }
 
     try {
-      await inventoryApi.deleteProduct(product.id, reason);
-      removeFromProductDirectory(product.id);
+      await deleteProductMutation.mutateAsync({ product, reason });
       pushToast('success', t('common.delete'), `${product.name} ${t('alerts.deleted')}`);
       return { ok: true };
     } catch (error) {
@@ -378,8 +460,7 @@ export function InventoryAppProvider({ children }) {
 
   async function addStock(productId, addPieces, reason) {
     try {
-      const result = await inventoryApi.addProductStock(productId, addPieces, reason);
-      upsertProductDirectory(result.product);
+      await addStockMutation.mutateAsync({ productId, addPieces, reason });
       pushToast('success', t('products.updateStock'), t('products.stockUpdateSuccess'));
       return { ok: true };
     } catch (error) {
@@ -391,8 +472,7 @@ export function InventoryAppProvider({ children }) {
 
   async function setOpeningStock(productId, quantity, note) {
     try {
-      const result = await inventoryApi.setOpeningStock(productId, quantity, note);
-      upsertProductDirectory(result.product);
+      await openingStockMutation.mutateAsync({ productId, quantity, note });
       pushToast('success', t('products.openingStock'), t('products.openingStockSuccess'));
       return { ok: true };
     } catch (error) {
@@ -404,8 +484,7 @@ export function InventoryAppProvider({ children }) {
 
   async function clearDamagedStock(productId, quantity, note) {
     try {
-      const result = await inventoryApi.clearDamagedStock(productId, quantity, note);
-      upsertProductDirectory(result.product);
+      await clearDamagedStockMutation.mutateAsync({ productId, quantity, note });
       pushToast('success', t('damagedStock.clearTitle'), t('damagedStock.clearSuccess'));
       return { ok: true };
     } catch (error) {
@@ -1362,7 +1441,7 @@ export function InventoryAppProvider({ children }) {
         }).catch(() => {});
       }
       if (!isPlatformUser) {
-        await refreshState();
+        await refreshState(result.tenant?.id || result.user.tenantId);
       }
       pushToast('success', t('alerts.loggedIn'), result.user.name);
       return { ok: true };

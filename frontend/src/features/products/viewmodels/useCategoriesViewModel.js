@@ -1,34 +1,30 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi';
+import { fetchCategories, productKeys } from '../queries/productQueries.js';
 
 export function useCategoriesViewModel() {
-  const { t, pushToast } = useInventoryApp();
-  const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-
-  const load = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError('');
-      const result = await inventoryApi.listCategories();
-      setCategories(result.categories || []);
-    } catch (requestError) {
-      setError(requestError.message || t('categories.loadFailed'));
-    } finally {
-      setLoading(false);
-    }
-  }, [t]);
-
-  useEffect(() => {
-    load();
-  }, [load]);
+  const { t, pushToast, tenant, user } = useInventoryApp();
+  const queryClient = useQueryClient();
+  const tenantId = tenant?.id || user?.tenantId || '';
+  const categoriesQuery = useQuery({
+    queryKey: productKeys.categories(tenantId),
+    queryFn: fetchCategories,
+    enabled: Boolean(tenantId),
+    staleTime: 5 * 60_000,
+  });
+  const categoryMutation = useMutation({
+    mutationFn: ({ action, categoryId, name }) => {
+      if (action === 'create') return inventoryApi.createCategory({ name });
+      if (action === 'rename') return inventoryApi.updateCategory(categoryId, { name });
+      return inventoryApi.deleteCategory(categoryId);
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: productKeys.categories(tenantId) }),
+  });
 
   async function createCategory(name) {
     try {
-      await inventoryApi.createCategory({ name });
-      await load();
+      await categoryMutation.mutateAsync({ action: 'create', name });
       pushToast('success', t('categories.title'), t('alerts.created'));
       return { ok: true };
     } catch (requestError) {
@@ -40,8 +36,7 @@ export function useCategoriesViewModel() {
 
   async function renameCategory(categoryId, name) {
     try {
-      await inventoryApi.updateCategory(categoryId, { name });
-      await load();
+      await categoryMutation.mutateAsync({ action: 'rename', categoryId, name });
       pushToast('success', t('categories.title'), t('alerts.updated'));
       return { ok: true };
     } catch (requestError) {
@@ -53,8 +48,7 @@ export function useCategoriesViewModel() {
 
   async function deleteCategory(categoryId) {
     try {
-      await inventoryApi.deleteCategory(categoryId);
-      await load();
+      await categoryMutation.mutateAsync({ action: 'delete', categoryId });
       pushToast('success', t('common.delete'), t('alerts.deleted'));
       return { ok: true };
     } catch (requestError) {
@@ -64,5 +58,13 @@ export function useCategoriesViewModel() {
     }
   }
 
-  return { categories, loading, error, createCategory, renameCategory, deleteCategory, reload: load };
+  return {
+    categories: categoriesQuery.data || [],
+    loading: categoriesQuery.isPending,
+    error: categoriesQuery.error?.message || '',
+    createCategory,
+    renameCategory,
+    deleteCategory,
+    reload: categoriesQuery.refetch,
+  };
 }

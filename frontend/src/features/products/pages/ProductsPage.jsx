@@ -21,7 +21,7 @@ const VIEW_MODE_STORAGE_KEY = 'products-view-mode';
 
 export default function ProductsPage() {
   const { productDirectory, saveProduct, deleteProduct, addStock, setOpeningStock, t, can, tenant, language } = useInventoryApp();
-  const vm = useProductsViewModel();
+  const vm = useProductsViewModel({ tenantId: tenant?.id });
   const [productModal, setProductModal] = useState(null);
   const [stockModalProduct, setStockModalProduct] = useState(null);
   const [stockModalMode, setStockModalMode] = useState('add');

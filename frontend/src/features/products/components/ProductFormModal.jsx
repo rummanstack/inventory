@@ -1,24 +1,48 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Save } from 'lucide-react';
 import { Alert, Modal, Select } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
-import { inventoryApi } from '../../../services/inventoryApi.js';
 import { cleanNumber } from '../../../utils/calculations.js';
 import { useFormState } from '../../../hooks/useFormState';
 import PhotoUploadField from '../../../components/PhotoUploadField.jsx';
 import { SearchableSelect } from '../../../components/SearchableSelect.jsx';
+import {
+  fetchActiveSuppliers,
+  fetchBrands,
+  fetchCategories,
+  fetchGenericMedicines,
+  fetchManufacturers,
+  productKeys,
+} from '../queries/productQueries.js';
 
 export default function ProductFormModal({ product, onClose, onSave }) {
   const { t, pushToast, tenant } = useInventoryApp();
   const isEdit = Boolean(product);
   const isElectronics = (tenant?.businessType || 'ELECTRONICS') === 'ELECTRONICS';
   const isPharmacy = tenant?.businessType === 'DRUG_PHARMACY';
+  const tenantId = tenant?.id || '';
   const formRef = useRef(null);
-  const [categories, setCategories] = useState([]);
-  const [brands, setBrands] = useState([]);
-  const [suppliers, setSuppliers] = useState([]);
-  const [manufacturers, setManufacturers] = useState([]);
-  const [genericMedicines, setGenericMedicines] = useState([]);
+  const categoriesQuery = useQuery({ queryKey: productKeys.categories(tenantId), queryFn: fetchCategories, enabled: Boolean(tenantId), staleTime: 5 * 60_000 });
+  const brandsQuery = useQuery({ queryKey: productKeys.brands(tenantId), queryFn: fetchBrands, enabled: Boolean(tenantId), staleTime: 5 * 60_000 });
+  const suppliersQuery = useQuery({ queryKey: productKeys.suppliers(tenantId), queryFn: fetchActiveSuppliers, enabled: Boolean(tenantId), staleTime: 60_000 });
+  const manufacturersQuery = useQuery({
+    queryKey: productKeys.activeManufacturers(tenantId),
+    queryFn: () => fetchManufacturers({ active: true }),
+    enabled: Boolean(tenantId && isPharmacy),
+    staleTime: 5 * 60_000,
+  });
+  const genericMedicinesQuery = useQuery({
+    queryKey: productKeys.activeGenericMedicines(tenantId),
+    queryFn: () => fetchGenericMedicines({ active: true }),
+    enabled: Boolean(tenantId && isPharmacy),
+    staleTime: 5 * 60_000,
+  });
+  const categories = categoriesQuery.data || [];
+  const brands = brandsQuery.data || [];
+  const suppliers = suppliersQuery.data || [];
+  const manufacturers = manufacturersQuery.data || [];
+  const genericMedicines = genericMedicinesQuery.data || [];
   const { form, updateField, error, setError, saving, setSaving } = useFormState({
     name: product?.name || '',
     categoryId: product?.categoryId || '',
@@ -61,16 +85,6 @@ export default function ProductFormModal({ product, onClose, onSave }) {
       : [...current, supplierId];
     updateField('supplierIds', next);
   }
-
-  useEffect(() => {
-    inventoryApi.listCategories().then((result) => setCategories(result.categories || [])).catch(() => setCategories([]));
-    inventoryApi.listBrands().then((result) => setBrands(result.brands || [])).catch(() => setBrands([]));
-    inventoryApi.getActiveSuppliers().then((result) => setSuppliers(result.items || [])).catch(() => setSuppliers([]));
-    if (isPharmacy) {
-      inventoryApi.listActiveManufacturers().then((result) => setManufacturers(result.manufacturers || [])).catch(() => setManufacturers([]));
-      inventoryApi.listActiveGenericMedicines().then((result) => setGenericMedicines(result.genericMedicines || [])).catch(() => setGenericMedicines([]));
-    }
-  }, []);
 
   useEffect(() => {
     function handleKeyDown(event) {
@@ -450,4 +464,3 @@ export default function ProductFormModal({ product, onClose, onSave }) {
     </Modal>
   );
 }
-

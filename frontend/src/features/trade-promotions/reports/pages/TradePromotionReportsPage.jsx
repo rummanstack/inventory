@@ -9,6 +9,12 @@ import { useTradePromotionReportsViewModel } from '../viewmodels/useTradePromoti
 const TABS = ['pending', 'settled', 'supplier', 'product', 'dateWise'];
 const STATUS_TONES = { PENDING: 'amber', PARTIALLY_SETTLED: 'blue', SETTLED: 'emerald', REVERSED: 'rose' };
 const TRADE_PROMOTION_REPORTS_ID = 'trade-promotion-reports';
+const TRADE_PROMOTION_REPORTS_SHORTCUTS = {
+  pdf: { alt: true, key: 'd', label: 'Alt+D' },
+  excel: { alt: true, key: 'e', label: 'Alt+E' },
+  csv: { alt: true, key: 'c', label: 'Alt+C' },
+  print: { alt: true, key: 'p', label: 'Alt+P' },
+};
 
 export default function TradePromotionReportsPage() {
   const { t, supplierDirectory, productDirectory } = useInventoryApp();
@@ -38,7 +44,7 @@ export default function TradePromotionReportsPage() {
                 </button>
               ))}
             </div>
-            <TableReportActions targetId={TRADE_PROMOTION_REPORTS_ID} title={t('tradePromotions.reports.title')} fileName="trade-promotion-reports" entityType="trade_promotion_reports" t={t} />
+            <TableReportActions targetId={TRADE_PROMOTION_REPORTS_ID} title={t('tradePromotions.reports.title')} fileName="trade-promotion-reports" entityType="trade_promotion_reports" t={t} shortcuts={TRADE_PROMOTION_REPORTS_SHORTCUTS} />
           </div>
           <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <Select className="input" value={vm.supplierId} onChange={(event) => vm.setSupplierId(event.target.value)} disabled={vm.tab === 'supplier'}>

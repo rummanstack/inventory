@@ -127,9 +127,21 @@ export default function TradePromotionRuleFormModal({ rule, categories, onClose,
     }
   }
 
+  useEffect(() => {
+    function handleKeyDown(event) {
+      if (event.key.toLowerCase() === 's' && (event.ctrlKey || event.metaKey) && !saving) {
+        event.preventDefault();
+        formRef.current?.requestSubmit();
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [saving]);
+
   return (
     <Modal title={rule ? t('tradePromotions.rules.editTitle') : t('tradePromotions.rules.addTitle')} description={t('tradePromotions.rules.modalDescription')} onClose={onClose} width="max-w-4xl">
-      <form className="space-y-4" onSubmit={submitForm}>
+      <form ref={formRef} className="space-y-4" onSubmit={submitForm}>
         {error ? <Alert type="error">{error}</Alert> : null}
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
@@ -266,7 +278,11 @@ export default function TradePromotionRuleFormModal({ rule, categories, onClose,
         </div>
         <div className="flex justify-end gap-2 pt-2">
           <button type="button" className="btn-secondary" onClick={onClose} disabled={saving}>{t('common.cancel')}</button>
-          <button type="submit" className="btn-primary" disabled={saving}>{saving ? t('common.saving') : t('common.save')}</button>
+          <button type="submit" className="btn-primary" disabled={saving}>
+            <Save size={18} />
+            {saving ? t('common.saving') : t('common.save')}
+            <kbd className="ml-1 rounded border border-indigo-400/40 bg-indigo-500/20 px-1 py-0.5 font-mono text-[10px] text-indigo-200">Ctrl+S</kbd>
+          </button>
         </div>
       </form>
     </Modal>

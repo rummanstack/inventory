@@ -11,6 +11,12 @@ import { useTradePromotionEarningsViewModel } from '../viewmodels/useTradePromot
 const STATUS_VALUES = ['PENDING', 'PARTIALLY_SETTLED', 'SETTLED', 'REVERSED'];
 const STATUS_TONES = { PENDING: 'amber', PARTIALLY_SETTLED: 'blue', SETTLED: 'emerald', REVERSED: 'rose' };
 const TRADE_PROMOTION_EARNINGS_REPORT_ID = 'trade-promotion-earnings-report';
+const TRADE_PROMOTION_EARNINGS_REPORT_SHORTCUTS = {
+  pdf: { alt: true, key: 'd', label: 'Alt+D' },
+  excel: { alt: true, key: 'e', label: 'Alt+E' },
+  csv: { alt: true, key: 'c', label: 'Alt+C' },
+  print: { alt: true, key: 'p', label: 'Alt+P' },
+};
 
 export default function TradePromotionEarningsPage() {
   const { createTradePromotionSettlement, t, can, supplierDirectory, productDirectory } = useInventoryApp();
@@ -32,7 +38,7 @@ export default function TradePromotionEarningsPage() {
             <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">{t('tradePromotions.earnings.eyebrow')}</p>
             <div className="flex flex-wrap items-center justify-end gap-2 text-sm font-bold">
               <span className="muted-chip">{formatNumber(vm.total)} {t('tradePromotions.earnings.count')}</span>
-              <TableReportActions targetId={TRADE_PROMOTION_EARNINGS_REPORT_ID} title={t('tradePromotions.earnings.title')} fileName="trade-promotion-earnings" entityType="trade_promotion_earnings" t={t} />
+              <TableReportActions targetId={TRADE_PROMOTION_EARNINGS_REPORT_ID} title={t('tradePromotions.earnings.title')} fileName="trade-promotion-earnings" entityType="trade_promotion_earnings" t={t} shortcuts={TRADE_PROMOTION_EARNINGS_REPORT_SHORTCUTS} />
             </div>
           </div>
           <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-6">

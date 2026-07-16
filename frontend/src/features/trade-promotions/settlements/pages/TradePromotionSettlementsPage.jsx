@@ -9,6 +9,12 @@ import { useTradePromotionSettlementsViewModel } from '../viewmodels/useTradePro
 const METHODS = ['CASH', 'STOCK', 'CREDIT_NOTE'];
 const METHOD_TONES = { CASH: 'emerald', STOCK: 'blue', CREDIT_NOTE: 'purple' };
 const TRADE_PROMOTION_SETTLEMENTS_REPORT_ID = 'trade-promotion-settlements-report';
+const TRADE_PROMOTION_SETTLEMENTS_REPORT_SHORTCUTS = {
+  pdf: { alt: true, key: 'd', label: 'Alt+D' },
+  excel: { alt: true, key: 'e', label: 'Alt+E' },
+  csv: { alt: true, key: 'c', label: 'Alt+C' },
+  print: { alt: true, key: 'p', label: 'Alt+P' },
+};
 
 export default function TradePromotionSettlementsPage() {
   const { deleteTradePromotionSettlement, t, can } = useInventoryApp();
@@ -29,7 +35,7 @@ export default function TradePromotionSettlementsPage() {
             <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">{t('tradePromotions.settlements.eyebrow')}</p>
             <div className="flex flex-wrap items-center justify-end gap-2 text-sm font-bold">
               <span className="muted-chip">{formatNumber(vm.total)} {t('tradePromotions.settlements.count')}</span>
-              <TableReportActions targetId={TRADE_PROMOTION_SETTLEMENTS_REPORT_ID} title={t('tradePromotions.settlements.title')} fileName="trade-promotion-settlements" entityType="trade_promotion_settlements" t={t} />
+              <TableReportActions targetId={TRADE_PROMOTION_SETTLEMENTS_REPORT_ID} title={t('tradePromotions.settlements.title')} fileName="trade-promotion-settlements" entityType="trade_promotion_settlements" t={t} shortcuts={TRADE_PROMOTION_SETTLEMENTS_REPORT_SHORTCUTS} />
             </div>
           </div>
           <div className="mt-4 grid gap-3 sm:grid-cols-3">

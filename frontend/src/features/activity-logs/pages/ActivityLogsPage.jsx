@@ -1,6 +1,6 @@
 import { ClipboardList, Download, FileSpreadsheet, Loader2, Printer, Search } from 'lucide-react';
 import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton, Select } from '../../../components/ui.jsx';
-import { DatePickerField } from '../../../components/DatePicker.jsx';
+import { DateRangePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../services/printService.js';
 import { inventoryApi } from '../../../services/inventoryApi.js';
@@ -73,8 +73,8 @@ export default function ActivityLogsPage() {
 
       <div className="mb-6">
         <div className="surface p-5">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
+            <div className="lg:col-span-2">
               <label className="label">{t('activityLogs.searchLabel')}</label>
               <div className="relative">
                 <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
@@ -86,8 +86,6 @@ export default function ActivityLogsPage() {
                 />
               </div>
             </div>
-          </div>
-          <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <div>
               <label className="label">{t('activityLogs.filterModule')}</label>
               <Select className="input" value={vm.module} onChange={(event) => vm.setModule(event.target.value)}>
@@ -103,13 +101,14 @@ export default function ActivityLogsPage() {
               <label className="label">{t('activityLogs.filterAction')}</label>
               <input className="input" value={vm.actionType} onChange={(event) => vm.setActionType(event.target.value)} placeholder="product.update" />
             </div>
-            <div>
+            <div className="lg:col-span-2">
               <label className="label">{t('activityLogs.filterDateFrom')}</label>
-              <DatePickerField value={vm.dateFrom} onChange={vm.setDateFrom} />
-            </div>
-            <div>
-              <label className="label">{t('activityLogs.filterDateTo')}</label>
-              <DatePickerField value={vm.dateTo} onChange={vm.setDateTo} min={vm.dateFrom} />
+              <DateRangePickerField
+                from={vm.dateFrom}
+                to={vm.dateTo}
+                onChange={(from, to) => { vm.setDateFrom(from); vm.setDateTo(to); }}
+                placeholder={`${t('activityLogs.filterDateFrom')} - ${t('activityLogs.filterDateTo')}`}
+              />
             </div>
             {vm.canFilterByOrg ? (
               <div>

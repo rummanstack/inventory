@@ -1,7 +1,8 @@
-import { CircleDollarSign, Download, Eye, FileSpreadsheet, FileText, Loader2, Package, PackageCheck, Printer, RotateCcw, Truck, TrendingUp, Percent, Users, ReceiptText, Wallet, BadgeDollarSign } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { CircleDollarSign, Download, Eye, FileSpreadsheet, FileText, Loader2, Package, PackageCheck, Printer, RotateCcw, Truck, TrendingUp, Percent, Users, ReceiptText, Wallet, BadgeDollarSign, CheckCircle2 } from 'lucide-react';
 import PrintableSheet from '../../../components/PrintableSheet.jsx';
 import TableReportActions from '../../../components/TableReportActions.jsx';
-import { Alert, EmptyState, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton } from '../../../components/ui.jsx';
+import { Alert, EmptyState, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton, cx } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { buildPdfFileName, downloadSheetPdf } from '../../../services/printService.js';
@@ -11,13 +12,56 @@ import { useDailyReportsViewModel } from '../viewmodels/useDailyReportsViewModel
 import DailyClosePanel from '../components/DailyClosePanel.jsx';
 import { useAsyncAction } from '../../../hooks/useAsyncAction.js';
 
+const TAB_SHORTCUTS = ['Alt+1', 'Alt+2', 'Alt+3', 'Alt+4', 'Alt+5', 'Alt+6', 'Alt+7', 'Alt+8'];
+const REPORT_TABLE_SHORTCUTS = {
+  pdf: { alt: true, key: 'd', label: 'Alt+D' },
+  excel: { alt: true, key: 'e', label: 'Alt+E' },
+  csv: { alt: true, key: 'c', label: 'Alt+C' },
+  print: { alt: true, key: 'p', label: 'Alt+P' },
+};
+
 export default function DailyReportsPage() {
   const { productDirectory, dsrDirectory, today, t, tenant, language } = useInventoryApp();
   const vm = useDailyReportsViewModel({ products: productDirectory, dsrs: dsrDirectory, today, t, tenantName: tenant?.name });
   const [downloadingSheetPdf, downloadSheetPdfAction] = useAsyncAction();
+  const [activeTab, setActiveTab] = useState('dsr');
   const dueCollectedTotal = vm.dueCollectionRows.reduce((sum, r) => sum + r.total, 0);
   const reportFileSuffix = vm.isSingleDay ? vm.dateFrom : `${vm.dateFrom}-to-${vm.dateTo}`;
   const reportSubtitle = vm.isSingleDay ? vm.dateFrom : `${vm.dateFrom} to ${vm.dateTo}`;
+
+  const tabs = [
+    { key: 'dsr', labelKey: 'reports.tabDsr', icon: Truck },
+    { key: 'products', labelKey: 'reports.tabProducts', icon: Package },
+    { key: 'sr', labelKey: 'reports.tabSr', icon: Users },
+    { key: 'expenses', labelKey: 'reports.tabExpenses', icon: ReceiptText },
+    { key: 'salary', labelKey: 'reports.tabSalary', icon: BadgeDollarSign },
+    { key: 'dueCollections', labelKey: 'reports.tabDueCollections', icon: CircleDollarSign },
+    { key: 'dueBalances', labelKey: 'reports.tabDueBalances', icon: Wallet },
+    ...(vm.isSingleDay ? [{ key: 'dailyClose', labelKey: 'reports.tabDailyClose', icon: CheckCircle2 }] : []),
+  ];
+
+  useEffect(() => {
+    if (!tabs.some((tab) => tab.key === activeTab)) {
+      setActiveTab('dsr');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [vm.isSingleDay]);
+
+  useEffect(() => {
+    function handleKeyDown(event) {
+      const isShortcut = event.altKey && !event.ctrlKey && !event.metaKey;
+      if (!isShortcut) return;
+      const index = Number(event.key) - 1;
+      if (index >= 0 && index < tabs.length) {
+        event.preventDefault();
+        setActiveTab(tabs[index].key);
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tabs.map((tab) => tab.key).join(',')]);
 
   function recordReportPrint(label) {
     if (!vm.selectedSheet) return;
@@ -112,7 +156,34 @@ export default function DailyReportsPage() {
             <StatCard title={t('reports.profit')} value={vm.profitTotals ? formatCurrency(vm.profitTotals.profit) : '-'} icon={TrendingUp} tone={vm.profitTotals && vm.profitTotals.profit >= 0 ? 'emerald' : 'rose'} />
           </div>
 
+          {/* Report tabs */}
+          <div className="no-print mb-6 overflow-x-auto">
+            <div className="inline-flex min-w-full gap-1 rounded-lg border border-slate-200 bg-slate-50 p-1 sm:min-w-0">
+              {tabs.map((tab, index) => {
+                const Icon = tab.icon;
+                const selected = activeTab === tab.key;
+                return (
+                  <button
+                    key={tab.key}
+                    type="button"
+                    className={cx(
+                      'flex min-h-10 flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-md px-3 text-sm font-bold transition sm:flex-none',
+                      selected ? 'border border-indigo-200 bg-indigo-50 text-indigo-800 shadow-sm ring-2 ring-indigo-100' : 'border border-transparent text-slate-500 hover:bg-white/70 hover:text-slate-800',
+                    )}
+                    aria-pressed={selected}
+                    onClick={() => setActiveTab(tab.key)}
+                  >
+                    <Icon size={16} />
+                    {t(tab.labelKey)}
+                    <kbd className={cx('rounded border px-1.5 py-0.5 text-[10px] font-black', selected ? 'border-indigo-200 bg-white text-indigo-700' : 'border-slate-200 bg-white text-slate-400')}>{TAB_SHORTCUTS[index]}</kbd>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
           {/* DSR Table */}
+          {activeTab === 'dsr' ? (
           <div id="daily-reports-dsr-table" className="surface overflow-hidden">
             <div className="border-b border-slate-100 px-5 py-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
@@ -128,8 +199,8 @@ export default function DailyReportsPage() {
                     entityType="daily_reports_dsr"
                     t={t}
                     className="flex flex-wrap gap-2 no-print"
+                    shortcuts={REPORT_TABLE_SHORTCUTS}
                   />
-                  <span className="muted-chip">{formatNumber(vm.rows.length)} {t('common.dsr')}</span>
                 </div>
               </div>
             </div>
@@ -198,9 +269,11 @@ export default function DailyReportsPage() {
               </table>
             </div>
           </div>
+          ) : null}
 
           {/* Product Wise Sell */}
-          <div id="daily-reports-product-table" className="surface mt-6 overflow-hidden">
+          {activeTab === 'products' ? (
+          <div id="daily-reports-product-table" className="surface overflow-hidden">
             <div className="border-b border-slate-100 px-5 py-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
@@ -216,6 +289,7 @@ export default function DailyReportsPage() {
                     entityType="daily_reports_products"
                     t={t}
                     className="flex flex-wrap gap-2 no-print"
+                    shortcuts={REPORT_TABLE_SHORTCUTS}
                   />
                   {vm.productRows.length > 0 && <span className="muted-chip">{formatNumber(vm.productRows.length)} {t('products.product')}</span>}
                 </div>
@@ -248,9 +322,11 @@ export default function DailyReportsPage() {
               </div>
             )}
           </div>
+          ) : null}
 
           {/* SR Table */}
-          <div id="daily-reports-sr-table" className="surface mt-6 overflow-hidden">
+          {activeTab === 'sr' ? (
+          <div id="daily-reports-sr-table" className="surface overflow-hidden">
             <div className="border-b border-slate-100 px-5 py-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
@@ -266,6 +342,7 @@ export default function DailyReportsPage() {
                     entityType="daily_reports_sr"
                     t={t}
                     className="flex flex-wrap gap-2 no-print"
+                    shortcuts={REPORT_TABLE_SHORTCUTS}
                   />
                   {vm.srRows.length > 0 && <span className="muted-chip">{formatNumber(vm.srRows.length)} SR</span>}
                 </div>
@@ -300,9 +377,11 @@ export default function DailyReportsPage() {
               </div>
             )}
           </div>
+          ) : null}
 
           {/* Expense Table */}
-          <div id="daily-reports-expense-table" className="surface mt-6 overflow-hidden">
+          {activeTab === 'expenses' ? (
+          <div id="daily-reports-expense-table" className="surface overflow-hidden">
             <div className="border-b border-slate-100 px-5 py-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
@@ -318,6 +397,7 @@ export default function DailyReportsPage() {
                     entityType="daily_reports_expenses"
                     t={t}
                     className="flex flex-wrap gap-2 no-print"
+                    shortcuts={REPORT_TABLE_SHORTCUTS}
                   />
                   {vm.expenseRows.length > 0 && (
                     <span className="muted-chip">{formatCurrency(vm.expenseRows.reduce((s, r) => s + r.totalAmount, 0))}</span>
@@ -348,9 +428,11 @@ export default function DailyReportsPage() {
               </div>
             )}
           </div>
+          ) : null}
 
           {/* Salary Table */}
-          <div id="daily-reports-salary-table" className="surface mt-6 overflow-hidden">
+          {activeTab === 'salary' ? (
+          <div id="daily-reports-salary-table" className="surface overflow-hidden">
             <div className="border-b border-slate-100 px-5 py-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
@@ -366,6 +448,7 @@ export default function DailyReportsPage() {
                     entityType="daily_reports_salary"
                     t={t}
                     className="flex flex-wrap gap-2 no-print"
+                    shortcuts={REPORT_TABLE_SHORTCUTS}
                   />
                   {vm.salaryRows.length > 0 && (
                     <span className="muted-chip">{formatCurrency(vm.salaryRows.reduce((s, r) => s + r.totalPaid, 0))}</span>
@@ -396,9 +479,11 @@ export default function DailyReportsPage() {
               </div>
             )}
           </div>
+          ) : null}
 
           {/* Due Collections */}
-          <div id="daily-reports-due-collections-table" className="surface mt-6 overflow-hidden">
+          {activeTab === 'dueCollections' ? (
+          <div id="daily-reports-due-collections-table" className="surface overflow-hidden">
             <div className="border-b border-slate-100 px-5 py-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
@@ -414,6 +499,7 @@ export default function DailyReportsPage() {
                     entityType="daily_reports_due_collections"
                     t={t}
                     className="flex flex-wrap gap-2 no-print"
+                    shortcuts={REPORT_TABLE_SHORTCUTS}
                   />
                   {vm.dueCollectionRows.length > 0 && <span className="muted-chip">{formatCurrency(dueCollectedTotal)}</span>}
                 </div>
@@ -444,9 +530,11 @@ export default function DailyReportsPage() {
               </div>
             )}
           </div>
+          ) : null}
 
           {/* DSR Outstanding Due Balances */}
-          <div id="daily-reports-due-balances-table" className="surface mt-6 overflow-hidden">
+          {activeTab === 'dueBalances' ? (
+          <div id="daily-reports-due-balances-table" className="surface overflow-hidden">
             <div className="border-b border-slate-100 px-5 py-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
@@ -462,6 +550,7 @@ export default function DailyReportsPage() {
                     entityType="daily_reports_due_balances"
                     t={t}
                     className="flex flex-wrap gap-2 no-print"
+                    shortcuts={REPORT_TABLE_SHORTCUTS}
                   />
                   {vm.dsrDueBalanceRows.length > 0 && (
                     <span className="muted-chip">{formatNumber(vm.dsrDueBalanceRows.length)} {t('common.dsr')}</span>
@@ -494,20 +583,19 @@ export default function DailyReportsPage() {
               </div>
             )}
           </div>
+          ) : null}
 
           {/* Daily Close — single-day only */}
-          {vm.isSingleDay && (
-            <div className="mt-6">
-              <DailyClosePanel
-                close={vm.dailyClose}
-                totals={vm.totals}
-                profitTotals={vm.profitTotals}
-                date={vm.dateFrom}
-                t={t}
-                language={language}
-              />
-            </div>
-          )}
+          {vm.isSingleDay && activeTab === 'dailyClose' ? (
+            <DailyClosePanel
+              close={vm.dailyClose}
+              totals={vm.totals}
+              profitTotals={vm.profitTotals}
+              date={vm.dateFrom}
+              t={t}
+              language={language}
+            />
+          ) : null}
 
           {/* Printable Sheet - single-day mode only */}
           {vm.selectedSheet && vm.isSingleDay ? (

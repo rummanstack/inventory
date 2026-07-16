@@ -1,18 +1,22 @@
-import accountingStatementImage from '../../assets/landing/accounting-statement.png';
-import dashboardSummaryImage from '../../assets/landing/dashboard-summary.png';
 import dealerImage from '../../assets/landing/dealer.png';
-import dsrRouteImage from '../../assets/landing/dsr-route.png';
-import dueCollectionImage from '../../assets/landing/due-collection.png';
-import groceryImage from '../../assets/landing/grocery.png';
-import heroDashboardImage from '../../assets/landing/hero-dashboard.png';
-import pharmacyImage from '../../assets/landing/pharmacy.png';
-import profitReportImage from '../../assets/landing/profit-report.png';
-import purchaseReceiveImage from '../../assets/landing/purchase-receive.png';
-import reportsVisibilityImage from '../../assets/landing/reports-visibility.png';
-import retailCounterImage from '../../assets/landing/retail-counter.png';
-import supportCallImage from '../../assets/landing/support-call.png';
-import tradersImage from '../../assets/landing/traders.png';
-import warehouseStockImage from '../../assets/landing/warehouse-stock.png';
+import {
+  C01Image,
+  F01Image,
+  F02Image,
+  F03Image,
+  F05Image,
+  F06Image,
+  F07Image,
+  F09Image,
+  L01Image,
+  L02Image,
+  S01Image,
+  S02Image,
+  S04Image,
+  S05Image,
+  S06Image,
+  SW11Image,
+} from './data/marketingImages.js';
 import {
   BarChart3,
   Boxes,
@@ -94,76 +98,62 @@ export const megaMenuSections = [
   },
 ];
 
-export const heroPortraitImage = heroDashboardImage;
-export const contactUsImage = supportCallImage;
+export const heroPortraitImage = L01Image;
+export const contactUsImage = C01Image;
 
 export const featureStoryImages = [
-  retailCounterImage,
-  dsrRouteImage,
-  purchaseReceiveImage,
-  dueCollectionImage,
-  profitReportImage,
-  reportsVisibilityImage,
+  F02Image,
+  F07Image,
+  F05Image,
+  F06Image,
+  F03Image,
+  L02Image,
 ];
 
 export const featureHighlightImages = [
-  tradersImage,
-  groceryImage,
-  pharmacyImage,
+  S02Image,
+  S06Image,
+  S05Image,
 ];
 
 export const featureCardIcons = [ShoppingBag, ReceiptText, WalletCards, Warehouse, Boxes, BarChart3, RefreshCw, Printer];
 
 export const solutionIcons = [Store, PackageCheck, Truck, Route];
-export const solutionShowcaseImage = dashboardSummaryImage;
+export const solutionShowcaseImage = S01Image;
 export const solutionHighlightImages = [
-  { src: tradersImage },
-  { src: groceryImage },
-  { src: pharmacyImage },
+  { src: S02Image },
+  { src: S06Image },
+  { src: S05Image },
   { src: dealerImage },
 ];
 
 export const workflowIcons = [Warehouse, Boxes, ReceiptText, WalletCards, BarChart3];
 
 export const roleStoryImages = [
-  retailCounterImage,
-  groceryImage,
-  pharmacyImage,
-  dueCollectionImage,
-  dealerImage,
-  supportCallImage,
+  SW11Image,
+  S06Image,
+  S05Image,
+  F06Image,
+  S04Image,
+  C01Image,
 ];
 
 export const financeSpotlightImages = [
-  { src: profitReportImage, key: 'profitReport', fit: 'fill', position: 'center' },
-  { src: dashboardSummaryImage, key: 'dashboardSummary', fit: 'fill', position: 'center' },
-  { src: purchaseReceiveImage, key: 'purchaseReceive', fit: 'fill', position: 'center' },
-  { src: dsrRouteImage, key: 'dsrRoute', fit: 'fill', position: 'center' },
-  { src: reportsVisibilityImage, key: 'reportsVisibility', fit: 'fill', position: 'center' },
+  { src: F03Image, key: 'profitReport', fit: 'fill', position: 'center' },
+  { src: L01Image, key: 'dashboardSummary', fit: 'fill', position: 'center' },
+  { src: F05Image, key: 'purchaseReceive', fit: 'fill', position: 'center' },
+  { src: F07Image, key: 'dsrRoute', fit: 'fill', position: 'center' },
+  { src: F09Image, key: 'reportsVisibility', fit: 'fill', position: 'center' },
 ];
 
 export const showcaseImages = [
-  { src: heroDashboardImage, key: 'heroDashboard', fit: 'fill', position: 'center' },
-  { src: groceryImage, key: 'grocery', fit: 'cover', position: 'center' },
-  { src: pharmacyImage, key: 'pharmacy', fit: 'cover', position: 'center' },
-  { src: tradersImage, key: 'traders', fit: 'cover', position: 'center' },
+  { src: L01Image, key: 'heroDashboard', fit: 'fill', position: 'center' },
+  { src: S06Image, key: 'grocery', fit: 'cover', position: 'center' },
+  { src: S05Image, key: 'pharmacy', fit: 'cover', position: 'center' },
+  { src: S02Image, key: 'traders', fit: 'cover', position: 'center' },
   { src: dealerImage, key: 'dealer', fit: 'cover', position: 'center' },
-  { src: warehouseStockImage, key: 'warehouseStock', fit: 'cover', position: 'center' },
-  { src: profitReportImage, key: 'profitReport', fit: 'fill', position: 'center' },
-  { src: reportsVisibilityImage, key: 'reportsVisibility', fit: 'fill', position: 'center' },
-  { src: accountingStatementImage, key: 'accountingStatement', fit: 'fill', position: 'center' },
+  { src: F01Image, key: 'warehouseStock', fit: 'cover', position: 'center' },
+  { src: F03Image, key: 'profitReport', fit: 'fill', position: 'center' },
+  { src: F09Image, key: 'reportsVisibility', fit: 'fill', position: 'center' },
+  { src: F02Image, key: 'accountingStatement', fit: 'fill', position: 'center' },
 ];
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -661,7 +661,7 @@ function DetailPage({ type }) {
             </div>
           </div>
           <div className="rounded-[32px] border border-white/15 bg-white/10 p-3 shadow-[0_28px_80px_rgba(15,23,42,0.28)] backdrop-blur">
-            <ImagePlaceholder data={{ src: page.image, alt: page.imageAlt }} heightClass="aspect-[16/11]" fit="cover" position="center" />
+            <ImagePlaceholder data={{ src: page.image, alt: page.imageAlt }} heightClass="aspect-[16/10]" fit="cover" position="center" />
           </div>
         </div>
       </section>
@@ -820,3 +820,4 @@ export function FeatureDetailPage() {
 export function SolutionDetailPage() {
   return <DetailPage type="solution" />;
 }
+

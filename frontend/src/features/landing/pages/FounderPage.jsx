@@ -21,8 +21,8 @@ import LandingHeader from '../components/LandingHeader.jsx';
 import LandingFooter from '../components/LandingFooter.jsx';
 import DeferredLandingAiChatWidget from '../components/DeferredLandingAiChatWidget.jsx';
 import { contactPhone, whatsappUrl } from '../constants.js';
+import { founderPortraitImage } from '../data/marketingImages.js';
 import { stockLedgerLogoIcon } from '../../../assets/brandAssets.js';
-import founderPhoto from '../../../assets/landing/business-owner.png';
 
 const SOCIAL_LINKS = [
   { href: '#', Icon: Linkedin, label: 'LinkedIn' },
@@ -142,7 +142,7 @@ export default function FounderPage() {
               >
                 <div className="h-full w-full overflow-hidden rounded-[29px] bg-slate-800">
                   <img
-                    src={founderPhoto}
+                    src={founderPortraitImage}
                     alt={t('landing.founder.photoAlt')}
                     className="h-full w-full object-cover object-top"
                   />
@@ -325,7 +325,7 @@ export default function FounderPage() {
                   <img
                     loading="lazy"
                     decoding="async"
-                    src={founderPhoto}
+                    src={founderPortraitImage}
                     alt={t('landing.founder.photoAlt')}
                     className="h-full w-full rounded-full object-cover object-top"
                   />
@@ -368,4 +368,5 @@ export default function FounderPage() {
     </main>
   );
 }
+
 

@@ -1,18 +1,22 @@
 import {
-  accountingStatementImage,
-  groceryImage,
-  heroDashboardImage,
-  pharmacyImage,
-  retailCounterImage,
-  reportsVisibilityImage,
-  tradersImage,
-  warehouseStockImage,
-} from './seoPageImages';
+  L01Image,
+  SW02Image,
+  SW03Image,
+  SW04Image,
+  SW05Image,
+  SW06Image,
+  SW07Image,
+  SW08Image,
+  SW09Image,
+  SW10Image,
+  SW11Image,
+  SW12Image,
+} from './marketingImages.js';
 
 export const intentPages = [
   {
     slug: 'business-management-software-bangladesh',
-    image: heroDashboardImage,
+    image: L01Image,
     primaryFeatureSlug: 'accounting',
     primarySolutionSlug: 'retail-shop',
     en: {
@@ -52,7 +56,7 @@ export const intentPages = [
   },
   {
     slug: 'hr-payroll-software-bangladesh',
-    image: heroDashboardImage,
+    image: SW02Image,
     primaryFeatureSlug: 'hr-payroll',
     primarySolutionSlug: 'retail-shop',
     en: {
@@ -92,7 +96,7 @@ export const intentPages = [
   },
   {
     slug: 'inventory-software-bangladesh',
-    image: warehouseStockImage,
+    image: SW03Image,
     primaryFeatureSlug: 'inventory-management',
     primarySolutionSlug: 'wholesale-business',
     en: {
@@ -132,7 +136,7 @@ export const intentPages = [
   },
   {
     slug: 'dsr-management-software-bangladesh',
-    image: tradersImage,
+    image: SW04Image,
     primaryFeatureSlug: 'dsr-dealer-management',
     primarySolutionSlug: 'dsr-sales-team',
     en: {
@@ -172,7 +176,7 @@ export const intentPages = [
   },
   {
     slug: 'dealer-management-software-bangladesh',
-    image: tradersImage,
+    image: SW05Image,
     primaryFeatureSlug: 'dsr-dealer-management',
     primarySolutionSlug: 'dealer-distributor',
     en: {
@@ -212,7 +216,7 @@ export const intentPages = [
   },
   {
     slug: 'retail-pos-software-bangladesh',
-    image: retailCounterImage,
+    image: SW06Image,
     primaryFeatureSlug: 'retail-pos',
     primarySolutionSlug: 'retail-shop',
     en: {
@@ -252,7 +256,7 @@ export const intentPages = [
   },
   {
     slug: 'accounting-software-bangladesh',
-    image: accountingStatementImage,
+    image: SW07Image,
     primaryFeatureSlug: 'accounting',
     primarySolutionSlug: 'wholesale-business',
     en: {
@@ -292,7 +296,7 @@ export const intentPages = [
   },
   {
     slug: 'business-reporting-software-bangladesh',
-    image: reportsVisibilityImage,
+    image: SW08Image,
     primaryFeatureSlug: 'reporting',
     primarySolutionSlug: 'retail-shop',
     en: {
@@ -332,7 +336,7 @@ export const intentPages = [
   },
   {
     slug: 'pharmacy-management-software-bangladesh',
-    image: pharmacyImage,
+    image: SW09Image,
     primaryFeatureSlug: 'inventory-management',
     primarySolutionSlug: 'pharmacy',
     en: {
@@ -372,7 +376,7 @@ export const intentPages = [
   },
   {
     slug: 'wholesale-software-bangladesh',
-    image: tradersImage,
+    image: SW10Image,
     primaryFeatureSlug: 'purchase-management',
     primarySolutionSlug: 'wholesale-business',
     en: {
@@ -412,7 +416,7 @@ export const intentPages = [
   },
   {
     slug: 'shop-management-software-bangladesh',
-    image: groceryImage,
+    image: SW11Image,
     primaryFeatureSlug: 'retail-pos',
     primarySolutionSlug: 'grocery-store',
     en: {
@@ -452,7 +456,7 @@ export const intentPages = [
   },
   {
     slug: 'grocery-store-software-bangladesh',
-    image: groceryImage,
+    image: SW12Image,
     primaryFeatureSlug: 'retail-pos',
     primarySolutionSlug: 'grocery-store',
     en: {
@@ -503,3 +507,5 @@ export function getIntentPage(slug, language = 'en') {
     ...(entry[language] || entry.en),
   };
 }
+
+

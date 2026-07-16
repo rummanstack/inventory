@@ -1,24 +1,28 @@
 import {
-  accountingStatementImage,
-  dashboardSummaryImage,
   dealerImage,
-  dsrRouteImage,
-  dueCollectionImage,
-  groceryImage,
-  heroDashboardImage,
-  pharmacyImage,
-  purchaseReceiveImage,
-  reportsVisibilityImage,
-  retailCounterImage,
-  supportCallImage,
-  tradersImage,
-  warehouseStockImage,
 } from './seoPageImages';
+import {
+  F01Image,
+  F02Image,
+  F03Image,
+  F04Image,
+  F05Image,
+  F06Image,
+  F07Image,
+  F08Image,
+  F09Image,
+  F10Image,
+  S01Image,
+  S02Image,
+  S04Image,
+  S05Image,
+  S06Image,
+} from './marketingImages.js';
 
 export const featurePages = [
   {
     slug: 'inventory-management',
-    image: warehouseStockImage,
+    image: F01Image,
     en: {
       title: 'Inventory Management Software for Shops and Distributors',
       eyebrow: 'Inventory Management',
@@ -58,7 +62,7 @@ export const featurePages = [
   },
   {
     slug: 'retail-pos',
-    image: retailCounterImage,
+    image: F02Image,
     en: {
       title: 'Retail POS Software with Sales, Receipts, Stock, and Due Collection',
       eyebrow: 'Retail POS',
@@ -98,7 +102,7 @@ export const featurePages = [
   },
   {
     slug: 'accounting',
-    image: accountingStatementImage,
+    image: F03Image,
     en: {
       title: 'Accounting Software for Sales, Purchases, Ledgers, P&L, and Balance Sheet',
       eyebrow: 'Accounting',
@@ -140,7 +144,7 @@ export const featurePages = [
   },
   {
     slug: 'hr-payroll',
-    image: supportCallImage,
+    image: F04Image,
     en: {
       title: 'HR and Payroll Software for Employees, Attendance, Leave, Salary, Loans, and Advances',
       eyebrow: 'HR & Payroll',
@@ -180,7 +184,7 @@ export const featurePages = [
   },
   {
     slug: 'purchase-management',
-    image: purchaseReceiveImage,
+    image: F05Image,
     en: {
       title: 'Purchase and Supplier Management Software',
       eyebrow: 'Purchases & Suppliers',
@@ -216,7 +220,7 @@ export const featurePages = [
   },
   {
     slug: 'due-collection',
-    image: dueCollectionImage,
+    image: F06Image,
     en: {
       title: 'Due Collection and Customer Ledger Software',
       eyebrow: 'Due Collection',
@@ -252,7 +256,7 @@ export const featurePages = [
   },
   {
     slug: 'dsr-dealer-management',
-    image: dsrRouteImage,
+    image: F07Image,
     en: {
       title: 'DSR, Dealer, and Distributor Management Software',
       eyebrow: 'DSR & Dealer Management',
@@ -288,7 +292,7 @@ export const featurePages = [
   },
   {
     slug: 'installment-sales',
-    image: dashboardSummaryImage,
+    image: F08Image,
     en: {
       title: 'Installment Sales Management Software',
       eyebrow: 'Installment Sales',
@@ -324,7 +328,7 @@ export const featurePages = [
   },
   {
     slug: 'reporting',
-    image: reportsVisibilityImage,
+    image: F09Image,
     en: {
       title: 'Business Reporting Software for Sales, Profit, Stock, Finance, and Operations',
       eyebrow: 'Reports & Analytics',
@@ -364,7 +368,7 @@ export const featurePages = [
   },
   {
     slug: 'repair-warranty',
-    image: heroDashboardImage,
+    image: F10Image,
     en: {
       title: 'Repair Job and Warranty Claim Management Software',
       eyebrow: 'Repair & Warranty',
@@ -403,7 +407,7 @@ export const featurePages = [
 export const solutionPages = [
   {
     slug: 'retail-shop',
-    image: retailCounterImage,
+    image: S01Image,
     en: {
       title: 'Business Software for Retail Shops in Bangladesh',
       eyebrow: 'Retail Shops',
@@ -447,7 +451,7 @@ export const solutionPages = [
   },
   {
     slug: 'wholesale-business',
-    image: tradersImage,
+    image: S02Image,
     en: {
       title: 'Wholesale Business Management Software',
       eyebrow: 'Wholesale Business',
@@ -529,7 +533,7 @@ export const solutionPages = [
   },
   {
     slug: 'dsr-sales-team',
-    image: dsrRouteImage,
+    image: S04Image,
     en: {
       title: 'DSR Sales Team Management Software',
       eyebrow: 'DSR Sales Teams',
@@ -567,7 +571,7 @@ export const solutionPages = [
   },
   {
     slug: 'pharmacy',
-    image: pharmacyImage,
+    image: S05Image,
     en: {
       title: 'Pharmacy Management Software for Sales, Stock, Purchases, and Accounts',
       eyebrow: 'Pharmacies',
@@ -605,7 +609,7 @@ export const solutionPages = [
   },
   {
     slug: 'grocery-store',
-    image: groceryImage,
+    image: S06Image,
     en: {
       title: 'Grocery Store Management Software',
       eyebrow: 'Grocery Stores',
@@ -654,3 +658,4 @@ export function getSolutionPage(slug, language = 'en') {
   if (!entry) return undefined;
   return { slug: entry.slug, image: entry.image, ...(entry[language] || entry.en) };
 }
+

@@ -4,10 +4,10 @@ import SectionHeader from './shared/SectionHeader.jsx';
 import { featureStoryImages } from '../constants.js';
 
 const IMAGE_SETTINGS = [
-  { fit: 'cover', position: 'center', heightClass: 'aspect-[4/3]' },
   { fit: 'fill', position: 'center', heightClass: 'aspect-[16/10]' },
   { fit: 'fill', position: 'center', heightClass: 'aspect-[16/10]' },
-  { fit: 'cover', position: 'center', heightClass: 'aspect-[4/3]' },
+  { fit: 'fill', position: 'center', heightClass: 'aspect-[16/10]' },
+  { fit: 'fill', position: 'center', heightClass: 'aspect-[16/10]' },
   { fit: 'fill', position: 'center', heightClass: 'aspect-[16/10]' },
   { fit: 'fill', position: 'center', heightClass: 'aspect-[16/10]' },
 ];
@@ -51,6 +51,7 @@ export default function FeatureStorySection({ t }) {
     </section>
   );
 }
+
 
 
 

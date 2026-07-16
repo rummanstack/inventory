@@ -1,5 +1,5 @@
 ﻿import { Link } from 'react-router-dom';
-import { stockLedgerLogoHorizontal, stockLedgerLogoIcon } from '../../../assets/brandAssets.js';
+import { stockLedgerLogoIcon } from '../../../assets/brandAssets.js';
 
 // Shared layout for the public auth pages (login + register): dark brand panel on
 // the left, form card on the right. The brand panel is deliberately dark in BOTH
@@ -9,12 +9,21 @@ import { stockLedgerLogoHorizontal, stockLedgerLogoIcon } from '../../../assets/
 export default function AuthShell({ brand, eyebrow, title, points = [], footnote, children }) {
   return (
     <div className="page-shell">
-      <div className="h-screen overflow-y-auto">
-        <div className="flex min-h-full items-center justify-center px-4 py-8">
-          <div className="grid w-full max-w-5xl overflow-hidden rounded-[28px] shadow-[0_30px_90px_rgba(8,17,31,0.22)] lg:grid-cols-[2fr_3fr]">
+      <div className="relative h-screen overflow-y-auto">
+        {/* Ambient page background — keeps the area around the card from
+            reading as flat/empty, especially on mobile where the dark brand
+            panel below is hidden. */}
+        <div className="pointer-events-none fixed inset-0 overflow-hidden">
+          <div className="absolute -left-32 -top-32 h-96 w-96 rounded-full bg-[color-mix(in_srgb,var(--brand)_16%,transparent)] blur-[120px]" />
+          <div className="absolute -right-24 top-1/3 h-80 w-80 rounded-full bg-[color-mix(in_srgb,var(--brand)_10%,transparent)] blur-[110px]" />
+          <div className="absolute -bottom-32 left-1/4 h-96 w-96 rounded-full bg-[color-mix(in_srgb,var(--brand)_12%,transparent)] blur-[130px]" />
+        </div>
 
-            {/* Brand panel */}
-            <div className="relative hidden flex-col justify-between overflow-hidden bg-[var(--bg-dark)] p-10 lg:flex">
+        <div className="relative flex min-h-full items-center justify-center px-0 py-0 sm:px-4 sm:py-8">
+          <div className="grid w-full max-w-5xl overflow-hidden bg-[var(--bg-dark)] shadow-[0_30px_90px_rgba(8,17,31,0.22)] sm:rounded-[28px] lg:grid-cols-[2fr_3fr]">
+
+            {/* Brand panel — full hero on desktop, compact header bar on mobile */}
+            <div className="relative flex flex-col justify-between overflow-hidden p-6 pb-8 lg:p-10">
               {/* Ambient glows */}
               <div className="pointer-events-none absolute inset-0">
                 <div className="absolute -left-24 -top-24 h-72 w-72 rounded-full bg-[rgba(60,42,134,0.14)] blur-[100px]" />
@@ -32,13 +41,13 @@ export default function AuthShell({ brand, eyebrow, title, points = [], footnote
                   </span>
                 </Link>
 
-                <p className="mt-12 text-[11px] font-black uppercase tracking-[0.24em] text-[#ddd2ff]">{eyebrow}</p>
-                <h2 className="mt-4 max-w-xs text-[28px] font-black leading-[1.15] tracking-tight text-white">
+                <p className="mt-8 text-[11px] font-black uppercase tracking-[0.24em] text-[#ddd2ff] lg:mt-12">{eyebrow}</p>
+                <h2 className="mt-3 max-w-xs text-xl font-black leading-[1.2] tracking-tight text-white lg:mt-4 lg:text-[28px] lg:leading-[1.15]">
                   {title}
                 </h2>
               </div>
 
-              <ul className="relative mt-10 space-y-5">
+              <ul className="relative mt-8 hidden space-y-5 lg:mt-10 lg:block">
                 {points.map(({ icon: Icon, text }) => (
                   <li key={text} className="flex items-start gap-3.5">
                     <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[rgba(255,255,255,0.1)] bg-[rgba(60,42,134,0.16)] text-[#ddd2ff] backdrop-blur">
@@ -49,19 +58,13 @@ export default function AuthShell({ brand, eyebrow, title, points = [], footnote
                 ))}
               </ul>
 
-              <p className="relative mt-10 text-xs font-semibold leading-5 text-[rgba(255,255,255,0.5)]">
+              <p className="relative mt-10 hidden text-xs font-semibold leading-5 text-[rgba(255,255,255,0.5)] lg:block">
                 {footnote}
               </p>
             </div>
 
             {/* Form panel */}
-            <div className="flex flex-col justify-center bg-white px-6 py-12 sm:px-12">
-              {/* Mobile-only logo — logo-chip keeps a white base so the logo stays
-                  visible when the dark theme flips the card surface. */}
-              <Link to="/" className="logo-chip mb-6 flex h-12 w-fit items-center rounded-control px-2 transition hover:opacity-80 lg:hidden">
-                <img src={stockLedgerLogoHorizontal} alt="StockLedger" className="h-full w-auto object-contain" />
-              </Link>
-
+            <div className="flex flex-col justify-center rounded-t-[28px] bg-white px-6 py-10 sm:px-12 sm:py-12 lg:rounded-none">
               {children}
             </div>
 

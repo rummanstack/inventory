@@ -92,14 +92,20 @@ function LoginForm({ login, t, onForgot }) {
         />
       </label>
 
+      <div className="flex items-center justify-between pt-1">
+        <label className="inline-flex cursor-pointer items-center gap-2 text-xs font-semibold text-slate-500">
+          <input type="checkbox" className="h-4 w-4 rounded border-slate-300 text-[var(--brand)] focus:ring-2 focus:ring-[var(--brand-soft)]" />
+          {t('auth.rememberMe')}
+        </label>
+        <button type="button" className="text-xs font-bold text-[var(--secondary-strong)] hover:underline" onClick={onForgot}>
+          {t('auth.forgotPassword')}
+        </button>
+      </div>
+
       <AuthSubmitButton submitting={submitting} busyLabel={t('auth.signingIn')}>
         <KeyRound size={17} />
         {t('auth.signIn')}
       </AuthSubmitButton>
-
-      <button type="button" className="block w-full text-center text-xs font-bold text-[var(--secondary-strong)] hover:underline" onClick={onForgot}>
-        {t('auth.forgotPassword')}
-      </button>
 
       <p className="text-center text-xs font-semibold text-slate-500">
         {t('auth.noAccount')}{' '}

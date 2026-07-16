@@ -42,6 +42,7 @@ const en = {
       registerNow: 'Register your business',
       loginEyebrow: 'Welcome back',
       loginHint: 'Sign in to continue to your dashboard.',
+      rememberMe: 'Remember me',
       loginPointDevices: 'Sign in from any device — your data is always in sync.',
       register: {
         title: 'Register Your Business',

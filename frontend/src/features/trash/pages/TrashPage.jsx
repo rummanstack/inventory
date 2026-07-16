@@ -1,12 +1,19 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Boxes, Building2, CircleDollarSign, RotateCcw, ShoppingCart, Store, Trash2, UserCog, Users, Wallet } from 'lucide-react';
-import { Alert, EmptyState, Pagination, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
+import { Alert, EmptyState, Pagination, SectionHeader, TableSkeleton, cx } from '../../../components/ui.jsx';
 import TableReportActions from '../../../components/TableReportActions.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import { formatDateTime } from '../../../utils/calculations.js';
 
 const TRASH_REPORT_ID = 'trash-report';
+const TAB_SHORTCUTS = ['Alt+1', 'Alt+2', 'Alt+3', 'Alt+4', 'Alt+5', 'Alt+6', 'Alt+7', 'Alt+8'];
+const TRASH_REPORT_SHORTCUTS = {
+  pdf: { alt: true, key: 'd', label: 'Alt+D' },
+  excel: { alt: true, key: 'e', label: 'Alt+E' },
+  csv: { alt: true, key: 'c', label: 'Alt+C' },
+  print: { alt: true, key: 'p', label: 'Alt+P' },
+};
 
 export default function TrashPage() {
   const {
@@ -133,6 +140,22 @@ export default function TrashPage() {
 
   const canPermanentDelete = can('permanent_delete');
 
+  useEffect(() => {
+    function handleKeyDown(event) {
+      const isShortcut = event.altKey && !event.ctrlKey && !event.metaKey;
+      if (!isShortcut) return;
+      const index = Number(event.key) - 1;
+      if (index >= 0 && index < visibleTabs.length) {
+        event.preventDefault();
+        setActiveKey(visibleTabs[index].key);
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visibleTabs.map((tab) => tab.key).join(',')]);
+
   const [items, setItems] = useState([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
@@ -213,28 +236,35 @@ export default function TrashPage() {
     <div>
       <SectionHeader eyebrow={t('trash.eyebrow')} description={t('trash.description')} />
 
-      <div className="mb-4 flex flex-wrap gap-2">
-        {visibleTabs.map((tab) => {
-          const Icon = tab.icon;
-          const isActive = activeKey === tab.key;
-          return (
-            <button
-              key={tab.key}
-              type="button"
-              className={isActive ? 'btn-primary' : 'btn-secondary'}
-              onClick={() => setActiveKey(tab.key)}
-            >
-              <Icon size={16} />
-              {t(tab.labelKey)}
-            </button>
-          );
-        })}
+      <div className="no-print mb-4">
+        <div className="flex flex-wrap gap-1 rounded-lg border border-slate-200 bg-slate-50 p-1">
+          {visibleTabs.map((tab, index) => {
+            const Icon = tab.icon;
+            const selected = activeKey === tab.key;
+            return (
+              <button
+                key={tab.key}
+                type="button"
+                className={cx(
+                  'flex min-h-10 items-center justify-center gap-2 whitespace-nowrap rounded-md px-3 text-sm font-bold transition',
+                  selected ? 'border border-indigo-200 bg-indigo-50 text-indigo-800 shadow-sm ring-2 ring-indigo-100' : 'border border-transparent text-slate-500 hover:bg-white/70 hover:text-slate-800',
+                )}
+                aria-pressed={selected}
+                onClick={() => setActiveKey(tab.key)}
+              >
+                <Icon size={16} />
+                {t(tab.labelKey)}
+                <kbd className={cx('rounded border px-1.5 py-0.5 text-[10px] font-black', selected ? 'border-indigo-200 bg-white text-indigo-700' : 'border-slate-200 bg-white text-slate-400')}>{TAB_SHORTCUTS[index]}</kbd>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       <div id={TRASH_REPORT_ID} className="surface overflow-hidden">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-5 py-3 no-print">
           <span className="text-sm font-bold text-slate-700">{activeTab ? t(activeTab.labelKey) : t('nav.trash')}</span>
-          <TableReportActions targetId={TRASH_REPORT_ID} title={activeTab ? `${t('nav.trash')} - ${t(activeTab.labelKey)}` : t('nav.trash')} fileName={`trash-${activeKey || 'items'}`} entityType="trash" t={t} />
+          <TableReportActions targetId={TRASH_REPORT_ID} title={activeTab ? `${t('nav.trash')} - ${t(activeTab.labelKey)}` : t('nav.trash')} fileName={`trash-${activeKey || 'items'}`} entityType="trash" t={t} shortcuts={TRASH_REPORT_SHORTCUTS} />
         </div>
         {loading ? (
           <div className="p-5">

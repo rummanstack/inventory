@@ -8,6 +8,22 @@ import UserFormModal from '../components/UserFormModal';
 import { canManageUser, getAssignableRoles } from '../userRoleHierarchy.js';
 
 const USERS_REPORT_ID = 'users-report';
+const USERS_ADD_SHORTCUT = { alt: true, key: 'a', label: 'Alt+A' };
+const USERS_REPORT_SHORTCUTS = {
+  pdf: { alt: true, key: 'd', label: 'Alt+D' },
+  excel: { alt: true, key: 'e', label: 'Alt+E' },
+  csv: { alt: true, key: 'c', label: 'Alt+C' },
+  print: { alt: true, key: 'p', label: 'Alt+P' },
+};
+
+function matchesShortcut(event, shortcut) {
+  return (
+    event.key.toLowerCase() === shortcut.key &&
+    Boolean(event.altKey) === Boolean(shortcut.alt) &&
+    Boolean(event.shiftKey) === Boolean(shortcut.shift) &&
+    Boolean(event.ctrlKey || event.metaKey) === Boolean(shortcut.ctrlOrMeta)
+  );
+}
 
 export default function UsersPage() {
   const { t, user: actor, confirm, pushToast } = useInventoryApp();
@@ -129,6 +145,18 @@ export default function UsersPage() {
     }
   }
 
+  useEffect(() => {
+    function handleKeyDown(event) {
+      if (matchesShortcut(event, USERS_ADD_SHORTCUT) && assignableRoles.length && !userModal) {
+        event.preventDefault();
+        setUserModal({ mode: 'add' });
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [assignableRoles.length, userModal]);
+
   return (
     <div>
       <SectionHeader
@@ -139,6 +167,7 @@ export default function UsersPage() {
           <button type="button" className="btn-primary" onClick={() => setUserModal({ mode: 'add' })}>
             <Plus size={18} />
             {t('users.add')}
+            <kbd className="ml-1 rounded border border-indigo-400/40 bg-indigo-500/20 px-1 py-0.5 font-mono text-[10px] text-indigo-200">Alt+A</kbd>
           </button>
         ) : null}
       />
@@ -146,7 +175,7 @@ export default function UsersPage() {
       <div id={USERS_REPORT_ID} className="surface overflow-hidden">
         <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-3 no-print">
           <span className="text-sm font-bold text-slate-700">{t('users.title')}</span>
-          <TableReportActions targetId={USERS_REPORT_ID} title={t('users.title')} fileName="users" entityType="users" t={t} />
+          <TableReportActions targetId={USERS_REPORT_ID} title={t('users.title')} fileName="users" entityType="users" t={t} shortcuts={USERS_REPORT_SHORTCUTS} />
         </div>
         {loading ? (
           <div className="p-5">

@@ -1,5 +1,6 @@
+import { useEffect } from 'react';
 import { BadgeDollarSign, Download, FileSpreadsheet, Loader2, PiggyBank, Printer, TrendingDown, TrendingUp, Wallet } from 'lucide-react';
-import { Alert, ChartPanel, ChartPanelSkeleton, EmptyState, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton, TrendChart } from '../../../components/ui.jsx';
+import { Alert, ChartPanel, ChartPanelSkeleton, EmptyState, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton, TrendChart, cx } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../services/printService.js';
@@ -125,6 +126,23 @@ export default function ProfitPage() {
     { key: 'overview', labelKey: 'profit.tabOverview' },
     ...BREAKDOWN_TABS.filter((tab) => hasFeature(tab.feature)),
   ];
+  const tabShortcuts = ['Alt+1', 'Alt+2', 'Alt+3', 'Alt+4', 'Alt+5'];
+
+  useEffect(() => {
+    function handleKeyDown(event) {
+      const isShortcut = event.altKey && !event.ctrlKey && !event.metaKey;
+      if (!isShortcut) return;
+      const index = Number(event.key) - 1;
+      if (index >= 0 && index < tabs.length) {
+        event.preventDefault();
+        vm.setTab(tabs[index].key);
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tabs.map((tab) => tab.key).join(','), vm.setTab]);
 
   if (vm.loading && !vm.report) {
     return (
@@ -199,17 +217,27 @@ export default function ProfitPage() {
         </div>
       </div>
 
-      <div className="mb-6 flex flex-wrap gap-2">
-        {tabs.map((entry) => (
-          <button
-            key={entry.key}
-            type="button"
-            className={entry.key === vm.tab ? 'btn-primary' : 'btn-secondary'}
-            onClick={() => vm.setTab(entry.key)}
-          >
-            {t(entry.labelKey)}
-          </button>
-        ))}
+      <div className="no-print mb-6 overflow-x-auto">
+        <div className="inline-flex min-w-full gap-1 rounded-lg border border-slate-200 bg-slate-50 p-1 sm:min-w-0">
+          {tabs.map((entry, index) => {
+            const selected = entry.key === vm.tab;
+            return (
+              <button
+                key={entry.key}
+                type="button"
+                className={cx(
+                  'flex min-h-10 flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-md px-3 text-sm font-bold transition sm:flex-none',
+                  selected ? 'border border-indigo-200 bg-indigo-50 text-indigo-800 shadow-sm ring-2 ring-indigo-100' : 'border border-transparent text-slate-500 hover:bg-white/70 hover:text-slate-800',
+                )}
+                aria-pressed={selected}
+                onClick={() => vm.setTab(entry.key)}
+              >
+                {t(entry.labelKey)}
+                <kbd className={cx('rounded border px-1.5 py-0.5 text-[10px] font-black', selected ? 'border-indigo-200 bg-white text-indigo-700' : 'border-slate-200 bg-white text-slate-400')}>{tabShortcuts[index]}</kbd>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {vm.tab === 'overview' ? (

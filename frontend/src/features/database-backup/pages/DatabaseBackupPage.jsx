@@ -8,6 +8,23 @@ import { formatDateTime } from '../../../utils/calculations.js';
 import { usePagination } from '../../../hooks/usePagination';
 
 const BACKUP_HISTORY_REPORT_ID = 'backup-history-report';
+const BACKUP_SQL_SHORTCUT = { alt: true, key: 's', label: 'Alt+S' };
+const BACKUP_JSON_SHORTCUT = { alt: true, key: 'j', label: 'Alt+J' };
+const BACKUP_HISTORY_REPORT_SHORTCUTS = {
+  pdf: { alt: true, key: 'd', label: 'Alt+D' },
+  excel: { alt: true, key: 'e', label: 'Alt+E' },
+  csv: { alt: true, key: 'c', label: 'Alt+C' },
+  print: { alt: true, key: 'p', label: 'Alt+P' },
+};
+
+function matchesShortcut(event, shortcut) {
+  return (
+    event.key.toLowerCase() === shortcut.key &&
+    Boolean(event.altKey) === Boolean(shortcut.alt) &&
+    Boolean(event.shiftKey) === Boolean(shortcut.shift) &&
+    Boolean(event.ctrlKey || event.metaKey) === Boolean(shortcut.ctrlOrMeta)
+  );
+}
 
 export default function DatabaseBackupPage() {
   const { t, pushToast } = useInventoryApp();
@@ -65,6 +82,22 @@ export default function DatabaseBackupPage() {
     }
   }
 
+  useEffect(() => {
+    function handleKeyDown(event) {
+      if (matchesShortcut(event, BACKUP_SQL_SHORTCUT) && !loadingFormat) {
+        event.preventDefault();
+        handleDownload('sql');
+      } else if (matchesShortcut(event, BACKUP_JSON_SHORTCUT) && !loadingFormat) {
+        event.preventDefault();
+        handleDownload('json');
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loadingFormat]);
+
   return (
     <div>
       <SectionHeader
@@ -76,10 +109,12 @@ export default function DatabaseBackupPage() {
             <button type="button" className="btn-primary" onClick={() => handleDownload('sql')} disabled={Boolean(loadingFormat)}>
               <Download size={18} />
               {loadingFormat === 'sql' ? t('backup.downloading') : t('backup.exportSql')}
+              <kbd className="ml-1 rounded border border-white/40 bg-white/20 px-1 py-0.5 font-mono text-[10px] text-white">Alt+S</kbd>
             </button>
             <button type="button" className="btn-secondary" onClick={() => handleDownload('json')} disabled={Boolean(loadingFormat)}>
               <Download size={18} />
               {loadingFormat === 'json' ? t('backup.downloading') : t('backup.exportJson')}
+              <kbd className="ml-1 rounded border border-slate-300 bg-white/70 px-1 py-0.5 font-mono text-[10px] text-slate-500">Alt+J</kbd>
             </button>
           </div>
         )}
@@ -97,7 +132,7 @@ export default function DatabaseBackupPage() {
             <h2 className="section-title">{t('backup.history.title')}</h2>
             <div className="flex flex-wrap items-center justify-end gap-2 no-print">
               <span className="muted-chip">{historyTotal} {t('common.records')}</span>
-              <TableReportActions targetId={BACKUP_HISTORY_REPORT_ID} title={t('backup.history.title')} fileName="backup-history" entityType="database_backup_history" t={t} />
+              <TableReportActions targetId={BACKUP_HISTORY_REPORT_ID} title={t('backup.history.title')} fileName="backup-history" entityType="database_backup_history" t={t} shortcuts={BACKUP_HISTORY_REPORT_SHORTCUTS} />
             </div>
           </div>
         </div>

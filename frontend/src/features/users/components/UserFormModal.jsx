@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Save } from 'lucide-react';
 import { Alert, Modal, Select } from '../../../components/ui.jsx';
 import PhotoUploadField from '../../../components/PhotoUploadField.jsx';
@@ -13,6 +13,7 @@ export default function UserFormModal({ user, onClose, onSave }) {
   const isEdit = Boolean(user);
   const needsTenant = actor?.role === 'system_developer' && !isEdit;
   const roleOptions = getAssignableRoles(actor?.role);
+  const formRef = useRef(null);
   const { form, setForm, updateField, error, setError, saving, setSaving } = useFormState({
     name: user?.name || '',
     email: user?.email || '',
@@ -87,9 +88,21 @@ export default function UserFormModal({ user, onClose, onSave }) {
     }
   }
 
+  useEffect(() => {
+    function handleKeyDown(event) {
+      if (event.key.toLowerCase() === 's' && (event.ctrlKey || event.metaKey) && !saving) {
+        event.preventDefault();
+        formRef.current?.requestSubmit();
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [saving]);
+
   return (
     <Modal title={isEdit ? t('users.editTitle') : t('users.addTitle')} description={t('users.modalDescription')} onClose={onClose} width="max-w-xl">
-      <form className="space-y-4" onSubmit={submitForm}>
+      <form ref={formRef} className="space-y-4" onSubmit={submitForm}>
         {error ? <Alert type="error">{error}</Alert> : null}
         <PhotoUploadField label={t('photoUpload.title')} value={form.avatarUrl} onChange={(url) => updateField('avatarUrl', url)} />
         <div className="grid gap-4 sm:grid-cols-2">
@@ -139,6 +152,7 @@ export default function UserFormModal({ user, onClose, onSave }) {
           <button type="submit" className="btn-primary" disabled={saving}>
             <Save size={18} />
             {saving ? t('common.saving') : t('users.saveUser')}
+            <kbd className="ml-1 rounded border border-indigo-400/40 bg-indigo-500/20 px-1 py-0.5 font-mono text-[10px] text-indigo-200">Ctrl+S</kbd>
           </button>
         </div>
       </form>

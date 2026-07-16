@@ -1,5 +1,6 @@
+import { useEffect } from 'react';
 import { BarChart3 } from 'lucide-react';
-import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton, Select } from '../../../../components/ui.jsx';
+import { Alert, Badge, EmptyState, Pagination, SectionHeader, TableSkeleton, Select, cx } from '../../../../components/ui.jsx';
 import TableReportActions from '../../../../components/TableReportActions.jsx';
 import { DatePickerField } from '../../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
@@ -7,6 +8,7 @@ import { formatCurrency, formatDate, formatNumber } from '../../../../utils/calc
 import { useTradePromotionReportsViewModel } from '../viewmodels/useTradePromotionReportsViewModel.js';
 
 const TABS = ['pending', 'settled', 'supplier', 'product', 'dateWise'];
+const TAB_SHORTCUTS = ['Alt+1', 'Alt+2', 'Alt+3', 'Alt+4', 'Alt+5'];
 const STATUS_TONES = { PENDING: 'amber', PARTIALLY_SETTLED: 'blue', SETTLED: 'emerald', REVERSED: 'rose' };
 const TRADE_PROMOTION_REPORTS_ID = 'trade-promotion-reports';
 const TRADE_PROMOTION_REPORTS_SHORTCUTS = {
@@ -21,6 +23,21 @@ export default function TradePromotionReportsPage() {
   const vm = useTradePromotionReportsViewModel();
   const isSummaryTab = vm.tab === 'supplier' || vm.tab === 'product' || vm.tab === 'dateWise';
 
+  useEffect(() => {
+    function handleKeyDown(event) {
+      const isShortcut = event.altKey && !event.ctrlKey && !event.metaKey;
+      if (!isShortcut) return;
+      const index = Number(event.key) - 1;
+      if (index >= 0 && index < TABS.length) {
+        event.preventDefault();
+        vm.setTab(TABS[index]);
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [vm.setTab]);
+
   return (
     <div>
       <SectionHeader
@@ -29,21 +46,32 @@ export default function TradePromotionReportsPage() {
         description={t('tradePromotions.reports.description')}
       />
 
+      <div className="no-print mb-4 overflow-x-auto">
+        <div className="inline-flex min-w-full gap-1 rounded-lg border border-slate-200 bg-slate-50 p-1 sm:min-w-0">
+          {TABS.map((value, index) => {
+            const selected = vm.tab === value;
+            return (
+              <button
+                key={value}
+                type="button"
+                className={cx(
+                  'flex min-h-10 flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-md px-3 text-sm font-bold transition sm:flex-none',
+                  selected ? 'border border-indigo-200 bg-indigo-50 text-indigo-800 shadow-sm ring-2 ring-indigo-100' : 'border border-transparent text-slate-500 hover:bg-white/70 hover:text-slate-800',
+                )}
+                aria-pressed={selected}
+                onClick={() => vm.setTab(value)}
+              >
+                {t(`tradePromotions.reports.tabs.${value}`)}
+                <kbd className={cx('rounded border px-1.5 py-0.5 text-[10px] font-black', selected ? 'border-indigo-200 bg-white text-indigo-700' : 'border-slate-200 bg-white text-slate-400')}>{TAB_SHORTCUTS[index]}</kbd>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       <div id={TRADE_PROMOTION_REPORTS_ID} className="surface overflow-hidden">
         <div className="border-b border-slate-100 p-5">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex flex-wrap gap-2">
-              {TABS.map((value) => (
-                <button
-                  key={value}
-                  type="button"
-                  className={`rounded-full px-4 py-1.5 text-sm font-semibold transition ${vm.tab === value ? 'bg-brand text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
-                  onClick={() => vm.setTab(value)}
-                >
-                  {t(`tradePromotions.reports.tabs.${value}`)}
-                </button>
-              ))}
-            </div>
+          <div className="flex flex-wrap items-center justify-end gap-3">
             <TableReportActions targetId={TRADE_PROMOTION_REPORTS_ID} title={t('tradePromotions.reports.title')} fileName="trade-promotion-reports" entityType="trade_promotion_reports" t={t} shortcuts={TRADE_PROMOTION_REPORTS_SHORTCUTS} />
           </div>
           <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">

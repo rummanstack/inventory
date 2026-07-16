@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { Download, FileSpreadsheet, Loader2, Printer, RefreshCw, Wallet } from 'lucide-react';
 import { Badge, CopyableText, EmptyState, SectionHeader, StatCard, TableSkeleton, Select } from '../../../components/ui.jsx';
-import { DatePickerField } from '../../../components/DatePicker.jsx';
+import { DateRangePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf, printElementById } from '../../../services/printService.js';
 import { inventoryApi } from '../../../services/inventoryApi';
@@ -122,13 +122,14 @@ export default function SupplierStatementPage() {
               ))}
             </Select>
           </div>
-          <div className="min-w-[150px]">
-            <label className="label">{t('supplierStatement.dateFrom')}</label>
-            <DatePickerField value={vm.dateFrom} onChange={vm.setDateFrom} placeholder={t('supplierStatement.dateFrom')} />
-          </div>
-          <div className="min-w-[150px]">
-            <label className="label">{t('supplierStatement.dateTo')}</label>
-            <DatePickerField value={vm.dateTo} onChange={vm.setDateTo} placeholder={t('supplierStatement.dateTo')} min={vm.dateFrom} />
+          <div className="min-w-[230px]">
+            <label className="label">{t('supplierStatement.dateRangeLabel')}</label>
+            <DateRangePickerField
+              from={vm.dateFrom}
+              to={vm.dateTo}
+              onChange={(from, to) => { vm.setDateFrom(from); vm.setDateTo(to); }}
+              placeholder={`${t('supplierStatement.dateFrom')} - ${t('supplierStatement.dateTo')}`}
+            />
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <button type="button" className="btn-secondary" onClick={vm.refresh}>

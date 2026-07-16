@@ -1,7 +1,7 @@
 import { HandCoins, Tag } from 'lucide-react';
 import { Alert, EmptyState, Pagination, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
 import TableReportActions from '../../../components/TableReportActions.jsx';
-import { DatePickerField } from '../../../components/DatePicker.jsx';
+import { DateRangePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import { formatCurrency, formatDateTime } from '../../../utils/calculations.js';
@@ -55,9 +55,14 @@ export default function SupplierDiscountsPage() {
             <span className="text-sm font-bold text-slate-700">{t('supplierDiscounts.tableTitle')}</span>
             <TableReportActions targetId={SUPPLIER_DISCOUNTS_REPORT_ID} title={t('supplierDiscounts.tableTitle')} fileName="supplier-discounts" entityType="supplier_discounts" t={t} shortcuts={SUPPLIER_DISCOUNTS_SHORTCUTS} />
           </div>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <DatePickerField value={vm.dateFrom} onChange={vm.setDateFrom} placeholder={t('supplierDiscounts.dateFromPlaceholder')} />
-            <DatePickerField value={vm.dateTo} onChange={vm.setDateTo} placeholder={t('supplierDiscounts.dateToPlaceholder')} min={vm.dateFrom} />
+          <div className="min-w-[230px]">
+            <label className="label">{t('supplierDiscounts.dateRangeLabel')}</label>
+            <DateRangePickerField
+              from={vm.dateFrom}
+              to={vm.dateTo}
+              onChange={(from, to) => { vm.setDateFrom(from); vm.setDateTo(to); }}
+              placeholder={`${t('supplierDiscounts.dateFromPlaceholder')} - ${t('supplierDiscounts.dateToPlaceholder')}`}
+            />
           </div>
         </div>
 

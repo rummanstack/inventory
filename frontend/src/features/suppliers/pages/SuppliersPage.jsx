@@ -142,12 +142,12 @@ export default function SuppliersPage() {
               </button>
             </div>
           </div>
-          <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
-            <div className="relative max-w-md flex-1">
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            <div className="relative w-full max-w-md flex-1">
               <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
               <input className="input pl-10" value={vm.search} onChange={(event) => vm.setSearch(event.target.value)} placeholder={t('suppliers.searchPlaceholder')} />
             </div>
-            <Select className="input sm:w-48" value={vm.status} onChange={(event) => vm.setStatus(event.target.value)}>
+            <Select className="input w-full sm:w-48" value={vm.status} onChange={(event) => vm.setStatus(event.target.value)}>
               <option value="">{t('suppliers.allStatuses')}</option>
               <option value="ACTIVE">{t('suppliers.statusActive')}</option>
               <option value="INACTIVE">{t('suppliers.statusInactive')}</option>

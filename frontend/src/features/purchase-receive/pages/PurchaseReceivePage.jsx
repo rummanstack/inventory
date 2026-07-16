@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Download, Eye, FileSpreadsheet, Loader2, Pencil, Plus, Printer, Search, ShoppingCart, Trash2 } from 'lucide-react';
 import { Alert, Badge, CopyableText, EmptyState, Pagination, SectionHeader, TableSkeleton, Select } from '../../../components/ui.jsx';
-import { DatePickerField } from '../../../components/DatePicker.jsx';
+import { DateRangePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi';
 import { downloadSheetPdf, printElementById } from '../../../services/printService.js';
@@ -169,10 +169,12 @@ export default function PurchaseReceivePage() {
               <option value="PARTIAL">{t('purchaseReceive.paymentStatuses.PARTIAL')}</option>
               <option value="DUE">{t('purchaseReceive.paymentStatuses.DUE')}</option>
             </Select>
-            <div className="grid grid-cols-2 gap-2">
-              <DatePickerField value={vm.dateFrom} onChange={vm.setDateFrom} placeholder={t('purchaseReceive.dateFrom')} />
-              <DatePickerField value={vm.dateTo} onChange={vm.setDateTo} placeholder={t('purchaseReceive.dateTo')} min={vm.dateFrom} />
-            </div>
+            <DateRangePickerField
+              from={vm.dateFrom}
+              to={vm.dateTo}
+              onChange={(from, to) => { vm.setDateFrom(from); vm.setDateTo(to); }}
+              placeholder={`${t('purchaseReceive.dateFrom')} - ${t('purchaseReceive.dateTo')}`}
+            />
           </div>
         </div>
         {vm.loading ? (

@@ -108,6 +108,21 @@ export function insertSrDueLedgerEntry(client, entry) {
   );
 }
 
+export async function findRecentDuplicateSettlement(client, { tenantId, srId, amount, windowMinutes }) {
+  const result = await client.query(
+    `SELECT id, created_at FROM sr_due_ledger
+     WHERE tenant_id = $1
+       AND sr_id = $2
+       AND reference_type = 'manual_collection'
+       AND ABS(credit - $3) < 0.005
+       AND created_at > clock_timestamp() - ($4 || ' minutes')::interval
+     ORDER BY created_at DESC
+     LIMIT 1`,
+    [tenantId, srId, amount, windowMinutes],
+  );
+  return result.rowCount > 0 ? result.rows[0] : null;
+}
+
 export async function getLatestSrDueLedgerEntry(client, srId, tenantId) {
   const result = await client.query(
     `SELECT * FROM sr_due_ledger

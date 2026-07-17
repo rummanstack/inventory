@@ -167,6 +167,21 @@ export async function getFirstDueLedgerEntryForReference(client, { tenantId, dsr
   return result.rowCount > 0 ? mapDueLedgerEntry(result.rows[0]) : null;
 }
 
+export async function findRecentDuplicateSettlement(client, { tenantId, dsrId, amount, windowMinutes }) {
+  const result = await client.query(
+    `SELECT id, created_at FROM dsr_due_ledger
+     WHERE tenant_id = $1
+       AND dsr_id = $2
+       AND reference_type = 'manual_settlement'
+       AND ABS(credit - $3) < 0.005
+       AND created_at > clock_timestamp() - ($4 || ' minutes')::interval
+     ORDER BY created_at DESC
+     LIMIT 1`,
+    [tenantId, dsrId, amount, windowMinutes],
+  );
+  return result.rowCount > 0 ? result.rows[0] : null;
+}
+
 export async function hasManualSettlementSince(client, { tenantId, dsrId, since }) {
   const result = await client.query(
     `SELECT 1 FROM dsr_due_ledger

@@ -13,10 +13,12 @@ import {
   getLatestDueLedgerEntry,
   getBalanceBefore,
   insertDueLedgerEntry,
+  findRecentDuplicateSettlement,
   mapDueLedgerEntry,
 } from "../repositories/dsrDueLedgerRepository.js";
 
 const DATE_ERROR = "Ledger date must be in YYYY-MM-DD format.";
+const DUPLICATE_SETTLEMENT_WINDOW_MINUTES = 15;
 
 function normalizeOptionalDate(value) {
   const raw = String(value || "").trim();
@@ -177,6 +179,19 @@ export class DsrDueLedgerService {
       const latestEntry = await getLatestDueLedgerEntry(client, dsrId, actor.tenantId);
       const currentBalance = latestEntry ? latestEntry.balanceAfter : Number(dsr.opening_due || 0);
       assert(amount <= currentBalance, `Settlement amount exceeds current due balance of ${currentBalance}.`, 400);
+
+      const duplicate = await findRecentDuplicateSettlement(client, {
+        tenantId: actor.tenantId,
+        dsrId,
+        amount,
+        windowMinutes: DUPLICATE_SETTLEMENT_WINDOW_MINUTES,
+      });
+      assert(
+        !duplicate,
+        `A settlement of the same amount (${amount}) was already recorded for ${dsr.name} in the last ${DUPLICATE_SETTLEMENT_WINDOW_MINUTES} minutes. Please wait before repeating it, or double-check this isn't a duplicate entry.`,
+        409,
+      );
+
       const balanceAfter = currentBalance - amount;
       const businessDate = new Date().toISOString().slice(0, 10);
 

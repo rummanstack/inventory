@@ -1146,6 +1146,9 @@ const en = {
         COLLECTION: 'Collection',
         MANUAL_ADJUSTMENT: 'Manual Adjustment',
       },
+      referenceTypes: {
+        manual_settlement: 'Manual Settlement',
+      },
     },
     shopDueLedger: {
       eyebrow: 'Dealer',

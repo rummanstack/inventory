@@ -17,10 +17,14 @@ function ledgerTone(type) {
   return 'slate';
 }
 
-function formatReference(entry) {
+function formatReference(entry, t) {
   if (!entry.referenceType && !entry.referenceId) return '-';
-  const shortId = entry.referenceId ? String(entry.referenceId).slice(0, 18) : '-';
-  return `${entry.referenceType || 'reference'} / ${shortId}`;
+  if (entry.referenceId) {
+    const shortId = String(entry.referenceId).slice(0, 18);
+    return `${entry.referenceType || 'reference'} / ${shortId}`;
+  }
+  const label = t(`dsrDueLedger.referenceTypes.${entry.referenceType}`);
+  return label.startsWith('dsrDueLedger.') ? entry.referenceType : label;
 }
 
 export default function DsrFinancePage() {
@@ -176,7 +180,7 @@ export default function DsrFinancePage() {
                   key={entry.id}
                   title={formatDateTime(entry.createdAt)}
                   badge={<Badge tone={ledgerTone(entry.type)}>{t(`dsrDueLedger.types.${entry.type}`)}</Badge>}
-                  subtitle={entry.note || formatReference(entry)}
+                  subtitle={entry.note || formatReference(entry, t)}
                   value={entry.debit ? formatCurrency(entry.debit) : entry.credit ? formatCurrency(entry.credit) : '-'}
                   valueClass={entry.debit ? 'text-rose-700' : entry.credit ? 'text-emerald-700' : undefined}
                   valueSub={formatCurrency(entry.balanceAfter)}
@@ -208,7 +212,17 @@ export default function DsrFinancePage() {
                       <td className="table-cell text-right font-semibold text-emerald-700">{entry.credit ? formatCurrency(entry.credit) : '-'}</td>
                       <td className="table-cell text-right font-semibold text-slate-950">{formatCurrency(entry.balanceAfter)}</td>
                       <td className="table-cell">
-                        <CopyableText value={entry.referenceId ? `${entry.referenceType || 'reference'} / ${entry.referenceId}` : ''} copyLabel={t('dsrDueLedger.reference')} displayValue={formatReference(entry)} textClassName="max-w-52 text-xs font-semibold text-slate-600" buttonClassName="h-5 w-5" />
+                        {entry.referenceId ? (
+                          <CopyableText
+                            value={`${entry.referenceType || 'reference'} / ${entry.referenceId}`}
+                            copyLabel={t('dsrDueLedger.reference')}
+                            displayValue={formatReference(entry, t)}
+                            textClassName="max-w-52 text-xs font-semibold text-slate-600"
+                            buttonClassName="h-5 w-5"
+                          />
+                        ) : (
+                          <span className="max-w-52 truncate text-xs font-semibold text-slate-600">{formatReference(entry, t)}</span>
+                        )}
                       </td>
                       <td className="table-cell">
                         <p className="font-semibold text-slate-950">{entry.createdByName || '-'}</p>

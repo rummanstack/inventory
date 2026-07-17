@@ -1124,6 +1124,9 @@ const bn = {
         COLLECTION: 'আদায়',
         MANUAL_ADJUSTMENT: 'ম্যানুয়াল সমন্বয়',
       },
+      referenceTypes: {
+        manual_settlement: 'ম্যানুয়াল পরিশোধ',
+      },
     },
     shopDueLedger: {
       eyebrow: 'ডিলার',

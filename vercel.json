@@ -3,12 +3,12 @@
   "outputDirectory": "public",
   "rewrites": [
     {
-      "source": "/api",
-      "destination": "/api/index.js"
+      "source": "/api/:path*",
+      "destination": "https://el3ykxncd7.execute-api.ap-south-1.amazonaws.com/api/:path*"
     },
     {
-      "source": "/api/:path*",
-      "destination": "/api/index.js?path=:path*"
+      "source": "/uploads/:path*",
+      "destination": "https://el3ykxncd7.execute-api.ap-south-1.amazonaws.com/uploads/:path*"
     }
   ]
 }

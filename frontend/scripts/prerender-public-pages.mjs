@@ -81,21 +81,22 @@ async function prerender() {
     server.listen(serverPort, '127.0.0.1', resolve);
   });
 
-  // puppeteer (not puppeteer-core) bundles its own Chromium, downloaded for
-  // the current platform at npm install time, so this works unmodified on
-  // Windows locally and on Render/Vercel's Linux build containers.
-  // PUPPETEER_EXECUTABLE_PATH still overrides it if one is set.
-  const browser = await puppeteer.launch({
-    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
-    headless: true,
-    // --disable-dev-shm-usage: Render's build container gives /dev/shm too little
-    // space for Chrome's default shared-memory usage, which silently wedges the
-    // renderer (page never finishes painting, so waitForSelector times out no
-    // matter how long the timeout is). This makes Chrome use /tmp instead.
-    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
-  });
-
+  let browser;
   try {
+    // puppeteer (not puppeteer-core) bundles its own Chromium, downloaded for
+    // the current platform at npm install time, so this works unmodified on
+    // Windows locally and on Render/Vercel's Linux build containers.
+    // PUPPETEER_EXECUTABLE_PATH still overrides it if one is set.
+    browser = await puppeteer.launch({
+      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
+      headless: true,
+      // --disable-dev-shm-usage: Render's build container gives /dev/shm too little
+      // space for Chrome's default shared-memory usage, which silently wedges the
+      // renderer (page never finishes painting, so waitForSelector times out no
+      // matter how long the timeout is). This makes Chrome use /tmp instead.
+      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
+    });
+
     const page = await browser.newPage();
     await page.setViewport({ width: 1440, height: 1100, deviceScaleFactor: 1 });
 
@@ -121,7 +122,9 @@ async function prerender() {
       console.log(`Prerendered ${route}`);
     }
   } finally {
-    await browser.close();
+    if (browser) {
+      await browser.close();
+    }
     await new Promise((resolve, reject) => {
       server.close((error) => error ? reject(error) : resolve());
     });

@@ -24,7 +24,7 @@ function manualChunks(id) {
 export default defineConfig({
   plugins: [react()],
   build: {
-    outDir: '../backend/public/dist',
+    // outDir: '../backend/public/dist',
     rollupOptions: {
       output: {
         manualChunks,

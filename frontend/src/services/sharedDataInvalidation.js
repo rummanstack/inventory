@@ -32,6 +32,7 @@ const API_LIST_SCOPE_DOMAINS = Object.freeze({
 const MUTATION_RULES = [
   { pattern: /^[/]sr-due-ledger(?:[/]|$)/, domains: [D.SRS] },
   { pattern: /^[/]dsr-due-ledger(?:[/]|$)/, domains: [D.DSRS] },
+  { pattern: /^[/]shop-due-ledger(?:[/]|$)/, domains: [D.SHOPS] },
   { pattern: /^[/]trade-promotion-(?:rules|settlements|earnings)(?:[/]|$)/, domains: [D.PROMOTIONS] },
   { pattern: /^[/](?:settings|profile)(?:[/]|$)/, domains: [D.ADMIN] },
   { pattern: /^[/](?:employees|departments|designations|attendance|leave|payroll|salary-payments|employee-finance)(?:[/]|$)/, domains: [D.PEOPLE] },

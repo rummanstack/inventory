@@ -46,6 +46,7 @@ test('maps people and platform mutations to their query domains', () => {
   assert.deepEqual(getSharedDataDomainsForMutation('/platform/tenants/12/features'), ['platform']);
   assert.deepEqual(getSharedDataDomainsForMutation('/help-desk/12/notes'), ['operations']);
   assert.deepEqual(getSharedDataDomainsForMutation('/sr-due-ledger/collect'), ['srs']);
+  assert.deepEqual(getSharedDataDomainsForMutation('/shop-due-ledger/collect'), ['shops']);
   assert.deepEqual(getSharedDataDomainsForMutation('/trade-promotion-rules/12'), ['promotions']);
 });
 

@@ -1,0 +1,36 @@
+name: Deploy backend to Lambda
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "backend/**"
+      - "scripts/lambda-build.mjs"
+      - ".github/workflows/deploy-backend.yml"
+  workflow_dispatch: {}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Build lambda-deploy.zip
+        run: node scripts/lambda-build.mjs
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-south-1
+
+      - name: Update function code
+        run: |
+          aws lambda update-function-code \
+            --function-name stockledger-api \
+            --zip-file fileb://lambda-deploy.zip
+          aws lambda wait function-updated --function-name stockledger-api

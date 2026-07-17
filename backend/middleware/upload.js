@@ -1,15 +1,22 @@
 import fs from "node:fs";
 import path from "node:path";
 import multer from "multer";
-import { backendRoot } from "../config/paths.js";
+import { fileStorageRoot } from "../config/paths.js";
 import { createId } from "../lib/ids.js";
 
-export const uploadsDir = path.join(backendRoot, "uploads", "photos");
-export const employeeDocumentsDir = path.join(backendRoot, "private_uploads", "employee-documents");
-export const voucherDocumentsDir = path.join(backendRoot, "private_uploads", "voucher-documents");
-fs.mkdirSync(uploadsDir, { recursive: true });
-fs.mkdirSync(employeeDocumentsDir, { recursive: true });
-fs.mkdirSync(voucherDocumentsDir, { recursive: true });
+export const uploadsDir = path.join(fileStorageRoot, "uploads", "photos");
+export const employeeDocumentsDir = path.join(fileStorageRoot, "private_uploads", "employee-documents");
+export const voucherDocumentsDir = path.join(fileStorageRoot, "private_uploads", "voucher-documents");
+try {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+  fs.mkdirSync(employeeDocumentsDir, { recursive: true });
+  fs.mkdirSync(voucherDocumentsDir, { recursive: true });
+} catch (error) {
+  // Read-only filesystem (e.g. Lambda without FILE_STORAGE_ROOT=/tmp).
+  // Uploads that hit local storage will fail per-request instead of
+  // crashing the whole app at boot.
+  console.warn(`Local upload directories unavailable (${error.code}). Set FILE_STORAGE_ROOT to a writable path.`);
+}
 
 const ALLOWED_MIME_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;

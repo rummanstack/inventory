@@ -1,1 +1,45 @@
-aws configure --profile stockledger-s3
+1 - Create IAM user
+Attach Administrator Access
+Create access key for the user
+Command Line Interface
+Get Access ID & Secret Access
+
+2 - Configure CLI
+aws configure
+Set Access & Secret & region
+aws sts get-caller-identity
+
+3 - Create Execution Role
+aws iam create-role --role-name stockledger-api-role --assume-role-policy-document file://trust-policy.json
+
+4 - Let the function write logs.
+aws iam attach-role-policy --role-name stockledger-api-role --policy-arn arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+5 - Create the function.
+aws lambda create-function --function-name stockledger-api --runtime nodejs24.x --handler lambda.handler --zip-file fileb://lambda-deploy.zip --role arn:aws:iam::720718980561:role/stockledger-api-role --timeout 30 --memory-size 1024
+
+6 - Set environment variables
+DATABASE_URL - 
+NODE_ENV - production
+DB_MAX_CONNECTIONS - 3
+FILE_STORAGE_ROOT - /tmp
+
+7 - Give it a public URL
+aws lambda create-function-url-config --function-name stockledger-api --auth-type NONE
+aws lambda add-permission --function-name stockledger-api --action lambda:InvokeFunctionUrl --principal "*" --function-url-auth-type NONE --statement-id public-url
+First command will give function URL: https://gma2btspzuldtymzv6y4gyi7xu0wmsrq.lambda-url.ap-south-1.on.aws/
+
+8 - Function URL was blocked by AWS (new-account restriction on public Function URLs),
+used API Gateway instead — that path isn't restricted.
+Create HTTP API + connect it to the Lambda + auto-create default route/stage:
+aws apigatewayv2 create-api --name stockledger-api-gateway --protocol-type HTTP --target arn:aws:lambda:ap-south-1:720718980561:function:stockledger-api
+Returns ApiId and ApiEndpoint, e.g.:
+https://el3ykxncd7.execute-api.ap-south-1.amazonaws.com
+
+9 - The auto-created permission didn't actually attach (checked via get-policy), so added it manually:
+aws lambda add-permission --function-name stockledger-api --action lambda:InvokeFunction --principal apigateway.amazonaws.com --source-arn "arn:aws:execute-api:ap-south-1:720718980561:el3ykxncd7/*/*" --statement-id apigateway-invoke
+
+10 - Test:
+curl https://el3ykxncd7.execute-api.ap-south-1.amazonaws.com/api/landing-chat/status → 200 OK
+curl -X POST https://el3ykxncd7.execute-api.ap-south-1.amazonaws.com/api/auth/login -H "Content-Type: application/json" -d "{\"email\":\"nobody@example.com\",\"password\":\"wrong\"}"
+→ 401 "Invalid email or password." (proves DB connectivity works)

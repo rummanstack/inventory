@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import express from "express";
-import { backendDistPath, backendRoot, frontendDistPath } from "./config/paths.js";
+import { backendDistPath, fileStorageRoot, frontendDistPath } from "./config/paths.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import { createApiRouter } from "./routes/api.js";
 
@@ -24,7 +24,7 @@ export function createApp({ controllers, authService, env, auditService, errorLo
     next();
   });
   app.use(express.json({ limit: "1mb" }));
-  app.use("/uploads", express.static(path.join(backendRoot, "uploads")));
+  app.use("/uploads", express.static(path.join(fileStorageRoot, "uploads")));
   app.use(
     "/api",
     createApiRouter({

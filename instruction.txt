@@ -43,3 +43,18 @@ aws lambda add-permission --function-name stockledger-api --action lambda:Invoke
 curl https://el3ykxncd7.execute-api.ap-south-1.amazonaws.com/api/landing-chat/status → 200 OK
 curl -X POST https://el3ykxncd7.execute-api.ap-south-1.amazonaws.com/api/auth/login -H "Content-Type: application/json" -d "{\"email\":\"nobody@example.com\",\"password\":\"wrong\"}"
 → 401 "Invalid email or password." (proves DB connectivity works)
+
+11 - CI/CD: auto-deploy backend to Lambda on every push
+File: .github/workflows/deploy-backend.yml
+Triggers on push to main touching backend/**, or manual Run workflow button.
+Steps: checkout -> build lambda-deploy.zip (same as local) -> configure-aws-credentials -> aws lambda update-function-code -> aws lambda wait function-updated.
+Only updates function CODE, never touches env vars (safe from the "update-function-configuration wipes vars" trap).
+
+Repo secrets needed (GitHub -> Settings -> Secrets and variables -> Actions -> New repository secret):
+AWS_ACCESS_KEY_ID
+AWS_SECRET_ACCESS_KEY
+(use the ROTATED key, not the one that was exposed in this file)
+
+TODO later: narrow stockledger-deployer's permissions for CI down to just
+lambda:UpdateFunctionCode + lambda:GetFunction on the stockledger-api function ARN,
+instead of using the full AdministratorAccess key for automated deploys.

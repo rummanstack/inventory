@@ -20,11 +20,11 @@ npm --prefix frontend run build
 
 ## Database Requirement
 
-> Use a disposable local or dedicated PostgreSQL test database in `backend/.env` as `DEV_DATABASE_URL`.
+> Use a disposable local or dedicated PostgreSQL test database in the repository-root `.env` as `DEV_DATABASE_URL`.
 >
 > **Do not run dealer automation against a production/shared Supabase pooler database.**
 >
-> **Known issue as of 2026-07-13:** `backend/.env`'s `DEV_DATABASE_URL` was found identical to `DATABASE_URL` (both pointing at the same Supabase pooler) — meaning `npm test` / `test:dealer-check` would run against production until this is fixed. Confirm `DEV_DATABASE_URL` points at a genuinely separate, disposable database before running anything in this document.
+> **Known issue as of 2026-07-13:** the root `.env`'s `DEV_DATABASE_URL` was found identical to `DATABASE_URL` (both pointing at the same Supabase pooler) — meaning `npm test` / `test:dealer-check` would run against production until this is fixed. Confirm `DEV_DATABASE_URL` points at a genuinely separate, disposable database before running anything in this document.
 
 ---
 

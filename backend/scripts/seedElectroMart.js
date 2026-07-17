@@ -16,12 +16,12 @@
  */
 
 import dotenv from "dotenv";
-import { backendRoot } from "../config/paths.js";
+import { envPath } from "../config/paths.js";
 import { hashPassword } from "../lib/passwords.js";
 import { USER_ROLES } from "../lib/roles.js";
 import { TENANT_BUSINESS_PERMISSIONS } from "../lib/permissions.js";
 
-dotenv.config({ path: `${backendRoot}/.env` });
+dotenv.config({ path: envPath });
 
 // This script is for demo/dev use only — never let it run against production.
 if (process.env.npm_lifecycle_event !== "dev" && process.env.npm_lifecycle_event !== "test") {

@@ -1,12 +1,12 @@
 import dotenv from "dotenv";
-import { backendRoot } from "./config/paths.js";
+import { envPath } from "./config/paths.js";
 import { DatabaseManager } from "./db/pool.js";
 import { initializeDatabase } from "./services/bootstrapService.js";
 import { createControllerRegistry } from "./composition/createControllerRegistry.js";
 import { createServiceRegistry } from "./composition/createServiceRegistry.js";
 import { createApp } from "./app.js";
 
-dotenv.config({ path: `${backendRoot}/.env` });
+dotenv.config({ path: envPath });
 
 export async function createBackendApp() {
   const { env } = await import("./config/env.js");

@@ -25,7 +25,7 @@ Use a private S3 bucket with Block Public Access enabled. Put CloudFront in fron
 }
 ```
 
-5. Add these values to `backend/.env` locally or your production configuration:
+5. Add these values to the repository-root `.env` locally or your production configuration:
 
 ```dotenv
 PHOTO_STORAGE_DRIVER=s3

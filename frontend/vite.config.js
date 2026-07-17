@@ -22,6 +22,7 @@ function manualChunks(id) {
 }
 
 export default defineConfig({
+  envDir: '..',
   plugins: [react()],
   build: {
     outDir: '../backend/public/dist',

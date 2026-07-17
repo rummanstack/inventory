@@ -16,7 +16,7 @@ StockLedger EC2 + S3 Quick Guide
    npm --prefix frontend ci
    npm --prefix frontend run build
 
-4. Add the production database settings and these values to backend/.env:
+4. Add the production database settings and these values to the repository-root .env:
    NODE_ENV=production
    PHOTO_STORAGE_DRIVER=s3
    BACKUP_STORAGE_DRIVER=s3
@@ -42,4 +42,4 @@ StockLedger EC2 + S3 Quick Guide
    policy; otherwise use signed URLs or CloudFront while keeping S3 private.
 
 Security: restrict SSH (22) to your IP, enable root-account MFA, and never
-commit backend/.env or AWS credentials.
+commit the root .env or AWS credentials.

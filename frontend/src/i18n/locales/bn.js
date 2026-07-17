@@ -2454,7 +2454,7 @@ const bn = {
       newChat: 'নতুন চ্যাট',
       loading: 'সহকারী লোড হচ্ছে...',
       thinking: 'আপনার নির্বাচিত প্রসঙ্গ দিয়ে ভাবা হচ্ছে...',
-      geminiMissing: 'জেমিনি কী নেই। backend/.env এ GEMINI_API_KEY যোগ করুন এবং ব্যাকএন্ড পুনরায় চালু করুন।',
+      geminiMissing: 'জেমিনি কী নেই। root .env এ GEMINI_API_KEY যোগ করুন এবং ব্যাকএন্ড পুনরায় চালু করুন।',
       requestFailed: 'অনুরোধ ব্যর্থ হয়েছে',
       selectCustomerFirst: 'গ্রাহক-প্রসঙ্গ প্রশ্ন জিজ্ঞাসা করার আগে একজন গ্রাহক নির্বাচন করুন।',
       contextGeneral: 'সাধারণ',

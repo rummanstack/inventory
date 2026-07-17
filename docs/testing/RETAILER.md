@@ -18,7 +18,7 @@ npm --prefix frontend run build
 
 ## Database Requirement
 
-> Use a disposable local or dedicated PostgreSQL test database in `backend/.env` as `DEV_DATABASE_URL`.
+> Use a disposable local or dedicated PostgreSQL test database in the repository-root `.env` as `DEV_DATABASE_URL`.
 >
 > **Do not run retailer automation against a production/shared Supabase pooler database.**
 

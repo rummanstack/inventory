@@ -5,11 +5,11 @@
 //
 // Exits 0 if every invariant holds, 1 if any violation is found. Never writes anything.
 import dotenv from "dotenv";
-import { backendRoot } from "../config/paths.js";
+import { envPath } from "../config/paths.js";
 import { DatabaseManager } from "../db/pool.js";
 import { InvariantService } from "../services/invariantService.js";
 
-dotenv.config({ path: `${backendRoot}/.env` });
+dotenv.config({ path: envPath });
 
 async function main() {
   const { env } = await import("../config/env.js");

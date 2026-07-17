@@ -1,6 +1,6 @@
 /**
  * Demo seed script — creates 3 realistic tenant organisations for live demo / Facebook showcase.
- * Run:  node --env-file=.env scripts/seedDemo.js
+ * Run from backend/: node scripts/seedDemo.js
  * Safe to run multiple times (fully idempotent via ON CONFLICT DO NOTHING).
  *
  * Orgs created:
@@ -12,11 +12,11 @@
  */
 
 import dotenv from "dotenv";
-import { backendRoot } from "../config/paths.js";
+import { envPath } from "../config/paths.js";
 import { DatabaseManager } from "../db/pool.js";
 import { hashPassword } from "../lib/passwords.js";
 
-dotenv.config({ path: `${backendRoot}/.env` });
+dotenv.config({ path: envPath });
 
 // ─── Fixed IDs (prefix style, collision-safe, idempotent) ──────────────────
 

@@ -12,12 +12,12 @@
 // flag, and revokes all existing sessions for that user (same security
 // behavior as a normal reset).
 import dotenv from "dotenv";
-import { backendRoot } from "../config/paths.js";
+import { envPath } from "../config/paths.js";
 import { DatabaseManager } from "../db/pool.js";
 import { hashPassword, validatePasswordStrength } from "../lib/passwords.js";
 import { findUserByEmail, updatePasswordHashAndClearFlags, deleteAllSessionsForUser } from "../repositories/userRepository.js";
 
-dotenv.config({ path: `${backendRoot}/.env` });
+dotenv.config({ path: envPath });
 
 async function main() {
   const [, , emailArg, passwordArg] = process.argv;

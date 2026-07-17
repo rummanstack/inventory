@@ -32,7 +32,7 @@ export class GeminiProvider {
   }
 
   async requestInteraction({ systemInstruction, input, generationConfig = {} }) {
-    assert(this.isConfigured(), "Gemini is not configured. Add GEMINI_API_KEY to backend/.env.", 503);
+    assert(this.isConfigured(), "Gemini is not configured. Add GEMINI_API_KEY to the root .env.", 503);
 
     const response = await fetch(this.baseUrl, {
       method: "POST",

@@ -2476,7 +2476,7 @@ const en = {
       newChat: 'New chat',
       loading: 'Loading assistant...',
       thinking: 'Thinking with your selected context...',
-      geminiMissing: 'Gemini key missing. Add GEMINI_API_KEY in backend/.env and restart the backend.',
+      geminiMissing: 'Gemini key missing. Add GEMINI_API_KEY in the root .env and restart the backend.',
       requestFailed: 'Request failed',
       selectCustomerFirst: 'Select a customer before asking customer-context questions.',
       contextGeneral: 'General',
@@ -5317,7 +5317,6 @@ const en = {
 };
 
 export default en;
-
 
 
 

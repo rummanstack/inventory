@@ -35,7 +35,7 @@ Add the backup resource to the stockledger-uploader IAM policy:
 For EC2 production, attach this permission to the EC2 IAM role. Do not store
 access keys or run aws configure on EC2.
 
-3. Configure backend/.env
+3. Configure the repository-root .env
 -------------------------
 BACKUP_STORAGE_DRIVER=s3
 AWS_REGION=ap-south-1

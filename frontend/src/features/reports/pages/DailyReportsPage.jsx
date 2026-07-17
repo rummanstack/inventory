@@ -3,7 +3,7 @@ import { CircleDollarSign, Download, Eye, FileSpreadsheet, FileText, Loader2, Pa
 import PrintableSheet from '../../../components/PrintableSheet.jsx';
 import TableReportActions from '../../../components/TableReportActions.jsx';
 import { Alert, EmptyState, MobileCardList, MobileListCard, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton, cx } from '../../../components/ui.jsx';
-import { DatePickerField } from '../../../components/DatePicker.jsx';
+import { DateRangePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { buildPdfFileName, downloadSheetPdf } from '../../../services/printService.js';
 import { inventoryApi } from '../../../services/inventoryApi';
@@ -94,14 +94,12 @@ export default function DailyReportsPage() {
   if (vm.loading) {
     return (
       <div>
-        <SectionHeader eyebrow={t('nav.reports')} title={t('nav.reports')} description={t('reports.description')} />
-        <div className="surface mb-6 grid gap-4 p-5 sm:grid-cols-2">
-          {[0, 1].map((i) => (
-            <div key={i} className="space-y-2">
-              <div className="h-4 w-24 animate-pulse rounded-full bg-slate-200" />
-              <div className="h-11 animate-pulse rounded-2xl bg-slate-100" />
-            </div>
-          ))}
+        <SectionHeader title={t('nav.reports')} compact />
+        <div className="surface mb-6 p-5">
+          <div className="max-w-xs space-y-2">
+            <div className="h-4 w-24 animate-pulse rounded-full bg-slate-200" />
+            <div className="h-11 animate-pulse rounded-2xl bg-slate-100" />
+          </div>
         </div>
         <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {Array.from({ length: 8 }).map((_, i) => <StatCardSkeleton key={i} />)}
@@ -117,17 +115,19 @@ export default function DailyReportsPage() {
 
   return (
     <div>
-      <SectionHeader eyebrow={t('nav.reports')} title={t('nav.reports')} description={t('reports.description')} />
+      <SectionHeader title={t('nav.reports')} compact />
 
-      {/* Date range pickers */}
-      <div className="surface mb-6 grid gap-4 p-5 sm:grid-cols-2">
-        <div>
-          <label className="label">{t('profit.dateFrom')}</label>
-          <DatePickerField value={vm.dateFrom} onChange={vm.setDateFrom} max={vm.dateTo} />
-        </div>
-        <div>
-          <label className="label">{t('profit.dateTo')}</label>
-          <DatePickerField value={vm.dateTo} onChange={vm.setDateTo} min={vm.dateFrom} max={new Date().toISOString().slice(0, 10)} />
+      {/* Date range picker */}
+      <div className="surface mb-6 p-5">
+        <div className="max-w-xs">
+          <label className="label">{t('profit.dateFrom')} - {t('profit.dateTo')}</label>
+          <DateRangePickerField
+            from={vm.dateFrom}
+            to={vm.dateTo}
+            onChange={(from, to) => { vm.setDateFrom(from); vm.setDateTo(to); }}
+            placeholder={`${t('profit.dateFrom')} - ${t('profit.dateTo')}`}
+            max={new Date().toISOString().slice(0, 10)}
+          />
         </div>
       </div>
 

@@ -109,9 +109,8 @@ export default function EmployeesPage() {
   return (
     <div>
       <SectionHeader
-        eyebrow={t('employees.eyebrow')}
         title={t('employees.title')}
-        description={t('employees.description')}
+        compact
         action={canManage ? (
           <button type="button" className="btn-primary" onClick={() => setFormModal({ mode: 'add' })}>
             <Plus size={18} />
@@ -122,26 +121,23 @@ export default function EmployeesPage() {
       />
 
       <div id={EMPLOYEES_REPORT_ID} className="surface overflow-hidden">
-        <div className="border-b border-slate-100 p-5">
-          <div className="flex flex-col gap-3 xl:flex-row xl:items-center">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">{t('employees.eyebrow')}</p>
-            <div className="flex flex-1 flex-wrap gap-2 xl:justify-end">
-              <TableReportActions targetId={EMPLOYEES_REPORT_ID} title={t('employees.title')} fileName="employees" entityType="employees" t={t} shortcuts={EMPLOYEES_REPORT_SHORTCUTS} />
-              <input className="input w-full sm:w-56" placeholder={t('common.search')} value={vm.search} onChange={(e) => vm.setSearch(e.target.value)} />
-              <Select className="input w-full sm:w-40" value={vm.status} onChange={(e) => vm.setStatus(e.target.value)}>
-                <option value="">{t('employees.allStatuses')}</option>
-                <option value="ACTIVE">{t('employees.active')}</option>
-                <option value="INACTIVE">{t('employees.inactive')}</option>
-              </Select>
-              <Select className="input w-full sm:w-48" value={vm.departmentId} onChange={(e) => vm.setDepartmentId(e.target.value)}>
-                <option value="">{t('employees.allDepartments')}</option>
-                {departments.map((department) => <option key={department.id} value={department.id}>{department.name}</option>)}
-              </Select>
-              <Select className="input w-full sm:w-48" value={vm.designationId} onChange={(e) => vm.setDesignationId(e.target.value)}>
-                <option value="">{t('employees.allDesignations')}</option>
-                {designations.map((designation) => <option key={designation.id} value={designation.id}>{designation.name}</option>)}
-              </Select>
-            </div>
+        <div className="flex flex-col gap-3 border-b border-slate-100 p-5 xl:flex-row xl:items-center xl:flex-wrap">
+          <input className="input w-full sm:w-56" placeholder={t('common.search')} value={vm.search} onChange={(e) => vm.setSearch(e.target.value)} />
+          <Select className="input w-full sm:w-40" value={vm.status} onChange={(e) => vm.setStatus(e.target.value)}>
+            <option value="">{t('employees.allStatuses')}</option>
+            <option value="ACTIVE">{t('employees.active')}</option>
+            <option value="INACTIVE">{t('employees.inactive')}</option>
+          </Select>
+          <Select className="input w-full sm:w-48" value={vm.departmentId} onChange={(e) => vm.setDepartmentId(e.target.value)}>
+            <option value="">{t('employees.allDepartments')}</option>
+            {departments.map((department) => <option key={department.id} value={department.id}>{department.name}</option>)}
+          </Select>
+          <Select className="input w-full sm:w-48" value={vm.designationId} onChange={(e) => vm.setDesignationId(e.target.value)}>
+            <option value="">{t('employees.allDesignations')}</option>
+            {designations.map((designation) => <option key={designation.id} value={designation.id}>{designation.name}</option>)}
+          </Select>
+          <div className="flex flex-wrap gap-2 xl:ml-auto">
+            <TableReportActions targetId={EMPLOYEES_REPORT_ID} title={t('employees.title')} fileName="employees" entityType="employees" t={t} shortcuts={EMPLOYEES_REPORT_SHORTCUTS} />
           </div>
         </div>
 

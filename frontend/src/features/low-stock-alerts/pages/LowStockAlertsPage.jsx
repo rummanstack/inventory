@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { AlertTriangle, Download, FileSpreadsheet, Loader2, Printer } from 'lucide-react';
-import { Alert, Badge, EmptyState, MobileCardList, MobileListCard, SectionHeader } from '../../../components/ui.jsx';
+import { Badge, EmptyState, MobileCardList, MobileListCard, SectionHeader } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../services/printService.js';
 import { inventoryApi } from '../../../services/inventoryApi.js';
@@ -14,7 +14,6 @@ export default function LowStockAlertsPage() {
   const isElectronics = (tenant?.businessType || 'ELECTRONICS') === 'ELECTRONICS';
   const isPharmacy = tenant?.businessType === 'DRUG_PHARMACY';
   const lowStockProducts = [...getLowStockProducts(productDirectory)].sort((a, b) => a.stockPieces - b.stockPieces);
-  const outOfStockCount = lowStockProducts.filter((product) => product.stockPieces === 0).length;
   const [downloadingPdf, downloadPdf] = useAsyncAction();
 
   function formatStock(pieces, piecesPerCase) {
@@ -81,14 +80,6 @@ export default function LowStockAlertsPage() {
   return (
     <div>
       <SectionHeader title={t('nav.lowStockAlerts')} compact />
-
-      {lowStockProducts.length ? (
-        <div className="mb-4">
-          <Alert type="warning">
-            {t('lowStockAlerts.summary', { count: formatNumber(lowStockProducts.length, language), outOfStock: formatNumber(outOfStockCount, language) })}
-          </Alert>
-        </div>
-      ) : null}
 
       <div id={LOW_STOCK_PRINT_ID} className="surface overflow-hidden print-target">
         {lowStockProducts.length ? (

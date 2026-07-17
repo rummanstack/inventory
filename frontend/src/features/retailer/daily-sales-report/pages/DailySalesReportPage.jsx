@@ -1,6 +1,6 @@
 import { Download, FileSpreadsheet, Loader2, Printer, Wallet } from 'lucide-react';
 import { Alert, EmptyState, MobileCardList, MobileListCard, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton, Select } from '../../../../components/ui.jsx';
-import { DatePickerField } from '../../../../components/DatePicker.jsx';
+import { DateRangePickerField } from '../../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../../services/printService.js';
 import { inventoryApi } from '../../../../services/inventoryApi.js';
@@ -40,11 +40,7 @@ export default function DailySalesReportPage() {
 
   return (
     <div>
-      <SectionHeader
-        eyebrow={t('retailer.dailySalesReport.eyebrow')}
-        title={t('retailer.dailySalesReport.title')}
-        description={t('retailer.dailySalesReport.description')}
-      />
+      <SectionHeader title={t('retailer.dailySalesReport.title')} compact />
 
       {vm.loading ? (
         <>
@@ -77,14 +73,15 @@ export default function DailySalesReportPage() {
             </div>
           ) : null}
 
-          <div className="surface mb-6 grid gap-4 p-5 sm:grid-cols-3">
-            <div>
-              <label className="label">{t('profit.dateFrom')}</label>
-              <DatePickerField value={vm.dateFrom} onChange={vm.setDateFrom} />
-            </div>
-            <div>
-              <label className="label">{t('profit.dateTo')}</label>
-              <DatePickerField value={vm.dateTo} onChange={vm.setDateTo} min={vm.dateFrom} />
+          <div className="surface mb-6 flex flex-col gap-4 p-5 sm:flex-row sm:items-end sm:flex-wrap">
+            <div className="min-w-[260px]">
+              <label className="label">{t('profit.dateFrom')} - {t('profit.dateTo')}</label>
+              <DateRangePickerField
+                from={vm.dateFrom}
+                to={vm.dateTo}
+                onChange={(from, to) => { vm.setDateFrom(from); vm.setDateTo(to); }}
+                placeholder={`${t('profit.dateFrom')} - ${t('profit.dateTo')}`}
+              />
             </div>
             <div>
               <label className="label">{t('retailer.shared.saleTypeLabel')}</label>
@@ -95,30 +92,29 @@ export default function DailySalesReportPage() {
                 <option value="QUICK_SALE">{t('retailer.shared.saleTypes.QUICK_SALE')}</option>
               </Select>
             </div>
-          </div>
-
-          <div className="mb-4 flex flex-wrap gap-2 no-print">
-            <button
-              type="button"
-              className="btn-secondary disabled:cursor-not-allowed disabled:opacity-60"
-              onClick={() => downloadPdf(async () => { await inventoryApi.recordPrint({ entityType: 'daily_sales_report', entityId: null, label: 'pdf' }).catch(() => {}); await downloadSheetPdf(printTargetId, `daily-sales-report-${vm.dateFrom}-${vm.dateTo}.pdf`); })}
-              disabled={downloadingPdf}
-            >
-              {downloadingPdf ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />}
-              {t('purchaseReceive.downloadPdf')}
-            </button>
-            <button type="button" className="btn-secondary" onClick={handleExportExcel}>
-              <FileSpreadsheet size={18} />
-              {t('common.exportExcel')}
-            </button>
-            <button
-              type="button"
-              className="btn-secondary"
-              onClick={() => { inventoryApi.recordPrint({ entityType: 'daily_sales_report', entityId: null, label: 'print' }).catch(() => {}); window.print(); }}
-            >
-              <Printer size={18} />
-              {t('common.print')}
-            </button>
+            <div className="flex flex-wrap gap-2 no-print sm:ml-auto">
+              <button
+                type="button"
+                className="btn-secondary h-10 gap-1.5 px-3 text-xs disabled:cursor-not-allowed disabled:opacity-60"
+                onClick={() => downloadPdf(async () => { await inventoryApi.recordPrint({ entityType: 'daily_sales_report', entityId: null, label: 'pdf' }).catch(() => {}); await downloadSheetPdf(printTargetId, `daily-sales-report-${vm.dateFrom}-${vm.dateTo}.pdf`); })}
+                disabled={downloadingPdf}
+              >
+                {downloadingPdf ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
+                {t('purchaseReceive.downloadPdf')}
+              </button>
+              <button type="button" className="btn-secondary h-10 gap-1.5 px-3 text-xs" onClick={handleExportExcel}>
+                <FileSpreadsheet size={14} />
+                {t('common.exportExcel')}
+              </button>
+              <button
+                type="button"
+                className="btn-secondary h-10 gap-1.5 px-3 text-xs"
+                onClick={() => { inventoryApi.recordPrint({ entityType: 'daily_sales_report', entityId: null, label: 'print' }).catch(() => {}); window.print(); }}
+              >
+                <Printer size={14} />
+                {t('common.print')}
+              </button>
+            </div>
           </div>
 
           <div id={printTargetId} className="print-target">

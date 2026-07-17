@@ -85,7 +85,7 @@ export default function SecurityPage() {
 
   return (
     <div className="space-y-6">
-      <SectionHeader eyebrow={t('security.eyebrow')} title={t('nav.security')} description={t('security.description')} />
+      <SectionHeader title={t('nav.security')} compact />
 
       {error ? <Alert type="error">{error}</Alert> : null}
 

@@ -91,9 +91,8 @@ export default function DatabaseBackupPage() {
   return (
     <div>
       <SectionHeader
-        eyebrow={t('nav.databaseBackup')}
         title={t('backup.title')}
-        description={t('backup.description')}
+        compact
         action={(
           <div className="flex items-center gap-2">
             <button type="button" className="btn-primary" onClick={() => handleDownload('sql')} disabled={Boolean(loadingFormat)}>

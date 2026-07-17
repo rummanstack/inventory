@@ -91,7 +91,7 @@ export default function LeavePage() {
 
   return (
     <div>
-      <SectionHeader eyebrow={t('leave.eyebrow')} title={t('leave.title')} description={t('leave.description')} />
+      <SectionHeader title={t('leave.title')} compact />
       {error ? <Alert type="error">{error}</Alert> : null}
 
       {canManage ? (

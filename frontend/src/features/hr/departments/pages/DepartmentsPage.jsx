@@ -99,9 +99,8 @@ export default function DepartmentsPage() {
   return (
     <div>
       <SectionHeader
-        eyebrow={t('departments.eyebrow')}
         title={t('departments.title')}
-        description={t('departments.description')}
+        compact
         action={canManage ? (
           <button type="button" className="btn-primary" onClick={() => setFormModal({ mode: 'add' })}>
             <Plus size={18} />
@@ -112,18 +111,15 @@ export default function DepartmentsPage() {
       />
 
       <div id={DEPARTMENTS_REPORT_ID} className="surface overflow-hidden">
-        <div className="border-b border-slate-100 p-5">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">{t('departments.eyebrow')}</p>
-            <div className="flex flex-1 flex-wrap gap-2 sm:justify-end">
-              <TableReportActions targetId={DEPARTMENTS_REPORT_ID} title={t('departments.title')} fileName="departments" entityType="departments" t={t} shortcuts={DEPARTMENTS_REPORT_SHORTCUTS} />
-              <input className="input w-full sm:w-56" placeholder={t('common.search')} value={vm.search} onChange={(e) => vm.setSearch(e.target.value)} />
-              <Select className="input w-full sm:w-40" value={vm.status} onChange={(e) => vm.setStatus(e.target.value)}>
-                <option value="">{t('departments.allStatuses')}</option>
-                <option value="ACTIVE">{t('departments.active')}</option>
-                <option value="INACTIVE">{t('departments.inactive')}</option>
-              </Select>
-            </div>
+        <div className="flex flex-col gap-3 border-b border-slate-100 p-5 sm:flex-row sm:items-center sm:flex-wrap">
+          <input className="input w-full sm:w-56" placeholder={t('common.search')} value={vm.search} onChange={(e) => vm.setSearch(e.target.value)} />
+          <Select className="input w-full sm:w-40" value={vm.status} onChange={(e) => vm.setStatus(e.target.value)}>
+            <option value="">{t('departments.allStatuses')}</option>
+            <option value="ACTIVE">{t('departments.active')}</option>
+            <option value="INACTIVE">{t('departments.inactive')}</option>
+          </Select>
+          <div className="flex flex-wrap gap-2 sm:ml-auto">
+            <TableReportActions targetId={DEPARTMENTS_REPORT_ID} title={t('departments.title')} fileName="departments" entityType="departments" t={t} shortcuts={DEPARTMENTS_REPORT_SHORTCUTS} />
           </div>
         </div>
 

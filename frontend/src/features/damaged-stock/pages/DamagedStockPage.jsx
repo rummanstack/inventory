@@ -110,40 +110,39 @@ export default function DamagedStockPage() {
     <div>
       <SectionHeader title={t('damagedStock.title')} compact />
 
-      <div className="no-print mb-4 overflow-x-auto">
-        <div className="inline-flex min-w-full gap-1 rounded-lg border border-slate-200 bg-slate-50 p-1 sm:min-w-0">
-          {tabs.map((tab) => {
-            const selected = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                type="button"
-                className={cx(
-                  'flex min-h-10 flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-md px-3 text-sm font-bold transition sm:flex-none',
-                  selected ? 'border border-rose-200 bg-rose-50 text-rose-800 shadow-sm ring-2 ring-rose-100' : 'border border-transparent text-slate-500 hover:bg-white/70 hover:text-slate-800'
-                )}
-                aria-pressed={selected}
-                onClick={() => setActiveTab(tab.id)}
-              >
-                {tab.label}
-                <kbd className={cx('rounded border px-1.5 py-0.5 text-[10px] font-black', selected ? 'border-rose-200 bg-white text-rose-700' : 'border-slate-200 bg-white text-slate-400')}>{tab.shortcut}</kbd>
-                {typeof tab.count === 'number' ? (
-                  <span className={cx('rounded-full px-2 py-0.5 text-xs font-black', selected ? 'bg-rose-600 text-white' : 'bg-slate-200 text-slate-600')}>
-                    {formatNumber(tab.count)}
-                  </span>
-                ) : null}
-              </button>
-            );
-          })}
+      <div className="no-print mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="overflow-x-auto">
+          <div className="inline-flex min-w-full gap-1 rounded-lg border border-slate-200 bg-slate-50 p-1 sm:min-w-0">
+            {tabs.map((tab) => {
+              const selected = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  className={cx(
+                    'flex min-h-10 flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-md px-3 text-sm font-bold transition sm:flex-none',
+                    selected ? 'border border-rose-200 bg-rose-50 text-rose-800 shadow-sm ring-2 ring-rose-100' : 'border border-transparent text-slate-500 hover:bg-white/70 hover:text-slate-800'
+                  )}
+                  aria-pressed={selected}
+                  onClick={() => setActiveTab(tab.id)}
+                >
+                  {tab.label}
+                  <kbd className={cx('rounded border px-1.5 py-0.5 text-[10px] font-black', selected ? 'border-rose-200 bg-white text-rose-700' : 'border-slate-200 bg-white text-slate-400')}>{tab.shortcut}</kbd>
+                  {typeof tab.count === 'number' ? (
+                    <span className={cx('rounded-full px-2 py-0.5 text-xs font-black', selected ? 'bg-rose-600 text-white' : 'bg-slate-200 text-slate-600')}>
+                      {formatNumber(tab.count)}
+                    </span>
+                  ) : null}
+                </button>
+              );
+            })}
+          </div>
         </div>
-      </div>
-
-      {activeTab === DAMAGE_TABS.CURRENT ? (
-        <div id="damaged-stock-print" className="surface overflow-hidden print-target">
-          <div className="flex flex-wrap justify-end gap-2 border-b border-slate-100 px-5 py-3">
+        {activeTab === DAMAGE_TABS.CURRENT ? (
+          <div className="flex flex-wrap gap-2">
             <button
               type="button"
-              className="btn-secondary no-print h-10 gap-1.5 px-3 text-xs disabled:cursor-not-allowed disabled:opacity-60"
+              className="btn-secondary h-10 gap-1.5 px-3 text-xs disabled:cursor-not-allowed disabled:opacity-60"
               onClick={handleDownloadPdf}
               disabled={downloadingPdf}
             >
@@ -151,14 +150,14 @@ export default function DamagedStockPage() {
               {t('purchaseReceive.downloadPdf')}
               <kbd className="rounded border border-slate-300 bg-white/70 px-1.5 py-0.5 font-mono text-[10px] text-slate-500">Alt+D</kbd>
             </button>
-            <button type="button" className="btn-secondary no-print h-10 gap-1.5 px-3 text-xs" onClick={handleExportExcel}>
+            <button type="button" className="btn-secondary h-10 gap-1.5 px-3 text-xs" onClick={handleExportExcel}>
               <FileSpreadsheet size={14} />
               {t('common.exportExcel')}
               <kbd className="rounded border border-slate-300 bg-white/70 px-1.5 py-0.5 font-mono text-[10px] text-slate-500">Alt+E</kbd>
             </button>
             <button
               type="button"
-              className="btn-secondary no-print h-10 gap-1.5 px-3 text-xs"
+              className="btn-secondary h-10 gap-1.5 px-3 text-xs"
               onClick={handlePrint}
             >
               <Printer size={14} />
@@ -166,6 +165,11 @@ export default function DamagedStockPage() {
               <kbd className="rounded border border-slate-300 bg-white/70 px-1.5 py-0.5 font-mono text-[10px] text-slate-500">Alt+P</kbd>
             </button>
           </div>
+        ) : null}
+      </div>
+
+      {activeTab === DAMAGE_TABS.CURRENT ? (
+        <div id="damaged-stock-print" className="surface overflow-hidden print-target">
           {vm.damagedProducts.length ? (
             <>
             <MobileCardList>

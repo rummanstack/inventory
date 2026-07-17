@@ -26,7 +26,6 @@ export default function EmployeeFinancePage({ mode = 'advances' }) {
   const permission = isLoan ? 'loan.manage' : 'advance.manage';
   const canManage = can(permission);
   const title = isLoan ? t('employeeFinance.loansTitle') : t('employeeFinance.advancesTitle');
-  const description = isLoan ? t('employeeFinance.loansDescription') : t('employeeFinance.advancesDescription');
   const reportId = isLoan ? 'employee-loans-report' : 'employee-advances-report';
 
   const totals = useMemo(() => items.reduce((acc, item) => ({
@@ -109,7 +108,7 @@ export default function EmployeeFinancePage({ mode = 'advances' }) {
 
   return (
     <div>
-      <SectionHeader eyebrow={t('employeeFinance.eyebrowAdvances')} title={title} description={description} />
+      <SectionHeader title={title} compact />
       {error ? <Alert type="error">{error}</Alert> : null}
 
       {canManage ? (
@@ -144,17 +143,16 @@ export default function EmployeeFinancePage({ mode = 'advances' }) {
       </div>
 
       <div id={reportId} className="surface overflow-hidden">
-        <div className="flex flex-col gap-3 border-b border-slate-100 p-5 sm:flex-row sm:items-center sm:justify-between">
-          <h2 className="section-title">{title}</h2>
-          <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-col gap-3 border-b border-slate-100 p-5 sm:flex-row sm:items-center sm:flex-wrap">
+          <Select className="input w-full sm:w-44" value={status} onChange={(e) => setStatus(e.target.value)}>
+            <option value="">{t('employeeFinance.allStatuses')}</option>
+            <option value="PENDING">{t('employeeFinance.statusPending')}</option>
+            <option value="APPROVED">{t('employeeFinance.statusApproved')}</option>
+            <option value="SETTLED">{t('employeeFinance.statusSettled')}</option>
+            <option value="REJECTED">{t('employeeFinance.statusRejected')}</option>
+          </Select>
+          <div className="flex flex-wrap items-center gap-2 sm:ml-auto">
             <TableReportActions targetId={reportId} title={title} fileName={reportId} entityType={reportId.replace(/-/g, '_')} t={t} shortcuts={EMPLOYEE_FINANCE_REPORT_SHORTCUTS} />
-            <Select className="input w-full sm:w-44" value={status} onChange={(e) => setStatus(e.target.value)}>
-              <option value="">{t('employeeFinance.allStatuses')}</option>
-              <option value="PENDING">{t('employeeFinance.statusPending')}</option>
-              <option value="APPROVED">{t('employeeFinance.statusApproved')}</option>
-              <option value="SETTLED">{t('employeeFinance.statusSettled')}</option>
-              <option value="REJECTED">{t('employeeFinance.statusRejected')}</option>
-            </Select>
           </div>
         </div>
         {loading ? <div className="p-5"><TableSkeleton columns={7} /></div> : items.length === 0 ? (

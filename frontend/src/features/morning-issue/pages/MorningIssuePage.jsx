@@ -73,11 +73,6 @@ export default function MorningIssuePage() {
             <Alert type={vm.message.type}>{vm.message.text}</Alert>
           </div>
         ) : null}
-        {vm.existingSettlement ? (
-          <div className="mt-4">
-            <Alert type="warning">{t('morningIssue.settlementLocked')}</Alert>
-          </div>
-        ) : null}
       </div>
 
       {vm.loading ? (

@@ -157,9 +157,8 @@ export default function UsersPage() {
   return (
     <div>
       <SectionHeader
-        eyebrow={t('users.eyebrow')}
         title={t('users.title')}
-        description={t('users.description')}
+        compact
         action={assignableRoles.length ? (
           <button type="button" className="btn-primary" onClick={() => setUserModal({ mode: 'add' })}>
             <Plus size={18} />
@@ -170,8 +169,7 @@ export default function UsersPage() {
       />
 
       <div id={USERS_REPORT_ID} className="surface overflow-hidden">
-        <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-3 no-print">
-          <span className="text-sm font-bold text-slate-700">{t('users.title')}</span>
+        <div className="flex items-center justify-end gap-3 border-b border-slate-100 px-5 py-3 no-print">
           <TableReportActions targetId={USERS_REPORT_ID} title={t('users.title')} fileName="users" entityType="users" t={t} shortcuts={USERS_REPORT_SHORTCUTS} />
         </div>
         {loading ? (

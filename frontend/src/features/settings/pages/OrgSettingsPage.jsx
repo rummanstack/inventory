@@ -67,7 +67,7 @@ export default function OrgSettingsPage() {
 
   return (
     <div className="space-y-6">
-      <SectionHeader eyebrow={t('orgSettings.eyebrow')} title={t('orgSettings.title')} description={t('orgSettings.description', { name: tenant.name })} />
+      <SectionHeader title={t('orgSettings.title')} compact />
       <form onSubmit={handleSubmit} className="panel-strong max-w-xl space-y-5 p-6">
         {error ? <Alert type="error">{error}</Alert> : null}
 

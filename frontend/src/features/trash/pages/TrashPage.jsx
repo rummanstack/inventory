@@ -193,7 +193,7 @@ export default function TrashPage() {
   if (!visibleTabs.length) {
     return (
       <div>
-        <SectionHeader eyebrow={t('trash.eyebrow')} description={t('trash.description')} />
+        <SectionHeader title={t('trash.title')} compact />
         <EmptyState title={t('trash.noAccessTitle')} description={t('trash.noAccessDescription')} icon={Trash2} />
       </div>
     );
@@ -201,7 +201,7 @@ export default function TrashPage() {
 
   return (
     <div>
-      <SectionHeader eyebrow={t('trash.eyebrow')} description={t('trash.description')} />
+      <SectionHeader title={t('trash.title')} compact />
 
       <div className="no-print mb-4">
         <div className="flex flex-wrap gap-1 rounded-lg border border-slate-200 bg-slate-50 p-1">
@@ -229,8 +229,7 @@ export default function TrashPage() {
       </div>
 
       <div id={TRASH_REPORT_ID} className="surface overflow-hidden">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-5 py-3 no-print">
-          <span className="text-sm font-bold text-slate-700">{activeTab ? t(activeTab.labelKey) : t('nav.trash')}</span>
+        <div className="flex flex-wrap items-center justify-end gap-3 border-b border-slate-100 px-5 py-3 no-print">
           <TableReportActions targetId={TRASH_REPORT_ID} title={activeTab ? `${t('nav.trash')} - ${t(activeTab.labelKey)}` : t('nav.trash')} fileName={`trash-${activeKey || 'items'}`} entityType="trash" t={t} shortcuts={TRASH_REPORT_SHORTCUTS} />
         </div>
         {loading ? (

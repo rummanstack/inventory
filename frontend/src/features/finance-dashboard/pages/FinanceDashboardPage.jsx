@@ -161,8 +161,6 @@ export default function FinanceDashboardPage() {
       <SectionHeader title={t('financeDashboard.title')} compact />
 
       <div>
-        <h2 className="mb-4 text-base font-bold text-slate-950">{t('financeDashboard.rangeTitle')}</h2>
-
         <div className="surface mb-6 flex flex-wrap items-end gap-4 p-5">
           <div className="min-w-[280px]">
             <label className="label">{t('financeDashboard.from')} - {t('financeDashboard.to')}</label>
@@ -176,6 +174,34 @@ export default function FinanceDashboardPage() {
           <button type="button" className="btn-primary shrink-0" onClick={rr.applyRange} disabled={rr.loading}>
             {rr.loading ? <span className="inline-block h-4 w-28 animate-pulse rounded-full bg-white/60" /> : t('financeDashboard.generateReport')}
           </button>
+          {rr.data ? (
+            <div className="no-print flex flex-wrap gap-2 sm:ml-auto">
+              <button
+                type="button"
+                className="btn-secondary h-10 gap-1.5 px-3 text-xs disabled:cursor-not-allowed disabled:opacity-60"
+                onClick={() => downloadRangePdf(async () => {
+                  await inventoryApi.recordPrint({ entityType: 'finance_dashboard', entityId: null, label: 'pdf' }).catch(() => {});
+                  await downloadSheetPdf(RANGE_REPORT_PRINT_ID, `finance-dashboard-${rr.dateFrom}-${rr.dateTo}.pdf`);
+                })}
+                disabled={downloadingRangePdf}
+              >
+                {downloadingRangePdf ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
+                {t('purchaseReceive.downloadPdf')}
+              </button>
+              <button type="button" className="btn-secondary h-10 gap-1.5 px-3 text-xs" onClick={handleExportRangeReportExcel}>
+                <FileSpreadsheet size={14} />
+                {t('common.exportExcel')}
+              </button>
+              <button
+                type="button"
+                className="btn-secondary h-10 gap-1.5 px-3 text-xs"
+                onClick={() => printSection('range', 'finance_dashboard')}
+              >
+                <Printer size={14} />
+                {t('common.print')}
+              </button>
+            </div>
+          ) : null}
         </div>
 
         {rr.error ? (
@@ -191,32 +217,6 @@ export default function FinanceDashboardPage() {
           </div>
         ) : rr.data ? (
           <div id={RANGE_REPORT_PRINT_ID} className={cx('space-y-6', printingSection === 'range' && 'print-target')}>
-            <div className="flex justify-end gap-2 no-print">
-              <button
-                type="button"
-                className="btn-secondary py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-60"
-                onClick={() => downloadRangePdf(async () => {
-                  await inventoryApi.recordPrint({ entityType: 'finance_dashboard', entityId: null, label: 'pdf' }).catch(() => {});
-                  await downloadSheetPdf(RANGE_REPORT_PRINT_ID, `finance-dashboard-${rr.dateFrom}-${rr.dateTo}.pdf`);
-                })}
-                disabled={downloadingRangePdf}
-              >
-                {downloadingRangePdf ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
-                {t('purchaseReceive.downloadPdf')}
-              </button>
-              <button type="button" className="btn-secondary py-1.5 text-xs" onClick={handleExportRangeReportExcel}>
-                <FileSpreadsheet size={14} />
-                {t('common.exportExcel')}
-              </button>
-              <button
-                type="button"
-                className="btn-secondary py-1.5 text-xs"
-                onClick={() => printSection('range', 'finance_dashboard')}
-              >
-                <Printer size={14} />
-                {t('common.print')}
-              </button>
-            </div>
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
               <StatCard title={t('financeDashboard.totalRevenue')} value={formatCurrency(rr.data.revenue, language)} icon={TrendingUp} tone="blue" />
               <StatCard title={t('financeDashboard.costOfGoods')} value={formatCurrency(rr.data.cogs, language)} icon={CircleDollarSign} tone="amber" />

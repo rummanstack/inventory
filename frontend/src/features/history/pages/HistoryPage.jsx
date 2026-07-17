@@ -46,7 +46,7 @@ export default function HistoryPage() {
 
   return (
     <div>
-      <SectionHeader eyebrow={t('nav.history')} title={t('nav.history')} description={t('history.description')} />
+      <SectionHeader title={t('nav.history')} compact />
 
       <div className="mb-6 grid gap-4 sm:grid-cols-2">
         <StatCard title={t('history.morningIssues')} value={formatNumber(issuesVm.total)} helper={t('history.morningHelper')} icon={Truck} tone="amber" />
@@ -54,34 +54,32 @@ export default function HistoryPage() {
       </div>
 
       <div id={HISTORY_PRINT_ID} className="surface overflow-hidden print-target">
-        <div className="border-b border-slate-100 p-4 no-print">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex flex-wrap gap-2">
-              {TABS.map((tab) => {
-                const TabIcon = tab.icon;
-                const isActive = tab.key === activeTab;
-                return (
-                  <button
-                    key={tab.key}
-                    type="button"
-                    className={isActive ? 'btn-primary' : 'btn-secondary'}
-                    onClick={() => setActiveTab(tab.key)}
-                  >
-                    <TabIcon size={16} />
-                    {t(tab.labelKey)}
-                  </button>
-                );
-              })}
-            </div>
-            <div className="relative max-w-md flex-1">
-              <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-              <input className="input pl-10" value={vm.search} onChange={(event) => vm.setSearch(event.target.value)} placeholder={t('history.searchByDsrPlaceholder')} />
-            </div>
+        <div className="flex flex-col gap-3 border-b border-slate-100 p-4 no-print sm:flex-row sm:items-center sm:flex-wrap">
+          <div className="flex flex-wrap gap-2">
+            {TABS.map((tab) => {
+              const TabIcon = tab.icon;
+              const isActive = tab.key === activeTab;
+              return (
+                <button
+                  key={tab.key}
+                  type="button"
+                  className={isActive ? 'btn-primary' : 'btn-secondary'}
+                  onClick={() => setActiveTab(tab.key)}
+                >
+                  <TabIcon size={16} />
+                  {t(tab.labelKey)}
+                </button>
+              );
+            })}
           </div>
-          <div className="mt-3 flex flex-wrap gap-2">
+          <div className="relative max-w-md flex-1">
+            <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+            <input className="input pl-10" value={vm.search} onChange={(event) => vm.setSearch(event.target.value)} placeholder={t('history.searchByDsrPlaceholder')} />
+          </div>
+          <div className="flex flex-wrap gap-2 sm:ml-auto">
             <button
               type="button"
-              className="btn-secondary py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-60"
+              className="btn-secondary h-10 gap-1.5 px-3 text-xs disabled:cursor-not-allowed disabled:opacity-60"
               onClick={() => downloadPdf(async () => {
                 await inventoryApi.recordPrint({ entityType: 'history', entityId: null, label: 'pdf' }).catch(() => {});
                 await downloadSheetPdf(HISTORY_PRINT_ID, `history-${activeTab}.pdf`);
@@ -91,13 +89,13 @@ export default function HistoryPage() {
               {downloadingPdf ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
               {t('purchaseReceive.downloadPdf')}
             </button>
-            <button type="button" className="btn-secondary py-1.5 text-xs" onClick={handleExportExcel}>
+            <button type="button" className="btn-secondary h-10 gap-1.5 px-3 text-xs" onClick={handleExportExcel}>
               <FileSpreadsheet size={14} />
               {t('common.exportExcel')}
             </button>
             <button
               type="button"
-              className="btn-secondary py-1.5 text-xs"
+              className="btn-secondary h-10 gap-1.5 px-3 text-xs"
               onClick={() => { inventoryApi.recordPrint({ entityType: 'history', entityId: null, label: 'print' }).catch(() => {}); window.print(); }}
             >
               <Printer size={14} />

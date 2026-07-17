@@ -150,7 +150,7 @@ export default function IssueCenterPage() {
   if (dashboardVm.loading && !dashboardVm.error) {
     return (
       <div>
-        <SectionHeader eyebrow={t('nav.issueCenter')} title={t('issueCenter.title')} description={t('issueCenter.description')} />
+        <SectionHeader title={t('issueCenter.title')} compact />
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {Array.from({ length: 4 }).map((_, index) => <StatCardSkeleton key={index} />)}
         </div>
@@ -163,7 +163,7 @@ export default function IssueCenterPage() {
 
   return (
     <div className="space-y-6">
-      <SectionHeader eyebrow={t('nav.issueCenter')} title={t('issueCenter.title')} description={t('issueCenter.description')} />
+      <SectionHeader title={t('issueCenter.title')} compact />
 
       {dashboardVm.error ? (
         <Alert type="error">{dashboardVm.error}</Alert>

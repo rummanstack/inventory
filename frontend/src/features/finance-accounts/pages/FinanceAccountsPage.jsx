@@ -128,7 +128,7 @@ export default function FinanceAccountsPage() {
 
       <div id={FINANCE_ACCOUNTS_PRINT_ID} className="surface mt-6 overflow-hidden print-target">
         <div className="flex flex-col gap-3 border-b border-slate-100 p-5 no-print sm:flex-row sm:items-center sm:flex-wrap">
-          <Select className="input sm:w-48" value={vm.accountType} onChange={(event) => vm.setAccountType(event.target.value)}>
+          <Select className="input sm:w-72" value={vm.accountType} onChange={(event) => vm.setAccountType(event.target.value)}>
             <option value="">{t('financeAccounts.allAccounts')}</option>
             {vm.accounts.map((account) => (
               <option key={account.type} value={account.type}>{account.name}</option>

@@ -156,15 +156,38 @@ export default function ProfitPage() {
         </div>
       ) : null}
 
-      <div className="surface mb-6 p-5">
-        <label className="label">{t('profit.dateRangeLabel')}</label>
-        <DateRangePickerField
-          from={vm.dateFrom}
-          to={vm.dateTo}
-          onChange={(from, to) => { vm.setDateFrom(from); vm.setDateTo(to); }}
-          placeholder={`${t('profit.dateFrom')} - ${t('profit.dateTo')}`}
-          className="max-w-sm"
-        />
+      <div className="no-print mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div className="overflow-x-auto">
+          <div className="inline-flex min-w-full gap-1 rounded-lg border border-slate-200 bg-slate-50 p-1 sm:min-w-0">
+            {tabs.map((entry, index) => {
+              const selected = entry.key === vm.tab;
+              return (
+                <button
+                  key={entry.key}
+                  type="button"
+                  className={cx(
+                    'flex min-h-10 flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-md px-3 text-sm font-bold transition sm:flex-none',
+                    selected ? 'border border-indigo-200 bg-indigo-50 text-indigo-800 shadow-sm ring-2 ring-indigo-100' : 'border border-transparent text-slate-500 hover:bg-white/70 hover:text-slate-800',
+                  )}
+                  aria-pressed={selected}
+                  onClick={() => vm.setTab(entry.key)}
+                >
+                  {t(entry.labelKey)}
+                  <kbd className={cx('rounded border px-1.5 py-0.5 text-[10px] font-black', selected ? 'border-indigo-200 bg-white text-indigo-700' : 'border-slate-200 bg-white text-slate-400')}>{tabShortcuts[index]}</kbd>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+        <div className="sm:w-72">
+          <label className="label">{t('profit.dateRangeLabel')}</label>
+          <DateRangePickerField
+            from={vm.dateFrom}
+            to={vm.dateTo}
+            onChange={(from, to) => { vm.setDateFrom(from); vm.setDateTo(to); }}
+            placeholder={`${t('profit.dateFrom')} - ${t('profit.dateTo')}`}
+          />
+        </div>
       </div>
 
       {showSkeleton ? (
@@ -181,28 +204,6 @@ export default function ProfitPage() {
         </>
       ) : (
       <>
-      <div className="no-print mb-6 overflow-x-auto">
-        <div className="inline-flex min-w-full gap-1 rounded-lg border border-slate-200 bg-slate-50 p-1 sm:min-w-0">
-          {tabs.map((entry, index) => {
-            const selected = entry.key === vm.tab;
-            return (
-              <button
-                key={entry.key}
-                type="button"
-                className={cx(
-                  'flex min-h-10 flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-md px-3 text-sm font-bold transition sm:flex-none',
-                  selected ? 'border border-indigo-200 bg-indigo-50 text-indigo-800 shadow-sm ring-2 ring-indigo-100' : 'border border-transparent text-slate-500 hover:bg-white/70 hover:text-slate-800',
-                )}
-                aria-pressed={selected}
-                onClick={() => vm.setTab(entry.key)}
-              >
-                {t(entry.labelKey)}
-                <kbd className={cx('rounded border px-1.5 py-0.5 text-[10px] font-black', selected ? 'border-indigo-200 bg-white text-indigo-700' : 'border-slate-200 bg-white text-slate-400')}>{tabShortcuts[index]}</kbd>
-              </button>
-            );
-          })}
-        </div>
-      </div>
 
       {vm.tab === 'overview' ? (
         <>

@@ -84,7 +84,7 @@ export default function HrReportsPage() {
 
   return (
     <div>
-      <SectionHeader eyebrow={t('hrReports.eyebrow')} title={t('hrReports.title')} description={t('hrReports.description')} />
+      <SectionHeader title={t('hrReports.title')} compact />
       <div className="mb-5 flex justify-end"><input className="input w-44" type="month" value={month} onChange={(e) => setMonth(e.target.value)} /></div>
       {error ? <Alert type="error">{error}</Alert> : null}
       {loading ? <div className="surface p-5"><TableSkeleton columns={8} /></div> : (

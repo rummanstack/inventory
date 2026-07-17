@@ -129,7 +129,7 @@ export default function PayrollPage() {
 
   return (
     <div>
-      <SectionHeader eyebrow={t('payroll.eyebrow')} title={t('payroll.title')} description={t('payroll.description')} />
+      <SectionHeader title={t('payroll.title')} compact />
       {error ? <Alert type="error">{error}</Alert> : null}
 
       <div className="mb-5 grid gap-4 lg:grid-cols-2">

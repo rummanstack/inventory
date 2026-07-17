@@ -59,11 +59,7 @@ export default function ActivityLogsPage() {
 
   return (
     <div>
-      <SectionHeader
-        eyebrow={t('nav.activityLogs')}
-        title={t('activityLogs.title')}
-        description={t('activityLogs.description')}
-      />
+      <SectionHeader title={t('activityLogs.title')} compact />
 
       {vm.error ? (
         <div className="mb-6">
@@ -135,7 +131,7 @@ export default function ActivityLogsPage() {
               <span className="muted-chip">{formatNumber(vm.total)} {t('common.records')}</span>
               <button
                 type="button"
-                className="btn-secondary py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-60"
+                className="btn-secondary h-10 gap-1.5 px-3 text-xs disabled:cursor-not-allowed disabled:opacity-60"
                 onClick={() => downloadPdf(async () => {
                   await inventoryApi.recordPrint({ entityType: 'activity_logs', entityId: null, label: 'pdf' }).catch(() => {});
                   await downloadSheetPdf(ACTIVITY_LOGS_PRINT_ID, 'activity-logs.pdf');
@@ -145,13 +141,13 @@ export default function ActivityLogsPage() {
                 {downloadingPdf ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
                 {t('purchaseReceive.downloadPdf')}
               </button>
-              <button type="button" className="btn-secondary py-1.5 text-xs" onClick={handleExportExcel}>
+              <button type="button" className="btn-secondary h-10 gap-1.5 px-3 text-xs" onClick={handleExportExcel}>
                 <FileSpreadsheet size={14} />
                 {t('common.exportExcel')}
               </button>
               <button
                 type="button"
-                className="btn-secondary py-1.5 text-xs"
+                className="btn-secondary h-10 gap-1.5 px-3 text-xs"
                 onClick={() => { inventoryApi.recordPrint({ entityType: 'activity_logs', entityId: null, label: 'print' }).catch(() => {}); window.print(); }}
               >
                 <Printer size={14} />

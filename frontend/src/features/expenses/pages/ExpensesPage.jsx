@@ -138,38 +138,63 @@ export default function ExpensesPage() {
         </div>
       ) : null}
 
-      <div className="surface mb-6 p-5">
-        <div className="grid gap-4 md:grid-cols-2">
-          <div>
-            <label className="label mt-3">{t('expenses.reportDate')}</label>
-            <DatePickerField value={vm.date} onChange={vm.setDate} max={new Date().toISOString().slice(0, 10)} />
-          </div>
-          <div>
-            <label className="label mt-3">{t('expenses.reportMonth')}</label>
-            <MonthPickerField value={vm.month} onChange={vm.setMonth} />
-          </div>
+      <div className="no-print mb-6 overflow-x-auto">
+        <div className="inline-flex min-w-full gap-1 rounded-lg border border-slate-200 bg-slate-50 p-1 sm:min-w-0">
+          {EXPENSE_TABS.map((tab) => {
+            const selected = activeTab === tab.key;
+            return (
+              <button
+                key={tab.key}
+                type="button"
+                className={cx(
+                  'flex min-h-10 flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-md px-3 text-sm font-bold transition sm:flex-none',
+                  selected ? 'border border-indigo-200 bg-indigo-50 text-indigo-800 shadow-sm ring-2 ring-indigo-100' : 'border border-transparent text-slate-500 hover:bg-white/70 hover:text-slate-800',
+                )}
+                aria-pressed={selected}
+                onClick={() => setActiveTab(tab.key)}
+              >
+                {t(tab.labelKey)}
+                <kbd className={cx('rounded border px-1.5 py-0.5 text-[10px] font-black', selected ? 'border-indigo-200 bg-white text-indigo-700' : 'border-slate-200 bg-white text-slate-400')}>{tab.shortcut}</kbd>
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard title={t('expenses.dailyCount')} value={formatNumber(vm.report?.dailySummary?.count || 0)} icon={CircleDollarSign} tone="blue" helper={t('expenses.dailyCountHelper')} />
-        <StatCard title={t('expenses.dailyTotal')} value={formatCurrency(vm.report?.dailySummary?.totalAmount || 0)} icon={CircleDollarSign} tone="emerald" helper={t('expenses.dailyTotalHelper')} />
-        <StatCard title={t('expenses.monthlyCount')} value={formatNumber(vm.report?.monthlySummary?.count || 0)} icon={CircleDollarSign} tone="amber" helper={t('expenses.monthlyCountHelper')} />
-        <StatCard title={t('expenses.monthlyTotal')} value={formatCurrency(vm.report?.monthlySummary?.totalAmount || 0)} icon={CircleDollarSign} tone="slate" helper={t('expenses.monthlyTotalHelper')} />
+      {activeTab === 'daily' ? (
+        <div className="surface mb-6 p-5">
+          <label className="label">{t('expenses.reportDate')}</label>
+          <DatePickerField value={vm.date} onChange={vm.setDate} max={new Date().toISOString().slice(0, 10)} className="max-w-xs" />
+        </div>
+      ) : (
+        <div className="surface mb-6 p-5">
+          <label className="label">{t('expenses.reportMonth')}</label>
+          <MonthPickerField value={vm.month} onChange={vm.setMonth} className="max-w-xs" />
+        </div>
+      )}
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        {activeTab === 'daily' ? (
+          <>
+            <StatCard title={t('expenses.dailyCount')} value={formatNumber(vm.report?.dailySummary?.count || 0)} icon={CircleDollarSign} tone="blue" helper={t('expenses.dailyCountHelper')} />
+            <StatCard title={t('expenses.dailyTotal')} value={formatCurrency(vm.report?.dailySummary?.totalAmount || 0)} icon={CircleDollarSign} tone="emerald" helper={t('expenses.dailyTotalHelper')} />
+          </>
+        ) : (
+          <>
+            <StatCard title={t('expenses.monthlyCount')} value={formatNumber(vm.report?.monthlySummary?.count || 0)} icon={CircleDollarSign} tone="amber" helper={t('expenses.monthlyCountHelper')} />
+            <StatCard title={t('expenses.monthlyTotal')} value={formatCurrency(vm.report?.monthlySummary?.totalAmount || 0)} icon={CircleDollarSign} tone="slate" helper={t('expenses.monthlyTotalHelper')} />
+          </>
+        )}
       </div>
 
       {vm.loading ? (
         <div className="mt-6 space-y-6">
-          <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-            <ChartPanelSkeleton height="h-72" />
-            <ChartPanelSkeleton height="h-72" />
-          </div>
+          <ChartPanelSkeleton height="h-72" />
           <TableSkeleton rows={6} columns={6} />
-          <TableSkeleton rows={6} columns={5} />
         </div>
-      ) : (
+      ) : activeTab === 'daily' ? (
         <>
-          <div className="mt-6 grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+          <div className="mt-6">
             <ChartPanel title={t('expenses.dailyReport')} description={t('expenses.dailyReportDescription')}>
               {dailyCategories.length ? (
                 <HorizontalBarChart data={dailyCategories} valueFormatter={formatCurrency} />
@@ -177,17 +202,9 @@ export default function ExpensesPage() {
                 <EmptyState title={t('expenses.noDailyTitle')} description={t('expenses.noDailyDescription')} icon={CircleDollarSign} />
               )}
             </ChartPanel>
-
-            <ChartPanel title={t('expenses.monthlyReport')} description={t('expenses.monthlyReportDescription')}>
-              {monthlyCategories.length ? (
-                <HorizontalBarChart data={monthlyCategories} valueFormatter={formatCurrency} />
-              ) : (
-                <EmptyState title={t('expenses.noMonthlyTitle')} description={t('expenses.noMonthlyDescription')} icon={CircleDollarSign} />
-              )}
-            </ChartPanel>
           </div>
 
-          <div className="mt-6 flex flex-col gap-6">
+          <div className="mt-6">
             {/* Daily list */}
             <div id="expenses-daily-print" className="surface overflow-hidden">
               <div className="border-b border-slate-100 px-5 py-4">
@@ -288,7 +305,21 @@ export default function ExpensesPage() {
                 </div>
               ) : null}
             </div>
+          </div>
+        </>
+      ) : (
+        <>
+          <div className="mt-6">
+            <ChartPanel title={t('expenses.monthlyReport')} description={t('expenses.monthlyReportDescription')}>
+              {monthlyCategories.length ? (
+                <HorizontalBarChart data={monthlyCategories} valueFormatter={formatCurrency} />
+              ) : (
+                <EmptyState title={t('expenses.noMonthlyTitle')} description={t('expenses.noMonthlyDescription')} icon={CircleDollarSign} />
+              )}
+            </ChartPanel>
+          </div>
 
+          <div className="mt-6">
             {/* Monthly list */}
             <div id="expenses-monthly-print" className="surface overflow-hidden">
               <div className="border-b border-slate-100 px-5 py-4">

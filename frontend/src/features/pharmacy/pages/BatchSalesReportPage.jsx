@@ -1,7 +1,7 @@
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { Alert, Badge, MobileCardList, MobileListCard, Pagination, SectionHeader, Select } from '../../../components/ui.jsx';
 import TableReportActions from '../../../components/TableReportActions.jsx';
-import { DatePickerField } from '../../../components/DatePicker.jsx';
+import { DateRangePickerField } from '../../../components/DatePicker.jsx';
 import { formatDate, formatCurrency } from '../../../utils/calculations.js';
 import { useBatchSalesReportViewModel } from '../viewmodels/useBatchSalesReportViewModel.js';
 
@@ -14,21 +14,22 @@ export default function BatchSalesReportPage() {
   return (
     <div className="space-y-6">
       <SectionHeader
-        eyebrow={t('nav.reports')}
         title={t('pharmacy.batchSalesReport')}
+        compact
         action={<span className="text-sm font-semibold text-slate-500">{vm.total} {t('common.results')}</span>}
       />
 
       {/* Filters */}
       <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <div>
-            <label className="label">{t('pharmacy.dateFrom')}</label>
-            <DatePickerField value={vm.dateFrom} onChange={vm.setDateFrom} />
-          </div>
-          <div>
-            <label className="label">{t('pharmacy.dateTo')}</label>
-            <DatePickerField value={vm.dateTo} onChange={vm.setDateTo} />
+            <label className="label">{t('pharmacy.dateFrom')} - {t('pharmacy.dateTo')}</label>
+            <DateRangePickerField
+              from={vm.dateFrom}
+              to={vm.dateTo}
+              onChange={(from, to) => { vm.setDateFrom(from); vm.setDateTo(to); }}
+              placeholder={`${t('pharmacy.dateFrom')} - ${t('pharmacy.dateTo')}`}
+            />
           </div>
           <div>
             <label className="label">{t('pharmacy.batchNumber')}</label>
@@ -61,8 +62,7 @@ export default function BatchSalesReportPage() {
 
       {/* Table */}
       <div id={BATCH_SALES_REPORT_ID} className="surface overflow-hidden">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-5 py-3 no-print">
-          <span className="text-sm font-bold text-slate-700">{t('pharmacy.batchSalesReport')}</span>
+        <div className="flex flex-wrap items-center justify-end gap-3 border-b border-slate-100 px-5 py-3 no-print">
           <TableReportActions targetId={BATCH_SALES_REPORT_ID} title={t('pharmacy.batchSalesReport')} fileName="batch-sales-report" entityType="batch_sales_report" t={t} />
         </div>
         <MobileCardList>

@@ -43,7 +43,6 @@ export default function ProductsPage() {
   const isElectronics = (tenant?.businessType || 'ELECTRONICS') === 'ELECTRONICS';
   const isPharmacy = tenant?.businessType === 'DRUG_PHARMACY';
   const outOfStockCount = productDirectory.filter((product) => product.stockPieces === 0).length;
-  const veryLowCount = productDirectory.filter((product) => product.stockPieces > 0 && product.stockPieces <= product.piecesPerCase).length;
   const businessName = tenant?.name || '';
   const categoryOptions = useMemo(() => {
     const map = new Map();
@@ -160,10 +159,9 @@ export default function ProductsPage() {
 
       <div className="surface overflow-hidden">
         <div className="flex flex-col gap-4 border-b border-slate-100 p-5">
-          {outOfStockCount || veryLowCount ? (
+          {outOfStockCount ? (
             <div className="grid gap-3 lg:grid-cols-2">
-              {outOfStockCount ? <Alert type="error">{t('products.noStockAlert', { count: formatNumber(outOfStockCount, language) })}</Alert> : null}
-              {veryLowCount ? <Alert type="warning">{t('products.lowStockAlert', { count: formatNumber(veryLowCount, language) })}</Alert> : null}
+              <Alert type="error">{t('products.noStockAlert', { count: formatNumber(outOfStockCount, language) })}</Alert>
             </div>
           ) : null}
           <div className="flex flex-col gap-3 sm:flex-row">

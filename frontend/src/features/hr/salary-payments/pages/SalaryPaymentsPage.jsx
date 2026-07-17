@@ -157,11 +157,7 @@ export default function SalaryPaymentsPage() {
 
   return (
     <div>
-      <SectionHeader
-        eyebrow={t('salary.eyebrow')}
-        title={t('salary.title')}
-        description={t('salary.description')}
-      />
+      <SectionHeader title={t('salary.title')} compact />
 
       {/* Month navigator */}
       <div className="surface mb-5 flex flex-wrap items-center gap-3 px-5 py-4">
@@ -220,8 +216,7 @@ export default function SalaryPaymentsPage() {
 
       {/* Employee list */}
       <div id={SALARY_PAYMENTS_REPORT_ID} className="surface overflow-hidden">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-5 py-3 no-print">
-          <span className="text-sm font-bold text-slate-700">{t('salary.title')}</span>
+        <div className="flex flex-wrap items-center justify-end gap-3 border-b border-slate-100 px-5 py-3 no-print">
           <TableReportActions targetId={SALARY_PAYMENTS_REPORT_ID} title={t('salary.title')} fileName={`salary-payments-${vm.month}`} entityType="salary_payments" t={t} shortcuts={SALARY_PAYMENTS_REPORT_SHORTCUTS} />
         </div>
         {vm.loading ? (

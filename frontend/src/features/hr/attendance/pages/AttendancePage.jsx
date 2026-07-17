@@ -68,7 +68,7 @@ export default function AttendancePage() {
 
   return (
     <div>
-      <SectionHeader eyebrow={t('attendance.eyebrow')} title={t('attendance.title')} description={t('attendance.description')} />
+      <SectionHeader title={t('attendance.title')} compact />
       {error ? <Alert type="error">{error}</Alert> : null}
 
       {canManage ? (

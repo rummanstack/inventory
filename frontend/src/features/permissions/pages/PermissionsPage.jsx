@@ -419,7 +419,7 @@ export default function PermissionsPage() {
   if (needsTenantPicker && !selectedTenantId) {
     return (
       <div className="space-y-6">
-        <SectionHeader eyebrow={t('nav.permissions')} title={t('permissions.title')} description={t('permissions.description')} />
+        <SectionHeader title={t('permissions.title')} compact />
         {tenantPicker}
       </div>
     );
@@ -428,7 +428,7 @@ export default function PermissionsPage() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <SectionHeader eyebrow={t('nav.permissions')} title={t('permissions.title')} description={t('permissions.description')} />
+        <SectionHeader title={t('permissions.title')} compact />
         {tenantPicker}
         <div className="grid gap-6 lg:grid-cols-2">
           {Array.from({ length: 4 }).map((_, cardIndex) => (
@@ -451,7 +451,7 @@ export default function PermissionsPage() {
 
   return (
     <div className="space-y-6">
-      <SectionHeader eyebrow={t('nav.permissions')} title={t('permissions.title')} description={t('permissions.description')} />
+      <SectionHeader title={t('permissions.title')} compact />
 
       {tenantPicker}
 

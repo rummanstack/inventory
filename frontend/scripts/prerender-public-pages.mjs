@@ -88,7 +88,11 @@ async function prerender() {
   const browser = await puppeteer.launch({
     executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
     headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+    // --disable-dev-shm-usage: Render's build container gives /dev/shm too little
+    // space for Chrome's default shared-memory usage, which silently wedges the
+    // renderer (page never finishes painting, so waitForSelector times out no
+    // matter how long the timeout is). This makes Chrome use /tmp instead.
+    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
   });
 
   try {

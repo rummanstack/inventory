@@ -34,7 +34,6 @@ export default function LoginPage() {
         {view === 'login' ? (
           <p className="mt-2 text-sm font-medium leading-6 text-slate-500">{t('auth.loginHint')}</p>
         ) : null}
-        <p className="mt-1 text-xs font-bold text-fuchsia-600">VERCEL CI/CD TEST MARKER</p>
 
         <div className="mt-5">
           {view === 'login' ? (

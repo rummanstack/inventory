@@ -44,7 +44,7 @@ function MetricPill({ label, value, sub, icon: Icon, iconClass = "bg-slate-100 t
         <Icon size={15} />
       </div>
       <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-600">{label}</p>
-      <p className="text-2xl font-semibold tracking-tight text-slate-950 max-lg:text-lg">{value}</p>
+      <p className="text-2xl font-semibold tabular-nums tracking-tight text-slate-950 max-lg:text-lg">{value}</p>
       {sub && <p className="text-xs font-medium text-slate-500 max-lg:hidden">{sub}</p>}
     </div>
   );
@@ -60,7 +60,7 @@ function DueRow({ icon: Icon, iconClass, label, sub, value, valueClass = "text-s
         <p className="text-xs font-semibold uppercase tracking-[0.13em] text-slate-600">{label}</p>
         {sub && <p className="mt-0.5 text-xs font-medium text-slate-500 max-lg:hidden">{sub}</p>}
       </div>
-      <p className={cx("shrink-0 text-base font-semibold", valueClass)}>{value}</p>
+      <p className={cx("shrink-0 text-base font-semibold tabular-nums", valueClass)}>{value}</p>
     </div>
   );
 }
@@ -76,11 +76,7 @@ export default function DashboardPage() {
   if (vm.loading) {
     return (
       <div>
-        <SectionHeader
-          eyebrow={t("dashboard.eyebrow")}
-          title={t("dashboard.title")}
-          description={t("dashboard.description")}
-        />
+        <SectionHeader title={t("dashboard.title")} compact />
         <DashboardSkeleton />
       </div>
     );
@@ -89,11 +85,7 @@ export default function DashboardPage() {
   if (vm.error) {
     return (
       <div>
-        <SectionHeader
-          eyebrow={t("dashboard.eyebrow")}
-          title={t("dashboard.title")}
-          description={t("dashboard.description")}
-        />
+        <SectionHeader title={t("dashboard.title")} compact />
         <Alert type="error">{vm.error}</Alert>
       </div>
     );
@@ -116,11 +108,7 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6 max-lg:space-y-4">
-      <SectionHeader
-        eyebrow={t("dashboard.eyebrow")}
-        title={t("dashboard.title")}
-        description={t("dashboard.description")}
-      />
+      <SectionHeader title={t("dashboard.title")} compact />
 
       {/* ── 1. FINANCIAL HEALTH ── */}
       {financeDashboard ? (
@@ -182,7 +170,7 @@ export default function DashboardPage() {
                   <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-600 max-lg:mt-2">{item.label}</p>
                   <p
                     className={cx(
-                      "mt-2 text-lg lg:text-[clamp(1.4rem,2.5vw,1.875rem)] font-semibold tracking-tight leading-none",
+                      "mt-2 text-lg lg:text-[clamp(1.4rem,2.5vw,1.875rem)] font-semibold tabular-nums tracking-tight leading-none",
                       item.valueClass,
                     )}
                   >
@@ -236,7 +224,7 @@ export default function DashboardPage() {
                     <Icon size={16} />
                   </div>
                   <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-600 max-lg:mt-2">{item.label}</p>
-                  <p className={cx("mt-2 text-lg lg:text-[clamp(1.4rem,2.5vw,1.875rem)] font-semibold tracking-tight leading-none", item.valueClass)}>
+                  <p className={cx("mt-2 text-lg lg:text-[clamp(1.4rem,2.5vw,1.875rem)] font-semibold tabular-nums tracking-tight leading-none", item.valueClass)}>
                     {item.value}
                   </p>
                   <p className="mt-2 text-xs font-medium text-slate-500 max-lg:hidden">{item.sub}</p>
@@ -315,7 +303,7 @@ export default function DashboardPage() {
                   <Icon size={16} />
                 </div>
                 <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-600">{item.label}</p>
-                <p className={cx("mt-2 text-lg lg:text-[clamp(1.4rem,2.5vw,1.875rem)] font-semibold tracking-tight leading-none", item.valueClass)}>
+                <p className={cx("mt-2 text-lg lg:text-[clamp(1.4rem,2.5vw,1.875rem)] font-semibold tabular-nums tracking-tight leading-none", item.valueClass)}>
                   {item.value}
                 </p>
                 <p className="mt-2 text-xs font-medium text-slate-500 max-lg:hidden">{item.sub}</p>
@@ -393,7 +381,7 @@ export default function DashboardPage() {
         </ChartPanel>
       </div>
 
-      {/* ── 2. TRADING TREND + RECEIVABLES & PAYABLES ── */}
+      {/* ── 5. TRADING TREND + RECEIVABLES & PAYABLES ── */}
       <div className="grid gap-6 xl:grid-cols-[2fr_1fr]">
         <ChartPanel title={t("dashboard.tradingTrend")} description={t("dashboard.tradingTrendDescription")}>
           <TrendChart
@@ -445,7 +433,7 @@ export default function DashboardPage() {
                 </p>
                 <p
                   className={cx(
-                    "text-sm font-semibold",
+                    "text-sm font-semibold tabular-nums",
                     financeDashboard.netPosition >= 0 ? "text-emerald-700" : "text-rose-600",
                   )}
                 >
@@ -467,7 +455,7 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* ── 3. RETAIL POS TODAY + DSR CASH LEADERBOARD ── */}
+      {/* ── 6. RETAIL POS TODAY + DSR CASH LEADERBOARD ── */}
       <div className="grid gap-6 xl:grid-cols-2">
         {/* Retail POS Today */}
         <ChartPanel title={t("dashboard.retailPosToday")} description={t("dashboard.retailPosTodayDescription")}>
@@ -545,7 +533,7 @@ export default function DashboardPage() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between gap-2">
                         <p className="truncate text-sm font-bold text-slate-800">{dsr.label}</p>
-                        <p className="shrink-0 text-sm font-semibold text-slate-950">{formatCurrency(dsr.value, language)}</p>
+                        <p className="shrink-0 text-sm font-semibold tabular-nums text-slate-950">{formatCurrency(dsr.value, language)}</p>
                       </div>
                       <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
                         <div
@@ -568,7 +556,7 @@ export default function DashboardPage() {
         </ChartPanel>
       </div>
 
-      {/* ── 4b. CASH FLOW FORECAST + IDLE TODAY ── */}
+      {/* ── 7. CASH FLOW FORECAST + IDLE TODAY ── */}
       <div className="grid gap-6 xl:grid-cols-2">
         {/* Cash Flow Forecast */}
         {financeDashboard ? (
@@ -592,14 +580,14 @@ export default function DashboardPage() {
                         <r.icon size={14} />
                       </div>
                       <p className="min-w-0 flex-1 truncate text-sm font-medium text-slate-700">{r.label}</p>
-                      <p className={cx('shrink-0 text-sm font-semibold', r.negative ? 'text-rose-600' : 'text-slate-950')}>
+                      <p className={cx('shrink-0 text-sm font-semibold tabular-nums', r.negative ? 'text-rose-600' : 'text-slate-950')}>
                         {r.negative ? '− ' : ''}{formatCurrency(r.value, language)}
                       </p>
                     </div>
                   ))}
                   <div className="mt-2 flex items-center justify-between rounded-xl bg-slate-100 px-5 py-3">
                     <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">{t("dashboard.netCashPosition")}</p>
-                    <p className={cx('text-sm font-semibold', net >= 0 ? 'text-emerald-600' : 'text-rose-500')}>
+                    <p className={cx('text-sm font-semibold tabular-nums', net >= 0 ? 'text-emerald-600' : 'text-rose-500')}>
                       {formatCurrency(net, language)}
                     </p>
                   </div>
@@ -659,7 +647,7 @@ export default function DashboardPage() {
 
       </div>
 
-      {/* ── 5. TOP SELLS + LEAST SELLS ── */}
+      {/* ── 8. TOP SELLS + LEAST SELLS ── */}
       <div className="grid gap-6 xl:grid-cols-2">
         <ChartPanel
           title={t('dashboard.topSellingTitle')}
@@ -699,7 +687,7 @@ export default function DashboardPage() {
         </ChartPanel>
       </div>
 
-      {/* ── 7. ACTIVITY CALENDAR ── */}
+      {/* ── 9. ACTIVITY CALENDAR ── */}
       <ChartPanel title={t("dashboard.activityHeatmap")} description={t("dashboard.activityHeatmapDescription")}>
         <ActivityCalendar cells={vm.activityHeatmap} today={today} language={language} t={t} />
       </ChartPanel>

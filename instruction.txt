@@ -60,3 +60,5 @@ lambda:UpdateFunctionCode + lambda:GetFunction on the stockledger-api function A
 instead of using the full AdministratorAccess key for automated deploys.
 
 API URL: https://el3ykxncd7.execute-api.ap-south-1.amazonaws.com
+aws iam attach-role-policy --role-name stockledger-api-role --policy-arn arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole; Start-Sleep -Seconds 5; aws iam list-attached-role-policies --role-name stockledger-api-role
+aws service-quotas get-requested-service-quota-change --request-id d6f951ba0fa844c6a2957796e0240465CyipxjJz --region ap-south-1 --query "RequestedQuota.Status"

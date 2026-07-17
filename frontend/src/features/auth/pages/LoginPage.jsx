@@ -34,7 +34,6 @@ export default function LoginPage() {
         {view === 'login' ? (
           <p className="mt-2 text-sm font-medium leading-6 text-slate-500">{t('auth.loginHint')}</p>
         ) : null}
-        <p className="mt-1 text-xs font-bold text-emerald-600">DEPLOY PIPELINE TEST v2</p>
 
         <div className="mt-5">
           {view === 'login' ? (

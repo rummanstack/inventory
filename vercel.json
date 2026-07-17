@@ -9,6 +9,10 @@
     {
       "source": "/uploads/:path*",
       "destination": "https://el3ykxncd7.execute-api.ap-south-1.amazonaws.com/uploads/:path*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }

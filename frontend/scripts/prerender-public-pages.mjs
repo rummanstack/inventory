@@ -95,10 +95,24 @@ async function prerender() {
     const page = await browser.newPage();
     await page.setViewport({ width: 1440, height: 1100, deviceScaleFactor: 1 });
 
-    for (const route of PUBLIC_ROUTES) {
+    // CI build containers (Render) are often CPU-starved right after a Vite build
+    // finishes, and the very first navigation also pays for JS bundle parse/compile.
+    // A generous timeout plus one retry absorbs that transient slowness without
+    // failing the whole deploy over a single slow page.
+    async function renderRoute(route) {
       await page.goto(`http://127.0.0.1:${serverPort}${route}`, { waitUntil: 'networkidle0' });
-      await page.waitForSelector('main', { timeout: 15000 });
-      const html = await page.evaluate(() => '<!doctype html>\n' + document.documentElement.outerHTML);
+      await page.waitForSelector('main', { timeout: 45000 });
+      return page.evaluate(() => '<!doctype html>\n' + document.documentElement.outerHTML);
+    }
+
+    for (const route of PUBLIC_ROUTES) {
+      let html;
+      try {
+        html = await renderRoute(route);
+      } catch (error) {
+        console.warn(`Retrying ${route} after: ${error.message}`);
+        html = await renderRoute(route);
+      }
       await writeRouteHtml(route, html);
       console.log(`Prerendered ${route}`);
     }

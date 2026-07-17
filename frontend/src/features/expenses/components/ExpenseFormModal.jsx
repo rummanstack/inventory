@@ -5,6 +5,7 @@ import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import AuditHistory from '../../../components/AuditHistory.jsx';
 import { useFormState } from '../../../hooks/useFormState';
+import { todayISO } from '../../../utils/calculations.js';
 
 const EXPENSE_CATEGORY_KEYS = [
   ['Office', 'expenses.categories.office'],
@@ -14,10 +15,10 @@ const EXPENSE_CATEGORY_KEYS = [
   ['Other', 'expenses.categories.other'],
 ];
 
-export default function ExpenseFormModal({ expense, defaultDate, onClose, onSave }) {
+export default function ExpenseFormModal({ expense, onClose, onSave }) {
   const { t, pushToast } = useInventoryApp();
   const isEdit = Boolean(expense);
-  const initialDate = expense?.date || defaultDate;
+  const initialDate = expense?.date || todayISO();
   const { form, updateField, error, setError, saving, setSaving } = useFormState({
     date: initialDate,
     category: (expense?.category && expense.category !== 'Bank') ? expense.category : 'Office',
@@ -86,7 +87,7 @@ export default function ExpenseFormModal({ expense, defaultDate, onClose, onSave
         <div className="grid gap-4 md:grid-cols-2">
           <div>
             <label className="label">{t('expenses.date')}</label>
-            <DatePickerField value={form.date} onChange={(value) => updateField('date', value)} max={new Date().toISOString().slice(0, 10)} />
+            <DatePickerField value={form.date} onChange={(value) => updateField('date', value)} disabled />
           </div>
           <div>
             <label className="label">{t('expenses.category')}</label>
@@ -127,4 +128,3 @@ export default function ExpenseFormModal({ expense, defaultDate, onClose, onSave
     </Modal>
   );
 }
-

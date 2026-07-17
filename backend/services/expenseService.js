@@ -2,7 +2,7 @@ import { assert } from "../lib/errors.js";
 import { createId } from "../lib/ids.js";
 import { diffFields } from "../lib/auditDiff.js";
 import { summarizeByAmount } from "../lib/aggregation.js";
-import { addDays, normalizeIsoDate, normalizeIsoMonth, startOfMonth, startOfNextMonth } from "../lib/dateRanges.js";
+import { addDays, normalizeIsoDate, normalizeIsoMonth, startOfMonth, startOfNextMonth, todayIsoDate } from "../lib/dateRanges.js";
 import { buildPageResult, parsePagination } from "../lib/pagination.js";
 import { JOURNAL_SOURCE_TYPES } from "../lib/journalSourceTypes.js";
 import {
@@ -104,8 +104,12 @@ export class ExpenseService {
   }
 
   async saveExpense(input, actor) {
-    const fallbackDate = new Date().toISOString().slice(0, 10);
-    const expense = normalizeExpense(input, fallbackDate);
+    const today = todayIsoDate();
+    const expense = normalizeExpense(input, today);
+
+    if (!input.id) {
+      assert(expense.date === today, "Expenses can only be created for today.");
+    }
 
     return this.databaseManager.withTransaction(async (client) => {
       if (input.id) {
@@ -113,6 +117,7 @@ export class ExpenseService {
 
         const existingExpense = await findExpenseById(client, expense.id, actor.tenantId);
         assert(existingExpense, "Expense not found.", 404);
+        assert(expense.date === existingExpense.date, "Expense date cannot be changed.");
 
         await updateExpense(client, expense, actor.tenantId);
 

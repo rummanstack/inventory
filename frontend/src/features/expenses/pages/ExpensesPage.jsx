@@ -354,7 +354,6 @@ export default function ExpensesPage() {
       {modal ? (
         <ExpenseFormModal
           expense={modal.id ? modal : null}
-          defaultDate={vm.date || todayISO()}
           onClose={() => setModal(null)}
           onSave={handleSave}
         />

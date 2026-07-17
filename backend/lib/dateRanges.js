@@ -3,6 +3,17 @@ import { assert } from "./errors.js";
 const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 const ISO_MONTH_PATTERN = /^\d{4}-\d{2}$/;
 
+export function todayIsoDate(timeZone = "Asia/Dhaka") {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date());
+  const values = Object.fromEntries(parts.map(({ type, value }) => [type, value]));
+  return `${values.year}-${values.month}-${values.day}`;
+}
+
 export function normalizeIsoDate(value, fallback, message = "Date must be in YYYY-MM-DD format.") {
   const raw = String(value || "").trim();
   if (!raw) {

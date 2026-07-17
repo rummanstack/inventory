@@ -3,10 +3,12 @@ import assert from "node:assert/strict";
 import { getTestApp, closeTestApp } from "./helpers/testApp.js";
 import { createTenantAndAdmin, cleanupTenant } from "./helpers/fixtures.js";
 import { getCashAccount, depositCash } from "./helpers/seeders.js";
+import { addDays, todayIsoDate } from "../lib/dateRanges.js";
 
 let databaseManager;
 let tenant;
 let otherTenant;
+const today = todayIsoDate();
 
 before(async () => {
   const testApp = await getTestApp();
@@ -25,7 +27,7 @@ after(async () => {
 
 test("an invalid category is rejected", async () => {
   const response = await tenant.agent.post("/api/expenses").send({
-    date: "2026-04-01",
+    date: today,
     category: "Not A Real Category",
     amount: 100,
     note: "Bad category",
@@ -34,18 +36,30 @@ test("an invalid category is rejected", async () => {
 });
 
 test("a zero or missing amount, or a missing note, is rejected", async () => {
-  const noAmount = await tenant.agent.post("/api/expenses").send({ date: "2026-04-01", category: "Office", note: "test" });
+  const noAmount = await tenant.agent.post("/api/expenses").send({ date: today, category: "Office", note: "test" });
   assert.equal(noAmount.status, 400);
 
-  const noNote = await tenant.agent.post("/api/expenses").send({ date: "2026-04-01", category: "Office", amount: 50 });
+  const noNote = await tenant.agent.post("/api/expenses").send({ date: today, category: "Office", amount: 50 });
   assert.equal(noNote.status, 400);
+});
+
+test("an expense cannot be created for any date other than today", async () => {
+  const response = await tenant.agent.post("/api/expenses").send({
+    date: addDays(today, -1),
+    category: "Office",
+    amount: 100,
+    note: "Backdated expense",
+  });
+
+  assert.equal(response.status, 400);
+  assert.match(response.body.message, /only be created for today/i);
 });
 
 test("creating an expense withdraws cash", async () => {
   const cashBefore = await getCashAccount(tenant.agent);
 
   const response = await tenant.agent.post("/api/expenses").send({
-    date: "2026-04-01",
+    date: today,
     category: "Rent",
     amount: 5000,
     note: "April rent",
@@ -58,7 +72,7 @@ test("creating an expense withdraws cash", async () => {
 
 test("editing an expense without a reason is rejected; with a reason cash moves by the delta", async () => {
   const createResponse = await tenant.agent.post("/api/expenses").send({
-    date: "2026-04-02",
+    date: today,
     category: "Vehicle",
     amount: 1000,
     note: "Fuel",
@@ -66,16 +80,25 @@ test("editing an expense without a reason is rejected; with a reason cash moves 
   const expenseId = createResponse.body.expense.id;
 
   const withoutReason = await tenant.agent.patch(`/api/expenses/${expenseId}`).send({
-    date: "2026-04-02",
+    date: today,
     category: "Vehicle",
     amount: 1500,
     note: "Fuel",
   });
   assert.equal(withoutReason.status, 400);
 
+  const changedDate = await tenant.agent.patch(`/api/expenses/${expenseId}`).send({
+    date: addDays(today, -1),
+    category: "Vehicle",
+    amount: 1500,
+    note: "Fuel",
+    reason: "Trying to change the expense date",
+  });
+  assert.equal(changedDate.status, 400);
+
   const cashBefore = await getCashAccount(tenant.agent);
   const withReason = await tenant.agent.patch(`/api/expenses/${expenseId}`).send({
-    date: "2026-04-02",
+    date: today,
     category: "Vehicle",
     amount: 1500,
     note: "Fuel",
@@ -89,7 +112,7 @@ test("editing an expense without a reason is rejected; with a reason cash moves 
 
 test("deleting an expense deposits the cash back, and it can be restored (withdrawing the cash again)", async () => {
   const createResponse = await tenant.agent.post("/api/expenses").send({
-    date: "2026-04-03",
+    date: today,
     category: "Other",
     amount: 800,
     note: "Misc",
@@ -115,7 +138,7 @@ test("deleting an expense deposits the cash back, and it can be restored (withdr
 
 test("permanently deleting a trashed expense removes it for good", async () => {
   const createResponse = await tenant.agent.post("/api/expenses").send({
-    date: "2026-04-04",
+    date: today,
     category: "Load/Unload",
     amount: 300,
     note: "Loading charge",
@@ -132,7 +155,7 @@ test("permanently deleting a trashed expense removes it for good", async () => {
 
 test("tenant isolation: another tenant cannot edit or delete an expense that isn't theirs", async () => {
   const createResponse = await tenant.agent.post("/api/expenses").send({
-    date: "2026-04-05",
+    date: today,
     category: "Office",
     amount: 400,
     note: "Isolated expense",
@@ -140,7 +163,7 @@ test("tenant isolation: another tenant cannot edit or delete an expense that isn
   const expenseId = createResponse.body.expense.id;
 
   const updateResponse = await otherTenant.agent.patch(`/api/expenses/${expenseId}`).send({
-    date: "2026-04-05",
+    date: today,
     category: "Office",
     amount: 999,
     note: "Hijacked",

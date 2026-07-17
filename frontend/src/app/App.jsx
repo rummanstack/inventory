@@ -32,24 +32,25 @@ function SessionLoadingScreen() {
   return (
     <div className="fixed inset-0 flex flex-col items-center justify-center overflow-hidden bg-[var(--sidebar-bg)]">
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute left-1/2 top-1/2 h-[520px] w-[520px] -translate-x-1/2 -translate-y-2/3 rounded-full bg-[color-mix(in_srgb,var(--brand)_10%,transparent)] blur-[120px]" />
+        <div className="absolute left-1/2 top-1/2 h-[640px] w-[640px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[color-mix(in_srgb,var(--brand)_8%,transparent)] blur-[140px]" />
+        <div className="absolute left-1/2 top-1/2 h-[360px] w-[360px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[color-mix(in_srgb,var(--secondary)_10%,transparent)] blur-[100px]" />
       </div>
 
       <div className="relative z-10 flex flex-col items-center">
-        <div className="relative">
-          <div className="absolute inset-0 -m-2 animate-ping rounded-2xl bg-[color-mix(in_srgb,var(--secondary)_15%,transparent)]" style={{ animationDuration: '2.2s' }} />
-          <div className="logo-chip relative flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl shadow-[0_8px_40px_rgba(55,51,115,0.2)]">
+        <div className="relative flex h-16 w-16 items-center justify-center">
+          <div className="session-glow absolute inset-0 -m-3 rounded-[26px] bg-[color-mix(in_srgb,var(--brand)_22%,transparent)] blur-xl" />
+          <div className="logo-chip relative flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl shadow-[0_10px_36px_rgba(55,51,115,0.22)] ring-1 ring-[color-mix(in_srgb,var(--brand)_14%,transparent)]">
             <img src={stockLedgerLogoIcon} alt="" className="h-full w-full object-contain p-1.5" />
           </div>
         </div>
 
-        <div className="logo-chip mt-7 rounded-control px-3 py-1.5">
-          <img src={stockLedgerLogoHorizontal} alt="StockLedger" className="h-10 w-auto object-contain" />
+        <div className="logo-chip mt-6 rounded-control px-3 py-1.5 shadow-[0_4px_20px_rgba(55,51,115,0.08)]">
+          <img src={stockLedgerLogoHorizontal} alt="StockLedger" className="h-9 w-auto object-contain" />
         </div>
-        <p className="mt-1.5 text-[13px] font-medium tracking-widest text-slate-400 uppercase">{t('common.checkingSession')}</p>
+        <p className="mt-4 text-[12px] font-medium tracking-[0.2em] text-slate-400 uppercase">{t('common.checkingSession')}</p>
 
-        <div className="relative mt-10 h-px w-48 overflow-hidden rounded-full bg-[color-mix(in_srgb,var(--brand)_10%,transparent)]">
-          <div className="session-loader-bar absolute inset-y-0 w-1/2 rounded-full bg-gradient-to-r from-transparent via-[var(--secondary)] to-transparent" />
+        <div className="relative mt-8 h-[3px] w-40 overflow-hidden rounded-full bg-[color-mix(in_srgb,var(--brand)_8%,transparent)]">
+          <div className="session-loader-bar absolute inset-y-0 w-1/3 rounded-full bg-gradient-to-r from-transparent via-[var(--brand)] to-transparent" />
         </div>
       </div>
     </div>

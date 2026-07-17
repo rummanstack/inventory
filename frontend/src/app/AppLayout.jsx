@@ -111,7 +111,7 @@ export default function AppLayout() {
       <div className={`flex h-screen min-h-0 flex-col transition-[padding-left] duration-300 ${sidebarCollapsed ? 'lg:pl-[68px]' : 'lg:pl-72'}`}>
         <TopHeader title={getRouteLabel(location.pathname, t)} today={today} user={user} tenant={tenant} tenantOptions={tenantOptions} onSwitchTenant={switchTenant} onLogout={logout} loggingOut={loggingOut} language={language} onLanguageChange={setLanguage} t={t} products={productDirectory} />
         <div ref={scrollContainerRef} className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
-          <main key={location.key} className="mx-auto max-w-[1680px] px-3 py-6 pb-10 max-lg:pt-4 max-lg:pb-[calc(5.5rem+env(safe-area-inset-bottom))] sm:px-6 lg:px-8 page-enter">
+          <main className="mx-auto max-w-[1680px] px-3 py-6 pb-10 max-lg:pt-4 max-lg:pb-[calc(5.5rem+env(safe-area-inset-bottom))] sm:px-6 lg:px-8">
             {loadError ? (
               <div className="mb-6">
                 <Alert type="error">{loadError}</Alert>

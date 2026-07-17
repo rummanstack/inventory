@@ -9,3 +9,4 @@ backend/uploads
 backend/private_uploads
 backend/.env
 lambda-deploy.zip
+.vercel

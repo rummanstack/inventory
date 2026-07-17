@@ -25,6 +25,8 @@ export default defineConfig({
   envDir: '..',
   plugins: [react()],
   build: {
+    outDir: '../backend/public/dist',
+    emptyOutDir: true,
     rollupOptions: {
       output: {
         manualChunks,

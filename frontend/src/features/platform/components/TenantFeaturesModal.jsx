@@ -141,6 +141,7 @@ export default function TenantFeaturesModal({ tenant, onClose, onSave }) {
   const { t } = useInventoryApp();
   const [selected, setSelected] = useState([]);
   const [saving, setSaving] = useState(false);
+  const [submitError, setSubmitError] = useState('');
   const featuresQuery = useTenantApiQuery({
     scope: 'platform-tenant-features',
     params: { tenantId: tenant.id },
@@ -148,7 +149,7 @@ export default function TenantFeaturesModal({ tenant, onClose, onSave }) {
     requireTenant: false,
   });
   const loading = featuresQuery.isLoading;
-  const error = featuresQuery.error?.message || '';
+  const error = submitError || featuresQuery.error?.message || '';
 
   useEffect(() => {
     if (featuresQuery.data) setSelected(featuresQuery.data.features || []);
@@ -210,11 +211,11 @@ export default function TenantFeaturesModal({ tenant, onClose, onSave }) {
   async function handleSubmit(event) {
     event.preventDefault();
     setSaving(true);
-    setError('');
+    setSubmitError('');
     try {
       await onSave(selected);
     } catch (err) {
-      setError(err?.message || t('organizations.featuresSaveFailed'));
+      setSubmitError(err?.message || t('organizations.featuresSaveFailed'));
     } finally {
       setSaving(false);
     }

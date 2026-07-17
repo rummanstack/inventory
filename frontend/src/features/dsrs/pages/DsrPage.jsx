@@ -98,9 +98,8 @@ export default function DsrPage() {
   return (
     <div>
       <SectionHeader
-        eyebrow={t('dsr.eyebrow')}
         title={t('dsr.title')}
-        description={t('dsr.description')}
+        compact
         action={canManageDsrs ? (
           <div className="flex gap-2">
             <button type="button" className="btn-secondary" onClick={() => setTargetModal(true)}>
@@ -116,40 +115,37 @@ export default function DsrPage() {
       />
 
       <div id={DSR_PRINT_ID} className="surface overflow-hidden print-target">
-        <div className="border-b border-slate-100 p-5">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">{t('dsr.eyebrow')}</p>
-            <div className="flex flex-wrap items-center gap-2 text-sm font-bold">
-              <span className="muted-chip">{formatNumber(vm.total)} {t('common.dsr')}</span>
-              <button
-                type="button"
-                className="btn-secondary no-print py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-60"
-                onClick={handleDownloadPdf}
-                disabled={downloadingPdf}
-              >
-                {downloadingPdf ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
-                {t('purchaseReceive.downloadPdf')}
-                {shortcutBadge(DSR_REPORT_SHORTCUTS.pdf)}
-              </button>
-              <button type="button" className="btn-secondary no-print py-1.5 text-xs" onClick={handleExportExcel}>
-                <FileSpreadsheet size={14} />
-                {t('common.exportExcel')}
-                {shortcutBadge(DSR_REPORT_SHORTCUTS.excel)}
-              </button>
-              <button
-                type="button"
-                className="btn-secondary no-print py-1.5 text-xs"
-                onClick={handlePrint}
-              >
-                <Printer size={14} />
-                {t('common.print')}
-                {shortcutBadge(DSR_REPORT_SHORTCUTS.print)}
-              </button>
-            </div>
-          </div>
-          <div className="relative mt-4 max-w-md">
+        <div className="flex flex-col gap-4 border-b border-slate-100 p-5 sm:flex-row sm:items-center">
+          <div className="relative max-w-md flex-1">
             <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
             <input className="input pl-10" value={vm.search} onChange={(event) => vm.setSearch(event.target.value)} placeholder={t('dsr.searchPlaceholder')} />
+          </div>
+          <div className="flex flex-wrap items-center gap-2 text-sm font-bold sm:ml-auto">
+            <span className="muted-chip">{formatNumber(vm.total)} {t('common.dsr')}</span>
+            <button
+              type="button"
+              className="btn-secondary no-print h-10 gap-1.5 px-3 text-xs disabled:cursor-not-allowed disabled:opacity-60"
+              onClick={handleDownloadPdf}
+              disabled={downloadingPdf}
+            >
+              {downloadingPdf ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
+              {t('purchaseReceive.downloadPdf')}
+              {shortcutBadge(DSR_REPORT_SHORTCUTS.pdf)}
+            </button>
+            <button type="button" className="btn-secondary no-print h-10 gap-1.5 px-3 text-xs" onClick={handleExportExcel}>
+              <FileSpreadsheet size={14} />
+              {t('common.exportExcel')}
+              {shortcutBadge(DSR_REPORT_SHORTCUTS.excel)}
+            </button>
+            <button
+              type="button"
+              className="btn-secondary no-print h-10 gap-1.5 px-3 text-xs"
+              onClick={handlePrint}
+            >
+              <Printer size={14} />
+              {t('common.print')}
+              {shortcutBadge(DSR_REPORT_SHORTCUTS.print)}
+            </button>
           </div>
         </div>
         {vm.loading ? (

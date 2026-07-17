@@ -1,7 +1,7 @@
 import { CircleDollarSign, Trash2 } from 'lucide-react';
 import { Alert, Badge, EmptyState, MobileCardList, MobileListCard, Pagination, SectionHeader, TableSkeleton, Select } from '../../../../components/ui.jsx';
 import TableReportActions from '../../../../components/TableReportActions.jsx';
-import { DatePickerField } from '../../../../components/DatePicker.jsx';
+import { DateRangePickerField } from '../../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
 import { formatCurrency, formatDate, formatNumber } from '../../../../utils/calculations.js';
 import { useTradePromotionSettlementsViewModel } from '../viewmodels/useTradePromotionSettlementsViewModel.js';
@@ -23,20 +23,13 @@ export default function TradePromotionSettlementsPage() {
 
   return (
     <div>
-      <SectionHeader
-        eyebrow={t('tradePromotions.settlements.eyebrow')}
-        title={t('tradePromotions.settlements.title')}
-        description={t('tradePromotions.settlements.description')}
-      />
+      <SectionHeader title={t('tradePromotions.settlements.title')} compact />
 
       <div id={TRADE_PROMOTION_SETTLEMENTS_REPORT_ID} className="surface overflow-hidden">
         <div className="border-b border-slate-100 p-5">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">{t('tradePromotions.settlements.eyebrow')}</p>
-            <div className="flex flex-wrap items-center justify-end gap-2 text-sm font-bold">
-              <span className="muted-chip">{formatNumber(vm.total)} {t('tradePromotions.settlements.count')}</span>
-              <TableReportActions targetId={TRADE_PROMOTION_SETTLEMENTS_REPORT_ID} title={t('tradePromotions.settlements.title')} fileName="trade-promotion-settlements" entityType="trade_promotion_settlements" t={t} shortcuts={TRADE_PROMOTION_SETTLEMENTS_REPORT_SHORTCUTS} />
-            </div>
+          <div className="flex flex-wrap items-center justify-end gap-2 text-sm font-bold">
+            <span className="muted-chip">{formatNumber(vm.total)} {t('tradePromotions.settlements.count')}</span>
+            <TableReportActions targetId={TRADE_PROMOTION_SETTLEMENTS_REPORT_ID} title={t('tradePromotions.settlements.title')} fileName="trade-promotion-settlements" entityType="trade_promotion_settlements" t={t} shortcuts={TRADE_PROMOTION_SETTLEMENTS_REPORT_SHORTCUTS} />
           </div>
           <div className="mt-4 grid gap-3 sm:grid-cols-3">
             <Select className="input" value={vm.method} onChange={(event) => vm.setMethod(event.target.value)}>
@@ -45,10 +38,13 @@ export default function TradePromotionSettlementsPage() {
                 <option key={value} value={value}>{t(`tradePromotions.settlements.methods.${value}`)}</option>
               ))}
             </Select>
-            <div className="grid grid-cols-2 gap-2 sm:col-span-2">
-              <DatePickerField value={vm.dateFrom} onChange={vm.setDateFrom} placeholder={t('purchaseReceive.dateFrom')} />
-              <DatePickerField value={vm.dateTo} onChange={vm.setDateTo} placeholder={t('purchaseReceive.dateTo')} min={vm.dateFrom} />
-            </div>
+            <DateRangePickerField
+              className="sm:col-span-2"
+              from={vm.dateFrom}
+              to={vm.dateTo}
+              onChange={(from, to) => { vm.setDateFrom(from); vm.setDateTo(to); }}
+              placeholder={`${t('purchaseReceive.dateFrom')} - ${t('purchaseReceive.dateTo')}`}
+            />
           </div>
         </div>
 

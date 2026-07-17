@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { CircleDollarSign, Download, FileSpreadsheet, Loader2, Pencil, Plus, Trash2 } from 'lucide-react';
-import { Alert, Badge, ChartPanel, ChartPanelSkeleton, EmptyState, MobileCardList, MobileListCard, Pagination, SectionHeader, HorizontalBarChart, StatCard, TableSkeleton } from '../../../components/ui.jsx';
+import { Alert, Badge, ChartPanel, ChartPanelSkeleton, EmptyState, MobileCardList, MobileListCard, Pagination, SectionHeader, HorizontalBarChart, StatCard, TableSkeleton, cx } from '../../../components/ui.jsx';
 import { DatePickerField, MonthPickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../services/printService.js';
@@ -13,6 +13,10 @@ import { useAsyncAction } from '../../../hooks/useAsyncAction.js';
 
 const CATEGORY_CHART_FIELDS = { labelField: 'category', valueField: 'totalAmount' };
 const PAGE_SIZE = 20;
+const EXPENSE_TABS = [
+  { key: 'daily', labelKey: 'expenses.dailyTab', shortcut: 'Alt+1' },
+  { key: 'monthly', labelKey: 'expenses.monthlyTab', shortcut: 'Alt+2' },
+];
 
 const CATEGORY_I18N_KEYS = {
   Bank: 'expenses.categories.bank',
@@ -29,6 +33,7 @@ export default function ExpensesPage() {
   const tCategory = (category) => { const key = CATEGORY_I18N_KEYS[category]; return key ? t(key) : category; };
   const vm = useExpenseViewModel({ confirm });
   const [modal, setModal] = useState(null);
+  const [activeTab, setActiveTab] = useState('daily');
   const [dailyPage, setDailyPage] = useState(1);
   const [monthlyPage, setMonthlyPage] = useState(1);
   const canManageExpenses = can('manage_expenses');
@@ -37,6 +42,21 @@ export default function ExpensesPage() {
 
   useEffect(() => { setDailyPage(1); }, [vm.date]);
   useEffect(() => { setMonthlyPage(1); }, [vm.month]);
+
+  useEffect(() => {
+    function handleKeyDown(event) {
+      const isShortcut = event.altKey && !event.ctrlKey && !event.metaKey;
+      if (!isShortcut) return;
+      const index = Number(event.key) - 1;
+      if (index >= 0 && index < EXPENSE_TABS.length) {
+        event.preventDefault();
+        setActiveTab(EXPENSE_TABS[index].key);
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const dailyCategories = useMemo(() => toBarChartData(vm.report?.dailySummary?.byCategory || [], CATEGORY_CHART_FIELDS), [vm.report?.dailySummary?.byCategory]);
   const monthlyCategories = useMemo(() => toBarChartData(vm.report?.monthlySummary?.byCategory || [], CATEGORY_CHART_FIELDS), [vm.report?.monthlySummary?.byCategory]);
@@ -102,9 +122,8 @@ export default function ExpensesPage() {
   return (
     <div>
       <SectionHeader
-        eyebrow={t('nav.expenses')}
         title={t('expenses.title')}
-        description={t('expenses.description')}
+        compact
         action={canManageExpenses ? (
           <button type="button" className="btn-primary" onClick={() => setModal({})}>
             <Plus size={18} />

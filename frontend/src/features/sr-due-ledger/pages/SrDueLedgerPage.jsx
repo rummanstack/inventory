@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Download, FileSpreadsheet, HandCoins, Loader2, Printer, RefreshCw, Wallet } from 'lucide-react';
+import { Download, FileSpreadsheet, HandCoins, Loader2, Printer, Wallet } from 'lucide-react';
 import { Alert, Badge, EmptyState, MobileCardList, MobileListCard, Modal, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { DatePickerField, DateRangePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
@@ -12,7 +12,6 @@ import { useSrDueStatementViewModel } from '../viewmodels/useSrDueStatementViewM
 const PRINT_ID = 'sr-due-statement-print';
 const SR_DUE_LEDGER_SHORTCUTS = {
   collect: { alt: true, key: 's', label: 'Alt+S' },
-  refresh: { alt: true, key: 'r', label: 'Alt+R' },
   pdf: { alt: true, key: 'd', label: 'Alt+D' },
   excel: { alt: true, key: 'e', label: 'Alt+E' },
   print: { alt: true, key: 'p', label: 'Alt+P' },
@@ -175,11 +174,6 @@ export default function SrDueLedgerPage() {
 
   useEffect(() => {
     function handleKeyDown(event) {
-      if (matchesShortcut(event, SR_DUE_LEDGER_SHORTCUTS.refresh)) {
-        event.preventDefault();
-        vm.refresh();
-        return;
-      }
       if (matchesShortcut(event, SR_DUE_LEDGER_SHORTCUTS.collect) && canManage && vm.srId && vm.statement && !showCollect) {
         event.preventDefault();
         setShowCollect(true);
@@ -205,9 +199,8 @@ export default function SrDueLedgerPage() {
   return (
     <div>
       <SectionHeader
-        eyebrow={t('srDueLedgerPage.eyebrow')}
         title={t('srDueLedgerPage.title')}
-        description={t('srDueLedgerPage.description')}
+        compact
         action={canManage && vm.srId && vm.statement ? (
           <button type="button" className="btn-primary" onClick={() => setShowCollect(true)}>
             <HandCoins size={18} />
@@ -242,11 +235,6 @@ export default function SrDueLedgerPage() {
             />
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <button type="button" className="btn-secondary" onClick={vm.refresh}>
-              <RefreshCw size={18} />
-              {t('srDueLedgerPage.refresh')}
-              {shortcutBadge(SR_DUE_LEDGER_SHORTCUTS.refresh)}
-            </button>
             {vm.statement ? (
               <>
                 <button

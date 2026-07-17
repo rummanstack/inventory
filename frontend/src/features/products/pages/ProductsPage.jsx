@@ -120,74 +120,53 @@ export default function ProductsPage() {
       <SectionHeader
         eyebrow={t('products.eyebrow')}
         title={t('products.title')}
-        description={t('products.description', { count: productDirectory.length })}
-        action={canManageProducts ? (
-          <div className="flex gap-2">
-            {isElectronics ? (
-              <button type="button" className="btn-secondary" onClick={() => setShowBrandsModal(true)}>
-                <ListTree size={18} />
-                {t('brands.manage')}
-              </button>
-            ) : null}
-            <button type="button" className="btn-secondary" onClick={() => setShowCategoriesModal(true)}>
-              <ListTree size={18} />
-              {t('categories.manage')}
-            </button>
-            {isPharmacy ? (
+        compact
+        action={(
+          <div className="flex flex-wrap gap-2">
+            {canManageProducts ? (
               <>
-                <button type="button" className="btn-secondary" onClick={() => setShowManufacturersModal(true)}>
+                {isElectronics ? (
+                  <button type="button" className="btn-secondary" onClick={() => setShowBrandsModal(true)}>
+                    <ListTree size={18} />
+                    {t('brands.manage')}
+                  </button>
+                ) : null}
+                <button type="button" className="btn-secondary" onClick={() => setShowCategoriesModal(true)}>
                   <ListTree size={18} />
-                  {t('pharmacy.manufacturers')}
+                  {t('categories.manage')}
                 </button>
-                <button type="button" className="btn-secondary" onClick={() => setShowGenericMedicinesModal(true)}>
-                  <ListTree size={18} />
-                  {t('genericMedicines.manage')}
+                {isPharmacy ? (
+                  <>
+                    <button type="button" className="btn-secondary" onClick={() => setShowManufacturersModal(true)}>
+                      <ListTree size={18} />
+                      {t('pharmacy.manufacturers')}
+                    </button>
+                    <button type="button" className="btn-secondary" onClick={() => setShowGenericMedicinesModal(true)}>
+                      <ListTree size={18} />
+                      {t('genericMedicines.manage')}
+                    </button>
+                  </>
+                ) : null}
+                <button type="button" className="btn-primary" onClick={() => setProductModal({ mode: 'add' })}>
+                  <Plus size={18} />
+                  {t('products.add')}
+                  <kbd className="ml-1 rounded border border-indigo-400/40 bg-indigo-500/20 px-1 py-0.5 font-mono text-[10px] text-indigo-200">Alt+A</kbd>
                 </button>
               </>
             ) : null}
-            <button type="button" className="btn-primary" onClick={() => setProductModal({ mode: 'add' })}>
-              <Plus size={18} />
-              {t('products.add')}
-              <kbd className="ml-1 rounded border border-indigo-400/40 bg-indigo-500/20 px-1 py-0.5 font-mono text-[10px] text-indigo-200">Alt+A</kbd>
-            </button>
           </div>
-        ) : null}
+        )}
       />
 
       <div className="surface overflow-hidden">
-        <div className="border-b border-slate-100 p-5">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">{t('products.eyebrow')}</p>
-            <div className="no-print flex flex-wrap items-center gap-2">
-              <div className="flex flex-wrap gap-2 text-sm font-bold">
-                <span className="muted-chip">{formatNumber(productDirectory.length, language)} {t('products.product')}</span>
-                <span className="muted-chip">{formatNumber(outOfStockCount, language)} {t('products.outShort')}</span>
-                <span className="muted-chip">{formatNumber(veryLowCount, language)} {t('products.lowShort')}</span>
-              </div>
-              <button type="button" className="btn-secondary h-8 gap-1.5 px-3 py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-60" onClick={handleDownloadPdf} disabled={downloadingPdf}>
-                {downloadingPdf ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
-                {t('purchaseReceive.downloadPdf')}
-                <kbd className="rounded border border-slate-200 bg-white px-1.5 py-0.5 text-[10px] font-black text-slate-500">Alt+D</kbd>
-              </button>
-              <button type="button" className="btn-secondary h-8 gap-1.5 px-3 py-1.5 text-xs" onClick={handleExportExcel}>
-                <FileSpreadsheet size={14} />
-                {t('common.exportExcel')}
-                <kbd className="rounded border border-slate-200 bg-white px-1.5 py-0.5 text-[10px] font-black text-slate-500">Alt+E</kbd>
-              </button>
-              <button type="button" className="btn-secondary h-8 gap-1.5 px-3 py-1.5 text-xs" onClick={handlePrint}>
-                <Printer size={14} />
-                {t('common.print')}
-                <kbd className="rounded border border-slate-200 bg-white px-1.5 py-0.5 text-[10px] font-black text-slate-500">Alt+P</kbd>
-              </button>
-            </div>
-          </div>
+        <div className="flex flex-col gap-4 border-b border-slate-100 p-5">
           {outOfStockCount || veryLowCount ? (
-            <div className="mt-4 grid gap-3 lg:grid-cols-2">
+            <div className="grid gap-3 lg:grid-cols-2">
               {outOfStockCount ? <Alert type="error">{t('products.noStockAlert', { count: formatNumber(outOfStockCount, language) })}</Alert> : null}
               {veryLowCount ? <Alert type="warning">{t('products.lowStockAlert', { count: formatNumber(veryLowCount, language) })}</Alert> : null}
             </div>
           ) : null}
-          <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+          <div className="flex flex-col gap-3 sm:flex-row">
             <div className="relative max-w-md flex-1">
               <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
               <input className="input pl-10" value={vm.search} onChange={(event) => vm.setSearch(event.target.value)} placeholder={t('products.searchPlaceholder')} />
@@ -198,10 +177,10 @@ export default function ProductsPage() {
                 <option key={category.id} value={category.id}>{category.name}</option>
               ))}
             </Select>
-            <div className="no-print flex shrink-0 items-center gap-1 self-start rounded-xl border border-slate-200 bg-white p-1">
+            <div className="no-print flex h-10 shrink-0 items-center gap-1 self-start rounded-xl border border-slate-200 bg-white p-1">
               <button
                 type="button"
-                className={cx('icon-btn', viewMode === 'list' && 'bg-slate-100 text-slate-950')}
+                className={cx('icon-btn h-8 w-8', viewMode === 'list' && 'bg-slate-100 text-slate-950')}
                 title={t('products.viewList')}
                 aria-pressed={viewMode === 'list'}
                 onClick={() => setViewMode('list')}
@@ -210,12 +189,29 @@ export default function ProductsPage() {
               </button>
               <button
                 type="button"
-                className={cx('icon-btn', viewMode === 'grid' && 'bg-slate-100 text-slate-950')}
+                className={cx('icon-btn h-8 w-8', viewMode === 'grid' && 'bg-slate-100 text-slate-950')}
                 title={t('products.viewGrid')}
                 aria-pressed={viewMode === 'grid'}
                 onClick={() => setViewMode('grid')}
               >
                 <LayoutGrid size={16} />
+              </button>
+            </div>
+            <div className="no-print flex flex-wrap gap-2 sm:ml-auto">
+              <button type="button" className="btn-secondary h-10 gap-1.5 px-3 text-xs disabled:cursor-not-allowed disabled:opacity-60" onClick={handleDownloadPdf} disabled={downloadingPdf}>
+                {downloadingPdf ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
+                {t('purchaseReceive.downloadPdf')}
+                <kbd className="rounded border border-slate-200 bg-white px-1.5 py-0.5 text-[10px] font-black text-slate-500">Alt+D</kbd>
+              </button>
+              <button type="button" className="btn-secondary h-10 gap-1.5 px-3 text-xs" onClick={handleExportExcel}>
+                <FileSpreadsheet size={14} />
+                {t('common.exportExcel')}
+                <kbd className="rounded border border-slate-200 bg-white px-1.5 py-0.5 text-[10px] font-black text-slate-500">Alt+E</kbd>
+              </button>
+              <button type="button" className="btn-secondary h-10 gap-1.5 px-3 text-xs" onClick={handlePrint}>
+                <Printer size={14} />
+                {t('common.print')}
+                <kbd className="rounded border border-slate-200 bg-white px-1.5 py-0.5 text-[10px] font-black text-slate-500">Alt+P</kbd>
               </button>
             </div>
           </div>

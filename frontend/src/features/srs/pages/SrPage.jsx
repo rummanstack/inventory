@@ -107,9 +107,8 @@ export default function SrPage() {
   return (
     <div>
       <SectionHeader
-        eyebrow={t('srs.eyebrow')}
         title={t('srs.title')}
-        description={t('srs.description')}
+        compact
         action={canManageSrs ? (
           <button type="button" className="btn-primary" onClick={() => setSrModal({ mode: 'add' })}>
             <Plus size={18} />

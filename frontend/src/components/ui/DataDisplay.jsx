@@ -33,13 +33,20 @@ function useCountUp(target, duration = 300) {
   return current;
 }
 
-export function SectionHeader({ eyebrow, title, description, action }) {
+export function SectionHeader({ eyebrow, title, description, action, compact = false }) {
   return (
-    <div className="mb-6 flex flex-col gap-4 max-lg:mb-4 max-lg:gap-2 sm:flex-row sm:items-end sm:justify-between">
+    <div className={cx(
+      'flex flex-col gap-4 max-lg:mb-4 max-lg:gap-2 sm:flex-row sm:justify-between',
+      compact ? 'mb-3 sm:items-center' : 'mb-6 sm:items-end',
+    )}>
       <div className="min-w-0">
-        {eyebrow ? <p className="brand-chip max-lg:hidden">{eyebrow}</p> : null}
-        {title ? <h1 className="page-title mt-2 max-lg:mt-0 max-lg:!text-lg">{title}</h1> : null}
-        {description ? <p className="mt-1.5 max-w-2xl text-sm font-medium leading-6 text-slate-500 max-lg:hidden">{description}</p> : null}
+        {eyebrow && !compact ? <p className="brand-chip max-lg:hidden">{eyebrow}</p> : null}
+        {title ? (
+          <h1 className={compact ? 'text-xl font-bold leading-tight tracking-[-0.02em] text-slate-950 sm:text-2xl' : 'page-title mt-2 max-lg:mt-0 max-lg:!text-lg'}>
+            {title}
+          </h1>
+        ) : null}
+        {description && !compact ? <p className="mt-1.5 max-w-2xl text-sm font-medium leading-6 text-slate-500 max-lg:hidden">{description}</p> : null}
       </div>
       {action ? (
         <div className="flex shrink-0 flex-wrap gap-2 max-lg:flex-nowrap max-lg:overflow-x-auto max-lg:pb-1 max-lg:[&>*]:shrink-0">

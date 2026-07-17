@@ -107,9 +107,8 @@ export default function PurchaseReceivePage() {
   return (
     <div>
       <SectionHeader
-        eyebrow={t('purchaseReceive.eyebrow')}
         title={t('purchaseReceive.title')}
-        description={t('purchaseReceive.description')}
+        compact
         action={canManagePurchases ? (
           <button type="button" className="btn-primary" onClick={() => setFormModal({ mode: 'add' })}>
             <Plus size={18} />
@@ -121,35 +120,32 @@ export default function PurchaseReceivePage() {
 
       <div id={PURCHASE_RECEIVE_PRINT_ID} className={`surface overflow-hidden ${viewReceipt ? '' : 'print-target'}`}>
         <div className="border-b border-slate-100 p-5">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">{t('purchaseReceive.eyebrow')}</p>
-            <div className="flex flex-wrap items-center gap-2 text-sm font-bold">
-              <span className="muted-chip">{formatNumber(vm.total)} {t('purchaseReceive.purchaseCount')}</span>
-              <button
-                type="button"
-                className="btn-secondary no-print py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-60"
-                onClick={handleDownloadPdf}
-                disabled={downloadingPdf}
-              >
-                {downloadingPdf ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
-                {t('purchaseReceive.downloadPdf')}
-                {shortcutBadge(PURCHASE_RECEIVE_SHORTCUTS.pdf)}
-              </button>
-              <button type="button" className="btn-secondary no-print py-1.5 text-xs" onClick={handleExportExcel}>
-                <FileSpreadsheet size={14} />
-                {t('common.exportExcel')}
-                {shortcutBadge(PURCHASE_RECEIVE_SHORTCUTS.excel)}
-              </button>
-              <button
-                type="button"
-                className="btn-secondary no-print py-1.5 text-xs"
-                onClick={handlePrint}
-              >
-                <Printer size={14} />
-                {t('common.print')}
-                {shortcutBadge(PURCHASE_RECEIVE_SHORTCUTS.print)}
-              </button>
-            </div>
+          <div className="flex flex-wrap items-center justify-end gap-2 text-sm font-bold">
+            <span className="muted-chip">{formatNumber(vm.total)} {t('purchaseReceive.purchaseCount')}</span>
+            <button
+              type="button"
+              className="btn-secondary no-print h-10 gap-1.5 px-3 text-xs disabled:cursor-not-allowed disabled:opacity-60"
+              onClick={handleDownloadPdf}
+              disabled={downloadingPdf}
+            >
+              {downloadingPdf ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
+              {t('purchaseReceive.downloadPdf')}
+              {shortcutBadge(PURCHASE_RECEIVE_SHORTCUTS.pdf)}
+            </button>
+            <button type="button" className="btn-secondary no-print h-10 gap-1.5 px-3 text-xs" onClick={handleExportExcel}>
+              <FileSpreadsheet size={14} />
+              {t('common.exportExcel')}
+              {shortcutBadge(PURCHASE_RECEIVE_SHORTCUTS.excel)}
+            </button>
+            <button
+              type="button"
+              className="btn-secondary no-print h-10 gap-1.5 px-3 text-xs"
+              onClick={handlePrint}
+            >
+              <Printer size={14} />
+              {t('common.print')}
+              {shortcutBadge(PURCHASE_RECEIVE_SHORTCUTS.print)}
+            </button>
           </div>
           <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
             <div className="relative">

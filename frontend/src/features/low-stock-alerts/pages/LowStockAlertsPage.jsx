@@ -80,7 +80,7 @@ export default function LowStockAlertsPage() {
 
   return (
     <div>
-      <SectionHeader eyebrow={t('nav.lowStockAlerts')} title={t('nav.lowStockAlerts')} description={t('lowStockAlerts.description')} />
+      <SectionHeader title={t('nav.lowStockAlerts')} compact />
 
       {lowStockProducts.length ? (
         <div className="mb-4">
@@ -91,37 +91,34 @@ export default function LowStockAlertsPage() {
       ) : null}
 
       <div id={LOW_STOCK_PRINT_ID} className="surface overflow-hidden print-target">
-        <div className="flex items-center justify-between border-b border-slate-100 px-5 py-3">
-          <span className="text-sm font-bold text-slate-700">{t('nav.lowStockAlerts')}</span>
-          {lowStockProducts.length ? (
-            <div className="flex gap-2 no-print">
-              <button
-                type="button"
-                className="btn-secondary py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-60"
-                onClick={handleDownloadPdf}
-                disabled={downloadingPdf}
-              >
-                {downloadingPdf ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
-                {t('purchaseReceive.downloadPdf')}
-                <kbd className="ml-1 rounded border border-slate-300 bg-white/70 px-1 py-0.5 font-mono text-[10px] text-slate-500">Alt+D</kbd>
-              </button>
-              <button type="button" className="btn-secondary py-1.5 text-xs" onClick={handleExportExcel}>
-                <FileSpreadsheet size={14} />
-                {t('common.exportExcel')}
-                <kbd className="ml-1 rounded border border-slate-300 bg-white/70 px-1 py-0.5 font-mono text-[10px] text-slate-500">Alt+E</kbd>
-              </button>
-              <button
-                type="button"
-                className="btn-secondary py-1.5 text-xs"
-                onClick={handlePrint}
-              >
-                <Printer size={14} />
-                {t('common.print')}
-                <kbd className="ml-1 rounded border border-slate-300 bg-white/70 px-1 py-0.5 font-mono text-[10px] text-slate-500">Alt+P</kbd>
-              </button>
-            </div>
-          ) : null}
-        </div>
+        {lowStockProducts.length ? (
+          <div className="flex flex-wrap justify-end gap-2 border-b border-slate-100 px-5 py-3 no-print">
+            <button
+              type="button"
+              className="btn-secondary h-10 gap-1.5 px-3 text-xs disabled:cursor-not-allowed disabled:opacity-60"
+              onClick={handleDownloadPdf}
+              disabled={downloadingPdf}
+            >
+              {downloadingPdf ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
+              {t('purchaseReceive.downloadPdf')}
+              <kbd className="rounded border border-slate-300 bg-white/70 px-1.5 py-0.5 font-mono text-[10px] text-slate-500">Alt+D</kbd>
+            </button>
+            <button type="button" className="btn-secondary h-10 gap-1.5 px-3 text-xs" onClick={handleExportExcel}>
+              <FileSpreadsheet size={14} />
+              {t('common.exportExcel')}
+              <kbd className="rounded border border-slate-300 bg-white/70 px-1.5 py-0.5 font-mono text-[10px] text-slate-500">Alt+E</kbd>
+            </button>
+            <button
+              type="button"
+              className="btn-secondary h-10 gap-1.5 px-3 text-xs"
+              onClick={handlePrint}
+            >
+              <Printer size={14} />
+              {t('common.print')}
+              <kbd className="rounded border border-slate-300 bg-white/70 px-1.5 py-0.5 font-mono text-[10px] text-slate-500">Alt+P</kbd>
+            </button>
+          </div>
+        ) : null}
 
         {lowStockProducts.length ? (
           <>

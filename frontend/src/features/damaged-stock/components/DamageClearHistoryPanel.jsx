@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Download, Loader2, PackageX, RefreshCw } from 'lucide-react';
 import { Alert, EmptyState, MobileCardList, MobileListCard, Pagination, TableSkeleton, Select } from '../../../components/ui.jsx';
-import { DatePickerField } from '../../../components/DatePicker.jsx';
+import { DateRangePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../services/printService.js';
 import { inventoryApi } from '../../../services/inventoryApi.js';
@@ -79,35 +79,8 @@ export default function DamageClearHistoryPanel({ products, refreshKey = 0, flus
 
   return (
     <section id="damage-clear-history-print" className={`surface overflow-hidden ${flushTop ? '' : 'mt-6'}`}>
-      <div className="border-b border-slate-100 px-5 py-4">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div>
-            <h2 className="text-sm font-bold text-slate-700">{t('damagedStock.historyTab')}</h2>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              className="btn-secondary"
-              onClick={handleRefresh}
-            >
-              <RefreshCw size={16} />
-              {t('stockLedger.refresh')}
-              <kbd className="ml-1 rounded border border-slate-300 bg-white/70 px-1 py-0.5 font-mono text-[10px] text-slate-500">Alt+R</kbd>
-            </button>
-            <button
-              type="button"
-              className="btn-secondary no-print disabled:cursor-not-allowed disabled:opacity-60"
-              onClick={handleDownloadPdf}
-              disabled={downloadingPdf}
-            >
-              {downloadingPdf ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
-              {t('purchaseReceive.downloadPdf')}
-              <kbd className="ml-1 rounded border border-slate-300 bg-white/70 px-1 py-0.5 font-mono text-[10px] text-slate-500">Alt+D</kbd>
-            </button>
-          </div>
-        </div>
-
-        <div className="mt-5 grid gap-4 lg:grid-cols-3">
+      <div className="flex flex-col gap-4 border-b border-slate-100 px-5 py-4 lg:flex-row lg:items-end">
+        <div className="grid flex-1 gap-4 sm:grid-cols-2">
           <div>
             <label className="label">{t('stockLedger.product')}</label>
             <Select className="input" value={productId} onChange={(e) => setProductId(e.target.value)}>
@@ -118,13 +91,30 @@ export default function DamageClearHistoryPanel({ products, refreshKey = 0, flus
             </Select>
           </div>
           <div>
-            <label className="label">{t('stockLedger.dateFrom')}</label>
-            <DatePickerField value={dateFrom} onChange={setDateFrom} />
+            <label className="label">{t('stockLedger.dateFrom')} - {t('stockLedger.dateTo')}</label>
+            <DateRangePickerField from={dateFrom} to={dateTo} onChange={(from, to) => { setDateFrom(from); setDateTo(to); }} />
           </div>
-          <div>
-            <label className="label">{t('stockLedger.dateTo')}</label>
-            <DatePickerField value={dateTo} onChange={setDateTo} min={dateFrom} />
-          </div>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            className="btn-secondary"
+            onClick={handleRefresh}
+          >
+            <RefreshCw size={16} />
+            {t('stockLedger.refresh')}
+            <kbd className="ml-1 rounded border border-slate-300 bg-white/70 px-1 py-0.5 font-mono text-[10px] text-slate-500">Alt+R</kbd>
+          </button>
+          <button
+            type="button"
+            className="btn-secondary no-print disabled:cursor-not-allowed disabled:opacity-60"
+            onClick={handleDownloadPdf}
+            disabled={downloadingPdf}
+          >
+            {downloadingPdf ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
+            {t('purchaseReceive.downloadPdf')}
+            <kbd className="ml-1 rounded border border-slate-300 bg-white/70 px-1 py-0.5 font-mono text-[10px] text-slate-500">Alt+D</kbd>
+          </button>
         </div>
       </div>
 

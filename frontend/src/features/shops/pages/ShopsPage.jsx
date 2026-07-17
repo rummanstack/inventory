@@ -97,9 +97,8 @@ export default function ShopsPage() {
   return (
     <div>
       <SectionHeader
-        eyebrow={t('shops.eyebrow')}
         title={t('shops.title')}
-        description={t('shops.description')}
+        compact
         action={canManageShops ? (
           <button type="button" className="btn-primary" onClick={() => setFormModal({ mode: 'add' })}>
             <Plus size={18} />
@@ -110,47 +109,42 @@ export default function ShopsPage() {
       />
 
       <div id={SHOPS_PRINT_ID} className="surface overflow-hidden print-target">
-        <div className="border-b border-slate-100 p-5">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">{t('shops.eyebrow')}</p>
-            <div className="flex flex-wrap items-center gap-2 text-sm font-bold">
-              <span className="muted-chip">{formatNumber(vm.total)} {t('shops.shopCount')}</span>
-              <button
-                type="button"
-                className="btn-secondary no-print py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-60"
-                onClick={handleDownloadPdf}
-                disabled={downloadingPdf}
-              >
-                {downloadingPdf ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
-                {t('purchaseReceive.downloadPdf')}
-                {shortcutBadge(SHOPS_REPORT_SHORTCUTS.pdf)}
-              </button>
-              <button type="button" className="btn-secondary no-print py-1.5 text-xs" onClick={handleExportExcel}>
-                <FileSpreadsheet size={14} />
-                {t('common.exportExcel')}
-                {shortcutBadge(SHOPS_REPORT_SHORTCUTS.excel)}
-              </button>
-              <button
-                type="button"
-                className="btn-secondary no-print py-1.5 text-xs"
-                onClick={handlePrint}
-              >
-                <Printer size={14} />
-                {t('common.print')}
-                {shortcutBadge(SHOPS_REPORT_SHORTCUTS.print)}
-              </button>
-            </div>
+        <div className="flex flex-col gap-3 border-b border-slate-100 p-5 sm:flex-row sm:items-center">
+          <div className="relative max-w-md flex-1">
+            <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+            <input className="input pl-10" value={vm.search} onChange={(event) => vm.setSearch(event.target.value)} placeholder={t('shops.searchPlaceholder')} />
           </div>
-          <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
-            <div className="relative max-w-md flex-1">
-              <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-              <input className="input pl-10" value={vm.search} onChange={(event) => vm.setSearch(event.target.value)} placeholder={t('shops.searchPlaceholder')} />
-            </div>
-            <Select className="input sm:w-48" value={vm.status} onChange={(event) => vm.setStatus(event.target.value)}>
-              <option value="">{t('shops.allStatuses')}</option>
-              <option value="ACTIVE">{t('shops.statusActive')}</option>
-              <option value="INACTIVE">{t('shops.statusInactive')}</option>
-            </Select>
+          <Select className="input sm:w-48" value={vm.status} onChange={(event) => vm.setStatus(event.target.value)}>
+            <option value="">{t('shops.allStatuses')}</option>
+            <option value="ACTIVE">{t('shops.statusActive')}</option>
+            <option value="INACTIVE">{t('shops.statusInactive')}</option>
+          </Select>
+          <div className="flex flex-wrap items-center gap-2 text-sm font-bold sm:ml-auto">
+            <span className="muted-chip">{formatNumber(vm.total)} {t('shops.shopCount')}</span>
+            <button
+              type="button"
+              className="btn-secondary no-print h-10 gap-1.5 px-3 text-xs disabled:cursor-not-allowed disabled:opacity-60"
+              onClick={handleDownloadPdf}
+              disabled={downloadingPdf}
+            >
+              {downloadingPdf ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
+              {t('purchaseReceive.downloadPdf')}
+              {shortcutBadge(SHOPS_REPORT_SHORTCUTS.pdf)}
+            </button>
+            <button type="button" className="btn-secondary no-print h-10 gap-1.5 px-3 text-xs" onClick={handleExportExcel}>
+              <FileSpreadsheet size={14} />
+              {t('common.exportExcel')}
+              {shortcutBadge(SHOPS_REPORT_SHORTCUTS.excel)}
+            </button>
+            <button
+              type="button"
+              className="btn-secondary no-print h-10 gap-1.5 px-3 text-xs"
+              onClick={handlePrint}
+            >
+              <Printer size={14} />
+              {t('common.print')}
+              {shortcutBadge(SHOPS_REPORT_SHORTCUTS.print)}
+            </button>
           </div>
         </div>
         {vm.loading ? (

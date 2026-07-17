@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { ArrowLeftRight, Boxes, Download, FileSpreadsheet, HandCoins, Landmark, Loader2, Plus, Printer, Scale, Trash2, Wallet } from 'lucide-react';
 import { Alert, Badge, CopyableText, EmptyState, MobileCardList, MobileListCard, Pagination, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton, Select } from '../../../components/ui.jsx';
-import { DatePickerField } from '../../../components/DatePicker.jsx';
+import { DateRangePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../services/printService.js';
 import { inventoryApi } from '../../../services/inventoryApi.js';
@@ -56,9 +56,8 @@ export default function FinanceAccountsPage() {
   return (
     <div>
       <SectionHeader
-        eyebrow={t('financeAccounts.eyebrow')}
         title={t('financeAccounts.title')}
-        description={t('financeAccounts.description')}
+        compact
         action={canManage ? (
           <div className="flex gap-2">
             <button type="button" className="btn-secondary" onClick={() => setModal({ type: 'transfer' })}>
@@ -128,21 +127,24 @@ export default function FinanceAccountsPage() {
       </div>
 
       <div id={FINANCE_ACCOUNTS_PRINT_ID} className="surface mt-6 overflow-hidden print-target">
-        <div className="border-b border-slate-100 p-5 no-print">
-          <div className="grid gap-3 sm:grid-cols-3">
-            <Select className="input" value={vm.accountType} onChange={(event) => vm.setAccountType(event.target.value)}>
-              <option value="">{t('financeAccounts.allAccounts')}</option>
-              {vm.accounts.map((account) => (
-                <option key={account.type} value={account.type}>{account.name}</option>
-              ))}
-            </Select>
-            <DatePickerField value={vm.dateFrom} onChange={vm.setDateFrom} placeholder={t('financeAccounts.dateFrom')} />
-            <DatePickerField value={vm.dateTo} onChange={vm.setDateTo} placeholder={t('financeAccounts.dateTo')} min={vm.dateFrom} />
-          </div>
-          <div className="mt-3 flex flex-wrap gap-2">
+        <div className="flex flex-col gap-3 border-b border-slate-100 p-5 no-print sm:flex-row sm:items-center sm:flex-wrap">
+          <Select className="input sm:w-48" value={vm.accountType} onChange={(event) => vm.setAccountType(event.target.value)}>
+            <option value="">{t('financeAccounts.allAccounts')}</option>
+            {vm.accounts.map((account) => (
+              <option key={account.type} value={account.type}>{account.name}</option>
+            ))}
+          </Select>
+          <DateRangePickerField
+            className="sm:w-80"
+            from={vm.dateFrom}
+            to={vm.dateTo}
+            onChange={(from, to) => { vm.setDateFrom(from); vm.setDateTo(to); }}
+            placeholder={`${t('financeAccounts.dateFrom')} - ${t('financeAccounts.dateTo')}`}
+          />
+          <div className="flex flex-wrap gap-2 sm:ml-auto">
             <button
               type="button"
-              className="btn-secondary py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-60"
+              className="btn-secondary h-10 gap-1.5 px-3 text-xs disabled:cursor-not-allowed disabled:opacity-60"
               onClick={() => downloadPdf(async () => {
                 await inventoryApi.recordPrint({ entityType: 'finance_accounts', entityId: null, label: 'pdf' }).catch(() => {});
                 await downloadSheetPdf(FINANCE_ACCOUNTS_PRINT_ID, 'finance-accounts.pdf');
@@ -152,13 +154,13 @@ export default function FinanceAccountsPage() {
               {downloadingPdf ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
               {t('purchaseReceive.downloadPdf')}
             </button>
-            <button type="button" className="btn-secondary py-1.5 text-xs" onClick={handleExportExcel}>
+            <button type="button" className="btn-secondary h-10 gap-1.5 px-3 text-xs" onClick={handleExportExcel}>
               <FileSpreadsheet size={14} />
               {t('common.exportExcel')}
             </button>
             <button
               type="button"
-              className="btn-secondary py-1.5 text-xs"
+              className="btn-secondary h-10 gap-1.5 px-3 text-xs"
               onClick={() => { inventoryApi.recordPrint({ entityType: 'finance_accounts', entityId: null, label: 'print' }).catch(() => {}); window.print(); }}
             >
               <Printer size={14} />

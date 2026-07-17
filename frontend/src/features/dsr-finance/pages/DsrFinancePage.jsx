@@ -85,9 +85,8 @@ export default function DsrFinancePage() {
   return (
     <div>
       <SectionHeader
-        eyebrow={t('nav.dsrFinance')}
         title={t('dsrFinance.title')}
-        description={t('dsrFinance.description')}
+        compact
         action={
           <button type="button" className="btn-primary" disabled={!dueVm.dsrId} onClick={() => setShowSettleModal(true)}>
             <HandCoins size={18} />

@@ -1364,6 +1364,8 @@ const bn = {
       modalDescription: 'অডিট স্বচ্ছতার জন্য তারিখ, শ্রেণি, পরিমাণ, এবং সংক্ষিপ্ত নোট দিন।',
       reportDate: 'রিপোর্টের তারিখ',
       reportMonth: 'রিপোর্টের মাস',
+      dailyTab: 'দৈনিক',
+      monthlyTab: 'মাসিক',
       dailyReport: 'দৈনিক খরচ রিপোর্ট',
       dailyReportDescription: 'নির্বাচিত দিনের মোট খরচ এবং শ্রেণিভিত্তিক ভাগ দেখুন।',
       monthlyReport: 'মাসিক খরচ রিপোর্ট',

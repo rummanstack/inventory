@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Building2, CircleDollarSign, Download, FileSpreadsheet, HandCoins, Landmark, Loader2, Printer, RotateCcw, Scale, ShoppingBag, Store, TrendingDown, TrendingUp, Wallet } from 'lucide-react';
 import { Alert, cx, EmptyState, MobileCardList, MobileListCard, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton } from '../../../components/ui.jsx';
-import { DatePickerField } from '../../../components/DatePicker.jsx';
+import { DateRangePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../services/printService.js';
 import { inventoryApi } from '../../../services/inventoryApi.js';
@@ -158,25 +158,22 @@ export default function FinanceDashboardPage() {
 
   return (
     <div className="space-y-10">
-      <SectionHeader
-        eyebrow={t('financeDashboard.eyebrow')}
-        title={t('financeDashboard.title')}
-        description={t('financeDashboard.description')}
-      />
+      <SectionHeader title={t('financeDashboard.title')} compact />
 
       <div>
         <h2 className="mb-4 text-base font-bold text-slate-950">{t('financeDashboard.rangeTitle')}</h2>
 
-        <div className="surface mb-6 grid items-end gap-4 p-5 sm:grid-cols-[1fr_1fr_auto]">
-          <div>
-            <label className="label">{t('financeDashboard.from')}</label>
-            <DatePickerField value={rr.dateFrom} onChange={rr.setDateFrom} />
+        <div className="surface mb-6 flex flex-wrap items-end gap-4 p-5">
+          <div className="min-w-[280px]">
+            <label className="label">{t('financeDashboard.from')} - {t('financeDashboard.to')}</label>
+            <DateRangePickerField
+              from={rr.dateFrom}
+              to={rr.dateTo}
+              onChange={(from, to) => { rr.setDateFrom(from); rr.setDateTo(to); }}
+              placeholder={`${t('financeDashboard.from')} - ${t('financeDashboard.to')}`}
+            />
           </div>
-          <div>
-            <label className="label">{t('financeDashboard.to')}</label>
-            <DatePickerField value={rr.dateTo} onChange={rr.setDateTo} min={rr.dateFrom} />
-          </div>
-          <button type="button" className="btn-primary" onClick={rr.applyRange} disabled={rr.loading}>
+          <button type="button" className="btn-primary shrink-0" onClick={rr.applyRange} disabled={rr.loading}>
             {rr.loading ? <span className="inline-block h-4 w-28 animate-pulse rounded-full bg-white/60" /> : t('financeDashboard.generateReport')}
           </button>
         </div>

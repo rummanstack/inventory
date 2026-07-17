@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { PackageX, RefreshCw } from 'lucide-react';
+import { PackageX } from 'lucide-react';
 import { Alert, EmptyState, MobileCardList, MobileListCard, Pagination, TableSkeleton, Select } from '../../../components/ui.jsx';
 import TableReportActions from '../../../components/TableReportActions.jsx';
-import { DatePickerField } from '../../../components/DatePicker.jsx';
+import { DateRangePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { formatDate, formatDateTime, formatNumber, todayISO } from '../../../utils/calculations.js';
 import { usePagination } from '../../../hooks/usePagination.js';
@@ -50,42 +50,10 @@ export default function DamageFromSettlementsPanel({ products, flushTop = false 
     resetPage();
   }, [productId, dateFrom, dateTo, resetPage]);
 
-  useEffect(() => {
-    function handleKeyDown(event) {
-      const key = event.key.toLowerCase();
-      const isShortcut = event.altKey && !event.ctrlKey && !event.metaKey;
-      if (!isShortcut) {
-        return;
-      }
-
-      if (key === 'r') {
-        event.preventDefault();
-        movementsQuery.refetch();
-      }
-    }
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, []);
-
   return (
     <section id={SETTLEMENT_DAMAGE_REPORT_ID} className={`surface overflow-hidden ${flushTop ? '' : 'mt-6'}`}>
-      <div className="border-b border-slate-100 px-5 py-4">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div>
-            <h2 className="text-sm font-bold text-slate-700">{t('damagedStock.inflowTab')}</h2>
-          </div>
-          <div className="flex flex-wrap justify-end gap-2 no-print">
-            <TableReportActions targetId={SETTLEMENT_DAMAGE_REPORT_ID} title={t('damagedStock.inflowTab')} fileName="settlement-damage-history" entityType="settlement_damage_history" t={t} shortcuts={DAMAGE_INFLOW_REPORT_SHORTCUTS} />
-            <button type="button" className="btn-secondary shrink-0" onClick={() => movementsQuery.refetch()}>
-              <RefreshCw size={16} />
-              {t('stockLedger.refresh')}
-              <kbd className="ml-1 rounded border border-slate-300 bg-white/70 px-1 py-0.5 font-mono text-[10px] text-slate-500">Alt+R</kbd>
-            </button>
-          </div>
-        </div>
-
-        <div className="mt-5 grid gap-4 lg:grid-cols-3">
+      <div className="flex flex-col gap-4 border-b border-slate-100 px-5 py-4 lg:flex-row lg:items-end">
+        <div className="grid flex-1 gap-4 sm:grid-cols-2">
           <div>
             <label className="label">{t('stockLedger.product')}</label>
             <Select className="input" value={productId} onChange={(e) => setProductId(e.target.value)}>
@@ -96,13 +64,12 @@ export default function DamageFromSettlementsPanel({ products, flushTop = false 
             </Select>
           </div>
           <div>
-            <label className="label">{t('stockLedger.dateFrom')}</label>
-            <DatePickerField value={dateFrom} onChange={setDateFrom} />
+            <label className="label">{t('stockLedger.dateFrom')} - {t('stockLedger.dateTo')}</label>
+            <DateRangePickerField from={dateFrom} to={dateTo} onChange={(from, to) => { setDateFrom(from); setDateTo(to); }} />
           </div>
-          <div>
-            <label className="label">{t('stockLedger.dateTo')}</label>
-            <DatePickerField value={dateTo} onChange={setDateTo} min={dateFrom} />
-          </div>
+        </div>
+        <div className="flex flex-wrap justify-end gap-2 no-print">
+          <TableReportActions targetId={SETTLEMENT_DAMAGE_REPORT_ID} title={t('damagedStock.inflowTab')} fileName="settlement-damage-history" entityType="settlement_damage_history" t={t} shortcuts={DAMAGE_INFLOW_REPORT_SHORTCUTS} />
         </div>
       </div>
 

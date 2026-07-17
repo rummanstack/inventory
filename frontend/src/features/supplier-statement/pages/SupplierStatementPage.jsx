@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Download, FileSpreadsheet, Loader2, Printer, RefreshCw, Wallet } from 'lucide-react';
+import { Download, FileSpreadsheet, Loader2, Printer, Wallet } from 'lucide-react';
 import { Badge, CopyableText, EmptyState, MobileCardList, MobileListCard, SectionHeader, StatCard, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { DateRangePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
@@ -11,7 +11,6 @@ import { useSupplierStatementViewModel } from '../viewmodels/useSupplierStatemen
 import { useAsyncAction } from '../../../hooks/useAsyncAction.js';
 
 const SUPPLIER_STATEMENT_SHORTCUTS = {
-  refresh: { alt: true, key: 'r', label: 'Alt+R' },
   pdf: { alt: true, key: 'd', label: 'Alt+D' },
   excel: { alt: true, key: 'e', label: 'Alt+E' },
   print: { alt: true, key: 'p', label: 'Alt+P' },
@@ -81,11 +80,6 @@ export default function SupplierStatementPage() {
 
   useEffect(() => {
     function handleKeyDown(event) {
-      if (matchesShortcut(event, SUPPLIER_STATEMENT_SHORTCUTS.refresh)) {
-        event.preventDefault();
-        vm.refresh();
-        return;
-      }
       if (!vm.statement) return;
       if (matchesShortcut(event, SUPPLIER_STATEMENT_SHORTCUTS.pdf) && !downloadingPdf) {
         event.preventDefault();
@@ -105,15 +99,11 @@ export default function SupplierStatementPage() {
 
   return (
     <div>
-      <SectionHeader
-        eyebrow={t('supplierStatement.eyebrow')}
-        title={t('supplierStatement.title')}
-        description={t('supplierStatement.description')}
-      />
+      <SectionHeader title={t('supplierStatement.title')} compact />
 
       <div className="surface p-5">
         <div className="flex flex-wrap items-end gap-3">
-          <div className="w-48">
+          <div className="w-72">
             <label className="label">{t('supplierStatement.supplier')}</label>
             <Select className="input" value={vm.supplierId} onChange={(event) => vm.setSupplierId(event.target.value)}>
               <option value="">{t('supplierStatement.selectSupplier')}</option>
@@ -132,11 +122,6 @@ export default function SupplierStatementPage() {
             />
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <button type="button" className="btn-secondary" onClick={vm.refresh}>
-              <RefreshCw size={18} />
-              {t('supplierStatement.refresh')}
-              {shortcutBadge(SUPPLIER_STATEMENT_SHORTCUTS.refresh)}
-            </button>
             {vm.statement ? (
               <>
                 <button

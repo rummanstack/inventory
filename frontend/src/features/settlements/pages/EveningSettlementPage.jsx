@@ -72,7 +72,7 @@ export default function EveningSettlementPage() {
 
   return (
     <div className={vm.displayRows.length && canEditSettlement ? 'max-lg:pb-24' : undefined}>
-      <SectionHeader eyebrow={t('nav.eveningSettlement')} title={t('nav.eveningSettlement')} description={t('settlement.description')} />
+      <SectionHeader title={t('nav.eveningSettlement')} compact />
 
       <div className="surface p-5">
         <div className="grid gap-4 md:grid-cols-3">
@@ -98,11 +98,6 @@ export default function EveningSettlementPage() {
         {vm.message ? (
           <div className="mt-4">
             <Alert type={vm.message.type}>{vm.message.text}</Alert>
-          </div>
-        ) : null}
-        {vm.completedSettlement ? (
-          <div className="mt-4">
-            <Alert type="info">{t('settlement.existingInfo')}</Alert>
           </div>
         ) : null}
         <div className="mt-4 flex flex-wrap gap-2">

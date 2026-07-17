@@ -66,9 +66,8 @@ export default function TradePromotionRulesPage() {
   return (
     <div>
       <SectionHeader
-        eyebrow={t('tradePromotions.rules.eyebrow')}
         title={t('tradePromotions.rules.title')}
-        description={t('tradePromotions.rules.description')}
+        compact
         action={canManage ? (
           <button type="button" className="btn-primary" onClick={() => setRuleModal({ mode: 'add' })}>
             <Plus size={18} />
@@ -80,12 +79,9 @@ export default function TradePromotionRulesPage() {
 
       <div id={TRADE_PROMOTION_RULES_REPORT_ID} className="surface overflow-hidden">
         <div className="border-b border-slate-100 p-5">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">{t('tradePromotions.rules.eyebrow')}</p>
-            <div className="flex flex-wrap items-center justify-end gap-2 text-sm font-bold">
-              <span className="muted-chip">{formatNumber(vm.total)} {t('tradePromotions.rules.count')}</span>
-              <TableReportActions targetId={TRADE_PROMOTION_RULES_REPORT_ID} title={t('tradePromotions.rules.title')} fileName="trade-promotion-rules" entityType="trade_promotion_rules" t={t} shortcuts={TRADE_PROMOTION_RULES_REPORT_SHORTCUTS} />
-            </div>
+          <div className="flex flex-wrap items-center justify-end gap-2 text-sm font-bold">
+            <span className="muted-chip">{formatNumber(vm.total)} {t('tradePromotions.rules.count')}</span>
+            <TableReportActions targetId={TRADE_PROMOTION_RULES_REPORT_ID} title={t('tradePromotions.rules.title')} fileName="trade-promotion-rules" entityType="trade_promotion_rules" t={t} shortcuts={TRADE_PROMOTION_RULES_REPORT_SHORTCUTS} />
           </div>
           <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <div className="relative">

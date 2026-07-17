@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { BarChart3 } from 'lucide-react';
 import { Alert, Badge, EmptyState, MobileCardList, MobileListCard, Pagination, SectionHeader, TableSkeleton, Select, cx } from '../../../../components/ui.jsx';
 import TableReportActions from '../../../../components/TableReportActions.jsx';
-import { DatePickerField } from '../../../../components/DatePicker.jsx';
+import { DateRangePickerField } from '../../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
 import { formatCurrency, formatDate, formatNumber } from '../../../../utils/calculations.js';
 import { useTradePromotionReportsViewModel } from '../viewmodels/useTradePromotionReportsViewModel.js';
@@ -40,11 +40,7 @@ export default function TradePromotionReportsPage() {
 
   return (
     <div>
-      <SectionHeader
-        eyebrow={t('tradePromotions.reports.eyebrow')}
-        title={t('tradePromotions.reports.title')}
-        description={t('tradePromotions.reports.description')}
-      />
+      <SectionHeader title={t('tradePromotions.reports.title')} compact />
 
       <div className="no-print mb-4 overflow-x-auto">
         <div className="inline-flex min-w-full gap-1 rounded-lg border border-slate-200 bg-slate-50 p-1 sm:min-w-0">
@@ -87,10 +83,13 @@ export default function TradePromotionReportsPage() {
                 <option key={product.id} value={product.id}>{product.name}</option>
               ))}
             </Select>
-            <div className="grid grid-cols-2 gap-2 sm:col-span-2">
-              <DatePickerField value={vm.dateFrom} onChange={vm.setDateFrom} placeholder={t('purchaseReceive.dateFrom')} />
-              <DatePickerField value={vm.dateTo} onChange={vm.setDateTo} placeholder={t('purchaseReceive.dateTo')} min={vm.dateFrom} />
-            </div>
+            <DateRangePickerField
+              className="sm:col-span-2"
+              from={vm.dateFrom}
+              to={vm.dateTo}
+              onChange={(from, to) => { vm.setDateFrom(from); vm.setDateTo(to); }}
+              placeholder={`${t('purchaseReceive.dateFrom')} - ${t('purchaseReceive.dateTo')}`}
+            />
           </div>
         </div>
 

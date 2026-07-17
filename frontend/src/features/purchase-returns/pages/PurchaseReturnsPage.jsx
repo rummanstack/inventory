@@ -93,9 +93,8 @@ export default function PurchaseReturnsPage() {
   return (
     <div>
       <SectionHeader
-        eyebrow={t('purchaseReturns.eyebrow')}
         title={t('purchaseReturns.title')}
-        description={t('purchaseReturns.description')}
+        compact
         action={canManage ? (
           <button type="button" className="btn-primary" onClick={() => setFormOpen(true)}>
             <Plus size={18} />
@@ -106,51 +105,46 @@ export default function PurchaseReturnsPage() {
       />
 
       <div id={PURCHASE_RETURNS_PRINT_ID} className="surface overflow-hidden print-target">
-        <div className="border-b border-slate-100 p-5">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">{t('purchaseReturns.eyebrow')}</p>
-            <div className="flex flex-wrap items-center gap-2 text-sm font-bold">
-              <span className="muted-chip">{formatNumber(vm.total)} {t('purchaseReturns.returnCount')}</span>
-              <button
-                type="button"
-                className="btn-secondary no-print py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-60"
-                onClick={handleDownloadPdf}
-                disabled={downloadingPdf}
-              >
-                {downloadingPdf ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
-                {t('purchaseReceive.downloadPdf')}
-                {shortcutBadge(PURCHASE_RETURNS_SHORTCUTS.pdf)}
-              </button>
-              <button type="button" className="btn-secondary no-print py-1.5 text-xs" onClick={handleExportExcel}>
-                <FileSpreadsheet size={14} />
-                {t('common.exportExcel')}
-                {shortcutBadge(PURCHASE_RETURNS_SHORTCUTS.excel)}
-              </button>
-              <button
-                type="button"
-                className="btn-secondary no-print py-1.5 text-xs"
-                onClick={handlePrint}
-              >
-                <Printer size={14} />
-                {t('common.print')}
-                {shortcutBadge(PURCHASE_RETURNS_SHORTCUTS.print)}
-              </button>
-            </div>
-          </div>
-          <div className="mt-4 flex flex-wrap items-center gap-3">
-            <Select className="input w-full sm:w-56" value={vm.supplierId} onChange={(event) => vm.setSupplierId(event.target.value)}>
-              <option value="">{t('purchaseReturns.allSuppliers')}</option>
-              {supplierDirectory.map((supplier) => (
-                <option key={supplier.id} value={supplier.id}>{supplier.name}</option>
-              ))}
-            </Select>
-            <DateRangePickerField
-              from={vm.dateFrom}
-              to={vm.dateTo}
-              onChange={(from, to) => { vm.setDateFrom(from); vm.setDateTo(to); }}
-              placeholder={`${t('purchaseReturns.dateFrom')} - ${t('purchaseReturns.dateTo')}`}
-              className="w-full min-w-[260px] sm:w-auto"
-            />
+        <div className="flex flex-col gap-3 border-b border-slate-100 p-5 sm:flex-row sm:items-center sm:flex-wrap">
+          <Select className="input w-full sm:w-56" value={vm.supplierId} onChange={(event) => vm.setSupplierId(event.target.value)}>
+            <option value="">{t('purchaseReturns.allSuppliers')}</option>
+            {supplierDirectory.map((supplier) => (
+              <option key={supplier.id} value={supplier.id}>{supplier.name}</option>
+            ))}
+          </Select>
+          <DateRangePickerField
+            from={vm.dateFrom}
+            to={vm.dateTo}
+            onChange={(from, to) => { vm.setDateFrom(from); vm.setDateTo(to); }}
+            placeholder={`${t('purchaseReturns.dateFrom')} - ${t('purchaseReturns.dateTo')}`}
+            className="w-full min-w-[260px] sm:w-auto"
+          />
+          <div className="flex flex-wrap items-center gap-2 text-sm font-bold sm:ml-auto">
+            <span className="muted-chip">{formatNumber(vm.total)} {t('purchaseReturns.returnCount')}</span>
+            <button
+              type="button"
+              className="btn-secondary no-print h-10 gap-1.5 px-3 text-xs disabled:cursor-not-allowed disabled:opacity-60"
+              onClick={handleDownloadPdf}
+              disabled={downloadingPdf}
+            >
+              {downloadingPdf ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
+              {t('purchaseReceive.downloadPdf')}
+              {shortcutBadge(PURCHASE_RETURNS_SHORTCUTS.pdf)}
+            </button>
+            <button type="button" className="btn-secondary no-print h-10 gap-1.5 px-3 text-xs" onClick={handleExportExcel}>
+              <FileSpreadsheet size={14} />
+              {t('common.exportExcel')}
+              {shortcutBadge(PURCHASE_RETURNS_SHORTCUTS.excel)}
+            </button>
+            <button
+              type="button"
+              className="btn-secondary no-print h-10 gap-1.5 px-3 text-xs"
+              onClick={handlePrint}
+            >
+              <Printer size={14} />
+              {t('common.print')}
+              {shortcutBadge(PURCHASE_RETURNS_SHORTCUTS.print)}
+            </button>
           </div>
         </div>
         {vm.loading ? (

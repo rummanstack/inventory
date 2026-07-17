@@ -148,7 +148,7 @@ export default function ProfitPage() {
 
   return (
     <div>
-      <SectionHeader eyebrow={t('nav.profit')} title={t('profit.title')} description={t('profit.description')} />
+      <SectionHeader title={t('profit.title')} compact />
 
       {vm.error ? (
         <div className="mb-6">

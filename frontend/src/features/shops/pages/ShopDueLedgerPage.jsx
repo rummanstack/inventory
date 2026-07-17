@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Download, FileSpreadsheet, HandCoins, Loader2, Plus, Printer, RefreshCw, Wallet } from 'lucide-react';
+import { Download, FileSpreadsheet, HandCoins, Loader2, Plus, Printer, Wallet } from 'lucide-react';
 import { Alert, Badge, EmptyState, MobileCardList, MobileListCard, Modal, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton, Select } from '../../../components/ui.jsx';
-import { DatePickerField } from '../../../components/DatePicker.jsx';
+import { DatePickerField, DateRangePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../services/printService.js';
 import { inventoryApi } from '../../../services/inventoryApi.js';
@@ -11,7 +11,6 @@ import { useShopDueStatementViewModel } from '../viewmodels/useShopDueStatementV
 
 const PRINT_ID = 'shop-due-statement-print';
 const SHOP_DUE_LEDGER_SHORTCUTS = {
-  refresh: { alt: true, key: 'r', label: 'Alt+R' },
   pdf: { alt: true, key: 'd', label: 'Alt+D' },
   excel: { alt: true, key: 'e', label: 'Alt+E' },
   print: { alt: true, key: 'p', label: 'Alt+P' },
@@ -159,11 +158,6 @@ export default function ShopDueLedgerPage() {
 
   useEffect(() => {
     function handleKeyDown(event) {
-      if (matchesShortcut(event, SHOP_DUE_LEDGER_SHORTCUTS.refresh)) {
-        event.preventDefault();
-        vm.refresh();
-        return;
-      }
       if (!vm.statement) return;
       if (matchesShortcut(event, SHOP_DUE_LEDGER_SHORTCUTS.pdf) && !downloadingPdf) {
         event.preventDefault();
@@ -184,9 +178,8 @@ export default function ShopDueLedgerPage() {
   return (
     <div>
       <SectionHeader
-        eyebrow={t('shopDueLedger.eyebrow')}
         title={t('shopDueLedger.title')}
-        description={t('shopDueLedger.description')}
+        compact
         action={canManage && vm.shopId ? (
           <div className="flex gap-2">
             <button type="button" className="btn-secondary" onClick={() => setModal('due')}>
@@ -203,7 +196,7 @@ export default function ShopDueLedgerPage() {
 
       <div className="surface p-5">
         <div className="flex flex-wrap items-end gap-3">
-          <div className="w-48">
+          <div className="w-72">
             <label className="label">{t('shopDueLedger.shop')}</label>
             <Select
               className="input"
@@ -216,20 +209,16 @@ export default function ShopDueLedgerPage() {
               ))}
             </Select>
           </div>
-          <div className="min-w-[150px]">
-            <label className="label">{t('supplierStatement.dateFrom')}</label>
-            <DatePickerField value={vm.dateFrom} onChange={vm.setDateFrom} placeholder={t('supplierStatement.dateFrom')} />
-          </div>
-          <div className="min-w-[150px]">
-            <label className="label">{t('supplierStatement.dateTo')}</label>
-            <DatePickerField value={vm.dateTo} onChange={vm.setDateTo} placeholder={t('supplierStatement.dateTo')} min={vm.dateFrom} />
+          <div className="min-w-[280px]">
+            <label className="label">{t('supplierStatement.dateFrom')} - {t('supplierStatement.dateTo')}</label>
+            <DateRangePickerField
+              from={vm.dateFrom}
+              to={vm.dateTo}
+              onChange={(from, to) => { vm.setDateFrom(from); vm.setDateTo(to); }}
+              placeholder={`${t('supplierStatement.dateFrom')} - ${t('supplierStatement.dateTo')}`}
+            />
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <button type="button" className="btn-secondary" onClick={vm.refresh}>
-              <RefreshCw size={18} />
-              {t('supplierStatement.refresh')}
-              {shortcutBadge(SHOP_DUE_LEDGER_SHORTCUTS.refresh)}
-            </button>
             {vm.statement ? (
               <>
                 <button

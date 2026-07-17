@@ -26,20 +26,13 @@ export default function TradePromotionEarningsPage() {
 
   return (
     <div>
-      <SectionHeader
-        eyebrow={t('tradePromotions.earnings.eyebrow')}
-        title={t('tradePromotions.earnings.title')}
-        description={t('tradePromotions.earnings.description')}
-      />
+      <SectionHeader title={t('tradePromotions.earnings.title')} compact />
 
       <div id={TRADE_PROMOTION_EARNINGS_REPORT_ID} className="surface overflow-hidden">
         <div className="border-b border-slate-100 p-5">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">{t('tradePromotions.earnings.eyebrow')}</p>
-            <div className="flex flex-wrap items-center justify-end gap-2 text-sm font-bold">
-              <span className="muted-chip">{formatNumber(vm.total)} {t('tradePromotions.earnings.count')}</span>
-              <TableReportActions targetId={TRADE_PROMOTION_EARNINGS_REPORT_ID} title={t('tradePromotions.earnings.title')} fileName="trade-promotion-earnings" entityType="trade_promotion_earnings" t={t} shortcuts={TRADE_PROMOTION_EARNINGS_REPORT_SHORTCUTS} />
-            </div>
+          <div className="flex flex-wrap items-center justify-end gap-2 text-sm font-bold">
+            <span className="muted-chip">{formatNumber(vm.total)} {t('tradePromotions.earnings.count')}</span>
+            <TableReportActions targetId={TRADE_PROMOTION_EARNINGS_REPORT_ID} title={t('tradePromotions.earnings.title')} fileName="trade-promotion-earnings" entityType="trade_promotion_earnings" t={t} shortcuts={TRADE_PROMOTION_EARNINGS_REPORT_SHORTCUTS} />
           </div>
           <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-7">
             <div className="relative lg:col-span-2">
@@ -65,7 +58,7 @@ export default function TradePromotionEarningsPage() {
               ))}
             </Select>
             <DateRangePickerField
-              className="lg:col-span-2"
+              className="lg:col-span-2 lg:max-w-xs"
               from={vm.dateFrom}
               to={vm.dateTo}
               onChange={(from, to) => { vm.setDateFrom(from); vm.setDateTo(to); }}

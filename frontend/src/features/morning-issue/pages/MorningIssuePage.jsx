@@ -37,7 +37,7 @@ export default function MorningIssuePage() {
 
   return (
     <div>
-      <SectionHeader eyebrow={t('nav.morningIssue')} title={t('nav.morningIssue')} description={t('morningIssue.description')} />
+      <SectionHeader title={t('nav.morningIssue')} compact />
 
       <div className="surface mb-6 p-5">
         <div className="grid gap-4 lg:grid-cols-[180px_minmax(220px,1fr)_repeat(3,minmax(130px,160px))]">
@@ -73,11 +73,6 @@ export default function MorningIssuePage() {
             <Alert type={vm.message.type}>{vm.message.text}</Alert>
           </div>
         ) : null}
-        {vm.existingIssue ? (
-          <div className="mt-4">
-            <Alert type="info">{t('morningIssue.existingInfo')}</Alert>
-          </div>
-        ) : null}
         {vm.existingSettlement ? (
           <div className="mt-4">
             <Alert type="warning">{t('morningIssue.settlementLocked')}</Alert>
@@ -92,7 +87,7 @@ export default function MorningIssuePage() {
       ) : (
       <div id={MORNING_ISSUE_REPORT_ID} className="surface overflow-hidden">
         <div className="flex flex-col gap-3 border-b border-slate-100 px-5 py-3 sm:flex-row sm:items-center sm:justify-between">
-          <Select clearable={false} className="input h-9 min-w-[11rem] sm:w-52" value={vm.categoryId} onChange={(event) => vm.setCategoryId(event.target.value)}>
+          <Select clearable={false} className="input h-10 min-w-[11rem] sm:w-72" value={vm.categoryId} onChange={(event) => vm.setCategoryId(event.target.value)}>
             <option value="">{t('categories.allCategories')}</option>
             {vm.categoryOptions.map((category) => (
               <option key={category.id} value={category.id}>{category.name}</option>

@@ -50,18 +50,10 @@ export default function SupplierDiscountsPage() {
 
   return (
     <div>
-      <SectionHeader
-        eyebrow={t('supplierDiscounts.eyebrow')}
-        title={t('supplierDiscounts.title')}
-        description={t('supplierDiscounts.description')}
-      />
+      <SectionHeader title={t('supplierDiscounts.title')} compact />
 
       <div id={SUPPLIER_DISCOUNTS_REPORT_ID} className="surface overflow-hidden">
-        <div className="border-b border-slate-100 p-5">
-          <div className="mb-3 flex items-center justify-between gap-3">
-            <span className="text-sm font-bold text-slate-700">{t('supplierDiscounts.tableTitle')}</span>
-            <TableReportActions targetId={SUPPLIER_DISCOUNTS_REPORT_ID} title={t('supplierDiscounts.tableTitle')} fileName="supplier-discounts" entityType="supplier_discounts" t={t} shortcuts={SUPPLIER_DISCOUNTS_SHORTCUTS} />
-          </div>
+        <div className="flex flex-col gap-3 border-b border-slate-100 p-5 sm:flex-row sm:items-end">
           <div className="w-full sm:w-72">
             <label className="label">{t('supplierDiscounts.dateRangeLabel')}</label>
             <DateRangePickerField
@@ -70,6 +62,9 @@ export default function SupplierDiscountsPage() {
               onChange={(from, to) => { vm.setDateFrom(from); vm.setDateTo(to); }}
               placeholder={`${t('supplierDiscounts.dateFromPlaceholder')} - ${t('supplierDiscounts.dateToPlaceholder')}`}
             />
+          </div>
+          <div className="sm:ml-auto">
+            <TableReportActions targetId={SUPPLIER_DISCOUNTS_REPORT_ID} title={t('supplierDiscounts.tableTitle')} fileName="supplier-discounts" entityType="supplier_discounts" t={t} shortcuts={SUPPLIER_DISCOUNTS_SHORTCUTS} />
           </div>
         </div>
 

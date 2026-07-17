@@ -1386,6 +1386,8 @@ const en = {
       modalDescription: 'Enter the date, category, amount, and a short note.',
       reportDate: 'Report Date',
       reportMonth: 'Report Month',
+      dailyTab: 'Daily',
+      monthlyTab: 'Monthly',
       dailyReport: 'Daily Expense Report',
       dailyReportDescription: 'Expenses for the selected day, broken down by category.',
       monthlyReport: 'Monthly Expense Report',

@@ -35,6 +35,17 @@ export function createApp({ controllers, authService, env, auditService, errorLo
     }),
   );
 
+  app.get("/cicd-test", (_req, res) => {
+    res.type("html").send(`<!doctype html>
+<html>
+  <head><title>CI/CD test</title></head>
+  <body>
+    <h1>CI/CD deploy OK</h1>
+    <p>Deployed at: ${new Date().toISOString()}</p>
+  </body>
+</html>`);
+  });
+
   const staticRoot = fs.existsSync(backendDistPath) ? backendDistPath : frontendDistPath;
 
   if (fs.existsSync(staticRoot)) {

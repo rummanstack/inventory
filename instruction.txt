@@ -58,3 +58,5 @@ AWS_SECRET_ACCESS_KEY
 TODO later: narrow stockledger-deployer's permissions for CI down to just
 lambda:UpdateFunctionCode + lambda:GetFunction on the stockledger-api function ARN,
 instead of using the full AdministratorAccess key for automated deploys.
+
+API URL: https://el3ykxncd7.execute-api.ap-south-1.amazonaws.com

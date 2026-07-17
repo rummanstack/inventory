@@ -128,4 +128,13 @@ async function prerender() {
   }
 }
 
-await prerender();
+try {
+  await prerender();
+} catch (error) {
+  // Best-effort: some CI containers (observed on Render) wedge headless Chrome
+  // no matter the launch flags or timeout used. Prerendering only improves SEO
+  // for the public marketing pages — the app itself is fully client-rendered
+  // and works without it — so don't fail the whole deploy over it.
+  console.warn('Skipping prerender — public pages will ship as plain client-rendered HTML.');
+  console.warn(error);
+}

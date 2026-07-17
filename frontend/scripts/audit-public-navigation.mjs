@@ -51,6 +51,16 @@ function collectLinks(html) {
   return [...links].sort();
 }
 
+// This audit only makes sense against prerendered per-route HTML files. When
+// prerendering was skipped (see prerender-public-pages.mjs), every route falls
+// back to the same root index.html, so there's nothing route-specific to audit.
+try {
+  await readFile(getHtmlPath(INDEXABLE_PUBLIC_ROUTES[0]), 'utf8');
+} catch {
+  console.warn('Skipping navigation audit — no prerendered route files found.');
+  process.exit(0);
+}
+
 const pages = [];
 const incomingCounts = new Map(INDEXABLE_PUBLIC_ROUTES.map((route) => [route, 0]));
 

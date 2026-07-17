@@ -6,7 +6,7 @@ import { stockLedgerLogoIcon } from '../../../assets/brandAssets.js';
 // themes, so every color in it is a literal value — theme-remapped utilities
 // (text-white/NN, slate, --brand) turn dark-on-dark when the dark theme inverts
 // the palette (see index.css [data-theme="dark"]).
-export default function AuthShell({ brand, eyebrow, title, points = [], footnote, children }) {
+export default function AuthShell({ brand, eyebrow, title, points = [], footnote, compact = false, children }) {
   return (
     <div className="page-shell">
       <div className="relative h-screen overflow-y-auto">
@@ -19,11 +19,11 @@ export default function AuthShell({ brand, eyebrow, title, points = [], footnote
           <div className="absolute -bottom-32 left-1/4 h-96 w-96 rounded-full bg-[color-mix(in_srgb,var(--brand)_12%,transparent)] blur-[130px]" />
         </div>
 
-        <div className="relative flex min-h-full items-center justify-center px-0 py-0 sm:px-4 sm:py-8">
-          <div className="grid w-full max-w-5xl overflow-hidden bg-[var(--bg-dark)] shadow-[0_40px_110px_-18px_rgba(30,20,70,0.4)] ring-1 ring-[rgba(15,23,42,0.06)] sm:rounded-[28px] lg:grid-cols-[2fr_3fr]">
+        <div className={`relative flex min-h-full items-center justify-center px-0 py-0 sm:px-4 ${compact ? 'sm:py-5' : 'sm:py-8'}`}>
+          <div className={`grid w-full overflow-hidden bg-[var(--bg-dark)] shadow-[0_40px_110px_-18px_rgba(30,20,70,0.4)] ring-1 ring-[rgba(15,23,42,0.06)] sm:rounded-[28px] lg:grid-cols-[2fr_3fr] ${compact ? 'max-w-4xl' : 'max-w-5xl'}`}>
 
             {/* Brand panel — full hero on desktop, compact header bar on mobile */}
-            <div className="relative flex flex-col justify-between overflow-hidden p-6 pb-8 lg:p-10">
+            <div className={`relative flex flex-col justify-between overflow-hidden p-6 pb-8 ${compact ? 'lg:p-8' : 'lg:p-10'}`}>
               {/* Aurora background + fine grid, all literal colors (dark in both themes) */}
               <div className="pointer-events-none absolute inset-0">
                 <div className="absolute inset-0 bg-[linear-gradient(160deg,#0e0c25_0%,#1d1547_58%,#122f3a_100%)]" />
@@ -44,19 +44,21 @@ export default function AuthShell({ brand, eyebrow, title, points = [], footnote
                   </span>
                 </Link>
 
-                <p className="mt-8 flex w-fit items-center gap-2 rounded-full border border-[rgba(255,255,255,0.16)] bg-[rgba(255,255,255,0.07)] px-3.5 py-1.5 text-[10px] font-black uppercase tracking-[0.22em] text-[#ddd2ff] backdrop-blur lg:mt-12">
+                <p className={`mt-8 flex w-fit items-center gap-2 rounded-full border border-[rgba(255,255,255,0.16)] bg-[rgba(255,255,255,0.07)] px-3.5 py-1.5 text-[10px] font-black uppercase tracking-[0.22em] text-[#ddd2ff] backdrop-blur ${compact ? 'lg:mt-8' : 'lg:mt-12'}`}>
                   <span className="h-1.5 w-1.5 rounded-full bg-[#2dd4bf] shadow-[0_0_0_3px_rgba(45,212,191,0.18)]" />
                   {eyebrow}
                 </p>
-                <h2 className="mt-3 max-w-xs text-xl font-black leading-[1.2] tracking-tight text-white lg:mt-4 lg:text-[28px] lg:leading-[1.15]">
-                  {title}
-                </h2>
+                {title ? (
+                  <h2 className="mt-3 max-w-xs text-xl font-black leading-[1.2] tracking-tight text-white lg:mt-4 lg:text-[28px] lg:leading-[1.15]">
+                    {title}
+                  </h2>
+                ) : null}
               </div>
 
-              <ul className="relative mt-8 hidden space-y-4 lg:mt-10 lg:block">
+              <ul className={`relative mt-8 hidden lg:block ${compact ? 'space-y-3 lg:mt-7' : 'space-y-4 lg:mt-10'}`}>
                 {points.map(({ icon: Icon, text }) => (
                   <li key={text} className="flex items-start gap-3.5 rounded-2xl border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)] p-3 backdrop-blur transition-colors duration-200 hover:border-[rgba(255,255,255,0.16)] hover:bg-[rgba(255,255,255,0.07)]">
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[rgba(255,255,255,0.12)] bg-[linear-gradient(135deg,rgba(109,91,194,0.4),rgba(60,42,134,0.18))] text-[#ddd2ff] shadow-[inset_0_1px_0_rgba(255,255,255,0.14)]">
+                    <span className={`flex shrink-0 items-center justify-center rounded-xl border border-[rgba(255,255,255,0.12)] bg-[linear-gradient(135deg,rgba(109,91,194,0.4),rgba(60,42,134,0.18))] text-[#ddd2ff] shadow-[inset_0_1px_0_rgba(255,255,255,0.14)] ${compact ? 'h-9 w-9' : 'h-10 w-10'}`}>
                       <Icon size={18} />
                     </span>
                     <span className="pt-2 text-sm font-semibold leading-6 text-[rgba(255,255,255,0.82)]">{text}</span>
@@ -64,13 +66,13 @@ export default function AuthShell({ brand, eyebrow, title, points = [], footnote
                 ))}
               </ul>
 
-              <p className="relative mt-10 hidden border-t border-[rgba(255,255,255,0.1)] pt-4 text-xs font-semibold leading-5 text-[rgba(255,255,255,0.5)] lg:block">
+              <p className={`relative hidden border-t border-[rgba(255,255,255,0.1)] text-xs font-semibold leading-5 text-[rgba(255,255,255,0.5)] lg:block ${compact ? 'mt-7 pt-3' : 'mt-10 pt-4'}`}>
                 {footnote}
               </p>
             </div>
 
             {/* Form panel */}
-            <div className="flex flex-col justify-center rounded-t-[28px] bg-white px-6 py-10 sm:px-12 sm:py-12 lg:rounded-none">
+            <div className={`flex flex-col justify-center rounded-t-[28px] bg-white px-6 py-10 sm:px-12 lg:rounded-none ${compact ? 'sm:py-9' : 'sm:py-12'}`}>
               {children}
             </div>
 

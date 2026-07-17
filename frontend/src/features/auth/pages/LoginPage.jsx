@@ -23,9 +23,9 @@ export default function LoginPage() {
     <AuthShell
       brand={t('app.brand')}
       eyebrow={t('auth.loginEyebrow')}
-      title={t('auth.loginTitle')}
       points={points}
       footnote={t('auth.register.heroFootnote')}
+      compact
     >
       <div className="mx-auto w-full max-w-md">
         <h1 className="text-3xl font-black tracking-tight text-slate-950">
@@ -35,7 +35,7 @@ export default function LoginPage() {
           <p className="mt-2 text-sm font-medium leading-6 text-slate-500">{t('auth.loginHint')}</p>
         ) : null}
 
-        <div className="mt-6">
+        <div className="mt-5">
           {view === 'login' ? (
             <LoginForm login={login} t={t} onForgot={() => setView('forgot')} />
           ) : view === 'forgot' ? (

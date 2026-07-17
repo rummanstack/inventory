@@ -5,7 +5,4 @@ dist
 *.log
 backend/uploads
 backend/private_uploads
-.env
-.env.*
-!.env.example
 backend/.env

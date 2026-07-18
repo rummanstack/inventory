@@ -277,7 +277,7 @@ export default function LandingHeader({ language, setLanguage, t }) {
           </button>
           <LanguageSwitcher language={language} onChange={setLanguage} t={t} compact />
           {/* /login isn't part of the bilingual public site, so no locale prefix here */}
-          <Link to="/login" className="landing-small-cta hidden sm:inline-flex">
+          <Link to="/login" className="landing-small-cta hidden h-11 w-24 sm:inline-flex">
             <span>{t('landing.login')}</span>
             <ArrowRight size={16} />
           </Link>

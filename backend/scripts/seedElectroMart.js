@@ -455,8 +455,7 @@ async function main() {
     note: "20 tempered glass screen protectors returned — wrong batch shipped",
   }, actor);
 
-  // ── 10. HR: departments, designations, employees, salary payments (done
-  //       before the repair job below so a real technicianId exists) ──────
+  // ── 10. HR: departments, designations, employees, salary payments ───────
   console.log("  [10/21] Departments, designations, employees, salary…");
   const departmentIds = [];
   for (const d of DEPARTMENTS) {
@@ -492,7 +491,6 @@ async function main() {
       note: `Salary for ${daysAgo(0).slice(0, 7)}`,
     }, actor);
   }
-  const technicianEmployeeId = employeeIds[1]; // Repair Technician (Sabbir Ahmed)
 
   // ── 11. Open a retail cash session (POS shift) before ringing up the
   //       cash sales below ────────────────────────────────────────────────
@@ -613,14 +611,14 @@ async function main() {
     validityDays: 7,
     items: [
       { productId: productIdBySku.get("EM-KIT-WLTMW20"), productName: "Walton Microwave Oven 20L (Solo)", quantity: 1, unitPrice: 9990 },
-      { productName: "Home Delivery & Installation Service", quantity: 1, unitPrice: 500 },
+      { productId: productIdBySku.get("EM-KIT-MIYBL102"), productName: "Miyako Blender & Juicer 1.5L", quantity: 1, unitPrice: 2500 },
     ],
-    notes: "Quote for microwave oven with home delivery, per customer's phone inquiry",
+    notes: "Quote for microwave oven + blender, per customer's phone inquiry",
   }, actor);
 
   await operations.quotationService.convertToInvoice(quotation.id, {
     paymentMethod: "CASH",
-    paidAmount: 10490,
+    paidAmount: 12490,
     invoiceDate: daysAgo(2),
     note: "Converted from quotation — customer confirmed at store",
   }, actor);
@@ -675,7 +673,9 @@ async function main() {
   }, actor);
 
   // ── 18. Repair job — walk-in customer bringing their own (non-store)
-  //       device, assigned to the Repair Technician created above ────────
+  //       device. technicianId is a users.id (a login account), not an HR
+  //       employee id, so it's left unassigned here — this demo's HR
+  //       employees aren't given login accounts. ─────────────────────────
   console.log("  [18/21] Repair job…");
   await operations.repairJobService.createJob({
     customerName: "Kamrul Hasan",
@@ -684,11 +684,9 @@ async function main() {
     problemDescription: "Cracked display glass, touch unresponsive in the bottom third of the screen.",
     estimatedCost: 4500,
     laborCost: 800,
-    technicianId: technicianEmployeeId,
     status: "IN_REPAIR",
     receivedDate: daysAgo(2),
     promisedDate: daysFromNow(3),
-    note: "Customer waiting on parts availability confirmation",
   }, actor);
 
   // ── 19. Warranty claim — against the Galaxy A16 sold in the walk-in cash

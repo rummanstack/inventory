@@ -13,7 +13,7 @@ export const SCHEMA_SITE_CONFIG = {
 
 export const STATIC_PAGE_FAQS = {
   '/landing': [
-    ['What kind of businesses use StockLedger?', 'StockLedger is built for retail shops, wholesalers, dealers, distributors, pharmacies, DSR teams, and growing businesses that want operations and accounting in one system.'],
+    ['What can businesses manage with StockLedger?', 'StockLedger connects sales, inventory, purchasing, accounting, HR and payroll, field operations, customer dues, service, reporting, permissions, and administration in one system.'],
     ['Do I need every module on day one?', 'No. Businesses can start with the workflows that create immediate daily value and expand later.'],
   ],
   '/pricing': [

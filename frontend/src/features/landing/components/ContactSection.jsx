@@ -40,7 +40,11 @@ export default function ContactSection({ t }) {
 
         <div className="mt-6 flex flex-col gap-8 lg:flex-row lg:items-center">
           <div className="lg:w-1/2">
-            <ImagePlaceholder data={{ src: contactUsImage, alt: t('landing.images.contactUs') }} heightClass="aspect-[3/2]" fit="cover" />
+            <ImagePlaceholder
+              data={{ src: contactUsImage, alt: t('landing.images.contactUs') }}
+              heightClass="aspect-[701/561]"
+              fit="contain"
+            />
           </div>
 
           <form onSubmit={handleSubmit} className="contact-form lg:w-1/2">

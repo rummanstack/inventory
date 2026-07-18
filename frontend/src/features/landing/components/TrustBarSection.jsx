@@ -1,6 +1,6 @@
-﻿import { Calculator, Landmark, PackageCheck, ReceiptText } from 'lucide-react';
+import { BriefcaseBusiness, Landmark, ShieldCheck, UsersRound } from 'lucide-react';
 
-const ICONS = [ReceiptText, PackageCheck, Landmark, Calculator];
+const ICONS = [BriefcaseBusiness, Landmark, UsersRound, ShieldCheck];
 
 export default function TrustBarSection({ t }) {
   const items = t('landing.capabilityStrip') || [];

@@ -7,16 +7,16 @@ export default function LanguageSwitcher({ language, onChange, t, compact = fals
   return (
     <div
       className={cx(
-        'inline-flex items-center gap-1 rounded-full px-1 py-1 sm:gap-2 sm:px-2',
+        'inline-flex items-center rounded-full',
+        compact ? 'h-11 w-24 justify-center gap-0.5 p-1' : 'gap-1 px-1 py-1 sm:gap-2 sm:px-2',
         isDark
           ? 'border border-white/10 bg-[rgba(255,255,255,0.10)] shadow-[0_1px_0_rgba(255,255,255,0.05)]'
           : 'border border-slate-200 bg-white shadow-[0_1px_0_rgba(var(--slate-900),0.03)]',
-        compact && 'gap-0.5 px-0.5 sm:gap-0.5 sm:px-0.5',
       )}
     >
       <span
         className={cx(
-          'hidden h-8 w-8 items-center justify-center rounded-full sm:inline-flex',
+          compact ? 'hidden' : 'hidden h-8 w-8 items-center justify-center rounded-full sm:inline-flex',
           isDark ? 'bg-[rgba(255,255,255,0.08)] text-slate-200' : 'bg-slate-50 text-slate-400',
         )}
       >
@@ -26,7 +26,7 @@ export default function LanguageSwitcher({ language, onChange, t, compact = fals
         type="button"
         className={cx(
           'rounded-full text-xs font-semibold uppercase transition',
-          compact ? 'h-10 min-w-10 px-2 tracking-[0.08em]' : 'h-8 px-2 tracking-[0.14em] sm:px-3',
+          compact ? 'h-8 min-w-0 flex-1 px-1 tracking-[0.08em]' : 'h-8 px-2 tracking-[0.14em] sm:px-3',
           language === 'en'
             ? 'bg-[var(--secondary)] text-white shadow-[0_10px_18px_var(--secondary-shadow)]'
             : isDark
@@ -43,7 +43,7 @@ export default function LanguageSwitcher({ language, onChange, t, compact = fals
         type="button"
         className={cx(
           'rounded-full text-xs font-semibold uppercase transition',
-          compact ? 'h-10 min-w-10 px-2 tracking-[0.08em]' : 'h-8 px-2 tracking-[0.14em] sm:px-3',
+          compact ? 'h-8 min-w-0 flex-1 px-1 tracking-[0.08em]' : 'h-8 px-2 tracking-[0.14em] sm:px-3',
           language === 'bn'
             ? 'bg-[var(--secondary)] text-white shadow-[0_10px_18px_var(--secondary-shadow)]'
             : isDark

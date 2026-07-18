@@ -4,7 +4,7 @@ import { showcaseImages } from '../constants.js';
 
 export default function ImageShowcaseSection({ t }) {
   const copy = t('landing.showcase');
-  const showcaseImage = showcaseImages.find((image) => image.key === 'warehouseStock') ?? showcaseImages[0];
+  const showcaseImage = showcaseImages.find((image) => image.key === 'reportsVisibility') ?? showcaseImages[0];
 
   return (
     <section className="landing-section landing-section-brand">
@@ -26,8 +26,8 @@ export default function ImageShowcaseSection({ t }) {
           <div className="showcase-product-frame">
             <ImagePlaceholder
               data={{ src: showcaseImage.src, alt: copy.imageAlts[showcaseImage.key] }}
-              heightClass="aspect-[16/10]"
-              fit="cover"
+              heightClass="aspect-[3/2]"
+              fit="contain"
               position={showcaseImage.position}
             />
           </div>

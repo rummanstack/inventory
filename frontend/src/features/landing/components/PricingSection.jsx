@@ -4,11 +4,14 @@ import { Link } from 'react-router-dom';
 import { buildLocalizedPath } from '../../../app/hooks/usePublicLanguage.js';
 import SectionHeader from './shared/SectionHeader.jsx';
 
-const VISIBLE_FEATURE_COUNT = 5;
+const COLLAPSED_FEATURE_INDEXES = [0, 1, 2, 9, 20];
 
 function PricingCard({ plan, features, expanded, onToggle, ctaPath, stretch = false, t }) {
-  const visibleFeatures = expanded ? features : features.slice(0, VISIBLE_FEATURE_COUNT);
-  const hiddenCount = Math.max(0, features.length - VISIBLE_FEATURE_COUNT);
+  const featureEntries = features.map((feature, featureIndex) => ({ feature, featureIndex }));
+  const visibleFeatureEntries = expanded
+    ? featureEntries
+    : COLLAPSED_FEATURE_INDEXES.map((featureIndex) => featureEntries[featureIndex]).filter(Boolean);
+  const hiddenCount = Math.max(0, features.length - visibleFeatureEntries.length);
 
   return (
     <article className={'pricing-card flex flex-col ' + (stretch ? 'sm:h-full ' : '') + (plan.featured ? 'pricing-card-featured' : 'pricing-card-muted')}>
@@ -34,8 +37,8 @@ function PricingCard({ plan, features, expanded, onToggle, ctaPath, stretch = fa
       <p className="mt-4 text-sm font-normal leading-7 text-slate-600">{plan.description}</p>
 
       <div className="mt-6 space-y-3">
-        {visibleFeatures.map((feature, index) => {
-          const included = Boolean(plan.included?.[index]);
+        {visibleFeatureEntries.map(({ feature, featureIndex }) => {
+          const included = Boolean(plan.included?.[featureIndex]);
           return (
             <p
               key={feature}

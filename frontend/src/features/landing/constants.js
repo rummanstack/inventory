@@ -3,6 +3,7 @@ import {
   F01Image,
   F02Image,
   F03Image,
+  F04Image,
   F05Image,
   F06Image,
   F07Image,
@@ -18,14 +19,17 @@ import {
 import {
   BarChart3,
   Boxes,
+  Landmark,
   PackageCheck,
   Printer,
   ReceiptText,
   RefreshCw,
   Route,
+  ShieldCheck,
   ShoppingBag,
   Store,
   Truck,
+  Users,
   Warehouse,
   WalletCards,
 } from 'lucide-react';
@@ -105,6 +109,7 @@ export const featureStoryImages = [
   F05Image,
   F06Image,
   F03Image,
+  F04Image,
 ];
 
 export const featureHighlightImages = [
@@ -116,9 +121,7 @@ export const featureHighlightImages = [
 export const featureCardIcons = [ShoppingBag, ReceiptText, WalletCards, Warehouse, Boxes, BarChart3, RefreshCw, Printer];
 
 export const solutionIcons = [Store, PackageCheck, Truck, Route];
-export const solutionShowcaseImage = F06Image;
-
-export const workflowIcons = [Warehouse, Boxes, ReceiptText, WalletCards, BarChart3];
+export const workflowIcons = [ShoppingBag, Landmark, Users, ShieldCheck, BarChart3];
 
 export const roleStoryImages = [
   SW11Image,
@@ -129,13 +132,7 @@ export const roleStoryImages = [
   C01Image,
 ];
 
-export const financeSpotlightImages = [
-  { src: F03Image, key: 'profitReport', fit: 'fill', position: 'center' },
-  { src: L01Image, key: 'dashboardSummary', fit: 'fill', position: 'center' },
-  { src: F05Image, key: 'purchaseReceive', fit: 'fill', position: 'center' },
-  { src: F07Image, key: 'dsrRoute', fit: 'fill', position: 'center' },
-  { src: F09Image, key: 'reportsVisibility', fit: 'fill', position: 'center' },
-];
+export const platformPillarImages = [F03Image, F04Image, F09Image];
 
 export const showcaseImages = [
   { src: L01Image, key: 'heroDashboard', fit: 'fill', position: 'center' },

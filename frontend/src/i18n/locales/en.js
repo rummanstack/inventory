@@ -3699,25 +3699,25 @@ const en = {
       login: 'Login',
       registerNow: 'Register Free',
       whatsappUs: 'Book Demo',
-      tagline: 'Business operations and accounting platform',
+      tagline: 'Complete operations, accounting and workforce platform',
       homeAriaLabel: 'StockLedger home',
       navAriaLabel: 'Landing navigation',
       capabilityStrip: [
         {
-          value: 'Sales & POS',
-          label: 'Fast billing, invoices, returns, and collections',
+          value: 'Operations & Sales',
+          label: 'POS, inventory, purchasing, customers, dues, and field workflows',
         },
         {
-          value: 'Inventory & Purchasing',
-          label: 'Live stock, purchases, suppliers, and low-stock control',
+          value: 'Accounting & Finance',
+          label: 'Ledgers, vouchers, cash flow, profit, and final statements',
         },
         {
-          value: 'Finance & Accounting',
-          label: 'Cash, expenses, ledgers, profit, and final statements',
+          value: 'HR & Payroll',
+          label: 'Employees, attendance, leave, salary, loans, and advances',
         },
         {
-          value: 'Reports & Control',
-          label: 'Clear dashboards, permissions, backups, and activity',
+          value: 'Security & Control',
+          label: 'Roles, permissions, audit logs, backups, alerts, and reporting',
         },
       ],
       trustBar: {
@@ -4373,20 +4373,20 @@ const en = {
         },
       },
       hero: {
-        eyebrow: 'One clear view of your business',
-        title: 'Know your stock, cash, and profit every day.',
-        subtitle: 'StockLedger keeps sales, inventory, dues, and accounting connected, so you can make faster decisions with numbers you trust.',
+        eyebrow: 'Complete business management platform',
+        title: 'Run your whole business from one connected system.',
+        subtitle: 'Bring sales, inventory, accounting, HR and payroll, customers, field operations, reporting, and administration into one secure workspace.',
         points: [
-          'Fast sales and live stock',
-          'Dues and supplier control',
-          'DSR and team operations',
-          'Accounting and profit reports',
+          'Finance and full accounting',
+          'HR, attendance, and payroll',
+          'Sales, customers, and inventory',
+          'Roles, security, and reporting',
         ],
         bookDemo: 'Book Demo',
         seePricing: 'See Pricing',
-        badgeLabel: 'Complete system',
-        badgeValue: 'Operations with built-in accounting',
-        imageAlt: 'StockLedger dashboard showing business operations, finance, and accounting together',
+        badgeLabel: 'Complete business suite',
+        badgeValue: 'Operations, finance, people, and control',
+        imageAlt: 'StockLedger dashboard connecting operations, finance, workforce, and management reporting',
       },
       proof: {
         eyebrow: 'Customer Proof',
@@ -4408,9 +4408,9 @@ const en = {
         ],
       },
       featureStory: {
-        label: 'Connected by design',
-        title: 'Daily work flows into one reliable business record',
-        description: 'Sell, buy, collect, and report without entering the same information twice.',
+        label: 'One connected platform',
+        title: 'Six business systems. One reliable source of truth.',
+        description: 'Connect finance, people, sales, inventory, field work, and collections without duplicate records.',
         groups: [
           {
             badge: 'Sales & POS',
@@ -4490,16 +4490,38 @@ const en = {
         ],
       },
       workflow: {
-        label: 'Connected workflow',
-        title: 'One action updates the whole business',
-        description: 'StockLedger connects operations and accounting, so sales, dues, cash flow, and reports move together instead of living in separate tools.',
-        rail: ['Sale', 'Stock Update', 'Customer Ledger', 'Cash / Bank', 'Accounting Entry', 'Reports'],
+        label: 'Connected business system',
+        title: 'Every department works from the same business record',
+        description: 'Operations, finance, people, security, and reporting stay connected, so every team works with current information instead of separate files.',
+        rail: ['Operations', 'Finance', 'People', 'Control', 'Reports'],
         steps: [
-          { title: 'Sell or Receive', description: 'Create a sale, receive a purchase, or record a service transaction from the right workflow.' },
-          { title: 'Stock Updates', description: 'Inventory and movement history update immediately so operational teams see the current truth.' },
-          { title: 'Due & Collection', description: 'Customer, shop, supplier, and field balances stay visible for collection and follow-up.' },
-          { title: 'Cash & Accounts', description: 'Cash, bank, and expense movement reflect what happened in the business, not just manual notes.' },
-          { title: 'Reports & Statements', description: 'Dashboards, profit reports, ledger, trial balance, balance sheet, and P&L stay aligned.' },
+          { title: 'Run Daily Operations', description: 'Manage sales, purchases, inventory, DSR, installments, collections, and service from purpose-built workflows.' },
+          { title: 'Keep Finance in Sync', description: 'Cash and bank, expenses, vouchers, ledgers, and final statements stay tied to real business activity.' },
+          { title: 'Manage Your People', description: 'Keep employee records, attendance, leave, payroll, salary, advances, and loans in the same system.' },
+          { title: 'Control Access & Risk', description: 'Use roles, permissions, activity logs, security settings, backups, and alerts to protect the business.' },
+          { title: 'Decide with Reports', description: 'Dashboards, analytics, statements, and operational reports give management a complete view.' },
+        ],
+      },
+      platform: {
+        label: 'Built beyond the sales counter',
+        title: 'Finance, people, and control are part of the core platform',
+        description: 'StockLedger combines the back office with day-to-day operations, so growing teams do not need separate systems.',
+        items: [
+          {
+            title: 'Full accounting and finance',
+            description: 'Manage vouchers, chart of accounts, ledgers, cash and bank books, trial balance, P&L, balance sheet, cash flow, expenses, and profit.',
+            imageAlt: 'StockLedger accounting and finance workspace',
+          },
+          {
+            title: 'HR, attendance, and payroll',
+            description: 'Keep employee records, departments, attendance, leave, salary structures, payroll, advances, loans, and HR reports together.',
+            imageAlt: 'StockLedger HR and payroll workspace',
+          },
+          {
+            title: 'Administration, security, and insight',
+            description: 'Control users and permissions, review activity logs and sessions, manage backups and alerts, and monitor the business through reporting.',
+            imageAlt: 'StockLedger reporting, security, and administration workspace',
+          },
         ],
       },
       finance: {
@@ -4531,35 +4553,35 @@ const en = {
         ],
       },
       showcase: {
-        eyebrow: 'Clarity at a glance',
-        title: 'See what needs attention before it becomes a problem',
-        text: 'Live dashboards turn daily activity into a clear view of sales, stock, dues, cash, and profit.',
+        eyebrow: 'Management visibility',
+        title: 'See every department from one management view',
+        text: 'Bring operations, finance, workforce activity, and business risk into a reporting view management can trust.',
         bullets: [
-          'Spot low stock, unpaid dues, and unusual activity early',
-          'Give every team member the right level of access',
-          'Move from daily transactions to reliable financial reports',
+          'Track sales, purchasing, finance, payroll, and field operations together',
+          'Give each role controlled access while owners keep full visibility',
+          'Use reports, activity history, alerts, and backups to stay in control',
         ],
         imageAlts: {
           heroDashboard: 'Unified business management dashboard screenshot',
           warehouseStock: 'Inventory and stock control workspace',
           profitReport: 'Profit and finance reporting workspace',
-          reportsVisibility: 'Analytics and reporting dashboard',
+          reportsVisibility: 'Management dashboard connecting operations, finance, HR, and control',
           retailCounter: 'Retail POS and sales workflow',
         },
       },
       cta: {
         eyebrow: 'Get started',
         title: 'Run your entire business from one platform.',
-        text: 'Sales, stock, due, finance, accounting, reporting, and operations stay connected so your team can work faster and make better decisions.',
+        text: 'Sales, inventory, accounting, HR, payroll, field operations, reporting, and administration stay connected so every team can work from the same truth.',
         callNow: 'Call Now',
         whatsapp: 'Book Demo',
       },
       pricing: {
         label: 'Pricing',
         title: 'Choose the right plan for your workflow',
-        description: 'Choose the right operations, finance, accounting and team workflow for your business stage.',
+        description: 'Choose the right mix of operations, accounting, HR, reporting, and control for your business stage.',
         featuredBadge: 'Popular',
-        featuredNote: 'Best for growing businesses that need connected operations, finance and accounting.',
+        featuredNote: 'Best for growing businesses that need connected operations, finance, people, and control.',
         contactUs: 'Book Demo',
         note: 'Setup support available. No long-term contract. Data export on request.',
         disclaimer: 'Final plan depends on users, branches and modules.',
@@ -4648,8 +4670,8 @@ const en = {
         errorText: 'Something went wrong. Please try again.',
       },
       footer: {
-        tagline: 'Simple Business Software for Shops, Dealers & Wholesalers',
-        description: 'Manage stock, sales, due, purchases, settlement and profit - all in one place.',
+        tagline: 'Complete Business Management Platform',
+        description: 'Connect operations, accounting, HR and payroll, customers, reporting, and control in one secure system.',
         quickLinks: 'Quick Links',
         product: 'Product',
         company: 'Company',
@@ -5326,7 +5348,6 @@ const en = {
 };
 
 export default en;
-
 
 
 

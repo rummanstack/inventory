@@ -52,7 +52,7 @@ export default function HeroSection({ t, language }) {
                 data={{ src: heroPortraitImage, alt: t('landing.hero.imageAlt') }}
                 heightClass="aspect-[1568/1003]"
                 variant="dashboard"
-                fit="cover"
+                fit="contain"
                 position="center"
                 priority
               />

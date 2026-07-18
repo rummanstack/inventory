@@ -9,13 +9,13 @@ export const SEO_CONFIG = {
   themeColor: '#0e0c25',
   tileColor: '#0e0c25',
   titleTemplate: '%s | StockLedger',
-  defaultTitle: 'StockLedger Business Management System for Shops, Dealers & DSR Teams',
+  defaultTitle: 'StockLedger Complete Business Management, Accounting & HR Software',
   defaultDescription:
-    'StockLedger is a complete business system for shops, dealers, wholesalers and DSR teams in Bangladesh. Manage sales, stock, due, settlement, purchases, accounts, reports and profit in one place.',
+    'StockLedger connects sales, inventory, purchasing, full accounting, HR and payroll, DSR, service, reporting, and control for growing businesses in Bangladesh.',
   defaultKeywords:
-    'business management system Bangladesh, shop management system, dealer software, DSR software, wholesale software, retail POS, stock management, due collection, sales report, profit report, StockLedger',
+    'business management software Bangladesh, accounting software Bangladesh, HR payroll software, inventory management, ERP software, DSR management, field sales, reporting software, business security, StockLedger',
   defaultImage: '/stockledger-og.png',
-  defaultImageAlt: 'StockLedger dashboard showing sales, stock, due and profit reports',
+  defaultImageAlt: 'StockLedger platform connecting operations, accounting, HR, reporting, and business control',
   defaultImageWidth: '1672',
   defaultImageHeight: '941',
   twitterCard: 'summary_large_image',
@@ -25,12 +25,12 @@ export const PUBLIC_ROUTE_METADATA = {
   '/landing': {
     title: SEO_CONFIG.defaultTitle,
     description:
-      'A complete business system for Bangladesh shops, dealers, wholesalers and DSR teams. Manage sales, stock, due, settlement, purchases, reports and profit from one dashboard.',
+      'Connect operations, inventory, full accounting, HR and payroll, customers, field teams, service, reporting, and administration in one secure business platform.',
     canonicalPath: '/landing',
     robots: 'index,follow,max-image-preview:large',
     bn: {
-      title: 'বাংলাদেশে দোকান, ডিলার ও ডিএসআর টিমের জন্য স্টকলেজার বিজনেস ম্যানেজমেন্ট সিস্টেম',
-      description: 'বাংলাদেশের দোকান, ডিলার, হোলসেলার এবং ডিএসআর টিমের জন্য একটি সম্পূর্ণ বিজনেস সিস্টেম। এক ড্যাশবোর্ড থেকে সেলস, স্টক, বকেয়া, সেটেলমেন্ট, পারচেজ, রিপোর্ট এবং প্রফিট পরিচালনা করুন।',
+      title: 'স্টকলেজার সম্পূর্ণ বিজনেস ম্যানেজমেন্ট, অ্যাকাউন্টিং ও HR সফটওয়্যার',
+      description: 'অপারেশনস, ইনভেন্টরি, পূর্ণাঙ্গ অ্যাকাউন্টিং, HR ও পেরোল, কাস্টমার, ফিল্ড টিম, সার্ভিস, রিপোর্টিং ও অ্যাডমিন একটি নিরাপদ বিজনেস প্ল্যাটফর্মে সংযুক্ত করুন।',
     },
   },
   '/privacy-policy': {

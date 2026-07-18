@@ -42,26 +42,24 @@ export class FinanceDashboardService {
     const [accounts, dueAndExpenseTotals, profitReport, prevProfitReport] = await Promise.all([
       this.financeAccountService.listAccounts(actor),
       this.databaseManager.withClient(async (client) => {
-        const [
-          totalDsrDue, totalCustomerDue, totalSupplierDue,
-          monthlyExpenseEntries, cashFlow, recentTransactions,
-          monthlySettlements, recentSettlements, monthlySales,
-          dailyRevenue, dailySettlement, prevMonthSales, prevMonthSettlements,
-        ] = await Promise.all([
-          sumLatestDueBalances(client, actor.tenantId),
-          sumLatestCustomerDueBalances(client, actor.tenantId),
-          sumLatestSupplierDueBalances(client, actor.tenantId),
-          listExpensesInRange(client, monthStart, nextMonthStart, actor.tenantId),
-          getMonthlyCashFlow(client, actor.tenantId, monthStart, nextMonthStart),
-          listRecentTransactions(client, actor.tenantId, 5),
-          sumSettlementsInRange(client, actor.tenantId, monthStart, nextMonthStart),
-          listRecentSettlements(client, actor.tenantId, 7),
-          sumSalesInvoicesInRange(client, actor.tenantId, monthStart, nextMonthStart),
-          getDailyRevenueTrend(client, actor.tenantId, monthStart, nextMonthStart),
-          getDailySettlementTrend(client, actor.tenantId, monthStart, nextMonthStart),
-          sumSalesInvoicesInRange(client, actor.tenantId, prevMonthStart, monthStart),
-          sumSettlementsInRange(client, actor.tenantId, prevMonthStart, monthStart),
-        ]);
+        // A single pooled client can only run one query at a time - awaiting
+        // these sequentially (instead of Promise.all on a shared client) is
+        // what was actually happening already, just without the deprecated
+        // concurrent-query warning from firing several queries on one client
+        // before the previous one settles.
+        const totalDsrDue = await sumLatestDueBalances(client, actor.tenantId);
+        const totalCustomerDue = await sumLatestCustomerDueBalances(client, actor.tenantId);
+        const totalSupplierDue = await sumLatestSupplierDueBalances(client, actor.tenantId);
+        const monthlyExpenseEntries = await listExpensesInRange(client, monthStart, nextMonthStart, actor.tenantId);
+        const cashFlow = await getMonthlyCashFlow(client, actor.tenantId, monthStart, nextMonthStart);
+        const recentTransactions = await listRecentTransactions(client, actor.tenantId, 5);
+        const monthlySettlements = await sumSettlementsInRange(client, actor.tenantId, monthStart, nextMonthStart);
+        const recentSettlements = await listRecentSettlements(client, actor.tenantId, 7);
+        const monthlySales = await sumSalesInvoicesInRange(client, actor.tenantId, monthStart, nextMonthStart);
+        const dailyRevenue = await getDailyRevenueTrend(client, actor.tenantId, monthStart, nextMonthStart);
+        const dailySettlement = await getDailySettlementTrend(client, actor.tenantId, monthStart, nextMonthStart);
+        const prevMonthSales = await sumSalesInvoicesInRange(client, actor.tenantId, prevMonthStart, monthStart);
+        const prevMonthSettlements = await sumSettlementsInRange(client, actor.tenantId, prevMonthStart, monthStart);
 
         return {
           totalDsrDue,
@@ -129,14 +127,14 @@ export class FinanceDashboardService {
     const [profitReport, rangeData] = await Promise.all([
       this.profitService.getProfitReport({ dateFrom, dateTo }, actor),
       this.databaseManager.withClient(async (client) => {
-        const [expenseBreakdown, totalDsrDue, totalCustomerDue, totalSupplierDue, cashFlow, sales] = await Promise.all([
-          sumExpensesByCategory(client, dateFrom, dateTo, actor.tenantId),
-          sumLatestDueBalances(client, actor.tenantId),
-          sumLatestCustomerDueBalances(client, actor.tenantId),
-          sumLatestSupplierDueBalances(client, actor.tenantId),
-          getMonthlyCashFlow(client, actor.tenantId, dateFrom, dateToExclusive),
-          sumSalesInvoicesInRange(client, actor.tenantId, dateFrom, dateToExclusive),
-        ]);
+        // See getDashboard() above: sequential, not Promise.all, since these
+        // all share one pooled client.
+        const expenseBreakdown = await sumExpensesByCategory(client, dateFrom, dateTo, actor.tenantId);
+        const totalDsrDue = await sumLatestDueBalances(client, actor.tenantId);
+        const totalCustomerDue = await sumLatestCustomerDueBalances(client, actor.tenantId);
+        const totalSupplierDue = await sumLatestSupplierDueBalances(client, actor.tenantId);
+        const cashFlow = await getMonthlyCashFlow(client, actor.tenantId, dateFrom, dateToExclusive);
+        const sales = await sumSalesInvoicesInRange(client, actor.tenantId, dateFrom, dateToExclusive);
         return { expenseBreakdown, totalDsrDue, totalCustomerDue, totalSupplierDue, cashFlow, sales };
       }),
     ]);

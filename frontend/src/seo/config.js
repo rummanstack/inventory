@@ -74,12 +74,14 @@ export const AUTH_ROUTE_METADATA = {
     description: 'Sign in to your StockLedger business management workspace.',
     canonicalPath: '/login',
     robots: 'noindex,nofollow,noarchive',
+    themeColor: '#f6f7f9',
   },
   '/register': {
     title: 'Register',
     description: 'Request access to StockLedger for your business.',
     canonicalPath: '/register',
     robots: 'noindex,nofollow,noarchive',
+    themeColor: '#f6f7f9',
   },
 };
 

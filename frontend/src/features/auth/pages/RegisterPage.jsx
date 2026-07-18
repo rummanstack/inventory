@@ -44,6 +44,7 @@ export default function RegisterPage() {
       title={t('auth.register.heroTitle')}
       points={points}
       footnote={t('auth.register.heroFootnote')}
+      mobilePlain
     >
       {done ? <RegisterSuccess t={t} /> : <RegisterForm t={t} onDone={() => setDone(true)} />}
     </AuthShell>
@@ -52,16 +53,16 @@ export default function RegisterPage() {
 
 function RegisterSuccess({ t }) {
   return (
-    <div className="mx-auto flex max-w-sm flex-col items-center py-10 text-center">
+    <div className="auth-register-success mx-auto flex max-w-sm flex-col items-center py-10 text-center" role="status" aria-live="polite">
       <span className="relative flex h-20 w-20 items-center justify-center">
         <span className="absolute inset-0 animate-ping rounded-full bg-[var(--success-soft)]" style={{ animationDuration: '2.4s' }} />
         <span className="relative flex h-16 w-16 items-center justify-center rounded-full bg-[var(--success-soft)] text-[var(--success)]">
           <CheckCircle2 size={34} />
         </span>
       </span>
-      <h2 className="mt-6 text-2xl font-black tracking-tight text-slate-950">{t('auth.register.successTitle')}</h2>
-      <p className="mt-3 text-sm font-medium leading-6 text-slate-500">{t('auth.register.successHint')}</p>
-      <Link to="/login" className="btn-secondary mt-8 flex w-full items-center justify-center gap-2">
+      <h2 className="auth-form-title mt-6 text-2xl font-black tracking-tight text-slate-950">{t('auth.register.successTitle')}</h2>
+      <p className="auth-form-hint mt-3 text-sm font-medium leading-6 text-slate-500">{t('auth.register.successHint')}</p>
+      <Link to="/login" className="auth-success-action btn-secondary mt-8 flex w-full items-center justify-center gap-2">
         <ArrowLeft size={16} />
         {t('auth.backToLogin')}
       </Link>
@@ -101,16 +102,16 @@ function RegisterForm({ t, onDone }) {
   }
 
   return (
-    <form className="mx-auto w-full max-w-lg" onSubmit={handleSubmit}>
-      <h1 className="text-3xl font-black tracking-tight text-slate-950">{t('auth.register.title')}</h1>
-      <p className="mt-2 text-sm font-medium leading-6 text-slate-500">{t('auth.register.hint')}</p>
+    <form className="auth-form auth-register-form mx-auto w-full max-w-lg" onSubmit={handleSubmit}>
+      <h1 className="auth-form-title text-3xl font-black tracking-tight text-slate-950">{t('auth.register.title')}</h1>
+      <p className="auth-form-hint mt-2 text-sm font-medium leading-6 text-slate-500">{t('auth.register.hint')}</p>
 
-      {submitError ? <div className="mt-4"><Alert type="error">{submitError}</Alert></div> : null}
+      {submitError ? <div className="mt-4 hidden sm:block" role="alert" aria-live="assertive"><Alert type="error">{submitError}</Alert></div> : null}
 
       {/* Business type selector */}
-      <fieldset className="mt-6">
+      <fieldset className="auth-business-types mt-6">
         <legend className="label">{t('auth.register.businessType')}</legend>
-        <div className="mt-1.5 grid grid-cols-3 gap-2">
+        <div className="auth-business-grid mt-1.5 grid grid-cols-3 gap-2">
           {BUSINESS_TYPE_OPTIONS.map(({ value, labelKey, icon: Icon }) => {
             const active = businessType === value;
             return (
@@ -119,20 +120,20 @@ function RegisterForm({ t, onDone }) {
                 type="button"
                 onClick={() => setBusinessType(value)}
                 aria-pressed={active}
-                className={`flex flex-col items-center gap-2 rounded-2xl border-2 px-2 py-3.5 text-center transition-all duration-150 ${
+                className={`auth-business-option flex flex-col items-center gap-2 rounded-2xl border-2 px-2 py-3.5 text-center transition-all duration-150 ${
                   active
                     ? 'border-[var(--brand-strong)] bg-[var(--brand-soft)] shadow-[0_10px_24px_var(--secondary-shadow)]'
                     : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'
                 }`}
               >
                 <span
-                  className={`flex h-9 w-9 items-center justify-center rounded-xl transition-colors ${
+                  className={`auth-business-icon flex h-9 w-9 items-center justify-center rounded-xl transition-colors ${
                     active ? 'bg-[var(--brand-strong)] text-white' : 'bg-slate-100 text-slate-500'
                   }`}
                 >
                   <Icon size={17} />
                 </span>
-                <span className={`text-[11px] font-bold leading-tight ${active ? 'text-[var(--brand-strong)]' : 'text-slate-600'}`}>
+                <span className={`auth-business-label text-[11px] font-bold leading-tight ${active ? 'text-[var(--brand-strong)]' : 'text-slate-600'}`}>
                   {t(labelKey)}
                 </span>
               </button>
@@ -141,43 +142,58 @@ function RegisterForm({ t, onDone }) {
         </div>
       </fieldset>
 
-      <div className="mt-5 space-y-4">
-        <div className="grid gap-4 sm:grid-cols-2">
-          <label className="block">
+      <div className="auth-fields mt-5 space-y-4">
+        <div className="auth-field-grid grid gap-4 sm:grid-cols-2">
+          <label className="auth-field block">
             <span className="label">{t('auth.register.businessName')}</span>
             <input
               className="input h-12 rounded-xl focus:border-[var(--brand)] focus:ring-[var(--brand-soft)]"
+              id="register-business-name"
+              name="organization"
               value={businessName}
               onChange={(e) => setBusinessName(e.target.value)}
+              autoComplete="organization"
+              autoCapitalize="words"
+              enterKeyHint="next"
               placeholder={t('auth.register.businessNamePlaceholder')}
               required
             />
           </label>
 
-          <label className="block">
+          <label className="auth-field block">
             <span className="label">{t('auth.register.ownerName')}</span>
             <span className="relative block">
               <User className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
               <input
                 className="input h-12 rounded-xl pl-9 focus:border-[var(--brand)] focus:ring-[var(--brand-soft)]"
+                id="register-owner-name"
+                name="name"
                 value={ownerName}
                 onChange={(e) => setOwnerName(e.target.value)}
                 autoComplete="name"
+                autoCapitalize="words"
+                enterKeyHint="next"
                 required
               />
             </span>
           </label>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <label className="block">
+        <div className="auth-field-grid grid gap-4 sm:grid-cols-2">
+          <label className="auth-field block">
             <span className="label">{t('auth.email')}</span>
             <span className="relative block">
               <Mail className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
               <input
                 className="input h-12 rounded-xl pl-9 focus:border-[var(--brand)] focus:ring-[var(--brand-soft)]"
+                id="register-email"
+                name="email"
                 type="email"
+                inputMode="email"
                 autoComplete="email"
+                autoCapitalize="none"
+                spellCheck={false}
+                enterKeyHint="next"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
@@ -186,14 +202,18 @@ function RegisterForm({ t, onDone }) {
             </span>
           </label>
 
-          <label className="block">
+          <label className="auth-field block">
             <span className="label">{t('auth.register.phone')}</span>
             <span className="relative block">
               <PhoneCall className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
               <input
                 className="input h-12 rounded-xl pl-9 focus:border-[var(--brand)] focus:ring-[var(--brand-soft)]"
+                id="register-phone"
+                name="tel"
                 type="tel"
+                inputMode="tel"
                 autoComplete="tel"
+                enterKeyHint="next"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="01XXXXXXXXX"
@@ -203,25 +223,33 @@ function RegisterForm({ t, onDone }) {
           </label>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <label className="block">
+        <div className="auth-field-grid grid gap-4 sm:grid-cols-2">
+          <label className="auth-field block">
             <span className="label">{t('auth.password')}</span>
             <PasswordInput
               leftIcon={<Lock size={16} />}
               className="input h-12 rounded-xl pl-9 focus:border-[var(--brand)] focus:ring-[var(--brand-soft)]"
+              id="register-password"
+              name="new-password"
               autoComplete="new-password"
+              enterKeyHint="next"
+              aria-describedby="register-password-requirements"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
             />
           </label>
 
-          <label className="block">
+          <label className="auth-field block">
             <span className="label">{t('auth.confirmPassword')}</span>
             <PasswordInput
               leftIcon={<Lock size={16} />}
               className="input h-12 rounded-xl pl-9 focus:border-[var(--brand)] focus:ring-[var(--brand-soft)]"
+              id="register-confirm-password"
+              name="confirm-password"
               autoComplete="new-password"
+              enterKeyHint="done"
+              aria-invalid={Boolean(submitError)}
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
@@ -229,15 +257,17 @@ function RegisterForm({ t, onDone }) {
           </label>
         </div>
 
-        <p className="text-xs font-medium leading-5 text-slate-400">{t('auth.passwordRequirements')}</p>
+        <p id="register-password-requirements" className="auth-password-help text-xs font-medium leading-5 text-slate-400">{t('auth.passwordRequirements')}</p>
       </div>
+
+      {submitError ? <div className="auth-mobile-alert mt-5 sm:hidden" role="alert" aria-live="assertive"><Alert type="error">{submitError}</Alert></div> : null}
 
       <AuthSubmitButton submitting={submitting} busyLabel={t('auth.register.submitting')}>
         {t('auth.register.submit')}
         <ArrowRight size={18} className="transition duration-200 group-hover:translate-x-1" />
       </AuthSubmitButton>
 
-      <p className="mt-5 text-center text-xs font-semibold text-slate-500">
+      <p className="auth-switch-copy mt-5 text-center text-xs font-semibold text-slate-500">
         {t('auth.register.haveAccount')}{' '}
         <Link to="/login" className="font-black text-[var(--secondary-strong)] hover:underline">
           {t('auth.signIn')}

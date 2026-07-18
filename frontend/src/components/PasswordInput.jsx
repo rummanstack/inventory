@@ -13,13 +13,14 @@ export default function PasswordInput({ className = 'input', leftIcon, ...props 
       <input
         {...props}
         type={show ? 'text' : 'password'}
-        className={`${className} pr-9`}
+        className={`${className} auth-password-input pr-9`}
       />
       <button
         type="button"
         onClick={() => setShow((v) => !v)}
-        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-        tabIndex={-1}
+        className="auth-password-toggle absolute right-3 top-1/2 -translate-y-1/2 rounded-lg text-slate-400 transition hover:text-slate-600 focus:outline-none focus:ring-4 focus:ring-[var(--brand-soft)]"
+        aria-label={show ? 'Hide password' : 'Show password'}
+        aria-pressed={show}
       >
         {show ? <EyeOff size={16} /> : <Eye size={16} />}
       </button>

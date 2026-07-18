@@ -245,7 +245,7 @@ export class ProfitService {
           const product = directoryMap.get(row.productId);
           return {
             productId: row.productId,
-            productName: product?.name || row.productId,
+            productName: product?.name || row.productId || "Custom / non-catalog items",
             categoryId: product?.categoryId || null,
             categoryName: product?.categoryName || null,
             quantity: row.quantity,

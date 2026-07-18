@@ -3105,4 +3105,14 @@ export async function createSchema(pool) {
     WHERE permission = 'view_state'
     ON CONFLICT (role, tenant_id, permission) DO NOTHING;
   `);
+
+  // quotationService.convertToInvoice already handles a null productId
+  // defensively throughout (cost-snapshot lookup, stock-delta skip) so an
+  // ad-hoc/non-catalog quotation line — a real, user-reachable feature in
+  // the Quotation form — can be converted to an invoice. The NOT NULL
+  // constraint below was the only thing stopping that from actually
+  // working; relax it to match what the service layer already expects.
+  await pool.query(`
+    ALTER TABLE sales_invoice_items ALTER COLUMN product_id DROP NOT NULL;
+  `);
 }

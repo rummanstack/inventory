@@ -611,14 +611,14 @@ async function main() {
     validityDays: 7,
     items: [
       { productId: productIdBySku.get("EM-KIT-WLTMW20"), productName: "Walton Microwave Oven 20L (Solo)", quantity: 1, unitPrice: 9990 },
-      { productId: productIdBySku.get("EM-KIT-MIYBL102"), productName: "Miyako Blender & Juicer 1.5L", quantity: 1, unitPrice: 2500 },
+      { productName: "Home Delivery & Installation Service", quantity: 1, unitPrice: 500 },
     ],
-    notes: "Quote for microwave oven + blender, per customer's phone inquiry",
+    notes: "Quote for microwave oven with home delivery, per customer's phone inquiry",
   }, actor);
 
   await operations.quotationService.convertToInvoice(quotation.id, {
     paymentMethod: "CASH",
-    paidAmount: 12490,
+    paidAmount: 10490,
     invoiceDate: daysAgo(2),
     note: "Converted from quotation — customer confirmed at store",
   }, actor);
@@ -704,12 +704,14 @@ async function main() {
   }, actor);
 
   // ── 20. Expenses (+ one soft-deleted, to give the Trash page content) ───
+  // expenseService only allows creating an expense dated today — unlike
+  // every other flow above, there is no way to backdate one at creation.
   console.log("  [20/21] Expenses…");
-  await operations.expenseService.saveExpense({ date: daysAgo(4), category: "Rent", amount: 45000, note: "Showroom monthly rent" }, actor);
-  await operations.expenseService.saveExpense({ date: daysAgo(3), category: "Vehicle", amount: 6000, note: "Delivery van fuel for home deliveries" }, actor);
-  await operations.expenseService.saveExpense({ date: daysAgo(3), category: "Load/Unload", amount: 3500, note: "Warehouse unloading labour for new stock" }, actor);
-  await operations.expenseService.saveExpense({ date: daysAgo(2), category: "Office", amount: 8500, note: "Electricity bill & stationery" }, actor);
-  await operations.expenseService.saveExpense({ date: daysAgo(1), category: "Other", amount: 12000, note: "Facebook ads for Eid promotion" }, actor);
+  await operations.expenseService.saveExpense({ date: daysAgo(0), category: "Rent", amount: 45000, note: "Showroom monthly rent" }, actor);
+  await operations.expenseService.saveExpense({ date: daysAgo(0), category: "Vehicle", amount: 6000, note: "Delivery van fuel for home deliveries" }, actor);
+  await operations.expenseService.saveExpense({ date: daysAgo(0), category: "Load/Unload", amount: 3500, note: "Warehouse unloading labour for new stock" }, actor);
+  await operations.expenseService.saveExpense({ date: daysAgo(0), category: "Office", amount: 8500, note: "Electricity bill & stationery" }, actor);
+  await operations.expenseService.saveExpense({ date: daysAgo(0), category: "Other", amount: 12000, note: "Facebook ads for Eid promotion" }, actor);
 
   const trashExpense = await operations.expenseService.saveExpense({ date: daysAgo(0), category: "Other", amount: 700, note: "Duplicate entry — to be removed" }, actor);
   await operations.expenseService.removeExpense(trashExpense.id, actor, "Entered twice by mistake");

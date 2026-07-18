@@ -8,7 +8,7 @@ export default function TrustBarSection({ t }) {
   return (
     <section className="pb-6 pt-2 sm:pb-8 sm:pt-3">
       <div className="landing-container">
-        <div className="grid gap-3 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           {items.map(({ value, label }, index) => {
             const Icon = ICONS[index];
             return (

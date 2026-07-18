@@ -4,12 +4,9 @@ import { roleStoryImages } from '../constants.js';
 
 const ICONS = [BriefcaseBusiness, ScanLine, Calculator, BadgeDollarSign, Users, Headset];
 const IMAGE_SETTINGS = [
-  { fit: 'cover', position: 'center' },
-  { fit: 'cover', position: 'center' },
-  { fit: 'cover', position: 'center' },
-  { fit: 'cover', position: 'center' },
-  { fit: 'cover', position: 'center' },
-  { fit: 'cover', position: 'center' },
+  { fit: 'cover', position: 'center', heightClass: 'aspect-[16/10]' },
+  { fit: 'cover', position: 'center', heightClass: 'aspect-[16/10]' },
+  { fit: 'cover', position: 'center', heightClass: 'aspect-[4/3]' },
 ];
 
 export default function WhoIsItForSection({ t }) {
@@ -25,12 +22,12 @@ export default function WhoIsItForSection({ t }) {
         </div>
 
         <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-          {copy.items.map((role, index) => {
+          {copy.items.slice(0, 3).map((role, index) => {
             const Icon = ICONS[index];
             const image = IMAGE_SETTINGS[index] ?? IMAGE_SETTINGS[0];
             return (
               <article key={role.title} className="role-story-card">
-                <ImagePlaceholder data={{ src: roleStoryImages[index], alt: role.title }} heightClass="aspect-[16/10]" fit={image.fit} position={image.position} />
+                <ImagePlaceholder data={{ src: roleStoryImages[index], alt: role.title }} heightClass={image.heightClass} fit={image.fit} position={image.position} />
                 <div className="role-story-copy">
                   <div className="flex items-center gap-3">
                     <span className="hero-metric-icon">

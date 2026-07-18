@@ -3705,19 +3705,19 @@ const en = {
       capabilityStrip: [
         {
           value: 'Sales & POS',
-          label: 'Quick sale, quotations, invoices, returns, and collection workflows',
+          label: 'Fast billing, invoices, returns, and collections',
         },
         {
           value: 'Inventory & Purchasing',
-          label: 'Products, stock movement, supplier purchases, returns, and low-stock control',
+          label: 'Live stock, purchases, suppliers, and low-stock control',
         },
         {
           value: 'Finance & Accounting',
-          label: 'Cash and bank, expenses, ledger, trial balance, balance sheet, and P&L',
+          label: 'Cash, expenses, ledgers, profit, and final statements',
         },
         {
           value: 'Reports & Control',
-          label: 'Profit reports, dashboards, permissions, backups, and activity visibility',
+          label: 'Clear dashboards, permissions, backups, and activity',
         },
       ],
       trustBar: {
@@ -3747,6 +3747,8 @@ const en = {
         eyebrow: 'Common Questions',
         title: 'Frequently Asked Questions',
         text: 'Clear answers before you book a demo or choose a plan.',
+        showAll: 'View all questions',
+        showLess: 'Show fewer questions',
         items: [
           {
             question: 'Can I import my old stock?',
@@ -4361,7 +4363,7 @@ const en = {
         sending: 'Sending...',
         thinking: 'Thinking...',
         sendError: 'Could not get a response. Please try again.',
-        notConfigured: 'The AI assistant is temporarily unavailable. Please use the Contact form below.',
+        notConfigured: 'The AI assistant is temporarily unavailable. Please visit our Contact page.',
         close: 'Close chat',
         quickReplies: {
           pricing: 'What does it cost?',
@@ -4371,14 +4373,14 @@ const en = {
         },
       },
       hero: {
-        eyebrow: 'Complete business and accounting platform',
-        title: 'Run your business and accounts from one dashboard.',
-        subtitle: 'StockLedger connects sales, inventory, purchases, dues, suppliers, DSR, service, employees, payroll, leave, attendance, expenses, cash, bank, profit, ledgers, P&L, and balance sheet in one system.',
+        eyebrow: 'One clear view of your business',
+        title: 'Know your stock, cash, and profit every day.',
+        subtitle: 'StockLedger keeps sales, inventory, dues, and accounting connected, so you can make faster decisions with numbers you trust.',
         points: [
-          'Sales, purchases, stock, dues, and suppliers',
-          'DSR, service, employees, payroll, leave, attendance, and control',
-          'Cash, bank, expenses, profit, and finance reports',
-          'Ledger, trial balance, P&L, and balance sheet',
+          'Fast sales and live stock',
+          'Dues and supplier control',
+          'DSR and team operations',
+          'Accounting and profit reports',
         ],
         bookDemo: 'Book Demo',
         seePricing: 'See Pricing',
@@ -4406,35 +4408,35 @@ const en = {
         ],
       },
       featureStory: {
-        label: 'Complete business system',
-        title: 'Everything your business needs in one connected system',
-        description: 'Sales, purchasing, distribution, dues, finance, accounting, reporting, and control all work from the same business records.',
+        label: 'Connected by design',
+        title: 'Daily work flows into one reliable business record',
+        description: 'Sell, buy, collect, and report without entering the same information twice.',
         groups: [
           {
             badge: 'Sales & POS',
-            title: 'Serve faster at the counter while every sale updates the business',
+            title: 'Sell faster while stock and cash stay in sync',
             items: [
-              'Quick sale, quotations, invoices, promotions, trade-ins, and sales returns',
-              'Cash sessions, daily closing, printed receipts, and customer-facing workflows',
-              'Every sale updates stock, dues, and business visibility immediately',
+              'Quick sales, invoices, promotions, and returns',
+              'Cash sessions, receipts, and daily closing',
+              'Stock and customer balances update with every sale',
             ],
           },
           {
             badge: 'Distribution & Field Sales',
-            title: 'Track DSR routes, stock issue, collections, returns, and settlement clearly',
+            title: 'Keep every DSR route and settlement accountable',
             items: [
-              'Morning stock issue, evening settlement, shop relationships, and SR/DSR finance',
-              'Cash, returns, and due reconciliation stay visible for every field rep',
-              'Owners and managers can monitor route activity without chasing spreadsheets',
+              'Morning issue, route activity, and evening settlement',
+              'Cash, returns, and dues stay clear for every rep',
+              'Managers see progress without chasing spreadsheets',
             ],
           },
           {
             badge: 'Inventory & Purchasing',
-            title: 'Receive purchases, update stock, and keep supplier accounts aligned',
+            title: 'Know what you have, what is moving, and what to buy',
             items: [
-              'Products, categories, low stock alerts, damaged stock, and stock history',
-              'Purchase receive, purchase return, supplier discounts, and supplier statements',
-              'Stock value and availability stay aligned with actual operations',
+              'Live stock, low-stock alerts, and movement history',
+              'Purchase receiving, returns, and supplier statements',
+              'Stock value stays aligned with real operations',
             ],
           },
           {
@@ -4516,9 +4518,9 @@ const en = {
         ],
       },
       roles: {
-        eyebrow: 'Built for every role',
-        title: 'Designed for the people who run the business',
-        text: 'From gadget shops and grocery stores to pharmacies, collection teams, dealers, and support workflows, every role works from the same records.',
+        eyebrow: 'Built for your business',
+        title: 'Designed around the way your business sells',
+        text: 'Gadget shops, grocery stores, and pharmacies can each run from one clear, up-to-date record.',
         items: [
           { title: 'For Gadget Stores', description: 'Manage mobiles, electronics, accessories, serial numbers, warranties, sales returns, customer dues, and profit from one system.', chips: ['Serials', 'Warranty', 'Profit'] },
           { title: 'For Grocery Stores', description: 'Run grocery and general-store counters with fast billing, returns, customer dues, supplier purchases, and daily sales visibility.', chips: ['POS', 'Stock', 'Due'] },
@@ -4529,13 +4531,13 @@ const en = {
         ],
       },
       showcase: {
-        eyebrow: 'Reports, control, and visibility',
-        title: 'Know what is happening across the business',
-        text: 'Show visitors that the platform goes beyond data entry, with live dashboards, due visibility, financial summaries, operational reports, and the control tools needed as the team grows.',
+        eyebrow: 'Clarity at a glance',
+        title: 'See what needs attention before it becomes a problem',
+        text: 'Live dashboards turn daily activity into a clear view of sales, stock, dues, cash, and profit.',
         bullets: [
-          'Dashboard KPIs, daily sales, activity logs, due reports, and profit reporting',
-          'User permissions, backups, security controls, and organization settings',
-          'Visual proof that the product is retail, distribution, finance, and accounting together',
+          'Spot low stock, unpaid dues, and unusual activity early',
+          'Give every team member the right level of access',
+          'Move from daily transactions to reliable financial reports',
         ],
         imageAlts: {
           heroDashboard: 'Unified business management dashboard screenshot',
@@ -4595,6 +4597,8 @@ const en = {
             price: 'BDT 0',
             cadence: '/month',
             description: 'For trying StockLedger with dashboard and basic stock control. DSR and sales workflows are paid.',
+            cta: 'Start free',
+            action: 'register',
             included: [true, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false],
           },
           {
@@ -4603,6 +4607,7 @@ const en = {
             price: 'BDT 699',
             cadence: '/month',
             description: 'For one shop that needs stock, quick sale, invoices, customer due, supplier purchase and daily reports.',
+            cta: 'Book demo',
             included: [true, true, true, true, true, true, true, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false],
           },
           {
@@ -4612,6 +4617,7 @@ const en = {
             cadence: '/month',
             featured: true,
             description: 'For wholesalers, dealers and distributors that need SR/DSR settlement, supplier due, full accounting and reports.',
+            cta: 'Book demo',
             included: [true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, false, false, true, false, false, true],
           },
           {
@@ -4620,6 +4626,7 @@ const en = {
             price: 'Contact Sales',
             cadence: '',
             description: 'For multi-branch operations that need custom setup, advanced modules, training and priority support.',
+            cta: 'Contact sales',
             included: [true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true],
           },
         ],
@@ -5319,11 +5326,6 @@ const en = {
 };
 
 export default en;
-
-
-
-
-
 
 
 

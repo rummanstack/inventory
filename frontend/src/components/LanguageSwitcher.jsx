@@ -11,7 +11,7 @@ export default function LanguageSwitcher({ language, onChange, t, compact = fals
         isDark
           ? 'border border-white/10 bg-[rgba(255,255,255,0.10)] shadow-[0_1px_0_rgba(255,255,255,0.05)]'
           : 'border border-slate-200 bg-white shadow-[0_1px_0_rgba(var(--slate-900),0.03)]',
-        compact && 'w-full justify-between',
+        compact && 'gap-0.5 px-0.5 sm:gap-0.5 sm:px-0.5',
       )}
     >
       <span
@@ -25,7 +25,8 @@ export default function LanguageSwitcher({ language, onChange, t, compact = fals
       <button
         type="button"
         className={cx(
-          'h-8 rounded-full px-2 text-xs font-semibold uppercase tracking-[0.14em] transition sm:px-3',
+          'rounded-full text-xs font-semibold uppercase transition',
+          compact ? 'h-10 min-w-10 px-2 tracking-[0.08em]' : 'h-8 px-2 tracking-[0.14em] sm:px-3',
           language === 'en'
             ? 'bg-[var(--secondary)] text-white shadow-[0_10px_18px_var(--secondary-shadow)]'
             : isDark
@@ -33,13 +34,16 @@ export default function LanguageSwitcher({ language, onChange, t, compact = fals
               : 'text-slate-500 hover:text-slate-900',
         )}
         onClick={() => onChange('en')}
+        aria-label={t('lang.english')}
+        aria-pressed={language === 'en'}
       >
-        {t('lang.english')}
+        {compact ? 'EN' : t('lang.english')}
       </button>
       <button
         type="button"
         className={cx(
-          'h-8 rounded-full px-2 text-xs font-semibold uppercase tracking-[0.14em] transition sm:px-3',
+          'rounded-full text-xs font-semibold uppercase transition',
+          compact ? 'h-10 min-w-10 px-2 tracking-[0.08em]' : 'h-8 px-2 tracking-[0.14em] sm:px-3',
           language === 'bn'
             ? 'bg-[var(--secondary)] text-white shadow-[0_10px_18px_var(--secondary-shadow)]'
             : isDark
@@ -47,8 +51,10 @@ export default function LanguageSwitcher({ language, onChange, t, compact = fals
               : 'text-slate-500 hover:text-slate-900',
         )}
         onClick={() => onChange('bn')}
+        aria-label={t('lang.bangla')}
+        aria-pressed={language === 'bn'}
       >
-        {t('lang.bangla')}
+        {compact ? 'BN' : t('lang.bangla')}
       </button>
     </div>
   );

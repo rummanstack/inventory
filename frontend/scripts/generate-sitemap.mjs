@@ -81,6 +81,10 @@ function entryFor(route) {
 }
 
 function buildSitemap() {
+  // Stamped as the build date rather than tracked per-route: the whole site
+  // is rebuilt and redeployed together, so "last touched by a deploy" is the
+  // most honest signal available without per-page content-change tracking.
+  const lastmod = new Date().toISOString().slice(0, 10);
   const urls = INDEXABLE_PUBLIC_ROUTES.map((route) => {
     const { changefreq, priority } = entryFor(route);
     const basePath = stripBnPrefix(route);
@@ -90,6 +94,7 @@ function buildSitemap() {
     return [
       `  <url>`,
       `<loc>${loc}</loc>`,
+      `<lastmod>${lastmod}</lastmod>`,
       `<changefreq>${changefreq}</changefreq>`,
       `<priority>${priority}</priority>`,
       `<xhtml:link rel="alternate" hreflang="en" href="${enHref}"/>`,

@@ -18,6 +18,8 @@ import { megaMenuSections, navLinks } from '../constants.js';
 import { stockLedgerLogoIcon } from '../../../assets/brandAssets.js';
 import { buildLocalizedPath, stripLangPrefix } from '../../../app/hooks/usePublicLanguage.js';
 
+const MOBILE_MENU_PANEL_ID = 'landing-mobile-menu-panel';
+
 const SECTION_META = [
   {
     Icon: Boxes,
@@ -161,6 +163,7 @@ export default function LandingHeader({ language, setLanguage, t }) {
   const location = useLocation();
   const desktopMenuRef = useRef(null);
   const desktopTriggerRef = useRef(null);
+  const mobileTriggerRef = useRef(null);
 
   useEffect(() => {
     setMenuOpen(false);
@@ -192,14 +195,35 @@ export default function LandingHeader({ language, setLanguage, t }) {
     };
   }, [desktopOpen]);
 
+  useEffect(() => {
+    if (!menuOpen) return undefined;
+
+    function handleEscape(event) {
+      if (event.key === 'Escape') {
+        setMenuOpen(false);
+        mobileTriggerRef.current?.focus();
+      }
+    }
+
+    document.documentElement.classList.add('landing-mobile-menu-open');
+    document.body.classList.add('landing-mobile-menu-open');
+    document.addEventListener('keydown', handleEscape);
+
+    return () => {
+      document.documentElement.classList.remove('landing-mobile-menu-open');
+      document.body.classList.remove('landing-mobile-menu-open');
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [menuOpen]);
+
   return (
     <header className="landing-header">
       <div className="landing-header-inner">
-        <Link to={buildLocalizedPath(language, '/landing')} className="flex items-center gap-3" aria-label={t('landing.homeAriaLabel')}>
-          <img src={stockLedgerLogoIcon} alt="" className="h-11 w-11 object-contain drop-shadow-[0_10px_24px_rgba(15,23,42,0.2)]" />
-          <span className="hidden sm:block">
-            <span className="block text-lg font-black leading-none tracking-tight text-white">StockLedger</span>
-            <span className="mt-1 block text-[11px] font-medium text-white/70">{t('landing.tagline')}</span>
+        <Link to={buildLocalizedPath(language, '/landing')} className="flex min-w-0 items-center gap-2 sm:gap-3" aria-label={t('landing.homeAriaLabel')}>
+          <img src={stockLedgerLogoIcon} alt="" className="h-10 w-10 shrink-0 object-contain drop-shadow-[0_10px_24px_rgba(15,23,42,0.2)] sm:h-11 sm:w-11" />
+          <span className="min-w-0">
+            <span className="block truncate text-base font-black leading-none tracking-tight text-white sm:text-lg">StockLedger</span>
+            <span className="mt-1 hidden text-[11px] font-medium text-white/70 sm:block">{t('landing.tagline')}</span>
           </span>
         </Link>
 
@@ -229,70 +253,66 @@ export default function LandingHeader({ language, setLanguage, t }) {
 
         <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
           <button
+            ref={mobileTriggerRef}
             type="button"
-            className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-white/15 bg-white/10 text-white transition hover:bg-white/15 lg:hidden"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-white/15 bg-white/10 text-white transition hover:bg-white/15 lg:hidden"
             onClick={() => setMenuOpen((current) => !current)}
             aria-expanded={menuOpen}
+            aria-controls={MOBILE_MENU_PANEL_ID}
             aria-label={menuOpen ? t('common.closeMenu') : t('common.openMenu')}
           >
             {menuOpen ? <X size={18} /> : <Menu size={18} />}
           </button>
-          <LanguageSwitcher language={language} onChange={setLanguage} t={t} compact />
+          <LanguageSwitcher language={language} onChange={setLanguage} t={t} compact tone="dark" />
           {/* /login isn't part of the bilingual public site, so no locale prefix here */}
-          <Link to="/login" className="landing-small-cta">
-            <span className="hidden sm:inline">{t('landing.login')}</span>
+          <Link to="/login" className="landing-small-cta hidden sm:inline-flex">
+            <span>{t('landing.login')}</span>
             <ArrowRight size={16} />
           </Link>
         </div>
       </div>
 
-      <div className={`${menuOpen ? 'block' : 'hidden'} border-t border-white/10 bg-[rgba(8,10,24,0.96)] backdrop-blur lg:hidden`}>
-        <div className="landing-container grid gap-4 py-4">
-          <div className="rounded-[24px] border border-white/10 bg-white/5 p-4">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-[11px] font-black uppercase tracking-[0.18em] text-cyan-200/90">Explore</p>
-                <p className="mt-1 text-sm font-medium text-slate-300">Browse the main public pages before login.</p>
-              </div>
+      <div
+        id={MOBILE_MENU_PANEL_ID}
+        className={`${menuOpen ? 'block' : 'hidden'} max-h-[calc(100dvh-5.25rem)] overflow-y-auto overscroll-contain border-t border-white/10 bg-[rgba(8,10,24,0.97)] shadow-[0_24px_60px_rgba(8,10,24,0.35)] backdrop-blur-xl lg:hidden`}
+      >
+        <div className="landing-container grid gap-3 py-3">
+          <nav className="rounded-[24px] border border-white/10 bg-white/[0.06] p-3" aria-label={t('landing.navAriaLabel')}>
+            <div className="grid grid-cols-2 gap-2">
+              {navLinks
+                .filter((link) => ['features', 'solutions', 'software', 'workflow', 'pricing', 'contact'].includes(link.key))
+                .map((link) => (
+                  <Link
+                    key={link.href}
+                    to={buildLocalizedPath(language, link.href)}
+                    className="flex min-h-12 items-center rounded-2xl border border-white/10 bg-white/[0.05] px-3 py-2.5 text-sm font-bold leading-5 text-white transition hover:bg-white/10"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    {t(`landing.nav.${link.key}`)}
+                  </Link>
+                ))}
             </div>
-            <div className="mt-4 grid gap-2">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  to={buildLocalizedPath(language, link.href)}
-                  className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-bold text-white transition hover:bg-white/10"
-                  onClick={() => setMenuOpen(false)}
-                >
-                  {t(`landing.nav.${link.key}`)}
-                </Link>
-              ))}
-            </div>
-          </div>
+          </nav>
 
-          <div className="grid gap-3">
-            {megaMenuSections.map((section) => (
-              <section key={section.title} className="rounded-[24px] border border-white/10 bg-white/5 p-4">
-                <p className="text-[11px] font-black uppercase tracking-[0.18em] text-cyan-200/90">{section.title}</p>
-                <div className="mt-3 grid gap-2">
-                  {section.links.slice(0, 4).map((link) => (
-                    <Link
-                      key={link.href}
-                      to={buildLocalizedPath(language, link.href)}
-                      className="rounded-2xl border border-white/8 bg-white/5 px-4 py-3 text-sm font-bold text-white/90 transition hover:bg-white/10 hover:text-white"
-                      onClick={() => setMenuOpen(false)}
-                    >
-                      {link.label}
-                    </Link>
-                  ))}
-                </div>
-              </section>
-            ))}
+          <div className="grid grid-cols-2 gap-2">
+            <Link
+              to="/login"
+              className="inline-flex min-h-12 items-center justify-center rounded-2xl border border-white/15 bg-white/[0.07] px-4 text-sm font-black text-white"
+              onClick={() => setMenuOpen(false)}
+            >
+              {t('landing.login')}
+            </Link>
+            <Link
+              to={buildLocalizedPath(language, '/get-started')}
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-white px-4 text-sm font-black text-[var(--brand-strong)]"
+              onClick={() => setMenuOpen(false)}
+            >
+              {t('landing.nav.getStarted')}
+              <ArrowRight size={16} />
+            </Link>
           </div>
         </div>
       </div>
     </header>
   );
 }
-
-
-

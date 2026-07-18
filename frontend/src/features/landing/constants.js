@@ -1,4 +1,3 @@
-import dealerImage from '../../assets/landing/dealer.png';
 import {
   C01Image,
   F01Image,
@@ -9,7 +8,6 @@ import {
   F07Image,
   F09Image,
   L01Image,
-  L02Image,
   S01Image,
   S02Image,
   S04Image,
@@ -107,7 +105,6 @@ export const featureStoryImages = [
   F05Image,
   F06Image,
   F03Image,
-  L02Image,
 ];
 
 export const featureHighlightImages = [
@@ -120,12 +117,6 @@ export const featureCardIcons = [ShoppingBag, ReceiptText, WalletCards, Warehous
 
 export const solutionIcons = [Store, PackageCheck, Truck, Route];
 export const solutionShowcaseImage = F06Image;
-export const solutionHighlightImages = [
-  { src: S02Image },
-  { src: S06Image },
-  { src: S05Image },
-  { src: dealerImage },
-];
 
 export const workflowIcons = [Warehouse, Boxes, ReceiptText, WalletCards, BarChart3];
 

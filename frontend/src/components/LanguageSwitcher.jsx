@@ -8,7 +8,7 @@ export default function LanguageSwitcher({ language, onChange, t, compact = fals
     <div
       className={cx(
         'inline-flex items-center rounded-full',
-        compact ? 'h-11 w-24 justify-center gap-0.5 p-1' : 'gap-1 px-1 py-1 sm:gap-2 sm:px-2',
+        compact ? 'h-10 w-24 justify-center gap-0.5 p-1' : 'gap-1 px-1 py-1 sm:gap-2 sm:px-2',
         isDark
           ? 'border border-white/10 bg-[rgba(255,255,255,0.10)] shadow-[0_1px_0_rgba(255,255,255,0.05)]'
           : 'border border-slate-200 bg-white shadow-[0_1px_0_rgba(var(--slate-900),0.03)]',
@@ -26,7 +26,7 @@ export default function LanguageSwitcher({ language, onChange, t, compact = fals
         type="button"
         className={cx(
           'rounded-full text-xs font-semibold uppercase transition',
-          compact ? 'h-8 min-w-0 flex-1 px-1 tracking-[0.08em]' : 'h-8 px-2 tracking-[0.14em] sm:px-3',
+          compact ? 'h-7 min-w-0 flex-1 px-1 tracking-[0.08em]' : 'h-8 px-2 tracking-[0.14em] sm:px-3',
           language === 'en'
             ? 'bg-[var(--secondary)] text-white shadow-[0_10px_18px_var(--secondary-shadow)]'
             : isDark
@@ -43,7 +43,7 @@ export default function LanguageSwitcher({ language, onChange, t, compact = fals
         type="button"
         className={cx(
           'rounded-full text-xs font-semibold uppercase transition',
-          compact ? 'h-8 min-w-0 flex-1 px-1 tracking-[0.08em]' : 'h-8 px-2 tracking-[0.14em] sm:px-3',
+          compact ? 'h-7 min-w-0 flex-1 px-1 tracking-[0.08em]' : 'h-8 px-2 tracking-[0.14em] sm:px-3',
           language === 'bn'
             ? 'bg-[var(--secondary)] text-white shadow-[0_10px_18px_var(--secondary-shadow)]'
             : isDark

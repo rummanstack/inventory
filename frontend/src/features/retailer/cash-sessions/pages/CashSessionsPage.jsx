@@ -1,6 +1,7 @@
+import { useEffect } from 'react';
 import { Download, FileSpreadsheet, Loader2, Printer, Vault } from 'lucide-react';
 import { Alert, Badge, CopyableText, EmptyState, MobileCardList, MobileListCard, Pagination, SectionHeader, TableSkeleton } from '../../../../components/ui.jsx';
-import { DatePickerField } from '../../../../components/DatePicker.jsx';
+import { DateRangePickerField } from '../../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../../services/inventoryApi.js';
 import { downloadSheetPdf } from '../../../../services/printService.js';
@@ -9,6 +10,11 @@ import { useCashSessionsViewModel } from '../viewmodels/useCashSessionsViewModel
 import { useAsyncAction } from '../../../../hooks/useAsyncAction.js';
 
 const PRINT_ID = 'cash-sessions-print';
+const CASH_SESSIONS_SHORTCUTS = {
+  pdf: { alt: true, key: 'd', label: 'Alt+D' },
+  excel: { alt: true, key: 'e', label: 'Alt+E' },
+  print: { alt: true, key: 'p', label: 'Alt+P' },
+};
 
 function varianceTone(variance) {
   if (variance > 0) return 'green';
@@ -79,58 +85,95 @@ export default function CashSessionsPage() {
     writeFile(wb, 'cash-sessions.xlsx');
   }
 
+  async function handleDownloadPdf() {
+    await downloadPdf(async () => {
+      await inventoryApi.recordPrint({ entityType: 'cash_sessions', entityId: null, label: 'pdf' }).catch(() => {});
+      await downloadSheetPdf(PRINT_ID, 'cash-sessions.pdf');
+    });
+  }
+
+  function handlePrint() {
+    inventoryApi.recordPrint({ entityType: 'cash_sessions', entityId: null, label: 'print' }).catch(() => {});
+    window.print();
+  }
+
+  function shortcutBadge(shortcut) {
+    return <kbd className="ml-1 rounded border border-slate-300 bg-white/70 px-1 py-0.5 font-mono text-[10px] text-slate-500">{shortcut.label}</kbd>;
+  }
+
+  function matchesShortcut(event, shortcut) {
+    return (
+      event.key.toLowerCase() === shortcut.key &&
+      Boolean(event.altKey) === Boolean(shortcut.alt) &&
+      Boolean(event.shiftKey) === Boolean(shortcut.shift) &&
+      Boolean(event.ctrlKey || event.metaKey) === Boolean(shortcut.ctrlOrMeta)
+    );
+  }
+
+  useEffect(() => {
+    function handleKeyDown(event) {
+      if (matchesShortcut(event, CASH_SESSIONS_SHORTCUTS.pdf) && !downloadingPdf) {
+        event.preventDefault();
+        handleDownloadPdf();
+      } else if (matchesShortcut(event, CASH_SESSIONS_SHORTCUTS.excel)) {
+        event.preventDefault();
+        handleExportExcel();
+      } else if (matchesShortcut(event, CASH_SESSIONS_SHORTCUTS.print)) {
+        event.preventDefault();
+        handlePrint();
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [downloadingPdf, vm.dateFrom, vm.dateTo, t]);
+
   return (
     <div>
-      <SectionHeader
-        eyebrow={t('cashSessions.eyebrow')}
-        title={t('cashSessions.title')}
-        description={t('cashSessions.description')}
-      />
+      <SectionHeader title={t('cashSessions.title')} compact />
 
       <div id={PRINT_ID} className="surface overflow-hidden print-target">
-        <div className="flex items-center justify-between border-b border-slate-100 px-5 py-3 no-print">
-          <span className="text-sm font-bold text-slate-700">{t('cashSessions.title')}</span>
-          <div className="flex gap-2">
+        <div className="flex flex-col gap-3 border-b border-slate-100 p-5 sm:flex-row sm:items-center">
+          <DateRangePickerField
+            from={vm.dateFrom}
+            to={vm.dateTo}
+            onChange={(from, to) => { vm.setDateFrom(from); vm.setDateTo(to); }}
+            placeholder={`${t('purchaseReceive.dateFrom')} - ${t('purchaseReceive.dateTo')}`}
+            className="w-full min-w-[260px] sm:w-auto"
+          />
+          <div className="flex flex-wrap items-center gap-2 text-sm font-bold sm:ml-auto">
+            <span className="muted-chip">{formatNumber(vm.total)} {t('cashSessions.sessionCount')}</span>
+            <span className="muted-chip">{formatNumber(totals.cashSalesCount)} {t('cashSessions.salesCountLabel')}</span>
+            <span className="muted-chip">{formatCurrency(totals.cashSalesAmount)} {t('cashSessions.totalSalesLabel')}</span>
+            {totals.variance !== 0 ? (
+              <span className={`muted-chip ${totals.variance > 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                {varianceLabel(totals.variance)} {t('cashSessions.netVariance')}
+              </span>
+            ) : null}
             <button
               type="button"
-              className="btn-secondary py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-60"
-              onClick={() => downloadPdf(async () => { await inventoryApi.recordPrint({ entityType: 'cash_sessions', entityId: null, label: 'pdf' }).catch(() => {}); await downloadSheetPdf(PRINT_ID, 'cash-sessions.pdf'); })}
+              className="btn-secondary no-print h-10 gap-1.5 px-3 text-xs disabled:cursor-not-allowed disabled:opacity-60"
+              onClick={handleDownloadPdf}
               disabled={downloadingPdf}
             >
               {downloadingPdf ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
               {t('purchaseReceive.downloadPdf')}
+              {shortcutBadge(CASH_SESSIONS_SHORTCUTS.pdf)}
             </button>
-            <button type="button" className="btn-secondary py-1.5 text-xs" onClick={handleExportExcel}>
+            <button type="button" className="btn-secondary no-print h-10 gap-1.5 px-3 text-xs" onClick={handleExportExcel}>
               <FileSpreadsheet size={14} />
               {t('common.exportExcel')}
+              {shortcutBadge(CASH_SESSIONS_SHORTCUTS.excel)}
             </button>
             <button
               type="button"
-              className="btn-secondary py-1.5 text-xs"
-              onClick={() => { inventoryApi.recordPrint({ entityType: 'cash_sessions', entityId: null, label: 'print' }).catch(() => {}); window.print(); }}
+              className="btn-secondary no-print h-10 gap-1.5 px-3 text-xs"
+              onClick={handlePrint}
             >
               <Printer size={14} />
               {t('common.print')}
+              {shortcutBadge(CASH_SESSIONS_SHORTCUTS.print)}
             </button>
-          </div>
-        </div>
-
-        <div className="border-b border-slate-100 p-5 no-print">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex flex-wrap gap-3 text-sm font-bold">
-              <span className="muted-chip">{formatNumber(vm.total)} {t('cashSessions.sessionCount')}</span>
-              <span className="muted-chip">{formatNumber(totals.cashSalesCount)} {t('cashSessions.salesCountLabel')}</span>
-              <span className="muted-chip">{formatCurrency(totals.cashSalesAmount)} {t('cashSessions.totalSalesLabel')}</span>
-              {totals.variance !== 0 ? (
-                <span className={`muted-chip ${totals.variance > 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
-                  {varianceLabel(totals.variance)} {t('cashSessions.netVariance')}
-                </span>
-              ) : null}
-            </div>
-            <div className="flex gap-2">
-              <DatePickerField value={vm.dateFrom} onChange={vm.setDateFrom} placeholder={t('purchaseReceive.dateFrom')} />
-              <DatePickerField value={vm.dateTo} onChange={vm.setDateTo} placeholder={t('purchaseReceive.dateTo')} min={vm.dateFrom} />
-            </div>
           </div>
         </div>
 

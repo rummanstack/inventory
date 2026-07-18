@@ -1,14 +1,22 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Download, FileSpreadsheet, Loader2, Pencil, Plus, Printer, Trash2, Wallet } from 'lucide-react';
 import { Alert, CopyableText, EmptyState, MobileCardList, MobileListCard, Pagination, SectionHeader, TableSkeleton, Select } from '../../../../components/ui.jsx';
-import { DatePickerField } from '../../../../components/DatePicker.jsx';
+import { DateRangePickerField } from '../../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../../services/printService.js';
 import { inventoryApi } from '../../../../services/inventoryApi.js';
-import { formatCurrency, formatDate, formatDateTime, formatNumber } from '../../../../utils/calculations.js';
+import { formatCurrency, formatDateTime } from '../../../../utils/calculations.js';
 import CustomerPaymentFormModal from '../components/CustomerPaymentFormModal';
 import { useDueCollectionViewModel } from '../viewmodels/useDueCollectionViewModel';
 import { useAsyncAction } from '../../../../hooks/useAsyncAction.js';
+
+const DUE_COLLECTION_PRINT_ID = 'due-collection-print';
+const DUE_COLLECTION_SHORTCUTS = {
+  add: { alt: true, key: 'a', label: 'Alt+A' },
+  pdf: { alt: true, key: 'd', label: 'Alt+D' },
+  excel: { alt: true, key: 'e', label: 'Alt+E' },
+  print: { alt: true, key: 'p', label: 'Alt+P' },
+};
 
 export default function DueCollectionPage() {
   const { saveCustomerPayment, deleteCustomerPayment, t, can, retailCustomerDirectory, language } = useInventoryApp();
@@ -36,58 +44,102 @@ export default function DueCollectionPage() {
     writeFile(wb, `due-collection-report.xlsx`);
   }
 
+  async function handleDownloadPdf() {
+    await downloadPdf(async () => {
+      await inventoryApi.recordPrint({ entityType: 'due_collection', entityId: null, label: 'pdf' }).catch(() => {});
+      await downloadSheetPdf(DUE_COLLECTION_PRINT_ID, `due-collection-report.pdf`);
+    });
+  }
+
+  function handlePrint() {
+    inventoryApi.recordPrint({ entityType: 'due_collection', entityId: null, label: 'print' }).catch(() => {});
+    window.print();
+  }
+
+  function shortcutBadge(shortcut) {
+    return <kbd className="ml-1 rounded border border-slate-300 bg-white/70 px-1 py-0.5 font-mono text-[10px] text-slate-500">{shortcut.label}</kbd>;
+  }
+
+  function matchesShortcut(event, shortcut) {
+    return (
+      event.key.toLowerCase() === shortcut.key &&
+      Boolean(event.altKey) === Boolean(shortcut.alt) &&
+      Boolean(event.shiftKey) === Boolean(shortcut.shift) &&
+      Boolean(event.ctrlKey || event.metaKey) === Boolean(shortcut.ctrlOrMeta)
+    );
+  }
+
+  useEffect(() => {
+    function handleKeyDown(event) {
+      if (matchesShortcut(event, DUE_COLLECTION_SHORTCUTS.add) && canManageRetailers && !formModal) {
+        event.preventDefault();
+        setFormModal({ mode: 'add' });
+      } else if (matchesShortcut(event, DUE_COLLECTION_SHORTCUTS.pdf) && !downloadingPdf) {
+        event.preventDefault();
+        handleDownloadPdf();
+      } else if (matchesShortcut(event, DUE_COLLECTION_SHORTCUTS.excel)) {
+        event.preventDefault();
+        handleExportExcel();
+      } else if (matchesShortcut(event, DUE_COLLECTION_SHORTCUTS.print)) {
+        event.preventDefault();
+        handlePrint();
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [downloadingPdf, canManageRetailers, formModal, vm.customerId, vm.dateFrom, vm.dateTo, t]);
+
   return (
     <div>
       <SectionHeader
-        eyebrow={t('retailer.dueCollection.eyebrow')}
         title={t('retailer.dueCollection.title')}
-        description={t('retailer.dueCollection.description')}
+        compact
         action={canManageRetailers ? (
           <button type="button" className="btn-primary" onClick={() => setFormModal({ mode: 'add' })}>
             <Plus size={18} />
             {t('retailer.dueCollection.add')}
+            <kbd className="ml-1 rounded border border-indigo-400/40 bg-indigo-500/20 px-1 py-0.5 font-mono text-[10px] text-indigo-200">Alt+A</kbd>
           </button>
         ) : null}
       />
 
-      <div id="due-collection-print" className="surface overflow-hidden print-target">
-        <div className="border-b border-slate-100 p-5">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">{t('retailer.dueCollection.eyebrow')}</p>
-            <div className="flex flex-wrap items-center gap-2 text-sm font-bold">
-              <span className="muted-chip">{formatNumber(vm.total, language)} {t('retailer.dueCollection.paymentCount')}</span>
-              <button
-                type="button"
-                className="btn-secondary no-print py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-60"
-                onClick={() => downloadPdf(async () => { await inventoryApi.recordPrint({ entityType: 'due_collection', entityId: null, label: 'pdf' }).catch(() => {}); await downloadSheetPdf('due-collection-print', `due-collection-report.pdf`); })}
-                disabled={downloadingPdf}
-              >
-                {downloadingPdf ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
-                {t('purchaseReceive.downloadPdf')}
-              </button>
-              <button type="button" className="btn-secondary no-print py-1.5 text-xs" onClick={handleExportExcel}>
-                <FileSpreadsheet size={14} />
-                {t('common.exportExcel')}
-              </button>
-              <button
-                type="button"
-                className="btn-secondary no-print py-1.5 text-xs"
-                onClick={() => { inventoryApi.recordPrint({ entityType: 'due_collection', entityId: null, label: 'print' }).catch(() => {}); window.print(); }}
-              >
-                <Printer size={14} />
-                {t('common.print')}
-              </button>
-            </div>
-          </div>
-          <div className="mt-4 grid gap-3 sm:grid-cols-3">
-            <Select className="input" value={vm.customerId} onChange={(event) => vm.setCustomerId(event.target.value)}>
-              <option value="">{t('retailer.shared.allCustomers')}</option>
-              {retailCustomerDirectory.map((customer) => (
-                <option key={customer.id} value={customer.id}>{customer.name}</option>
-              ))}
-            </Select>
-            <DatePickerField value={vm.dateFrom} onChange={vm.setDateFrom} placeholder={t('supplierPayments.dateFrom')} />
-            <DatePickerField value={vm.dateTo} onChange={vm.setDateTo} placeholder={t('supplierPayments.dateTo')} min={vm.dateFrom} />
+      <div id={DUE_COLLECTION_PRINT_ID} className="surface overflow-hidden print-target">
+        <div className="flex flex-col gap-3 border-b border-slate-100 p-5 sm:flex-row sm:flex-wrap sm:items-center">
+          <Select className="input w-full sm:w-56" value={vm.customerId} onChange={(event) => vm.setCustomerId(event.target.value)}>
+            <option value="">{t('retailer.shared.allCustomers')}</option>
+            {retailCustomerDirectory.map((customer) => (
+              <option key={customer.id} value={customer.id}>{customer.name}</option>
+            ))}
+          </Select>
+          <DateRangePickerField
+            from={vm.dateFrom}
+            to={vm.dateTo}
+            onChange={(from, to) => { vm.setDateFrom(from); vm.setDateTo(to); }}
+            placeholder={`${t('supplierPayments.dateFrom')} - ${t('supplierPayments.dateTo')}`}
+            className="w-full min-w-[260px] sm:w-auto"
+          />
+          <div className="flex flex-wrap items-center gap-2 text-sm font-bold sm:ml-auto">
+            <button
+              type="button"
+              className="btn-secondary no-print h-10 gap-1.5 px-3 text-xs disabled:cursor-not-allowed disabled:opacity-60"
+              onClick={handleDownloadPdf}
+              disabled={downloadingPdf}
+            >
+              {downloadingPdf ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
+              {t('purchaseReceive.downloadPdf')}
+              {shortcutBadge(DUE_COLLECTION_SHORTCUTS.pdf)}
+            </button>
+            <button type="button" className="btn-secondary no-print h-10 gap-1.5 px-3 text-xs" onClick={handleExportExcel}>
+              <FileSpreadsheet size={14} />
+              {t('common.exportExcel')}
+              {shortcutBadge(DUE_COLLECTION_SHORTCUTS.excel)}
+            </button>
+            <button type="button" className="btn-secondary no-print h-10 gap-1.5 px-3 text-xs" onClick={handlePrint}>
+              <Printer size={14} />
+              {t('common.print')}
+              {shortcutBadge(DUE_COLLECTION_SHORTCUTS.print)}
+            </button>
           </div>
         </div>
         {vm.loading ? (
@@ -171,7 +223,7 @@ export default function DueCollectionPage() {
           </div>
         ) : null}
         {!vm.loading && !vm.error && vm.items.length ? (
-          <div className="border-t border-slate-100 px-5 py-4">
+          <div className="border-t border-slate-100 px-5 py-4 no-print">
             <Pagination page={vm.page} totalPages={vm.totalPages} onPageChange={vm.setPage} />
           </div>
         ) : null}

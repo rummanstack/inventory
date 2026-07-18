@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { AlertTriangle, CheckCircle2, Clock, LayoutGrid, Package, Pencil, Plus, Search, ShieldAlert, Table2, Trash2, Wrench } from 'lucide-react';
 import { Alert, Badge, CopyableText, EmptyState, MobileCardList, MobileListCard, Pagination, SectionHeader, TableSkeleton, Select } from '../../../components/ui.jsx';
 import TableReportActions from '../../../components/TableReportActions.jsx';
-import { DatePickerField } from '../../../components/DatePicker.jsx';
+import { DateRangePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import { useTenantApiQuery } from '../../../queries/useTenantApiQuery.js';
@@ -14,6 +14,22 @@ import { useRepairJobsViewModel } from '../viewmodels/useRepairJobsViewModel';
 
 const JOB_STATUS_VALUES = ['RECEIVED', 'DIAGNOSING', 'AWAITING_PARTS', 'IN_REPAIR', 'READY', 'DELIVERED', 'CANCELLED'];
 const REPAIR_JOBS_REPORT_ID = 'repair-jobs-report';
+const REPAIR_JOBS_REPORT_SHORTCUTS = {
+  pdf: { alt: true, key: 'd', label: 'Alt+D' },
+  excel: { alt: true, key: 'e', label: 'Alt+E' },
+  csv: { alt: true, key: 'c', label: 'Alt+C' },
+  print: { alt: true, key: 'p', label: 'Alt+P' },
+};
+const REPAIR_JOBS_ADD_SHORTCUT = { alt: true, key: 'a', label: 'Alt+A' };
+
+function matchesShortcut(event, shortcut) {
+  return (
+    event.key.toLowerCase() === shortcut.key &&
+    Boolean(event.altKey) === Boolean(shortcut.alt) &&
+    Boolean(event.shiftKey) === Boolean(shortcut.shift) &&
+    Boolean(event.ctrlKey || event.metaKey) === Boolean(shortcut.ctrlOrMeta)
+  );
+}
 
 const BOARD_COLUMNS = [
   { status: 'RECEIVED',       icon: Package,      accent: '#94a3b8', bg: 'bg-slate-50/80',   border: 'border-slate-200'  },
@@ -199,6 +215,18 @@ export default function RepairJobsPage() {
     if (boardQuery.data) setBoardJobs(boardQuery.data.items || []);
   }, [boardQuery.data]);
 
+  useEffect(() => {
+    function handleKeyDown(event) {
+      if (matchesShortcut(event, REPAIR_JOBS_ADD_SHORTCUT) && canManage && !formModal && !escalateModal) {
+        event.preventDefault();
+        setFormModal({ mode: 'add' });
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [canManage, formModal, escalateModal]);
+
   async function handleSave(value) {
     const result = await saveRepairJob(value);
     if (result.ok) {
@@ -245,9 +273,8 @@ export default function RepairJobsPage() {
   return (
     <div>
       <SectionHeader
-        eyebrow={t('repairJobs.eyebrow')}
         title={t('repairJobs.title')}
-        description={t('repairJobs.description')}
+        compact
         action={
           <div className="flex items-center gap-2">
             <div className="flex rounded-xl border border-slate-200 bg-slate-50 p-0.5">
@@ -270,6 +297,7 @@ export default function RepairJobsPage() {
               <button type="button" className="btn-primary" onClick={() => setFormModal({ mode: 'add' })}>
                 <Plus size={18} />
                 {t('repairJobs.add')}
+                <kbd className="ml-1 rounded border border-indigo-400/40 bg-indigo-500/20 px-1 py-0.5 font-mono text-[10px] text-indigo-200">Alt+A</kbd>
               </button>
             ) : null}
           </div>
@@ -408,35 +436,35 @@ export default function RepairJobsPage() {
       {/* ── TABLE VIEW ── */}
       {viewMode === 'table' ? (
         <div id={REPAIR_JOBS_REPORT_ID} className="surface mt-4 overflow-hidden">
-          <div className="border-b border-slate-100 p-5">
-            <div className="mb-3 flex flex-wrap items-center justify-between gap-3 no-print">
-              <span className="text-sm font-bold text-slate-700">{t('repairJobs.title')}</span>
-              <TableReportActions targetId={REPAIR_JOBS_REPORT_ID} title={t('repairJobs.title')} fileName="repair-jobs" entityType="repair_jobs" t={t} />
+          <div className="flex flex-col gap-3 border-b border-slate-100 p-5 sm:flex-row sm:flex-wrap sm:items-center">
+            <div className="relative w-full flex-1 sm:min-w-[200px]">
+              <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+              <input
+                className="input pl-10"
+                value={vm.search}
+                onChange={(e) => vm.setSearch(e.target.value)}
+                placeholder={t('repairJobs.searchPlaceholder')}
+              />
             </div>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-              <div className="relative">
-                <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                <input
-                  className="input pl-10"
-                  value={vm.search}
-                  onChange={(e) => vm.setSearch(e.target.value)}
-                  placeholder={t('repairJobs.searchPlaceholder')}
-                />
-              </div>
-              <Select className="input" value={vm.status} onChange={(e) => vm.setStatus(e.target.value)}>
-                <option value="">{t('repairJobs.allStatuses')}</option>
-                {JOB_STATUS_VALUES.map((s) => (
-                  <option key={s} value={s}>{t(`repairJobs.statuses.${s}`)}</option>
-                ))}
-              </Select>
-              <Select className="input" value={vm.technicianId} onChange={(e) => vm.setTechnicianId(e.target.value)}>
-                <option value="">{t('repairJobs.allTechnicians')}</option>
-                {technicians.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
-              </Select>
-              <div className="grid grid-cols-2 gap-2 lg:col-span-2">
-                <DatePickerField value={vm.dateFrom} onChange={vm.setDateFrom} />
-                <DatePickerField value={vm.dateTo} onChange={vm.setDateTo} min={vm.dateFrom} />
-              </div>
+            <Select className="input w-full sm:w-44" value={vm.status} onChange={(e) => vm.setStatus(e.target.value)}>
+              <option value="">{t('repairJobs.allStatuses')}</option>
+              {JOB_STATUS_VALUES.map((s) => (
+                <option key={s} value={s}>{t(`repairJobs.statuses.${s}`)}</option>
+              ))}
+            </Select>
+            <Select className="input w-full sm:w-44" value={vm.technicianId} onChange={(e) => vm.setTechnicianId(e.target.value)}>
+              <option value="">{t('repairJobs.allTechnicians')}</option>
+              {technicians.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
+            </Select>
+            <DateRangePickerField
+              from={vm.dateFrom}
+              to={vm.dateTo}
+              onChange={(from, to) => { vm.setDateFrom(from); vm.setDateTo(to); }}
+              placeholder={`${t('purchaseReceive.dateFrom')} - ${t('purchaseReceive.dateTo')}`}
+              className="w-full min-w-[260px] sm:w-auto"
+            />
+            <div className="sm:ml-auto">
+              <TableReportActions targetId={REPAIR_JOBS_REPORT_ID} title={t('repairJobs.title')} fileName="repair-jobs" entityType="repair_jobs" t={t} shortcuts={REPAIR_JOBS_REPORT_SHORTCUTS} />
             </div>
           </div>
 
@@ -514,7 +542,7 @@ export default function RepairJobsPage() {
                   </tbody>
                 </table>
               </div>
-              <div className="border-t border-slate-100 px-5 py-4">
+              <div className="border-t border-slate-100 px-5 py-4 no-print">
                 <Pagination page={vm.page} totalPages={vm.totalPages} onPageChange={vm.setPage} />
               </div>
             </>

@@ -27,6 +27,22 @@ const SALE_TYPE_OPTIONS = [
 ];
 
 const RETAIL_PROMOTIONS_REPORT_ID = 'retail-promotions-report';
+const RETAIL_PROMOTIONS_REPORT_SHORTCUTS = {
+  pdf: { alt: true, key: 'd', label: 'Alt+D' },
+  excel: { alt: true, key: 'e', label: 'Alt+E' },
+  csv: { alt: true, key: 'c', label: 'Alt+C' },
+  print: { alt: true, key: 'p', label: 'Alt+P' },
+};
+const RETAIL_PROMOTIONS_ADD_SHORTCUT = { alt: true, key: 'a', label: 'Alt+A' };
+
+function matchesShortcut(event, shortcut) {
+  return (
+    event.key.toLowerCase() === shortcut.key &&
+    Boolean(event.altKey) === Boolean(shortcut.alt) &&
+    Boolean(event.shiftKey) === Boolean(shortcut.shift) &&
+    Boolean(event.ctrlKey || event.metaKey) === Boolean(shortcut.ctrlOrMeta)
+  );
+}
 
 function PromotionFormModal({ promotion, products, categories, onClose, onSave }) {
   const { t } = useInventoryApp();
@@ -252,6 +268,18 @@ export default function RetailPromotionsPage() {
     return result;
   }
 
+  useEffect(() => {
+    function handleKeyDown(event) {
+      if (matchesShortcut(event, RETAIL_PROMOTIONS_ADD_SHORTCUT) && canManageRetailers && !promotionModal) {
+        event.preventDefault();
+        setPromotionModal({ mode: 'add' });
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [canManageRetailers, promotionModal]);
+
   function promotionTargetName(promotion) {
     if (promotion.targetType === 'PRODUCT') {
       return productDirectory.find((product) => product.id === promotion.targetId)?.name || promotion.targetId || '-';
@@ -265,31 +293,25 @@ export default function RetailPromotionsPage() {
   return (
     <div>
       <SectionHeader
-        eyebrow={t('retailer.promotions.eyebrow')}
         title={t('retailer.promotions.title')}
-        description={t('retailer.promotions.description')}
+        compact
         action={canManageRetailers ? (
           <button type="button" className="btn-primary" onClick={() => setPromotionModal({ mode: 'add' })}>
             <Plus size={18} />
             {t('retailer.promotions.add')}
+            <kbd className="ml-1 rounded border border-indigo-400/40 bg-indigo-500/20 px-1 py-0.5 font-mono text-[10px] text-indigo-200">Alt+A</kbd>
           </button>
         ) : null}
       />
 
       <div id={RETAIL_PROMOTIONS_REPORT_ID} className="surface overflow-hidden">
         <div className="border-b border-slate-100 p-5">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">{t('retailer.promotions.eyebrow')}</p>
-            <div className="flex flex-wrap items-center justify-end gap-2 text-sm font-bold">
-              <span className="muted-chip">{filteredPromotions.length} {t('retailer.promotions.count')}</span>
-              <TableReportActions targetId={RETAIL_PROMOTIONS_REPORT_ID} title={t('retailer.promotions.title')} fileName="retail-promotions" entityType="retail_promotions" t={t} />
-            </div>
-          </div>
-          <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="relative max-w-md flex-1">
               <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
               <input className="input pl-10" value={search} onChange={(event) => setSearch(event.target.value)} placeholder={t('retailer.promotions.searchPlaceholder')} />
             </div>
+            <TableReportActions targetId={RETAIL_PROMOTIONS_REPORT_ID} title={t('retailer.promotions.title')} fileName="retail-promotions" entityType="retail_promotions" t={t} shortcuts={RETAIL_PROMOTIONS_REPORT_SHORTCUTS} />
           </div>
         </div>
 

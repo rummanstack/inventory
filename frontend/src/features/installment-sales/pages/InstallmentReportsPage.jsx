@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import { Alert, Badge, EmptyState, MobileCardList, MobileListCard, SectionHeader, Select, TableSkeleton } from '../../../components/ui.jsx';
-import { DatePickerField } from '../../../components/DatePicker.jsx';
+import { useEffect, useState } from 'react';
+import { Alert, Badge, EmptyState, MobileCardList, MobileListCard, SectionHeader, Select, TableSkeleton, cx } from '../../../components/ui.jsx';
+import { DateRangePickerField } from '../../../components/DatePicker.jsx';
 import { FileText } from 'lucide-react';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { formatCurrency, formatDate } from '../../../utils/calculations.js';
@@ -10,6 +10,7 @@ import { useCollectionReportViewModel } from '../viewmodels/useCollectionReportV
 import { useInstallmentCustomerStatementViewModel } from '../viewmodels/useInstallmentCustomerStatementViewModel.js';
 
 const TABS = ['dueSchedule', 'overdue', 'collection', 'customerStatement'];
+const TAB_SHORTCUTS = ['Alt+1', 'Alt+2', 'Alt+3', 'Alt+4'];
 
 function DueScheduleTab() {
   const { t, language } = useInventoryApp();
@@ -17,16 +18,17 @@ function DueScheduleTab() {
 
   return (
     <div>
-      <div className="surface mb-6 grid items-end gap-4 p-5 sm:grid-cols-[1fr_1fr_auto]">
-        <div>
-          <label className="label">{t('installments.reports.dateFrom')}</label>
-          <DatePickerField value={rr.dateFrom} onChange={rr.setDateFrom} />
+      <div className="surface mb-6 flex flex-wrap items-end gap-4 p-5">
+        <div className="min-w-[280px]">
+          <label className="label">{t('installments.reports.dateFrom')} - {t('installments.reports.dateTo')}</label>
+          <DateRangePickerField
+            from={rr.dateFrom}
+            to={rr.dateTo}
+            onChange={(from, to) => { rr.setDateFrom(from); rr.setDateTo(to); }}
+            placeholder={`${t('installments.reports.dateFrom')} - ${t('installments.reports.dateTo')}`}
+          />
         </div>
-        <div>
-          <label className="label">{t('installments.reports.dateTo')}</label>
-          <DatePickerField value={rr.dateTo} onChange={rr.setDateTo} min={rr.dateFrom} />
-        </div>
-        <button type="button" className="btn-primary" onClick={rr.applyRange} disabled={rr.loading}>
+        <button type="button" className="btn-primary shrink-0" onClick={rr.applyRange} disabled={rr.loading}>
           {t('installments.reports.generate')}
         </button>
       </div>
@@ -179,16 +181,17 @@ function CollectionTab() {
 
   return (
     <div>
-      <div className="surface mb-6 grid items-end gap-4 p-5 sm:grid-cols-[1fr_1fr_auto]">
-        <div>
-          <label className="label">{t('installments.reports.dateFrom')}</label>
-          <DatePickerField value={rr.dateFrom} onChange={rr.setDateFrom} />
+      <div className="surface mb-6 flex flex-wrap items-end gap-4 p-5">
+        <div className="min-w-[280px]">
+          <label className="label">{t('installments.reports.dateFrom')} - {t('installments.reports.dateTo')}</label>
+          <DateRangePickerField
+            from={rr.dateFrom}
+            to={rr.dateTo}
+            onChange={(from, to) => { rr.setDateFrom(from); rr.setDateTo(to); }}
+            placeholder={`${t('installments.reports.dateFrom')} - ${t('installments.reports.dateTo')}`}
+          />
         </div>
-        <div>
-          <label className="label">{t('installments.reports.dateTo')}</label>
-          <DatePickerField value={rr.dateTo} onChange={rr.setDateTo} min={rr.dateFrom} />
-        </div>
-        <button type="button" className="btn-primary" onClick={rr.applyRange} disabled={rr.loading}>
+        <button type="button" className="btn-primary shrink-0" onClick={rr.applyRange} disabled={rr.loading}>
           {t('installments.reports.generate')}
         </button>
       </div>
@@ -322,21 +325,46 @@ export default function InstallmentReportsPage() {
   const { t } = useInventoryApp();
   const [activeTab, setActiveTab] = useState('dueSchedule');
 
+  useEffect(() => {
+    function handleKeyDown(event) {
+      const isShortcut = event.altKey && !event.ctrlKey && !event.metaKey;
+      if (!isShortcut) return;
+      const index = Number(event.key) - 1;
+      if (index >= 0 && index < TABS.length) {
+        event.preventDefault();
+        setActiveTab(TABS[index]);
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   return (
     <div>
-      <SectionHeader eyebrow={t('installments.reports.eyebrow')} title={t('installments.reports.title')} />
+      <SectionHeader title={t('installments.reports.title')} compact />
 
-      <div className="mb-6 flex flex-wrap gap-2 border-b border-slate-100">
-        {TABS.map((tab) => (
-          <button
-            key={tab}
-            type="button"
-            className={`border-b-2 px-3 py-2 text-sm font-semibold transition ${activeTab === tab ? 'border-brand text-brand' : 'border-transparent text-slate-500 hover:text-slate-800'}`}
-            onClick={() => setActiveTab(tab)}
-          >
-            {t(`installments.reports.tabs.${tab}`)}
-          </button>
-        ))}
+      <div className="no-print mb-4 overflow-x-auto">
+        <div className="inline-flex min-w-full gap-1 rounded-lg border border-slate-200 bg-slate-50 p-1 sm:min-w-0">
+          {TABS.map((tab, index) => {
+            const selected = activeTab === tab;
+            return (
+              <button
+                key={tab}
+                type="button"
+                className={cx(
+                  'flex min-h-10 flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-md px-3 text-sm font-bold transition sm:flex-none',
+                  selected ? 'border border-indigo-200 bg-indigo-50 text-indigo-800 shadow-sm ring-2 ring-indigo-100' : 'border border-transparent text-slate-500 hover:bg-white/70 hover:text-slate-800',
+                )}
+                aria-pressed={selected}
+                onClick={() => setActiveTab(tab)}
+              >
+                {t(`installments.reports.tabs.${tab}`)}
+                <kbd className={cx('rounded border px-1.5 py-0.5 text-[10px] font-black', selected ? 'border-indigo-200 bg-white text-indigo-700' : 'border-slate-200 bg-white text-slate-400')}>{TAB_SHORTCUTS[index]}</kbd>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {activeTab === 'dueSchedule' ? <DueScheduleTab /> : null}

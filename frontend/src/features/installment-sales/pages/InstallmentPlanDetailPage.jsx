@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Download, HandCoins, Loader2, Plus } from 'lucide-react';
-import { Alert, Badge, PageLoadingState, SectionHeader } from '../../../components/ui.jsx';
+import { Alert, Badge, PageLoadingState, SectionHeader, cx } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { useAsyncAction } from '../../../hooks/useAsyncAction.js';
 import { useInstallmentPlanDetailViewModel } from '../viewmodels/useInstallmentPlanDetailViewModel.js';
@@ -25,6 +25,18 @@ const STATUS_TONES = {
 };
 
 const TABS = ['overview', 'schedule', 'payments', 'guarantors', 'documents'];
+const TAB_SHORTCUTS = ['Alt+1', 'Alt+2', 'Alt+3', 'Alt+4', 'Alt+5'];
+const COLLECT_PAYMENT_SHORTCUT = { alt: true, key: 'a', label: 'Alt+A' };
+const DOWNLOAD_AGREEMENT_SHORTCUT = { alt: true, key: 'd', label: 'Alt+D' };
+
+function matchesShortcut(event, shortcut) {
+  return (
+    event.key.toLowerCase() === shortcut.key &&
+    Boolean(event.altKey) === Boolean(shortcut.alt) &&
+    Boolean(event.shiftKey) === Boolean(shortcut.shift) &&
+    Boolean(event.ctrlKey || event.metaKey) === Boolean(shortcut.ctrlOrMeta)
+  );
+}
 
 export default function InstallmentPlanDetailPage() {
   const { id } = useParams();
@@ -49,6 +61,29 @@ export default function InstallmentPlanDetailPage() {
   const canReschedule = can('reschedule_installment_plan');
   const canCancel = can('cancel_installment_plan');
   const canWriteOff = can('write_off_installment_plan');
+  const planIsActive = data?.plan?.status === 'ACTIVE';
+
+  useEffect(() => {
+    function handleKeyDown(event) {
+      const isTabShortcut = event.altKey && !event.ctrlKey && !event.metaKey;
+      const index = isTabShortcut ? Number(event.key) - 1 : -1;
+      if (isTabShortcut && index >= 0 && index < TABS.length) {
+        event.preventDefault();
+        setActiveTab(TABS[index]);
+        return;
+      }
+      if (matchesShortcut(event, COLLECT_PAYMENT_SHORTCUT) && canCollect && planIsActive && !paymentModalOpen) {
+        event.preventDefault();
+        setPaymentModalOpen(true);
+      } else if (matchesShortcut(event, DOWNLOAD_AGREEMENT_SHORTCUT) && !downloadingPdf && data?.plan) {
+        event.preventDefault();
+        downloadPdf(() => downloadInstallmentAgreementPdf(data.plan.id));
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [canCollect, planIsActive, paymentModalOpen, downloadingPdf, data, downloadPdf, downloadInstallmentAgreementPdf]);
 
   if (loading) {
     return <PageLoadingState title={t('installments.detail.loading')} />;
@@ -68,20 +103,21 @@ export default function InstallmentPlanDetailPage() {
       </button>
 
       <SectionHeader
-        eyebrow={t('installments.plans.eyebrow')}
+        compact
         title={(
-          <span className="inline-flex items-center gap-2">
+          <span className="inline-flex flex-wrap items-center gap-2">
             {plan.planNumber}
+            {plan.customerName ? <span className="font-medium text-slate-400">· {plan.customerName}</span> : null}
             <Badge tone={STATUS_TONES[plan.status] || 'slate'}>{t(`installments.plans.status.${plan.status}`)}</Badge>
           </span>
         )}
-        description={plan.customerName}
         action={(
           <div className="flex flex-wrap gap-2">
             {canCollect && isActive ? (
               <button type="button" className="btn-primary" onClick={() => setPaymentModalOpen(true)}>
                 <HandCoins size={16} />
                 {t('installments.plans.collectPayment')}
+                <kbd className="ml-1 rounded border border-indigo-400/40 bg-indigo-500/20 px-1 py-0.5 font-mono text-[10px] text-indigo-200">Alt+A</kbd>
               </button>
             ) : null}
             {canReschedule && isActive ? (
@@ -112,22 +148,33 @@ export default function InstallmentPlanDetailPage() {
             >
               {downloadingPdf ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
               {t('installments.detail.downloadAgreement')}
+              <kbd className="ml-1 rounded border border-slate-300 bg-white/70 px-1 py-0.5 font-mono text-[10px] text-slate-500">Alt+D</kbd>
             </button>
           </div>
         )}
       />
 
-      <div className="mb-4 flex flex-wrap gap-2 border-b border-slate-100">
-        {TABS.map((tab) => (
-          <button
-            key={tab}
-            type="button"
-            className={`border-b-2 px-3 py-2 text-sm font-semibold transition ${activeTab === tab ? 'border-brand text-brand' : 'border-transparent text-slate-500 hover:text-slate-800'}`}
-            onClick={() => setActiveTab(tab)}
-          >
-            {t(`installments.detail.tabs.${tab}`)}
-          </button>
-        ))}
+      <div className="no-print mb-4 overflow-x-auto">
+        <div className="inline-flex min-w-full gap-1 rounded-lg border border-slate-200 bg-slate-50 p-1 sm:min-w-0">
+          {TABS.map((tab, index) => {
+            const selected = activeTab === tab;
+            return (
+              <button
+                key={tab}
+                type="button"
+                className={cx(
+                  'flex min-h-10 flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-md px-3 text-sm font-bold transition sm:flex-none',
+                  selected ? 'border border-indigo-200 bg-indigo-50 text-indigo-800 shadow-sm ring-2 ring-indigo-100' : 'border border-transparent text-slate-500 hover:bg-white/70 hover:text-slate-800',
+                )}
+                aria-pressed={selected}
+                onClick={() => setActiveTab(tab)}
+              >
+                {t(`installments.detail.tabs.${tab}`)}
+                <kbd className={cx('rounded border px-1.5 py-0.5 text-[10px] font-black', selected ? 'border-indigo-200 bg-white text-indigo-700' : 'border-slate-200 bg-white text-slate-400')}>{TAB_SHORTCUTS[index]}</kbd>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {activeTab === 'overview' ? (

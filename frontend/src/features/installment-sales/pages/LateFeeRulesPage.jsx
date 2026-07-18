@@ -1,10 +1,21 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Gift, Pencil, Plus } from 'lucide-react';
 import { Alert, Badge, EmptyState, MobileCardList, MobileListCard, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { formatCurrency } from '../../../utils/calculations.js';
 import { useLateFeeRulesViewModel } from '../viewmodels/useLateFeeRulesViewModel.js';
 import LateFeeRuleFormModal from '../components/LateFeeRuleFormModal.jsx';
+
+const LATE_FEE_RULES_ADD_SHORTCUT = { alt: true, key: 'a', label: 'Alt+A' };
+
+function matchesShortcut(event, shortcut) {
+  return (
+    event.key.toLowerCase() === shortcut.key &&
+    Boolean(event.altKey) === Boolean(shortcut.alt) &&
+    Boolean(event.shiftKey) === Boolean(shortcut.shift) &&
+    Boolean(event.ctrlKey || event.metaKey) === Boolean(shortcut.ctrlOrMeta)
+  );
+}
 
 function feeValueSummary(rule, t, language) {
   if (rule.feeType === 'PERCENT') return `${rule.feeValue}%`;
@@ -17,16 +28,28 @@ export default function LateFeeRulesPage() {
   const [ruleModal, setRuleModal] = useState(null);
   const canManage = can('manage_installment_plans');
 
+  useEffect(() => {
+    function handleKeyDown(event) {
+      if (matchesShortcut(event, LATE_FEE_RULES_ADD_SHORTCUT) && canManage && !ruleModal) {
+        event.preventDefault();
+        setRuleModal({ mode: 'add' });
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [canManage, ruleModal]);
+
   return (
     <div>
       <SectionHeader
-        eyebrow={t('installments.lateFeeRules.eyebrow')}
         title={t('installments.lateFeeRules.title')}
-        description={t('installments.lateFeeRules.description')}
+        compact
         action={canManage ? (
           <button type="button" className="btn-primary" onClick={() => setRuleModal({ mode: 'add' })}>
             <Plus size={18} />
             {t('installments.lateFeeRules.add')}
+            <kbd className="ml-1 rounded border border-indigo-400/40 bg-indigo-500/20 px-1 py-0.5 font-mono text-[10px] text-indigo-200">Alt+A</kbd>
           </button>
         ) : null}
       />

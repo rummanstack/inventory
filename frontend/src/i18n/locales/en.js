@@ -1766,7 +1766,7 @@ const en = {
       retention: {
         title: 'Loyalty & Retention',
         description: 'See repeat buyers, inactive customers, and loyalty opportunities.',
-        inactiveDaysOption: '{count} day inactivity',
+        sinceLabel: 'Inactive since',
         emptyTitle: 'No customer data yet',
         emptyDescription: 'Customer repeat and retention insights will appear after sales are recorded.',
         totalCustomers: 'Total Customers',
@@ -2821,6 +2821,7 @@ const en = {
       },
       quickSale: {
         eyebrow: 'Retailer',
+        title: 'Quick Sale',
         description: 'Create a fast counter sale for a walk-in or registered customer.',
         save: 'Complete Sale',
         lastInvoice: 'Sale completed: invoice {number}.',

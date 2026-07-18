@@ -1,12 +1,12 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Download, FileSpreadsheet, Loader2, Pencil, Plus, Printer, Receipt, Search, Trash2, Wrench } from 'lucide-react';
 import { Alert, Badge, CopyableText, EmptyState, MobileCardList, MobileListCard, Pagination, SectionHeader, TableSkeleton, Select } from '../../../components/ui.jsx';
-import { DatePickerField } from '../../../components/DatePicker.jsx';
+import { DateRangePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import { downloadSheetPdf } from '../../../services/printService.js';
-import { formatDate, formatDateTime, formatNumber } from '../../../utils/calculations.js';
+import { formatDateTime } from '../../../utils/calculations.js';
 import { warrantyClaimStatusTone } from '../../../models/inventoryViewData.js';
 import WarrantyClaimFormModal from '../components/WarrantyClaimFormModal';
 import { useWarrantyClaimsViewModel } from '../viewmodels/useWarrantyClaimsViewModel';
@@ -14,6 +14,12 @@ import { useAsyncAction } from '../../../hooks/useAsyncAction.js';
 
 const STATUS_VALUES = ['RECEIVED', 'SENT_TO_SUPPLIER', 'REPAIRED', 'REPLACED', 'REJECTED', 'DELIVERED'];
 const WARRANTY_CLAIMS_PRINT_ID = 'warranty-claims-print';
+const WARRANTY_CLAIMS_SHORTCUTS = {
+  add: { alt: true, key: 'a', label: 'Alt+A' },
+  pdf: { alt: true, key: 'd', label: 'Alt+D' },
+  excel: { alt: true, key: 'e', label: 'Alt+E' },
+  print: { alt: true, key: 'p', label: 'Alt+P' },
+};
 
 export default function WarrantyClaimsPage() {
   const { saveWarrantyClaim, deleteWarrantyClaim, t, can, productDirectory, supplierDirectory } = useInventoryApp();
@@ -52,84 +58,118 @@ export default function WarrantyClaimsPage() {
     writeFile(wb, 'warranty-claims.xlsx');
   }
 
+  async function handleDownloadPdf() {
+    await downloadPdf(async () => {
+      await inventoryApi.recordPrint({ entityType: 'warranty_claims', entityId: null, label: 'pdf' }).catch(() => {});
+      await downloadSheetPdf(WARRANTY_CLAIMS_PRINT_ID, 'warranty-claims.pdf');
+    });
+  }
+
+  function handlePrint() {
+    inventoryApi.recordPrint({ entityType: 'warranty_claims', entityId: null, label: 'print' }).catch(() => {});
+    window.print();
+  }
+
+  function shortcutBadge(shortcut) {
+    return <kbd className="ml-1 rounded border border-slate-300 bg-white/70 px-1 py-0.5 font-mono text-[10px] text-slate-500">{shortcut.label}</kbd>;
+  }
+
+  function matchesShortcut(event, shortcut) {
+    return (
+      event.key.toLowerCase() === shortcut.key &&
+      Boolean(event.altKey) === Boolean(shortcut.alt) &&
+      Boolean(event.shiftKey) === Boolean(shortcut.shift) &&
+      Boolean(event.ctrlKey || event.metaKey) === Boolean(shortcut.ctrlOrMeta)
+    );
+  }
+
+  useEffect(() => {
+    function handleKeyDown(event) {
+      if (matchesShortcut(event, WARRANTY_CLAIMS_SHORTCUTS.add) && canManage && !formModal) {
+        event.preventDefault();
+        setFormModal({ mode: 'add' });
+      } else if (matchesShortcut(event, WARRANTY_CLAIMS_SHORTCUTS.pdf) && !downloadingPdf) {
+        event.preventDefault();
+        handleDownloadPdf();
+      } else if (matchesShortcut(event, WARRANTY_CLAIMS_SHORTCUTS.excel)) {
+        event.preventDefault();
+        handleExportExcel();
+      } else if (matchesShortcut(event, WARRANTY_CLAIMS_SHORTCUTS.print)) {
+        event.preventDefault();
+        handlePrint();
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [downloadingPdf, canManage, formModal, vm.search, vm.status, vm.productId, vm.supplierId, vm.dateFrom, vm.dateTo, t]);
+
   return (
     <div>
       <SectionHeader
-        eyebrow={t('warrantyClaims.eyebrow')}
         title={t('warrantyClaims.title')}
-        description={t('warrantyClaims.description')}
+        compact
         action={canManage ? (
           <button type="button" className="btn-primary" onClick={() => setFormModal({ mode: 'add' })}>
             <Plus size={18} />
             {t('warrantyClaims.add')}
+            <kbd className="ml-1 rounded border border-indigo-400/40 bg-indigo-500/20 px-1 py-0.5 font-mono text-[10px] text-indigo-200">Alt+A</kbd>
           </button>
         ) : null}
       />
 
       <div id={WARRANTY_CLAIMS_PRINT_ID} className="surface overflow-hidden print-target">
-        <div className="flex items-center justify-between border-b border-slate-100 px-5 py-3 no-print">
-          <span className="text-sm font-bold text-slate-700">{t('warrantyClaims.title')}</span>
-          <div className="flex gap-2">
+        <div className="flex flex-col gap-3 border-b border-slate-100 p-5 sm:flex-row sm:flex-wrap sm:items-center">
+          <div className="relative w-full flex-1 sm:min-w-[200px]">
+            <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+            <input className="input pl-10" value={vm.search} onChange={(event) => vm.setSearch(event.target.value)} placeholder={t('warrantyClaims.searchPlaceholder')} />
+          </div>
+          <Select className="input w-full sm:w-40" value={vm.status} onChange={(event) => vm.setStatus(event.target.value)}>
+            <option value="">{t('warrantyClaims.allStatuses')}</option>
+            {STATUS_VALUES.map((value) => (
+              <option key={value} value={value}>{t(`warrantyClaims.statuses.${value}`)}</option>
+            ))}
+          </Select>
+          <Select className="input w-full sm:w-44" value={vm.productId} onChange={(event) => vm.setProductId(event.target.value)}>
+            <option value="">{t('productSerials.allProducts')}</option>
+            {productDirectory.map((product) => (
+              <option key={product.id} value={product.id}>{product.name}</option>
+            ))}
+          </Select>
+          <Select className="input w-full sm:w-44" value={vm.supplierId} onChange={(event) => vm.setSupplierId(event.target.value)}>
+            <option value="">{t('warrantyClaims.allSuppliers')}</option>
+            {supplierDirectory.map((supplier) => (
+              <option key={supplier.id} value={supplier.id}>{supplier.name}</option>
+            ))}
+          </Select>
+          <DateRangePickerField
+            from={vm.dateFrom}
+            to={vm.dateTo}
+            onChange={(from, to) => { vm.setDateFrom(from); vm.setDateTo(to); }}
+            placeholder={`${t('purchaseReceive.dateFrom')} - ${t('purchaseReceive.dateTo')}`}
+            className="w-full min-w-[260px] sm:w-auto"
+          />
+          <div className="flex flex-wrap items-center gap-2 text-sm font-bold sm:ml-auto">
             <button
               type="button"
-              className="btn-secondary py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-60"
-              onClick={() => downloadPdf(async () => {
-                await inventoryApi.recordPrint({ entityType: 'warranty_claims', entityId: null, label: 'pdf' }).catch(() => {});
-                await downloadSheetPdf(WARRANTY_CLAIMS_PRINT_ID, 'warranty-claims.pdf');
-              })}
+              className="btn-secondary no-print h-10 gap-1.5 px-3 text-xs disabled:cursor-not-allowed disabled:opacity-60"
+              onClick={handleDownloadPdf}
               disabled={downloadingPdf}
             >
               {downloadingPdf ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
               {t('purchaseReceive.downloadPdf')}
+              {shortcutBadge(WARRANTY_CLAIMS_SHORTCUTS.pdf)}
             </button>
-            <button type="button" className="btn-secondary py-1.5 text-xs" onClick={handleExportExcel}>
+            <button type="button" className="btn-secondary no-print h-10 gap-1.5 px-3 text-xs" onClick={handleExportExcel}>
               <FileSpreadsheet size={14} />
               {t('common.exportExcel')}
+              {shortcutBadge(WARRANTY_CLAIMS_SHORTCUTS.excel)}
             </button>
-            <button
-              type="button"
-              className="btn-secondary py-1.5 text-xs"
-              onClick={() => { inventoryApi.recordPrint({ entityType: 'warranty_claims', entityId: null, label: 'print' }).catch(() => {}); window.print(); }}
-            >
+            <button type="button" className="btn-secondary no-print h-10 gap-1.5 px-3 text-xs" onClick={handlePrint}>
               <Printer size={14} />
               {t('common.print')}
+              {shortcutBadge(WARRANTY_CLAIMS_SHORTCUTS.print)}
             </button>
-          </div>
-        </div>
-        <div className="border-b border-slate-100 p-5 no-print">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">{t('warrantyClaims.eyebrow')}</p>
-            <div className="flex flex-wrap gap-2 text-sm font-bold">
-              <span className="muted-chip">{formatNumber(vm.total)} {t('warrantyClaims.claimCount')}</span>
-            </div>
-          </div>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-            <div className="relative">
-              <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-              <input className="input pl-10" value={vm.search} onChange={(event) => vm.setSearch(event.target.value)} placeholder={t('warrantyClaims.searchPlaceholder')} />
-            </div>
-            <Select className="input" value={vm.status} onChange={(event) => vm.setStatus(event.target.value)}>
-              <option value="">{t('warrantyClaims.allStatuses')}</option>
-              {STATUS_VALUES.map((value) => (
-                <option key={value} value={value}>{t(`warrantyClaims.statuses.${value}`)}</option>
-              ))}
-            </Select>
-            <Select className="input" value={vm.productId} onChange={(event) => vm.setProductId(event.target.value)}>
-              <option value="">{t('productSerials.allProducts')}</option>
-              {productDirectory.map((product) => (
-                <option key={product.id} value={product.id}>{product.name}</option>
-              ))}
-            </Select>
-            <Select className="input" value={vm.supplierId} onChange={(event) => vm.setSupplierId(event.target.value)}>
-              <option value="">{t('warrantyClaims.allSuppliers')}</option>
-              {supplierDirectory.map((supplier) => (
-                <option key={supplier.id} value={supplier.id}>{supplier.name}</option>
-              ))}
-            </Select>
-            <div className="grid grid-cols-2 gap-2">
-              <DatePickerField value={vm.dateFrom} onChange={vm.setDateFrom} placeholder={t('purchaseReceive.dateFrom')} />
-              <DatePickerField value={vm.dateTo} onChange={vm.setDateTo} placeholder={t('purchaseReceive.dateTo')} min={vm.dateFrom} />
-            </div>
           </div>
         </div>
         {vm.loading ? (

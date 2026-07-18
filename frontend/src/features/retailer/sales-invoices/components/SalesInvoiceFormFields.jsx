@@ -98,6 +98,18 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, retail
     prevRowCount.current = vm.lineRows.length;
   }, [vm.lineRows.length]);
 
+  // Alt+I — add a new item row
+  useEffect(() => {
+    function handleKeyDown(event) {
+      if (event.key.toLowerCase() === 'i' && event.altKey && productDirectory.length && !saving) {
+        event.preventDefault();
+        vm.addItem();
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [vm.addItem, productDirectory.length, saving]);
+
   function handleProductKeyDown(event, row, filteredProducts) {
     if (event.key === 'ArrowDown') {
       event.preventDefault();
@@ -189,6 +201,7 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, retail
           <button type="button" className="btn-secondary" onClick={vm.addItem} disabled={!productDirectory.length || saving}>
             <Plus size={16} />
             {t('retailer.shared.addItem')}
+            <kbd className="ml-1 rounded border border-slate-300 bg-white/70 px-1 py-0.5 font-mono text-[10px] text-slate-500">Alt+I</kbd>
           </button>
         </div>
         {vm.lineRows.length ? (

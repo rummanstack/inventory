@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CreditCard, HandCoins, Plus } from 'lucide-react';
 import { Alert, Badge, EmptyState, MobileCardList, MobileListCard, Pagination, SectionHeader, TableSkeleton, Select } from '../../../components/ui.jsx';
@@ -9,6 +9,16 @@ import CreatePlanModal from '../components/CreatePlanModal.jsx';
 import CollectPaymentModal from '../components/CollectPaymentModal.jsx';
 
 const STATUSES = ['ACTIVE', 'COMPLETED', 'CANCELLED', 'DEFAULTED', 'WRITTEN_OFF'];
+const INSTALLMENT_PLANS_ADD_SHORTCUT = { alt: true, key: 'a', label: 'Alt+A' };
+
+function matchesShortcut(event, shortcut) {
+  return (
+    event.key.toLowerCase() === shortcut.key &&
+    Boolean(event.altKey) === Boolean(shortcut.alt) &&
+    Boolean(event.shiftKey) === Boolean(shortcut.shift) &&
+    Boolean(event.ctrlKey || event.metaKey) === Boolean(shortcut.ctrlOrMeta)
+  );
+}
 
 const STATUS_TONES = {
   ACTIVE: 'blue',
@@ -27,40 +37,46 @@ export default function InstallmentPlansPage() {
   const canManage = can('manage_installment_plans');
   const canCollect = can('collect_installment_payment');
 
+  useEffect(() => {
+    function handleKeyDown(event) {
+      if (matchesShortcut(event, INSTALLMENT_PLANS_ADD_SHORTCUT) && canManage && !createModalOpen && !paymentPlan) {
+        event.preventDefault();
+        setCreateModalOpen(true);
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [canManage, createModalOpen, paymentPlan]);
+
   return (
     <div>
       <SectionHeader
-        eyebrow={t('installments.plans.eyebrow')}
         title={t('installments.plans.title')}
-        description={t('installments.plans.description')}
+        compact
         action={canManage ? (
           <button type="button" className="btn-primary" onClick={() => setCreateModalOpen(true)}>
             <Plus size={18} />
             {t('installments.plans.add')}
+            <kbd className="ml-1 rounded border border-indigo-400/40 bg-indigo-500/20 px-1 py-0.5 font-mono text-[10px] text-indigo-200">Alt+A</kbd>
           </button>
         ) : null}
       />
 
       <div className="surface overflow-hidden">
-        <div className="border-b border-slate-100 p-5">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">{t('installments.plans.eyebrow')}</p>
-            <span className="muted-chip">{vm.total} {t('installments.plans.count')}</span>
-          </div>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            <Select className="input" value={vm.customerId} onChange={(event) => vm.setCustomerId(event.target.value)}>
-              <option value="">{t('installments.plans.allCustomers')}</option>
-              {retailCustomerDirectory.map((customer) => (
-                <option key={customer.id} value={customer.id}>{customer.name}</option>
-              ))}
-            </Select>
-            <Select className="input" value={vm.status} onChange={(event) => vm.setStatus(event.target.value)}>
-              <option value="">{t('installments.plans.allStatuses')}</option>
-              {STATUSES.map((value) => (
-                <option key={value} value={value}>{t(`installments.plans.status.${value}`)}</option>
-              ))}
-            </Select>
-          </div>
+        <div className="flex flex-col gap-3 border-b border-slate-100 p-5 sm:flex-row sm:items-center">
+          <Select className="input w-full sm:w-56" value={vm.customerId} onChange={(event) => vm.setCustomerId(event.target.value)}>
+            <option value="">{t('installments.plans.allCustomers')}</option>
+            {retailCustomerDirectory.map((customer) => (
+              <option key={customer.id} value={customer.id}>{customer.name}</option>
+            ))}
+          </Select>
+          <Select className="input w-full sm:w-48" value={vm.status} onChange={(event) => vm.setStatus(event.target.value)}>
+            <option value="">{t('installments.plans.allStatuses')}</option>
+            {STATUSES.map((value) => (
+              <option key={value} value={value}>{t(`installments.plans.status.${value}`)}</option>
+            ))}
+          </Select>
         </div>
 
         {vm.loading ? (

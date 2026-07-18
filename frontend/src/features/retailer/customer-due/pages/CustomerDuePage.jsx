@@ -1,13 +1,20 @@
-import { Download, FileSpreadsheet, Loader2, Printer, RefreshCw, Wallet } from 'lucide-react';
-import { Badge, CopyableText, EmptyState, MobileCardList, MobileListCard, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton, Select } from '../../../../components/ui.jsx';
-import { DatePickerField } from '../../../../components/DatePicker.jsx';
+import { useEffect } from 'react';
+import { Download, FileSpreadsheet, Loader2, Printer, Wallet } from 'lucide-react';
+import { Badge, CopyableText, EmptyState, MobileCardList, MobileListCard, SectionHeader, StatCard, TableSkeleton, Select } from '../../../../components/ui.jsx';
+import { DateRangePickerField } from '../../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf, printElementById } from '../../../../services/printService.js';
 import { inventoryApi } from '../../../../services/inventoryApi.js';
-import { formatCurrency, formatDateTime, formatNumber } from '../../../../utils/calculations.js';
+import { formatCurrency, formatDateTime } from '../../../../utils/calculations.js';
 import { useCustomerStatementViewModel } from '../viewmodels/useCustomerStatementViewModel';
 import CustomerDuePrintSheet from '../components/CustomerDuePrintSheet.jsx';
 import { useAsyncAction } from '../../../../hooks/useAsyncAction.js';
+
+const CUSTOMER_DUE_SHORTCUTS = {
+  pdf: { alt: true, key: 'd', label: 'Alt+D' },
+  excel: { alt: true, key: 'e', label: 'Alt+E' },
+  print: { alt: true, key: 'p', label: 'Alt+P' },
+};
 
 function ledgerTone(type) {
   if (type === 'COLLECTION') return 'emerald';
@@ -49,92 +56,107 @@ export default function CustomerDuePage() {
     writeFile(wb, `customer-due-${selectedCustomer?.name || vm.customerId}.xlsx`);
   }
 
+  function handleDownloadPdf() {
+    return downloadPdf(async () => {
+      recordDuePrint('pdf');
+      await downloadSheetPdf(printTargetId, `customer-due-${selectedCustomer?.name || vm.customerId}.pdf`);
+    });
+  }
+
+  function handlePrint() {
+    recordDuePrint('print');
+    printElementById(printTargetId);
+  }
+
+  function shortcutBadge(shortcut) {
+    return <kbd className="ml-1 rounded border border-slate-300 bg-white/70 px-1 py-0.5 font-mono text-[10px] text-slate-500">{shortcut.label}</kbd>;
+  }
+
+  function matchesShortcut(event, shortcut) {
+    return (
+      event.key.toLowerCase() === shortcut.key &&
+      Boolean(event.altKey) === Boolean(shortcut.alt) &&
+      Boolean(event.shiftKey) === Boolean(shortcut.shift) &&
+      Boolean(event.ctrlKey || event.metaKey) === Boolean(shortcut.ctrlOrMeta)
+    );
+  }
+
+  useEffect(() => {
+    function handleKeyDown(event) {
+      if (!vm.statement) return;
+      if (matchesShortcut(event, CUSTOMER_DUE_SHORTCUTS.pdf) && !downloadingPdf) {
+        event.preventDefault();
+        handleDownloadPdf();
+      } else if (matchesShortcut(event, CUSTOMER_DUE_SHORTCUTS.excel)) {
+        event.preventDefault();
+        handleExportExcel();
+      } else if (matchesShortcut(event, CUSTOMER_DUE_SHORTCUTS.print)) {
+        event.preventDefault();
+        handlePrint();
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [downloadingPdf, vm.statement, vm.customerId, entries, t]);
+
   return (
     <div>
-      <SectionHeader
-        eyebrow={t('retailer.customerDue.eyebrow')}
-        title={t('retailer.customerDue.title')}
-        description={t('retailer.customerDue.description')}
-      />
+      <SectionHeader title={t('retailer.customerDue.title')} compact />
 
       <div className="surface p-5">
-        <div className="grid gap-3 sm:grid-cols-4">
-          <Select className="input sm:col-span-2" value={vm.customerId} onChange={(event) => vm.setCustomerId(event.target.value)}>
-            <option value="">{t('retailer.shared.selectCustomer')}</option>
-            {retailCustomerDirectory.map((customer) => (
-              <option key={customer.id} value={customer.id}>{customer.name}</option>
-            ))}
-          </Select>
-          {selectedCustomer ? (
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700">
-              {t('retailCustomers.loyaltyPoints')}: <span className="font-semibold text-slate-950">{formatNumber(selectedCustomer.loyaltyPointsBalance || 0, language)}</span>
-            </div>
-          ) : null}
-          <DatePickerField value={vm.dateFrom} onChange={vm.setDateFrom} placeholder={t('supplierStatement.dateFrom')} />
-          <DatePickerField value={vm.dateTo} onChange={vm.setDateTo} placeholder={t('supplierStatement.dateTo')} min={vm.dateFrom} />
-        </div>
-        <div className="mt-4 flex flex-wrap gap-2">
-          <button type="button" className="btn-secondary" onClick={vm.refresh}>
-            <RefreshCw size={18} />
-            {t('supplierStatement.refresh')}
-          </button>
-          {vm.statement ? (
-            <>
-              <button
-                type="button"
-                className="btn-secondary disabled:cursor-not-allowed disabled:opacity-60"
-                onClick={() => downloadPdf(async () => { recordDuePrint('pdf'); await downloadSheetPdf(printTargetId, `customer-due-${selectedCustomer?.name || vm.customerId}.pdf`); })}
-                disabled={downloadingPdf}
-              >
-                {downloadingPdf ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />}
-                {t('purchaseReceive.downloadPdf')}
-              </button>
-              <button type="button" className="btn-secondary" onClick={handleExportExcel}>
-                <FileSpreadsheet size={18} />
-                {t('common.exportExcel')}
-              </button>
-              <button
-                type="button"
-                className="btn-secondary"
-                onClick={() => { recordDuePrint('print'); printElementById(printTargetId); }}
-              >
-                <Printer size={18} />
-                {t('common.print')}
-              </button>
-            </>
-          ) : null}
+        <div className="flex flex-wrap items-end gap-3">
+          <div className="w-72">
+            <label className="label">{t('retailer.shared.customerLabel')}</label>
+            <Select className="input" value={vm.customerId} onChange={(event) => vm.setCustomerId(event.target.value)}>
+              <option value="">{t('retailer.shared.selectCustomer')}</option>
+              {retailCustomerDirectory.map((customer) => (
+                <option key={customer.id} value={customer.id}>{customer.name}</option>
+              ))}
+            </Select>
+          </div>
+          <div className="min-w-[320px]">
+            <label className="label">{t('supplierStatement.dateRangeLabel')}</label>
+            <DateRangePickerField
+              from={vm.dateFrom}
+              to={vm.dateTo}
+              onChange={(from, to) => { vm.setDateFrom(from); vm.setDateTo(to); }}
+              placeholder={`${t('supplierStatement.dateFrom')} - ${t('supplierStatement.dateTo')}`}
+            />
+          </div>
+          <div className="flex flex-wrap items-center gap-2 text-sm font-bold sm:ml-auto">
+            {vm.statement ? (
+              <>
+                <button
+                  type="button"
+                  className="btn-secondary h-10 gap-1.5 px-3 text-xs disabled:cursor-not-allowed disabled:opacity-60"
+                  onClick={handleDownloadPdf}
+                  disabled={downloadingPdf}
+                >
+                  {downloadingPdf ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
+                  {t('purchaseReceive.downloadPdf')}
+                  {shortcutBadge(CUSTOMER_DUE_SHORTCUTS.pdf)}
+                </button>
+                <button type="button" className="btn-secondary h-10 gap-1.5 px-3 text-xs" onClick={handlePrint}>
+                  <Printer size={14} />
+                  {t('common.print')}
+                  {shortcutBadge(CUSTOMER_DUE_SHORTCUTS.print)}
+                </button>
+                <button type="button" className="btn-secondary h-10 gap-1.5 px-3 text-xs" onClick={handleExportExcel}>
+                  <FileSpreadsheet size={14} />
+                  {t('common.exportExcel')}
+                  {shortcutBadge(CUSTOMER_DUE_SHORTCUTS.excel)}
+                </button>
+              </>
+            ) : null}
+          </div>
         </div>
       </div>
 
       {vm.loading ? (
-        <>
-          <div className="surface mt-6 p-5">
-            <div className="grid gap-3 sm:grid-cols-4">
-              <div className="sm:col-span-2">
-                <div className="h-4 w-24 animate-pulse rounded-full bg-slate-200" />
-                <div className="mt-2 h-11 animate-pulse rounded-2xl bg-slate-100" />
-              </div>
-              <div className="h-11 animate-pulse rounded-2xl bg-slate-100 sm:mt-6" />
-              <div className="h-11 animate-pulse rounded-2xl bg-slate-100 sm:mt-6" />
-            </div>
-            <div className="mt-4 flex flex-wrap gap-2">
-              <div className="h-10 w-28 animate-pulse rounded-2xl bg-slate-100" />
-              <div className="h-10 w-32 animate-pulse rounded-2xl bg-slate-100" />
-              <div className="h-10 w-32 animate-pulse rounded-2xl bg-slate-100" />
-            </div>
-          </div>
-
-          <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            {Array.from({ length: 4 }).map((_, i) => <StatCardSkeleton key={i} />)}
-          </div>
-
-          <div className="surface mt-6 overflow-hidden">
-            <div className="border-b border-slate-100 px-5 py-4">
-              <div className="h-4 w-40 animate-pulse rounded-full bg-slate-200" />
-            </div>
-            <TableSkeleton rows={6} columns={7} />
-          </div>
-        </>
+        <div className="surface mt-6 p-5">
+          <TableSkeleton columns={7} showHeader={false} />
+        </div>
       ) : vm.error ? (
         <div className="surface mt-6 p-5">
           <EmptyState title={t('supplierStatement.emptyTitle')} description={vm.error} icon={Wallet} />

@@ -1,14 +1,20 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ArrowRight, Download, FileSpreadsheet, Loader2, Printer, RefreshCw, Sparkles, TrendingUp, Users, UserRound } from 'lucide-react';
-import { Alert, Badge, EmptyState, MobileCardList, MobileListCard, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton, Select } from '../../../components/ui.jsx';
+import { Alert, Badge, EmptyState, MobileCardList, MobileListCard, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton } from '../../../components/ui.jsx';
+import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../services/printService.js';
 import { inventoryApi } from '../../../services/inventoryApi.js';
-import { formatCurrency, formatDate, formatNumber } from '../../../utils/calculations.js';
+import { formatCurrency, formatDate, formatNumber, todayISO } from '../../../utils/calculations.js';
 import { useAsyncAction } from '../../../hooks/useAsyncAction.js';
 import { useTenantApiQuery } from '../../../queries/useTenantApiQuery.js';
 
 const RETENTION_PRINT_ID = 'retail-customer-retention-print';
+const RETENTION_SHORTCUTS = {
+  pdf: { alt: true, key: 'd', label: 'Alt+D' },
+  excel: { alt: true, key: 'e', label: 'Alt+E' },
+  print: { alt: true, key: 'p', label: 'Alt+P' },
+};
 
 function formatDays(value, t, language) {
   if (value === null || value === undefined || Number.isNaN(Number(value))) {
@@ -37,11 +43,26 @@ function useRetentionSelection(rows, selectedId, setSelectedId) {
   }, [rows, selectedId, setSelectedId]);
 }
 
+const DEFAULT_INACTIVE_WINDOW_DAYS = 30;
+
+function daysSince(dateStr) {
+  if (!dateStr) return DEFAULT_INACTIVE_WINDOW_DAYS;
+  const since = new Date(`${dateStr}T00:00:00`);
+  const days = Math.round((Date.now() - since.getTime()) / 86_400_000);
+  return Math.max(7, days);
+}
+
 export default function RetailCustomerRetentionPage() {
   const { t, language } = useInventoryApp();
-  const [inactiveWindowDays, setInactiveWindowDays] = useState(30);
+  const today = todayISO();
+  const [sinceDate, setSinceDate] = useState(() => {
+    const date = new Date();
+    date.setDate(date.getDate() - DEFAULT_INACTIVE_WINDOW_DAYS);
+    return date.toISOString().slice(0, 10);
+  });
   const [selectedCustomerId, setSelectedCustomerId] = useState('');
   const [downloadingPdf, downloadPdf] = useAsyncAction();
+  const inactiveWindowDays = daysSince(sinceDate);
 
   const retentionQuery = useTenantApiQuery({
     scope: 'retail-customer-retention',
@@ -123,10 +144,53 @@ export default function RetailCustomerRetentionPage() {
     writeFile(wb, 'retail-customer-retention.xlsx');
   }
 
+  async function handleDownloadPdf() {
+    await downloadPdf(async () => {
+      await inventoryApi.recordPrint({ entityType: 'retail_customer_retention', entityId: null, label: 'pdf' }).catch(() => {});
+      await downloadSheetPdf(RETENTION_PRINT_ID, 'retail-customer-retention.pdf');
+    });
+  }
+
+  function handlePrint() {
+    inventoryApi.recordPrint({ entityType: 'retail_customer_retention', entityId: null, label: 'print' }).catch(() => {});
+    window.print();
+  }
+
+  function shortcutBadge(shortcut) {
+    return <kbd className="ml-1 rounded border border-slate-300 bg-white/70 px-1 py-0.5 font-mono text-[10px] text-slate-500">{shortcut.label}</kbd>;
+  }
+
+  function matchesShortcut(event, shortcut) {
+    return (
+      event.key.toLowerCase() === shortcut.key &&
+      Boolean(event.altKey) === Boolean(shortcut.alt) &&
+      Boolean(event.shiftKey) === Boolean(shortcut.shift) &&
+      Boolean(event.ctrlKey || event.metaKey) === Boolean(shortcut.ctrlOrMeta)
+    );
+  }
+
+  useEffect(() => {
+    function handleKeyDown(event) {
+      if (matchesShortcut(event, RETENTION_SHORTCUTS.pdf) && !downloadingPdf) {
+        event.preventDefault();
+        handleDownloadPdf();
+      } else if (matchesShortcut(event, RETENTION_SHORTCUTS.excel)) {
+        event.preventDefault();
+        handleExportExcel();
+      } else if (matchesShortcut(event, RETENTION_SHORTCUTS.print)) {
+        event.preventDefault();
+        handlePrint();
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [downloadingPdf, inactiveWindowDays, t]);
+
   if (loading && !response) {
     return (
       <div className="space-y-6">
-        <SectionHeader eyebrow={t('nav.retailCustomerRetention')} title={t('retailCustomers.retention.title')} description={t('retailCustomers.retention.description')} />
+        <SectionHeader title={t('retailCustomers.retention.title')} compact />
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
           {Array.from({ length: 5 }).map((_, index) => <StatCardSkeleton key={index} />)}
         </div>
@@ -169,40 +233,40 @@ export default function RetailCustomerRetentionPage() {
   return (
     <div className="space-y-6">
       <SectionHeader
-        eyebrow={t('nav.retailCustomerRetention')}
         title={t('retailCustomers.retention.title')}
-        description={t('retailCustomers.retention.description')}
+        compact
         action={(
           <div className="flex flex-wrap items-center gap-2">
-            <Select className="input h-10 w-36" value={inactiveWindowDays} onChange={(event) => setInactiveWindowDays(Number(event.target.value))}>
-              <option value={30}>{t('retailCustomers.retention.inactiveDaysOption', { count: 30 })}</option>
-              <option value={60}>{t('retailCustomers.retention.inactiveDaysOption', { count: 60 })}</option>
-              <option value={90}>{t('retailCustomers.retention.inactiveDaysOption', { count: 90 })}</option>
-            </Select>
-            <button type="button" className="btn-secondary" onClick={loadRetention} disabled={loading}>
-              <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
+            <DatePickerField
+              value={sinceDate}
+              onChange={setSinceDate}
+              max={today}
+              placeholder={t('retailCustomers.retention.sinceLabel')}
+              className="h-10 w-44"
+            />
+            <button type="button" className="btn-secondary h-10 gap-1.5 px-3 text-xs" onClick={loadRetention} disabled={loading}>
+              <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
               {t('common.reload')}
             </button>
             <button
               type="button"
-              className="btn-secondary disabled:cursor-not-allowed disabled:opacity-60"
-              onClick={() => downloadPdf(async () => { await inventoryApi.recordPrint({ entityType: 'retail_customer_retention', entityId: null, label: 'pdf' }).catch(() => {}); await downloadSheetPdf(RETENTION_PRINT_ID, 'retail-customer-retention.pdf'); })}
+              className="btn-secondary no-print h-10 gap-1.5 px-3 text-xs disabled:cursor-not-allowed disabled:opacity-60"
+              onClick={handleDownloadPdf}
               disabled={downloadingPdf}
             >
-              {downloadingPdf ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
+              {downloadingPdf ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
               {t('purchaseReceive.downloadPdf')}
+              {shortcutBadge(RETENTION_SHORTCUTS.pdf)}
             </button>
-            <button type="button" className="btn-secondary" onClick={handleExportExcel}>
-              <FileSpreadsheet size={16} />
+            <button type="button" className="btn-secondary no-print h-10 gap-1.5 px-3 text-xs" onClick={handleExportExcel}>
+              <FileSpreadsheet size={14} />
               {t('common.exportExcel')}
+              {shortcutBadge(RETENTION_SHORTCUTS.excel)}
             </button>
-            <button
-              type="button"
-              className="btn-secondary"
-              onClick={() => { inventoryApi.recordPrint({ entityType: 'retail_customer_retention', entityId: null, label: 'print' }).catch(() => {}); window.print(); }}
-            >
-              <Printer size={16} />
+            <button type="button" className="btn-secondary no-print h-10 gap-1.5 px-3 text-xs" onClick={handlePrint}>
+              <Printer size={14} />
               {t('common.print')}
+              {shortcutBadge(RETENTION_SHORTCUTS.print)}
             </button>
           </div>
         )}

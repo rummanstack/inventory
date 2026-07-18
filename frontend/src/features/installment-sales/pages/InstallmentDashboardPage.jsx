@@ -10,7 +10,7 @@ export default function InstallmentDashboardPage() {
 
   return (
     <div>
-      <SectionHeader eyebrow={t('installments.dashboard.eyebrow')} title={t('installments.dashboard.title')} />
+      <SectionHeader title={t('installments.dashboard.title')} compact />
 
       {loading ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

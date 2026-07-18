@@ -223,7 +223,7 @@ export default function ProductsPage() {
             <Alert type="error">{vm.error}</Alert>
           </div>
         ) : viewMode === 'grid' ? (
-        <div className="grid grid-cols-2 gap-4 p-5 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4 xl:grid-cols-5">
+        <div className="grid grid-cols-1 gap-4 p-4 sm:grid-cols-2 sm:gap-5 sm:p-5 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
           {vm.items.map((product) => {
             const isOut = product.stockPieces === 0;
             const isLow = product.stockPieces > 0 && product.stockPieces <= product.piecesPerCase;

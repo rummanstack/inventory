@@ -333,6 +333,17 @@
     background: var(--secondary-soft);
     color: var(--text-strong);
   }
+
+  /* Keyboard shortcut hints (<kbd> badges) only make sense with a physical keyboard */
+  kbd {
+    display: none;
+  }
+
+  @media (min-width: 1024px) {
+    kbd {
+      display: inline-block;
+    }
+  }
 }
 
 @layer components {
@@ -353,7 +364,24 @@
   }
 
   .landing-header-inner {
-    @apply landing-container mt-3 flex min-h-16 items-center justify-between gap-2 rounded-full border border-slate-200 bg-[linear-gradient(90deg,var(--bg-dark)_0%,var(--brand-strong)_60%,#1f3a8a_100%)] px-3 py-3 text-white shadow-[0_18px_42px_rgba(var(--slate-900),0.2)] backdrop-blur-xl sm:gap-3 sm:px-8;
+    @apply landing-container mt-3 flex min-h-16 items-center justify-between gap-2 rounded-full border px-3 py-3 text-slate-950 backdrop-blur-xl sm:gap-3 sm:px-8;
+    border-color: rgba(203, 213, 225, 0.72);
+    background: rgba(255, 255, 255, 0.86);
+    box-shadow:
+      0 12px 34px rgba(15, 23, 42, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    transition:
+      background-color 220ms ease,
+      border-color 220ms ease,
+      box-shadow 220ms ease;
+  }
+
+  .landing-header-inner-scrolled {
+    border-color: rgba(203, 213, 225, 0.92);
+    background: rgba(255, 255, 255, 0.97);
+    box-shadow:
+      0 18px 44px rgba(15, 23, 42, 0.13),
+      inset 0 1px 0 rgba(255, 255, 255, 0.98);
   }
 
   .landing-logo {
@@ -365,11 +393,11 @@
   }
 
   .landing-nav-link {
-    @apply rounded-full px-4 py-2 text-sm font-bold text-slate-200 transition duration-200 ease-out hover:bg-white/10 hover:text-white;
+    @apply rounded-full px-4 py-2 text-sm font-bold text-slate-600 transition duration-200 ease-out hover:bg-[var(--brand-soft)] hover:text-[var(--brand-strong)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3c2a86]/30;
   }
 
   .landing-small-cta {
-    @apply inline-flex h-9 items-center justify-center gap-2 whitespace-nowrap rounded-full border border-[rgba(var(--white),0.18)] bg-white/10 px-3.5 text-sm font-bold text-white shadow-[0_1px_0_rgba(var(--white),0.08)] transition duration-200 ease-out hover:-translate-y-0.5 hover:border-[rgba(var(--white),0.3)] hover:bg-[rgba(var(--white),0.16)] hover:shadow-[0_8px_20px_rgba(var(--slate-950),0.16)] active:translate-y-0 active:bg-[rgba(var(--white),0.14)];
+    @apply inline-flex h-9 items-center justify-center gap-2 whitespace-nowrap rounded-full border border-[var(--brand-strong)] bg-[var(--brand-strong)] px-3.5 text-sm font-bold text-white shadow-[0_10px_24px_var(--landing-shadow-brand)] transition duration-200 ease-out hover:-translate-y-0.5 hover:border-[var(--brand)] hover:bg-[var(--brand)] hover:shadow-[0_14px_28px_var(--landing-shadow-brand-strong)] active:translate-y-0 active:brightness-95 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--brand-soft)];
   }
 
   .landing-mega-menu-surface {
@@ -829,14 +857,15 @@
   }
 
 
-  /* ---- Shared dark hero for public subpages (pricing, contact, SEO, legal…) ----
-     One aurora gradient + net grid so every not-logged-in page opens the same way. */
+  /* Public subpages share the landing hero's light aurora and grid so every
+     not-logged-in page opens with one consistent visual system. */
   .public-hero {
-    @apply relative overflow-hidden pb-14 pt-32 text-white sm:pt-40;
+    @apply relative overflow-hidden pb-10 pt-[6.75rem] text-[var(--text-strong)] sm:pb-12 sm:pt-36 lg:pb-16 lg:pt-40;
     background:
-      radial-gradient(46rem 26rem at 88% -20%, rgba(13, 148, 136, 0.3), transparent 60%),
-      radial-gradient(44rem 28rem at -10% 120%, rgba(109, 91, 194, 0.35), transparent 62%),
-      linear-gradient(120deg, var(--bg-dark) 0%, var(--brand-strong) 60%, #173b4a 100%);
+      radial-gradient(52rem 30rem at 12% -8%, rgba(60, 42, 134, 0.11), transparent 62%),
+      radial-gradient(46rem 26rem at 90% 2%, rgba(13, 148, 136, 0.09), transparent 60%),
+      radial-gradient(38rem 24rem at 55% 112%, rgba(60, 42, 134, 0.08), transparent 66%),
+      linear-gradient(180deg, #fdfdff 0%, #f7f8fd 100%);
   }
 
   .public-hero::before {
@@ -845,11 +874,11 @@
     inset: 0;
     pointer-events: none;
     background:
-      linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+      linear-gradient(rgba(60, 42, 134, 0.08) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(60, 42, 134, 0.08) 1px, transparent 1px);
     background-size: 44px 44px;
-    -webkit-mask-image: radial-gradient(120% 110% at 28% 0%, black 30%, transparent 80%);
-    mask-image: radial-gradient(120% 110% at 28% 0%, black 30%, transparent 80%);
+    -webkit-mask-image: radial-gradient(95rem 52rem at 50% -6rem, black 32%, transparent 80%);
+    mask-image: radial-gradient(95rem 52rem at 50% -6rem, black 32%, transparent 80%);
   }
 
   .public-hero > .landing-container {
@@ -858,17 +887,42 @@
   }
 
   .public-hero-title {
-    @apply mt-3 text-4xl font-black leading-[1.06] text-white sm:text-5xl;
-    letter-spacing: -0.025em;
+    @apply mt-5 max-w-3xl text-[2.6rem] font-black leading-[1.06] text-slate-950 sm:text-5xl lg:text-[3.4rem] lg:leading-[1.03];
+    letter-spacing: -0.03em;
+    padding-bottom: 0.1em;
     text-wrap: balance;
+    background: linear-gradient(128deg, rgb(var(--slate-950)) 0%, rgb(var(--slate-950)) 45%, var(--brand-strong) 80%, var(--brand) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
   }
 
   .public-hero-text {
-    @apply mt-5 max-w-3xl text-base font-medium leading-7 text-slate-200 sm:text-lg;
+    @apply mt-5 max-w-3xl text-[15px] font-normal leading-7 text-[var(--text-soft)] sm:text-base sm:leading-[1.8];
   }
 
   .public-hero-breadcrumb {
-    @apply text-sm font-bold text-white/70 transition hover:text-white;
+    @apply text-sm font-bold text-slate-500 transition hover:text-[var(--brand-strong)];
+  }
+
+  .public-hero-breadcrumbs {
+    @apply flex items-center gap-2 text-sm font-bold text-slate-500;
+  }
+
+  .public-hero-breadcrumbs a {
+    @apply transition hover:text-[var(--brand-strong)];
+  }
+
+  .public-hero-breadcrumb-current {
+    @apply text-slate-700;
+  }
+
+  .public-hero-chip {
+    @apply rounded-full border border-slate-200/90 bg-white/85 px-3 py-1.5 text-xs font-bold text-slate-700 shadow-[0_8px_20px_rgba(15,23,42,0.05)] backdrop-blur;
+  }
+
+  .public-hero-panel {
+    @apply rounded-[32px] border border-slate-200/80 bg-white/90 shadow-[0_28px_80px_rgba(15,23,42,0.12)] ring-1 ring-slate-900/[0.03] backdrop-blur;
   }
 
   .landing-section-title {
@@ -1952,7 +2006,8 @@ html[lang='bn'] .hero-image-badge-label {
   text-transform: none;
 }
 
-html[lang='bn'] .landing-hero-title {
+html[lang='bn'] .landing-hero-title,
+html[lang='bn'] .public-hero-title {
   letter-spacing: -0.01em;
   line-height: 1.24;
 }
@@ -1995,14 +2050,16 @@ html[lang='bn'] .feature-story-title {
     padding: 0;
   }
 
-  .landing-hero-title {
+  .landing-hero-title,
+  .public-hero-title {
     margin-top: 1.1rem;
     font-size: clamp(2.15rem, 10.5vw, 2.55rem);
     line-height: 1.09;
     letter-spacing: -0.04em;
   }
 
-  .landing-hero-subtitle {
+  .landing-hero-subtitle,
+  .public-hero-text {
     margin-top: 1rem;
     max-width: 34rem;
     font-size: 0.95rem;
@@ -2289,7 +2346,8 @@ html[lang='bn'] .feature-story-title {
     line-height: 1.2;
   }
 
-  html[lang='bn'] .landing-hero-title {
+  html[lang='bn'] .landing-hero-title,
+  html[lang='bn'] .public-hero-title {
     font-size: clamp(2rem, 9.7vw, 2.4rem);
     line-height: 1.28;
   }

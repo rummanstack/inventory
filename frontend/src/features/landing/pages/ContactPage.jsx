@@ -25,7 +25,7 @@ export default function ContactPage() {
         <div className="landing-container">
           <Link to={buildLocalizedPath(language, '/landing')} className="public-hero-breadcrumb">{t('seoContent.breadcrumbHome')}</Link>
           <div className="mt-6 max-w-3xl">
-            <p className="landing-eyebrow !text-[var(--landing-accent-teal)]">{t('contactPage.eyebrow')}</p>
+            <p className="landing-eyebrow">{t('contactPage.eyebrow')}</p>
             <h1 className="public-hero-title">{t('contactPage.heroTitle')}</h1>
             <p className="public-hero-text">{t('contactPage.heroText')}</p>
           </div>

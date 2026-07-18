@@ -182,20 +182,20 @@ export default function LegalPageLayout({ language, setLanguage, t, contentKey, 
       <LandingHeader language={language} setLanguage={setLanguage} t={t} />
 
       {/* ── Hero ── */}
-      <section className="public-hero pb-12 sm:pb-16">
+      <section className="public-hero">
         <div className="landing-container relative">
-          <div className="flex items-center gap-2 text-sm font-bold text-white/70">
-            <Link to={buildLocalizedPath(language, '/landing')} className="transition hover:text-white">{content.breadcrumbHome}</Link>
+          <div className="public-hero-breadcrumbs">
+            <Link to={buildLocalizedPath(language, '/landing')}>{content.breadcrumbHome}</Link>
             <span>/</span>
-            <span className="text-white">{content.breadcrumb}</span>
+            <span className="public-hero-breadcrumb-current">{content.breadcrumb}</span>
           </div>
 
           <div className="mt-6 max-w-2xl">
-            <span className="landing-eyebrow !text-[var(--landing-accent-teal)]">{content.eyebrow}</span>
+            <span className="landing-eyebrow">{content.eyebrow}</span>
             <h1 className="public-hero-title">{content.title}</h1>
             <p className="public-hero-text">{content.intro}</p>
-            <p className="mt-5 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-semibold text-slate-300">
-              <Clock size={14} className="text-[var(--landing-accent-teal)]" />
+            <p className="public-hero-chip mt-5 inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold">
+              <Clock size={14} className="text-[var(--brand)]" />
               {content.updated}
             </p>
           </div>
@@ -341,4 +341,3 @@ export default function LegalPageLayout({ language, setLanguage, t, contentKey, 
     </main>
   );
 }
-

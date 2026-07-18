@@ -48,21 +48,21 @@ export default function FounderPage() {
     <main className="landing-page">
       <LandingHeader language={language} setLanguage={setLanguage} t={t} />
 
-      <section className="public-hero pb-0 pt-28 sm:pt-36">
+      <section className="public-hero pb-0">
         <div className="landing-container relative">
-          <div className="flex items-center gap-2 text-sm font-bold text-white/70">
-            <Link to={buildLocalizedPath(language, '/landing')} className="transition hover:text-white">{t('landing.founder.breadcrumbHome')}</Link>
+          <div className="public-hero-breadcrumbs">
+            <Link to={buildLocalizedPath(language, '/landing')}>{t('landing.founder.breadcrumbHome')}</Link>
             <span>/</span>
-            <span className="text-white">{t('landing.founder.breadcrumbCurrent')}</span>
+            <span className="public-hero-breadcrumb-current">{t('landing.founder.breadcrumbCurrent')}</span>
           </div>
 
           <div className="mt-10 flex flex-col items-center gap-10 pb-0 lg:flex-row lg:items-end lg:gap-16">
             <div className="max-w-xl lg:pb-16">
-              <span className="landing-eyebrow !text-[var(--landing-accent-teal)]">{t('landing.founder.eyebrow')}</span>
-              <h1 className="public-hero-title lg:text-6xl">
+              <span className="landing-eyebrow">{t('landing.founder.eyebrow')}</span>
+              <h1 className="public-hero-title">
                 {t('landing.founder.name')}
               </h1>
-              <p className="mt-2 text-base font-bold text-[var(--landing-accent-teal)]">{t('landing.founder.title')}</p>
+              <p className="mt-2 text-base font-bold text-[var(--brand)]">{t('landing.founder.title')}</p>
               <p className="public-hero-text">
                 {t('landing.founder.tagline')}
               </p>
@@ -71,11 +71,10 @@ export default function FounderPage() {
                 {stats.map(({ value, label }) => (
                   <div
                     key={label}
-                    className="rounded-2xl border border-white/10 px-4 py-3 text-center backdrop-blur-sm"
-                    style={{ background: 'rgba(255,255,255,0.06)' }}
+                    className="rounded-2xl border border-slate-200/90 bg-white/80 px-4 py-3 text-center shadow-[0_10px_28px_rgba(15,23,42,0.06)] backdrop-blur-sm"
                   >
-                    <p className="text-2xl font-black text-white">{value}</p>
-                    <p className="mt-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">{label}</p>
+                    <p className="text-2xl font-black text-slate-950">{value}</p>
+                    <p className="mt-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-500">{label}</p>
                   </div>
                 ))}
               </div>
@@ -88,7 +87,7 @@ export default function FounderPage() {
                     target="_blank"
                     rel="noreferrer"
                     aria-label={label}
-                    className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white transition duration-200 hover:-translate-y-0.5 hover:border-white/30 hover:bg-white/20"
+                    className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white/80 text-[var(--brand-strong)] shadow-[0_8px_20px_rgba(15,23,42,0.05)] transition duration-200 hover:-translate-y-0.5 hover:border-[var(--brand)]/30 hover:bg-[var(--brand-soft)]"
                   >
                     <Icon size={16} />
                   </a>
@@ -123,7 +122,7 @@ export default function FounderPage() {
                 </div>
               </div>
 
-              <div className="absolute -bottom-4 -right-4 flex items-center gap-2.5 rounded-2xl border border-white/20 bg-white/95 px-4 py-3 shadow-[0_16px_40px_rgba(0,0,0,0.22)] backdrop-blur-xl">
+              <div className="absolute -bottom-4 -right-4 flex items-center gap-2.5 rounded-2xl border border-slate-200/90 bg-white/95 px-4 py-3 shadow-[0_16px_40px_rgba(15,23,42,0.16)] backdrop-blur-xl">
                 <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[linear-gradient(135deg,var(--brand),var(--brand-strong))]">
                   <img loading="lazy" decoding="async" src={stockLedgerLogoIcon} alt="" className="h-5 w-5 object-contain" />
                 </span>
@@ -342,5 +341,4 @@ export default function FounderPage() {
     </main>
   );
 }
-
 

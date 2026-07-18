@@ -160,6 +160,7 @@ function MegaMenuPanel({ onNavigate, pathname, language }) {
 export default function LandingHeader({ language, setLanguage, t }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [desktopOpen, setDesktopOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
   const desktopMenuRef = useRef(null);
   const desktopTriggerRef = useRef(null);
@@ -169,6 +170,17 @@ export default function LandingHeader({ language, setLanguage, t }) {
     setMenuOpen(false);
     setDesktopOpen(false);
   }, [language, location.pathname, location.hash]);
+
+  useEffect(() => {
+    function handleScroll() {
+      setIsScrolled(window.scrollY > 16);
+    }
+
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   useEffect(() => {
     if (!desktopOpen) return undefined;
@@ -218,12 +230,12 @@ export default function LandingHeader({ language, setLanguage, t }) {
 
   return (
     <header className="landing-header">
-      <div className="landing-header-inner">
+      <div className={isScrolled ? 'landing-header-inner landing-header-inner-scrolled' : 'landing-header-inner'}>
         <Link to={buildLocalizedPath(language, '/landing')} className="flex min-w-0 items-center gap-2 sm:gap-3" aria-label={t('landing.homeAriaLabel')}>
-          <img src={stockLedgerLogoIcon} alt="" className="h-10 w-10 shrink-0 object-contain drop-shadow-[0_10px_24px_rgba(15,23,42,0.2)] sm:h-11 sm:w-11" />
+          <img src={stockLedgerLogoIcon} alt="" className="h-10 w-10 shrink-0 object-contain drop-shadow-[0_10px_24px_rgba(60,42,134,0.16)] sm:h-11 sm:w-11" />
           <span className="min-w-0">
-            <span className="block truncate text-base font-black leading-none tracking-tight text-white sm:text-lg">StockLedger</span>
-            <span className="mt-1 hidden text-[11px] font-medium text-white/70 sm:block">{t('landing.tagline')}</span>
+            <span className="block truncate text-base font-black leading-none tracking-tight text-slate-950 sm:text-lg">StockLedger</span>
+            <span className="mt-1 hidden text-[11px] font-medium text-slate-600 sm:block">{t('landing.tagline')}</span>
           </span>
         </Link>
 
@@ -233,7 +245,7 @@ export default function LandingHeader({ language, setLanguage, t }) {
               ref={desktopTriggerRef}
               id="landing-explore-button"
               type="button"
-              className={`landing-nav-link inline-flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 ${desktopOpen ? 'bg-white text-[var(--brand-strong)] shadow-[0_10px_24px_rgba(15,23,42,0.18)] hover:bg-white hover:text-[var(--brand-strong)]' : ''}`}
+              className={`landing-nav-link inline-flex items-center gap-2 ${desktopOpen ? 'bg-[var(--brand-soft)] text-[var(--brand-strong)] shadow-[0_8px_20px_rgba(60,42,134,0.12)] hover:bg-[var(--brand-soft)] hover:text-[var(--brand-strong)]' : ''}`}
               onClick={() => setDesktopOpen((current) => !current)}
               aria-expanded={desktopOpen}
               aria-haspopup="true"
@@ -255,7 +267,7 @@ export default function LandingHeader({ language, setLanguage, t }) {
           <button
             ref={mobileTriggerRef}
             type="button"
-            className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-white/15 bg-white/10 text-white transition hover:bg-white/15 lg:hidden"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white/80 text-[var(--brand-strong)] shadow-[0_4px_14px_rgba(15,23,42,0.06)] transition hover:border-[var(--brand-soft)] hover:bg-[var(--brand-soft)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--brand-soft)] lg:hidden"
             onClick={() => setMenuOpen((current) => !current)}
             aria-expanded={menuOpen}
             aria-controls={MOBILE_MENU_PANEL_ID}
@@ -263,7 +275,7 @@ export default function LandingHeader({ language, setLanguage, t }) {
           >
             {menuOpen ? <X size={18} /> : <Menu size={18} />}
           </button>
-          <LanguageSwitcher language={language} onChange={setLanguage} t={t} compact tone="dark" />
+          <LanguageSwitcher language={language} onChange={setLanguage} t={t} compact />
           {/* /login isn't part of the bilingual public site, so no locale prefix here */}
           <Link to="/login" className="landing-small-cta hidden sm:inline-flex">
             <span>{t('landing.login')}</span>

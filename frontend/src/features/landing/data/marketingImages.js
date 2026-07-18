@@ -1,4 +1,4 @@
-export { default as L01Image } from '../../../assets/landing/landing-platform-dashboard-overview.png';
+export { default as L01Image } from '../../../assets/landing/landing-platform-hero-v3.png';
 export { default as C01Image } from '../../../assets/landing/contact-customer-support.png';
 
 export { default as F01Image } from '../../../assets/landing/feature-inventory-management.png';

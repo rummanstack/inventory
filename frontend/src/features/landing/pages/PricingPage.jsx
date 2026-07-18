@@ -24,10 +24,10 @@ export default function PricingPage() {
         <div className="landing-container">
           <Link to={buildLocalizedPath(language, '/landing')} className="public-hero-breadcrumb">{t('seoContent.breadcrumbHome')}</Link>
           <div className="mt-6 max-w-3xl">
-            <p className="landing-eyebrow !text-[var(--landing-accent-teal)]">{t('pricingPage.eyebrow')}</p>
+            <p className="landing-eyebrow">{t('pricingPage.eyebrow')}</p>
             <h1 className="public-hero-title">{t('pricingPage.heroTitle')}</h1>
             <p className="public-hero-text">{t('pricingPage.heroText')}</p>
-            <Link to={buildLocalizedPath(language, '/contact')} className="mt-7 inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-white px-6 text-sm font-black text-[var(--brand-strong)] transition hover:-translate-y-0.5">
+            <Link to={buildLocalizedPath(language, '/contact')} className="landing-primary-btn mt-7 px-6 text-sm">
               {t('pricingPage.talkToSales')}
               <ArrowRight size={17} />
             </Link>

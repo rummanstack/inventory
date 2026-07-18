@@ -89,11 +89,11 @@ export function SoftwareHubPage() {
   return (
     <main id="top" className="landing-page">
       <LandingHeader language={language} setLanguage={setLanguage} t={t} />
-      <section className="public-hero pb-16">
+      <section className="public-hero">
         <div className="landing-container relative">
           <Link to={buildLocalizedPath(language, '/landing')} className="public-hero-breadcrumb">{t('seoContent.breadcrumbHome')}</Link>
           <div className="mt-6 max-w-3xl">
-            <p className="landing-eyebrow !text-[var(--landing-accent-teal)]">{t('seoContent.hub.softwareEyebrow')}</p>
+            <p className="landing-eyebrow">{t('seoContent.hub.softwareEyebrow')}</p>
             <h1 className="public-hero-title">{t('seoContent.hub.softwareTitle')}</h1>
             <p className="public-hero-text">{t('seoContent.hub.softwareDescription')}</p>
           </div>
@@ -143,37 +143,37 @@ export function SoftwareDetailPage() {
     <main id="top" className="landing-page">
       <LandingHeader language={language} setLanguage={setLanguage} t={t} />
 
-      <section className="public-hero pb-16">
+      <section className="public-hero">
         <div className="landing-container grid items-center gap-10 lg:grid-cols-[1fr_0.9fr]">
           <div>
-            <div className="flex items-center gap-2 text-sm font-bold text-white/70">
-              <Link to={buildLocalizedPath(language, '/landing')} className="transition hover:text-white">{t('seoContent.breadcrumbHome')}</Link>
+            <div className="public-hero-breadcrumbs">
+              <Link to={buildLocalizedPath(language, '/landing')}>{t('seoContent.breadcrumbHome')}</Link>
               <span>/</span>
-              <Link to={buildLocalizedPath(language, '/software')} className="transition hover:text-white">{t('seoContent.breadcrumbSoftware')}</Link>
+              <Link to={buildLocalizedPath(language, '/software')}>{t('seoContent.breadcrumbSoftware')}</Link>
             </div>
             <div className="mt-6 max-w-3xl">
-              <p className="landing-eyebrow !text-[var(--landing-accent-teal)]">{page.eyebrow}</p>
+              <p className="landing-eyebrow">{page.eyebrow}</p>
               <h1 className="public-hero-title">{page.title}</h1>
               <p className="public-hero-text">{page.description}</p>
             </div>
             <div className="mt-7 flex flex-wrap gap-2">
               {page.keywords.map((keyword) => (
-                <span key={keyword} className="rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-bold text-white">{keyword}</span>
+                <span key={keyword} className="public-hero-chip">{keyword}</span>
               ))}
             </div>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <a href={whatsappUrl} target="_blank" rel="noreferrer" className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-[var(--landing-accent-success)] px-6 text-sm font-black text-white shadow-[0_14px_30px_var(--landing-accent-success-shadow)] transition hover:-translate-y-0.5">
+              <a href={whatsappUrl} target="_blank" rel="noreferrer" className="landing-primary-btn px-6 text-sm">
                 <MessageCircle size={17} />
                 {t('seoContent.detail.bookDemo')}
               </a>
-              <Link to={buildLocalizedPath(language, '/pricing')} className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-6 text-sm font-black text-white transition hover:-translate-y-0.5 hover:bg-white/15">
+              <Link to={buildLocalizedPath(language, '/pricing')} className="landing-secondary-btn px-6 text-sm">
                 {t('seoContent.detail.seePricing')}
                 <ArrowRight size={17} />
               </Link>
             </div>
           </div>
 
-          <div className="rounded-[32px] border border-white/15 bg-white/10 p-3 shadow-[0_28px_80px_rgba(15,23,42,0.28)] backdrop-blur">
+          <div className="public-hero-panel p-3">
             <ImagePlaceholder data={{ src: page.image, alt: page.imageAlt }} heightClass="aspect-[16/10]" fit="cover" position="center" />
           </div>
         </div>

@@ -50,7 +50,7 @@ export default function HeroSection({ t, language }) {
               </div>
               <ImagePlaceholder
                 data={{ src: heroPortraitImage, alt: t('landing.hero.imageAlt') }}
-                heightClass="aspect-[16/10]"
+                heightClass="aspect-[1568/1003]"
                 variant="dashboard"
                 fit="cover"
                 position="center"

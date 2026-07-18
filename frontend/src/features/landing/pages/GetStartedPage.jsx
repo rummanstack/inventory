@@ -25,30 +25,30 @@ export default function GetStartedPage() {
     <main id="top" className="landing-page">
       <LandingHeader language={language} setLanguage={setLanguage} t={t} />
 
-      <section className="public-hero pb-16">
+      <section className="public-hero">
         <div className="landing-container grid items-center gap-10 lg:grid-cols-[1fr_0.85fr]">
           <div>
             <Link to={buildLocalizedPath(language, '/landing')} className="public-hero-breadcrumb">{t('seoContent.breadcrumbHome')}</Link>
-            <p className="landing-eyebrow mt-6 !text-[var(--landing-accent-teal)]">{t('getStartedPage.eyebrow')}</p>
+            <p className="landing-eyebrow mt-6">{t('getStartedPage.eyebrow')}</p>
             <h1 className="public-hero-title">{t('getStartedPage.heroTitle')}</h1>
             <p className="public-hero-text">{t('getStartedPage.heroText')}</p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <a href={whatsappUrl} target="_blank" rel="noreferrer" className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-[var(--landing-accent-success)] px-6 text-sm font-black text-white shadow-[0_14px_30px_var(--landing-accent-success-shadow)] transition hover:-translate-y-0.5">
+              <a href={whatsappUrl} target="_blank" rel="noreferrer" className="landing-primary-btn px-6 text-sm">
                 <MessageCircle size={17} />
                 {t('getStartedPage.bookSetupCall')}
               </a>
-              <a href={`tel:${contactPhone}`} className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-6 text-sm font-black text-white transition hover:-translate-y-0.5 hover:bg-white/15">
+              <a href={`tel:${contactPhone}`} className="landing-secondary-btn px-6 text-sm">
                 <Phone size={17} />
                 {t('getStartedPage.callNow')}
               </a>
             </div>
           </div>
 
-          <div className="rounded-[32px] border border-white/15 bg-white/10 p-6 shadow-[0_28px_80px_rgba(15,23,42,0.28)] backdrop-blur">
-            <p className="text-sm font-black uppercase tracking-[0.16em] text-[var(--landing-accent-teal)]">{t('getStartedPage.goodFitLabel')}</p>
+          <div className="public-hero-panel p-6">
+            <p className="text-sm font-black uppercase tracking-[0.16em] text-[var(--brand-strong)]">{t('getStartedPage.goodFitLabel')}</p>
             <div className="mt-5 space-y-3">
               {fitOptions.map((item) => (
-                <p key={item} className="flex items-start gap-3 text-sm font-semibold leading-6 text-white">
+                <p key={item} className="flex items-start gap-3 text-sm font-semibold leading-6 text-slate-700">
                   <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-[var(--landing-accent-success)]" />
                   {item}
                 </p>

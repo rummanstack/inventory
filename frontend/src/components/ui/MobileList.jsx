@@ -11,7 +11,7 @@ export function MobileCardList({ className, children }) {
   return <div className={cx('divide-y divide-slate-100 md:hidden', className)}>{children}</div>;
 }
 
-export function MobileListCard({ onClick, leading, title, badge, subtitle, value, valueSub, valueClass, action }) {
+export function MobileListCard({ onClick, leading, title, badge, subtitle, value, valueSub, valueClass, valueSubClass, action }) {
   const body = (
     <>
       {leading ? <div className="shrink-0">{leading}</div> : null}
@@ -24,7 +24,7 @@ export function MobileListCard({ onClick, leading, title, badge, subtitle, value
       </div>
       <div className="shrink-0 text-right">
         {value != null ? <p className={cx('text-sm font-bold tabular-nums', valueClass || 'text-slate-950')}>{value}</p> : null}
-        {valueSub ? <p className="mt-0.5 text-xs font-medium tabular-nums text-slate-500">{valueSub}</p> : null}
+        {valueSub ? <p className={cx('mt-0.5 text-xs font-medium tabular-nums', valueSubClass || 'text-slate-500')}>{valueSub}</p> : null}
       </div>
     </>
   );

@@ -264,6 +264,54 @@ export function TrendChart({ data, series, valueFormatter = (value) => value, he
   );
 }
 
+export function WaterfallChart({ data, valueFormatter = (value) => value, height = 320 }) {
+  const chartData = {
+    labels: data.map((item) => item.label),
+    datasets: [{
+      data: data.map((item) => [Number(item.start || 0), Number(item.end || 0)]),
+      backgroundColor: (context) => {
+        const item = data[context.dataIndex];
+        return buildBarGradient(context.chart, item?.color || getCssVar('--secondary', '#5e5b8e'));
+      },
+      hoverBackgroundColor: (context) => data[context.dataIndex]?.color || getCssVar('--secondary-strong', '#373373'),
+      borderRadius: 10,
+      borderSkipped: false,
+      barThickness: 34,
+      maxBarThickness: 40,
+    }],
+  };
+
+  const options = {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: { duration: 300, easing: 'easeOutQuart' },
+    scales: {
+      x: {
+        grid: { display: false },
+        ticks: { color: getCssVar('--tick-color', '#2f3347'), font: { weight: '800', size: 11 } },
+      },
+      y: {
+        grid: chartGridStyle(),
+        ticks: { ...chartAxisTickStyle(), callback: (value) => valueFormatter(value) },
+      },
+    },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        ...chartTooltipStyle(),
+        callbacks: {
+          label: (context) => valueFormatter(data[context.dataIndex]?.value || 0),
+        },
+      },
+    },
+  };
+
+  return (
+    <div className="chart-frame rounded-card border border-slate-100 bg-white p-4" style={{ height }}>
+      <Bar data={chartData} options={options} />
+    </div>
+  );
+}
 export function HorizontalBarChart({ data, valueFormatter = (value) => value, trackClassName = '', valueKey = 'value', height = null }) {
   const chartData = {
     labels: data.map((item) => item.label),

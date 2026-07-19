@@ -215,6 +215,42 @@ export function useSalesInvoiceFormViewModel({
     }));
   }
 
+  // Single-call version of addItem()+updateItem('productId', ...) — the seam
+  // the Product Browser's "Add to Current Sale" uses, since it only ever
+  // knows a productId and needs the row added and bound in one step. Reuses
+  // a still-blank row instead of piling up empty ones if the user already
+  // clicked "Add Item" but hasn't picked a product yet.
+  function addProductDirectly(productId) {
+    const product = products.find((c) => c.id === productId);
+    if (!product) return null;
+
+    const existingBlankRow = items.find((row) => !row.productId);
+    const rowId = existingBlankRow ? existingBlankRow.rowId : createId('sales-item');
+    const quantityPieces = existingBlankRow?.quantityPieces || '';
+    const { price, originalPrice, promotion } = priceAndPromotionForProduct(product, saleType, invoiceDate, promotions, quantityPieces);
+
+    const nextRow = {
+      rowId,
+      productId: product.id,
+      productName: product.name,
+      quantityPieces,
+      actualSalePrice: price,
+      originalPrice,
+      appliedPromotion: promotion,
+      lineDiscount: 0,
+      availableStock: Number(product.stockPieces || 0),
+      taxRate: taxRateForProduct(product, defaultTaxRate),
+      serialRequired: Boolean(product.serialRequired),
+      serialIds: [],
+    };
+
+    setItems((current) => (existingBlankRow
+      ? current.map((row) => (row.rowId === rowId ? nextRow : row))
+      : [...current, nextRow]));
+
+    return rowId;
+  }
+
   function removeItem(rowId) {
     setItems((current) => current.filter((row) => row.rowId !== rowId));
   }
@@ -399,6 +435,7 @@ export function useSalesInvoiceFormViewModel({
     setInvoiceDate: changeInvoiceDate,
     lineRows: taxedLineRows,
     addItem,
+    addProductDirectly,
     updateItem,
     removeItem,
     toggleItemSerial,

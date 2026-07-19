@@ -55,6 +55,11 @@ export function normalizeProduct(input) {
     status: input.status === "INACTIVE" ? "INACTIVE" : "ACTIVE",
     description: String(input.description || "").trim(),
     imageUrl: String(input.imageUrl || "").trim() || null,
+    specs:
+      input.specs && typeof input.specs === "object" && !Array.isArray(input.specs) ? input.specs : {},
+    images: Array.isArray(input.images)
+      ? input.images.map((url) => String(url || "").trim()).filter(Boolean)
+      : [],
     genericName: String(input.genericName || "").trim(),
     drugType: String(input.drugType || "").trim(),
     dosageForm: String(input.dosageForm || "").trim(),

@@ -22,6 +22,7 @@ export const TENANT_FEATURES = [
 
   // Inventory
   'products',
+  'product-browser',
   'stock-movement',
   'low-stock-alerts',
   'product-serials',

@@ -31,6 +31,7 @@ import {
   PackageX,
   Wallet,
   LayoutDashboard,
+  LayoutGrid,
   Landmark,
   Tag,
   MessageCircle,
@@ -110,6 +111,7 @@ const TradePromotionEarningsPage = lazy(() => import('../features/trade-promotio
 const TradePromotionSettlementsPage = lazy(() => import('../features/trade-promotions/settlements/pages/TradePromotionSettlementsPage'));
 const TradePromotionReportsPage = lazy(() => import('../features/trade-promotions/reports/pages/TradePromotionReportsPage'));
 const QuickSalePage = lazy(() => import('../features/retailer/quick-sale/pages/QuickSalePage'));
+const ProductBrowserPage = lazy(() => import('../features/product-browser/pages/ProductBrowserPage'));
 const SalesInvoicesPage = lazy(() => import('../features/retailer/sales-invoices/pages/SalesInvoicesPage'));
 const RetailPromotionsPage = lazy(() => import('../features/retailer/promotions/pages/RetailPromotionsPage'));
 const CustomerDuePage = lazy(() => import('../features/retailer/customer-due/pages/CustomerDuePage'));
@@ -148,6 +150,7 @@ export const APP_ROUTES = [
 
   // 2. Point of Sale
   { id: 'retailer-quick-sale', path: '/retailer/quick-sale', labelKey: 'nav.retailerQuickSale', icon: ShoppingBag, component: QuickSalePage, group: 'pos', permission: 'manage_retail_quick_sale', feature: 'retailer-quick-sale' },
+  { id: 'product-browser', path: '/product-browser', labelKey: 'nav.productBrowser', icon: LayoutGrid, component: ProductBrowserPage, group: 'pos', permission: 'view_product_browser', feature: 'product-browser' },
   { id: 'cash-session-history', path: '/retailer/cash-sessions', labelKey: 'nav.cashSessionHistory', icon: Vault, component: CashSessionsPage, group: 'pos', permission: 'manage_retail_quick_sale', feature: 'retailer-cash-sessions' },
   { id: 'quotations', path: '/quotations', labelKey: 'nav.quotations', icon: FileText, component: QuotationsPage, group: 'pos', permission: 'view_quotations', feature: 'quotations' },
   { id: 'retailer-promotions', path: '/retailer/promotions', labelKey: 'nav.retailerPromotions', icon: Tag, component: RetailPromotionsPage, group: 'pos', permission: 'manage_retail_promotions', feature: 'retailer-promotions' },

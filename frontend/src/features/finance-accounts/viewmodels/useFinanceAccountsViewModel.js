@@ -52,6 +52,12 @@ export function useFinanceAccountsViewModel({ confirm }) {
     await Promise.all([accountsQuery.refetch(), dashboardQuery.refetch(), list.reload()]);
   }
 
+  function resetFilters() {
+    setAccountType('');
+    setDateFrom('');
+    setDateTo('');
+  }
+
   async function runSave(action, payload, titleKey) {
     try {
       await actionMutation.mutateAsync({ action, payload });
@@ -92,6 +98,8 @@ export function useFinanceAccountsViewModel({ confirm }) {
     totalDsrDue: dashboardQuery.data?.totalDsrDue || 0,
     totalCustomerDue: dashboardQuery.data?.totalCustomerDue || 0,
     accountType, setAccountType, dateFrom, setDateFrom, dateTo, setDateTo,
+    hasActiveFilters: Boolean(accountType || dateFrom || dateTo),
+    resetFilters,
     saveTransaction: (payload) => runSave('transaction', payload, 'financeAccounts.addTransactionTitle'),
     saveTransfer: (payload) => runSave('transfer', payload, 'financeAccounts.transferTitle'),
     deleteTransaction,

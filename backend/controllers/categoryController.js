@@ -34,4 +34,43 @@ export class CategoryController {
       next(error);
     }
   };
+
+  listAttributes = async (req, res, next) => {
+    try {
+      res.json({ attributes: await this.categoryService.listAttributes(req.params.id, req.currentUser) });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  createAttribute = async (req, res, next) => {
+    try {
+      const attribute = await this.categoryService.createAttribute(req.params.id, req.body, req.currentUser);
+      res.status(201).json({ attribute });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  updateAttribute = async (req, res, next) => {
+    try {
+      const attribute = await this.categoryService.updateAttribute(
+        req.params.id,
+        req.params.attributeId,
+        req.body,
+        req.currentUser,
+      );
+      res.json({ attribute });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  removeAttribute = async (req, res, next) => {
+    try {
+      res.json(await this.categoryService.deleteAttribute(req.params.id, req.params.attributeId, req.currentUser));
+    } catch (error) {
+      next(error);
+    }
+  };
 }

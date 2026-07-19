@@ -3115,4 +3115,81 @@ export async function createSchema(pool) {
   await pool.query(`
     ALTER TABLE sales_invoice_items ALTER COLUMN product_id DROP NOT NULL;
   `);
+
+  // Product Browser + flexible per-category electronics specs.
+  // `specs` is schema-less JSONB so a new category (TV, Fridge, Iron, ...)
+  // never needs a migration; `category_attribute_definitions` describes
+  // which keys apply to a category and how to render/label them.
+  await pool.query(`
+    ALTER TABLE products ADD COLUMN IF NOT EXISTS specs JSONB NOT NULL DEFAULT '{}';
+
+    -- An earlier, abandoned attempt at this same feature (same-day, reverted
+    -- before ever shipping) left behind an empty table under this name with
+    -- an incompatible column shape, so "CREATE TABLE IF NOT EXISTS" below
+    -- would silently no-op against it. Safe to drop only because it's
+    -- confirmed empty — refuse (rather than destroy data) if that's ever
+    -- not the case, e.g. in an environment where it was actually used.
+    DO $$
+    BEGIN
+      IF EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'category_attribute_definitions' AND column_name = 'show_in_comparison'
+      ) THEN
+        RETURN;
+      END IF;
+
+      IF NOT EXISTS (
+        SELECT 1 FROM information_schema.tables WHERE table_name = 'category_attribute_definitions'
+      ) THEN
+        RETURN;
+      END IF;
+
+      IF EXISTS (SELECT 1 FROM category_attribute_definitions LIMIT 1) THEN
+        RAISE EXCEPTION 'category_attribute_definitions has unexpected legacy rows; refusing to auto-drop';
+      END IF;
+
+      DROP TABLE category_attribute_definitions;
+    END $$;
+
+    CREATE TABLE IF NOT EXISTS category_attribute_definitions (
+      id          TEXT PRIMARY KEY,
+      tenant_id   TEXT NOT NULL REFERENCES tenants(id),
+      category_id TEXT NOT NULL REFERENCES categories(id) ON DELETE CASCADE,
+      key         TEXT NOT NULL,
+      label       TEXT NOT NULL,
+      data_type   TEXT NOT NULL DEFAULT 'text',
+      unit        TEXT NOT NULL DEFAULT '',
+      options     JSONB NOT NULL DEFAULT '[]',
+      sort_order  INTEGER NOT NULL DEFAULT 0,
+      show_in_comparison BOOLEAN NOT NULL DEFAULT TRUE,
+      created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE (tenant_id, category_id, key)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_category_attribute_definitions_category
+      ON category_attribute_definitions(tenant_id, category_id, sort_order);
+
+    CREATE TABLE IF NOT EXISTS product_images (
+      id         TEXT PRIMARY KEY,
+      tenant_id  TEXT NOT NULL REFERENCES tenants(id),
+      product_id TEXT NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+      url        TEXT NOT NULL,
+      sort_order INTEGER NOT NULL DEFAULT 0,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_product_images_product ON product_images(product_id, sort_order);
+
+    CREATE EXTENSION IF NOT EXISTS pg_trgm;
+    CREATE INDEX IF NOT EXISTS idx_products_name_trgm ON products USING GIN (name gin_trgm_ops);
+  `);
+
+  await runBackfillOnce(pool, "backfill-product-images-from-image-url", `
+    INSERT INTO product_images (id, tenant_id, product_id, url, sort_order)
+    SELECT 'pimg-' || md5(p.id), p.tenant_id, p.id, p.image_url, 0
+    FROM products p
+    WHERE p.image_url IS NOT NULL AND p.image_url <> ''
+      AND NOT EXISTS (SELECT 1 FROM product_images pi WHERE pi.product_id = p.id);
+  `);
 }

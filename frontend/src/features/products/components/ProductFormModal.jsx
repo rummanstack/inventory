@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Save } from 'lucide-react';
+import { Plus, Save, Trash2 } from 'lucide-react';
 import { Alert, Modal, Select } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { cleanNumber } from '../../../utils/calculations.js';
@@ -11,10 +11,18 @@ import {
   fetchActiveSuppliers,
   fetchBrands,
   fetchCategories,
+  fetchCategoryAttributes,
   fetchGenericMedicines,
   fetchManufacturers,
   productKeys,
 } from '../queries/productQueries.js';
+
+function specsEqual(a, b) {
+  const aEntries = Object.entries(a || {}).filter(([, v]) => v !== '' && v !== undefined && v !== null);
+  const bEntries = Object.entries(b || {}).filter(([, v]) => v !== '' && v !== undefined && v !== null);
+  if (aEntries.length !== bEntries.length) return false;
+  return aEntries.every(([key, value]) => String(b?.[key] ?? '') === String(value));
+}
 
 export default function ProductFormModal({ product, onClose, onSave }) {
   const { t, pushToast, tenant } = useInventoryApp();
@@ -76,7 +84,35 @@ export default function ProductFormModal({ product, onClose, onSave }) {
     packSize: product?.packSize ?? 0,
     medicineType: product?.medicineType || '',
     requiresBatch: product?.requiresBatch === true,
+    specs: product?.specs || {},
+    images: Array.isArray(product?.images) ? product.images : [],
   });
+
+  const categoryAttributesQuery = useQuery({
+    queryKey: productKeys.categoryAttributes(tenantId, form.categoryId),
+    queryFn: () => fetchCategoryAttributes(form.categoryId),
+    enabled: Boolean(tenantId && form.categoryId),
+    staleTime: 60_000,
+  });
+  const categoryAttributes = categoryAttributesQuery.data || [];
+
+  function updateSpec(key, value) {
+    updateField('specs', { ...form.specs, [key]: value });
+  }
+
+  function updateGalleryImage(index, url) {
+    const next = [...form.images];
+    next[index] = url;
+    updateField('images', next);
+  }
+
+  function addGalleryImage() {
+    updateField('images', [...form.images, '']);
+  }
+
+  function removeGalleryImage(index) {
+    updateField('images', form.images.filter((_, i) => i !== index));
+  }
 
   function toggleSupplier(supplierId) {
     const current = form.supplierIds || [];
@@ -150,11 +186,15 @@ export default function ProductFormModal({ product, onClose, onSave }) {
       requiresBatch: Boolean(form.requiresBatch),
       manufacturerId: form.manufacturerId || null,
       genericMedicineId: form.genericMedicineId || null,
+      specs: form.specs || {},
+      images: (form.images || []).map((url) => url.trim()).filter(Boolean),
     };
 
     if (isEdit) {
       const existingSupplierIds = Array.isArray(product?.supplierIds) ? [...product.supplierIds].sort().join(',') : '';
       const nextSupplierIds = [...supplierIds].sort().join(',');
+      const existingImages = Array.isArray(product?.images) ? [...product.images].join('|') : '';
+      const nextImages = payload.images.join('|');
       const unchanged =
         payload.name === product.name &&
         payload.categoryId === product.categoryId &&
@@ -175,7 +215,9 @@ export default function ProductFormModal({ product, onClose, onSave }) {
         payload.status === (product.status || 'ACTIVE') &&
         payload.description === (product.description || '') &&
         payload.imageUrl === (product.imageUrl ?? null) &&
-        nextSupplierIds === existingSupplierIds;
+        nextSupplierIds === existingSupplierIds &&
+        nextImages === existingImages &&
+        specsEqual(payload.specs, product.specs);
       if (unchanged) {
         pushToast('info', t('products.editTitle'), t('alerts.noChanges'));
         return;
@@ -203,6 +245,42 @@ export default function ProductFormModal({ product, onClose, onSave }) {
           shape="square"
           disabled={saving}
         />
+        {isElectronics ? (
+          <div>
+            <label className="label">{t('products.galleryImages')}</label>
+            <div className="grid gap-3 sm:grid-cols-3">
+              {form.images.map((url, index) => (
+                <div key={index} className="relative">
+                  <PhotoUploadField
+                    value={url}
+                    onChange={(nextUrl) => updateGalleryImage(index, nextUrl)}
+                    shape="square"
+                    disabled={saving}
+                  />
+                  <button
+                    type="button"
+                    className="icon-btn absolute right-1 top-1 bg-white/90 text-rose-600"
+                    title={t('common.delete')}
+                    onClick={() => removeGalleryImage(index)}
+                    disabled={saving}
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                className="btn-secondary flex h-full min-h-[96px] items-center justify-center"
+                onClick={addGalleryImage}
+                disabled={saving}
+              >
+                <Plus size={16} />
+                {t('products.addGalleryImage')}
+              </button>
+            </div>
+            <p className="mt-1 text-xs text-slate-500">{t('products.galleryImagesHint')}</p>
+          </div>
+        ) : null}
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <label className="label">{t('products.productName')}</label>
@@ -350,6 +428,52 @@ export default function ProductFormModal({ product, onClose, onSave }) {
               onChange={(event) => updateField('description', event.target.value)}
             />
           </div>
+          {categoryAttributes.length > 0 ? (
+            <div className="sm:col-span-2">
+              <div className="mb-2 flex items-center gap-2">
+                <span className="h-px flex-1 bg-slate-200" />
+                <span className="text-xs font-semibold uppercase tracking-widest text-slate-400">{t('categoryAttributes.specsSectionTitle')}</span>
+                <span className="h-px flex-1 bg-slate-200" />
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                {categoryAttributes.map((attribute) => (
+                  <div key={attribute.id}>
+                    <label className="label">{attribute.label}{attribute.unit ? ` (${attribute.unit})` : ''}</label>
+                    {attribute.dataType === 'boolean' ? (
+                      <Select
+                        className="input"
+                        value={form.specs?.[attribute.key] ?? ''}
+                        onChange={(event) => updateSpec(attribute.key, event.target.value)}
+                      >
+                        <option value="">{t('common.select')}</option>
+                        <option value="true">{t('common.yes')}</option>
+                        <option value="false">{t('common.no')}</option>
+                      </Select>
+                    ) : attribute.dataType === 'select' ? (
+                      <Select
+                        className="input"
+                        value={form.specs?.[attribute.key] ?? ''}
+                        onChange={(event) => updateSpec(attribute.key, event.target.value)}
+                      >
+                        <option value="">{t('common.select')}</option>
+                        {(attribute.options || []).map((option) => (
+                          <option key={option} value={option}>{option}</option>
+                        ))}
+                      </Select>
+                    ) : (
+                      <input
+                        className="input"
+                        type={attribute.dataType === 'number' ? 'number' : 'text'}
+                        inputMode={attribute.dataType === 'number' ? 'decimal' : undefined}
+                        value={form.specs?.[attribute.key] ?? ''}
+                        onChange={(event) => updateSpec(attribute.key, event.target.value)}
+                      />
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
           {isPharmacy ? (
             <>
               <div className="sm:col-span-2">

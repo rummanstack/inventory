@@ -264,7 +264,7 @@ export function TrendChart({ data, series, valueFormatter = (value) => value, he
   );
 }
 
-export function HorizontalBarChart({ data, valueFormatter = (value) => value, trackClassName = '', valueKey = 'value' }) {
+export function HorizontalBarChart({ data, valueFormatter = (value) => value, trackClassName = '', valueKey = 'value', height = null }) {
   const chartData = {
     labels: data.map((item) => item.label),
     datasets: [{
@@ -306,7 +306,7 @@ export function HorizontalBarChart({ data, valueFormatter = (value) => value, tr
   };
 
   return (
-    <div className={cx('rounded-card p-2', trackClassName)} style={{ height: Math.max(data.length * 50, 180) }}>
+    <div className={cx('rounded-card p-2', trackClassName)} style={{ height: height || Math.max(data.length * 50, 180) }}>
       <Bar data={chartData} options={options} />
     </div>
   );

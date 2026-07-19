@@ -13,5 +13,18 @@ export function createCategoriesRoutes(categoryController) {
   router.patch("/:id", requirePermission(PERMISSIONS.MANAGE_PRODUCTS), categoryController.update);
   router.delete("/:id", requirePermission(PERMISSIONS.MANAGE_PRODUCTS), categoryController.remove);
 
+  router.get("/:id/attributes", requirePermission(PERMISSIONS.MANAGE_PRODUCTS), categoryController.listAttributes);
+  router.post("/:id/attributes", requirePermission(PERMISSIONS.MANAGE_PRODUCTS), categoryController.createAttribute);
+  router.patch(
+    "/:id/attributes/:attributeId",
+    requirePermission(PERMISSIONS.MANAGE_PRODUCTS),
+    categoryController.updateAttribute,
+  );
+  router.delete(
+    "/:id/attributes/:attributeId",
+    requirePermission(PERMISSIONS.MANAGE_PRODUCTS),
+    categoryController.removeAttribute,
+  );
+
   return router;
 }

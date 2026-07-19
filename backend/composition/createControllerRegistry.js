@@ -37,6 +37,7 @@ import { OrgController } from "../controllers/orgController.js";
 import { PermissionController } from "../controllers/permissionController.js";
 import { ReportExportController } from "../controllers/reportExportController.js";
 import { ProductController } from "../controllers/productController.js";
+import { ProductBrowserController } from "../controllers/productBrowserController.js";
 import { ProductSerialController } from "../controllers/productSerialController.js";
 import { ProfitController } from "../controllers/profitController.js";
 import { PurchaseReceiveController } from "../controllers/purchaseReceiveController.js";
@@ -114,6 +115,10 @@ export function createControllerRegistry({ services, env, databaseManager }) {
       genericMedicineController: new GenericMedicineController(services.catalog.genericMedicineService),
       manufacturerController: new ManufacturerController(services.catalog.manufacturerService),
       productController: new ProductController(services.catalog.productService),
+      productBrowserController: new ProductBrowserController({
+        productService: services.catalog.productService,
+        categoryService: services.catalog.categoryService,
+      }),
       productSerialController: new ProductSerialController(services.catalog.productSerialService),
       stockMovementController: new StockMovementController(services.catalog.stockMovementService),
     },

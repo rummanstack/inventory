@@ -1,35 +1,16 @@
-import { useCallback, useEffect, useState } from 'react';
-import { Building2, CircleDollarSign, Download, FileSpreadsheet, HandCoins, Landmark, Loader2, Printer, RotateCcw, Scale, ShoppingBag, Store, TrendingDown, TrendingUp, Wallet } from 'lucide-react';
-import { Alert, cx, EmptyState, MobileCardList, MobileListCard, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton } from '../../../components/ui.jsx';
+import { useEffect, useState } from 'react';
+import { CircleDollarSign, Download, FileSpreadsheet, Loader2, Printer, TrendingDown, TrendingUp } from 'lucide-react';
+import { Alert, ChartPanel, ChartPanelSkeleton, cx, HorizontalBarChart, SectionHeader, StatCard, StatCardSkeleton } from '../../../components/ui.jsx';
 import { DateRangePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../services/printService.js';
 import { inventoryApi } from '../../../services/inventoryApi.js';
-import { formatCurrency, formatDate, formatNumber } from '../../../utils/calculations.js';
-import { useFinanceDashboardViewModel } from '../viewmodels/useFinanceDashboardViewModel';
+import { formatCurrency, formatNumber, todayISO } from '../../../utils/calculations.js';
+import { getCssVar } from '../../../utils/theme.js';
 import { useRangeReportViewModel } from '../viewmodels/useRangeReportViewModel';
 import { useAsyncAction } from '../../../hooks/useAsyncAction.js';
 
 const RANGE_REPORT_PRINT_ID = 'finance-dashboard-range-report';
-const RECENT_TRANSACTIONS_PRINT_ID = 'finance-dashboard-recent-transactions';
-
-const TRANSACTION_TYPE_STYLES = {
-  DEPOSIT: { labelKey: 'financeDashboard.deposit', className: 'bg-emerald-50 text-emerald-700 border border-emerald-100' },
-  WITHDRAWAL: { labelKey: 'financeDashboard.withdrawal', className: 'bg-rose-50 text-rose-700 border border-rose-100' },
-  TRANSFER_IN: { labelKey: 'financeDashboard.transferIn', className: 'bg-blue-50 text-blue-700 border border-blue-100' },
-  TRANSFER_OUT: { labelKey: 'financeDashboard.transferOut', className: 'bg-amber-50 text-amber-700 border border-amber-100' },
-};
-
-function transactionAmount(tx) {
-  return (tx.type === 'DEPOSIT' || tx.type === 'TRANSFER_IN') ? tx.debit : tx.credit;
-}
-
-function transactionAmountClass(tx) {
-  return (tx.type === 'DEPOSIT' || tx.type === 'TRANSFER_IN')
-    ? 'text-emerald-600 font-bold'
-    : 'text-rose-600 font-bold';
-}
-
 function formatPercent(value) {
   if (!Number.isFinite(value)) return '-';
   return `${value.toFixed(1)}%`;
@@ -37,24 +18,29 @@ function formatPercent(value) {
 
 function BreakdownList({ items, language }) {
   return (
-    <div className="divide-y divide-slate-100">
-      {items.map(({ label, value, valueClass, bold }) => (
-        <div key={label} className={`flex items-center justify-between px-5 py-3 ${bold ? 'bg-slate-50' : ''}`}>
-          <span className={`text-sm ${bold ? 'font-bold text-slate-950' : 'text-slate-600'}`}>{label}</span>
-          <span className={`text-sm font-semibold ${valueClass || 'text-slate-800'} ${bold ? 'font-bold' : ''}`}>{formatCurrency(value, language)}</span>
-        </div>
-      ))}
+    <div className="flex flex-1 flex-col divide-y divide-slate-100">
+      {items.map(({ label, value, valueClass, bold }, index) => {
+        const pinToBottom = bold && index === items.length - 1;
+        return (
+          <div
+            key={label}
+            className={cx(
+              'flex items-center justify-between px-5 py-3',
+              bold && 'bg-slate-50',
+              pinToBottom && 'mt-auto',
+            )}
+          >
+            <span className={cx('text-sm', bold ? 'font-bold text-slate-950' : 'text-slate-600')}>{label}</span>
+            <span className={cx('text-sm font-semibold', valueClass || 'text-slate-800', bold && 'font-bold')}>{formatCurrency(value, language)}</span>
+          </div>
+        );
+      })}
     </div>
   );
 }
-
-function SectionTitleSkeleton() {
-  return <div className="mb-4 h-5 w-44 animate-pulse rounded-full bg-slate-200" />;
-}
-
 function BreakdownPanelSkeleton({ rows = 4 }) {
   return (
-    <div className="surface overflow-hidden">
+    <div className="surface flex h-full flex-col overflow-hidden">
       <div className="border-b border-slate-100 px-5 py-4">
         <div className="h-4 w-36 animate-pulse rounded-full bg-slate-200" />
       </div>
@@ -72,14 +58,46 @@ function BreakdownPanelSkeleton({ rows = 4 }) {
 
 export default function FinanceDashboardPage() {
   const { t, language } = useInventoryApp();
-  const { data, loading, error } = useFinanceDashboardViewModel();
   const rr = useRangeReportViewModel();
-  // Both report sections below can be on screen at once, but the global print CSS
-  // (`.print-target`) shows every matching element regardless of which button was
-  // clicked — so only the section currently being printed gets the class.
+  // Activate print styling only while this report is being printed.
   const [printingSection, setPrintingSection] = useState(null);
   const [downloadingRangePdf, downloadRangePdf] = useAsyncAction();
-  const [downloadingTransactionsPdf, downloadTransactionsPdf] = useAsyncAction();
+  const [exportingRangeExcel, exportRangeExcel] = useAsyncAction();
+
+  const netReceivable = rr.data
+    ? rr.data.totalDsrDue + rr.data.totalCustomerDue - rr.data.totalSupplierDue
+    : 0;
+
+  const chartPalette = [
+    getCssVar('--secondary', '#4b4b6a'),
+    getCssVar('--warning', '#f8aa17'),
+    getCssVar('--success', '#37a864'),
+    getCssVar('--danger', '#f1454f'),
+    getCssVar('--teal', '#0891b2'),
+    getCssVar('--purple', '#9b44ad'),
+  ];
+  const profitComparisonData = rr.data ? [
+    { label: t('financeDashboard.totalRevenue'), value: rr.data.revenue, color: chartPalette[0] },
+    { label: t('financeDashboard.costOfGoods'), value: rr.data.cogs, color: chartPalette[1] },
+    { label: t('financeDashboard.totalExpenses'), value: rr.data.totalExpenses, color: '#64748b' },
+    { label: t('financeDashboard.grossProfit'), value: rr.data.grossProfit, color: rr.data.grossProfit >= 0 ? chartPalette[2] : chartPalette[3] },
+    { label: t('financeDashboard.netProfit'), value: rr.data.netProfit, color: rr.data.netProfit >= 0 ? chartPalette[4] : chartPalette[3] },
+  ] : [];
+  const rankedExpenses = rr.data
+    ? [...rr.data.expenseBreakdown].sort((a, b) => Number(b.amount) - Number(a.amount))
+    : [];
+  const expenseChartData = rankedExpenses.slice(0, 5).map((item, index) => ({
+    label: item.category,
+    value: item.amount,
+    color: chartPalette[index % chartPalette.length],
+  }));
+  if (rankedExpenses.length > 5) {
+    expenseChartData.push({
+      label: t('financeDashboard.otherExpenses'),
+      value: rankedExpenses.slice(5).reduce((sum, item) => sum + Number(item.amount || 0), 0),
+      color: chartPalette[5],
+    });
+  }
 
   useEffect(() => {
     const resetPrintingSection = () => setPrintingSection(null);
@@ -92,14 +110,6 @@ export default function FinanceDashboardPage() {
     setPrintingSection(section);
     requestAnimationFrame(() => window.print());
   }
-
-  const fmtCurrency = useCallback((n) => formatCurrency(n, language), [language]);
-
-  const cashInHand = data?.accounts?.find((a) => a.type === 'CASH')?.balance || 0;
-  const bankBalance = data?.accounts?.find((a) => a.type === 'BANK')?.balance || 0;
-  const netReceivable = rr.data
-    ? rr.data.totalDsrDue + rr.data.totalCustomerDue - rr.data.totalSupplierDue
-    : 0;
 
   async function handleExportRangeReportExcel() {
     if (!rr.data) return;
@@ -139,43 +149,34 @@ export default function FinanceDashboardPage() {
     writeFile(wb, `finance-dashboard-${rr.dateFrom}-${rr.dateTo}.xlsx`);
   }
 
-  async function handleExportTransactionsExcel() {
-    const { utils, writeFile } = await import('xlsx');
-    const header = [t('financeAccounts.date'), t('financeAccounts.account'), t('financeAccounts.type'), t('financeAccounts.amount'), t('financeAccounts.note')];
-    const rows = (data.recentTransactions || []).map((tx) => [
-      formatDate(tx.transactionDate),
-      tx.accountName,
-      t(TRANSACTION_TYPE_STYLES[tx.type]?.labelKey || tx.type),
-      transactionAmount(tx),
-      tx.note || '',
-    ]);
-    const ws = utils.aoa_to_sheet([header, ...rows]);
-    ws['!cols'] = [{ wch: 14 }, { wch: 18 }, { wch: 16 }, { wch: 14 }, { wch: 24 }];
-    const wb = utils.book_new();
-    utils.book_append_sheet(wb, ws, t('financeDashboard.recentTransactionsTitle'));
-    writeFile(wb, 'finance-dashboard-recent-transactions.xlsx');
-  }
-
   return (
-    <div className="space-y-10">
+    <div className="space-y-6">
       <SectionHeader title={t('financeDashboard.title')} compact />
 
       <div>
         <div className="surface mb-6 flex flex-wrap items-end gap-4 p-5">
-          <div className="min-w-[280px]">
+          <div className="w-full sm:w-80">
             <label className="label">{t('financeDashboard.from')} - {t('financeDashboard.to')}</label>
             <DateRangePickerField
               from={rr.dateFrom}
               to={rr.dateTo}
               onChange={(from, to) => { rr.setDateFrom(from); rr.setDateTo(to); }}
               placeholder={`${t('financeDashboard.from')} - ${t('financeDashboard.to')}`}
+              max={todayISO()}
             />
           </div>
-          <button type="button" className="btn-primary shrink-0" onClick={rr.applyRange} disabled={rr.loading}>
-            {rr.loading ? <span className="inline-block h-4 w-28 animate-pulse rounded-full bg-white/60" /> : t('financeDashboard.generateReport')}
+          <button
+            type="button"
+            className="btn-primary w-full shrink-0 sm:w-auto sm:min-w-40"
+            onClick={rr.applyRange}
+            disabled={rr.loading}
+            aria-busy={rr.loading}
+          >
+            {rr.loading ? <Loader2 size={16} className="animate-spin" /> : null}
+            {t('financeDashboard.generateReport')}
           </button>
           {rr.data ? (
-            <div className="no-print flex flex-wrap gap-2 sm:ml-auto">
+            <div className="no-print flex w-full flex-wrap gap-2 lg:ml-auto lg:w-auto">
               <button
                 type="button"
                 className="btn-secondary h-10 gap-1.5 px-3 text-xs disabled:cursor-not-allowed disabled:opacity-60"
@@ -188,8 +189,13 @@ export default function FinanceDashboardPage() {
                 {downloadingRangePdf ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
                 {t('purchaseReceive.downloadPdf')}
               </button>
-              <button type="button" className="btn-secondary h-10 gap-1.5 px-3 text-xs" onClick={handleExportRangeReportExcel}>
-                <FileSpreadsheet size={14} />
+              <button
+                type="button"
+                className="btn-secondary h-10 gap-1.5 px-3 text-xs disabled:cursor-not-allowed disabled:opacity-60"
+                onClick={() => exportRangeExcel(handleExportRangeReportExcel)}
+                disabled={exportingRangeExcel}
+              >
+                {exportingRangeExcel ? <Loader2 size={14} className="animate-spin" /> : <FileSpreadsheet size={14} />}
                 {t('common.exportExcel')}
               </button>
               <button
@@ -208,8 +214,12 @@ export default function FinanceDashboardPage() {
           <Alert type="error">{rr.error}</Alert>
         ) : rr.loading ? (
           <div className="space-y-6">
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
               {Array.from({ length: 5 }).map((_, i) => <StatCardSkeleton key={i} />)}
+            </div>
+            <div className="grid gap-6 xl:grid-cols-2">
+              <ChartPanelSkeleton height="h-[300px]" />
+              <ChartPanelSkeleton height="h-[300px]" />
             </div>
             <div className="grid gap-6 lg:grid-cols-3">
               {Array.from({ length: 6 }).map((_, i) => <BreakdownPanelSkeleton key={i} />)}
@@ -217,22 +227,51 @@ export default function FinanceDashboardPage() {
           </div>
         ) : rr.data ? (
           <div id={RANGE_REPORT_PRINT_ID} className={cx('space-y-6', printingSection === 'range' && 'print-target')}>
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
               <StatCard title={t('financeDashboard.totalRevenue')} value={formatCurrency(rr.data.revenue, language)} icon={TrendingUp} tone="blue" />
               <StatCard title={t('financeDashboard.costOfGoods')} value={formatCurrency(rr.data.cogs, language)} icon={CircleDollarSign} tone="amber" />
               <StatCard title={t('financeDashboard.totalExpenses')} value={formatCurrency(rr.data.totalExpenses, language)} icon={CircleDollarSign} tone="slate" />
-              <StatCard title={t('financeDashboard.grossProfit')} value={formatCurrency(rr.data.grossProfit, language)} helper={t('financeDashboard.revenueMinusCog')} icon={TrendingUp} tone="emerald" />
+              <StatCard title={t('financeDashboard.grossProfit')} value={formatCurrency(rr.data.grossProfit, language)} icon={TrendingUp} tone="emerald" />
               <StatCard
                 title={t('financeDashboard.netProfit')}
                 value={formatCurrency(rr.data.netProfit, language)}
-                helper={t('financeDashboard.afterAllExpenses')}
                 icon={rr.data.netProfit >= 0 ? TrendingUp : TrendingDown}
                 tone={rr.data.netProfit >= 0 ? 'emerald' : 'rose'}
               />
             </div>
 
+            <div className="grid gap-6 xl:grid-cols-2">
+              <ChartPanel
+                title={t('financeDashboard.profitComparisonTitle')}
+                description={t('financeDashboard.profitComparisonDescription')}
+              >
+                <HorizontalBarChart
+                  data={profitComparisonData}
+                  valueFormatter={(value) => formatCurrency(value, language)}
+                  height={300}
+                />
+              </ChartPanel>
+
+              <ChartPanel
+                title={t('financeDashboard.expenseChartTitle')}
+                description={t('financeDashboard.expenseChartDescription')}
+              >
+                {expenseChartData.length ? (
+                  <HorizontalBarChart
+                    data={expenseChartData}
+                    valueFormatter={(value) => formatCurrency(value, language)}
+                    height={300}
+                  />
+                ) : (
+                  <div className="flex h-[300px] items-center justify-center text-center text-sm font-medium text-slate-400">
+                    {t('financeDashboard.noExpensesInPeriod')}
+                  </div>
+                )}
+              </ChartPanel>
+            </div>
+
             <div className="grid gap-6 lg:grid-cols-3">
-              <div className="surface overflow-hidden">
+              <div className="surface flex h-full flex-col overflow-hidden">
                 <div className="border-b border-slate-100 px-5 py-4">
                   <h3 className="text-sm font-bold text-slate-950">{t('financeDashboard.profitBreakdown')}</h3>
                 </div>
@@ -248,7 +287,7 @@ export default function FinanceDashboardPage() {
                 />
               </div>
 
-              <div className="surface overflow-hidden">
+              <div className="surface flex h-full flex-col overflow-hidden">
                 <div className="border-b border-slate-100 px-5 py-4">
                   <h3 className="text-sm font-bold text-slate-950">{t('financeDashboard.expenseBreakdown')}</h3>
                 </div>
@@ -267,7 +306,7 @@ export default function FinanceDashboardPage() {
                 )}
               </div>
 
-              <div className="surface overflow-hidden">
+              <div className="surface flex h-full flex-col overflow-hidden">
                 <div className="border-b border-slate-100 px-5 py-4">
                   <h3 className="text-sm font-bold text-slate-950">{t('financeDashboard.outstandingBalances')}</h3>
                   <p className="mt-0.5 text-xs text-slate-400">{t('financeDashboard.currentBalancesToday')}</p>
@@ -283,15 +322,15 @@ export default function FinanceDashboardPage() {
                 />
               </div>
 
-              <div className="surface overflow-hidden">
+              <div className="surface flex h-full flex-col overflow-hidden">
                 <div className="border-b border-slate-100 px-5 py-4">
                   <h3 className="text-sm font-bold text-slate-950">{t('financeDashboard.marginAnalysis')}</h3>
                   <p className="mt-0.5 text-xs text-slate-400">{t('financeDashboard.asPercentageOfRevenue')}</p>
                 </div>
                 <div className="divide-y divide-slate-100">
                   {[
-                    { label: t('financeDashboard.grossMargin'), pct: rr.data.cogs > 0 ? (rr.data.grossProfit / rr.data.cogs) * 100 : 0, positive: rr.data.grossProfit >= 0 },
-                    { label: t('financeDashboard.netMargin'), pct: rr.data.cogs > 0 ? (rr.data.netProfit / rr.data.cogs) * 100 : 0, positive: rr.data.netProfit >= 0 },
+                    { label: t('financeDashboard.grossMargin'), pct: rr.data.revenue > 0 ? (rr.data.grossProfit / rr.data.revenue) * 100 : 0, positive: rr.data.grossProfit >= 0 },
+                    { label: t('financeDashboard.netMargin'), pct: rr.data.revenue > 0 ? (rr.data.netProfit / rr.data.revenue) * 100 : 0, positive: rr.data.netProfit >= 0 },
                     { label: t('financeDashboard.expenseRatio'), pct: rr.data.revenue > 0 ? (rr.data.totalExpenses / rr.data.revenue) * 100 : 0, positive: false },
                     { label: t('financeDashboard.cogsRatio'), pct: rr.data.revenue > 0 ? (rr.data.cogs / rr.data.revenue) * 100 : 0, positive: false },
                   ].map(({ label, pct, positive }) => (
@@ -303,7 +342,7 @@ export default function FinanceDashboardPage() {
                 </div>
               </div>
 
-              <div className="surface overflow-hidden">
+              <div className="surface flex h-full flex-col overflow-hidden">
                 <div className="border-b border-slate-100 px-5 py-4">
                   <h3 className="text-sm font-bold text-slate-950">{t('financeDashboard.cashFlow')}</h3>
                   <p className="mt-0.5 text-xs text-slate-400">{t('financeDashboard.moneyInOutPeriod')}</p>
@@ -323,7 +362,7 @@ export default function FinanceDashboardPage() {
                 />
               </div>
 
-              <div className="surface overflow-hidden">
+              <div className="surface flex h-full flex-col overflow-hidden">
                 <div className="border-b border-slate-100 px-5 py-4">
                   <h3 className="text-sm font-bold text-slate-950">{t('financeDashboard.salesSummary')}</h3>
                   <p className="mt-0.5 text-xs text-slate-400">{t('financeDashboard.invoiceCountPeriod', { count: formatNumber(rr.data.sales.count, language) })}</p>
@@ -342,186 +381,6 @@ export default function FinanceDashboardPage() {
           </div>
         ) : null}
       </div>
-
-      {loading ? (
-        <div className="space-y-8">
-          <div>
-            <SectionTitleSkeleton />
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {Array.from({ length: 7 }).map((_, i) => <StatCardSkeleton key={i} />)}
-            </div>
-          </div>
-          <div>
-            <SectionTitleSkeleton />
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {Array.from({ length: 3 }).map((_, i) => <StatCardSkeleton key={i} />)}
-            </div>
-          </div>
-          <div>
-            <SectionTitleSkeleton />
-            <div className="grid gap-4 sm:grid-cols-2">
-              {Array.from({ length: 2 }).map((_, i) => <StatCardSkeleton key={i} />)}
-            </div>
-          </div>
-          <div>
-            <SectionTitleSkeleton />
-            <TableSkeleton rows={5} columns={5} showHeader={false} />
-          </div>
-        </div>
-      ) : error ? (
-        <Alert type="error">{error}</Alert>
-      ) : (
-        <>
-          <div>
-            <h2 className="mb-4 text-base font-bold text-slate-950">{t('financeDashboard.balanceTitle')}</h2>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              <StatCard title={t('financeDashboard.cashInHand')} value={formatCurrency(cashInHand, language)} icon={Wallet} tone="emerald" rawValue={cashInHand} formatter={fmtCurrency} />
-              <StatCard title={t('financeAccounts.bank')} value={formatCurrency(bankBalance, language)} icon={Landmark} tone="indigo" rawValue={bankBalance} formatter={fmtCurrency} />
-              <StatCard title={t('financeDashboard.dsrReceivables')} value={formatCurrency(data.totalDsrDue, language)} helper={t('financeDashboard.dsrReceivablesHelper')} icon={HandCoins} tone="amber" rawValue={data.totalDsrDue} formatter={fmtCurrency} />
-              <StatCard title={t('financeDashboard.customerReceivables')} value={formatCurrency(data.totalCustomerDue, language)} helper={t('financeDashboard.customerReceivablesHelper')} icon={Store} tone="amber" rawValue={data.totalCustomerDue} formatter={fmtCurrency} />
-              <StatCard title={t('financeDashboard.supplierPayables')} value={formatCurrency(data.totalSupplierDue, language)} helper={t('financeDashboard.supplierPayablesHelper')} icon={Building2} tone="rose" rawValue={data.totalSupplierDue} formatter={fmtCurrency} />
-              <StatCard title={t('financeDashboard.monthlyExpenses')} value={formatCurrency(data.monthlyExpenses, language)} helper={t('financeDashboard.monthlyExpensesHelper')} icon={CircleDollarSign} tone="rose" rawValue={data.monthlyExpenses} formatter={fmtCurrency} />
-              <StatCard title={t('financeDashboard.monthlyProfit')} value={formatCurrency(data.monthlyProfit, language)} helper={t('financeDashboard.monthlyProfitHelper')} icon={TrendingUp} tone="emerald" trend={data.profitDailyTrend} trendPct={data.profitVsLastMonth} trendLabel="vs last month" rawValue={data.monthlyProfit} formatter={fmtCurrency} />
-              <StatCard title={t('financeDashboard.netPosition')} value={formatCurrency(data.netPosition, language)} helper={t('financeDashboard.netPositionHelper')} icon={Scale} tone="slate" rawValue={data.netPosition} formatter={fmtCurrency} />
-            </div>
-          </div>
-
-          <div>
-            <h2 className="mb-4 text-base font-bold text-slate-950">{t('financeDashboard.operationsTitle')}</h2>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              <StatCard
-                title={t('financeDashboard.settlementCollected')}
-                value={formatCurrency(data.monthlySettlementCollected, language)}
-                helper={`${formatNumber(data.monthlySettlementCount, language)} ${t('financeDashboard.settlementCollectedHelper')}`}
-                icon={RotateCcw}
-                tone="emerald"
-                trend={data.settlementDailyTrend}
-                trendPct={data.settlementVsLastMonth}
-                trendLabel="vs last month"
-                rawValue={data.monthlySettlementCollected}
-                formatter={fmtCurrency}
-              />
-              <StatCard
-                title={t('financeDashboard.settlementDue')}
-                value={formatCurrency(data.monthlySettlementDue, language)}
-                helper={t('financeDashboard.settlementDueHelper')}
-                icon={HandCoins}
-                tone="rose"
-                rawValue={data.monthlySettlementDue}
-                formatter={fmtCurrency}
-              />
-              <StatCard
-                title={t('financeDashboard.monthlySales')}
-                value={formatCurrency(data.monthlySalesAmount, language)}
-                helper={`${formatNumber(data.monthlySalesCount, language)} ${t('financeDashboard.invoices')} · ${t('financeDashboard.monthlySalesHelper')}`}
-                icon={ShoppingBag}
-                tone="blue"
-                trend={data.revenueDailyTrend}
-                trendPct={data.revenueVsLastMonth}
-                trendLabel="vs last month"
-                rawValue={data.monthlySalesAmount}
-                formatter={fmtCurrency}
-              />
-            </div>
-          </div>
-
-          <div>
-            <h2 className="mb-4 text-base font-bold text-slate-950">{t('financeDashboard.cashFlowTitle')}</h2>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <StatCard title={t('financeDashboard.monthlyInflow')} value={formatCurrency(data.monthlyInflow, language)} helper={t('financeDashboard.monthlyInflowHelper')} icon={TrendingUp} tone="emerald" rawValue={data.monthlyInflow} formatter={fmtCurrency} />
-              <StatCard title={t('financeDashboard.monthlyOutflow')} value={formatCurrency(data.monthlyOutflow, language)} helper={t('financeDashboard.monthlyOutflowHelper')} icon={TrendingDown} tone="rose" rawValue={data.monthlyOutflow} formatter={fmtCurrency} />
-            </div>
-          </div>
-
-          <div>
-            <h2 className="mb-4 text-base font-bold text-slate-950">{t('financeDashboard.recentTransactionsTitle')}</h2>
-            {!data.recentTransactions?.length ? (
-              <p className="text-sm text-slate-500">{t('financeDashboard.noRecentTransactions')}</p>
-            ) : (
-              <div id={RECENT_TRANSACTIONS_PRINT_ID} className={cx('surface overflow-hidden', printingSection === 'transactions' && 'print-target')}>
-                <div className="flex justify-end gap-2 border-b border-slate-100 px-4 py-3 no-print">
-                  <button
-                    type="button"
-                    className="btn-secondary py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-60"
-                    onClick={() => downloadTransactionsPdf(async () => {
-                      await inventoryApi.recordPrint({ entityType: 'finance_dashboard_transactions', entityId: null, label: 'pdf' }).catch(() => {});
-                      await downloadSheetPdf(RECENT_TRANSACTIONS_PRINT_ID, 'finance-dashboard-recent-transactions.pdf');
-                    })}
-                    disabled={downloadingTransactionsPdf}
-                  >
-                    {downloadingTransactionsPdf ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
-                    {t('purchaseReceive.downloadPdf')}
-                  </button>
-                  <button type="button" className="btn-secondary py-1.5 text-xs" onClick={handleExportTransactionsExcel}>
-                    <FileSpreadsheet size={14} />
-                    {t('common.exportExcel')}
-                  </button>
-                  <button
-                    type="button"
-                    className="btn-secondary py-1.5 text-xs"
-                    onClick={() => printSection('transactions', 'finance_dashboard_transactions')}
-                  >
-                    <Printer size={14} />
-                    {t('common.print')}
-                  </button>
-                </div>
-                <MobileCardList>
-                  {data.recentTransactions.map((tx) => {
-                    const style = TRANSACTION_TYPE_STYLES[tx.type] || {};
-                    return (
-                      <MobileListCard
-                        key={tx.id}
-                        title={tx.accountName}
-                        badge={
-                          <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${style.className}`}>
-                            {t(style.labelKey)}
-                          </span>
-                        }
-                        subtitle={`${formatDate(tx.transactionDate, language)}${tx.note ? ` · ${tx.note}` : ''}`}
-                        value={formatCurrency(transactionAmount(tx), language)}
-                        valueClass={transactionAmountClass(tx)}
-                      />
-                    );
-                  })}
-                </MobileCardList>
-                <div className="hidden overflow-x-auto md:block">
-                  <table className="w-full text-sm">
-                    <thead className="table-head">
-                      <tr>
-                        <th className="px-4 py-3">{t('financeAccounts.date')}</th>
-                        <th className="px-4 py-3">{t('financeAccounts.account')}</th>
-                        <th className="px-4 py-3">{t('financeAccounts.type')}</th>
-                        <th className="px-4 py-3 text-right">{t('financeAccounts.amount')}</th>
-                        <th className="px-4 py-3">{t('financeAccounts.note')}</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {data.recentTransactions.map((tx) => {
-                        const style = TRANSACTION_TYPE_STYLES[tx.type] || {};
-                        return (
-                          <tr key={tx.id} className="hover:bg-slate-50">
-                            <td className="whitespace-nowrap px-4 py-3 font-medium text-slate-700">{formatDate(tx.transactionDate, language)}</td>
-                            <td className="px-4 py-3 text-slate-600">{tx.accountName}</td>
-                            <td className="px-4 py-3">
-                              <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${style.className}`}>
-                                {t(style.labelKey)}
-                              </span>
-                            </td>
-                            <td className={`whitespace-nowrap px-4 py-3 text-right ${transactionAmountClass(tx)}`}>
-                              {formatCurrency(transactionAmount(tx), language)}
-                            </td>
-                            <td className="max-w-xs truncate px-4 py-3 text-slate-500">{tx.note}</td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
-          </div>
-        </>
-      )}
     </div>
   );
 }

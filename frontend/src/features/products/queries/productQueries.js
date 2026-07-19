@@ -7,6 +7,7 @@ export const productKeys = {
   list: (tenantId, filters) => ['products', 'list', tenantId, filters],
   references: ['products', 'references'],
   categories: (tenantId) => ['products', 'references', tenantId, 'categories'],
+  categoryAttributes: (tenantId, categoryId) => ['products', 'references', tenantId, 'category-attributes', categoryId],
   brands: (tenantId) => ['products', 'references', tenantId, 'brands'],
   suppliers: (tenantId) => ['products', 'references', tenantId, 'suppliers'],
   manufacturers: (tenantId) => ['products', 'references', tenantId, 'manufacturers'],
@@ -31,6 +32,12 @@ export async function fetchProductList(filters) {
 export async function fetchCategories() {
   const result = await inventoryApi.listCategories();
   return result.categories || [];
+}
+
+export async function fetchCategoryAttributes(categoryId) {
+  if (!categoryId) return [];
+  const result = await inventoryApi.listCategoryAttributes(categoryId);
+  return result.attributes || [];
 }
 
 export async function fetchBrands() {

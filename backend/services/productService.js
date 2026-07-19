@@ -6,10 +6,15 @@ import { cleanInteger, normalizeProduct } from "../lib/normalizers.js";
 import { PRODUCT_ACTIONS } from "../lib/auditActions.js";
 import {
   addProductStock,
+  countBrowseProducts,
   countProducts,
   countTrashedProducts,
+  findBrowseProductById,
+  getProductImages,
+  listBrowseProducts,
   listTrashedProducts,
   permanentlyDeleteProduct,
+  replaceProductImages,
   restoreProduct,
   softDeleteProduct,
   findProductForUpdate,
@@ -24,6 +29,25 @@ import {
 import { findCategoryById } from "../repositories/categoryRepository.js";
 import { countStockMovements } from "../repositories/stockMovementRepository.js";
 import { logActivity, recordStockMovement } from "./shared/inventoryHelpers.js";
+
+// Query params look like `spec_screen_size_inch=55` (exact match) or
+// `spec_screen_size_inch_min=40` / `_max=60` (numeric range) — this is what
+// lets the browse endpoint filter on any category's attributes without a
+// fixed list of supported spec keys.
+function parseSpecFilters(query) {
+  const filters = [];
+  for (const [param, value] of Object.entries(query)) {
+    if (!param.startsWith("spec_") || value === undefined || value === "") continue;
+    if (param.endsWith("_min")) {
+      filters.push({ key: param.slice("spec_".length, -"_min".length), op: "min", value });
+    } else if (param.endsWith("_max")) {
+      filters.push({ key: param.slice("spec_".length, -"_max".length), op: "max", value });
+    } else {
+      filters.push({ key: param.slice("spec_".length), op: "eq", value });
+    }
+  }
+  return filters;
+}
 
 export class ProductService {
   constructor(databaseManager, { auditService }) {
@@ -63,6 +87,35 @@ export class ProductService {
     }));
   }
 
+  // Customer-facing browse/search — read-only, never touches stock or
+  // invoices. Deliberately separate from listProducts: no cost/purchase
+  // price fields, only ACTIVE products, gated by its own permission+feature
+  // so a kiosk-only role never needs admin product management access.
+  async browseProducts(query = {}, actor) {
+    const { page, pageSize, limit, offset } = parsePagination(query);
+    const search = String(query.search || "").trim();
+    const categoryId = String(query.categoryId || "").trim();
+    const specFilters = parseSpecFilters(query);
+    const tenantId = actor.tenantId;
+
+    return this.databaseManager.withClient(async (client) => {
+      const [items, total] = await Promise.all([
+        listBrowseProducts(client, { tenantId, categoryId, search, specFilters, limit, offset }),
+        countBrowseProducts(client, { tenantId, categoryId, search, specFilters }),
+      ]);
+
+      return buildPageResult({ items, total, page, pageSize });
+    });
+  }
+
+  async getBrowseProduct(productId, actor) {
+    return this.databaseManager.withClient(async (client) => {
+      const product = await findBrowseProductById(client, actor.tenantId, productId);
+      assert(product, "Product not found.", 404);
+      return product;
+    });
+  }
+
   async saveProduct(input, actor) {
     const product = normalizeProduct(input);
     assert(product.name && product.categoryId, "Product name and category are required.");
@@ -71,6 +124,13 @@ export class ProductService {
     product.taxRate = Math.min(Math.max(0, Number(product.taxRate || 0)), 100);
 
     const supplierIds = Array.isArray(input.supplierIds) ? input.supplierIds.filter(Boolean) : [];
+    const imagesProvided = Array.isArray(input.images);
+    if (imagesProvided && !product.imageUrl) {
+      product.imageUrl = product.images[0] || null;
+    }
+    const specsProvided = Boolean(
+      input.specs && typeof input.specs === "object" && !Array.isArray(input.specs),
+    );
 
     return this.databaseManager.withTransaction(async (client) => {
       const category = await findCategoryById(client, product.categoryId, actor.tenantId);
@@ -91,11 +151,15 @@ export class ProductService {
           ...product,
           tenantId: actor.tenantId,
           stockPieces: Number(existingProduct.stock_pieces),
+          specs: specsProvided ? product.specs : (existingProduct.specs || {}),
         };
 
         result = await updateProduct(client, nextProduct);
         assert(result.rowCount > 0, "Product not found.", 404);
         await upsertProductSuppliers(client, nextProduct.id, supplierIds, actor.tenantId);
+        if (imagesProvided) {
+          await replaceProductImages(client, actor.tenantId, nextProduct.id, product.images);
+        }
         await this.recordActivity(client, actor, {
           actionType: PRODUCT_ACTIONS.UPDATE,
           entityType: "product",
@@ -112,6 +176,9 @@ export class ProductService {
         product.tenantId = actor.tenantId;
         result = await insertProduct(client, product);
         await upsertProductSuppliers(client, product.id, supplierIds, actor.tenantId);
+        if (imagesProvided) {
+          await replaceProductImages(client, actor.tenantId, product.id, product.images);
+        }
         await this.recordActivity(client, actor, {
           actionType: PRODUCT_ACTIONS.CREATE,
           entityType: "product",
@@ -121,7 +188,8 @@ export class ProductService {
         });
       }
 
-      return { ...mapProduct(result.rows[0]), supplierIds };
+      const images = await getProductImages(client, actor.tenantId, product.id);
+      return { ...mapProduct(result.rows[0]), supplierIds, images };
     });
   }
 

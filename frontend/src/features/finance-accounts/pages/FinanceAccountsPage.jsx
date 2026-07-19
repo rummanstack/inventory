@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { ArrowLeftRight, Boxes, Download, FileSpreadsheet, HandCoins, Landmark, Loader2, Plus, Printer, Scale, Trash2, Wallet } from 'lucide-react';
+import { ArrowLeftRight, Boxes, Download, FileSpreadsheet, HandCoins, Landmark, Loader2, Plus, Printer, RotateCcw, Scale, Trash2, Wallet } from 'lucide-react';
 import { Alert, Badge, CopyableText, EmptyState, MobileCardList, MobileListCard, Pagination, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { DateRangePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../services/printService.js';
 import { inventoryApi } from '../../../services/inventoryApi.js';
-import { formatCurrency, formatDate, formatDateTime } from '../../../utils/calculations.js';
+import { formatCurrency, formatDate, formatDateTime, todayISO } from '../../../utils/calculations.js';
 import { useFinanceAccountsViewModel } from '../viewmodels/useFinanceAccountsViewModel';
 import { useAsyncAction } from '../../../hooks/useAsyncAction.js';
 import AccountTransactionFormModal from '../components/AccountTransactionFormModal';
@@ -27,6 +27,7 @@ export default function FinanceAccountsPage() {
   const [modal, setModal] = useState(null);
   const canManage = can('manage_finance_accounts');
   const [downloadingPdf, downloadPdf] = useAsyncAction();
+  const [exportingExcel, exportExcel] = useAsyncAction();
 
   const cashBalance = vm.accounts.find((a) => a.type === 'CASH')?.balance || 0;
   const bankBalance = vm.accounts.find((a) => a.type === 'BANK')?.balance || 0;
@@ -104,21 +105,18 @@ export default function FinanceAccountsPage() {
             <StatCard
               title={t('financeAccounts.cashInStock')}
               value={formatCurrency(stockValue)}
-              helper={t('financeAccounts.cashInStockHelper')}
               icon={Boxes}
               tone="blue"
             />
             <StatCard
               title={t('financeAccounts.cashInDue')}
               value={formatCurrency(dueTotal)}
-              helper={t('financeAccounts.cashInDueHelper')}
               icon={HandCoins}
               tone="amber"
             />
             <StatCard
               title={t('financeAccounts.totalCashPosition')}
               value={formatCurrency(totalCashPosition)}
-              helper={t('financeAccounts.totalCashPositionHelper')}
               icon={Scale}
               tone="slate"
             />
@@ -140,7 +138,17 @@ export default function FinanceAccountsPage() {
             to={vm.dateTo}
             onChange={(from, to) => { vm.setDateFrom(from); vm.setDateTo(to); }}
             placeholder={`${t('financeAccounts.dateFrom')} - ${t('financeAccounts.dateTo')}`}
+            max={todayISO()}
           />
+          <button
+            type="button"
+            className="btn-secondary h-10 gap-1.5 px-3 text-xs disabled:cursor-not-allowed disabled:opacity-60"
+            onClick={vm.resetFilters}
+            disabled={!vm.hasActiveFilters}
+          >
+            <RotateCcw size={14} />
+            {t('financeAccounts.resetFilters')}
+          </button>
           <div className="flex flex-wrap gap-2 sm:ml-auto">
             <button
               type="button"
@@ -154,8 +162,13 @@ export default function FinanceAccountsPage() {
               {downloadingPdf ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
               {t('purchaseReceive.downloadPdf')}
             </button>
-            <button type="button" className="btn-secondary h-10 gap-1.5 px-3 text-xs" onClick={handleExportExcel}>
-              <FileSpreadsheet size={14} />
+            <button
+              type="button"
+              className="btn-secondary h-10 gap-1.5 px-3 text-xs disabled:cursor-not-allowed disabled:opacity-60"
+              onClick={() => exportExcel(handleExportExcel)}
+              disabled={exportingExcel}
+            >
+              {exportingExcel ? <Loader2 size={14} className="animate-spin" /> : <FileSpreadsheet size={14} />}
               {t('common.exportExcel')}
             </button>
             <button

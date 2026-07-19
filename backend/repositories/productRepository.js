@@ -1,3 +1,5 @@
+import { createId } from "../lib/ids.js";
+
 export function mapProduct(row) {
   return {
     id: row.id,
@@ -23,6 +25,8 @@ export function mapProduct(row) {
     status: row.status === 'INACTIVE' ? 'INACTIVE' : 'ACTIVE',
     description: row.description || '',
     imageUrl: row.image_url || null,
+    specs: row.specs && typeof row.specs === 'object' ? row.specs : {},
+    images: Array.isArray(row.image_urls) ? row.image_urls : undefined,
     supplierIds: Array.isArray(row.supplier_ids) ? row.supplier_ids : [],
     genericName: row.generic_name || '',
     drugType: row.drug_type || '',
@@ -124,6 +128,104 @@ export async function listAllActiveProductsLite(client, tenantId, { supplierId }
   return result.rows.map(mapProduct);
 }
 
+function mapBrowseProduct(row) {
+  return {
+    id: row.id,
+    name: row.name,
+    categoryId: row.category_id,
+    category: row.category_name || null,
+    brand: row.brand || '',
+    model: row.model || '',
+    description: row.description || '',
+    retailPrice: Number(row.retail_price || 0),
+    warrantyMonths: Number(row.warranty_months || 0),
+    specs: row.specs && typeof row.specs === 'object' ? row.specs : {},
+    inStock: Number(row.stock_pieces || 0) > 0,
+    images: Array.isArray(row.image_urls) ? row.image_urls : [],
+  };
+}
+
+// Builds the shared WHERE clause for the customer-facing browse endpoint.
+// specFilters is an array of { key, op: 'eq' | 'min' | 'max', value }, applied
+// against the schema-less `specs` JSONB column so a new category never needs
+// a repository change to become filterable.
+function buildBrowseConditions(params, { tenantId, categoryId, search, specFilters }) {
+  const conditions = ["p.tenant_id = $1", "p.deleted_at IS NULL", "p.status = 'ACTIVE'"];
+
+  if (categoryId) {
+    params.push(categoryId);
+    conditions.push(`p.category_id = $${params.length}`);
+  }
+
+  if (search) {
+    params.push(`%${search}%`);
+    conditions.push(`(p.name ILIKE $${params.length} OR p.brand ILIKE $${params.length} OR p.model ILIKE $${params.length})`);
+  }
+
+  for (const filter of specFilters || []) {
+    const keyParamIdx = params.push(filter.key);
+    if (filter.op === "eq") {
+      const valueParamIdx = params.push(String(filter.value));
+      conditions.push(`p.specs->>$${keyParamIdx} = $${valueParamIdx}`);
+    } else if (filter.op === "min") {
+      const valueParamIdx = params.push(Number(filter.value));
+      conditions.push(`(p.specs->>$${keyParamIdx})::numeric >= $${valueParamIdx}`);
+    } else if (filter.op === "max") {
+      const valueParamIdx = params.push(Number(filter.value));
+      conditions.push(`(p.specs->>$${keyParamIdx})::numeric <= $${valueParamIdx}`);
+    }
+  }
+
+  return conditions.join(" AND ");
+}
+
+export async function countBrowseProducts(client, { tenantId, categoryId, search, specFilters }) {
+  const params = [tenantId];
+  const where = buildBrowseConditions(params, { tenantId, categoryId, search, specFilters });
+  const result = await client.query(
+    `SELECT COUNT(*)::INTEGER AS count FROM products p WHERE ${where}`,
+    params,
+  );
+  return result.rows[0].count;
+}
+
+export async function listBrowseProducts(client, { tenantId, categoryId, search, specFilters, limit, offset }) {
+  const params = [tenantId];
+  const where = buildBrowseConditions(params, { tenantId, categoryId, search, specFilters });
+  params.push(limit, offset);
+  const result = await client.query(
+    `SELECT p.id, p.name, p.category_id, c.name AS category_name, p.brand, p.model, p.description,
+            p.retail_price, p.warranty_months, p.specs, p.stock_pieces,
+            COALESCE(
+              (SELECT array_agg(pi.url ORDER BY pi.sort_order) FROM product_images pi WHERE pi.product_id = p.id),
+              ARRAY[]::TEXT[]
+            ) AS image_urls
+     FROM products p
+     LEFT JOIN categories c ON c.id = p.category_id
+     WHERE ${where}
+     ORDER BY p.order_index ASC, p.name ASC
+     LIMIT $${params.length - 1} OFFSET $${params.length}`,
+    params,
+  );
+  return result.rows.map(mapBrowseProduct);
+}
+
+export async function findBrowseProductById(client, tenantId, productId) {
+  const result = await client.query(
+    `SELECT p.id, p.name, p.category_id, c.name AS category_name, p.brand, p.model, p.description,
+            p.retail_price, p.warranty_months, p.specs, p.stock_pieces,
+            COALESCE(
+              (SELECT array_agg(pi.url ORDER BY pi.sort_order) FROM product_images pi WHERE pi.product_id = p.id),
+              ARRAY[]::TEXT[]
+            ) AS image_urls
+     FROM products p
+     LEFT JOIN categories c ON c.id = p.category_id
+     WHERE p.tenant_id = $1 AND p.id = $2 AND p.deleted_at IS NULL AND p.status = 'ACTIVE'`,
+    [tenantId, productId],
+  );
+  return result.rows[0] ? mapBrowseProduct(result.rows[0]) : null;
+}
+
 export async function upsertProductSuppliers(client, productId, supplierIds, tenantId) {
   await client.query(
     `DELETE FROM product_suppliers WHERE product_id = $1 AND tenant_id = $2`,
@@ -153,9 +255,9 @@ export function insertProduct(client, product) {
         stock_pieces, refundable, tax_rate, order_index, reorder_level,
         sku, barcode, brand, model, serial_required, warranty_months, status, description, image_url,
         generic_name, drug_type, dosage_form, strength, manufacturer, reg_number, controlled_substance,
-        pack_size, medicine_type, requires_batch, manufacturer_id, generic_medicine_id
+        pack_size, medicine_type, requires_batch, manufacturer_id, generic_medicine_id, specs
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35)
       RETURNING *
      )
      SELECT inserted.*, c.name AS category_name FROM inserted LEFT JOIN categories c ON c.id = inserted.category_id`,
@@ -194,6 +296,7 @@ export function insertProduct(client, product) {
       product.requiresBatch || false,
       product.manufacturerId || null,
       product.genericMedicineId || null,
+      JSON.stringify(product.specs || {}),
     ],
   );
 }
@@ -208,7 +311,8 @@ export function updateProduct(client, product) {
            status = $19, description = $20, image_url = $21,
            generic_name = $22, drug_type = $23, dosage_form = $24, strength = $25,
            manufacturer = $26, reg_number = $27, controlled_substance = $28,
-           pack_size = $29, medicine_type = $30, requires_batch = $31, manufacturer_id = $32, generic_medicine_id = $33
+           pack_size = $29, medicine_type = $30, requires_batch = $31, manufacturer_id = $32, generic_medicine_id = $33,
+           specs = $34
        WHERE id = $1 AND tenant_id = $2
        RETURNING *
      )
@@ -247,7 +351,49 @@ export function updateProduct(client, product) {
       product.requiresBatch || false,
       product.manufacturerId || null,
       product.genericMedicineId || null,
+      JSON.stringify(product.specs || {}),
     ],
+  );
+}
+
+export async function getProductImages(client, tenantId, productId) {
+  const result = await client.query(
+    `SELECT url FROM product_images WHERE tenant_id = $1 AND product_id = $2 ORDER BY sort_order ASC`,
+    [tenantId, productId],
+  );
+  return result.rows.map((row) => row.url);
+}
+
+export async function getProductImagesForProducts(client, tenantId, productIds) {
+  if (productIds.length === 0) return {};
+  const result = await client.query(
+    `SELECT product_id, url FROM product_images
+     WHERE tenant_id = $1 AND product_id = ANY($2::text[])
+     ORDER BY product_id, sort_order ASC`,
+    [tenantId, productIds],
+  );
+  const byProduct = {};
+  for (const row of result.rows) {
+    if (!byProduct[row.product_id]) byProduct[row.product_id] = [];
+    byProduct[row.product_id].push(row.url);
+  }
+  return byProduct;
+}
+
+export async function replaceProductImages(client, tenantId, productId, urls) {
+  await client.query(`DELETE FROM product_images WHERE tenant_id = $1 AND product_id = $2`, [tenantId, productId]);
+  if (!urls || urls.length === 0) return;
+
+  const params = [tenantId, productId];
+  const rows = urls.map((url, i) => {
+    const idIdx = params.push(createId("pimg"));
+    const urlIdx = params.push(url);
+    return `($1, $2, $${idIdx}, $${urlIdx}, ${i})`;
+  });
+
+  await client.query(
+    `INSERT INTO product_images (tenant_id, product_id, id, url, sort_order) VALUES ${rows.join(", ")}`,
+    params,
   );
 }
 

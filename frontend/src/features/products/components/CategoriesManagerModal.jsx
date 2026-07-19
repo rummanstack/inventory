@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { Loader2, Pencil, Plus, Trash2, X, Check } from 'lucide-react';
+import { Loader2, Pencil, Plus, Trash2, X, Check, SlidersHorizontal } from 'lucide-react';
 import { Alert, Badge, EmptyState, Modal, TableSkeleton } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { useCategoriesViewModel } from '../viewmodels/useCategoriesViewModel';
+import CategoryAttributesModal from './CategoryAttributesModal.jsx';
 
 export default function CategoriesManagerModal({ onClose, onChanged }) {
   const { t, confirm } = useInventoryApp();
@@ -13,6 +14,7 @@ export default function CategoriesManagerModal({ onClose, onChanged }) {
   const [editingName, setEditingName] = useState('');
   const [savingId, setSavingId] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
+  const [attributesCategory, setAttributesCategory] = useState(null);
 
   async function handleAdd(event) {
     event.preventDefault();
@@ -108,6 +110,9 @@ export default function CategoriesManagerModal({ onClose, onChanged }) {
                 <>
                   <span className="flex-1 truncate text-sm font-semibold text-slate-950">{category.name}</span>
                   <Badge tone="slate">{category.productCount || 0} {t('products.title')}</Badge>
+                  <button type="button" className="icon-btn" title={t('categoryAttributes.title')} onClick={() => setAttributesCategory(category)}>
+                    <SlidersHorizontal size={16} />
+                  </button>
                   <button type="button" className="icon-btn" title={t('common.edit')} onClick={() => startEditing(category)}>
                     <Pencil size={16} />
                   </button>
@@ -126,6 +131,10 @@ export default function CategoriesManagerModal({ onClose, onChanged }) {
           ))}
         </ul>
       )}
+
+      {attributesCategory ? (
+        <CategoryAttributesModal category={attributesCategory} onClose={() => setAttributesCategory(null)} />
+      ) : null}
     </Modal>
   );
 }

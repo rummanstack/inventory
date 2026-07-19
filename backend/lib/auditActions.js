@@ -14,6 +14,12 @@ export const CATEGORY_ACTIONS = {
   DELETE: "category.delete",
 };
 
+export const CATEGORY_ATTRIBUTE_ACTIONS = {
+  CREATE: "category_attribute.create",
+  UPDATE: "category_attribute.update",
+  DELETE: "category_attribute.delete",
+};
+
 export const DSR_ACTIONS = {
   CREATE: "dsr.create",
   UPDATE: "dsr.update",

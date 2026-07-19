@@ -1,6 +1,6 @@
 import { assert } from "../lib/errors.js";
 import { createId } from "../lib/ids.js";
-import { CATEGORY_ACTIONS } from "../lib/auditActions.js";
+import { CATEGORY_ACTIONS, CATEGORY_ATTRIBUTE_ACTIONS } from "../lib/auditActions.js";
 import {
   deleteCategory,
   findCategoryByName,
@@ -10,7 +10,17 @@ import {
   mapCategory,
   updateCategory as updateCategoryRepo,
 } from "../repositories/categoryRepository.js";
+import {
+  deleteCategoryAttribute,
+  findCategoryAttributeById,
+  findCategoryAttributeByKey,
+  insertCategoryAttribute,
+  listCategoryAttributes,
+  updateCategoryAttribute as updateCategoryAttributeRepo,
+} from "../repositories/categoryAttributeRepository.js";
 import { logActivity } from "./shared/inventoryHelpers.js";
+
+const ATTRIBUTE_DATA_TYPES = ["text", "number", "boolean", "select"];
 
 export class CategoryService {
   constructor(databaseManager, { auditService }) {
@@ -88,6 +98,103 @@ export class CategoryService {
         entityType: "category",
         entityId: categoryId,
         description: `${actor.name} deleted category ${existingCategory.name}`,
+      });
+
+      return { ok: true };
+    });
+  }
+
+  async listAttributes(categoryId, actor) {
+    return this.databaseManager.withClient(async (client) => {
+      const category = await findCategoryById(client, categoryId, actor.tenantId);
+      assert(category, "Category not found.", 404);
+      return listCategoryAttributes(client, actor.tenantId, categoryId);
+    });
+  }
+
+  async createAttribute(categoryId, input, actor) {
+    const key = String(input.key || "").trim();
+    const label = String(input.label || "").trim();
+    const dataType = String(input.dataType || "text").trim();
+    assert(key, "Attribute key is required.");
+    assert(label, "Attribute label is required.");
+    assert(ATTRIBUTE_DATA_TYPES.includes(dataType), "Invalid attribute data type.");
+
+    return this.databaseManager.withTransaction(async (client) => {
+      const category = await findCategoryById(client, categoryId, actor.tenantId);
+      assert(category, "Category not found.", 404);
+
+      const existing = await findCategoryAttributeByKey(client, actor.tenantId, categoryId, key);
+      assert(!existing, "An attribute with this key already exists for this category.");
+
+      const attribute = await insertCategoryAttribute(client, {
+        id: createId("catattr"),
+        tenantId: actor.tenantId,
+        categoryId,
+        key,
+        label,
+        dataType,
+        unit: String(input.unit || "").trim(),
+        options: Array.isArray(input.options) ? input.options : [],
+        sortOrder: Number.isFinite(Number(input.sortOrder)) ? Number(input.sortOrder) : 0,
+        showInComparison: input.showInComparison !== false,
+      });
+
+      await logActivity(this.auditService, client, actor, {
+        actionType: CATEGORY_ATTRIBUTE_ACTIONS.CREATE,
+        entityType: "category_attribute",
+        entityId: attribute.id,
+        description: `${actor.name} added attribute ${label} to category ${category.name}`,
+      });
+
+      return attribute;
+    });
+  }
+
+  async updateAttribute(categoryId, attributeId, input, actor) {
+    const label = String(input.label || "").trim();
+    const dataType = String(input.dataType || "text").trim();
+    assert(label, "Attribute label is required.");
+    assert(ATTRIBUTE_DATA_TYPES.includes(dataType), "Invalid attribute data type.");
+
+    return this.databaseManager.withTransaction(async (client) => {
+      const existing = await findCategoryAttributeById(client, actor.tenantId, attributeId);
+      assert(existing && existing.categoryId === categoryId, "Attribute not found.", 404);
+
+      const attribute = await updateCategoryAttributeRepo(client, {
+        id: attributeId,
+        tenantId: actor.tenantId,
+        label,
+        dataType,
+        unit: String(input.unit || "").trim(),
+        options: Array.isArray(input.options) ? input.options : [],
+        sortOrder: Number.isFinite(Number(input.sortOrder)) ? Number(input.sortOrder) : 0,
+        showInComparison: input.showInComparison !== false,
+      });
+
+      await logActivity(this.auditService, client, actor, {
+        actionType: CATEGORY_ATTRIBUTE_ACTIONS.UPDATE,
+        entityType: "category_attribute",
+        entityId: attributeId,
+        description: `${actor.name} updated attribute ${label}`,
+      });
+
+      return attribute;
+    });
+  }
+
+  async deleteAttribute(categoryId, attributeId, actor) {
+    return this.databaseManager.withTransaction(async (client) => {
+      const existing = await findCategoryAttributeById(client, actor.tenantId, attributeId);
+      assert(existing && existing.categoryId === categoryId, "Attribute not found.", 404);
+
+      await deleteCategoryAttribute(client, actor.tenantId, attributeId);
+
+      await logActivity(this.auditService, client, actor, {
+        actionType: CATEGORY_ATTRIBUTE_ACTIONS.DELETE,
+        entityType: "category_attribute",
+        entityId: attributeId,
+        description: `${actor.name} removed attribute ${existing.label}`,
       });
 
       return { ok: true };

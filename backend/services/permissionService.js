@@ -37,6 +37,7 @@ export const PERMISSION_REQUIRED_FEATURES = {
   view_activity_logs: ["activity-logs", "issue-center"],
   view_products: ["products", "stock-movement", "low-stock-alerts", "damaged-stock"],
   manage_products: "products",
+  view_product_browser: "product-browser",
   view_dsrs: "dsrs",
   manage_dsrs: "dsrs",
   view_customers: ["customers", "shop-due-ledger"],

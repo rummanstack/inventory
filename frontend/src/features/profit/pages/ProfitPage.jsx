@@ -208,16 +208,15 @@ export default function ProfitPage() {
       {vm.tab === 'overview' ? (
         <>
           <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-            <StatCard title={t('profit.revenue')} value={formatCurrency(totals.revenue)} icon={Wallet} tone="blue" helper={t('profit.revenueHelper')} />
-            <StatCard title={t('profit.cost')} value={formatCurrency(totals.cost)} icon={BadgeDollarSign} tone="amber" helper={t('profit.costHelper')} />
-            <StatCard title={t('profit.grossProfit')} value={formatCurrency(totals.grossProfit)} icon={TrendingUp} tone="slate" helper={t('profit.grossProfitHelper')} />
-            <StatCard title={t('profit.expensesLabel')} value={formatCurrency(totals.expenses)} icon={PiggyBank} tone="slate" helper={t('profit.expensesHelper')} />
+            <StatCard title={t('profit.revenue')} value={formatCurrency(totals.revenue)} icon={Wallet} tone="blue" />
+            <StatCard title={t('profit.cost')} value={formatCurrency(totals.cost)} icon={BadgeDollarSign} tone="amber" />
+            <StatCard title={t('profit.grossProfit')} value={formatCurrency(totals.grossProfit)} icon={TrendingUp} tone="slate" />
+            <StatCard title={t('profit.expensesLabel')} value={formatCurrency(totals.expenses)} icon={PiggyBank} tone="slate" />
             <StatCard
               title={t('profit.netProfitLoss')}
               value={formatCurrency(totals.profit)}
               icon={isProfit ? TrendingUp : TrendingDown}
               tone={isProfit ? 'emerald' : 'rose'}
-              helper={t('profit.netProfitLossHelper')}
             />
           </div>
 

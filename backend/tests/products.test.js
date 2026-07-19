@@ -112,3 +112,39 @@ test("low-stock list uses the configured reorder level, and falls back to the ca
   assert.equal(ids.includes(aboveReorderLevel.id), false, "above configured reorder level must not appear");
   assert.ok(ids.includes(withoutReorderLevel.id), "falls back to the 4-case heuristic when reorder level is unset");
 });
+
+test("saveProduct stores specs and images, and leaves them untouched when omitted from a later update", async () => {
+  const product = await createProduct(tenant.agent, {
+    name: "Spec Widget",
+    specs: { color: "Black", weight_kg: 2.5 },
+    images: ["https://example.test/a.jpg", "https://example.test/b.jpg"],
+  });
+  assert.equal(product.specs.color, "Black");
+  assert.deepEqual(product.images, ["https://example.test/a.jpg", "https://example.test/b.jpg"]);
+
+  // Update without touching specs/images at all — they must survive untouched.
+  const updateResponse = await tenant.agent.put(`/api/products/${product.id}`).send({
+    name: "Spec Widget",
+    categoryId: product.categoryId,
+    piecesPerCase: product.piecesPerCase,
+    purchasePrice: product.purchasePrice,
+    wholesalePrice: product.wholesalePrice,
+    retailPrice: product.retailPrice,
+  });
+  assert.equal(updateResponse.status, 200);
+  assert.equal(updateResponse.body.product.specs.color, "Black");
+  assert.deepEqual(updateResponse.body.product.images, ["https://example.test/a.jpg", "https://example.test/b.jpg"]);
+
+  // Explicitly sending a new images array replaces the gallery.
+  const replaceResponse = await tenant.agent.put(`/api/products/${product.id}`).send({
+    name: "Spec Widget",
+    categoryId: product.categoryId,
+    piecesPerCase: product.piecesPerCase,
+    purchasePrice: product.purchasePrice,
+    wholesalePrice: product.wholesalePrice,
+    retailPrice: product.retailPrice,
+    images: ["https://example.test/c.jpg"],
+  });
+  assert.equal(replaceResponse.status, 200);
+  assert.deepEqual(replaceResponse.body.product.images, ["https://example.test/c.jpg"]);
+});

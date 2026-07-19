@@ -9,6 +9,7 @@ import { printRetailReceipt } from '../../../../services/receiptService.js';
 import { formatCurrency, formatDateTime, formatNumber } from '../../../../utils/calculations.js';
 import { useSalesInvoiceFormViewModel } from '../../sales-invoices/viewmodels/useSalesInvoiceFormViewModel';
 import SalesInvoiceFormFields from '../../sales-invoices/components/SalesInvoiceFormFields';
+import { clearPendingSaleProduct, peekPendingSaleProduct } from '../../../product-browser/pendingSaleSelection.js';
 
 const CASH_SESSION_SNAPSHOT_KEY = 'retail.cashSessionSnapshot';
 
@@ -150,6 +151,22 @@ function QuickSaleForm({ onSaved }) {
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
   const formRef = useRef(null);
+
+  // Hand-off from the Product Browser's "Add to Current Sale" — only ever
+  // reads a pending productId and adds it via the same viewmodel path a
+  // manual product search would use. Cleared immediately once consumed so it
+  // never re-fires from an unrelated productDirectory refresh.
+  useEffect(() => {
+    if (!tenant?.id || productDirectory.length === 0) return;
+    const productId = peekPendingSaleProduct(tenant.id);
+    if (!productId) return;
+
+    const rowId = vm.addProductDirectly(productId);
+    if (rowId) {
+      clearPendingSaleProduct(tenant.id);
+      pushToast('success', t('retailer.quickSale.title'), t('productBrowser.addToSale'));
+    }
+  }, [tenant?.id, productDirectory]);
 
   useEffect(() => {
     function handleKeyDown(event) {

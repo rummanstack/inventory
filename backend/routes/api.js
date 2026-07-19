@@ -27,6 +27,7 @@ import { createJournalRoutes } from "./journal.routes.js";
 import { createDatabaseBackupRoutes } from "./databaseBackup.routes.js";
 import { createProductsRoutes } from "./products.routes.js";
 import { createCategoriesRoutes } from "./categories.routes.js";
+import { createProductBrowserRoutes } from "./productBrowser.routes.js";
 import { createStockMovementsRoutes } from "./stockMovements.routes.js";
 import { createProductSerialsRoutes } from "./productSerials.routes.js";
 import { createWarrantyClaimsRoutes } from "./warrantyClaims.routes.js";
@@ -100,6 +101,7 @@ export function createApiRouter({ controllers, authService, env, auditService })
       genericMedicineController,
       manufacturerController,
       productController,
+      productBrowserController,
       productSerialController,
       stockMovementController,
     },
@@ -215,6 +217,7 @@ export function createApiRouter({ controllers, authService, env, auditService })
   router.use("/database-backup", createDatabaseBackupRoutes(backupController));
   router.use("/products", createProductsRoutes(productController));
   router.use("/categories", createCategoriesRoutes(categoryController));
+  router.use("/product-browser", createProductBrowserRoutes(productBrowserController));
   router.use("/brands", createBrandsRoutes(brandController));
   router.use("/manufacturers", createManufacturersRoutes(manufacturerController));
   router.use("/generic-medicines", createGenericMedicinesRoutes(genericMedicineController));

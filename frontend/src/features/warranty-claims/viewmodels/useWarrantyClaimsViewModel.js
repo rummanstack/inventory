@@ -14,6 +14,15 @@ export function useWarrantyClaimsViewModel() {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
 
+  function resetFilters() {
+    setSearch('');
+    setStatus('');
+    setSupplierId('');
+    setProductId('');
+    setDateFrom('');
+    setDateTo('');
+  }
+
   const list = usePagedList(
     ({ page, pageSize }) => inventoryApi.listWarrantyClaims({
       page,
@@ -45,6 +54,7 @@ export function useWarrantyClaimsViewModel() {
     setDateFrom,
     dateTo,
     setDateTo,
+    resetFilters,
     ...list,
   };
 }

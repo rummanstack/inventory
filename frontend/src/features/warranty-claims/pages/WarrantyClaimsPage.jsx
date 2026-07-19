@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Download, FileSpreadsheet, Loader2, Pencil, Plus, Printer, Receipt, Search, Trash2, Wrench } from 'lucide-react';
+import { Download, FileSpreadsheet, Loader2, Pencil, Plus, Printer, Receipt, RotateCcw, Search, ShieldCheck, Trash2, Wrench } from 'lucide-react';
 import { Alert, Badge, CopyableText, EmptyState, MobileCardList, MobileListCard, Pagination, SectionHeader, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { DateRangePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import { downloadSheetPdf } from '../../../services/printService.js';
-import { formatDateTime } from '../../../utils/calculations.js';
+import { formatDate, todayISO } from '../../../utils/calculations.js';
 import { warrantyClaimStatusTone } from '../../../models/inventoryViewData.js';
 import WarrantyClaimFormModal from '../components/WarrantyClaimFormModal';
 import { useWarrantyClaimsViewModel } from '../viewmodels/useWarrantyClaimsViewModel';
@@ -28,8 +28,11 @@ export default function WarrantyClaimsPage() {
   const [formModal, setFormModal] = useState(null);
   const canManage = can('manage_warranty_claims');
   const [downloadingPdf, downloadPdf] = useAsyncAction();
+  const [exportingExcel, exportExcel] = useAsyncAction();
+  const hasFilters = Boolean(vm.search || vm.status || vm.productId || vm.supplierId || vm.dateFrom || vm.dateTo);
 
   async function handleExportExcel() {
+    await exportExcel(async () => {
     const result = await inventoryApi.listWarrantyClaims({
       page: 1,
       pageSize: 10000,
@@ -56,6 +59,7 @@ export default function WarrantyClaimsPage() {
     const wb = utils.book_new();
     utils.book_append_sheet(wb, ws, t('warrantyClaims.sheetName'));
     writeFile(wb, 'warranty-claims.xlsx');
+    });
   }
 
   async function handleDownloadPdf() {
@@ -91,7 +95,7 @@ export default function WarrantyClaimsPage() {
       } else if (matchesShortcut(event, WARRANTY_CLAIMS_SHORTCUTS.pdf) && !downloadingPdf) {
         event.preventDefault();
         handleDownloadPdf();
-      } else if (matchesShortcut(event, WARRANTY_CLAIMS_SHORTCUTS.excel)) {
+      } else if (matchesShortcut(event, WARRANTY_CLAIMS_SHORTCUTS.excel) && !exportingExcel) {
         event.preventDefault();
         handleExportExcel();
       } else if (matchesShortcut(event, WARRANTY_CLAIMS_SHORTCUTS.print)) {
@@ -102,7 +106,7 @@ export default function WarrantyClaimsPage() {
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [downloadingPdf, canManage, formModal, vm.search, vm.status, vm.productId, vm.supplierId, vm.dateFrom, vm.dateTo, t]);
+  }, [downloadingPdf, exportingExcel, canManage, formModal, vm.search, vm.status, vm.productId, vm.supplierId, vm.dateFrom, vm.dateTo, t]);
 
   return (
     <div>
@@ -118,18 +122,52 @@ export default function WarrantyClaimsPage() {
         ) : null}
       />
 
+      <section className="surface no-print mb-6 overflow-hidden">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-4 py-3">
+          <div className="flex items-start gap-3">
+            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-indigo-50 text-indigo-700"><ShieldCheck size={20} /></span>
+            <div>
+              <h2 className="section-title">{t('warrantyClaims.workflowTitle')}</h2>
+            </div>
+          </div>
+          <span className="muted-chip">{vm.total} {t('warrantyClaims.claimCount')}</span>
+        </div>
+        <div className="flex gap-2 overflow-x-auto p-3">
+          <button
+            type="button"
+            className={vm.status ? 'min-h-10 shrink-0 rounded-full border border-slate-200 bg-white px-4 text-sm font-bold text-slate-600 transition hover:border-indigo-200 hover:text-indigo-700' : 'min-h-10 shrink-0 rounded-full border border-indigo-300 bg-indigo-50 px-4 text-sm font-black text-indigo-800 ring-2 ring-indigo-100'}
+            onClick={() => vm.setStatus('')}
+          >
+            {t('warrantyClaims.allStatuses')}
+          </button>
+          {STATUS_VALUES.map((status) => {
+            const selected = vm.status === status;
+            return (
+              <button
+                key={status}
+                type="button"
+                className={selected ? 'min-h-10 shrink-0 rounded-full border border-indigo-300 bg-indigo-50 px-4 text-sm font-black text-indigo-800 ring-2 ring-indigo-100' : 'min-h-10 shrink-0 rounded-full border border-slate-200 bg-white px-4 text-sm font-bold text-slate-600 transition hover:border-indigo-200 hover:text-indigo-700'}
+                onClick={() => vm.setStatus(status)}
+              >
+                {t(`warrantyClaims.statuses.${status}`)}
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
       <div id={WARRANTY_CLAIMS_PRINT_ID} className="surface overflow-hidden print-target">
-        <div className="flex flex-col gap-3 border-b border-slate-100 p-5 sm:flex-row sm:flex-wrap sm:items-center">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-4 py-3">
+          <div>
+            <h2 className="section-title">{t('warrantyClaims.registerTitle')}</h2>
+          </div>
+          <span className="muted-chip">{vm.total} {t('common.records')}</span>
+        </div>
+        <div className="no-print flex flex-col gap-3 border-b border-slate-100 bg-slate-50/60 p-4 sm:flex-row sm:flex-wrap sm:items-center">
           <div className="relative w-full flex-1 sm:min-w-[200px]">
             <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
             <input className="input pl-10" value={vm.search} onChange={(event) => vm.setSearch(event.target.value)} placeholder={t('warrantyClaims.searchPlaceholder')} />
           </div>
-          <Select className="input w-full sm:w-40" value={vm.status} onChange={(event) => vm.setStatus(event.target.value)}>
-            <option value="">{t('warrantyClaims.allStatuses')}</option>
-            {STATUS_VALUES.map((value) => (
-              <option key={value} value={value}>{t(`warrantyClaims.statuses.${value}`)}</option>
-            ))}
-          </Select>
           <Select className="input w-full sm:w-44" value={vm.productId} onChange={(event) => vm.setProductId(event.target.value)}>
             <option value="">{t('productSerials.allProducts')}</option>
             {productDirectory.map((product) => (
@@ -145,10 +183,20 @@ export default function WarrantyClaimsPage() {
           <DateRangePickerField
             from={vm.dateFrom}
             to={vm.dateTo}
+            max={todayISO()}
             onChange={(from, to) => { vm.setDateFrom(from); vm.setDateTo(to); }}
             placeholder={`${t('purchaseReceive.dateFrom')} - ${t('purchaseReceive.dateTo')}`}
             className="w-full min-w-[260px] sm:w-auto"
           />
+          <button
+            type="button"
+            className="btn-secondary h-10 gap-1.5 px-3 text-xs disabled:cursor-not-allowed disabled:opacity-50"
+            disabled={!hasFilters}
+            onClick={vm.resetFilters}
+          >
+            <RotateCcw size={14} />
+            {t('warrantyClaims.resetFilters')}
+          </button>
           <div className="flex flex-wrap items-center gap-2 text-sm font-bold sm:ml-auto">
             <button
               type="button"
@@ -189,9 +237,22 @@ export default function WarrantyClaimsPage() {
               onClick={canManage ? () => setFormModal({ mode: 'edit', claim }) : undefined}
               title={claim.claimNumber}
               badge={<Badge tone={warrantyClaimStatusTone(claim.status)}>{t(`warrantyClaims.statuses.${claim.status}`)}</Badge>}
-              subtitle={`${claim.productName || '-'} · ${claim.customerName || '-'}`}
-              value={formatDateTime(claim.receivedDate)}
+              subtitle={(claim.productName || '-') + ' · ' + (claim.customerName || '-')}
+              value={formatDate(claim.receivedDate)}
               valueSub={claim.serialNumber || claim.imei1 || claim.imei2 || null}
+              action={(
+                <>
+                  {claim.invoiceNumber ? (
+                    <button type="button" className="icon-btn" title={claim.invoiceNumber} onClick={() => navigate(`/retailer/sales-invoices?invoiceNumber=${encodeURIComponent(claim.invoiceNumber)}`)}><Receipt size={16} /></button>
+                  ) : null}
+                  {canManage ? (
+                    <>
+                      <button type="button" className="icon-btn" title={t('common.edit')} onClick={() => setFormModal({ mode: 'edit', claim })}><Pencil size={16} /></button>
+                      <button type="button" className="icon-btn text-rose-600 hover:text-rose-700" title={t('common.delete')} onClick={async () => { const result = await deleteWarrantyClaim(claim); if (result.ok) vm.reload(); }}><Trash2 size={16} /></button>
+                    </>
+                  ) : null}
+                </>
+              )}
             />
           ))}
         </MobileCardList>
@@ -213,14 +274,16 @@ export default function WarrantyClaimsPage() {
                 <tr key={claim.id} className="hover:bg-slate-50">
                   <td className="table-cell">
                     <CopyableText value={claim.claimNumber} copyLabel={t('warrantyClaims.claimNumberLabel')} displayValue={claim.claimNumber} textClassName="font-semibold text-slate-950" />
+                    {claim.problemNote ? <p className="mt-1 max-w-52 truncate text-xs font-medium text-slate-500">{claim.problemNote}</p> : null}
                     {claim.rmaNumber ? <div className="text-xs text-amber-700 font-medium"><CopyableText value={claim.rmaNumber} copyLabel={t('warrantyClaims.rmaNumberLabel')} displayValue={claim.rmaNumber} textClassName="font-medium text-amber-700" buttonClassName="h-5 w-5" /></div> : null}
                   </td>
                   <td className="table-cell">{claim.productName || '-'}</td>
                   <td className="table-cell"><CopyableText value={claim.serialNumber || claim.imei1 || claim.imei2} copyLabel={t('warrantyClaims.serialLabel')} displayValue={claim.serialNumber || claim.imei1 || claim.imei2} /></td>
                   <td className="table-cell">{claim.customerName || '-'}</td>
-                  <td className="table-cell">{formatDateTime(claim.receivedDate)}</td>
+                  <td className="table-cell">{formatDate(claim.receivedDate)}</td>
                   <td className="table-cell">
                     <Badge tone={warrantyClaimStatusTone(claim.status)}>{t(`warrantyClaims.statuses.${claim.status}`)}</Badge>
+                    {claim.supplierName ? <p className="mt-1 text-xs font-medium text-slate-500">{claim.supplierName}</p> : null}
                   </td>
                   <td className="table-cell no-print">
                     <div className="row-actions flex justify-end gap-2">

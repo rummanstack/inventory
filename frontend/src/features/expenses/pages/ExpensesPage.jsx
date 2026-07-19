@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { CircleDollarSign, Download, FileSpreadsheet, Loader2, Pencil, Plus, Trash2 } from 'lucide-react';
+import { CircleDollarSign, Download, FileSpreadsheet, Loader2, Pencil, Plus, ReceiptText, Search, Tags, Trash2, TrendingUp, X } from 'lucide-react';
 import { Alert, Badge, ChartPanel, ChartPanelSkeleton, EmptyState, MobileCardList, MobileListCard, Pagination, SectionHeader, HorizontalBarChart, StatCard, TableSkeleton, cx } from '../../../components/ui.jsx';
 import { DatePickerField, MonthPickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
@@ -36,12 +36,15 @@ export default function ExpensesPage() {
   const [activeTab, setActiveTab] = useState('daily');
   const [dailyPage, setDailyPage] = useState(1);
   const [monthlyPage, setMonthlyPage] = useState(1);
+  const [search, setSearch] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('all');
   const canManageExpenses = can('manage_expenses');
   const [downloadingDailyPdf, downloadDailyPdf] = useAsyncAction();
   const [downloadingMonthlyPdf, downloadMonthlyPdf] = useAsyncAction();
 
   useEffect(() => { setDailyPage(1); }, [vm.date]);
   useEffect(() => { setMonthlyPage(1); }, [vm.month]);
+  useEffect(() => { setDailyPage(1); setMonthlyPage(1); }, [search, categoryFilter]);
 
   useEffect(() => {
     function handleKeyDown(event) {
@@ -63,18 +66,32 @@ export default function ExpensesPage() {
 
   const dailyAll = vm.report?.dailyExpenses || [];
   const monthlyAll = vm.report?.monthlyExpenses || [];
+  const dailyTotal = Number(vm.report?.dailySummary?.totalAmount || 0);
+  const monthlyTotal = Number(vm.report?.monthlySummary?.totalAmount || 0);
+  const dailyCount = Number(vm.report?.dailySummary?.count || 0);
+  const monthlyCount = Number(vm.report?.monthlySummary?.count || 0);
+  const activeTotal = activeTab === 'daily' ? dailyTotal : monthlyTotal;
+  const activeCount = activeTab === 'daily' ? dailyCount : monthlyCount;
+  const activeCategories = activeTab === 'daily' ? dailyCategories : monthlyCategories;
+  const topCategory = [...activeCategories].sort((left, right) => Number(right.value || 0) - Number(left.value || 0))[0];
 
-  const dailyTotalPages = Math.ceil(dailyAll.length / PAGE_SIZE);
-  const monthlyTotalPages = Math.ceil(monthlyAll.length / PAGE_SIZE);
+  const filterExpenses = (expenses) => {
+    const term = search.trim().toLowerCase();
+    return expenses.filter((expense) => {
+      const matchesCategory = categoryFilter === 'all' || expense.category === categoryFilter;
+      const haystack = [expense.category, expense.note, expense.createdByName, expense.createdByRole].filter(Boolean).join(' ').toLowerCase();
+      return matchesCategory && (!term || haystack.includes(term));
+    });
+  };
+  const dailyFiltered = filterExpenses(dailyAll);
+  const monthlyFiltered = filterExpenses(monthlyAll);
+  const dailyTotalPages = Math.ceil(dailyFiltered.length / PAGE_SIZE);
+  const monthlyTotalPages = Math.ceil(monthlyFiltered.length / PAGE_SIZE);
 
-  const dailyPaged = useMemo(
-    () => dailyAll.slice((dailyPage - 1) * PAGE_SIZE, dailyPage * PAGE_SIZE),
-    [dailyAll, dailyPage],
-  );
-  const monthlyPaged = useMemo(
-    () => monthlyAll.slice((monthlyPage - 1) * PAGE_SIZE, monthlyPage * PAGE_SIZE),
-    [monthlyAll, monthlyPage],
-  );
+  const dailyPaged = dailyFiltered.slice((dailyPage - 1) * PAGE_SIZE, dailyPage * PAGE_SIZE);
+  const monthlyPaged = monthlyFiltered.slice((monthlyPage - 1) * PAGE_SIZE, monthlyPage * PAGE_SIZE);
+  const activeAll = activeTab === 'daily' ? dailyAll : monthlyAll;
+  const availableCategories = [...new Set(activeAll.map((expense) => expense.category).filter(Boolean))].sort();
 
   async function handleSave(expense) {
     const result = await vm.saveExpense(expense);
@@ -107,7 +124,7 @@ export default function ExpensesPage() {
   }
 
   async function handleDelete(expenseId) {
-    const expense = monthlyAll.find((item) => item.id === expenseId);
+    const expense = [...dailyAll, ...monthlyAll].find((item) => item.id === expenseId);
     await vm.deleteExpense(expenseId, {
       title: t('common.delete'),
       description: t('expenses.deleteConfirm', { category: expense?.category || t('expenses.expense') }),
@@ -138,53 +155,66 @@ export default function ExpensesPage() {
         </div>
       ) : null}
 
-      <div className="no-print mb-6 overflow-x-auto">
-        <div className="inline-flex min-w-full gap-1 rounded-lg border border-slate-200 bg-slate-50 p-1 sm:min-w-0">
-          {EXPENSE_TABS.map((tab) => {
-            const selected = activeTab === tab.key;
-            return (
-              <button
-                key={tab.key}
-                type="button"
-                className={cx(
-                  'flex min-h-10 flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-md px-3 text-sm font-bold transition sm:flex-none',
-                  selected ? 'border border-indigo-200 bg-indigo-50 text-indigo-800 shadow-sm ring-2 ring-indigo-100' : 'border border-transparent text-slate-500 hover:bg-white/70 hover:text-slate-800',
-                )}
-                aria-pressed={selected}
-                onClick={() => setActiveTab(tab.key)}
-              >
-                {t(tab.labelKey)}
-                <kbd className={cx('rounded border px-1.5 py-0.5 text-[10px] font-black', selected ? 'border-indigo-200 bg-white text-indigo-700' : 'border-slate-200 bg-white text-slate-400')}>{tab.shortcut}</kbd>
-              </button>
-            );
-          })}
+      <div className="surface no-print mb-6 flex flex-col gap-4 p-4 lg:flex-row lg:items-end lg:justify-between">
+        <div className="overflow-x-auto">
+          <span className="mb-2 block text-xs font-black uppercase tracking-[0.16em] text-slate-400">{t('expenses.reportView')}</span>
+          <div className="inline-flex min-w-full gap-1 rounded-lg border border-slate-200 bg-slate-50 p-1 sm:min-w-0">
+            {EXPENSE_TABS.map((tab) => {
+              const selected = activeTab === tab.key;
+              return (
+                <button
+                  key={tab.key}
+                  type="button"
+                  className={cx(
+                    'flex min-h-10 flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-md px-4 text-sm font-bold transition sm:flex-none',
+                    selected ? 'border border-indigo-200 bg-white text-indigo-800 shadow-sm ring-2 ring-indigo-100' : 'border border-transparent text-slate-500 hover:bg-white/70 hover:text-slate-800',
+                  )}
+                  aria-pressed={selected}
+                  onClick={() => setActiveTab(tab.key)}
+                >
+                  {t(tab.labelKey)}
+                  <kbd className={cx('rounded border px-1.5 py-0.5 text-[10px] font-black', selected ? 'border-indigo-200 bg-indigo-50 text-indigo-700' : 'border-slate-200 bg-white text-slate-400')}>{tab.shortcut}</kbd>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="w-full lg:w-80">
+          <label className="label">{activeTab === 'daily' ? t('expenses.reportDate') : t('expenses.reportMonth')}</label>
+          {activeTab === 'daily' ? (
+            <DatePickerField value={vm.date} onChange={vm.setDate} max={todayISO()} />
+          ) : (
+            <MonthPickerField value={vm.month} onChange={vm.setMonth} />
+          )}
         </div>
       </div>
 
-      {activeTab === 'daily' ? (
-        <div className="surface mb-6 p-5">
-          <label className="label">{t('expenses.reportDate')}</label>
-          <DatePickerField value={vm.date} onChange={vm.setDate} max={new Date().toISOString().slice(0, 10)} className="max-w-xs" />
-        </div>
-      ) : (
-        <div className="surface mb-6 p-5">
-          <label className="label">{t('expenses.reportMonth')}</label>
-          <MonthPickerField value={vm.month} onChange={vm.setMonth} className="max-w-xs" />
-        </div>
-      )}
-
-      <div className="grid gap-4 sm:grid-cols-2">
-        {activeTab === 'daily' ? (
-          <>
-            <StatCard title={t('expenses.dailyCount')} value={formatNumber(vm.report?.dailySummary?.count || 0)} icon={CircleDollarSign} tone="blue" helper={t('expenses.dailyCountHelper')} />
-            <StatCard title={t('expenses.dailyTotal')} value={formatCurrency(vm.report?.dailySummary?.totalAmount || 0)} icon={CircleDollarSign} tone="emerald" helper={t('expenses.dailyTotalHelper')} />
-          </>
-        ) : (
-          <>
-            <StatCard title={t('expenses.monthlyCount')} value={formatNumber(vm.report?.monthlySummary?.count || 0)} icon={CircleDollarSign} tone="amber" helper={t('expenses.monthlyCountHelper')} />
-            <StatCard title={t('expenses.monthlyTotal')} value={formatCurrency(vm.report?.monthlySummary?.totalAmount || 0)} icon={CircleDollarSign} tone="slate" helper={t('expenses.monthlyTotalHelper')} />
-          </>
-        )}
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <StatCard
+          title={activeTab === 'daily' ? t('expenses.dailyTotal') : t('expenses.monthlyTotal')}
+          value={formatCurrency(activeTotal)}
+          icon={CircleDollarSign}
+          tone="rose"
+        />
+        <StatCard
+          title={activeTab === 'daily' ? t('expenses.dailyCount') : t('expenses.monthlyCount')}
+          value={formatNumber(activeCount)}
+          icon={ReceiptText}
+          tone="blue"
+        />
+        <StatCard
+          title={t('expenses.averageExpense')}
+          value={formatCurrency(activeCount ? activeTotal / activeCount : 0)}
+          icon={TrendingUp}
+          tone="amber"
+        />
+        <StatCard
+          title={t('expenses.topCategory')}
+          value={topCategory ? tCategory(topCategory.label) : t('expenses.noCategory')}
+          icon={Tags}
+          tone="slate"
+        />
       </div>
 
       {vm.loading ? (
@@ -199,7 +229,7 @@ export default function ExpensesPage() {
               {dailyCategories.length ? (
                 <HorizontalBarChart data={dailyCategories} valueFormatter={formatCurrency} />
               ) : (
-                <EmptyState title={t('expenses.noDailyTitle')} description={t('expenses.noDailyDescription')} icon={CircleDollarSign} />
+                <EmptyState title={dailyAll.length ? t('expenses.noMatchesTitle') : t('expenses.noDailyTitle')} description={dailyAll.length ? t('expenses.noMatchesDescription') : t('expenses.noDailyDescription')} icon={CircleDollarSign} />
               )}
             </ChartPanel>
           </div>
@@ -208,9 +238,9 @@ export default function ExpensesPage() {
             {/* Daily list */}
             <div id="expenses-daily-print" className="surface overflow-hidden">
               <div className="border-b border-slate-100 px-5 py-4">
-                <div className="flex items-center justify-between gap-3">
+                <div className="flex flex-wrap items-start justify-between gap-3">
                   <h2 className="section-title">{t('expenses.dailyExpenseList', { date: formatDate(vm.date) })}</h2>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <span className="muted-chip">{formatNumber(dailyAll.length)} {t('common.records')}</span>
                     <button
                       type="button"
@@ -231,6 +261,26 @@ export default function ExpensesPage() {
                   </div>
                 </div>
               </div>
+              <div className="no-print grid gap-3 border-b border-slate-100 bg-slate-50/60 p-4 sm:grid-cols-[minmax(0,1fr)_220px_auto]">
+                <label className="relative">
+                  <span className="sr-only">{t('expenses.searchExpenses')}</span>
+                  <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input className="input pl-9" value={search} onChange={(event) => setSearch(event.target.value)} placeholder={t('expenses.searchExpenses')} />
+                </label>
+                <select className="input" value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)}>
+                  <option value="all">{t('expenses.allCategories')}</option>
+                  {availableCategories.map((category) => <option key={category} value={category}>{tCategory(category)}</option>)}
+                </select>
+                <button
+                  type="button"
+                  className="btn-secondary min-h-10 justify-center disabled:cursor-not-allowed disabled:opacity-50"
+                  disabled={!search && categoryFilter === 'all'}
+                  onClick={() => { setSearch(''); setCategoryFilter('all'); }}
+                >
+                  <X size={15} />
+                  {t('expenses.resetFilters')}
+                </button>
+              </div>
               <MobileCardList>
                 {dailyPaged.map((expense) => (
                   <MobileListCard
@@ -238,6 +288,7 @@ export default function ExpensesPage() {
                     title={tCategory(expense.category)}
                     subtitle={`${formatDate(expense.date)}${expense.note ? ` · ${expense.note}` : ''}`}
                     value={formatCurrency(expense.amount)}
+                    valueClass="text-rose-600"
                     valueSub={expense.createdByName || null}
                     action={canManageExpenses ? (
                       <>
@@ -269,7 +320,7 @@ export default function ExpensesPage() {
                       <tr key={expense.id} className="hover:bg-slate-50">
                         <td className="table-cell">{formatDate(expense.date)}</td>
                         <td className="table-cell"><Badge tone="slate">{tCategory(expense.category)}</Badge></td>
-                        <td className="table-cell font-semibold">{formatCurrency(expense.amount)}</td>
+                        <td className="table-cell font-bold text-rose-600">{formatCurrency(expense.amount)}</td>
                         <td className="table-cell max-w-64">
                           <p className="truncate">{expense.note}</p>
                         </td>
@@ -294,9 +345,9 @@ export default function ExpensesPage() {
                   </tbody>
                 </table>
               </div>
-              {!dailyAll.length ? (
+              {!dailyFiltered.length ? (
                 <div className="p-5">
-                  <EmptyState title={t('expenses.noDailyTitle')} description={t('expenses.noDailyDescription')} icon={CircleDollarSign} />
+                  <EmptyState title={dailyAll.length ? t('expenses.noMatchesTitle') : t('expenses.noDailyTitle')} description={dailyAll.length ? t('expenses.noMatchesDescription') : t('expenses.noDailyDescription')} icon={CircleDollarSign} />
                 </div>
               ) : null}
               {dailyTotalPages > 1 ? (
@@ -314,7 +365,7 @@ export default function ExpensesPage() {
               {monthlyCategories.length ? (
                 <HorizontalBarChart data={monthlyCategories} valueFormatter={formatCurrency} />
               ) : (
-                <EmptyState title={t('expenses.noMonthlyTitle')} description={t('expenses.noMonthlyDescription')} icon={CircleDollarSign} />
+                <EmptyState title={monthlyAll.length ? t('expenses.noMatchesTitle') : t('expenses.noMonthlyTitle')} description={monthlyAll.length ? t('expenses.noMatchesDescription') : t('expenses.noMonthlyDescription')} icon={CircleDollarSign} />
               )}
             </ChartPanel>
           </div>
@@ -323,9 +374,9 @@ export default function ExpensesPage() {
             {/* Monthly list */}
             <div id="expenses-monthly-print" className="surface overflow-hidden">
               <div className="border-b border-slate-100 px-5 py-4">
-                <div className="flex items-center justify-between gap-3">
+                <div className="flex flex-wrap items-start justify-between gap-3">
                   <h2 className="section-title">{t('expenses.monthlyExpenseList', { month: vm.month })}</h2>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <span className="muted-chip">{formatNumber(monthlyAll.length)} {t('common.records')}</span>
                     <button
                       type="button"
@@ -346,6 +397,26 @@ export default function ExpensesPage() {
                   </div>
                 </div>
               </div>
+              <div className="no-print grid gap-3 border-b border-slate-100 bg-slate-50/60 p-4 sm:grid-cols-[minmax(0,1fr)_220px_auto]">
+                <label className="relative">
+                  <span className="sr-only">{t('expenses.searchExpenses')}</span>
+                  <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input className="input pl-9" value={search} onChange={(event) => setSearch(event.target.value)} placeholder={t('expenses.searchExpenses')} />
+                </label>
+                <select className="input" value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)}>
+                  <option value="all">{t('expenses.allCategories')}</option>
+                  {availableCategories.map((category) => <option key={category} value={category}>{tCategory(category)}</option>)}
+                </select>
+                <button
+                  type="button"
+                  className="btn-secondary min-h-10 justify-center disabled:cursor-not-allowed disabled:opacity-50"
+                  disabled={!search && categoryFilter === 'all'}
+                  onClick={() => { setSearch(''); setCategoryFilter('all'); }}
+                >
+                  <X size={15} />
+                  {t('expenses.resetFilters')}
+                </button>
+              </div>
               <MobileCardList>
                 {monthlyPaged.map((expense) => (
                   <MobileListCard
@@ -353,7 +424,14 @@ export default function ExpensesPage() {
                     title={tCategory(expense.category)}
                     subtitle={`${formatDate(expense.date)}${expense.note ? ` · ${expense.note}` : ''}`}
                     value={formatCurrency(expense.amount)}
+                    valueClass="text-rose-600"
                     valueSub={expense.createdByName || null}
+                    action={canManageExpenses ? (
+                      <>
+                        <button type="button" className="icon-btn" title={t('common.edit')} onClick={() => setModal(expense)}><Pencil size={16} /></button>
+                        <button type="button" className="icon-btn text-rose-600 hover:text-rose-700" title={t('common.delete')} onClick={() => handleDelete(expense.id)}><Trash2 size={16} /></button>
+                      </>
+                    ) : null}
                   />
                 ))}
               </MobileCardList>
@@ -366,6 +444,7 @@ export default function ExpensesPage() {
                       <th className="px-4 py-3">{t('expenses.amount')}</th>
                       <th className="px-4 py-3">{t('expenses.note')}</th>
                       <th className="px-4 py-3">{t('expenses.createdBy')}</th>
+                      {canManageExpenses ? <th className="px-4 py-3 text-right">{t('common.actions')}</th> : null}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
@@ -373,7 +452,7 @@ export default function ExpensesPage() {
                       <tr key={expense.id} className="hover:bg-slate-50">
                         <td className="table-cell">{formatDate(expense.date)}</td>
                         <td className="table-cell"><Badge tone="slate">{tCategory(expense.category)}</Badge></td>
-                        <td className="table-cell font-semibold">{formatCurrency(expense.amount)}</td>
+                        <td className="table-cell font-bold text-rose-600">{formatCurrency(expense.amount)}</td>
                         <td className="table-cell max-w-64">
                           <p className="truncate">{expense.note}</p>
                         </td>
@@ -381,14 +460,22 @@ export default function ExpensesPage() {
                           <p className="font-semibold text-slate-950">{expense.createdByName || '-'}</p>
                           <p className="text-xs text-slate-500">{expense.createdByRole || ''}</p>
                         </td>
+                        {canManageExpenses ? (
+                          <td className="table-cell">
+                            <div className="row-actions flex justify-end gap-2">
+                              <button type="button" className="icon-btn" title={t('common.edit')} onClick={() => setModal(expense)}><Pencil size={16} /></button>
+                              <button type="button" className="icon-btn text-rose-600 hover:text-rose-700" title={t('common.delete')} onClick={() => handleDelete(expense.id)}><Trash2 size={16} /></button>
+                            </div>
+                          </td>
+                        ) : null}
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
-              {!monthlyAll.length ? (
+              {!monthlyFiltered.length ? (
                 <div className="p-5">
-                  <EmptyState title={t('expenses.noMonthlyTitle')} description={t('expenses.noMonthlyDescription')} icon={CircleDollarSign} />
+                  <EmptyState title={monthlyAll.length ? t('expenses.noMatchesTitle') : t('expenses.noMonthlyTitle')} description={monthlyAll.length ? t('expenses.noMatchesDescription') : t('expenses.noMonthlyDescription')} icon={CircleDollarSign} />
                 </div>
               ) : null}
               {monthlyTotalPages > 1 ? (

@@ -18,6 +18,8 @@ import {
   updateSupplier,
 } from "../repositories/supplierRepository.js";
 import { recordSupplierDueLedgerEntry } from "./shared/inventoryHelpers.js";
+import { getLatestSupplierDueLedgerEntry } from "../repositories/supplierDueLedgerRepository.js";
+import { assertZeroBalanceBeforeDelete } from "../lib/entityDeletionGuard.js";
 
 export class SupplierService {
   constructor(databaseManager, { auditService } = {}) {
@@ -146,6 +148,11 @@ export class SupplierService {
     return this.databaseManager.withTransaction(async (client) => {
       const existingResult = await findSupplierById(client, supplierId, actor.tenantId);
       assert(existingResult.rowCount > 0, "Supplier not found.", 404);
+      const latestBalance = await getLatestSupplierDueLedgerEntry(client, supplierId, actor.tenantId);
+      assertZeroBalanceBeforeDelete(
+        latestBalance?.balanceAfter ?? existingResult.rows[0].current_due ?? existingResult.rows[0].opening_due,
+        "Supplier " + existingResult.rows[0].name,
+      );
 
       await softDeleteSupplier(client, supplierId, actor.tenantId, {
         deletedById: actor.id,

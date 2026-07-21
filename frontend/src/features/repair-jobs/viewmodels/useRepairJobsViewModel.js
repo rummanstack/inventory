@@ -30,6 +30,14 @@ export function useRepairJobsViewModel() {
     list.resetPage();
   }, [debouncedSearch, status, technicianId, dateFrom, dateTo, list.resetPage]);
 
+  function resetFilters() {
+    setSearch('');
+    setStatus('');
+    setTechnicianId('');
+    setDateFrom('');
+    setDateTo('');
+  }
+
   return {
     search,
     setSearch,
@@ -41,6 +49,7 @@ export function useRepairJobsViewModel() {
     setDateFrom,
     dateTo,
     setDateTo,
+    resetFilters,
     ...list,
   };
 }

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Download, FileSpreadsheet, Loader2, Pencil, Plus, Printer, Receipt, RotateCcw, Search, ShieldCheck, Trash2, Wrench } from 'lucide-react';
-import { Alert, Badge, CopyableText, EmptyState, MobileCardList, MobileListCard, Pagination, SectionHeader, TableSkeleton, Select } from '../../../components/ui.jsx';
+import { Columns3, Download, FileSpreadsheet, GripVertical, Loader2, List, Pencil, Plus, Printer, Receipt, RotateCcw, Search, ShieldCheck, Trash2, Wrench } from 'lucide-react';
+import { Alert, Badge, CopyableText, EmptyState, MobileCardList, MobileListCard, Pagination, SectionHeader, TableSkeleton, Select, cx } from '../../../components/ui.jsx';
 import { DateRangePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
@@ -21,15 +21,114 @@ const WARRANTY_CLAIMS_SHORTCUTS = {
   print: { alt: true, key: 'p', label: 'Alt+P' },
 };
 
+function WarrantyKanban({ items, loading, error, canManage, t, onEdit, onMove }) {
+  if (loading) return <div className="p-5"><TableSkeleton columns={4} showHeader={false} /></div>;
+  if (error) return <div className="p-5"><Alert type="error">{error}</Alert></div>;
+
+  return (
+    <div className="overflow-x-auto bg-slate-50/60 p-4">
+      <div className="flex min-w-max items-start gap-4">
+        {STATUS_VALUES.map((status) => {
+          const claims = items.filter((claim) => claim.status === status);
+          return (
+            <section
+              key={status}
+              className="w-[300px] shrink-0 rounded-card border border-slate-200 bg-slate-100/80 p-3"
+              onDragOver={(event) => { if (canManage) event.preventDefault(); }}
+              onDrop={(event) => {
+                if (!canManage) return;
+                event.preventDefault();
+                const claimId = event.dataTransfer.getData('text/warranty-claim');
+                if (claimId) onMove(claimId, status);
+              }}
+            >
+              <div className="mb-3 flex items-center justify-between gap-2 px-1">
+                <h3 className="text-xs font-black uppercase tracking-[0.14em] text-slate-700">{t(`warrantyClaims.statuses.${status}`)}</h3>
+                <span className="rounded-full bg-white px-2 py-0.5 text-xs font-black text-slate-500 ring-1 ring-slate-200">{claims.length}</span>
+              </div>
+              <div className="space-y-2.5">
+                {claims.map((claim) => (
+                  <article
+                    key={claim.id}
+                    draggable={canManage}
+                    onDragStart={(event) => { event.dataTransfer.effectAllowed = 'move'; event.dataTransfer.setData('text/warranty-claim', String(claim.id)); }}
+                    className={cx('rounded-xl border border-slate-200 bg-white p-3 shadow-sm transition', canManage && 'cursor-grab hover:border-indigo-200 hover:shadow-card active:cursor-grabbing')}
+                  >
+                    <button type="button" className="w-full text-left disabled:cursor-default" disabled={!canManage} onClick={() => onEdit(claim)}>
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="font-black text-slate-950">{claim.claimNumber}</p>
+                        {canManage ? <GripVertical size={15} className="mt-0.5 shrink-0 text-slate-400" /> : null}
+                      </div>
+                      <p className="mt-2 truncate text-sm font-bold text-slate-700">{claim.productName || '-'}</p>
+                      <p className="mt-1 truncate text-xs font-medium text-slate-500">{claim.customerName || '-'} · {formatDate(claim.receivedDate)}</p>
+                      {claim.problemNote ? <p className="mt-2 line-clamp-2 text-xs leading-5 text-slate-600">{claim.problemNote}</p> : null}
+                    </button>
+                    {canManage ? (
+                      <select className="input mt-3 h-9 py-1 text-xs font-bold" value={claim.status} onChange={(event) => onMove(String(claim.id), event.target.value)}>
+                        {STATUS_VALUES.map((value) => <option key={value} value={value}>{t(`warrantyClaims.statuses.${value}`)}</option>)}
+                      </select>
+                    ) : null}
+                  </article>
+                ))}
+                {!claims.length ? <div className="rounded-xl border border-dashed border-slate-300 px-3 py-8 text-center text-xs font-bold text-slate-400">{t('warrantyClaims.dropHere')}</div> : null}
+              </div>
+            </section>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export default function WarrantyClaimsPage() {
   const { saveWarrantyClaim, deleteWarrantyClaim, t, can, productDirectory, supplierDirectory } = useInventoryApp();
   const navigate = useNavigate();
   const vm = useWarrantyClaimsViewModel();
   const [formModal, setFormModal] = useState(null);
+  const [view, setView] = useState('table');
+  const [boardItems, setBoardItems] = useState([]);
+  const [boardLoading, setBoardLoading] = useState(false);
+  const [boardError, setBoardError] = useState('');
   const canManage = can('manage_warranty_claims');
   const [downloadingPdf, downloadPdf] = useAsyncAction();
   const [exportingExcel, exportExcel] = useAsyncAction();
   const hasFilters = Boolean(vm.search || vm.status || vm.productId || vm.supplierId || vm.dateFrom || vm.dateTo);
+
+  useEffect(() => {
+    if (view !== 'board') return undefined;
+    let active = true;
+    setBoardLoading(true);
+    setBoardError('');
+    inventoryApi.listWarrantyClaims({
+      page: 1,
+      pageSize: 10000,
+      search: vm.search || undefined,
+      supplierId: vm.supplierId || undefined,
+      productId: vm.productId || undefined,
+      dateFrom: vm.dateFrom || undefined,
+      dateTo: vm.dateTo || undefined,
+    }).then((result) => {
+      if (active) setBoardItems(result.items || []);
+    }).catch((requestError) => {
+      if (active) setBoardError(requestError.message || t('warrantyClaims.boardLoadFailed'));
+    }).finally(() => {
+      if (active) setBoardLoading(false);
+    });
+    return () => { active = false; };
+  }, [view, vm.search, vm.supplierId, vm.productId, vm.dateFrom, vm.dateTo, t]);
+
+  async function moveClaimToStatus(claimId, status) {
+    const claim = boardItems.find((item) => String(item.id) === String(claimId));
+    if (!claim || claim.status === status) return;
+    const previousStatus = claim.status;
+    setBoardItems((items) => items.map((item) => String(item.id) === String(claimId) ? { ...item, status } : item));
+    const result = await saveWarrantyClaim({ ...claim, status });
+    if (!result.ok) {
+      setBoardItems((items) => items.map((item) => String(item.id) === String(claimId) ? { ...item, status: previousStatus } : item));
+      return;
+    }
+    vm.reload();
+  }
 
   async function handleExportExcel() {
     await exportExcel(async () => {
@@ -113,15 +212,24 @@ export default function WarrantyClaimsPage() {
       <SectionHeader
         title={t('warrantyClaims.title')}
         compact
-        action={canManage ? (
-          <button type="button" className="btn-primary" onClick={() => setFormModal({ mode: 'add' })}>
-            <Plus size={18} />
-            {t('warrantyClaims.add')}
-            <kbd className="ml-1 rounded border border-indigo-400/40 bg-indigo-500/20 px-1 py-0.5 font-mono text-[10px] text-indigo-200">Alt+A</kbd>
-          </button>
-        ) : null}
+        action={(
+          <>
+            <div className="inline-flex rounded-lg border border-slate-200 bg-slate-50 p-1">
+              <button type="button" className={view === 'table' ? 'inline-flex items-center gap-1.5 rounded-md bg-white px-3 py-1.5 text-xs font-black text-indigo-800 shadow-sm' : 'inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-bold text-slate-500'} onClick={() => setView('table')}><List size={15} />{t('warrantyClaims.tableView')}</button>
+              <button type="button" className={view === 'board' ? 'inline-flex items-center gap-1.5 rounded-md bg-white px-3 py-1.5 text-xs font-black text-indigo-800 shadow-sm' : 'inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-bold text-slate-500'} onClick={() => { vm.setStatus(''); setView('board'); }}><Columns3 size={15} />{t('warrantyClaims.boardView')}</button>
+            </div>
+            {canManage ? (
+              <button type="button" className="btn-primary" onClick={() => setFormModal({ mode: 'add' })}>
+                <Plus size={18} />
+                {t('warrantyClaims.add')}
+                <kbd className="ml-1 rounded border border-indigo-400/40 bg-indigo-500/20 px-1 py-0.5 font-mono text-[10px] text-indigo-200">Alt+A</kbd>
+              </button>
+            ) : null}
+          </>
+        )}
       />
 
+      {view === 'table' ? (
       <section className="surface no-print mb-6 overflow-hidden">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-4 py-3">
           <div className="flex items-start gap-3">
@@ -155,11 +263,12 @@ export default function WarrantyClaimsPage() {
           })}
         </div>
       </section>
+      ) : null}
 
       <div id={WARRANTY_CLAIMS_PRINT_ID} className="surface overflow-hidden print-target">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-4 py-3">
           <div>
-            <h2 className="section-title">{t('warrantyClaims.registerTitle')}</h2>
+            <h2 className="section-title">{t(view === 'board' ? 'warrantyClaims.boardTitle' : 'warrantyClaims.registerTitle')}</h2>
           </div>
           <span className="muted-chip">{vm.total} {t('common.records')}</span>
         </div>
@@ -220,7 +329,17 @@ export default function WarrantyClaimsPage() {
             </button>
           </div>
         </div>
-        {vm.loading ? (
+        {view === 'board' ? (
+          <WarrantyKanban
+            items={boardItems}
+            loading={boardLoading}
+            error={boardError}
+            canManage={canManage}
+            t={t}
+            onEdit={(claim) => setFormModal({ mode: 'edit', claim })}
+            onMove={moveClaimToStatus}
+          />
+        ) : vm.loading ? (
           <div className="p-5">
             <TableSkeleton columns={7} showHeader={false} />
           </div>
@@ -311,12 +430,12 @@ export default function WarrantyClaimsPage() {
         </div>
         </>
         )}
-        {!vm.loading && !vm.error && !vm.items.length ? (
+        {view === 'table' && !vm.loading && !vm.error && !vm.items.length ? (
           <div className="p-5">
             <EmptyState title={t('warrantyClaims.noMatchTitle')} description={t('warrantyClaims.noMatchDescription')} icon={Wrench} />
           </div>
         ) : null}
-        {!vm.loading && !vm.error && vm.items.length ? (
+        {view === 'table' && !vm.loading && !vm.error && vm.items.length ? (
           <div className="border-t border-slate-100 px-5 py-4 no-print">
             <Pagination page={vm.page} totalPages={vm.totalPages} onPageChange={vm.setPage} />
           </div>

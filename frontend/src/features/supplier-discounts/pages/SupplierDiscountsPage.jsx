@@ -1,5 +1,5 @@
 import { HandCoins, Tag } from 'lucide-react';
-import { Alert, EmptyState, MobileCardList, MobileListCard, Pagination, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
+import { Alert, EmptyState, MobileCardList, MobileListCard, Pagination, SectionHeader, Select, TableSkeleton } from '../../../components/ui.jsx';
 import TableReportActions from '../../../components/TableReportActions.jsx';
 import { DateRangePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
@@ -19,7 +19,7 @@ const SUPPLIER_DISCOUNTS_SHORTCUTS = {
 };
 
 export default function SupplierDiscountsPage() {
-  const { confirm, pushToast, can, t } = useInventoryApp();
+  const { confirm, pushToast, can, t, supplierDirectory } = useInventoryApp();
   const vm = useSupplierDiscountsViewModel();
   const canManagePayments = can('manage_supplier_payments');
   const clearDiscountMutation = useMutation({
@@ -54,6 +54,15 @@ export default function SupplierDiscountsPage() {
 
       <div id={SUPPLIER_DISCOUNTS_REPORT_ID} className="surface overflow-hidden">
         <div className="flex flex-col gap-3 border-b border-slate-100 p-5 sm:flex-row sm:items-end">
+          <div className="w-full sm:w-64">
+            <label className="label" htmlFor="supplier-discounts-supplier">{t('supplierDiscounts.supplier')}</label>
+            <Select id="supplier-discounts-supplier" className="input" value={vm.supplierId} onChange={(event) => vm.setSupplierId(event.target.value)}>
+              <option value="">{t('supplierPayments.allSuppliers')}</option>
+              {supplierDirectory.map((supplier) => (
+                <option key={supplier.id} value={supplier.id}>{supplier.name}</option>
+              ))}
+            </Select>
+          </div>
           <div className="w-full sm:w-72">
             <label className="label">{t('supplierDiscounts.dateRangeLabel')}</label>
             <DateRangePickerField

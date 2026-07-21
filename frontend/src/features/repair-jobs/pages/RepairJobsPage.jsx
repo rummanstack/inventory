@@ -1,12 +1,12 @@
-import { useEffect, useRef, useState } from 'react';
-import { AlertTriangle, CheckCircle2, Clock, LayoutGrid, Package, Pencil, Plus, Search, ShieldAlert, Table2, Trash2, Wrench } from 'lucide-react';
-import { Alert, Badge, CopyableText, EmptyState, MobileCardList, MobileListCard, Pagination, SectionHeader, TableSkeleton, Select } from '../../../components/ui.jsx';
+import { useEffect, useState } from 'react';
+import { Columns3, GripVertical, List, Pencil, Plus, RotateCcw, Search, ShieldAlert, Trash2, Wrench } from 'lucide-react';
+import { Alert, Badge, CopyableText, EmptyState, MobileCardList, MobileListCard, Pagination, SectionHeader, TableSkeleton, Select, cx } from '../../../components/ui.jsx';
 import TableReportActions from '../../../components/TableReportActions.jsx';
 import { DateRangePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import { useTenantApiQuery } from '../../../queries/useTenantApiQuery.js';
-import { formatCurrency, formatDate, formatDateTime } from '../../../utils/calculations.js';
+import { formatDate, formatDateTime, todayISO } from '../../../utils/calculations.js';
 import { repairJobStatusTone, repairJobApprovalTone } from '../../../models/inventoryViewData.js';
 import RepairJobFormModal from '../components/RepairJobFormModal';
 import WarrantyClaimFormModal from '../../warranty-claims/components/WarrantyClaimFormModal';
@@ -31,178 +31,96 @@ function matchesShortcut(event, shortcut) {
   );
 }
 
-const BOARD_COLUMNS = [
-  { status: 'RECEIVED',       icon: Package,      accent: '#94a3b8', bg: 'bg-slate-50/80',   border: 'border-slate-200'  },
-  { status: 'DIAGNOSING',     icon: Search,       accent: '#60a5fa', bg: 'bg-blue-50/60',    border: 'border-blue-200'   },
-  { status: 'AWAITING_PARTS', icon: Clock,        accent: '#fbbf24', bg: 'bg-amber-50/60',   border: 'border-amber-200'  },
-  { status: 'IN_REPAIR',      icon: Wrench,       accent: '#a78bfa', bg: 'bg-violet-50/60',  border: 'border-violet-200' },
-  { status: 'READY',          icon: CheckCircle2, accent: '#34d399', bg: 'bg-emerald-50/60', border: 'border-emerald-200'},
-];
-
-const APPROVAL_DOT = {
-  PENDING:  'bg-amber-400',
-  APPROVED: 'bg-emerald-500',
-  DECLINED: 'bg-rose-500',
-};
-
-function initials(name) {
-  if (!name) return '';
-  return name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase();
-}
-
-function isOverdue(job) {
-  if (!job.promisedDate || job.status === 'DELIVERED' || job.status === 'CANCELLED') return false;
-  return job.promisedDate < new Date().toISOString().slice(0, 10);
-}
-
-function JobCard({ job, canManage, accent, t, onEdit, onDelete, onEscalate, onDragStart, isDragging }) {
-  const overdue = isOverdue(job);
-  const tech = initials(job.technicianName);
+function RepairJobsKanban({ items, loading, error, canManage, t, onEdit, onMove }) {
+  if (loading) return <div className="p-5"><TableSkeleton columns={4} showHeader={false} /></div>;
+  if (error) return <div className="p-5"><Alert type="error">{error}</Alert></div>;
 
   return (
-    <div
-      draggable={canManage}
-      onDragStart={(e) => {
-        e.dataTransfer.effectAllowed = 'move';
-        e.dataTransfer.setData('text/plain', job.id);
-        onDragStart(job.id);
-      }}
-      className={`group relative overflow-hidden rounded-2xl bg-white transition-all duration-200
-        ${canManage ? 'cursor-grab active:cursor-grabbing' : ''}
-        ${isDragging
-          ? 'opacity-40 scale-95 shadow-none'
-          : 'shadow-[0_1px_4px_rgba(0,0,0,0.07),0_0_0_1px_rgba(0,0,0,0.04)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.10),0_0_0_1px_rgba(0,0,0,0.05)] hover:-translate-y-0.5'}`}
-    >
-      {/* Left accent bar */}
-      <div className="absolute inset-y-0 left-0 w-[3px]" style={{ backgroundColor: accent }} />
-
-      {/* Action tray */}
-      {canManage ? (
-        <div className="absolute right-2 top-2 z-10 flex items-center gap-0.5 rounded-lg border border-slate-100 bg-white p-0.5 shadow-sm">
-          <button
-            type="button"
-            title={t('warrantyClaims.escalateFromRepairJob')}
-            onClick={(e) => { e.stopPropagation(); onEscalate(job); }}
-            className="flex h-6 w-6 items-center justify-center rounded-md text-amber-500 transition hover:bg-amber-50"
-          >
-            <ShieldAlert size={12} />
-          </button>
-          <button
-            type="button"
-            title={t('common.edit')}
-            onClick={(e) => { e.stopPropagation(); onEdit(job); }}
-            className="flex h-6 w-6 items-center justify-center rounded-md text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
-          >
-            <Pencil size={12} />
-          </button>
-          <button
-            type="button"
-            title={t('common.delete')}
-            onClick={(e) => { e.stopPropagation(); onDelete(job); }}
-            className="flex h-6 w-6 items-center justify-center rounded-md text-slate-400 transition hover:bg-rose-50 hover:text-rose-600"
-          >
-            <Trash2 size={12} />
-          </button>
-        </div>
-      ) : null}
-
-      <div className="pl-4 pr-3 pt-3 pb-3 space-y-2.5">
-        {/* Row 1: job number + approval dot */}
-        <div className="flex items-center justify-between gap-2">
-          <CopyableText
-            value={job.jobNumber}
-            copyLabel={t('repairJobs.jobNumberLabel')}
-            displayValue={job.jobNumber}
-            className="max-w-full"
-            textClassName="text-[10px] font-semibold tracking-widest text-slate-400 uppercase"
-            buttonClassName="h-5 w-5"
-          />
-          <span
-            className={`h-2 w-2 shrink-0 rounded-full ${APPROVAL_DOT[job.approvalStatus] || 'bg-slate-300'}`}
-            title={t(`repairJobs.approvalStatuses.${job.approvalStatus}`)}
-          />
-        </div>
-
-        {/* Row 2: customer name (main content) */}
-        <div>
-          <button
-            type="button"
-            onClick={() => onEdit(job)}
-            className="text-[13px] font-bold leading-snug text-slate-900 hover:text-indigo-700 text-left w-full transition-colors"
-          >
-            {job.customerName || '—'}
-          </button>
-          {job.customerPhone ? (
-            <p className="mt-0.5 text-[11px] text-slate-400">{job.customerPhone}</p>
-          ) : null}
-        </div>
-
-        {/* Row 3: device chip */}
-        {(job.productName || job.serialNumber) ? (
-          <div className="rounded-lg bg-slate-50 px-2.5 py-1.5">
-            {job.productName ? (
-              <p className="text-[11px] font-semibold text-slate-600 leading-tight">{job.productName}</p>
-            ) : null}
-            {job.serialNumber ? (
-              <p className="mt-0.5 text-[10px] font-mono text-slate-400 leading-tight">{job.serialNumber}</p>
-            ) : null}
-          </div>
-        ) : null}
-
-        {/* Row 4: footer metadata */}
-        <div className="flex items-center justify-between gap-2 pt-0.5">
-          <div className="flex items-center gap-1.5 min-w-0">
-            {job.promisedDate ? (
-              <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold
-                ${overdue ? 'bg-rose-50 text-rose-600' : 'bg-slate-100 text-slate-500'}`}>
-                {overdue ? <AlertTriangle size={9} /> : <Clock size={9} />}
-                {formatDate(job.promisedDate)}
-              </span>
-            ) : (
-              <span className="text-[10px] text-slate-300">{t('repairJobs.noDeadline')}</span>
-            )}
-            {job.estimatedCost > 0 ? (
-              <span className="text-[10px] font-semibold text-slate-400">{formatCurrency(job.estimatedCost)}</span>
-            ) : null}
-          </div>
-
-          {tech ? (
-            <div
-              className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[9px] font-semibold"
-              style={{ backgroundColor: `${accent}22`, color: accent }}
-              title={job.technicianName}
+    <div className="overflow-x-auto bg-slate-50/60 p-4">
+      <div className="flex min-w-max items-start gap-4">
+        {JOB_STATUS_VALUES.map((status) => {
+          const jobs = items.filter((job) => job.status === status);
+          return (
+            <section
+              key={status}
+              className="w-[300px] shrink-0 rounded-card border border-slate-200 bg-slate-100/80 p-3"
+              onDragOver={(event) => { if (canManage) event.preventDefault(); }}
+              onDrop={(event) => {
+                if (!canManage) return;
+                event.preventDefault();
+                const jobId = event.dataTransfer.getData('text/repair-job');
+                if (jobId) onMove(jobId, status);
+              }}
             >
-              {tech}
-            </div>
-          ) : null}
-        </div>
+              <div className="mb-3 flex items-center justify-between gap-2 px-1">
+                <h3 className="text-xs font-black uppercase tracking-[0.14em] text-slate-700">{t('repairJobs.statuses.' + status)}</h3>
+                <span className="rounded-full bg-white px-2 py-0.5 text-xs font-black text-slate-500 ring-1 ring-slate-200">{jobs.length}</span>
+              </div>
+              <div className="space-y-2.5">
+                {jobs.map((job) => (
+                  <article
+                    key={job.id}
+                    draggable={canManage}
+                    onDragStart={(event) => {
+                      event.dataTransfer.effectAllowed = 'move';
+                      event.dataTransfer.setData('text/repair-job', String(job.id));
+                    }}
+                    className={cx('rounded-xl border border-slate-200 bg-white p-3 shadow-sm transition', canManage && 'cursor-grab hover:border-[rgba(var(--brand),0.35)] hover:shadow-card active:cursor-grabbing')}
+                  >
+                    <button type="button" className="w-full text-left disabled:cursor-default" disabled={!canManage} onClick={() => onEdit(job)}>
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="font-black text-slate-950">{job.jobNumber}</p>
+                        {canManage ? <GripVertical size={15} className="mt-0.5 shrink-0 text-slate-400" /> : null}
+                      </div>
+                      <p className="mt-2 truncate text-sm font-bold text-slate-700">{job.customerName || '-'}</p>
+                      <p className="mt-1 truncate text-xs font-medium text-slate-500">{job.productName || job.serialNumber || '-'}</p>
+                      <p className="mt-2 truncate text-xs font-medium text-slate-500">
+                        {formatDate(job.receivedDate)} · {job.technicianName || t('repairJobs.noTechnician')}
+                      </p>
+                    </button>
+                    {canManage ? (
+                      <select className="input mt-3 h-9 py-1 text-xs font-bold" value={job.status} aria-label={t('repairJobs.changeStatus')} onChange={(event) => onMove(String(job.id), event.target.value)}>
+                        {JOB_STATUS_VALUES.map((value) => <option key={value} value={value}>{t('repairJobs.statuses.' + value)}</option>)}
+                      </select>
+                    ) : null}
+                  </article>
+                ))}
+                {!jobs.length ? <div className="rounded-xl border border-dashed border-slate-300 px-3 py-8 text-center text-xs font-bold text-slate-400">{t('repairJobs.dropHere')}</div> : null}
+              </div>
+            </section>
+          );
+        })}
       </div>
     </div>
   );
 }
-
 export default function RepairJobsPage() {
   const { saveRepairJob, deleteRepairJob, saveWarrantyClaim, t, can } = useInventoryApp();
   const vm = useRepairJobsViewModel();
-  const [viewMode, setViewMode] = useState('board');
+  const [viewMode, setViewMode] = useState('table');
   const [formModal, setFormModal] = useState(null);
   const [escalateModal, setEscalateModal] = useState(null);
   const [boardJobs, setBoardJobs] = useState([]);
   const [boardVersion, setBoardVersion] = useState(0);
-  const [dragJobId, setDragJobId] = useState(null);
-  const [dragOverCol, setDragOverCol] = useState(null);
-  const dragCounters = useRef({});
   const canManage = can('manage_repair_jobs');
+  const hasFilters = Boolean(vm.search || vm.status || vm.technicianId || vm.dateFrom || vm.dateTo);
 
   const techniciansQuery = useTenantApiQuery({
     scope: 'repair-technicians',
     queryFn: () => inventoryApi.listUsers(),
     staleTime: 30_000,
   });
-  const boardQuery = useTenantApiQuery({
+const boardQuery = useTenantApiQuery({
     scope: 'repair-jobs-board',
-    params: { boardVersion },
-    queryFn: () => inventoryApi.listRepairJobs({ page: 1, pageSize: 500 }),
+    params: { boardVersion, search: vm.search, technicianId: vm.technicianId, dateFrom: vm.dateFrom, dateTo: vm.dateTo },
+    queryFn: () => inventoryApi.listRepairJobs({
+      page: 1,
+      pageSize: 10000,
+      search: vm.search || undefined,
+      technicianId: vm.technicianId || undefined,
+      dateFrom: vm.dateFrom || undefined,
+      dateTo: vm.dateTo || undefined,
+    }),
     enabled: viewMode === 'board',
   });
   const techniciansResult = techniciansQuery.data;
@@ -247,8 +165,9 @@ export default function RepairJobsPage() {
 
   async function handleStatusChange(job, newStatus) {
     if (job.status === newStatus) return;
+    const previousStatus = job.status;
     setBoardJobs((prev) => prev.map((j) => j.id === job.id ? { ...j, status: newStatus } : j));
-    await saveRepairJob({
+    const result = await saveRepairJob({
       id: job.id,
       status: newStatus,
       approvalStatus: job.approvalStatus,
@@ -260,37 +179,27 @@ export default function RepairJobsPage() {
       deliveredDate: job.deliveredDate || null,
       resolutionNote: job.resolutionNote || '',
     });
+    if (!result.ok) {
+      setBoardJobs((prev) => prev.map((item) => item.id === job.id ? { ...item, status: previousStatus } : item));
+      return;
+    }
     vm.reload();
   }
 
-  const boardByStatus = BOARD_COLUMNS.reduce((acc, col) => {
-    acc[col.status] = boardJobs.filter((j) => j.status === col.status);
-    return acc;
-  }, {});
-  const deliveredCount = boardJobs.filter((j) => j.status === 'DELIVERED').length;
-  const cancelledCount = boardJobs.filter((j) => j.status === 'CANCELLED').length;
 
   return (
     <div>
       <SectionHeader
         title={t('repairJobs.title')}
         compact
-        action={
-          <div className="flex items-center gap-2">
-            <div className="flex rounded-xl border border-slate-200 bg-slate-50 p-0.5">
-              <button
-                type="button"
-                onClick={() => setViewMode('board')}
-                className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${viewMode === 'board' ? 'bg-white shadow text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}
-              >
-                <LayoutGrid size={14} /> Board
+        action={(
+          <>
+            <div className="inline-flex rounded-lg border border-slate-200 bg-slate-50 p-1">
+              <button type="button" className={viewMode === 'table' ? 'inline-flex items-center gap-1.5 rounded-md bg-white px-3 py-1.5 text-xs font-black text-indigo-800 shadow-sm' : 'inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-bold text-slate-500'} onClick={() => setViewMode('table')}>
+                <List size={15} />{t('repairJobs.tableView')}
               </button>
-              <button
-                type="button"
-                onClick={() => setViewMode('table')}
-                className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${viewMode === 'table' ? 'bg-white shadow text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}
-              >
-                <Table2 size={14} /> Table
+              <button type="button" className={viewMode === 'board' ? 'inline-flex items-center gap-1.5 rounded-md bg-white px-3 py-1.5 text-xs font-black text-indigo-800 shadow-sm' : 'inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-bold text-slate-500'} onClick={() => { vm.setStatus(''); setViewMode('board'); }}>
+                <Columns3 size={15} />{t('repairJobs.boardView')}
               </button>
             </div>
             {canManage ? (
@@ -300,256 +209,143 @@ export default function RepairJobsPage() {
                 <kbd className="ml-1 rounded border border-indigo-400/40 bg-indigo-500/20 px-1 py-0.5 font-mono text-[10px] text-indigo-200">Alt+A</kbd>
               </button>
             ) : null}
-          </div>
-        }
+          </>
+        )}
       />
 
-      {/* ── BOARD VIEW ── */}
-      {viewMode === 'board' ? (
-        <div className="mt-4">
-          {boardLoading ? (
-            <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
-              {BOARD_COLUMNS.map((col) => (
-                <div key={col.status} className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
-                  <div className="mb-4 h-4 w-20 animate-pulse rounded-full bg-slate-200" />
-                  <div className="space-y-2.5">
-                    {[1, 2].map((i) => <div key={i} className="h-28 animate-pulse rounded-2xl bg-slate-200" />)}
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-                {BOARD_COLUMNS.map((col) => {
-                  const jobs = boardByStatus[col.status] || [];
-                  const ColIcon = col.icon;
-                  const isOver = dragOverCol === col.status;
-                  const draggedJob = dragJobId ? boardJobs.find((j) => j.id === dragJobId) : null;
-                  const sameCol = draggedJob?.status === col.status;
-
-                  return (
-                    <div
-                      key={col.status}
-                      className={`flex flex-col rounded-2xl border p-3 min-h-[240px] transition-all duration-200
-                        ${isOver && !sameCol
-                          ? 'border-indigo-300 bg-indigo-50/60 scale-[1.01]'
-                          : `${col.border} ${col.bg}`}`}
-                      onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }}
-                      onDragEnter={(e) => {
-                        e.preventDefault();
-                        dragCounters.current[col.status] = (dragCounters.current[col.status] || 0) + 1;
-                        setDragOverCol(col.status);
-                      }}
-                      onDragLeave={() => {
-                        dragCounters.current[col.status] = (dragCounters.current[col.status] || 1) - 1;
-                        if (dragCounters.current[col.status] <= 0) {
-                          setDragOverCol((prev) => prev === col.status ? null : prev);
-                        }
-                      }}
-                      onDrop={(e) => {
-                        e.preventDefault();
-                        const jobId = e.dataTransfer.getData('text/plain');
-                        const job = boardJobs.find((j) => j.id === jobId);
-                        if (job && job.status !== col.status) handleStatusChange(job, col.status);
-                        setDragJobId(null);
-                        setDragOverCol(null);
-                        dragCounters.current = {};
-                      }}
-                    >
-                      {/* Column header */}
-                      <div className="mb-3 flex items-center justify-between px-1">
-                        <div className="flex items-center gap-2">
-                          <ColIcon size={13} style={{ color: col.accent }} />
-                          <span className="text-[11px] font-semibold uppercase tracking-widest text-slate-600">
-                            {t(`repairJobs.statuses.${col.status}`)}
-                          </span>
-                        </div>
-                        <span
-                          className="flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[10px] font-semibold text-white"
-                          style={{ backgroundColor: col.accent }}
-                        >
-                          {jobs.length}
-                        </span>
-                      </div>
-
-                      {/* Cards */}
-                      <div className={`flex flex-col gap-2 flex-1 rounded-xl transition-all ${isOver && !sameCol ? 'ring-2 ring-dashed ring-indigo-300/70 p-1' : ''}`}>
-                        {jobs.length === 0 ? (
-                          <div className="flex flex-1 items-center justify-center py-6">
-                            <p className={`text-[11px] font-medium ${isOver && !sameCol ? 'text-indigo-400' : 'text-slate-300'}`}>
-                              {isOver && !sameCol ? '↓ Drop here' : t('repairJobs.emptyColumn')}
-                            </p>
-                          </div>
-                        ) : (
-                          jobs.map((job) => (
-                            <JobCard
-                              key={job.id}
-                              job={job}
-                              canManage={canManage}
-                              accent={col.accent}
-                              t={t}
-                              isDragging={dragJobId === job.id}
-                              onDragStart={setDragJobId}
-                              onEdit={(j) => setFormModal({ mode: 'edit', job: j })}
-                              onDelete={handleDelete}
-                              onEscalate={(j) => setEscalateModal({ jobId: j.id, jobNumber: j.jobNumber, productId: j.productId })}
-                            />
-                          ))
-                        )}
-                        {isOver && !sameCol && jobs.length > 0 ? (
-                          <div className="mx-1 h-1 rounded-full bg-indigo-300/50" />
-                        ) : null}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {(deliveredCount > 0 || cancelledCount > 0) ? (
-                <div className="mt-4 flex flex-wrap items-center gap-3">
-                  {deliveredCount > 0 ? (
-                    <div className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2">
-                      <CheckCircle2 size={13} className="text-emerald-600" />
-                      <span className="text-xs font-bold text-emerald-700">{deliveredCount} Delivered</span>
-                    </div>
-                  ) : null}
-                  {cancelledCount > 0 ? (
-                    <div className="flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2">
-                      <span className="text-xs font-bold text-rose-700">{cancelledCount} Cancelled</span>
-                    </div>
-                  ) : null}
-                  <button
-                    type="button"
-                    className="text-xs font-semibold text-indigo-600 hover:underline"
-                    onClick={() => setViewMode('table')}
-                  >
-                    View full history →
-                  </button>
-                </div>
-              ) : null}
-            </>
-          )}
-        </div>
-      ) : null}
-
-      {/* ── TABLE VIEW ── */}
       {viewMode === 'table' ? (
-        <div id={REPAIR_JOBS_REPORT_ID} className="surface mt-4 overflow-hidden">
-          <div className="flex flex-col gap-3 border-b border-slate-100 p-5 sm:flex-row sm:flex-wrap sm:items-center">
-            <div className="relative w-full flex-1 sm:min-w-[200px]">
-              <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-              <input
-                className="input pl-10"
-                value={vm.search}
-                onChange={(e) => vm.setSearch(e.target.value)}
-                placeholder={t('repairJobs.searchPlaceholder')}
-              />
+        <section className="surface no-print mb-6 overflow-hidden">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-4 py-3">
+            <div className="flex items-start gap-3">
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-[var(--secondary-soft)] text-[var(--secondary)]"><Wrench size={20} /></span>
+              <div><h2 className="section-title">{t('repairJobs.workflowTitle')}</h2></div>
             </div>
-            <Select className="input w-full sm:w-44" value={vm.status} onChange={(e) => vm.setStatus(e.target.value)}>
-              <option value="">{t('repairJobs.allStatuses')}</option>
-              {JOB_STATUS_VALUES.map((s) => (
-                <option key={s} value={s}>{t(`repairJobs.statuses.${s}`)}</option>
-              ))}
-            </Select>
-            <Select className="input w-full sm:w-44" value={vm.technicianId} onChange={(e) => vm.setTechnicianId(e.target.value)}>
-              <option value="">{t('repairJobs.allTechnicians')}</option>
-              {technicians.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
-            </Select>
-            <DateRangePickerField
-              from={vm.dateFrom}
-              to={vm.dateTo}
-              onChange={(from, to) => { vm.setDateFrom(from); vm.setDateTo(to); }}
-              placeholder={`${t('purchaseReceive.dateFrom')} - ${t('purchaseReceive.dateTo')}`}
-              className="w-full min-w-[260px] sm:w-auto"
-            />
-            <div className="sm:ml-auto">
-              <TableReportActions targetId={REPAIR_JOBS_REPORT_ID} title={t('repairJobs.title')} fileName="repair-jobs" entityType="repair_jobs" t={t} shortcuts={REPAIR_JOBS_REPORT_SHORTCUTS} />
-            </div>
+            <span className="muted-chip">{vm.total} {t('repairJobs.jobCount')}</span>
           </div>
-
-          {vm.loading ? (
-            <div className="p-5"><TableSkeleton columns={7} showHeader={false} /></div>
-          ) : vm.error ? (
-            <div className="p-5"><Alert type="error">{vm.error}</Alert></div>
-          ) : vm.items.length === 0 ? (
-            <div className="p-5"><EmptyState title={t('repairJobs.noMatchTitle')} description={t('repairJobs.noMatchDescription')} icon={Wrench} /></div>
-          ) : (
-            <>
-              <MobileCardList>
-                {vm.items.map((job) => (
-                  <MobileListCard
-                    key={job.id}
-                    onClick={canManage ? () => setFormModal({ mode: 'edit', job }) : undefined}
-                    title={job.jobNumber}
-                    badge={<Badge tone={repairJobStatusTone(job.status)}>{t(`repairJobs.statuses.${job.status}`)}</Badge>}
-                    subtitle={`${job.customerName || '-'} · ${formatDateTime(job.receivedDate)}`}
-                    value={job.technicianName || '-'}
-                    valueSub={t(`repairJobs.approvalStatuses.${job.approvalStatus}`)}
-                  />
-                ))}
-              </MobileCardList>
-              <div className="hidden overflow-x-auto md:block">
-                <table className="w-full">
-                  <thead className="table-head">
-                    <tr>
-                      <th className="px-4 py-3">{t('repairJobs.jobNumberLabel')}</th>
-                      <th className="px-4 py-3">{t('repairJobs.customerLabel')}</th>
-                      <th className="px-4 py-3">{t('repairJobs.serialLabel')}</th>
-                      <th className="px-4 py-3">{t('repairJobs.statusLabel')}</th>
-                      <th className="px-4 py-3">{t('repairJobs.approvalStatusLabel')}</th>
-                      <th className="px-4 py-3">{t('repairJobs.technicianLabel')}</th>
-                      <th className="px-4 py-3">{t('repairJobs.receivedDateLabel')}</th>
-                      <th className="px-4 py-3 text-right no-print">{t('common.actions')}</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {vm.items.map((job) => (
-                      <tr key={job.id} className="hover:bg-slate-50">
-                        <td className="table-cell"><CopyableText value={job.jobNumber} copyLabel={t('repairJobs.jobNumberLabel')} displayValue={job.jobNumber} textClassName="font-semibold text-slate-950" /></td>
-                        <td className="table-cell no-print">
-                          <div className="font-medium text-slate-900">{job.customerName || '-'}</div>
-                          {job.customerPhone ? <div className="text-xs text-slate-500">{job.customerPhone}</div> : null}
-                        </td>
-                        <td className="table-cell"><CopyableText value={job.serialNumber} copyLabel={t('repairJobs.serialLabel')} displayValue={job.serialNumber} /></td>
-                        <td className="table-cell">
-                          <Badge tone={repairJobStatusTone(job.status)}>{t(`repairJobs.statuses.${job.status}`)}</Badge>
-                        </td>
-                        <td className="table-cell">
-                          <Badge tone={repairJobApprovalTone(job.approvalStatus)}>{t(`repairJobs.approvalStatuses.${job.approvalStatus}`)}</Badge>
-                        </td>
-                        <td className="table-cell">{job.technicianName || '-'}</td>
-                        <td className="table-cell">{formatDateTime(job.receivedDate)}</td>
-                        <td className="table-cell">
-                          <div className="row-actions flex justify-end gap-2">
-                            {canManage ? (
-                              <>
-                                <button type="button" className="icon-btn text-amber-600 hover:text-amber-700" title={t('warrantyClaims.escalateFromRepairJob')} onClick={() => setEscalateModal({ jobId: job.id, jobNumber: job.jobNumber, productId: job.productId })}>
-                                  <ShieldAlert size={16} />
-                                </button>
-                                <button type="button" className="icon-btn" title={t('common.edit')} onClick={() => setFormModal({ mode: 'edit', job })}>
-                                  <Pencil size={16} />
-                                </button>
-                                <button type="button" className="icon-btn text-rose-600 hover:text-rose-700" title={t('common.delete')} onClick={() => handleDelete(job)}>
-                                  <Trash2 size={16} />
-                                </button>
-                              </>
-                            ) : null}
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <div className="border-t border-slate-100 px-5 py-4 no-print">
-                <Pagination page={vm.page} totalPages={vm.totalPages} onPageChange={vm.setPage} />
-              </div>
-            </>
-          )}
-        </div>
+          <div className="flex gap-2 overflow-x-auto p-3">
+            <button type="button" className={vm.status ? 'min-h-10 shrink-0 rounded-full border border-slate-200 bg-white px-4 text-sm font-bold text-slate-600 transition hover:border-[rgba(var(--brand),0.35)] hover:text-[var(--secondary)]' : 'min-h-10 shrink-0 rounded-full border border-[rgba(var(--brand),0.38)] bg-[var(--secondary-soft)] px-4 text-sm font-black text-[var(--text-strong)] ring-2 ring-[rgba(var(--brand),0.12)]'} onClick={() => vm.setStatus('')}>
+              {t('repairJobs.allStatuses')}
+            </button>
+            {JOB_STATUS_VALUES.map((status) => (
+              <button key={status} type="button" className={vm.status === status ? 'min-h-10 shrink-0 rounded-full border border-[rgba(var(--brand),0.38)] bg-[var(--secondary-soft)] px-4 text-sm font-black text-[var(--text-strong)] ring-2 ring-[rgba(var(--brand),0.12)]' : 'min-h-10 shrink-0 rounded-full border border-slate-200 bg-white px-4 text-sm font-bold text-slate-600 transition hover:border-[rgba(var(--brand),0.35)] hover:text-[var(--secondary)]'} onClick={() => vm.setStatus(status)}>
+                {t('repairJobs.statuses.' + status)}
+              </button>
+            ))}
+          </div>
+        </section>
       ) : null}
 
+      <div id={REPAIR_JOBS_REPORT_ID} className="surface overflow-hidden print-target">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-4 py-3">
+          <div><h2 className="section-title">{t(viewMode === 'board' ? 'repairJobs.boardTitle' : 'repairJobs.registerTitle')}</h2></div>
+          <span className="muted-chip">{viewMode === 'board' ? boardJobs.length : vm.total} {t('common.records')}</span>
+        </div>
+        <div className="no-print flex flex-col gap-3 border-b border-slate-100 bg-slate-50/60 p-4 sm:flex-row sm:flex-wrap sm:items-center">
+          <div className="relative w-full flex-1 sm:min-w-[200px]">
+            <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+            <input className="input pl-10" value={vm.search} onChange={(event) => vm.setSearch(event.target.value)} placeholder={t('repairJobs.searchPlaceholder')} />
+          </div>
+          <Select className="input w-full sm:w-44" value={vm.technicianId} onChange={(event) => vm.setTechnicianId(event.target.value)}>
+            <option value="">{t('repairJobs.allTechnicians')}</option>
+            {technicians.map((user) => <option key={user.id} value={user.id}>{user.name}</option>)}
+          </Select>
+          <DateRangePickerField from={vm.dateFrom} to={vm.dateTo} max={todayISO()} onChange={(from, to) => { vm.setDateFrom(from); vm.setDateTo(to); }} placeholder={t('purchaseReceive.dateFrom') + ' - ' + t('purchaseReceive.dateTo')} className="w-full min-w-[260px] sm:w-auto" />
+          <button type="button" className="btn-secondary h-10 gap-1.5 px-3 text-xs disabled:cursor-not-allowed disabled:opacity-50" disabled={!hasFilters} onClick={vm.resetFilters}>
+            <RotateCcw size={14} />{t('repairJobs.resetFilters')}
+          </button>
+          <div className="sm:ml-auto">
+            <TableReportActions targetId={REPAIR_JOBS_REPORT_ID} title={t('repairJobs.title')} fileName="repair-jobs" entityType="repair_jobs" t={t} shortcuts={REPAIR_JOBS_REPORT_SHORTCUTS} />
+          </div>
+        </div>
+
+        {viewMode === 'board' ? (
+          <RepairJobsKanban
+            items={boardJobs}
+            loading={boardLoading}
+            error={boardQuery.error?.message}
+            canManage={canManage}
+            t={t}
+            onEdit={(job) => setFormModal({ mode: 'edit', job })}
+            onMove={(jobId, status) => {
+              const job = boardJobs.find((item) => String(item.id) === String(jobId));
+              if (job) handleStatusChange(job, status);
+            }}
+          />
+        ) : vm.loading ? (
+          <div className="p-5"><TableSkeleton columns={7} showHeader={false} /></div>
+        ) : vm.error ? (
+          <div className="p-5"><Alert type="error">{vm.error}</Alert></div>
+        ) : (
+          <>
+            <MobileCardList>
+              {vm.items.map((job) => (
+                <MobileListCard
+                  key={job.id}
+                  onClick={canManage ? () => setFormModal({ mode: 'edit', job }) : undefined}
+                  title={job.jobNumber}
+                  badge={<Badge tone={repairJobStatusTone(job.status)}>{t('repairJobs.statuses.' + job.status)}</Badge>}
+                  subtitle={(job.customerName || '-') + ' · ' + formatDateTime(job.receivedDate)}
+                  value={job.technicianName || '-'}
+                  valueSub={t('repairJobs.approvalStatuses.' + job.approvalStatus)}
+                  action={canManage ? (
+                    <>
+                      <button type="button" className="icon-btn text-amber-600 hover:text-amber-700" title={t('warrantyClaims.escalateFromRepairJob')} onClick={() => setEscalateModal({ jobId: job.id, jobNumber: job.jobNumber, productId: job.productId })}><ShieldAlert size={16} /></button>
+                      <button type="button" className="icon-btn" title={t('common.edit')} onClick={() => setFormModal({ mode: 'edit', job })}><Pencil size={16} /></button>
+                      <button type="button" className="icon-btn text-rose-600 hover:text-rose-700" title={t('common.delete')} onClick={() => handleDelete(job)}><Trash2 size={16} /></button>
+                    </>
+                  ) : null}
+                />
+              ))}
+            </MobileCardList>
+            <div className="hidden overflow-x-auto md:block">
+              <table className="w-full">
+                <thead className="table-head">
+                  <tr>
+                    <th className="px-4 py-3">{t('repairJobs.jobNumberLabel')}</th>
+                    <th className="px-4 py-3">{t('repairJobs.customerLabel')}</th>
+                    <th className="px-4 py-3">{t('repairJobs.serialLabel')}</th>
+                    <th className="px-4 py-3">{t('repairJobs.statusLabel')}</th>
+                    <th className="px-4 py-3">{t('repairJobs.approvalStatusLabel')}</th>
+                    <th className="px-4 py-3">{t('repairJobs.technicianLabel')}</th>
+                    <th className="px-4 py-3">{t('repairJobs.receivedDateLabel')}</th>
+                    <th className="px-4 py-3 text-right no-print">{t('common.actions')}</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {vm.items.map((job) => (
+                    <tr key={job.id} className="hover:bg-slate-50">
+                      <td className="table-cell"><CopyableText value={job.jobNumber} copyLabel={t('repairJobs.jobNumberLabel')} displayValue={job.jobNumber} textClassName="font-semibold text-slate-950" /></td>
+                      <td className="table-cell"><div className="font-medium text-slate-900">{job.customerName || '-'}</div>{job.customerPhone ? <div className="text-xs text-slate-500">{job.customerPhone}</div> : null}</td>
+                      <td className="table-cell"><CopyableText value={job.serialNumber} copyLabel={t('repairJobs.serialLabel')} displayValue={job.serialNumber} /></td>
+                      <td className="table-cell"><Badge tone={repairJobStatusTone(job.status)}>{t('repairJobs.statuses.' + job.status)}</Badge></td>
+                      <td className="table-cell"><Badge tone={repairJobApprovalTone(job.approvalStatus)}>{t('repairJobs.approvalStatuses.' + job.approvalStatus)}</Badge></td>
+                      <td className="table-cell">{job.technicianName || '-'}</td>
+                      <td className="table-cell">{formatDateTime(job.receivedDate)}</td>
+                      <td className="table-cell no-print">
+                        <div className="row-actions flex justify-end gap-2">
+                          {canManage ? (
+                            <>
+                              <button type="button" className="icon-btn text-amber-600 hover:text-amber-700" title={t('warrantyClaims.escalateFromRepairJob')} onClick={() => setEscalateModal({ jobId: job.id, jobNumber: job.jobNumber, productId: job.productId })}><ShieldAlert size={16} /></button>
+                              <button type="button" className="icon-btn" title={t('common.edit')} onClick={() => setFormModal({ mode: 'edit', job })}><Pencil size={16} /></button>
+                              <button type="button" className="icon-btn text-rose-600 hover:text-rose-700" title={t('common.delete')} onClick={() => handleDelete(job)}><Trash2 size={16} /></button>
+                            </>
+                          ) : null}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
+        {viewMode === 'table' && !vm.loading && !vm.error && !vm.items.length ? (
+          <div className="p-5"><EmptyState title={t('repairJobs.noMatchTitle')} description={t('repairJobs.noMatchDescription')} icon={Wrench} /></div>
+        ) : null}
+        {viewMode === 'table' && !vm.loading && !vm.error && vm.items.length ? (
+          <div className="border-t border-slate-100 px-5 py-4 no-print"><Pagination page={vm.page} totalPages={vm.totalPages} onPageChange={vm.setPage} /></div>
+        ) : null}
+      </div>
       {formModal ? (
         <RepairJobFormModal
           job={formModal.job}

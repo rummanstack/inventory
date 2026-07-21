@@ -79,6 +79,13 @@ test("an opening due becomes the shop's current due by default", async () => {
   assert.equal(shop.currentDue, 250);
 });
 
+test("a shop with a non-zero balance cannot be deleted", async () => {
+  const shop = await createShop(tenant.agent, { openingDue: 500 });
+  const response = await tenant.agent.delete("/api/customers/" + shop.id).send({ reason: "cleanup" });
+  assert.equal(response.status, 409);
+  assert.match(response.body.message, /balance.*0.00/i);
+});
+
 test("deleting a shop moves it to trash, hides it from the active list, and it can be restored", async () => {
   const shop = await createShop(tenant.agent);
 

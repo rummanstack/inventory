@@ -82,6 +82,13 @@ test("changing a DSR's opening due without a reason is rejected, and with a reas
   assert.equal(balanceAfter, 800);
 });
 
+test("a DSR with a non-zero balance cannot be deleted", async () => {
+  const dsr = await createDsr(tenant.agent, { name: "Unsettled DSR " + Date.now(), openingDue: 500 });
+  const response = await tenant.agent.delete("/api/dsrs/" + dsr.id).send({ reason: "cleanup" });
+  assert.equal(response.status, 409);
+  assert.match(response.body.message, /balance.*0.00/i);
+});
+
 test("deleting a DSR moves it to trash, hides it from the active list, and it can be restored", async () => {
   const dsr = await createDsr(tenant.agent, { name: `Trash DSR ${Date.now()}` });
 

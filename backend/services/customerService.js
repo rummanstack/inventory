@@ -15,6 +15,8 @@ import {
   mapCustomer,
   updateCustomer,
 } from "../repositories/customerRepository.js";
+import { getLatestShopDueLedgerEntry } from "../repositories/shopDueLedgerRepository.js";
+import { assertZeroBalanceBeforeDelete } from "../lib/entityDeletionGuard.js";
 
 export class CustomerService {
   constructor(databaseManager, { auditService } = {}) {
@@ -129,6 +131,11 @@ export class CustomerService {
     return this.databaseManager.withTransaction(async (client) => {
       const existingResult = await findCustomerById(client, customerId, actor.tenantId);
       assert(existingResult.rowCount > 0, "Customer not found.", 404);
+      const latestBalance = await getLatestShopDueLedgerEntry(client, customerId, actor.tenantId);
+      assertZeroBalanceBeforeDelete(
+        latestBalance?.balanceAfter ?? existingResult.rows[0].current_due ?? existingResult.rows[0].opening_due,
+        "Shop " + existingResult.rows[0].shop_name,
+      );
 
       await softDeleteCustomer(client, customerId, actor.tenantId, {
         deletedById: actor.id,

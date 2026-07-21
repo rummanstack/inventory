@@ -79,6 +79,13 @@ test("changing an SR's opening due without a reason is rejected, and with a reas
   assert.equal(balanceAfter, 600);
 });
 
+test("an SR with a non-zero balance cannot be deleted", async () => {
+  const sr = await createSr(tenant.agent, { name: "Unsettled SR " + Date.now(), openingDue: 500 });
+  const response = await tenant.agent.delete("/api/srs/" + sr.id).send({ reason: "cleanup" });
+  assert.equal(response.status, 409);
+  assert.match(response.body.message, /balance.*0.00/i);
+});
+
 test("deleting an SR moves it to trash, hides it from the active list, and it can be restored", async () => {
   const sr = await createSr(tenant.agent, { name: `Trash SR ${Date.now()}` });
 

@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Pencil, Plus, Trash2, Users } from 'lucide-react';
 import { Alert, EmptyState, MobileCardList, MobileListCard, Pagination, SectionHeader, TableSkeleton, Select } from '../../../../components/ui.jsx';
 import TableReportActions from '../../../../components/TableReportActions.jsx';
@@ -123,11 +123,6 @@ export default function EmployeesPage() {
       <div id={EMPLOYEES_REPORT_ID} className="surface overflow-hidden">
         <div className="flex flex-col gap-3 border-b border-slate-100 p-5 xl:flex-row xl:items-center xl:flex-wrap">
           <input className="input w-full sm:w-56" placeholder={t('common.search')} value={vm.search} onChange={(e) => vm.setSearch(e.target.value)} />
-          <Select className="input w-full sm:w-40" value={vm.status} onChange={(e) => vm.setStatus(e.target.value)}>
-            <option value="">{t('employees.allStatuses')}</option>
-            <option value="ACTIVE">{t('employees.active')}</option>
-            <option value="INACTIVE">{t('employees.inactive')}</option>
-          </Select>
           <Select className="input w-full sm:w-48" value={vm.departmentId} onChange={(e) => vm.setDepartmentId(e.target.value)}>
             <option value="">{t('employees.allDepartments')}</option>
             {departments.map((department) => <option key={department.id} value={department.id}>{department.name}</option>)}

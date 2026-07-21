@@ -4,12 +4,18 @@ import {
   ChevronLeft,
   ChevronRight,
   CircleDollarSign,
+  ArrowDown,
+  ArrowUp,
+  Check,
+  GripVertical,
   HandCoins,
   Landmark,
   Lock,
   PackageCheck,
   PackageX,
   Receipt,
+  RotateCcw,
+  Settings2,
   ShoppingCart,
   Store,
   TrendingDown,
@@ -29,7 +35,7 @@ import {
 } from "../../../components/ui.jsx";
 import { ActivityCalendar } from "../components/ActivityCalendar.jsx";
 import { formatCurrency, formatNumber } from "../../../utils/calculations.js";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useInventoryApp } from "../../../app/useInventoryApp.jsx";
 import DashboardSkeleton from "../components/DashboardSkeleton";
 import { useDashboardViewModel } from "../viewmodels/useDashboardViewModel";
@@ -67,11 +73,74 @@ function DueRow({ icon: Icon, iconClass, label, sub, value, valueClass = "text-s
 
 /* ─── main page ─── */
 
+const DEFAULT_WIDGET_ORDER = ['financial', 'today', 'monthly', 'inventory', 'trading', 'retail', 'cashflow', 'products', 'activity'];
+
+function DashboardWidget({ id, order, editing, onMove, children, t }) {
+  const position = order.indexOf(id);
+  return (
+    <section
+      className={cx('relative min-w-0 rounded-card transition', editing && 'ring-2 ring-dashed ring-indigo-200 ring-offset-2')}
+      style={{ order: position < 0 ? 999 : position }}
+      onDragOver={(event) => { if (editing) event.preventDefault(); }}
+      onDrop={(event) => {
+        if (!editing) return;
+        event.preventDefault();
+        const source = event.dataTransfer.getData('text/dashboard-widget');
+        if (source) onMove(source, id);
+      }}
+    >
+      {editing ? (
+        <div className="mb-2 flex items-center justify-end gap-1 rounded-lg bg-indigo-50 px-2 py-1.5">
+          <span draggable onDragStart={(event) => { event.dataTransfer.effectAllowed = 'move'; event.dataTransfer.setData('text/dashboard-widget', id); }} className="mr-auto inline-flex cursor-grab items-center gap-1.5 rounded-md px-2 py-1 text-xs font-black text-indigo-700 active:cursor-grabbing">
+            <GripVertical size={15} /> {t('dashboard.dragWidget')}
+          </span>
+          <button type="button" className="icon-btn h-8 w-8" disabled={position <= 0} title={t('dashboard.moveEarlier')} onClick={() => onMove(id, -1)}><ArrowUp size={14} /></button>
+          <button type="button" className="icon-btn h-8 w-8" disabled={position >= order.length - 1} title={t('dashboard.moveLater')} onClick={() => onMove(id, 1)}><ArrowDown size={14} /></button>
+        </div>
+      ) : null}
+      {children}
+    </section>
+  );
+}
+
 export default function DashboardPage() {
-  const { productDirectory, dsrDirectory, today, t, language } = useInventoryApp();
+  const { productDirectory, dsrDirectory, today, t, language, user, tenant } = useInventoryApp();
   const vm = useDashboardViewModel({ products: productDirectory, dsrs: dsrDirectory, today, t, language });
   const [noSalePage, setNoSalePage] = useState(1);
+  const [layoutEditing, setLayoutEditing] = useState(false);
+  const layoutStorageKey = `dashboard-widget-order:${tenant?.id || user?.tenantId || 'default'}:${user?.id || 'user'}`;
+  const [widgetOrder, setWidgetOrder] = useState(DEFAULT_WIDGET_ORDER);
   const NO_SALE_PAGE_SIZE = 6;
+
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(layoutStorageKey) || 'null');
+      const valid = Array.isArray(saved) ? saved.filter((id) => DEFAULT_WIDGET_ORDER.includes(id)) : [];
+      setWidgetOrder([...valid, ...DEFAULT_WIDGET_ORDER.filter((id) => !valid.includes(id))]);
+    } catch {
+      setWidgetOrder(DEFAULT_WIDGET_ORDER);
+    }
+  }, [layoutStorageKey]);
+
+  function persistWidgetOrder(next) {
+    setWidgetOrder(next);
+    try { localStorage.setItem(layoutStorageKey, JSON.stringify(next)); } catch { /* Keep the in-session layout when storage is unavailable. */ }
+  }
+
+  function moveWidget(source, target) {
+    const from = widgetOrder.indexOf(source);
+    if (from < 0) return;
+    const to = typeof target === 'number' ? Math.max(0, Math.min(widgetOrder.length - 1, from + target)) : widgetOrder.indexOf(target);
+    if (to < 0 || from === to) return;
+    const next = [...widgetOrder];
+    next.splice(from, 1);
+    next.splice(to, 0, source);
+    persistWidgetOrder(next);
+  }
+
+  function resetWidgetOrder() {
+    persistWidgetOrder(DEFAULT_WIDGET_ORDER);
+  }
 
   if (vm.loading) {
     return (
@@ -105,12 +174,26 @@ export default function DashboardPage() {
   const todaySales = todayPnl.grossRevenue + retailPos.revenue;
   const todayDue = Math.max(0, todayPnl.grossRevenue - vm.payableToday) + retailPos.dueAmount;
   const todayProfit = todayPnl.netProfit + retailPos.profit;
+  const widgetProps = { order: widgetOrder, editing: layoutEditing, onMove: moveWidget, t };
 
   return (
-    <div className="space-y-6 max-lg:space-y-4">
-      <SectionHeader title={t("dashboard.title")} compact />
+    <div className="flex flex-col gap-6 max-lg:gap-4">
+      <SectionHeader
+        title={t("dashboard.title")}
+        compact
+        action={(
+          <>
+            {layoutEditing ? <button type="button" className="btn-secondary" onClick={resetWidgetOrder}><RotateCcw size={16} />{t('dashboard.resetLayout')}</button> : null}
+            <button type="button" className={layoutEditing ? 'btn-primary' : 'btn-secondary'} onClick={() => setLayoutEditing((value) => !value)}>
+              {layoutEditing ? <Check size={16} /> : <Settings2 size={16} />}
+              {layoutEditing ? t('dashboard.doneCustomizing') : t('dashboard.customizeLayout')}
+            </button>
+          </>
+        )}
+      />
 
       {/* ── 1. FINANCIAL HEALTH ── */}
+      <DashboardWidget id="financial" {...widgetProps}>
       {financeDashboard ? (
         <div className="overflow-hidden rounded-card border border-slate-200/80 bg-white shadow-card ring-1 ring-slate-900/[0.03]">
           <div className="px-7 pb-4 pt-6 max-lg:px-4 max-lg:pb-3 max-lg:pt-4">
@@ -248,7 +331,10 @@ export default function DashboardPage() {
         </div>
       )}
 
+            </DashboardWidget>
+
       {/* ── 2. TODAY'S PROFIT REPORT ── */}
+      <DashboardWidget id="today" {...widgetProps}>
       <div className="overflow-hidden rounded-card border border-slate-200/80 bg-white shadow-card ring-1 ring-slate-900/[0.03]">
         <div className="px-7 pb-4 pt-6">
           <div className="flex items-center gap-2">
@@ -313,7 +399,10 @@ export default function DashboardPage() {
         </div>
       </div>
 
+            </DashboardWidget>
+
       {/* ── 3. MONTHLY ANALYTICS ── */}
+      <DashboardWidget id="monthly" {...widgetProps}>
       <div className="grid gap-6 xl:grid-cols-2">
         <ChartPanel
           title={t("dashboard.monthlySalesChart")}
@@ -344,7 +433,10 @@ export default function DashboardPage() {
         </ChartPanel>
       </div>
 
+            </DashboardWidget>
+
       {/* ── 4. INVENTORY BY CATEGORY + TOP PRODUCTS BY CASH ── */}
+      <DashboardWidget id="inventory" {...widgetProps}>
       <div className="grid gap-6 xl:grid-cols-2">
         <ChartPanel
           title={t("dashboard.inventoryByCategory")}
@@ -381,7 +473,10 @@ export default function DashboardPage() {
         </ChartPanel>
       </div>
 
+            </DashboardWidget>
+
       {/* ── 5. TRADING TREND + RECEIVABLES & PAYABLES ── */}
+      <DashboardWidget id="trading" {...widgetProps}>
       <div className="grid gap-6 xl:grid-cols-[2fr_1fr]">
         <ChartPanel title={t("dashboard.tradingTrend")} description={t("dashboard.tradingTrendDescription")}>
           <TrendChart
@@ -455,7 +550,10 @@ export default function DashboardPage() {
         )}
       </div>
 
+            </DashboardWidget>
+
       {/* ── 6. RETAIL POS TODAY + DSR CASH LEADERBOARD ── */}
+      <DashboardWidget id="retail" {...widgetProps}>
       <div className="grid gap-6 xl:grid-cols-2">
         {/* Retail POS Today */}
         <ChartPanel title={t("dashboard.retailPosToday")} description={t("dashboard.retailPosTodayDescription")}>
@@ -556,7 +654,10 @@ export default function DashboardPage() {
         </ChartPanel>
       </div>
 
+            </DashboardWidget>
+
       {/* ── 7. CASH FLOW FORECAST + IDLE TODAY ── */}
+      <DashboardWidget id="cashflow" {...widgetProps}>
       <div className="grid gap-6 xl:grid-cols-2">
         {/* Cash Flow Forecast */}
         {financeDashboard ? (
@@ -647,7 +748,10 @@ export default function DashboardPage() {
 
       </div>
 
+            </DashboardWidget>
+
       {/* ── 8. TOP SELLS + LEAST SELLS ── */}
+      <DashboardWidget id="products" {...widgetProps}>
       <div className="grid gap-6 xl:grid-cols-2">
         <ChartPanel
           title={t('dashboard.topSellingTitle')}
@@ -687,10 +791,15 @@ export default function DashboardPage() {
         </ChartPanel>
       </div>
 
+            </DashboardWidget>
+
       {/* ── 9. ACTIVITY CALENDAR ── */}
+      <DashboardWidget id="activity" {...widgetProps}>
       <ChartPanel title={t("dashboard.activityHeatmap")} description={t("dashboard.activityHeatmapDescription")}>
         <ActivityCalendar cells={vm.activityHeatmap} today={today} language={language} t={t} />
       </ChartPanel>
+      </DashboardWidget>
+
     </div>
   );
 }

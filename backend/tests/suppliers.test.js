@@ -54,6 +54,13 @@ test("an opening due becomes the supplier's current due by default", async () =>
   assert.equal(supplier.currentDue, 500);
 });
 
+test("a supplier with a non-zero balance cannot be deleted", async () => {
+  const supplier = await createSupplier(tenant.agent, { name: "Unsettled Supplier " + Date.now(), openingDue: 500 });
+  const response = await tenant.agent.delete("/api/suppliers/" + supplier.id).send({ reason: "cleanup" });
+  assert.equal(response.status, 409);
+  assert.match(response.body.message, /balance.*0.00/i);
+});
+
 test("deleting a supplier moves it to trash, removes it from the active list, and it can be restored", async () => {
   const supplier = await createSupplier(tenant.agent, { name: `Trash Supplier ${Date.now()}` });
 

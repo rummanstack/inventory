@@ -21,6 +21,7 @@ import {
   updateDsr,
 } from "../repositories/dsrRepository.js";
 import { logActivity, recordDueLedgerEntry } from "./shared/inventoryHelpers.js";
+import { assertZeroBalanceBeforeDelete } from "../lib/entityDeletionGuard.js";
 
 export class DsrService {
   constructor(databaseManager, { auditService }) {
@@ -149,6 +150,13 @@ export class DsrService {
 
   async removeDsr(dsrId, actor, reason) {
     return this.databaseManager.withTransaction(async (client) => {
+      const existingResult = await findDsrForUpdate(client, dsrId, actor.tenantId);
+      assert(existingResult.rowCount > 0, "DSR not found.", 404);
+      const latestBalance = await getLatestDueLedgerEntry(client, dsrId, actor.tenantId);
+      assertZeroBalanceBeforeDelete(
+        latestBalance?.balanceAfter ?? existingResult.rows[0].opening_due,
+        "DSR " + existingResult.rows[0].name,
+      );
       const result = await softDeleteDsr(client, dsrId, actor.tenantId, {
         deletedById: actor.id,
         deleteReason: reason,

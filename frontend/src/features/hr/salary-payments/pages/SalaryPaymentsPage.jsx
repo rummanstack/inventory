@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Banknote, ChevronDown, ChevronRight, Trash2, CheckCircle2, Clock, Calendar } from 'lucide-react';
+import { Banknote, ChevronDown, ChevronRight, Trash2, CheckCircle2, Clock, Calendar, CircleDollarSign, Users, WalletCards } from 'lucide-react';
 import { Alert, SectionHeader, TableSkeleton } from '../../../../components/ui.jsx';
 import TableReportActions from '../../../../components/TableReportActions.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
@@ -160,64 +160,64 @@ export default function SalaryPaymentsPage() {
       <SectionHeader title={t('salary.title')} compact />
 
       {/* Month navigator */}
-      <div className="surface mb-5 flex flex-wrap items-center gap-3 px-5 py-4">
-        <button type="button" className="icon-btn" onClick={() => vm.setMonth(prevMonth(vm.month))} aria-label={t('salary.previousMonthAria')}>
-          <ChevronRight size={18} className="rotate-180" />
-        </button>
-        <span className="min-w-[160px] text-center text-base font-semibold text-slate-900">{monthLabel(vm.month)}</span>
-        <button type="button" className="icon-btn" onClick={() => vm.setMonth(nextMonth(vm.month))} aria-label={t('salary.nextMonthAria')}>
-          <ChevronRight size={18} />
-        </button>
-        <input
-          type="month"
-          className="input ml-2 w-auto py-1.5 text-sm"
-          value={vm.month}
-          onChange={(e) => vm.setMonth(e.target.value)}
-        />
-        {vm.data && (
-          <span className="ml-auto text-xs text-slate-400">
-            {t('salary.daysInMonthLabel', { count: vm.data.daysInMonth })}
-          </span>
-        )}
+      <div className="surface mb-5 overflow-hidden">
+        <div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-3">
+            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[var(--secondary-soft)] text-[var(--secondary)]"><Calendar size={21} /></span>
+            <div><p className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-400">{t('salary.paymentMonth')}</p><p className="mt-0.5 text-lg font-black text-slate-950">{monthLabel(vm.month)}</p></div>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <button type="button" className="icon-btn" onClick={() => vm.setMonth(prevMonth(vm.month))} aria-label={t('salary.previousMonthAria')}><ChevronRight size={18} className="rotate-180" /></button>
+            <input type="month" className="input w-auto min-w-[150px] py-1.5 text-sm font-bold" value={vm.month} onChange={(event) => vm.setMonth(event.target.value)} />
+            <button type="button" className="icon-btn" onClick={() => vm.setMonth(nextMonth(vm.month))} aria-label={t('salary.nextMonthAria')}><ChevronRight size={18} /></button>
+            {vm.data ? <span className="muted-chip ml-1">{t('salary.daysInMonthLabel', { count: vm.data.daysInMonth })}</span> : null}
+          </div>
+        </div>
       </div>
 
       {/* Summary cards */}
-      {vm.data && (
-        <div className="mb-5 grid grid-cols-2 gap-4 sm:grid-cols-4">
-          <div className="surface px-5 py-4">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">{t('salary.totalEmployees')}</p>
-            <p className="mt-1 text-2xl font-semibold text-slate-900">{employees.length}</p>
-          </div>
-          <div className="surface px-5 py-4">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">{t('salary.totalEarned')}</p>
-            <p className="mt-1 text-2xl font-semibold text-slate-900">{formatCurrency(totalEarned, language)}</p>
-            <p className="mt-0.5 text-[10px] text-slate-400">{t('salary.totalEarnedHelper')}</p>
-          </div>
-          <div className="surface px-5 py-4">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-500">{t('salary.totalPaidOut')}</p>
-            <p className="mt-1 text-2xl font-semibold text-emerald-700">{formatCurrency(totalPaid, language)}</p>
-            {totalEarned > 0 && (
-              <div className="mt-2">
-                <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-200">
-                  <div className="h-full rounded-full bg-emerald-500 transition-all" style={{ width: `${paidPercent}%` }} />
-                </div>
-                <p className="mt-0.5 text-[10px] text-slate-400">{paidPercent}% paid</p>
+      {vm.data ? (
+        <div className="surface mb-5 overflow-hidden">
+          <div className="grid sm:grid-cols-2 xl:grid-cols-4">
+            <div className="flex items-center gap-4 border-b border-slate-100 p-4 sm:border-r xl:border-b-0">
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-slate-100 text-slate-600"><Users size={19} /></span>
+              <div><p className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-400">{t('salary.totalEmployees')}</p><p className="mt-1 text-xl font-black text-slate-950">{employees.length}</p></div>
+            </div>
+            <div className="flex items-center gap-4 border-b border-slate-100 p-4 xl:border-b-0 xl:border-r">
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[var(--secondary-soft)] text-[var(--secondary)]"><CircleDollarSign size={19} /></span>
+              <div><p className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-400">{t('salary.totalEarned')}</p><p className="mt-1 text-xl font-black text-slate-950">{formatCurrency(totalEarned, language)}</p></div>
+            </div>
+            <div className="border-b border-slate-100 p-4 sm:border-b-0 sm:border-r">
+              <div className="flex items-center gap-4">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-emerald-50 text-emerald-700"><WalletCards size={19} /></span>
+                <div className="min-w-0 flex-1"><p className="text-[10px] font-black uppercase tracking-[0.14em] text-emerald-600">{t('salary.totalPaidOut')}</p><p className="mt-1 text-xl font-black text-emerald-700">{formatCurrency(totalPaid, language)}</p></div>
               </div>
-            )}
-          </div>
-          <div className="surface px-5 py-4">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-amber-500">{t('salary.totalRemaining')}</p>
-            <p className="mt-1 text-2xl font-semibold text-amber-700">
-              {formatCurrency(Math.max(0, totalEarned - totalPaid), language)}
-            </p>
+              {totalEarned > 0 ? (
+                <div className="mt-3 flex items-center gap-2">
+                  <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-200"><div className="h-full rounded-full bg-emerald-500" style={{ width: String(paidPercent) + '%' }} /></div>
+                  <span className="text-[10px] font-bold text-slate-400">{paidPercent}%</span>
+                </div>
+              ) : null}
+            </div>
+            <div className="flex items-center gap-4 p-4">
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-amber-50 text-amber-700"><Clock size={19} /></span>
+              <div><p className="text-[10px] font-black uppercase tracking-[0.14em] text-amber-600">{t('salary.totalRemaining')}</p><p className="mt-1 text-xl font-black text-amber-700">{formatCurrency(Math.max(0, totalEarned - totalPaid), language)}</p></div>
+            </div>
           </div>
         </div>
-      )}
+      ) : null}
 
       {/* Employee list */}
       <div id={SALARY_PAYMENTS_REPORT_ID} className="surface overflow-hidden">
-        <div className="flex flex-wrap items-center justify-end gap-3 border-b border-slate-100 px-5 py-3 no-print">
-          <TableReportActions targetId={SALARY_PAYMENTS_REPORT_ID} title={t('salary.title')} fileName={`salary-payments-${vm.month}`} entityType="salary_payments" t={t} shortcuts={SALARY_PAYMENTS_REPORT_SHORTCUTS} />
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-4 py-3">
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="grid h-9 w-9 place-items-center rounded-lg bg-[var(--secondary-soft)] text-[var(--secondary)]"><Banknote size={18} /></span>
+            <div><h2 className="section-title">{t('salary.payrollRegister')}</h2><p className="mt-0.5 text-xs font-medium text-slate-400">{monthLabel(vm.month)}</p></div>
+            <span className="muted-chip">{employees.length} {t('salary.totalEmployees')}</span>
+          </div>
+          <div className="no-print">
+            <TableReportActions targetId={SALARY_PAYMENTS_REPORT_ID} title={t('salary.title')} fileName={'salary-payments-' + vm.month} entityType="salary_payments" t={t} shortcuts={SALARY_PAYMENTS_REPORT_SHORTCUTS} />
+          </div>
         </div>
         {vm.loading ? (
           <div className="p-5"><TableSkeleton columns={5} /></div>
@@ -251,7 +251,7 @@ export default function SalaryPaymentsPage() {
 
                 return (
                   <div key={emp.employeeId}>
-                    <div className="flex items-center gap-4 px-5 py-3.5 hover:bg-slate-50">
+                    <div className="flex flex-wrap items-center gap-4 px-4 py-4 transition-colors hover:bg-slate-50 sm:flex-nowrap">
                       {/* Expand icon — only this triggers expand */}
                       <button
                         type="button"
@@ -272,6 +272,11 @@ export default function SalaryPaymentsPage() {
                         {emp.department && <div className="mt-0.5 text-xs text-slate-400">{emp.department}</div>}
                       </div>
 
+                      <div className="order-3 grid basis-full grid-cols-3 gap-2 sm:hidden">
+                        <div className="rounded-lg bg-slate-50 p-2"><p className="text-[9px] font-black uppercase tracking-wide text-slate-400">{t('salary.earnedColumn')}</p><p className="mt-1 text-xs font-bold text-slate-800">{earned !== null ? formatCurrency(earned, language) : '-'}</p></div>
+                        <div className="rounded-lg bg-slate-50 p-2"><p className="text-[9px] font-black uppercase tracking-wide text-slate-400">{t('salary.paid')}</p><p className="mt-1 text-xs font-bold text-emerald-700">{formatCurrency(emp.totalPaid, language)}</p></div>
+                        <div className="rounded-lg bg-slate-50 p-2"><p className="text-[9px] font-black uppercase tracking-wide text-slate-400">{t('salary.balance')}</p><p className="mt-1 text-xs font-bold text-slate-800">{remaining !== null ? formatCurrency(Math.abs(remaining), language) : '-'}</p></div>
+                      </div>
                       {/* Active days input */}
                       <div className="hidden w-32 justify-center sm:flex">
                         <ActiveDaysInput

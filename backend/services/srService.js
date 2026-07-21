@@ -19,6 +19,7 @@ import {
   updateSr,
 } from "../repositories/srRepository.js";
 import { logActivity, recordSrDueLedgerEntry } from "./shared/inventoryHelpers.js";
+import { assertZeroBalanceBeforeDelete } from "../lib/entityDeletionGuard.js";
 
 export class SrService {
   constructor(databaseManager, { auditService }) {
@@ -146,6 +147,13 @@ export class SrService {
 
   async removeSr(srId, actor, reason) {
     return this.databaseManager.withTransaction(async (client) => {
+      const existingResult = await findSrForUpdate(client, srId, actor.tenantId);
+      assert(existingResult.rowCount > 0, "SR not found.", 404);
+      const latestBalance = await getLatestSrDueLedgerEntry(client, srId, actor.tenantId);
+      assertZeroBalanceBeforeDelete(
+        latestBalance?.balanceAfter ?? existingResult.rows[0].opening_due,
+        "SR " + existingResult.rows[0].name,
+      );
       const result = await softDeleteSr(client, srId, actor.tenantId, {
         deletedById: actor.id,
         deleteReason: reason,

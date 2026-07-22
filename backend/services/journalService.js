@@ -599,22 +599,30 @@ export class JournalService {
 
   // Evening settlement is where revenue and COGS are actually recognized for a
   // DSR's day: soldCost moves from Goods-with-DSR to COGS (goods sold), while
-  // returnedCost (good + damaged items from today's issue, plus any
-  // extraReturns not tied to today's issue) moves back into Inventory. The
-  // discount is either absorbed by a supplier (debits Accounts Payable ï¿½ the
+  // todayReturnedCost (good + damaged items from today's own issue) moves back
+  // into Inventory out of Goods-with-DSR. extraReturnValue/extraReturnCost
+  // (units not tied to today's issue — a correction for a previous day's
+  // presumed-sold guess) are handled like a normal sales return: that earlier
+  // day's settlement already booked revenue/COGS for these units at the DSR's
+  // wholesale rate, so this entry reverses that overstatement — SALES_RETURNS
+  // debited for the wholesale value (what the DSR is actually credited back,
+  // since that's the rate he was charged), COGS credited back at real cost,
+  // Inventory restocked at that same real cost (never at wholesale — that
+  // would inflate the asset). Goods-with-DSR is NOT credited for this portion:
+  // those units already left that account on the earlier day, so crediting it
+  // again here would credit an account that has nothing left to give. The
+  // discount is either absorbed by a supplier (debits Accounts Payable — the
   // supplier's own payable balance drops, per supplierDiscountService's
   // "credit reduces balance" convention for that ledger) or, with no supplier
-  // attached, comes straight off net revenue (Discounts Given). extraReturns
-  // are valued at the DSR's wholesale rate (not cost) because they reverse
-  // revenue recognized on some earlier day, exactly like a sales return.
-  // amountPaid (cash collected) and srHandoverTotal (handed to a Sales Rep
-  // instead of collected directly) both reduce what the DSR still owes,
-  // matching recordSettlementDueLedgerChanges' own due-ledger math exactly ï¿½
-  // this single entry replaces that entire multi-step balance walk with one
-  // balanced set of lines. Deliberately excludes shopCollections: cash the DSR
-  // collects on a retail shop's own due is never actually deposited into any
-  // finance account by settlementService today, so posting it here would
-  // invent cash the rest of the app doesn't believe exists ï¿½ a known,
+  // attached, comes straight off net revenue (Discounts Given). amountPaid
+  // (cash collected) and srHandoverTotal (handed to a Sales Rep instead of
+  // collected directly) both reduce what the DSR still owes, matching
+  // recordSettlementDueLedgerChanges' own due-ledger math exactly — this
+  // single entry replaces that entire multi-step balance walk with one
+  // balanced set of lines. Deliberately excludes shopCollections: cash the
+  // DSR collects on a retail shop's own due is never actually deposited into
+  // any finance account by settlementService today, so posting it here would
+  // invent cash the rest of the app doesn't believe exists — a known,
   // pre-existing gap, not something this entry should paper over.
   async postSettlement(client, actor, {
     settlementId,
@@ -624,8 +632,9 @@ export class JournalService {
     discount,
     discountSupplierId,
     extraReturnValue,
+    extraReturnCost,
     soldCost,
-    returnedCost,
+    todayReturnedCost,
     amountPaid,
     srHandoverTotal,
   }) {
@@ -635,9 +644,9 @@ export class JournalService {
       { accountCode: ACCOUNTS.SALES_REVENUE, credit: totalPayable },
       { accountCode: ACCOUNTS.SALES_RETURNS, debit: extraReturnValue },
       { accountCode: discountAccount, debit: discount },
-      { accountCode: ACCOUNTS.COST_OF_GOODS_SOLD, debit: soldCost },
-      { accountCode: ACCOUNTS.INVENTORY, debit: returnedCost },
-      { accountCode: ACCOUNTS.GOODS_WITH_DSR, credit: soldCost + returnedCost },
+      signedLine(ACCOUNTS.COST_OF_GOODS_SOLD, soldCost - extraReturnCost, "debit"),
+      { accountCode: ACCOUNTS.INVENTORY, debit: todayReturnedCost + extraReturnCost },
+      { accountCode: ACCOUNTS.GOODS_WITH_DSR, credit: soldCost + todayReturnedCost },
       signedLine(ACCOUNTS.DSR_RECEIVABLE, saleDueAmount - amountPaid - srHandoverTotal, "debit"),
       { accountCode: ACCOUNTS.CASH, debit: amountPaid },
       { accountCode: ACCOUNTS.SR_RECEIVABLE, debit: srHandoverTotal },

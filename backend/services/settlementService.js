@@ -224,7 +224,16 @@ async function buildTrustedSettlementBase(client, base, issueItems, tenantId) {
   const items = syncSettlementItemsWithIssue(issueItems, base.items);
   const totalPayable = items.reduce((sum, item) => sum + Number(item.payable || 0), 0);
   const extraReturns = await buildTrustedExtraReturns(client, base.extraReturns || [], tenantId);
+  // extraReturnValue (wholesale rate) is what actually reduces what the DSR owes —
+  // that's the rate he "bought" the goods at, so it's the rate he's credited when he
+  // hands them back unsold. extraReturnCost (purchase-price rate) is only for
+  // restocking inventory at its real value and reversing COGS by the same amount —
+  // it never touches the receivable. See journalService.postSettlement.
   const extraReturnValue = extraReturns.reduce((sum, item) => sum + Number(item.returnValue || 0), 0);
+  const extraReturnCost = extraReturns.reduce(
+    (sum, item) => sum + (Number(item.returnedPieces || 0) + Number(item.damagedPieces || 0)) * Number(item.costPrice || 0),
+    0,
+  );
 
   return {
     ...base,
@@ -232,6 +241,7 @@ async function buildTrustedSettlementBase(client, base, issueItems, tenantId) {
     extraReturns,
     totalPayable,
     extraReturnValue,
+    extraReturnCost,
   };
 }
 
@@ -484,13 +494,18 @@ export class SettlementService {
   async postSettlementJournal(client, actor, settlement) {
     if (!this.journalService) return;
     const soldCost = settlement.items.reduce((sum, item) => sum + item.soldPieces * Number(item.costPrice || 0), 0);
-    const returnedCost = settlement.items.reduce(
-      (sum, item) => sum + (item.returnedPieces + item.damagedPieces) * Number(item.costPrice || 0),
-      0,
-    ) + (settlement.extraReturns || []).reduce(
+    // Kept separate (not merged into one returnedCost) because they move differently
+    // through the ledger: today's returns/damage came out of today's own issue, still
+    // sitting in Goods-with-DSR. Extra returns are a correction for a *previous* day's
+    // presumed-sold assumption — those goods already left Goods-with-DSR (into COGS)
+    // on that earlier day, so crediting Goods-with-DSR for them again here would credit
+    // an account that has nothing left to give. See journalService.postSettlement.
+    const todayReturnedCost = settlement.items.reduce(
       (sum, item) => sum + (item.returnedPieces + item.damagedPieces) * Number(item.costPrice || 0),
       0,
     );
+    const extraReturnValue = settlement.extraReturnValue || 0;
+    const extraReturnCost = settlement.extraReturnCost || 0;
 
     await this.journalService.postSettlement(client, actor, {
       settlementId: settlement.id,
@@ -499,9 +514,10 @@ export class SettlementService {
       totalPayable: settlement.totalPayable,
       discount: settlement.discount,
       discountSupplierId: settlement.discountSupplierId,
-      extraReturnValue: settlement.extraReturnValue,
+      extraReturnValue,
+      extraReturnCost,
       soldCost,
-      returnedCost,
+      todayReturnedCost,
       amountPaid: settlement.amountPaid,
       srHandoverTotal: settlement.totalSrHandovers,
     });
@@ -784,6 +800,7 @@ export class SettlementService {
         totalPayable: Number(previousSettlement.total_payable || 0),
         discount: Number(previousSettlement.discount || 0),
         extraReturnValue: Number(previousSettlement.extra_return_value || 0),
+        extraReturnCost: Number(previousSettlement.extra_return_cost || 0),
         amountPaid: Number(previousSettlement.amount_paid || 0),
         dueAmount: Number(previousSettlement.due_amount || 0),
       },
@@ -791,10 +808,11 @@ export class SettlementService {
         totalPayable: settlement.totalPayable,
         discount: settlement.discount,
         extraReturnValue: settlement.extraReturnValue,
+        extraReturnCost: settlement.extraReturnCost,
         amountPaid: settlement.amountPaid,
         dueAmount: settlement.dueAmount,
       },
-      ["totalPayable", "discount", "extraReturnValue", "amountPaid", "dueAmount"],
+      ["totalPayable", "discount", "extraReturnValue", "extraReturnCost", "amountPaid", "dueAmount"],
     );
 
     await this.recordActivity(client, actor, {

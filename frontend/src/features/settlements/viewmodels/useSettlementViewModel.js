@@ -176,6 +176,9 @@ export function useSettlementViewModel({ products, dsrs, today, saveSettlementAc
       toPieces(item.damagedCaseQty, item.damagedPieceQty, item.piecesPerCase),
     0,
   );
+  // extraReturnValue (wholesale rate) is what actually reduces the DSR's receivable —
+  // that's the rate he "bought" the goods at, so it's the rate he's credited when he
+  // hands unsold stock back.
   const extraReturnValue = extraReturns.reduce((sum, row) => {
     const product = products.find((p) => p.id === row.productId);
     const rate = Number(product?.wholesalePrice || 0);

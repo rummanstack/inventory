@@ -16,6 +16,7 @@ export function mapSettlement(row) {
     discount: Number(row.discount || 0),
     discountSupplierId: row.discount_supplier_id || null,
     extraReturnValue: Number(row.extra_return_value || 0),
+    extraReturnCost: Number(row.extra_return_cost || 0),
     amountPaid: Number(row.amount_paid || 0),
     dueAmount: Number(row.due_amount || 0),
     shopCollections: row.shop_collections || [],
@@ -81,6 +82,7 @@ export function insertSettlement(client, settlement) {
     discount: settlement.discount,
     discountSupplierId: settlement.discountSupplierId || null,
     extraReturnValue: settlement.extraReturnValue,
+    extraReturnCost: settlement.extraReturnCost,
     amountPaid: settlement.amountPaid,
     dueAmount: settlement.dueAmount,
     shopCollections: settlement.shopCollections || [],
@@ -88,8 +90,8 @@ export function insertSettlement(client, settlement) {
     status: settlement.status,
   });
   return client.query(
-    `INSERT INTO settlements (id, tenant_id, settlement_date, dsr_id, dsr_name, area, phone, issue_ids, items, extra_returns, total_payable, previous_due, discount, discount_supplier_id, extra_return_value, amount_paid, due_amount, shop_collections, sr_handovers, status, transaction_hash)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, $9::jsonb, $10::jsonb, $11, $12, $13, $14, $15, $16, $17, $18::jsonb, $19::jsonb, $20, $21)
+    `INSERT INTO settlements (id, tenant_id, settlement_date, dsr_id, dsr_name, area, phone, issue_ids, items, extra_returns, total_payable, previous_due, discount, discount_supplier_id, extra_return_value, extra_return_cost, amount_paid, due_amount, shop_collections, sr_handovers, status, transaction_hash)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, $9::jsonb, $10::jsonb, $11, $12, $13, $14, $15, $16, $17, $18, $19::jsonb, $20::jsonb, $21, $22)
      RETURNING *`,
     [
       settlement.id,
@@ -107,6 +109,7 @@ export function insertSettlement(client, settlement) {
       settlement.discount,
       settlement.discountSupplierId || null,
       settlement.extraReturnValue,
+      settlement.extraReturnCost,
       settlement.amountPaid,
       settlement.dueAmount,
       JSON.stringify(settlement.shopCollections || []),
@@ -120,7 +123,7 @@ export function insertSettlement(client, settlement) {
 export function updateSettlement(client, settlement) {
   return client.query(
     `UPDATE settlements
-     SET settlement_date = $3, dsr_id = $4, dsr_name = $5, area = $6, phone = $7, issue_ids = $8::jsonb, items = $9::jsonb, extra_returns = $10::jsonb, total_payable = $11, previous_due = $12, discount = $13, discount_supplier_id = $14, extra_return_value = $15, amount_paid = $16, due_amount = $17, shop_collections = $18::jsonb, sr_handovers = $19::jsonb, status = $20
+     SET settlement_date = $3, dsr_id = $4, dsr_name = $5, area = $6, phone = $7, issue_ids = $8::jsonb, items = $9::jsonb, extra_returns = $10::jsonb, total_payable = $11, previous_due = $12, discount = $13, discount_supplier_id = $14, extra_return_value = $15, extra_return_cost = $16, amount_paid = $17, due_amount = $18, shop_collections = $19::jsonb, sr_handovers = $20::jsonb, status = $21
      WHERE id = $1 AND tenant_id = $2
      RETURNING *`,
     [
@@ -139,6 +142,7 @@ export function updateSettlement(client, settlement) {
       settlement.discount,
       settlement.discountSupplierId || null,
       settlement.extraReturnValue,
+      settlement.extraReturnCost,
       settlement.amountPaid,
       settlement.dueAmount,
       JSON.stringify(settlement.shopCollections || []),

@@ -189,7 +189,13 @@ export async function createSchema(pool) {
     ALTER TABLE settlements ADD COLUMN IF NOT EXISTS due_amount NUMERIC NOT NULL DEFAULT 0;
     ALTER TABLE settlements ADD COLUMN IF NOT EXISTS extra_returns JSONB NOT NULL DEFAULT '[]';
     ALTER TABLE settlements ADD COLUMN IF NOT EXISTS discount NUMERIC NOT NULL DEFAULT 0;
+    -- extra_return_value (wholesale rate) is what actually reduces the DSR's
+    -- receivable — the rate he was charged when the goods were presumed sold.
+    -- extra_return_cost (purchase-price rate) is what inventory is restocked at
+    -- and what COGS is reversed by; the gap between the two posts through
+    -- SALES_RETURNS, same as a normal sales return — see journalService.postSettlement.
     ALTER TABLE settlements ADD COLUMN IF NOT EXISTS extra_return_value NUMERIC NOT NULL DEFAULT 0;
+    ALTER TABLE settlements ADD COLUMN IF NOT EXISTS extra_return_cost NUMERIC NOT NULL DEFAULT 0;
     ALTER TABLE settlements ADD COLUMN IF NOT EXISTS shop_collections JSONB NOT NULL DEFAULT '[]';
     ALTER TABLE tenants ADD COLUMN IF NOT EXISTS tax_rate NUMERIC NOT NULL DEFAULT 0;
     ALTER TABLE tenants ADD COLUMN IF NOT EXISTS loyalty_enabled BOOLEAN NOT NULL DEFAULT false;

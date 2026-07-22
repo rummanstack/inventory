@@ -562,6 +562,53 @@ test("a morning issue transfers cost from inventory to goods-with-dsr, and settl
   assert.ok(settleBalanced);
 });
 
+test("an extra return (goods from outside today's issue) reduces the DSR receivable at the wholesale rate he was charged, reverses COGS/inventory at real cost, and books the markup difference through SALES_RETURNS", async () => {
+  const product = await createProduct(tenant.agent, { name: "Extra Return Issued Widget", purchasePrice: 50, wholesalePrice: 70 });
+  await addStock(tenant.agent, product.id, 100);
+  const extraProduct = await createProduct(tenant.agent, { name: "Extra Return Prior-Day Widget", purchasePrice: 30, wholesalePrice: 45 });
+  const dsr = await createDsr(tenant.agent, { name: "Extra Return DSR" });
+
+  const issueResponse = await tenant.agent.post("/api/issues").send({
+    date: "2026-02-12",
+    dsrId: dsr.id,
+    items: [{ productId: product.id, issuedPieces: 50 }],
+  });
+  assert.equal(issueResponse.status, 201);
+
+  // All 50 issued pieces sold today (payable = 50 * 70 = 3500). The extra return is
+  // 6 pieces (4 good + 2 damaged) of a product that was never part of today's issue —
+  // a correction for a prior day's presumed-sold assumption, where that day's
+  // settlement already booked revenue/COGS for it at the 45 wholesale rate. The DSR
+  // is credited back at that same 45 rate (270 total) — the rate he was actually
+  // charged — while inventory can only be restocked at its real 30 cost (180 total);
+  // the 90 markup difference is reversed through SALES_RETURNS/COGS, same as a normal
+  // sales return. Goods-with-DSR is untouched — those goods left that account on the
+  // earlier day, not today.
+  const { deltas, balanced } = await deltasAfter(
+    ["4000", "4010", "5000", "1200", "1130", "1110", "1000"],
+    async () => {
+      const settleResponse = await tenant.agent.post("/api/settlements").send({
+        date: "2026-02-12",
+        dsrId: dsr.id,
+        items: [{ productId: product.id, returnedPieces: 0, damagedPieces: 0 }],
+        extraReturns: [{ productId: extraProduct.id, returnedPieces: 4, damagedPieces: 2 }],
+        discount: 0,
+        amountPaid: 0,
+      });
+      assert.equal(settleResponse.status, 201);
+    },
+  );
+
+  assert.equal(deltas["4000"], 3500, "sales revenue still books the full payable for today's issued goods");
+  assert.equal(deltas["4010"], 270, "SALES_RETURNS books the extra return at its wholesale value (6 pcs * 45)");
+  assert.equal(deltas["5000"], 2320, "COGS = 50 sold pieces at 50 cost, minus the extra return's 180 cost reversed back out");
+  assert.equal(deltas["1200"], 180, "inventory is restocked at the extra return's real cost (6 pcs * 30), never at wholesale");
+  assert.equal(deltas["1130"], -2500, "goods-with-dsr clears only the issued+sold cost — the extra return was never in this account");
+  assert.equal(deltas["1110"], 3230, "DSR receivable = payable(3500) - extraReturnValue(270), the rate he was actually charged");
+  assert.equal(deltas["1000"], 0, "no cash collected");
+  assert.ok(balanced, "the journal entry still balances with the wholesale-basis receivable and cost-basis inventory/COGS reversal");
+});
+
 test("a settlement discount attributed to a supplier debits accounts payable instead of discounts given", async () => {
   const product = await createProduct(tenant.agent, { name: "DSR Discount Widget", purchasePrice: 50, wholesalePrice: 70 });
   await addStock(tenant.agent, product.id, 100);

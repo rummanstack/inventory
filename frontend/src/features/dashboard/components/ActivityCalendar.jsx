@@ -19,6 +19,7 @@ function toISO(year, month, day) {
 
 const CALENDAR_BACK_MONTHS = 12;
 
+
 export function ActivityCalendar({ cells = [], today, language = "en", t }) {
   const dayHeaders = t ? t("common.weekdaysShort") : ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   const todayDate = today ? new Date(`${today}T00:00:00`) : new Date();
@@ -57,7 +58,7 @@ export function ActivityCalendar({ cells = [], today, language = "en", t }) {
   return (
     <div>
       {/* Month navigation */}
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-3 flex items-center justify-between sm:mb-4">
         <button
           type="button"
           onClick={prevMonth}
@@ -78,18 +79,18 @@ export function ActivityCalendar({ cells = [], today, language = "en", t }) {
       </div>
 
       {/* Day headers */}
-      <div className="mb-1 grid grid-cols-7 gap-1">
+      <div className="mb-1 grid grid-cols-7 gap-0.5 sm:gap-1">
         {dayHeaders.map((d) => (
-          <p key={d} className="py-1 text-center text-[10px] font-semibold uppercase tracking-widest text-slate-400">
+          <p key={d} className="min-w-0 py-1 text-center text-[9px] font-semibold uppercase tracking-normal text-slate-400 sm:text-[10px] sm:tracking-widest">
             {d}
           </p>
         ))}
       </div>
 
       {/* Calendar grid */}
-      <div className="grid grid-cols-7 gap-1">
+      <div className="grid grid-cols-7 gap-0.5 sm:gap-1">
         {grid.map((day, i) => {
-          if (!day) return <div key={`empty-${i}`} className="min-h-[80px] rounded-xl" />;
+          if (!day) return <div key={`empty-${i}`} className="min-h-12 rounded-lg sm:min-h-[80px] sm:rounded-xl" />;
 
           const iso = toISO(viewYear, viewMonth, day);
           const cell = cellMap.get(iso);
@@ -100,7 +101,7 @@ export function ActivityCalendar({ cells = [], today, language = "en", t }) {
             <div
               key={iso}
               className={cx(
-                "flex min-h-[80px] flex-col rounded-xl p-2 ring-1 transition-colors",
+                "flex min-h-12 min-w-0 flex-col items-center rounded-lg px-0.5 py-1.5 ring-1 transition-colors sm:min-h-[80px] sm:items-stretch sm:rounded-xl sm:p-2",
                 isToday
                   ? "bg-[color-mix(in_srgb,var(--brand)_8%,rgb(var(--white)))] ring-[var(--brand)]/30"
                   : hasActivity
@@ -108,12 +109,22 @@ export function ActivityCalendar({ cells = [], today, language = "en", t }) {
                   : "bg-slate-50/40 ring-slate-100",
               )}
             >
-              <p className={cx("text-xs font-semibold", isToday ? "text-[var(--brand)]" : "text-slate-500")}>
+              <p className={cx("text-[11px] font-semibold sm:text-xs", isToday ? "text-[var(--brand)]" : "text-slate-500")}>
                 {day}
               </p>
 
               {hasActivity && (
-                <div className="mt-1 flex flex-col gap-0.5">
+                <>
+                  <div
+                    className="mt-1 flex min-w-0 flex-col items-center sm:hidden"
+                    title={formatCurrency(cell.revenue, language)}
+                  >
+                    <span className="h-1.5 w-1.5 rounded-full bg-[var(--secondary)]" />
+                    <span className="mt-0.5 max-w-full break-all text-center text-[7px] font-bold leading-[1.05] tracking-tighter text-emerald-700">
+                      {formatCurrency(cell.revenue, language)}
+                    </span>
+                  </div>
+                  <div className="mt-1 hidden min-w-0 flex-col gap-0.5 sm:flex">
                   {cell.transactions > 0 && (
                     <span className="inline-flex items-center gap-1">
                       <span className="h-1.5 w-1.5 rounded-full bg-[var(--secondary)]" />
@@ -122,10 +133,11 @@ export function ActivityCalendar({ cells = [], today, language = "en", t }) {
                       </span>
                     </span>
                   )}
-                  <p className="mt-0.5 text-[9px] font-semibold text-emerald-700">
+                  <p className="mt-0.5 truncate text-[9px] font-semibold text-emerald-700">
                     {formatCurrency(cell.revenue, language)}
                   </p>
-                </div>
+                  </div>
+                </>
               )}
             </div>
           );

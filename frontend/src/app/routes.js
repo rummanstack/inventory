@@ -78,6 +78,7 @@ const ProductsPage = lazy(() => import('../features/products/pages/ProductsPage'
 const DailyReportsPage = lazy(() => import('../features/reports/pages/DailyReportsPage'));
 const HistoryPage = lazy(() => import('../features/history/pages/HistoryPage'));
 const BatchSalesReportPage = lazy(() => import('../features/pharmacy/pages/BatchSalesReportPage'));
+const ExpiryAlertsPage = lazy(() => import('../features/pharmacy/pages/ExpiryAlertsPage'));
 const EveningSettlementPage = lazy(() => import('../features/settlements/pages/EveningSettlementPage'));
 const DatabaseBackupPage = lazy(() => import('../features/database-backup/pages/DatabaseBackupPage'));
 const OrgSettingsPage = lazy(() => import('../features/settings/pages/OrgSettingsPage'));
@@ -242,6 +243,7 @@ export const APP_ROUTES = [
   { id: 'reports', path: '/reports', labelKey: 'nav.reports', icon: FileText, component: DailyReportsPage, group: 'reports', permission: 'view_state', feature: 'reports' },
   { id: 'history', path: '/history', labelKey: 'nav.history', icon: RotateCcw, component: HistoryPage, group: 'reports', permission: 'view_state', feature: 'history' },
   { id: 'batch-sales-report', path: '/reports/batch-sales', labelKey: 'nav.batchSalesReport', icon: ClipboardList, component: BatchSalesReportPage, group: 'reports', permission: 'manage_batch_tracking', feature: 'batch-tracking' },
+  { id: 'expiry-alerts', path: '/reports/expiry-alerts', labelKey: 'nav.expiryAlerts', icon: AlertTriangle, component: ExpiryAlertsPage, group: 'reports', permission: 'view_expiry_alerts', feature: 'batch-tracking' },
   { id: 'activity-logs', path: '/activity-logs', labelKey: 'nav.activityLogs', icon: ClipboardList, component: ActivityLogsPage, group: 'reports', permission: 'view_activity_logs', feature: 'activity-logs' },
 
   // 10. System & Settings

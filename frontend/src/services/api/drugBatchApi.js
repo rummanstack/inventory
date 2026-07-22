@@ -9,4 +9,8 @@ export const drugBatchApi = {
   batchSalesReport({ dateFrom, dateTo, batchNumber, productId, page, pageSize } = {}) {
     return apiRequest(`/drug-batches/batch-sales-report${buildQueryString({ dateFrom, dateTo, batchNumber, productId, page, pageSize })}`);
   },
+
+  expiryAlerts({ withinDays, page, pageSize } = {}) {
+    return apiRequest(`/drug-batches/expiry-alerts${buildQueryString({ withinDays, page, pageSize })}`);
+  },
 };

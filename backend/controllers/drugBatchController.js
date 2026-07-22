@@ -21,4 +21,13 @@ export class DrugBatchController {
       next(error);
     }
   };
+
+  listExpiryAlerts = async (req, res, next) => {
+    try {
+      const result = await this.drugBatchService.expiryAlerts(req.query, req.currentUser);
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  };
 }

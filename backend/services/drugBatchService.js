@@ -3,9 +3,14 @@ import {
   listDrugBatchesByProduct,
   listBatchSalesReport,
   countBatchSalesReport,
+  listExpiringDrugBatches,
+  countExpiringDrugBatches,
 } from '../repositories/drugBatchRepository.js';
 import { parsePagination, buildPageResult } from '../lib/pagination.js';
 import { normalizeIsoDate } from '../lib/dateRanges.js';
+
+const DEFAULT_EXPIRY_WINDOW_DAYS = 60;
+const MAX_EXPIRY_WINDOW_DAYS = 365;
 
 export class DrugBatchService {
   constructor(databaseManager) {
@@ -48,6 +53,22 @@ export class DrugBatchService {
         countBatchSalesReport(client, filters),
       ]);
       return buildPageResult({ items, total, page, pageSize });
+    });
+  }
+
+  async expiryAlerts(query = {}, actor) {
+    const { page, pageSize, limit, offset } = parsePagination(query);
+    const requestedWindow = Number(query.withinDays);
+    const withinDays = Number.isFinite(requestedWindow) && requestedWindow > 0
+      ? Math.min(MAX_EXPIRY_WINDOW_DAYS, Math.trunc(requestedWindow))
+      : DEFAULT_EXPIRY_WINDOW_DAYS;
+
+    return this.databaseManager.withClient(async (client) => {
+      const [items, total] = await Promise.all([
+        listExpiringDrugBatches(client, { tenantId: actor.tenantId, withinDays, limit, offset }),
+        countExpiringDrugBatches(client, { tenantId: actor.tenantId, withinDays }),
+      ]);
+      return { ...buildPageResult({ items, total, page, pageSize }), withinDays };
     });
   }
 }

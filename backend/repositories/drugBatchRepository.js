@@ -301,6 +301,38 @@ export async function listBatchSalesReport(client, { tenantId, dateFrom, dateTo,
   }));
 }
 
+// Batches with stock remaining whose expiry falls within `withinDays` from today
+// (including already-expired ones), soonest expiry first — the FEFO ordering
+// doubles as urgency ordering here.
+export async function listExpiringDrugBatches(client, { tenantId, withinDays, limit, offset }) {
+  const result = await client.query(
+    `SELECT db.*, p.name AS product_name, p.pieces_per_case
+     FROM drug_batches db
+     JOIN products p ON p.id = db.product_id
+     WHERE db.tenant_id = $1
+       AND db.quantity_remaining > 0
+       AND db.expiry_date IS NOT NULL
+       AND db.expiry_date <= (CURRENT_DATE + $2::int * INTERVAL '1 day')
+     ORDER BY db.expiry_date ASC, db.created_at ASC
+     LIMIT $3 OFFSET $4`,
+    [tenantId, withinDays, limit, offset],
+  );
+  return result.rows.map((row) => ({ ...mapDrugBatch(row), piecesPerCase: Number(row.pieces_per_case || 0) }));
+}
+
+export async function countExpiringDrugBatches(client, { tenantId, withinDays }) {
+  const result = await client.query(
+    `SELECT COUNT(*)::INTEGER AS count
+     FROM drug_batches db
+     WHERE db.tenant_id = $1
+       AND db.quantity_remaining > 0
+       AND db.expiry_date IS NOT NULL
+       AND db.expiry_date <= (CURRENT_DATE + $2::int * INTERVAL '1 day')`,
+    [tenantId, withinDays],
+  );
+  return result.rows[0].count;
+}
+
 export async function countBatchSalesReport(client, { tenantId, dateFrom, dateTo, batchNumber, productId }) {
   const params = [tenantId];
   const conditions = ['siib.tenant_id = $1', 'si.deleted_at IS NULL'];

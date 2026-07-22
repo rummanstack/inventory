@@ -27,6 +27,11 @@ function nextMonth(month) {
   return d.toISOString().slice(0, 7);
 }
 
+function currentMonth() {
+  const now = new Date();
+  return String(now.getFullYear()) + '-' + String(now.getMonth() + 1).padStart(2, '0');
+}
+
 const SALARY_PAYMENTS_REPORT_ID = 'salary-payments-report';
 const SALARY_PAYMENTS_REPORT_SHORTCUTS = {
   pdf: { alt: true, key: 'd', label: 'Alt+D' },
@@ -126,6 +131,8 @@ export default function SalaryPaymentsPage() {
 
   const canManage = can('manage_payroll');
   const employees = vm.data?.employees || [];
+  const latestMonth = currentMonth();
+  const isCurrentMonth = vm.month >= latestMonth;
 
   function toggleExpand(id) {
     setExpanded((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -168,8 +175,8 @@ export default function SalaryPaymentsPage() {
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <button type="button" className="icon-btn" onClick={() => vm.setMonth(prevMonth(vm.month))} aria-label={t('salary.previousMonthAria')}><ChevronRight size={18} className="rotate-180" /></button>
-            <input type="month" className="input w-auto min-w-[150px] py-1.5 text-sm font-bold" value={vm.month} onChange={(event) => vm.setMonth(event.target.value)} />
-            <button type="button" className="icon-btn" onClick={() => vm.setMonth(nextMonth(vm.month))} aria-label={t('salary.nextMonthAria')}><ChevronRight size={18} /></button>
+            <input type="month" max={latestMonth} className="input w-auto min-w-[150px] py-1.5 text-sm font-bold" value={vm.month} onChange={(event) => vm.setMonth(event.target.value)} />
+            <button type="button" className="icon-btn" disabled={isCurrentMonth} onClick={() => vm.setMonth(nextMonth(vm.month))} aria-label={t('salary.nextMonthAria')}><ChevronRight size={18} /></button>
             {vm.data ? <span className="muted-chip ml-1">{t('salary.daysInMonthLabel', { count: vm.data.daysInMonth })}</span> : null}
           </div>
         </div>

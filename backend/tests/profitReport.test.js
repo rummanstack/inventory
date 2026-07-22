@@ -235,6 +235,85 @@ test("the overall profit report folds a retail sale and an expense into net prof
   assert.equal(reportResponse.body.totals.profit, 180);
 });
 
+test("extra returns (good or damaged stock for a product outside today's issue) have zero revenue/cost impact on the profit report", async () => {
+  const day1 = "2026-05-15";
+  const day2 = "2026-05-16";
+  const product = await createProduct(tenantA.agent, {
+    name: `Extra Return Widget ${Date.now()}`,
+    purchasePrice: 50,
+    wholesalePrice: 70,
+  });
+  const filler = await createProduct(tenantA.agent, {
+    name: `Extra Return Filler ${Date.now()}`,
+    purchasePrice: 10,
+    wholesalePrice: 15,
+  });
+  await addStock(tenantA.agent, product.id, 100);
+  await addStock(tenantA.agent, filler.id, 100);
+  const dsr = await createDsr(tenantA.agent, { name: `Extra Return DSR ${Date.now()}` });
+
+  // Day 1: all 40 issued pieces settle as sold (no returns declared that day),
+  // so revenue/cost are recognized in full: 40 * 70 = 2800 revenue, 40 * 50 = 2000 cost.
+  // Left partially unpaid on purpose, so day 2 has enough accumulated due to
+  // absorb tomorrow's extra return credit.
+  await tenantA.agent.post("/api/issues").send({
+    date: day1,
+    dsrId: dsr.id,
+    items: [{ productId: product.id, issuedPieces: 40 }],
+  });
+  const settle1 = await tenantA.agent.post("/api/settlements").send({
+    date: day1,
+    dsrId: dsr.id,
+    items: [{ productId: product.id, returnedPieces: 0, damagedPieces: 0 }],
+    discount: 0,
+    extraReturnValue: 0,
+    amountPaid: 2000,
+  });
+  assert.equal(settle1.status, 201);
+
+  // Day 2: 3 of yesterday's pieces come back good, 2 are found damaged. These
+  // aren't part of today's issue, so they go through extraReturns instead of
+  // items. Good stock is just restocked and damaged stock written off
+  // elsewhere — neither should touch the profit report's revenue or cost.
+  await tenantA.agent.post("/api/issues").send({
+    date: day2,
+    dsrId: dsr.id,
+    items: [{ productId: filler.id, issuedPieces: 5 }],
+  });
+  const settle2 = await tenantA.agent.post("/api/settlements").send({
+    date: day2,
+    dsrId: dsr.id,
+    items: [{ productId: filler.id, returnedPieces: 0, damagedPieces: 0 }],
+    extraReturns: [{ productId: product.id, returnedPieces: 3, damagedPieces: 2 }],
+    discount: 0,
+    extraReturnValue: 5 * 70,
+    amountPaid: 0,
+  });
+  assert.equal(settle2.status, 201);
+
+  const fillerRevenue = 5 * 15;
+  const fillerCost = 5 * 10;
+
+  const reportResponse = await tenantA.agent.get("/api/profit-report").query({ dateFrom: day2, dateTo: day2 });
+  assert.equal(reportResponse.status, 200);
+  const dayRow = reportResponse.body.daily.find((row) => row.date === day2);
+  assert.ok(dayRow);
+  assert.equal(dayRow.revenue, fillerRevenue, "extra return must not reduce today's revenue");
+  assert.equal(dayRow.cost, fillerCost, "extra return must not reduce today's cost");
+
+  const dsrBreakdown = await tenantA.agent.get("/api/profit-report/by-dsr").query({ dateFrom: day2, dateTo: day2 });
+  assert.equal(dsrBreakdown.status, 200);
+  const dsrRow = dsrBreakdown.body.rows.find((row) => row.dsrId === dsr.id);
+  assert.ok(dsrRow);
+  assert.equal(dsrRow.revenue, fillerRevenue);
+  assert.equal(dsrRow.cost, fillerCost);
+
+  const productBreakdown = await tenantA.agent.get("/api/profit-report/by-product").query({ dateFrom: day2, dateTo: day2 });
+  assert.equal(productBreakdown.status, 200);
+  const productRow = productBreakdown.body.rows.find((row) => row.productId === product.id);
+  assert.equal(productRow, undefined, "the extra-returned product must not appear in today's by-product breakdown at all");
+});
+
 test("tenant B cannot see tenant A's profit breakdown rows", async () => {
   const today = new Date().toISOString().slice(0, 10);
   const product = await createProduct(tenantA.agent, { name: "Isolated Widget", purchasePrice: 20, retailPrice: 40 });

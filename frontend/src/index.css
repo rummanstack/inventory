@@ -999,14 +999,6 @@
     @apply grid gap-8 lg:grid-cols-[0.7fr_1fr] lg:items-start;
   }
 
-  .showcase-visual-layout {
-    @apply grid gap-6 xl:grid-cols-[0.8fr_1.2fr] xl:items-start;
-  }
-
-  .showcase-copy {
-    @apply max-w-xl;
-  }
-
   .showcase-collage {
     @apply grid gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:auto-rows-[180px];
   }
@@ -1957,24 +1949,6 @@ body.landing-page-active .page-shell {
   gap: 1.5rem;
 }
 
-.showcase-product-frame {
-  position: relative;
-  isolation: isolate;
-  align-self: center;
-}
-
-.showcase-product-frame::before {
-  content: '';
-  position: absolute;
-  inset: 8% -4% -8%;
-  z-index: -1;
-  border-radius: 2.5rem;
-  background:
-    radial-gradient(circle at 28% 24%, rgba(60, 42, 134, 0.16), transparent 58%),
-    radial-gradient(circle at 76% 72%, rgba(13, 148, 136, 0.14), transparent 58%);
-  filter: blur(28px);
-}
-
 .landing-page > section:not(.landing-hero):not(.public-hero) {
   border-top: 0;
 }
@@ -2300,10 +2274,6 @@ html[lang='bn'] .feature-story-title {
     margin-top: 0.35rem;
     font-size: 0.78rem;
     line-height: 1.55;
-  }
-
-  .showcase-visual-layout {
-    gap: 2rem;
   }
 
   .pricing-card {

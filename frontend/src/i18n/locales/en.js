@@ -4652,23 +4652,6 @@ const en = {
           { title: 'For Service & Support', description: 'Handle warranty claims, repair progress, customer conversations, and after-sales follow-up without losing business context.', chips: ['Warranty', 'Repair', 'Support'] },
         ],
       },
-      showcase: {
-        eyebrow: 'Management visibility',
-        title: 'See every department from one management view',
-        text: 'Bring operations, finance, workforce activity, and business risk into a reporting view management can trust.',
-        bullets: [
-          'Track sales, purchasing, finance, payroll, and field operations together',
-          'Give each role controlled access while owners keep full visibility',
-          'Use reports, activity history, alerts, and backups to stay in control',
-        ],
-        imageAlts: {
-          heroDashboard: 'Unified business management dashboard screenshot',
-          warehouseStock: 'Inventory and stock control workspace',
-          profitReport: 'Profit and finance reporting workspace',
-          reportsVisibility: 'Management dashboard connecting operations, finance, HR, and control',
-          retailCounter: 'Retail POS and sales workflow',
-        },
-      },
       cta: {
         eyebrow: 'Get started',
         title: 'Run your entire business from one platform.',

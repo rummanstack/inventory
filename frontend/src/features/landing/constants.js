@@ -1,6 +1,5 @@
 import {
   C01Image,
-  F01Image,
   F02Image,
   F03Image,
   F04Image,
@@ -133,11 +132,3 @@ export const roleStoryImages = [
 ];
 
 export const platformPillarImages = [F03Image, F04Image, F09Image];
-
-export const showcaseImages = [
-  { src: L01Image, key: 'heroDashboard', fit: 'fill', position: 'center' },
-  { src: F01Image, key: 'warehouseStock', fit: 'cover', position: 'center' },
-  { src: F03Image, key: 'profitReport', fit: 'fill', position: 'center' },
-  { src: F09Image, key: 'reportsVisibility', fit: 'fill', position: 'center' },
-  { src: F02Image, key: 'retailCounter', fit: 'fill', position: 'center' },
-];

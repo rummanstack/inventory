@@ -5,7 +5,6 @@ import HeroSection from '../components/HeroSection.jsx';
 import FeatureStorySection from '../components/FeatureStorySection.jsx';
 import SolutionsSection from '../components/SolutionsSection.jsx';
 import WorkflowSection from '../components/WorkflowSection.jsx';
-import ImageShowcaseSection from '../components/ImageShowcaseSection.jsx';
 import TestimonialsSection from '../components/TestimonialsSection.jsx';
 import CtaSection from '../components/CtaSection.jsx';
 import PricingSection from '../components/PricingSection.jsx';
@@ -27,7 +26,6 @@ export default function LandingPage() {
       <FeatureStorySection t={t} />
       <WorkflowSection t={t} />
       <SolutionsSection t={t} />
-      <ImageShowcaseSection t={t} />
       <TestimonialsSection t={t} />
       <PricingSection t={t} language={language} />
       <FaqSection t={t} />

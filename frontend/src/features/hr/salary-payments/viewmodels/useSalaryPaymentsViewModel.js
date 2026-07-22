@@ -3,11 +3,15 @@ import { inventoryApi } from '../../../../services/inventoryApi.js';
 import { useTenantApiQuery } from '../../../../queries/useTenantApiQuery.js';
 
 function currentMonth() {
-  return new Date().toISOString().slice(0, 7);
+  const now = new Date();
+  return String(now.getFullYear()) + '-' + String(now.getMonth() + 1).padStart(2, '0');
 }
 
 export function useSalaryPaymentsViewModel() {
   const [month, setMonth] = useState(currentMonth);
+  const setAllowedMonth = (nextMonth) => {
+    if (nextMonth && nextMonth <= currentMonth()) setMonth(nextMonth);
+  };
   const query = useTenantApiQuery({
     scope: 'salary-overview',
     params: { month },
@@ -16,7 +20,7 @@ export function useSalaryPaymentsViewModel() {
   });
   return {
     month,
-    setMonth,
+    setMonth: setAllowedMonth,
     data: query.data || null,
     loading: query.isPending,
     error: query.error?.message || '',

@@ -65,15 +65,13 @@ export class ProfitService {
           day.cost += soldPieces * cost;
         }
 
-        // Extra returns reduce revenue; returned goods also reduce COGS.
-        // Discount is excluded — it is a supplier pass-through (company receives the
-        // same discount from the supplier), so it does not affect company profit.
-        day.revenue -= settlement.extraReturnValue;
-        for (const extraItem of settlement.extraReturns) {
-          const pieces = Number(extraItem.returnedPieces || 0) + Number(extraItem.damagedPieces || 0);
-          const { cost = 0 } = productCostMap.get(extraItem.productId) || {};
-          day.cost -= pieces * cost;
-        }
+        // Extra returns (good or damaged stock for products outside today's issue)
+        // are excluded on purpose: they were never sold, so they carry no revenue
+        // or cost in the profit report — good stock is simply restocked and
+        // damaged stock written off elsewhere, neither is a P&L event here.
+        // Discount is also excluded — it is a supplier pass-through (company
+        // receives the same discount from the supplier), so it does not affect
+        // company profit.
       }
 
       for (const expense of expenses) {
@@ -166,12 +164,7 @@ export class ProfitService {
           row.cost += soldPieces * cost;
         }
 
-        row.revenue -= settlement.extraReturnValue;
-        for (const extraItem of settlement.extraReturns) {
-          const pieces = Number(extraItem.returnedPieces || 0) + Number(extraItem.damagedPieces || 0);
-          const { cost = 0 } = productCostMap.get(extraItem.productId) || {};
-          row.cost -= pieces * cost;
-        }
+        // Extra returns are excluded — see getProfitReport above for why.
         dsrMap.set(settlement.dsrId, row);
       }
 
@@ -215,14 +208,7 @@ export class ProfitService {
           row.quantity += soldPieces;
         }
 
-        for (const extraItem of settlement.extraReturns) {
-          const row = ensureRow(extraItem.productId);
-          const pieces = Number(extraItem.returnedPieces || 0) + Number(extraItem.damagedPieces || 0);
-          const { cost = 0, price = 0 } = productCostMap.get(extraItem.productId) || {};
-          row.revenue -= pieces * price;
-          row.cost -= pieces * cost;
-          row.quantity -= pieces;
-        }
+        // Extra returns are excluded — see getProfitReport above for why.
       }
 
       for (const entry of invoiceItems) {

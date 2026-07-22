@@ -1,0 +1,39 @@
+STOCKLEDGER — HOW IT WORKS IMAGE GENERATION COMMANDS
+=====================================================
+
+Shared visual direction
+-----------------------
+- Output: polished SaaS product-marketing illustration
+- Aspect ratio: 16:10 landscape
+- Recommended resolution: 1600 × 1000 px
+- Brand palette: deep violet #3C2A86, teal #0D9488, white, cool slate gray
+- Interface: modern desktop business-management dashboard
+- Style: premium, clean, realistic UI mockup, subtle depth, soft studio lighting
+- Background: very light lavender-to-white gradient with restrained teal accents
+- Do not include people, hands, devices, browser logos, third-party logos, watermarks, or decorative text
+- Keep all important interface content inside the central 85% safe area
+- Use abstract or unreadable microcopy inside the UI; avoid malformed generated text
+- Maintain the same visual system across all three images
+
+
+COMMAND 01 — BUSINESS SETUP
+Filename: workflow-step-01-business-setup.png
+
+/imagegen Create a premium SaaS product-marketing image for StockLedger, a complete business management platform. Show a modern desktop application workspace during initial business setup. The interface should communicate product catalog setup, customer and supplier records, chart of accounts, employee roles, permissions, and opening balances through clean cards, tables, progress indicators, toggles, and small recognizable icons. Include a slim left navigation rail, a refined top bar, a clear setup-progress area, and three or four well-organized content panels. Use StockLedger's deep violet #3C2A86 and teal #0D9488 brand colors with white and cool slate surfaces. Present the dashboard with subtle perspective, premium soft shadows, crisp edges, generous whitespace, and restrained ambient glow on a very light lavender-to-white background. The result must feel trustworthy, organized, and easy to configure—not futuristic or overly complex. No people, hands, devices, browser logos, third-party logos, watermark, or large marketing text. Use abstract unreadable microcopy to prevent spelling artifacts. Keep essential interface details inside the central 85% safe area. Maintain a 16:10 landscape composition at 1600 × 1000 px, suitable for a world-class B2B SaaS landing page.
+
+
+COMMAND 02 — DAILY OPERATIONS
+Filename: workflow-step-02-daily-operations.png
+
+/imagegen Create a premium SaaS product-marketing image for StockLedger, a complete business management platform. Show a modern desktop operations workspace being used to run the business day. The interface should visually connect sales invoices, purchases, inventory movement, cash collection, customer dues, employee attendance, and field sales activity. Use a clear central transaction table, compact status cards, inventory indicators, payment summaries, and a small activity timeline. Include a slim left navigation rail and refined top bar consistent with a professional enterprise application. Use StockLedger's deep violet #3C2A86 and teal #0D9488 brand colors with white and cool slate surfaces. Make the composition energetic but controlled, showing that every transaction updates one connected system. Add subtle depth, premium soft shadows, crisp UI edges, generous whitespace, and restrained ambient glow on a very light lavender-to-white background. No people, hands, devices, browser logos, third-party logos, watermark, or large marketing text. Use abstract unreadable microcopy to prevent spelling artifacts. Keep essential interface details inside the central 85% safe area. Maintain exactly the same visual language as the business-setup image, in a 16:10 landscape composition at 1600 × 1000 px for a world-class B2B SaaS landing page.
+
+
+COMMAND 03 — REPORTS AND DECISIONS
+Filename: workflow-step-03-business-overview.png
+
+/imagegen Create a premium SaaS product-marketing image for StockLedger, a complete business management platform. Show a modern executive reporting dashboard that turns daily business activity into clear decisions. The interface should communicate sales, stock value, cash and bank position, customer dues, expenses, payroll, and net profit using elegant KPI cards, a balanced revenue-and-profit chart, inventory alerts, receivables summary, and a compact recent-activity or report table. Include a slim left navigation rail and refined top bar consistent with the other StockLedger workflow images. Use StockLedger's deep violet #3C2A86 and teal #0D9488 brand colors with white and cool slate surfaces. Emphasize clarity, trustworthy numbers, and immediate management insight rather than visual complexity. Add subtle depth, premium soft shadows, crisp UI edges, generous whitespace, and restrained ambient glow on a very light lavender-to-white background. No people, hands, devices, browser logos, third-party logos, watermark, or large marketing text. Use abstract unreadable microcopy to prevent spelling artifacts. Keep essential interface details inside the central 85% safe area. Maintain exactly the same visual language as the first two images, in a 16:10 landscape composition at 1600 × 1000 px for a world-class B2B SaaS landing page.
+
+
+CONSISTENCY NOTE
+----------------
+Generate Command 01 first. When generating Commands 02 and 03, provide the first generated image as a style reference if the image tool supports reference images. Preserve the same navigation, corner radius, shadow softness, lighting, brand colors, camera angle, and overall dashboard density across the full set.

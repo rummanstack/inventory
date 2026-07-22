@@ -2371,3 +2371,448 @@ html[lang='bn'] .feature-story-title {
 
 
 
+
+/* Three-step workflow story */
+.workflow-story-section {
+  overflow: hidden;
+}
+
+.workflow-story-list {
+  display: grid;
+  gap: clamp(4.5rem, 8vw, 7.5rem);
+  margin-top: clamp(3.5rem, 6vw, 5.5rem);
+}
+
+.workflow-story-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
+  align-items: center;
+  gap: clamp(3rem, 7vw, 7rem);
+}
+
+.workflow-story-row-reverse .workflow-story-copy {
+  order: 2;
+}
+
+.workflow-story-row-reverse .workflow-story-visual {
+  order: 1;
+}
+
+.workflow-story-copy {
+  position: relative;
+  z-index: 1;
+}
+
+.workflow-story-number {
+  display: block;
+  margin-bottom: 1.25rem;
+  color: rgba(60, 42, 134, 0.09);
+  font-size: clamp(5.5rem, 10vw, 8.5rem);
+  font-weight: 900;
+  line-height: 0.82;
+  letter-spacing: -0.07em;
+  user-select: none;
+}
+
+.workflow-story-kicker {
+  color: var(--brand-strong);
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.workflow-story-copy h3 {
+  max-width: 34rem;
+  margin-top: 0.75rem;
+  color: rgb(15 23 42);
+  font-size: clamp(1.75rem, 3vw, 2.45rem);
+  font-weight: 900;
+  line-height: 1.12;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+
+.workflow-story-description {
+  max-width: 36rem;
+  margin-top: 1.15rem;
+  color: rgb(71 85 105);
+  font-size: 1rem;
+  line-height: 1.8;
+}
+
+.workflow-story-points {
+  display: grid;
+  gap: 0.7rem;
+  margin-top: 1.35rem;
+}
+
+.workflow-story-points li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  color: rgb(51 65 85);
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.workflow-story-points svg {
+  flex: 0 0 auto;
+  margin-top: 0.08rem;
+  color: var(--brand);
+}
+
+.workflow-story-visual {
+  position: relative;
+  padding: clamp(1rem, 2vw, 1.5rem);
+  border: 1px solid rgba(60, 42, 134, 0.12);
+  border-radius: 2rem;
+  background:
+    radial-gradient(circle at 88% 12%, rgba(13, 148, 136, 0.14), transparent 32%),
+    radial-gradient(circle at 8% 90%, rgba(60, 42, 134, 0.14), transparent 36%),
+    linear-gradient(145deg, #f4f1ff, #f8fafc 48%, #eefbf9);
+  box-shadow: 0 30px 75px -28px rgba(60, 42, 134, 0.32);
+}
+
+.workflow-story-visual::before,
+.workflow-story-visual::after {
+  content: '';
+  position: absolute;
+  border-radius: 999px;
+  pointer-events: none;
+}
+
+.workflow-story-visual::before {
+  width: 5rem;
+  height: 5rem;
+  top: -1.5rem;
+  right: -1.2rem;
+  border: 1px solid rgba(60, 42, 134, 0.12);
+}
+
+.workflow-story-visual::after {
+  width: 1rem;
+  height: 1rem;
+  bottom: 1rem;
+  left: -0.5rem;
+  background: var(--brand);
+  box-shadow: 0 0 0 8px rgba(60, 42, 134, 0.1);
+}
+
+.workflow-mock-window {
+  overflow: hidden;
+  aspect-ratio: 16 / 10;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 1.25rem;
+  background: white;
+  box-shadow: 0 24px 55px -24px rgba(15, 23, 42, 0.38);
+}
+
+.workflow-mock-topbar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  height: 12%;
+  min-height: 2.4rem;
+  padding: 0 1rem;
+  border-bottom: 1px solid rgb(226 232 240);
+}
+
+.workflow-mock-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: rgb(30 41 59);
+  font-size: 0.62rem;
+  font-weight: 900;
+}
+
+.workflow-mock-brand > span {
+  width: 0.85rem;
+  height: 0.85rem;
+  border-radius: 0.3rem;
+  background: linear-gradient(135deg, var(--brand), var(--secondary));
+}
+
+.workflow-mock-search {
+  width: 28%;
+  height: 0.55rem;
+  margin-left: auto;
+  border-radius: 999px;
+  background: rgb(241 245 249);
+}
+
+.workflow-mock-avatar {
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 999px;
+  background: var(--brand-soft);
+}
+
+.workflow-mock-body {
+  display: grid;
+  grid-template-columns: 15% 1fr;
+  height: 88%;
+}
+
+.workflow-mock-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem 0.65rem;
+  border-right: 1px solid rgb(226 232 240);
+  background: rgb(248 250 252);
+}
+
+.workflow-mock-sidebar span {
+  width: 100%;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: rgb(226 232 240);
+}
+
+.workflow-mock-sidebar span.is-active {
+  background: var(--brand);
+  box-shadow: 0 0 0 0.3rem var(--brand-soft);
+}
+
+.workflow-mock-content {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.8rem;
+  padding: clamp(0.8rem, 2vw, 1.3rem);
+}
+
+.workflow-mock-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.workflow-mock-heading span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: rgb(30 41 59);
+  font-size: clamp(0.65rem, 1.2vw, 0.82rem);
+  font-weight: 900;
+}
+
+.workflow-mock-heading span svg {
+  color: var(--brand);
+}
+
+.workflow-mock-heading > i {
+  width: 18%;
+  height: 1.4rem;
+  border-radius: 0.45rem;
+  background: var(--brand);
+}
+
+.workflow-mock-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.55rem;
+}
+
+.workflow-mock-stats > span {
+  display: grid;
+  gap: 0.45rem;
+  min-height: 3.2rem;
+  padding: 0.65rem;
+  border: 1px solid rgb(226 232 240);
+  border-radius: 0.65rem;
+  background: rgb(255 255 255);
+}
+
+.workflow-mock-stats b,
+.workflow-mock-stats i,
+.workflow-mock-list b,
+.workflow-mock-list i {
+  display: block;
+  border-radius: 999px;
+  background: rgb(226 232 240);
+}
+
+.workflow-mock-stats b { width: 38%; height: 0.45rem; }
+.workflow-mock-stats i { width: 68%; height: 0.65rem; background: rgb(203 213 225); }
+
+.workflow-mock-panel {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 0.7rem;
+  min-height: 0;
+  flex: 1;
+}
+
+.workflow-mock-chart,
+.workflow-mock-list {
+  min-height: 0;
+  border: 1px solid rgb(226 232 240);
+  border-radius: 0.7rem;
+  background: rgb(255 255 255);
+}
+
+.workflow-mock-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 5%;
+  padding: 12% 9% 9%;
+}
+
+.workflow-mock-chart i {
+  width: 9%;
+  border-radius: 999px 999px 0.2rem 0.2rem;
+  background: linear-gradient(180deg, var(--brand), color-mix(in srgb, var(--secondary) 78%, white));
+  opacity: 0.78;
+}
+
+.workflow-mock-list {
+  display: grid;
+  align-content: center;
+  gap: 0.6rem;
+  padding: 0.7rem;
+}
+
+.workflow-mock-list span {
+  display: grid;
+  gap: 0.28rem;
+}
+
+.workflow-mock-list b { width: 82%; height: 0.38rem; }
+.workflow-mock-list i { width: 55%; height: 0.3rem; background: rgb(241 245 249); }
+
+.workflow-placeholder-note {
+  position: absolute;
+  right: 2rem;
+  bottom: 0.25rem;
+  transform: translateY(50%);
+  max-width: calc(100% - 4rem);
+  padding: 0.55rem 0.85rem;
+  border: 1px dashed rgba(60, 42, 134, 0.28);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.94);
+  color: var(--brand-strong);
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-align: center;
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+}
+
+.workflow-story-outcome {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.85rem;
+  max-width: 52rem;
+  margin: clamp(4rem, 7vw, 6rem) auto 0;
+  padding: 1rem 1.3rem;
+  border: 1px solid rgba(60, 42, 134, 0.13);
+  border-radius: 1.2rem;
+  background: rgba(255, 255, 255, 0.82);
+  color: rgb(71 85 105);
+  text-align: center;
+  box-shadow: 0 16px 38px rgba(15, 23, 42, 0.05);
+}
+
+.workflow-story-outcome svg {
+  flex: 0 0 auto;
+  color: var(--brand);
+}
+
+.workflow-story-outcome p {
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.workflow-story-outcome strong {
+  color: rgb(15 23 42);
+}
+
+@media (max-width: 767px) {
+  .workflow-story-list {
+    gap: 4.5rem;
+    margin-top: 3.25rem;
+  }
+
+  .workflow-story-row {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .workflow-story-row-reverse .workflow-story-copy,
+  .workflow-story-row-reverse .workflow-story-visual {
+    order: initial;
+  }
+
+  .workflow-story-number {
+    margin-bottom: 1rem;
+    font-size: 5rem;
+  }
+
+  .workflow-story-copy h3 {
+    font-size: 1.75rem;
+    line-height: 1.18;
+  }
+
+  .workflow-story-description {
+    font-size: 0.94rem;
+    line-height: 1.72;
+  }
+
+  .workflow-story-visual {
+    padding: 0.7rem;
+    border-radius: 1.35rem;
+  }
+
+  .workflow-mock-window {
+    border-radius: 0.95rem;
+  }
+
+  .workflow-mock-topbar {
+    min-height: 2rem;
+    padding: 0 0.65rem;
+  }
+
+  .workflow-mock-brand {
+    font-size: 0.5rem;
+  }
+
+  .workflow-mock-content {
+    gap: 0.45rem;
+    padding: 0.6rem;
+  }
+
+  .workflow-mock-sidebar {
+    gap: 0.48rem;
+    padding: 0.65rem 0.4rem;
+  }
+
+  .workflow-mock-stats > span {
+    min-height: 2.25rem;
+    padding: 0.45rem;
+  }
+
+  .workflow-placeholder-note {
+    right: 1rem;
+    max-width: calc(100% - 2rem);
+    font-size: 0.58rem;
+  }
+
+  .workflow-story-outcome {
+    align-items: flex-start;
+    text-align: left;
+  }
+}
+
+html[lang='bn'] .workflow-story-copy h3 {
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+}
+
+html[lang='bn'] .workflow-story-kicker {
+  letter-spacing: 0.04em;
+}

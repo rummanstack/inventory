@@ -1,3 +1,4 @@
+import { pt } from '../../platformProductTranslations.js';
 import { useEffect, useMemo, useState } from 'react';
 import { Boxes, Download, FileSpreadsheet, ImageOff, LayoutGrid, List, ListTree, Loader2, PackagePlus, Pencil, Plus, Printer, Search, Trash2 } from 'lucide-react';
 import { Alert, Badge, EmptyState, MobileCardList, MobileListCard, Pagination, SectionHeader, TableSkeleton, cx, Select } from '../../../components/ui.jsx';
@@ -149,7 +150,7 @@ export default function ProductsPage() {
                 <button type="button" className="btn-primary" onClick={() => setProductModal({ mode: 'add' })}>
                   <Plus size={18} />
                   {t('products.add')}
-                  <kbd className="ml-1 rounded border border-indigo-400/40 bg-indigo-500/20 px-1 py-0.5 font-mono text-[10px] text-indigo-200">Alt+A</kbd>
+                  <kbd className="ml-1 rounded border border-indigo-400/40 bg-indigo-500/20 px-1 py-0.5 font-mono text-[10px] text-indigo-200">{pt('Alt+A')}</kbd>
                 </button>
               </>
             ) : null}
@@ -199,17 +200,17 @@ export default function ProductsPage() {
               <button type="button" className="btn-secondary h-10 gap-1.5 px-3 text-xs disabled:cursor-not-allowed disabled:opacity-60" onClick={handleDownloadPdf} disabled={downloadingPdf}>
                 {downloadingPdf ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
                 {t('purchaseReceive.downloadPdf')}
-                <kbd className="rounded border border-slate-200 bg-white px-1.5 py-0.5 text-[10px] font-black text-slate-500">Alt+D</kbd>
+                <kbd className="rounded border border-slate-200 bg-white px-1.5 py-0.5 text-[10px] font-black text-slate-500">{pt('Alt+D')}</kbd>
               </button>
               <button type="button" className="btn-secondary h-10 gap-1.5 px-3 text-xs" onClick={handleExportExcel}>
                 <FileSpreadsheet size={14} />
                 {t('common.exportExcel')}
-                <kbd className="rounded border border-slate-200 bg-white px-1.5 py-0.5 text-[10px] font-black text-slate-500">Alt+E</kbd>
+                <kbd className="rounded border border-slate-200 bg-white px-1.5 py-0.5 text-[10px] font-black text-slate-500">{pt('Alt+E')}</kbd>
               </button>
               <button type="button" className="btn-secondary h-10 gap-1.5 px-3 text-xs" onClick={handlePrint}>
                 <Printer size={14} />
                 {t('common.print')}
-                <kbd className="rounded border border-slate-200 bg-white px-1.5 py-0.5 text-[10px] font-black text-slate-500">Alt+P</kbd>
+                <kbd className="rounded border border-slate-200 bg-white px-1.5 py-0.5 text-[10px] font-black text-slate-500">{pt('Alt+P')}</kbd>
               </button>
             </div>
           </div>
@@ -376,7 +377,7 @@ export default function ProductsPage() {
                         <Badge tone={product.refundable === false ? 'rose' : 'emerald'}>
                           {product.refundable === false ? t('products.nonRefundable') : t('products.refundable')}
                         </Badge>
-                        {isPharmacy && product.controlledSubstance ? <Badge tone="amber">Controlled</Badge> : null}
+                        {isPharmacy && product.controlledSubstance ? <Badge tone="amber">{pt('Controlled')}</Badge> : null}
                         {product.stockPieces === 0 ? <Badge tone="rose">{t('products.outShort')}</Badge> : null}
                         {product.stockPieces > 0 && product.stockPieces <= product.piecesPerCase ? <Badge tone="amber">{t('products.lowShort')}</Badge> : null}
                       </div>

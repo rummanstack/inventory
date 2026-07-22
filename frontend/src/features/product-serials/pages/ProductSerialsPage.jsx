@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Download, Eye, FileSpreadsheet, Fingerprint, Loader2, Pencil, Plus, Printer, Search, Trash2 } from 'lucide-react';
+import { Download, Eye, FileSpreadsheet, Fingerprint, Loader2, Pencil, Plus, Printer, Search, Trash2, Upload } from 'lucide-react';
 import { Alert, Badge, CopyableText, EmptyState, MobileCardList, MobileListCard, Pagination, SectionHeader, TableSkeleton, Select } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
@@ -8,6 +8,7 @@ import { useAsyncAction } from '../../../hooks/useAsyncAction.js';
 import { productSerialStatusTone } from '../../../models/inventoryViewData.js';
 import ProductSerialFormModal from '../components/ProductSerialFormModal';
 import ProductSerialViewModal from '../components/ProductSerialViewModal';
+import ProductSerialImportModal from '../components/ProductSerialImportModal';
 import { useProductSerialsViewModel } from '../viewmodels/useProductSerialsViewModel';
 
 const STATUS_VALUES = ['IN_STOCK', 'SOLD', 'RETURNED', 'DAMAGED', 'WARRANTY', 'DELETED'];
@@ -24,6 +25,7 @@ export default function ProductSerialsPage() {
   const vm = useProductSerialsViewModel();
   const [formModal, setFormModal] = useState(null);
   const [viewSerial, setViewSerial] = useState(null);
+  const [importModalOpen, setImportModalOpen] = useState(false);
   const canManage = can('manage_product_serials');
   const [downloadingPdf, downloadPdf] = useAsyncAction();
 
@@ -37,17 +39,18 @@ export default function ProductSerialsPage() {
     });
     const all = result.items || [];
     const { utils, writeFile } = await import('xlsx');
-    const header = [t('products.product'), t('productSerials.serialNumberLabel'), t('productSerials.imei1Label'), t('productSerials.imei2Label'), t('productSerials.statusLabel'), t('productSerials.linkedInvoiceLabel')];
+    const header = [t('products.product'), t('productSerials.serialNumberLabel'), t('productSerials.imei1Label'), t('productSerials.imei2Label'), t('productSerials.barcodeLabel'), t('productSerials.statusLabel'), t('productSerials.linkedInvoiceLabel')];
     const data = all.map((serial) => [
       serial.productName || '',
       serial.serialNumber || '',
       serial.imei1 || '',
       serial.imei2 || '',
+      serial.barcode || '',
       t(`productSerials.statuses.${serial.status}`),
       serial.invoiceNumber || '',
     ]);
     const ws = utils.aoa_to_sheet([header, ...data]);
-    ws['!cols'] = [{ wch: 24 }, { wch: 20 }, { wch: 18 }, { wch: 18 }, { wch: 14 }, { wch: 20 }];
+    ws['!cols'] = [{ wch: 24 }, { wch: 20 }, { wch: 18 }, { wch: 18 }, { wch: 18 }, { wch: 14 }, { wch: 20 }];
     const wb = utils.book_new();
     utils.book_append_sheet(wb, ws, t('productSerials.sheetName'));
     writeFile(wb, 'product-serials.xlsx');
@@ -105,11 +108,17 @@ export default function ProductSerialsPage() {
         title={t('productSerials.title')}
         compact
         action={canManage ? (
-          <button type="button" className="btn-primary" onClick={() => setFormModal({ mode: 'add' })}>
-            <Plus size={18} />
-            {t('productSerials.add')}
-            <kbd className="ml-1 rounded border border-indigo-400/40 bg-indigo-500/20 px-1 py-0.5 font-mono text-[10px] text-indigo-200">Alt+A</kbd>
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <button type="button" className="btn-secondary" onClick={() => setImportModalOpen(true)}>
+              <Upload size={18} />
+              {t('productSerials.importCsv')}
+            </button>
+            <button type="button" className="btn-primary" onClick={() => setFormModal({ mode: 'add' })}>
+              <Plus size={18} />
+              {t('productSerials.add')}
+              <kbd className="ml-1 rounded border border-indigo-400/40 bg-indigo-500/20 px-1 py-0.5 font-mono text-[10px] text-indigo-200">Alt+A</kbd>
+            </button>
+          </div>
         ) : null}
       />
 
@@ -154,6 +163,16 @@ export default function ProductSerialsPage() {
             </button>
           </div>
         </div>
+        {vm.productId ? (() => {
+          const selectedProduct = productDirectory.find((product) => product.id === vm.productId);
+          if (!selectedProduct) return null;
+          return (
+            <div className="flex flex-wrap items-center gap-4 border-b border-slate-100 bg-slate-50/60 px-5 py-3 text-sm font-semibold text-slate-600 no-print">
+              <span>{t('productSerials.productStockLabel')}: <span className="text-slate-950">{selectedProduct.stockPieces}</span></span>
+              <span>{t('productSerials.serialCount')}: <span className="text-slate-950">{vm.total}</span></span>
+            </div>
+          );
+        })() : null}
         {vm.loading ? (
           <div className="p-5">
             <TableSkeleton columns={6} showHeader={false} />
@@ -171,7 +190,7 @@ export default function ProductSerialsPage() {
               onClick={() => setViewSerial(serial)}
               title={serial.productName || '-'}
               badge={<Badge tone={productSerialStatusTone(serial.status)}>{t(`productSerials.statuses.${serial.status}`)}</Badge>}
-              subtitle={`${serial.serialNumber || ''}${serial.imei1 ? ` · ${serial.imei1}` : ''}`}
+              subtitle={`${serial.serialNumber || ''}${serial.barcode ? ` · ${serial.barcode}` : ''}`}
               value={serial.invoiceNumber || '-'}
             />
           ))}
@@ -184,6 +203,7 @@ export default function ProductSerialsPage() {
                 <th className="px-4 py-3">{t('products.product')}</th>
                 <th className="px-4 py-3">{t('productSerials.serialNumberLabel')}</th>
                 <th className="px-4 py-3">{t('productSerials.imei1Label')}</th>
+                <th className="px-4 py-3">{t('productSerials.barcodeLabel')}</th>
                 <th className="px-4 py-3">{t('productSerials.statusLabel')}</th>
                 <th className="px-4 py-3">{t('productSerials.linkedInvoiceLabel')}</th>
                 <th className="px-4 py-3 text-right no-print">{t('common.actions')}</th>
@@ -196,6 +216,7 @@ export default function ProductSerialsPage() {
                   <td className="table-cell font-semibold text-slate-950">{serial.productName || '-'}</td>
                   <td className="table-cell"><CopyableText value={serial.serialNumber} copyLabel={t('productSerials.serialNumberLabel')} displayValue={serial.serialNumber} /></td>
                   <td className="table-cell"><CopyableText value={serial.imei1} copyLabel={t('productSerials.imei1Label')} displayValue={serial.imei1} /></td>
+                  <td className="table-cell"><CopyableText value={serial.barcode} copyLabel={t('productSerials.barcodeLabel')} displayValue={serial.barcode} /></td>
                   <td className="table-cell">
                     <Badge tone={productSerialStatusTone(serial.status)}>{t(`productSerials.statuses.${serial.status}`)}</Badge>
                   </td>
@@ -252,6 +273,16 @@ export default function ProductSerialsPage() {
       ) : null}
 
       {viewSerial ? <ProductSerialViewModal serial={viewSerial} onClose={() => setViewSerial(null)} /> : null}
+
+      {importModalOpen ? (
+        <ProductSerialImportModal
+          onClose={() => setImportModalOpen(false)}
+          onImported={() => {
+            setImportModalOpen(false);
+            vm.reload();
+          }}
+        />
+      ) : null}
     </div>
   );
 }

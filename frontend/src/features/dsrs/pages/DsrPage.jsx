@@ -104,7 +104,7 @@ export default function DsrPage() {
           <div className="flex gap-2">
             <button type="button" className="btn-secondary" onClick={() => setTargetModal(true)}>
               <Target size={16} />
-              Set Targets
+              {t('dsr.setTargets')}
             </button>
             <button type="button" className="btn-primary" onClick={() => setDsrModal({ mode: 'add' })}>
               <Plus size={18} />
@@ -170,14 +170,14 @@ export default function DsrPage() {
                 title={dsr.name}
                 badge={
                   <>
-                    <Badge tone={statusTone(dsr.status)}>{dsr.status}</Badge>
+                    <Badge tone={statusTone(dsr.status)}>{t(dsr.status === 'Active' ? 'dsr.statusActive' : 'dsr.statusInactive')}</Badge>
                     {vm.inProgressDsrIds.has(dsr.id) ? <Badge tone="amber">{t('dsr.outside')}</Badge> : null}
                   </>
                 }
                 subtitle={[dsr.phone, dsr.area].filter(Boolean).join(' · ')}
                 value={formatCurrency(dsr.currentDue || 0)}
                 valueClass={dsr.currentDue > 0 ? 'text-rose-700' : undefined}
-                valueSub={pct !== null ? `${pct}% of target` : null}
+                valueSub={pct !== null ? t('dsr.targetProgress', { percent: pct }) : null}
                 action={canManageDsrs ? (
                   <>
                     <button type="button" className="icon-btn" title={t('common.edit')} onClick={() => setDsrModal({ mode: 'edit', dsr })}>
@@ -202,8 +202,8 @@ export default function DsrPage() {
                 <th className="px-4 py-3">{t('dsr.area')}</th>
                 <th className="px-4 py-3">{t('dsr.status')}</th>
                 <th className="px-4 py-3 text-right">{t('dsr.currentDue')}</th>
-                <th className="px-4 py-3 text-right">Target</th>
-                <th className="px-4 py-3 text-right">Achieved</th>
+                <th className="px-4 py-3 text-right">{t('dsr.targetLabel')}</th>
+                <th className="px-4 py-3 text-right">{t('dsr.achievedLabel')}</th>
                 <th className="px-4 py-3 text-right">%</th>
                 <th className="px-4 py-3 text-right no-print">{t('common.actions')}</th>
               </tr>
@@ -231,7 +231,7 @@ export default function DsrPage() {
                   </td>
                   <td className="table-cell">
                     <div className="flex items-center gap-2">
-                      <Badge tone={statusTone(dsr.status)}>{dsr.status}</Badge>
+                      <Badge tone={statusTone(dsr.status)}>{t(dsr.status === 'Active' ? 'dsr.statusActive' : 'dsr.statusInactive')}</Badge>
                       {vm.inProgressDsrIds.has(dsr.id) ? <Badge tone="amber">{t('dsr.outside')}</Badge> : null}
                     </div>
                   </td>

@@ -117,13 +117,13 @@ export default function SalesInvoicePrintSheet({
           <thead>
             <tr className="bg-slate-900 text-white">
               <th className="w-6 px-2 py-2 text-left font-black uppercase tracking-wide">#</th>
-              <th className="px-2 py-2 text-left font-black uppercase tracking-wide">Description</th>
-              <th className="w-12 px-2 py-2 text-right font-black uppercase tracking-wide">Qty</th>
-              <th className="w-24 px-2 py-2 text-right font-black uppercase tracking-wide">Unit Price</th>
+              <th className="px-2 py-2 text-left font-black uppercase tracking-wide">{t('retailer.shared.descriptionLabel')}</th>
+              <th className="w-12 px-2 py-2 text-right font-black uppercase tracking-wide">{t('retailer.shared.quantityShortLabel')}</th>
+              <th className="w-24 px-2 py-2 text-right font-black uppercase tracking-wide">{t('retailer.shared.unitPriceLabel')}</th>
               {hasAnyLineDiscount && (
-                <th className="w-20 px-2 py-2 text-right font-black uppercase tracking-wide">Discount</th>
+                <th className="w-20 px-2 py-2 text-right font-black uppercase tracking-wide">{t('retailer.shared.discountLabel')}</th>
               )}
-              <th className="w-24 px-2 py-2 text-right font-black uppercase tracking-wide">Amount</th>
+              <th className="w-24 px-2 py-2 text-right font-black uppercase tracking-wide">{t('retailer.shared.amountLabel')}</th>
             </tr>
           </thead>
           <tbody>
@@ -212,7 +212,7 @@ export default function SalesInvoicePrintSheet({
             {/* Promo savings */}
             {hasAnyPromo && totalPromoSavings > 0 && (
               <div className="flex justify-between rounded bg-emerald-50 px-2 py-1 -mx-2">
-                <span className="font-semibold text-emerald-700">✦ Promotions</span>
+                <span className="font-semibold text-emerald-700">✦ {t('retailer.shared.promotionsLabel')}</span>
                 <span className="font-bold text-emerald-700">− {formatCurrency(totalPromoSavings, lang)}</span>
               </div>
             )}

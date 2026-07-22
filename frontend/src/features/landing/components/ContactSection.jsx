@@ -89,13 +89,13 @@ export default function ContactSection({ t }) {
 
             <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2">
               <span className="flex items-center gap-1.5 text-[12px] font-medium text-slate-500">
-                <Lock size={12} className="text-[var(--success)]" /> SSL Secured
+                <Lock size={12} className="text-[var(--success)]" /> {t('landing.contact.sslSecured')}
               </span>
               <span className="flex items-center gap-1.5 text-[12px] font-medium text-slate-500">
-                <Server size={12} className="text-[var(--success)]" /> Bangladesh-hosted data
+                <Server size={12} className="text-[var(--success)]" /> {t('landing.contact.hostedData')}
               </span>
               <span className="flex items-center gap-1.5 text-[12px] font-medium text-slate-500">
-                <ShieldCheck size={12} className="text-[var(--success)]" /> Daily backups
+                <ShieldCheck size={12} className="text-[var(--success)]" /> {t('landing.contact.dailyBackups')}
               </span>
             </div>
 
@@ -105,7 +105,7 @@ export default function ContactSection({ t }) {
                 className="inline-flex max-w-full items-center gap-1.5 text-[12px] font-semibold leading-5 text-[var(--brand)] hover:underline"
               >
                 <Mail size={12} className="shrink-0" />
-                <span className="break-words">Or email us at {supportEmail}</span>
+                <span className="break-words">{t('landing.contact.emailUsAt')} {supportEmail}</span>
               </a>
 
               <button type="submit" className="btn-primary rounded-2xl" disabled={status === 'sending'}>

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { pt } from '../../platformProductTranslations.js';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Check, Loader2, Pencil, Plus, Trash2, X } from 'lucide-react';
 import { Alert, Badge, EmptyState, Modal, TableSkeleton, Select } from '../../../components/ui.jsx';
@@ -56,7 +57,7 @@ export default function ManufacturersManagerModal({ onClose, onChanged }) {
       setNewName('');
       onChanged?.();
     } catch (err) {
-      setError(err.message || 'Failed to add.');
+      setError(err.message || pt('Failed to add.'));
     } finally {
       setAdding(false);
     }
@@ -71,7 +72,7 @@ export default function ManufacturersManagerModal({ onClose, onChanged }) {
       setEditingId(null);
       onChanged?.();
     } catch (err) {
-      setError(err.message || 'Failed to save.');
+      setError(err.message || pt('Failed to save.'));
     } finally {
       setSavingId(null);
     }
@@ -90,7 +91,7 @@ export default function ManufacturersManagerModal({ onClose, onChanged }) {
       await manufacturerMutation.mutateAsync({ action: 'delete', id: item.id });
       onChanged?.();
     } catch (err) {
-      pushToast('error', 'Error', err.message || 'Cannot delete — it may still have products.');
+      pushToast('error', pt('Error'), err.message || pt('Cannot delete — it may still have products.'));
     } finally {
       setDeletingId(null);
     }
@@ -134,8 +135,8 @@ export default function ManufacturersManagerModal({ onClose, onChanged }) {
                     <input className="input h-8 text-sm" value={editForm.dgdaLicense} onChange={(e) => setEditForm((f) => ({ ...f, dgdaLicense: e.target.value }))} placeholder={t('pharmacy.dgdaLicense')} disabled={savingId === item.id} />
                     <input className="input h-8 text-sm" value={editForm.phone} onChange={(e) => setEditForm((f) => ({ ...f, phone: e.target.value }))} placeholder={t('pharmacy.phone')} disabled={savingId === item.id} />
                     <Select className="input h-8 text-sm" value={editForm.status} onChange={(e) => setEditForm((f) => ({ ...f, status: e.target.value }))} disabled={savingId === item.id}>
-                      <option value="ACTIVE">Active</option>
-                      <option value="INACTIVE">Inactive</option>
+                      <option value="ACTIVE">{pt('Active')}</option>
+                      <option value="INACTIVE">{pt('Inactive')}</option>
                     </Select>
                   </div>
                   <div className="flex justify-end gap-2">

@@ -1,4 +1,5 @@
-﻿import TableReportActions from '../../../components/TableReportActions.jsx';
+import TableReportActions from '../../../components/TableReportActions.jsx';
+import { at } from '../../accounting-foundation/accountingTranslations.js';
 import { Alert, Badge, CopyableText, MobileCardList, MobileListCard, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
@@ -36,27 +37,27 @@ export default function TrialBalancePage() {
 
   return (
     <div>
-      <SectionHeader eyebrow="Accounting" title="Trial Balance" description="Opening, movement, and closing totals calculated directly from the journal engine." />
+      <SectionHeader eyebrow={at('Accounting')} title={at('Trial Balance')} description={at('Opening, movement, and closing totals calculated directly from the journal engine.')} />
       <div className="surface overflow-hidden">
         <div className="flex flex-wrap items-end justify-between gap-3 border-b border-slate-100 p-5 no-print">
           <div className="grid flex-1 gap-3 md:grid-cols-3 xl:grid-cols-6">
             <select className="input" value={filters.fiscalYearId} onChange={(event) => setFilters((current) => ({ ...current, fiscalYearId: event.target.value, accountingPeriodId: '' }))}>
-              <option value="">All fiscal years</option>
+              <option value="">{at('All fiscal years')}</option>
               {fiscalYears.map((year) => <option key={year.id} value={year.id}>{year.name}</option>)}
             </select>
             <select className="input" value={filters.accountingPeriodId} onChange={(event) => setFilters((current) => ({ ...current, accountingPeriodId: event.target.value }))}>
-              <option value="">All periods</option>
+              <option value="">{at('All periods')}</option>
               {availablePeriods.map((period) => <option key={period.id} value={period.id}>{period.name}</option>)}
             </select>
-            <DatePickerField value={filters.dateFrom} onChange={(value) => setFilters((current) => ({ ...current, dateFrom: value }))} placeholder="Date from" />
-            <DatePickerField value={filters.dateTo} onChange={(value) => setFilters((current) => ({ ...current, dateTo: value }))} placeholder="Date to" min={filters.dateFrom || null} />
+            <DatePickerField value={filters.dateFrom} onChange={(value) => setFilters((current) => ({ ...current, dateFrom: value }))} placeholder={at('Date from')} />
+            <DatePickerField value={filters.dateTo} onChange={(value) => setFilters((current) => ({ ...current, dateTo: value }))} placeholder={at('Date to')} min={filters.dateFrom || null} />
             <select className="input" value={filters.accountCode} onChange={(event) => setFilters((current) => ({ ...current, accountCode: event.target.value }))}>
-              <option value="">All accounts</option>
+              <option value="">{at('All accounts')}</option>
               {accounts.map((account) => <option key={account.code} value={account.code}>{account.code} - {account.name}</option>)}
             </select>
-            <label className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm"><input type="checkbox" checked={filters.showZeroAccounts} onChange={(event) => setFilters((current) => ({ ...current, showZeroAccounts: event.target.checked }))} /> Show zero accounts</label>
+            <label className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm"><input type="checkbox" checked={filters.showZeroAccounts} onChange={(event) => setFilters((current) => ({ ...current, showZeroAccounts: event.target.checked }))} /> {at('Show zero accounts')}</label>
           </div>
-          <TableReportActions targetId="trial-balance-report" title="Trial Balance" fileName="trial-balance" entityType="trial_balance_report" t={(key) => key} />
+          <TableReportActions targetId="trial-balance-report" title={at('Trial Balance')} fileName="trial-balance" entityType="trial_balance_report" t={(key) => key} />
         </div>
         {refError ? <div className="p-5"><Alert type="error">{refError}</Alert></div> : null}
         {error ? <div className="p-5"><Alert type="error">{error}</Alert></div> : null}
@@ -64,7 +65,7 @@ export default function TrialBalancePage() {
         {!loading && !refLoading && data ? (
           <div id="trial-balance-report" className="overflow-x-auto">
             <div className="flex items-center gap-2 px-4 pb-3 pt-4 md:hidden">
-              {data.balanced ? <Badge tone="emerald">Balanced</Badge> : <Badge tone="rose">Out of Balance</Badge>}
+              {data.balanced ? <Badge tone="emerald">{at('Balanced')}</Badge> : <Badge tone="rose">{at('Out of Balance')}</Badge>}
               <span className="muted-chip">Dr {formatCurrency(data.closingDebit, language)}</span>
               <span className="muted-chip">Cr {formatCurrency(data.closingCredit, language)}</span>
             </div>
@@ -83,14 +84,14 @@ export default function TrialBalancePage() {
             <table className="w-full min-w-[1320px]">
               <thead className="table-head">
                 <tr>
-                  <th className="px-4 py-3 text-left">Account</th>
-                  <th className="px-4 py-3 text-left">Type</th>
-                  <th className="px-4 py-3 text-right">Opening Dr</th>
-                  <th className="px-4 py-3 text-right">Opening Cr</th>
-                  <th className="px-4 py-3 text-right">Debit</th>
-                  <th className="px-4 py-3 text-right">Credit</th>
-                  <th className="px-4 py-3 text-right">Closing Dr</th>
-                  <th className="px-4 py-3 text-right">Closing Cr</th>
+                  <th className="px-4 py-3 text-left">{at('Account')}</th>
+                  <th className="px-4 py-3 text-left">{at('Type')}</th>
+                  <th className="px-4 py-3 text-right">{at('Opening Dr')}</th>
+                  <th className="px-4 py-3 text-right">{at('Opening Cr')}</th>
+                  <th className="px-4 py-3 text-right">{at('Debit')}</th>
+                  <th className="px-4 py-3 text-right">{at('Credit')}</th>
+                  <th className="px-4 py-3 text-right">{at('Closing Dr')}</th>
+                  <th className="px-4 py-3 text-right">{at('Closing Cr')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -109,7 +110,7 @@ export default function TrialBalancePage() {
               </tbody>
               <tfoot>
                 <tr className="border-t-2 border-slate-300 font-bold">
-                  <td className="table-cell" colSpan={2}>{data.balanced ? <Badge tone="emerald">Balanced</Badge> : <Badge tone="rose">Out of Balance</Badge>}</td>
+                  <td className="table-cell" colSpan={2}>{data.balanced ? <Badge tone="emerald">{at('Balanced')}</Badge> : <Badge tone="rose">{at('Out of Balance')}</Badge>}</td>
                   <td className="table-cell text-right">{formatCurrency(data.openingDebit, language)}</td>
                   <td className="table-cell text-right">{formatCurrency(data.openingCredit, language)}</td>
                   <td className="table-cell text-right">{formatCurrency(data.debit, language)}</td>

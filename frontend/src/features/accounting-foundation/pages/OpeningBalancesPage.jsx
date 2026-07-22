@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { at } from '../accountingTranslations.js';
 import { Alert, CopyableText, MobileCardList, MobileListCard, Modal, SectionHeader } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
@@ -39,52 +40,52 @@ function OpeningBalanceFormModal({ item, accounts, customers, suppliers, finance
         {error ? <Alert type="error">{error}</Alert> : null}
         <div className="grid gap-4 sm:grid-cols-2">
           <label>
-            <span className="label">Type</span>
+            <span className="label">{at('Type')}</span>
             <select className="input" value={form.referenceType} onChange={(e) => setForm((cur) => ({ ...cur, referenceType: e.target.value, referenceId: '', accountCode: '' }))}>
-              <option value="ACCOUNT">General Ledger Account</option>
-              <option value="CUSTOMER">Customer</option>
-              <option value="SUPPLIER">Supplier</option>
-              <option value="FINANCE_ACCOUNT">Cash / Bank Account</option>
+              <option value="ACCOUNT">{at('General Ledger Account')}</option>
+              <option value="CUSTOMER">{at('Customer')}</option>
+              <option value="SUPPLIER">{at('Supplier')}</option>
+              <option value="FINANCE_ACCOUNT">{at('Cash / Bank Account')}</option>
             </select>
           </label>
           <label>
-            <span className="label">Date</span>
+            <span className="label">{at('Date')}</span>
             <input type="date" className="input" value={form.balanceDate} onChange={(e) => setForm((cur) => ({ ...cur, balanceDate: e.target.value }))} required />
           </label>
           {form.referenceType === 'ACCOUNT' ? (
             <label className="sm:col-span-2">
-              <span className="label">Account</span>
+              <span className="label">{at('Account')}</span>
               <select className="input" value={form.accountCode} onChange={(e) => setForm((cur) => ({ ...cur, accountCode: e.target.value }))} required>
-                <option value="">Select account</option>
+                <option value="">{at('Select account')}</option>
                 {accounts.map((account) => <option key={account.code} value={account.code}>{account.code} - {account.name}</option>)}
               </select>
             </label>
           ) : (
             <label className="sm:col-span-2">
-              <span className="label">Reference</span>
+              <span className="label">{at('Reference')}</span>
               <select className="input" value={form.referenceId} onChange={(e) => setForm((cur) => ({ ...cur, referenceId: e.target.value }))} required>
-                <option value="">Select reference</option>
+                <option value="">{at('Select reference')}</option>
                 {referenceOptions.map((row) => <option key={row.id} value={row.id}>{row.name}</option>)}
               </select>
             </label>
           )}
           <label>
-            <span className="label">Amount</span>
+            <span className="label">{at('Amount')}</span>
             <input type="number" min="0" step="0.01" className="input" value={form.amount} onChange={(e) => setForm((cur) => ({ ...cur, amount: e.target.value }))} required />
           </label>
           <label>
-            <span className="label">Balance Side</span>
+            <span className="label">{at('Balance Side')}</span>
             <select className="input" value={form.balanceSide} onChange={(e) => setForm((cur) => ({ ...cur, balanceSide: e.target.value }))}>
-              <option value="DEBIT">Debit</option>
-              <option value="CREDIT">Credit</option>
+              <option value="DEBIT">{at('Debit')}</option>
+              <option value="CREDIT">{at('Credit')}</option>
             </select>
           </label>
           <label className="sm:col-span-2">
-            <span className="label">Note</span>
+            <span className="label">{at('Note')}</span>
             <textarea className="input min-h-[88px]" value={form.note} onChange={(e) => setForm((cur) => ({ ...cur, note: e.target.value }))} />
           </label>
         </div>
-        <div className="flex justify-end gap-2"><button type="button" className="btn-secondary" onClick={onClose}>Cancel</button><button type="submit" className="btn-primary" disabled={saving}>{saving ? 'Saving...' : 'Save'}</button></div>
+        <div className="flex justify-end gap-2"><button type="button" className="btn-secondary" onClick={onClose}>{at('Cancel')}</button><button type="submit" className="btn-primary" disabled={saving}>{saving ? at('Saving...') : at('Save')}</button></div>
       </form>
     </Modal>
   );
@@ -125,16 +126,16 @@ export default function OpeningBalancesPage() {
       await balanceMutation.mutateAsync({ id: modal?.item?.id, form });
       setModal(null);
       await load();
-      pushToast('success', 'Opening Balances', modal?.item ? 'Opening balance updated.' : 'Opening balance created.');
+      pushToast('success', at('Opening Balances'), modal?.item ? at('Opening balance updated.') : at('Opening balance created.'));
       return { ok: true };
     } catch (err) {
-      return { error: err?.message || 'Request failed.' };
+      return { error: err?.message || at('Request failed.') };
     }
   }
 
   return (
     <div>
-      <SectionHeader eyebrow="Accounting" title="Opening Balances" description="Each opening balance posts a proper journal entry against owner�s equity and stays inside the journal engine." action={canManage ? <button type="button" className="btn-primary" onClick={() => setModal({})}>Add Opening Balance</button> : null} />
+      <SectionHeader eyebrow={at('Accounting')} title={at(at('Opening Balances'))} description={at('Each opening balance posts a proper journal entry against owner�s equity and stays inside the journal engine.')} action={canManage ? <button type="button" className="btn-primary" onClick={() => setModal({})}>{at('Add Opening Balance')}</button> : null} />
       {error ? <Alert type="error">{error}</Alert> : null}
       <div className="surface overflow-hidden">
         <MobileCardList>
@@ -153,13 +154,13 @@ export default function OpeningBalancesPage() {
         <table className="w-full">
           <thead className="table-head">
             <tr>
-              <th className="px-4 py-3">Reference</th>
-              <th className="px-4 py-3">Account</th>
-              <th className="px-4 py-3">Date</th>
-              <th className="px-4 py-3">Side</th>
-              <th className="px-4 py-3 text-right">Amount</th>
-              <th className="px-4 py-3">Journal</th>
-              {canManage ? <th className="px-4 py-3 text-right">Actions</th> : null}
+              <th className="px-4 py-3">{at('Reference')}</th>
+              <th className="px-4 py-3">{at('Account')}</th>
+              <th className="px-4 py-3">{at('Date')}</th>
+              <th className="px-4 py-3">{at('Side')}</th>
+              <th className="px-4 py-3 text-right">{at('Amount')}</th>
+              <th className="px-4 py-3">{at('Journal')}</th>
+              {canManage ? <th className="px-4 py-3 text-right">{at('Actions')}</th> : null}
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
@@ -171,7 +172,7 @@ export default function OpeningBalancesPage() {
                 <td className="table-cell">{item.balanceSide}</td>
                 <td className="table-cell text-right">{formatCurrency(item.amount, language)}</td>
                 <td className="table-cell font-mono text-xs"><CopyableText value={item.journalEntryId} displayValue={item.journalEntryId.slice(0, 16)} copyLabel="journal entry id" /></td>
-                {canManage ? <td className="table-cell text-right"><button type="button" className="btn-secondary" onClick={() => setModal({ item })}>Edit</button></td> : null}
+                {canManage ? <td className="table-cell text-right"><button type="button" className="btn-secondary" onClick={() => setModal({ item })}>{at('Edit')}</button></td> : null}
               </tr>
             ))}
           </tbody>

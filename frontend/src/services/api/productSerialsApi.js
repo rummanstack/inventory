@@ -26,4 +26,12 @@ export const productSerialsApi = {
   listProductSerialsTrash({ page, pageSize } = {}) {
     return apiRequest(`/product-serials/trash${buildQueryString({ page, pageSize })}`);
   },
+
+  findProductSerialByBarcode(barcode) {
+    return apiRequest(`/product-serials/barcode/${encodeURIComponent(barcode)}`);
+  },
+
+  bulkImportProductSerials({ productId, rows }) {
+    return apiRequest('/product-serials/bulk', { method: 'POST', body: JSON.stringify({ productId, rows }) });
+  },
 };

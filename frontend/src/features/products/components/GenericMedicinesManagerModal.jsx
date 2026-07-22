@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { pt } from '../../platformProductTranslations.js';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Check, Loader2, Pencil, Plus, Trash2, X } from 'lucide-react';
 import { Alert, Badge, EmptyState, Modal, TableSkeleton, Select } from '../../../components/ui.jsx';
@@ -50,7 +51,7 @@ export default function GenericMedicinesManagerModal({ onClose, onChanged }) {
       setForm({ name: '', description: '' });
       onChanged?.();
     } catch (err) {
-      setError(err.message || 'Failed to add.');
+      setError(err.message || pt('Failed to add.'));
     } finally {
       setAdding(false);
     }
@@ -70,7 +71,7 @@ export default function GenericMedicinesManagerModal({ onClose, onChanged }) {
       setEditingId(null);
       onChanged?.();
     } catch (err) {
-      setError(err.message || 'Failed to save.');
+      setError(err.message || pt('Failed to save.'));
     } finally {
       setSavingId(null);
     }
@@ -89,7 +90,7 @@ export default function GenericMedicinesManagerModal({ onClose, onChanged }) {
       await genericMedicineMutation.mutateAsync({ action: 'delete', id: item.id });
       onChanged?.();
     } catch (err) {
-      pushToast('error', 'Error', err.message || 'Cannot delete — it may still have products.');
+      pushToast('error', pt('Error'), err.message || pt('Cannot delete — it may still have products.'));
     } finally {
       setDeletingId(null);
     }
@@ -141,8 +142,8 @@ export default function GenericMedicinesManagerModal({ onClose, onChanged }) {
                       disabled={savingId === item.id}
                     />
                     <Select className="input h-9 w-32 shrink-0" value={editForm.status} onChange={(e) => setEditForm((f) => ({ ...f, status: e.target.value }))} disabled={savingId === item.id}>
-                      <option value="ACTIVE">Active</option>
-                      <option value="INACTIVE">Inactive</option>
+                      <option value="ACTIVE">{pt('Active')}</option>
+                      <option value="INACTIVE">{pt('Inactive')}</option>
                     </Select>
                     <button type="button" className="icon-btn text-emerald-600" onClick={() => handleSaveEdit(item)} disabled={savingId === item.id}>
                       {savingId === item.id ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}

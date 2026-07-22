@@ -137,7 +137,7 @@ export default function SrDueLedgerPage() {
     const ws = utils.aoa_to_sheet([header, ...data]);
     ws['!cols'] = [{ wch: 14 }, { wch: 20 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 28 }, { wch: 18 }];
     const wb = utils.book_new();
-    utils.book_append_sheet(wb, ws, 'SR Due Ledger');
+    utils.book_append_sheet(wb, ws, t('srDueLedgerPage.sheetName'));
     writeFile(wb, `sr-due-${selectedSr?.name || vm.srId}.xlsx`);
   }
 

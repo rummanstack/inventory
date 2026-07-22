@@ -41,7 +41,7 @@ import {
   restoreProductSerial,
   deleteProductSerialById,
 } from "../repositories/productSerialRepository.js";
-import { PRODUCT_SERIAL_STATUSES } from "../lib/productSerials.js";
+import { PRODUCT_SERIAL_STATUSES, generateUniqueSerialBarcode } from "../lib/productSerials.js";
 import {
   logActivity,
   lockProducts,
@@ -164,16 +164,20 @@ async function validateSerialRequirements(client, items, productMap, tenantId) {
       `${product.name} requires ${item.quantityPieces} serial/IMEI number(s), but ${item.serials.length} were entered.`,
     );
 
-    for (const serial of item.serials) {
-      assert(!seen.has(serial), `Serial/IMEI "${serial}" was entered more than once in this purchase.`);
-      seen.add(serial);
+    for (const serialEntry of item.serials) {
+      const serialNumber = serialEntry.serialNumber;
+      assert(!seen.has(serialNumber), `Serial/IMEI "${serialNumber}" was entered more than once in this purchase.`);
+      seen.add(serialNumber);
 
-      const duplicate = await findDuplicateProductSerial(client, { tenantId, serialNumber: serial });
-      assert(!duplicate, `Serial/IMEI "${serial}" already exists in inventory.`);
+      const duplicate = await findDuplicateProductSerial(client, { tenantId, serialNumber, barcode: serialEntry.barcode });
+      assert(!duplicate, `Serial/IMEI "${serialNumber}" already exists in inventory.`);
     }
   }
 }
 
+// Each unit gets the line's purchase price by default (its actual per-unit cost)
+// unless the entry named its own — and a barcode auto-generated when none was
+// entered, same as adding a single serial by hand.
 async function insertSerialsForItems(client, items, productMap, { tenantId, purchaseReceiptId }) {
   for (const item of items) {
     const product = productMap.get(item.productId);
@@ -181,14 +185,26 @@ async function insertSerialsForItems(client, items, productMap, { tenantId, purc
       continue;
     }
 
-    for (const serial of item.serials) {
+    for (const serialEntry of item.serials) {
       const serialRecord = normalizeProductSerial({
         productId: item.productId,
-        serialNumber: serial,
+        serialNumber: serialEntry.serialNumber,
+        barcode: serialEntry.barcode,
+        purchasePrice: serialEntry.purchasePrice != null ? serialEntry.purchasePrice : item.purchasePrice,
+        salePrice: serialEntry.salePrice,
         purchaseReceiptId,
         purchaseReceiptItemId: item.id,
       });
       serialRecord.tenantId = tenantId;
+
+      if (!serialRecord.barcode) {
+        const barcode = await generateUniqueSerialBarcode((candidate) =>
+          findDuplicateProductSerial(client, { tenantId, barcode: candidate }),
+        );
+        assert(barcode, "Could not generate a unique barcode. Please try again.");
+        serialRecord.barcode = barcode;
+      }
+
       await insertProductSerial(client, serialRecord);
     }
   }
@@ -292,7 +308,7 @@ async function reconcilePurchaseItemSerials(client, { tenantId, purchaseReceiptI
 
     const previousSerials = sameProduct ? existingSerialsForItemId : [];
     const previousValues = new Set(previousSerials.map((serial) => serial.serial_number));
-    const nextValues = new Set(item.serials);
+    const nextValues = new Set(item.serials.map((entry) => entry.serialNumber));
 
     toRemove.push(...previousSerials.filter((serial) => !nextValues.has(serial.serial_number)));
 
@@ -303,11 +319,11 @@ async function reconcilePurchaseItemSerials(client, { tenantId, purchaseReceiptI
       );
 
       const seenInItem = new Set();
-      for (const value of item.serials) {
-        assert(!seenInItem.has(value), `Serial/IMEI "${value}" was entered more than once in this purchase.`);
-        seenInItem.add(value);
-        if (!previousValues.has(value)) {
-          toAdd.push({ item, serialNumber: value });
+      for (const entry of item.serials) {
+        assert(!seenInItem.has(entry.serialNumber), `Serial/IMEI "${entry.serialNumber}" was entered more than once in this purchase.`);
+        seenInItem.add(entry.serialNumber);
+        if (!previousValues.has(entry.serialNumber)) {
+          toAdd.push({ item, serialEntry: entry });
         }
       }
     }
@@ -330,17 +346,29 @@ async function reconcilePurchaseItemSerials(client, { tenantId, purchaseReceiptI
     await deleteProductSerialById(client, row.id, tenantId);
   }
 
-  for (const { item, serialNumber } of toAdd) {
-    const duplicate = await findDuplicateProductSerial(client, { tenantId, serialNumber });
-    assert(!duplicate, `Serial/IMEI "${serialNumber}" already exists in inventory.`);
+  for (const { item, serialEntry } of toAdd) {
+    const duplicate = await findDuplicateProductSerial(client, { tenantId, serialNumber: serialEntry.serialNumber, barcode: serialEntry.barcode });
+    assert(!duplicate, `Serial/IMEI "${serialEntry.serialNumber}" already exists in inventory.`);
 
     const serialRecord = normalizeProductSerial({
       productId: item.productId,
-      serialNumber,
+      serialNumber: serialEntry.serialNumber,
+      barcode: serialEntry.barcode,
+      purchasePrice: serialEntry.purchasePrice != null ? serialEntry.purchasePrice : item.purchasePrice,
+      salePrice: serialEntry.salePrice,
       purchaseReceiptId,
       purchaseReceiptItemId: item.id,
     });
     serialRecord.tenantId = tenantId;
+
+    if (!serialRecord.barcode) {
+      const barcode = await generateUniqueSerialBarcode((candidate) =>
+        findDuplicateProductSerial(client, { tenantId, barcode: candidate }),
+      );
+      assert(barcode, "Could not generate a unique barcode. Please try again.");
+      serialRecord.barcode = barcode;
+    }
+
     await insertProductSerial(client, serialRecord);
   }
 }

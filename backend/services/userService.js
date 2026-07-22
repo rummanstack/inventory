@@ -3,6 +3,9 @@ import { validateEmail } from "../lib/email.js";
 import { createId } from "../lib/ids.js";
 import { generateTempPassword, hashPassword, validatePasswordStrength, verifyPassword } from "../lib/passwords.js";
 import { USER_ROLES, TENANT_ROLE_VALUES } from "../lib/roles.js";
+import { TENANT_BUSINESS_PERMISSIONS } from "../lib/permissions.js";
+import { TENANT_FEATURES } from "../lib/features.js";
+import { setCachedPermissions } from "../lib/permissionCache.js";
 import {
   countTrashedUsers,
   deleteAllSessionsForUser,
@@ -22,7 +25,10 @@ import {
 } from "../repositories/userRepository.js";
 import { listPendingResetRequests } from "../repositories/passwordResetRepository.js";
 import { findTenantById, listTenants as listTenantsRepo } from "../repositories/tenantRepository.js";
+import { hasTenantFeatureConfig, listTenantFeatures } from "../repositories/tenantFeatureRepository.js";
+import { hasAnyRolePermissions, replaceRolePermissions } from "../repositories/rolePermissionRepository.js";
 import { parsePagination, buildPageResult } from "../lib/pagination.js";
+import { permissionMatchesEnabledFeatures } from "./permissionService.js";
 
 function normalizeEmail(email) {
   return String(email || "")
@@ -121,6 +127,29 @@ export class UserService {
       };
 
       await insertUser(client, user);
+
+      // A tenant created via the platform admin flow (unlike self-registration,
+      // which seeds this atomically — see registrationService.js) has no user
+      // and no role_permissions rows yet. Without this, a brand-new super_admin
+      // would log in to a tenant where every page 403s until someone remembers
+      // to visit the Permissions page. Only fires for a tenant's first
+      // super_admin — hasAnyRolePermissions is false only when this role has
+      // truly never been configured for this tenant (an explicit "grant
+      // nothing" save still leaves a row via the empty-permission sentinel).
+      if (role === USER_ROLES.SUPER_ADMIN) {
+        const alreadyConfigured = await hasAnyRolePermissions(client, USER_ROLES.SUPER_ADMIN, tenantId);
+        if (!alreadyConfigured) {
+          const tenantFeatures = (await hasTenantFeatureConfig(client, tenantId))
+            ? await listTenantFeatures(client, tenantId)
+            : [...TENANT_FEATURES];
+          const ownerPermissions = TENANT_BUSINESS_PERMISSIONS.filter((permission) =>
+            permissionMatchesEnabledFeatures(permission, tenantFeatures),
+          );
+          await replaceRolePermissions(client, USER_ROLES.SUPER_ADMIN, tenantId, ownerPermissions);
+          setCachedPermissions(USER_ROLES.SUPER_ADMIN, tenantId, ownerPermissions);
+        }
+      }
+
       await this.auditService.record(client, {
         tenantId,
         userId: actor.id,

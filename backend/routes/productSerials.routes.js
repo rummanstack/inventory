@@ -25,11 +25,31 @@ export function createProductSerialsRoutes(productSerialController) {
     productSerialController.listAvailable,
   );
 
+  // Same broad, sale-time access as /available above — scanning a barcode at
+  // checkout needs this before the cashier ever reaches the standalone page.
+  router.get(
+    "/barcode/:barcode",
+    requireFeature("products"),
+    requireAnyPermission(
+      PERMISSIONS.VIEW_PRODUCTS,
+      PERMISSIONS.MANAGE_PRODUCTS,
+      PERMISSIONS.MANAGE_RETAIL_QUICK_SALE,
+      PERMISSIONS.VIEW_RETAIL_SALES_INVOICES,
+      PERMISSIONS.MANAGE_RETAIL_SALES_INVOICES,
+      PERMISSIONS.VIEW_RETAIL_SALES_RETURNS,
+      PERMISSIONS.MANAGE_RETAIL_SALES_RETURNS,
+      PERMISSIONS.VIEW_WARRANTY_CLAIMS,
+      PERMISSIONS.MANAGE_WARRANTY_CLAIMS,
+    ),
+    productSerialController.getByBarcode,
+  );
+
   router.use(requireFeature("product-serials"));
   router.get("/trash", requirePermission(PERMISSIONS.MANAGE_PRODUCT_SERIALS), productSerialController.listTrash);
   router.get("/", requirePermission(PERMISSIONS.VIEW_PRODUCT_SERIALS), productSerialController.list);
   router.get("/:id", requirePermission(PERMISSIONS.VIEW_PRODUCT_SERIALS), productSerialController.get);
   router.post("/", requirePermission(PERMISSIONS.MANAGE_PRODUCT_SERIALS), productSerialController.create);
+  router.post("/bulk", requirePermission(PERMISSIONS.MANAGE_PRODUCT_SERIALS), productSerialController.bulkCreate);
   router.patch("/:id", requirePermission(PERMISSIONS.MANAGE_PRODUCT_SERIALS), productSerialController.update);
   router.delete("/:id", requirePermission(PERMISSIONS.MANAGE_PRODUCT_SERIALS), productSerialController.remove);
 

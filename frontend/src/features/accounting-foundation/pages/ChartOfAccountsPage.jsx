@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { at } from '../accountingTranslations.js';
 import { Badge, CopyableText, MobileCardList, MobileListCard, Modal, SectionHeader, Alert } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
@@ -40,28 +41,28 @@ function AccountFormModal({ account, accounts, onClose, onSave }) {
         {error ? <Alert type="error">{error}</Alert> : null}
         <div className="grid gap-4 sm:grid-cols-2">
           <label>
-            <span className="label">Code</span>
+            <span className="label">{at('Code')}</span>
             <input className="input" value={form.code} disabled={Boolean(account)} onChange={(e) => setForm((cur) => ({ ...cur, code: e.target.value }))} required />
           </label>
           <label>
-            <span className="label">Type</span>
+            <span className="label">{at('Type')}</span>
             <select className="input" value={form.type} onChange={(e) => setForm((cur) => ({ ...cur, type: e.target.value }))}>
               {ACCOUNT_TYPES.map((type) => <option key={type} value={type}>{type}</option>)}
             </select>
           </label>
           <label className="sm:col-span-2">
-            <span className="label">Name</span>
+            <span className="label">{at('Name')}</span>
             <input className="input" value={form.name} onChange={(e) => setForm((cur) => ({ ...cur, name: e.target.value }))} required />
           </label>
           <label>
-            <span className="label">Parent Account</span>
+            <span className="label">{at('Parent Account')}</span>
             <select className="input" value={form.parentCode} onChange={(e) => setForm((cur) => ({ ...cur, parentCode: e.target.value }))}>
-              <option value="">None</option>
+              <option value="">{at('None')}</option>
               {accounts.filter((item) => item.code !== account?.code).map((item) => <option key={item.code} value={item.code}>{item.code} - {item.name}</option>)}
             </select>
           </label>
           <label>
-            <span className="label">Account Group</span>
+            <span className="label">{at('Account Group')}</span>
             <input className="input" value={form.accountGroup} onChange={(e) => setForm((cur) => ({ ...cur, accountGroup: e.target.value }))} />
           </label>
         </div>
@@ -83,8 +84,8 @@ function AccountFormModal({ account, accounts, onClose, onSave }) {
           </label>
         </div>
         <div className="flex justify-end gap-2">
-          <button type="button" className="btn-secondary" onClick={onClose}>Cancel</button>
-          <button type="submit" className="btn-primary" disabled={saving}>{saving ? 'Saving...' : 'Save'}</button>
+          <button type="button" className="btn-secondary" onClick={onClose}>{at('Cancel')}</button>
+          <button type="submit" className="btn-primary" disabled={saving}>{saving ? at('Saving...') : at('Save')}</button>
         </div>
       </form>
     </Modal>
@@ -114,20 +115,20 @@ export default function ChartOfAccountsPage() {
       await saveMutation.mutateAsync({ code: modal?.account?.code, form });
       setModal(null);
       await accountsQuery.refetch();
-      pushToast('success', 'Chart of Accounts', modal?.account ? 'Account updated.' : 'Account created.');
+      pushToast('success', at('Chart of Accounts'), modal?.account ? at('Account updated.') : at('Account created.'));
       return { ok: true };
     } catch (err) {
-      return { error: err?.message || 'Request failed.' };
+      return { error: err?.message || at('Request failed.') };
     }
   }
 
   return (
     <div>
       <SectionHeader
-        eyebrow="Accounting"
-        title="Chart of Accounts"
-        description="Manage parent and child accounts without touching the existing system account codes."
-        action={canManage ? <button type="button" className="btn-primary" onClick={() => setModal({})}>Add Account</button> : null}
+        eyebrow={at('Accounting')}
+        title={at(at('Chart of Accounts'))}
+        description={at('Manage parent and child accounts without touching the existing system account codes.')}
+        action={canManage ? <button type="button" className="btn-primary" onClick={() => setModal({})}>{at('Add Account')}</button> : null}
       />
       {error ? <Alert type="error">{error}</Alert> : null}
       <div className="surface overflow-hidden">
@@ -138,7 +139,7 @@ export default function ChartOfAccountsPage() {
               onClick={canManage ? () => setModal({ account }) : undefined}
               title={account.name}
               badge={<Badge tone={account.isActive ? 'emerald' : 'slate'}>{account.isActive ? 'Active' : 'Inactive'}</Badge>}
-              subtitle={`${account.code} · ${account.type}`}
+              subtitle={`${account.code} · ${at(account.type)}`}
               value={account.isSystem ? 'System' : null}
             />
           ))}
@@ -147,14 +148,14 @@ export default function ChartOfAccountsPage() {
         <table className="w-full">
           <thead className="table-head">
             <tr>
-              <th className="px-4 py-3">Code</th>
-              <th className="px-4 py-3">Name</th>
-              <th className="px-4 py-3">Type</th>
-              <th className="px-4 py-3">Group</th>
-              <th className="px-4 py-3">Parent</th>
-              <th className="px-4 py-3">Flags</th>
-              <th className="px-4 py-3">Status</th>
-              {canManage ? <th className="px-4 py-3 text-right">Actions</th> : null}
+              <th className="px-4 py-3">{at('Code')}</th>
+              <th className="px-4 py-3">{at('Name')}</th>
+              <th className="px-4 py-3">{at('Type')}</th>
+              <th className="px-4 py-3">{at('Group')}</th>
+              <th className="px-4 py-3">{at('Parent')}</th>
+              <th className="px-4 py-3">{at('Flags')}</th>
+              <th className="px-4 py-3">{at('Status')}</th>
+              {canManage ? <th className="px-4 py-3 text-right">{at('Actions')}</th> : null}
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
@@ -162,20 +163,20 @@ export default function ChartOfAccountsPage() {
               <tr key={account.code} className="hover:bg-slate-50">
                 <td className="table-cell font-mono text-xs"><CopyableText value={account.code} displayValue={account.code} copyLabel="account code" /></td>
                 <td className="table-cell font-semibold text-slate-950">{account.name}</td>
-                <td className="table-cell">{account.type}</td>
+                <td className="table-cell">{at(account.type)}</td>
                 <td className="table-cell">{account.accountGroup || '-'}</td>
                 <td className="table-cell font-mono text-xs">{account.parentCode || '-'}</td>
                 <td className="table-cell">
                   <div className="flex flex-wrap gap-1">
-                    {account.isSystem ? <Badge tone="slate">System</Badge> : null}
-                    {account.isCashAccount ? <Badge tone="emerald">Cash</Badge> : null}
-                    {account.isBankAccount ? <Badge tone="blue">Bank</Badge> : null}
-                    {account.isReceivableAccount ? <Badge tone="amber">Receivable</Badge> : null}
-                    {account.isPayableAccount ? <Badge tone="rose">Payable</Badge> : null}
+                    {account.isSystem ? <Badge tone="slate">{at('System')}</Badge> : null}
+                    {account.isCashAccount ? <Badge tone="emerald">{at('Cash')}</Badge> : null}
+                    {account.isBankAccount ? <Badge tone="blue">{at('Bank')}</Badge> : null}
+                    {account.isReceivableAccount ? <Badge tone="amber">{at('Receivable')}</Badge> : null}
+                    {account.isPayableAccount ? <Badge tone="rose">{at('Payable')}</Badge> : null}
                   </div>
                 </td>
                 <td className="table-cell">{account.isActive ? 'Active' : 'Inactive'}</td>
-                {canManage ? <td className="table-cell text-right"><button type="button" className="btn-secondary" onClick={() => setModal({ account })}>Edit</button></td> : null}
+                {canManage ? <td className="table-cell text-right"><button type="button" className="btn-secondary" onClick={() => setModal({ account })}>{at('Edit')}</button></td> : null}
               </tr>
             ))}
           </tbody>

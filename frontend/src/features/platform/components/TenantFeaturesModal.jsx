@@ -1,3 +1,4 @@
+import { pt } from '../../platformProductTranslations.js';
 import { useEffect, useMemo, useState } from 'react';
 import { CheckSquare, Save, Sparkles, Square } from 'lucide-react';
 import { Alert, Modal } from '../../../components/ui.jsx';
@@ -281,11 +282,11 @@ export default function TenantFeaturesModal({ tenant, onClose, onSave }) {
                       className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-semibold text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
                     >
                       {allEnabled ? (
-                        <><CheckSquare size={13} className="text-indigo-500" /> Deselect all</>
+                        <><CheckSquare size={13} className="text-indigo-500" /> {pt('Deselect all')}</>
                       ) : someEnabled ? (
-                        <><Square size={13} className="text-slate-400" /> Select all</>
+                        <><Square size={13} className="text-slate-400" /> {pt('Select all')}</>
                       ) : (
-                        <><Square size={13} className="text-slate-300" /> Select all</>
+                        <><Square size={13} className="text-slate-300" /> {pt('Select all')}</>
                       )}
                     </button>
                   </div>

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { pt } from '../../platformProductTranslations.js';
 import { Building2, Check, Mail, Phone, RefreshCw, X } from 'lucide-react';
 import { Badge, EmptyState, SectionHeader } from '../../../components/ui.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
@@ -27,7 +28,7 @@ function RegistrationCard({ item, language, busy, onApprove, onReject }) {
             {BUSINESS_TYPE_LABELS[item.businessType] || item.businessType} · {item.slug}
           </p>
         </div>
-        <Badge tone={isPending ? 'amber' : 'rose'}>{isPending ? 'Pending' : 'Rejected'}</Badge>
+        <Badge tone={isPending ? 'amber' : 'rose'}>{pt(isPending ? 'Pending' : 'Rejected')}</Badge>
       </div>
 
       <div className="mt-3 space-y-1 text-sm font-medium text-slate-700">
@@ -47,7 +48,7 @@ function RegistrationCard({ item, language, busy, onApprove, onReject }) {
       <div className="mt-4 flex gap-2">
         <button type="button" className="btn-primary flex-1" disabled={busy} onClick={() => onApprove(item)}>
           <Check size={15} />
-          Approve
+          {pt('Approve')}
         </button>
         {isPending ? (
           <button
@@ -57,7 +58,7 @@ function RegistrationCard({ item, language, busy, onApprove, onReject }) {
             onClick={() => onReject(item)}
           >
             <X size={15} />
-            Reject
+            {pt('Reject')}
           </button>
         ) : null}
       </div>
@@ -81,50 +82,50 @@ export default function RegistrationRequestsPage() {
   const loading = requestsQuery.isLoading || requestsQuery.isFetching;
   const busyId = actionMutation.isPending ? actionMutation.variables?.id : '';
   const load = () => requestsQuery.refetch().catch((error) => {
-    pushToast('error', 'Failed to load', error?.message || 'Could not load registration requests.');
+    pushToast('error', pt('Failed to load'), error?.message || pt('Could not load registration requests.'));
   });
 
   async function handleApprove(item) {
     const ok = await confirm({
-      title: `Approve ${item.name}?`,
-      description: 'The business becomes active immediately and the owner can log in with the password they chose at registration.',
+      title: `${item.name}: ${pt('Approve')}?`,
+      description: pt('The business becomes active immediately and the owner can log in with the password they chose at registration.'),
       tone: 'emerald',
     });
     if (!ok) return;
     try {
       await actionMutation.mutateAsync({ id: item.id, action: 'approve' });
-      pushToast('success', 'Registration approved', `${item.name} is now active.`);
+      pushToast('success', pt('Registration approved'), `${item.name} ${pt('is now active.')}`);
       await load();
     } catch (error) {
-      pushToast('error', 'Approval failed', error?.message);
+      pushToast('error', pt('Approval failed'), error?.message);
     }
   }
 
   async function handleReject(item) {
     const ok = await confirm({
-      title: `Reject ${item.name}?`,
-      description: 'The owner will not be able to log in. You can still approve this registration later.',
+      title: `${item.name}: ${pt('Reject')}?`,
+      description: pt('The owner will not be able to log in. You can still approve this registration later.'),
       tone: 'rose',
     });
     if (!ok) return;
     try {
       await actionMutation.mutateAsync({ id: item.id, action: 'reject' });
-      pushToast('success', 'Registration rejected', `${item.name} was rejected.`);
+      pushToast('success', pt('Registration rejected'), `${item.name} ${pt('was rejected.')}`);
       await load();
     } catch (error) {
-      pushToast('error', 'Rejection failed', error?.message);
+      pushToast('error', pt('Rejection failed'), error?.message);
     }
   }
 
   return (
     <div className="page-container">
       <SectionHeader
-        title="Registration Requests"
-        description="Businesses that signed up from the landing page and are waiting for activation."
+        title={pt('Registration Requests')}
+        description={pt('Businesses that signed up from the landing page and are waiting for activation.')}
         actions={
           <button type="button" className="btn-secondary" onClick={load} disabled={loading}>
             <RefreshCw size={15} className={loading ? 'animate-spin' : ''} />
-            Refresh
+            {pt('Refresh')}
           </button>
         }
       />
@@ -134,7 +135,7 @@ export default function RegistrationRequestsPage() {
           <RefreshCw size={20} className="animate-spin text-slate-400" />
         </div>
       ) : items.length === 0 ? (
-        <EmptyState title="No pending registrations" description="New signups from the landing page will appear here." />
+        <EmptyState title={pt('No pending registrations')} description={pt('New signups from the landing page will appear here.')} />
       ) : (
         <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {items.map((item) => (

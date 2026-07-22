@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { at } from '../../accounting-foundation/accountingTranslations.js';
 import { Wallet } from 'lucide-react';
 import TableReportActions from '../../../components/TableReportActions.jsx';
 import { Alert, CopyableText, EmptyState, MobileCardList, MobileListCard, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
@@ -26,7 +27,7 @@ function CashOrBankBookPage({ title, kind, reportId }) {
 
   return (
     <div>
-      <SectionHeader eyebrow="Accounting" title={title} description={`${title} generated from cash and bank journal activity with running balance.`} />
+      <SectionHeader eyebrow={at('Accounting')} title={title} description={`${title} generated from cash and bank journal activity with running balance.`} />
       <div className="surface overflow-hidden">
         <div className="flex flex-wrap items-end justify-between gap-3 border-b border-slate-100 p-5 no-print">
           <div className="grid flex-1 gap-3 md:grid-cols-3 xl:grid-cols-5">
@@ -34,10 +35,10 @@ function CashOrBankBookPage({ title, kind, reportId }) {
               <option value="">{kind === 'BANK' ? 'All bank accounts' : 'All cash accounts'}</option>
               {filteredAccounts.map((account) => <option key={account.code} value={account.code}>{account.code} - {account.name}</option>)}
             </select>
-            <DatePickerField value={filters.dateFrom} onChange={(value) => setFilters((current) => ({ ...current, dateFrom: value }))} placeholder="Date from" />
-            <DatePickerField value={filters.dateTo} onChange={(value) => setFilters((current) => ({ ...current, dateTo: value }))} placeholder="Date to" min={filters.dateFrom || null} />
-            <input className="input" placeholder="Voucher" value={filters.voucherNumber} onChange={(event) => setFilters((current) => ({ ...current, voucherNumber: event.target.value }))} />
-            <input className="input" placeholder="Reference" value={filters.reference} onChange={(event) => setFilters((current) => ({ ...current, reference: event.target.value }))} />
+            <DatePickerField value={filters.dateFrom} onChange={(value) => setFilters((current) => ({ ...current, dateFrom: value }))} placeholder={at('Date from')} />
+            <DatePickerField value={filters.dateTo} onChange={(value) => setFilters((current) => ({ ...current, dateTo: value }))} placeholder={at('Date to')} min={filters.dateFrom || null} />
+            <input className="input" placeholder={at('Voucher')} value={filters.voucherNumber} onChange={(event) => setFilters((current) => ({ ...current, voucherNumber: event.target.value }))} />
+            <input className="input" placeholder={at('Reference')} value={filters.reference} onChange={(event) => setFilters((current) => ({ ...current, reference: event.target.value }))} />
           </div>
           <TableReportActions targetId={reportId} title={title} fileName={reportId} entityType={reportId} t={(key) => key} />
         </div>
@@ -46,14 +47,14 @@ function CashOrBankBookPage({ title, kind, reportId }) {
         {loading || refLoading ? <div className="p-5"><TableSkeleton columns={8} /></div> : null}
         {!loading && !refLoading && data && data.lines.length === 0 ? (
           <div className="p-10">
-            <EmptyState icon={Wallet} title={`No ${title.toLowerCase()} entries`} description="Adjust the filters or wait for posted journal activity in the selected accounts." />
+            <EmptyState icon={Wallet} title={`No ${title.toLowerCase()} entries`} description={at('Adjust the filters or wait for posted journal activity in the selected accounts.')} />
           </div>
         ) : null}
         {!loading && !refLoading && data && data.lines.length > 0 ? (
           <div id={reportId} className="overflow-x-auto">
             <div className="grid gap-4 border-b border-slate-100 bg-slate-50 px-5 py-4 md:grid-cols-3">
-              <div><div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Opening Balance</div><div className="mt-1 text-lg font-semibold text-slate-950">{formatCurrency(data.openingBalance || 0, language)}</div></div>
-              <div><div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Closing Balance</div><div className="mt-1 text-lg font-semibold text-slate-950">{formatCurrency(data.closingBalance || 0, language)}</div></div>
+              <div><div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">{at('Opening Balance')}</div><div className="mt-1 text-lg font-semibold text-slate-950">{formatCurrency(data.openingBalance || 0, language)}</div></div>
+              <div><div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">{at('Closing Balance')}</div><div className="mt-1 text-lg font-semibold text-slate-950">{formatCurrency(data.closingBalance || 0, language)}</div></div>
             </div>
             <MobileCardList>
               {data.lines.map((line) => (
@@ -71,14 +72,14 @@ function CashOrBankBookPage({ title, kind, reportId }) {
             <table className="w-full min-w-[1280px]">
               <thead className="table-head">
                 <tr>
-                  <th className="px-4 py-3 text-left">Date</th>
-                  <th className="px-4 py-3 text-left">Voucher</th>
-                  <th className="px-4 py-3 text-left">Type</th>
-                  <th className="px-4 py-3 text-left">Account</th>
-                  <th className="px-4 py-3 text-left">Reference</th>
-                  <th className="px-4 py-3 text-right">Debit</th>
-                  <th className="px-4 py-3 text-right">Credit</th>
-                  <th className="px-4 py-3 text-right">Balance</th>
+                  <th className="px-4 py-3 text-left">{at('Date')}</th>
+                  <th className="px-4 py-3 text-left">{at('Voucher')}</th>
+                  <th className="px-4 py-3 text-left">{at('Type')}</th>
+                  <th className="px-4 py-3 text-left">{at('Account')}</th>
+                  <th className="px-4 py-3 text-left">{at('Reference')}</th>
+                  <th className="px-4 py-3 text-right">{at('Debit')}</th>
+                  <th className="px-4 py-3 text-right">{at('Credit')}</th>
+                  <th className="px-4 py-3 text-right">{at('Balance')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -105,9 +106,9 @@ function CashOrBankBookPage({ title, kind, reportId }) {
 }
 
 export default function CashBookPage() {
-  return <CashOrBankBookPage title="Cash Book" kind="CASH" reportId="cash-book-report" />;
+  return <CashOrBankBookPage title={at('Cash Book')} kind="CASH" reportId="cash-book-report" />;
 }
 
 export function BankBookPage() {
-  return <CashOrBankBookPage title="Bank Book" kind="BANK" reportId="bank-book-report" />;
+  return <CashOrBankBookPage title={at('Bank Book')} kind="BANK" reportId="bank-book-report" />;
 }

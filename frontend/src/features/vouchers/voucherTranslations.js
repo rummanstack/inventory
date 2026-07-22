@@ -1,0 +1,46 @@
+const BN = {
+  'Unsupported voucher action.': 'অসমর্থিত ভাউচার অ্যাকশন।', 'Delete this draft voucher?': 'এই ড্রাফট ভাউচারটি মুছবেন?', 'Reverse this posted voucher?': 'এই পোস্ট করা ভাউচারটি রিভার্স করবেন?',
+  'Voucher submitted.': 'ভাউচার জমা দেওয়া হয়েছে।', 'Voucher approved.': 'ভাউচার অনুমোদিত হয়েছে।', 'Voucher posted.': 'ভাউচার পোস্ট করা হয়েছে।', 'Voucher reversed.': 'ভাউচার রিভার্স করা হয়েছে।',
+  'Failed to submit voucher.': 'ভাউচার জমা দেওয়া যায়নি।', 'Failed to approve voucher.': 'ভাউচার অনুমোদন করা যায়নি।', 'Failed to post voucher.': 'ভাউচার পোস্ট করা যায়নি।', 'Failed to reverse voucher.': 'ভাউচার রিভার্স করা যায়নি।',
+  'Saving...': 'সংরক্ষণ হচ্ছে...', 'Save Voucher': 'ভাউচার সংরক্ষণ করুন', 'Uploading...': 'আপলোড হচ্ছে...', 'Upload': 'আপলোড করুন',
+  'Voucher Attachment': 'ভাউচার সংযুক্তি', 'Attachment uploaded.': 'সংযুক্তি আপলোড হয়েছে।', 'Attachment deleted.': 'সংযুক্তি মুছে ফেলা হয়েছে।',
+  'Failed to upload attachment.': 'সংযুক্তি আপলোড করা যায়নি।', 'Failed to delete attachment.': 'সংযুক্তি মুছে ফেলা যায়নি।',
+  'Delete attachment': 'সংযুক্তি মুছুন', 'Delete voucher': 'ভাউচার মুছুন', 'Reverse voucher': 'ভাউচার রিভার্স করুন', 'Reason': 'কারণ',
+  'Optional note for the audit trail': 'অডিট ট্রেইলের জন্য ঐচ্ছিক নোট', 'Reason for reversal': 'রিভার্স করার কারণ',
+  'Failed to load voucher details.': 'ভাউচারের বিস্তারিত লোড করা যায়নি।', 'Voucher updated.': 'ভাউচার আপডেট হয়েছে।', 'Voucher created.': 'ভাউচার তৈরি হয়েছে।',
+  'Voucher deleted.': 'ভাউচার মুছে ফেলা হয়েছে।', 'Failed to delete voucher.': 'ভাউচার মুছে ফেলা যায়নি।', 'Request failed.': 'অনুরোধ ব্যর্থ হয়েছে।',
+  'Accounting': 'অ্যাকাউন্টিং', 'Account': 'অ্যাকাউন্ট', 'Action': 'অ্যাকশন', 'Actions': 'অ্যাকশনসমূহ', 'Add Line': 'লাইন যোগ করুন',
+  'All statuses': 'সব স্ট্যাটাস', 'All types': 'সব ধরন', 'All voucher types': 'সব ভাউচার ধরন', 'Amount': 'পরিমাণ', 'Approve': 'অনুমোদন করুন',
+  'Approved': 'অনুমোদিত', 'Attachments': 'সংযুক্তি', 'Cancel': 'বাতিল', 'Cash / Bank Account': 'ক্যাশ / ব্যাংক অ্যাকাউন্ট',
+  'Contra': 'কন্ট্রা', 'Counterparty': 'কাউন্টারপার্টি', 'Counterparty / Received From / Paid To': 'কাউন্টারপার্টি / যার কাছ থেকে প্রাপ্ত / যাকে প্রদান',
+  'Created': 'তৈরি হয়েছে', 'Credit': 'ক্রেডিট', 'Credit:': 'ক্রেডিট:', 'Date': 'তারিখ', 'Date from': 'শুরুর তারিখ', 'Date to': 'শেষ তারিখ',
+  'Debit': 'ডেবিট', 'Debit:': 'ডেবিট:', 'Delete': 'মুছুন', 'Download': 'ডাউনলোড', 'Draft': 'ড্রাফট', 'Edit': 'সম্পাদনা',
+  'From Account': 'যে অ্যাকাউন্ট থেকে', 'Journal': 'জার্নাল', 'Journal Entry': 'জার্নাল এন্ট্রি', 'Journal Register': 'জার্নাল রেজিস্টার',
+  'Memo': 'মেমো', 'Narration': 'বিবরণ', 'New Voucher': 'নতুন ভাউচার', 'Note': 'নোট', 'Notes': 'নোটসমূহ', 'Payment': 'পেমেন্ট',
+  'Post': 'পোস্ট করুন', 'Posted': 'পোস্ট করা হয়েছে', 'Print': 'প্রিন্ট', 'Receipt': 'রিসিপ্ট', 'Reference': 'রেফারেন্স',
+  'Reference Number': 'রেফারেন্স নম্বর', 'Reference Type': 'রেফারেন্স ধরন', 'Remove': 'সরান', 'Reverse': 'রিভার্স করুন',
+  'Reversed': 'রিভার্স করা হয়েছে', 'Select account': 'অ্যাকাউন্ট নির্বাচন করুন', 'Select reference': 'রেফারেন্স নির্বাচন করুন',
+  'Status': 'স্ট্যাটাস', 'Submit': 'জমা দিন', 'Submitted': 'জমা দেওয়া হয়েছে', 'To Account': 'যে অ্যাকাউন্টে', 'Total': 'মোট',
+  'Totals': 'মোট', 'Type': 'ধরন', 'Value': 'মান', 'View': 'দেখুন', 'Voucher': 'ভাউচার', 'Voucher Date': 'ভাউচারের তারিখ',
+  'Voucher number': 'ভাউচার নম্বর', 'Voucher Register': 'ভাউচার রেজিস্টার', 'No reference': 'কোনো রেফারেন্স নেই',
+  'Customer': 'কাস্টমার', 'Supplier': 'সাপ্লায়ার', 'No attachments added.': 'কোনো সংযুক্তি যোগ করা হয়নি।',
+  'Invoice, slip, cheque, receipt, or supporting document.': 'ইনভয়েস, স্লিপ, চেক, রসিদ অথবা সহায়ক নথি।',
+  'No vouchers found': 'কোনো ভাউচার পাওয়া যায়নি', 'No posted vouchers yet': 'এখনও কোনো পোস্ট করা ভাউচার নেই',
+  'Create the first voucher or widen the filters.': 'প্রথম ভাউচার তৈরি করুন অথবা ফিল্টার পরিবর্তন করুন।',
+  'The register will populate once vouchers are created.': 'ভাউচার তৈরি হলে রেজিস্টারে তথ্য দেখা যাবে।',
+  'Journal register rows appear after vouchers are posted.': 'ভাউচার পোস্ট করার পর জার্নাল রেজিস্টারে তথ্য দেখা যাবে।',
+  'Chronological list of all voucher types created through the accounting voucher workflow.': 'অ্যাকাউন্টিং ভাউচার ওয়ার্কফ্লোতে তৈরি সব ভাউচারের তারিখভিত্তিক তালিকা।',
+  'Posted vouchers mapped to their resulting journal entries.': 'পোস্ট করা ভাউচার ও সংশ্লিষ্ট জার্নাল এন্ট্রির তালিকা।',
+  'All voucher types post through the shared journal service.': 'সব ধরনের ভাউচার একই জার্নাল সার্ভিসের মাধ্যমে পোস্ট হয়।',
+  'Journal Vouchers': 'জার্নাল ভাউচার', 'Receipt Vouchers': 'রিসিপ্ট ভাউচার', 'Payment Vouchers': 'পেমেন্ট ভাউচার', 'Contra Vouchers': 'কন্ট্রা ভাউচার',
+  'Manual debit and credit vouchers for adjustments, accruals, and corrections.': 'সমন্বয়, অ্যাক্রুয়াল ও সংশোধনের জন্য ম্যানুয়াল ডেবিট ও ক্রেডিট ভাউচার।',
+  'Cash and bank receipts against customers, income, recoveries, and other inflows.': 'কাস্টমার, আয়, আদায় ও অন্যান্য প্রাপ্তির বিপরীতে ক্যাশ ও ব্যাংক রিসিপ্ট।',
+  'Cash and bank payments against suppliers, expenses, payroll, advances, and loans.': 'সাপ্লায়ার, খরচ, পেরোল, অগ্রিম ও ঋণের বিপরীতে ক্যাশ ও ব্যাংক পেমেন্ট।',
+  'Transfers between cash and bank accounts without bypassing the journal engine.': 'জার্নাল ইঞ্জিন বজায় রেখে ক্যাশ ও ব্যাংক অ্যাকাউন্টের মধ্যে ট্রান্সফার।',
+};
+
+export function vt(language, text) {
+  if (language !== 'bn' || text === null || text === undefined) return text;
+  const value = String(text);
+  return BN[value] ?? BN[value.replaceAll('_', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase())] ?? value;
+}

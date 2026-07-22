@@ -418,7 +418,7 @@ export default function EveningSettlementPage() {
                     </div>
                     {vm.discount > 0 ? (
                       <div className="flex items-center justify-between gap-3 py-1.5">
-                        <dt className="text-sm font-medium text-slate-400">Supplier (discount from)</dt>
+                        <dt className="text-sm font-medium text-slate-400">{t('settlement.discountSupplier')}</dt>
                         <dd className="w-52 max-w-[60vw] shrink-0">
                           <Select
                             className="input h-9 w-full text-sm"
@@ -426,7 +426,7 @@ export default function EveningSettlementPage() {
                             onChange={(e) => vm.setDiscountSupplierId(e.target.value)}
                             disabled={vm.saving}
                           >
-                            <option value="">— select supplier —</option>
+                            <option value="">{t('settlement.selectDiscountSupplier')}</option>
                             {supplierDirectory.map((s) => (
                               <option key={s.id} value={s.id}>{s.name}</option>
                             ))}
@@ -436,14 +436,14 @@ export default function EveningSettlementPage() {
                     ) : null}
                     {vm.totalSrHandovers > 0 ? (
                       <div className="flex items-center justify-between py-1.5">
-                        <dt className="font-semibold text-slate-500">SR Handover</dt>
+                        <dt className="font-semibold text-slate-500">{t('settlement.srHandoverTitle')}</dt>
                         <dd className="font-semibold text-rose-600">− {formatCurrency(vm.totalSrHandovers, language)}</dd>
                       </div>
                     ) : null}
 
                     {/* Today Payable = today's sales − discount − sr handovers */}
                     <div className="flex items-center justify-between border-t border-slate-200 pt-2.5 pb-1.5 mt-1">
-                      <dt className="font-semibold text-slate-800">Today Payable</dt>
+                      <dt className="font-semibold text-slate-800">{t('settlement.todayPayable')}</dt>
                       <dd className="font-semibold text-slate-950">{formatCurrency(vm.todayDue + vm.amountPaid, language)}</dd>
                     </div>
 
@@ -494,9 +494,9 @@ export default function EveningSettlementPage() {
 
                 <div className="flex flex-col gap-3">
                   <div className="rounded-[22px] border border-slate-200 bg-white px-4 py-3 shadow-sm">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">Today's Outstanding</p>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">{t('settlement.todayOutstanding')}</p>
                     <p className={cx('mt-1 text-lg font-semibold', vm.todayDue > 0 ? 'text-rose-700' : 'text-emerald-700')}>{formatCurrency(Math.max(0, vm.todayDue), language)}</p>
-                    <p className="mt-1 text-xs font-medium text-slate-400">Today's sales − discount − cash received</p>
+                    <p className="mt-1 text-xs font-medium text-slate-400">{t('settlement.todayOutstandingHelper')}</p>
                   </div>
                   {vm.completedSettlement ? (
                     <div>

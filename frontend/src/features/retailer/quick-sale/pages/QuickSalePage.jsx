@@ -253,9 +253,9 @@ function QuickSaleForm({ onSaved }) {
       <SalesInvoiceFormFields vm={vm} t={t} productDirectory={productDirectory} retailCustomerDirectory={retailCustomerDirectory} saving={saving} saveRetailCustomer={saveRetailCustomer} />
       <div className="flex items-center justify-between gap-3 pt-2 max-lg:sticky max-lg:bottom-[calc(3.75rem+env(safe-area-inset-bottom))] max-lg:z-10 max-lg:-mx-5 max-lg:mt-2 max-lg:border-t max-lg:border-slate-200 max-lg:bg-[rgb(var(--white))] max-lg:px-4 max-lg:py-3">
         <p className="text-xs text-slate-400 select-none max-lg:hidden">
-          <kbd className="rounded border border-slate-200 bg-slate-100 px-1.5 py-0.5 font-mono text-[10px] text-slate-500">/</kbd> search &nbsp;
-          <kbd className="rounded border border-slate-200 bg-slate-100 px-1.5 py-0.5 font-mono text-[10px] text-slate-500">Alt+I</kbd> add item &nbsp;
-          <kbd className="rounded border border-slate-200 bg-slate-100 px-1.5 py-0.5 font-mono text-[10px] text-slate-500">Ctrl+↵</kbd> submit
+          <kbd className="rounded border border-slate-200 bg-slate-100 px-1.5 py-0.5 font-mono text-[10px] text-slate-500">/</kbd> {t('retailer.quickSale.shortcutSearch')} &nbsp;
+          <kbd className="rounded border border-slate-200 bg-slate-100 px-1.5 py-0.5 font-mono text-[10px] text-slate-500">Alt+I</kbd> {t('retailer.quickSale.shortcutAddItem')} &nbsp;
+          <kbd className="rounded border border-slate-200 bg-slate-100 px-1.5 py-0.5 font-mono text-[10px] text-slate-500">Ctrl+↵</kbd> {t('retailer.quickSale.shortcutSubmit')}
         </p>
         <div className="min-w-0 lg:hidden">
           <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">{t('retailer.shared.totalAmount')}</p>

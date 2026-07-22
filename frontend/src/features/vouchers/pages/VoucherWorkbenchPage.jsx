@@ -1,4 +1,5 @@
-﻿import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { vt } from '../voucherTranslations.js';
 import { ArrowLeftRight, BookOpen, HandCoins, Receipt, Wallet } from 'lucide-react';
 import TableReportActions from '../../../components/TableReportActions.jsx';
 import { Alert, Badge, CopyableText, EmptyState, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
@@ -63,8 +64,8 @@ export default function VoucherWorkbenchPage({ voucherType }) {
   const [formModal, setFormModal] = useState(null);
   const [detailVoucher, setDetailVoucher] = useState(null);
   const reportId = REPORT_ID_BY_TYPE[voucherType];
-  const title = TITLE_BY_TYPE[voucherType];
-  const description = DESCRIPTION_BY_TYPE[voucherType];
+  const title = vt(language, TITLE_BY_TYPE[voucherType]);
+  const description = vt(language, DESCRIPTION_BY_TYPE[voucherType]);
   const Icon = ICON_BY_TYPE[voucherType];
   const typePermission = TYPE_PERMISSION_BY_VOUCHER_TYPE[voucherType];
   const hasTypePermission = can(typePermission);
@@ -115,7 +116,7 @@ export default function VoucherWorkbenchPage({ voucherType }) {
       if (action === 'approve') return inventoryApi.approveVoucher(id);
       if (action === 'post') return inventoryApi.postVoucher(id);
       if (action === 'reverse') return inventoryApi.reverseVoucher(id, reason);
-      throw new Error('Unsupported voucher action.');
+      throw new Error(vt(language, 'Unsupported voucher action.'));
     },
   });
 
@@ -135,7 +136,7 @@ export default function VoucherWorkbenchPage({ voucherType }) {
       });
       setDetailVoucher(result.voucher);
     } catch (loadError) {
-      pushToast('error', title, loadError?.message || 'Failed to load voucher details.');
+      pushToast('error', title, loadError?.message || vt(language, 'Failed to load voucher details.'));
     }
   }
 
@@ -148,30 +149,30 @@ export default function VoucherWorkbenchPage({ voucherType }) {
       }
       setFormModal(null);
       await vouchersQuery.refetch();
-      pushToast('success', title, formModal?.voucher ? 'Voucher updated.' : 'Voucher created.');
+      pushToast('success', title, formModal?.voucher ? vt(language, 'Voucher updated.') : vt(language, 'Voucher created.'));
       return { ok: true };
     } catch (saveError) {
-      return { error: saveError?.message || 'Request failed.' };
+      return { error: saveError?.message || vt(language, 'Request failed.') };
     }
   }
 
   async function confirmDelete(voucher) {
     const { confirmed, reason } = await confirm({
-      title: 'Delete voucher',
-      description: `Delete draft voucher ${voucher.voucherNumber}?`,
-      confirmLabel: 'Delete',
+      title: vt(language, 'Delete voucher'),
+      description: `${voucher.voucherNumber}: ${vt(language, 'Delete this draft voucher?')}`,
+      confirmLabel: vt(language, 'Delete'),
       tone: 'rose',
       requireReason: true,
-      reasonLabel: 'Reason',
-      reasonPlaceholder: 'Optional note for the audit trail',
+      reasonLabel: vt(language, 'Reason'),
+      reasonPlaceholder: vt(language, 'Optional note for the audit trail'),
     });
     if (!confirmed) return;
     try {
       await voucherMutation.mutateAsync({ action: 'delete', id: voucher.id, reason });
       await vouchersQuery.refetch();
-      pushToast('success', title, 'Voucher deleted.');
+      pushToast('success', title, vt(language, 'Voucher deleted.'));
     } catch (deleteError) {
-      pushToast('error', title, deleteError?.message || 'Failed to delete voucher.');
+      pushToast('error', title, deleteError?.message || vt(language, 'Failed to delete voucher.'));
     }
   }
 
@@ -182,13 +183,13 @@ export default function VoucherWorkbenchPage({ voucherType }) {
       if (action === 'post') await voucherMutation.mutateAsync({ action, id: voucher.id });
       if (action === 'reverse') {
         const { confirmed, reason } = await confirm({
-          title: 'Reverse voucher',
-          description: `Reverse posted voucher ${voucher.voucherNumber}?`,
-          confirmLabel: 'Reverse',
+          title: vt(language, 'Reverse voucher'),
+          description: `${voucher.voucherNumber}: ${vt(language, 'Reverse this posted voucher?')}`,
+          confirmLabel: vt(language, 'Reverse'),
           tone: 'amber',
           requireReason: true,
-          reasonLabel: 'Reason',
-          reasonPlaceholder: 'Reason for reversal',
+          reasonLabel: vt(language, 'Reason'),
+          reasonPlaceholder: vt(language, 'Reason for reversal'),
         });
         if (!confirmed) return;
         await voucherMutation.mutateAsync({ action, id: voucher.id, reason });
@@ -202,42 +203,44 @@ export default function VoucherWorkbenchPage({ voucherType }) {
         });
         setDetailVoucher(refreshed.voucher);
       }
-      pushToast('success', title, `Voucher ${action}ed.`);
+      const successMessage = { submit: 'Voucher submitted.', approve: 'Voucher approved.', post: 'Voucher posted.', reverse: 'Voucher reversed.' }[action];
+      pushToast('success', title, vt(language, successMessage));
     } catch (actionError) {
-      pushToast('error', title, actionError?.message || `Failed to ${action} voucher.`);
+      const failureMessage = { submit: 'Failed to submit voucher.', approve: 'Failed to approve voucher.', post: 'Failed to post voucher.', reverse: 'Failed to reverse voucher.' }[action];
+      pushToast('error', title, actionError?.message || vt(language, failureMessage));
     }
   }
 
   return (
     <div className="space-y-5">
       <SectionHeader
-        eyebrow="Accounting"
+        eyebrow={vt(language, 'Accounting')}
         title={title}
         description={description}
-        action={canCreate ? <button type="button" className="btn-primary" onClick={() => setFormModal({ voucher: null })}>New Voucher</button> : null}
+        action={canCreate ? <button type="button" className="btn-primary" onClick={() => setFormModal({ voucher: null })}>{vt(language, 'New Voucher')}</button> : null}
       />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <div className="surface px-5 py-4"><div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Total</div><div className="mt-2 text-2xl font-semibold text-slate-950">{stats.total}</div></div>
-        <div className="surface px-5 py-4"><div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Draft</div><div className="mt-2 text-2xl font-semibold text-amber-600">{stats.draft}</div></div>
-        <div className="surface px-5 py-4"><div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Posted</div><div className="mt-2 text-2xl font-semibold text-emerald-600">{stats.posted}</div></div>
-        <div className="surface px-5 py-4"><div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Value</div><div className="mt-2 text-2xl font-semibold text-slate-950">{formatCurrency(stats.value, language)}</div></div>
+        <div className="surface px-5 py-4"><div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">{vt(language, 'Total')}</div><div className="mt-2 text-2xl font-semibold text-slate-950">{stats.total}</div></div>
+        <div className="surface px-5 py-4"><div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">{vt(language, 'Draft')}</div><div className="mt-2 text-2xl font-semibold text-amber-600">{stats.draft}</div></div>
+        <div className="surface px-5 py-4"><div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">{vt(language, 'Posted')}</div><div className="mt-2 text-2xl font-semibold text-emerald-600">{stats.posted}</div></div>
+        <div className="surface px-5 py-4"><div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">{vt(language, 'Value')}</div><div className="mt-2 text-2xl font-semibold text-slate-950">{formatCurrency(stats.value, language)}</div></div>
       </div>
 
       <div className="surface overflow-hidden">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-5 py-4 no-print">
           <div className="grid flex-1 gap-3 md:grid-cols-4">
-            <input className="input" placeholder="Voucher number" value={filters.voucherNumber} onChange={(event) => setFilters((current) => ({ ...current, voucherNumber: event.target.value }))} />
+            <input className="input" placeholder={vt(language, 'Voucher number')} value={filters.voucherNumber} onChange={(event) => setFilters((current) => ({ ...current, voucherNumber: event.target.value }))} />
             <select className="input" value={filters.status} onChange={(event) => setFilters((current) => ({ ...current, status: event.target.value }))}>
-              <option value="">All statuses</option>
-              <option value="DRAFT">Draft</option>
-              <option value="SUBMITTED">Submitted</option>
-              <option value="APPROVED">Approved</option>
-              <option value="POSTED">Posted</option>
-              <option value="REVERSED">Reversed</option>
+              <option value="">{vt(language, 'All statuses')}</option>
+              <option value="DRAFT">{vt(language, 'Draft')}</option>
+              <option value="SUBMITTED">{vt(language, 'Submitted')}</option>
+              <option value="APPROVED">{vt(language, 'Approved')}</option>
+              <option value="POSTED">{vt(language, 'Posted')}</option>
+              <option value="REVERSED">{vt(language, 'Reversed')}</option>
             </select>
-            <DatePickerField value={filters.dateFrom} onChange={(value) => setFilters((current) => ({ ...current, dateFrom: value }))} placeholder="Date from" />
-            <DatePickerField value={filters.dateTo} onChange={(value) => setFilters((current) => ({ ...current, dateTo: value }))} placeholder="Date to" min={filters.dateFrom || null} />
+            <DatePickerField value={filters.dateFrom} onChange={(value) => setFilters((current) => ({ ...current, dateFrom: value }))} placeholder={vt(language, 'Date from')} />
+            <DatePickerField value={filters.dateTo} onChange={(value) => setFilters((current) => ({ ...current, dateTo: value }))} placeholder={vt(language, 'Date to')} min={filters.dateFrom || null} />
           </div>
           <TableReportActions targetId={reportId} title={title} fileName={title.toLowerCase().replace(/\s+/g, '-')} entityType="vouchers" t={(key) => key === 'common.print' ? 'Print' : key} />
         </div>
@@ -255,20 +258,20 @@ export default function VoucherWorkbenchPage({ voucherType }) {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5">
                         <p className="truncate text-sm font-bold text-slate-950">{voucher.voucherNumber}</p>
-                        <Badge tone={toneForStatus(voucher.status)}>{voucher.status}</Badge>
+                        <Badge tone={toneForStatus(voucher.status)}>{vt(language, voucher.status)}</Badge>
                       </div>
                       <p className="mt-0.5 truncate text-xs font-medium text-slate-500">{formatDate(voucher.voucherDate, language)} · {voucher.counterpartyName || voucher.referenceNumber || '-'}</p>
                     </div>
                     <p className="shrink-0 text-sm font-bold tabular-nums text-slate-950">{formatCurrency(voucher.totalDebit, language)}</p>
                   </button>
                   <div className="mt-2 flex flex-wrap gap-2">
-                    <button type="button" className="btn-secondary h-8 px-2.5 text-xs" onClick={() => openDetails(voucher.id)}>View</button>
-                    {voucher.status === 'DRAFT' && canEditDraft ? <button type="button" className="btn-secondary h-8 px-2.5 text-xs" onClick={() => setFormModal({ voucher })}>Edit</button> : null}
-                    {voucher.status === 'DRAFT' && canEditDraft ? <button type="button" className="btn-secondary h-8 px-2.5 text-xs text-rose-600" onClick={() => confirmDelete(voucher)}>Delete</button> : null}
-                    {voucher.status === 'DRAFT' && canSubmitDraft ? <button type="button" className="btn-secondary h-8 px-2.5 text-xs" onClick={() => runAction(voucher, 'submit')}>Submit</button> : null}
-                    {voucher.status === 'SUBMITTED' && canApprove ? <button type="button" className="btn-secondary h-8 px-2.5 text-xs" onClick={() => runAction(voucher, 'approve')}>Approve</button> : null}
-                    {voucher.status === 'APPROVED' && canPost ? <button type="button" className="btn-secondary h-8 px-2.5 text-xs" onClick={() => runAction(voucher, 'post')}>Post</button> : null}
-                    {voucher.status === 'POSTED' && canReverse ? <button type="button" className="btn-secondary h-8 px-2.5 text-xs text-amber-700" onClick={() => runAction(voucher, 'reverse')}>Reverse</button> : null}
+                    <button type="button" className="btn-secondary h-8 px-2.5 text-xs" onClick={() => openDetails(voucher.id)}>{vt(language, 'View')}</button>
+                    {voucher.status === 'DRAFT' && canEditDraft ? <button type="button" className="btn-secondary h-8 px-2.5 text-xs" onClick={() => setFormModal({ voucher })}>{vt(language, 'Edit')}</button> : null}
+                    {voucher.status === 'DRAFT' && canEditDraft ? <button type="button" className="btn-secondary h-8 px-2.5 text-xs text-rose-600" onClick={() => confirmDelete(voucher)}>{vt(language, vt(language, 'Delete'))}</button> : null}
+                    {voucher.status === 'DRAFT' && canSubmitDraft ? <button type="button" className="btn-secondary h-8 px-2.5 text-xs" onClick={() => runAction(voucher, 'submit')}>{vt(language, 'Submit')}</button> : null}
+                    {voucher.status === 'SUBMITTED' && canApprove ? <button type="button" className="btn-secondary h-8 px-2.5 text-xs" onClick={() => runAction(voucher, 'approve')}>{vt(language, 'Approve')}</button> : null}
+                    {voucher.status === 'APPROVED' && canPost ? <button type="button" className="btn-secondary h-8 px-2.5 text-xs" onClick={() => runAction(voucher, 'post')}>{vt(language, 'Post')}</button> : null}
+                    {voucher.status === 'POSTED' && canReverse ? <button type="button" className="btn-secondary h-8 px-2.5 text-xs text-amber-700" onClick={() => runAction(voucher, 'reverse')}>{vt(language, vt(language, 'Reverse'))}</button> : null}
                   </div>
                 </div>
               ))}
@@ -277,14 +280,14 @@ export default function VoucherWorkbenchPage({ voucherType }) {
             <table className="w-full min-w-[1120px]">
               <thead className="table-head">
                 <tr>
-                  <th className="px-4 py-3 text-left">Voucher</th>
-                  <th className="px-4 py-3 text-left">Date</th>
-                  <th className="px-4 py-3 text-left">Reference</th>
-                  <th className="px-4 py-3 text-left">Counterparty</th>
-                  <th className="px-4 py-3 text-right">Amount</th>
-                  <th className="px-4 py-3 text-left">Status</th>
-                  <th className="px-4 py-3 text-left">Created</th>
-                  <th className="px-4 py-3 text-right">Actions</th>
+                  <th className="px-4 py-3 text-left">{vt(language, 'Voucher')}</th>
+                  <th className="px-4 py-3 text-left">{vt(language, 'Date')}</th>
+                  <th className="px-4 py-3 text-left">{vt(language, 'Reference')}</th>
+                  <th className="px-4 py-3 text-left">{vt(language, 'Counterparty')}</th>
+                  <th className="px-4 py-3 text-right">{vt(language, 'Amount')}</th>
+                  <th className="px-4 py-3 text-left">{vt(language, 'Status')}</th>
+                  <th className="px-4 py-3 text-left">{vt(language, 'Created')}</th>
+                  <th className="px-4 py-3 text-right">{vt(language, 'Actions')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -295,7 +298,7 @@ export default function VoucherWorkbenchPage({ voucherType }) {
                         <Icon size={14} className="text-slate-400" />
                         <div>
                           <CopyableText value={voucher.voucherNumber} displayValue={voucher.voucherNumber} copyLabel="voucher number" textClassName="font-semibold text-slate-950" />
-                          <div className="mt-1 text-xs text-slate-500">{voucher.voucherType}</div>
+                          <div className="mt-1 text-xs text-slate-500">{vt(language, voucher.voucherType)}</div>
                         </div>
                       </div>
                     </td>
@@ -303,17 +306,17 @@ export default function VoucherWorkbenchPage({ voucherType }) {
                     <td className="table-cell text-sm text-slate-600">{voucher.referenceNumber || '-'}</td>
                     <td className="table-cell text-sm text-slate-600">{voucher.counterpartyName || '-'}</td>
                     <td className="table-cell text-right font-semibold text-slate-950">{formatCurrency(voucher.totalDebit, language)}</td>
-                    <td className="table-cell"><Badge tone={toneForStatus(voucher.status)}>{voucher.status}</Badge></td>
+                    <td className="table-cell"><Badge tone={toneForStatus(voucher.status)}>{vt(language, voucher.status)}</Badge></td>
                     <td className="table-cell text-sm text-slate-500">{formatDateTime(voucher.createdAt, language)}</td>
                     <td className="table-cell">
                       <div className="flex flex-wrap justify-end gap-2">
-                        <button type="button" className="btn-secondary" onClick={() => openDetails(voucher.id)}>View</button>
-                        {voucher.status === 'DRAFT' && canEditDraft ? <button type="button" className="btn-secondary" onClick={() => setFormModal({ voucher })}>Edit</button> : null}
-                        {voucher.status === 'DRAFT' && canEditDraft ? <button type="button" className="btn-secondary text-rose-600" onClick={() => confirmDelete(voucher)}>Delete</button> : null}
-                        {voucher.status === 'DRAFT' && canSubmitDraft ? <button type="button" className="btn-secondary" onClick={() => runAction(voucher, 'submit')}>Submit</button> : null}
-                        {voucher.status === 'SUBMITTED' && canApprove ? <button type="button" className="btn-secondary" onClick={() => runAction(voucher, 'approve')}>Approve</button> : null}
-                        {voucher.status === 'APPROVED' && canPost ? <button type="button" className="btn-secondary" onClick={() => runAction(voucher, 'post')}>Post</button> : null}
-                        {voucher.status === 'POSTED' && canReverse ? <button type="button" className="btn-secondary text-amber-700" onClick={() => runAction(voucher, 'reverse')}>Reverse</button> : null}
+                        <button type="button" className="btn-secondary" onClick={() => openDetails(voucher.id)}>{vt(language, 'View')}</button>
+                        {voucher.status === 'DRAFT' && canEditDraft ? <button type="button" className="btn-secondary" onClick={() => setFormModal({ voucher })}>{vt(language, 'Edit')}</button> : null}
+                        {voucher.status === 'DRAFT' && canEditDraft ? <button type="button" className="btn-secondary text-rose-600" onClick={() => confirmDelete(voucher)}>{vt(language, vt(language, 'Delete'))}</button> : null}
+                        {voucher.status === 'DRAFT' && canSubmitDraft ? <button type="button" className="btn-secondary" onClick={() => runAction(voucher, 'submit')}>{vt(language, 'Submit')}</button> : null}
+                        {voucher.status === 'SUBMITTED' && canApprove ? <button type="button" className="btn-secondary" onClick={() => runAction(voucher, 'approve')}>{vt(language, 'Approve')}</button> : null}
+                        {voucher.status === 'APPROVED' && canPost ? <button type="button" className="btn-secondary" onClick={() => runAction(voucher, 'post')}>{vt(language, 'Post')}</button> : null}
+                        {voucher.status === 'POSTED' && canReverse ? <button type="button" className="btn-secondary text-amber-700" onClick={() => runAction(voucher, 'reverse')}>{vt(language, vt(language, 'Reverse'))}</button> : null}
                       </div>
                     </td>
                   </tr>
@@ -324,7 +327,7 @@ export default function VoucherWorkbenchPage({ voucherType }) {
           </div>
         ) : (
           <div className="p-10">
-            <EmptyState icon={voucherType === 'RECEIPT' ? Receipt : voucherType === 'PAYMENT' ? HandCoins : voucherType === 'CONTRA' ? ArrowLeftRight : BookOpen} title={`No ${title.toLowerCase()} found`} description="Create the first voucher or widen the filters." />
+            <EmptyState icon={voucherType === 'RECEIPT' ? Receipt : voucherType === 'PAYMENT' ? HandCoins : voucherType === 'CONTRA' ? ArrowLeftRight : BookOpen} title={`No ${title.toLowerCase()} found`} description={vt(language, 'Create the first voucher or widen the filters.')} />
           </div>
         )}
       </div>

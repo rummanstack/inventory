@@ -9,6 +9,7 @@ export function mapProductSerial(row) {
     serialNumber: row.serial_number || '',
     imei1: row.imei1 || '',
     imei2: row.imei2 || '',
+    barcode: row.barcode || '',
     status: row.status,
     purchaseReceiptId: row.purchase_receipt_id || null,
     purchaseReceiptItemId: row.purchase_receipt_item_id || null,
@@ -17,6 +18,8 @@ export function mapProductSerial(row) {
     salesInvoiceItemId: row.sales_invoice_item_id || null,
     warrantyStartDate: row.warranty_start_date || null,
     warrantyEndDate: row.warranty_end_date || null,
+    purchasePrice: row.purchase_price != null ? Number(row.purchase_price) : null,
+    salePrice: row.sale_price != null ? Number(row.sale_price) : null,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -48,7 +51,10 @@ function buildFilters({ productId, status, search, tenantId }) {
 
   if (search) {
     params.push(`%${search}%`);
-    conditions.push(`(ps.serial_number ILIKE $${params.length} OR ps.imei1 ILIKE $${params.length} OR ps.imei2 ILIKE $${params.length})`);
+    conditions.push(
+      `(ps.serial_number ILIKE $${params.length} OR ps.imei1 ILIKE $${params.length} OR ps.imei2 ILIKE $${params.length} ` +
+      `OR ps.barcode ILIKE $${params.length} OR p.name ILIKE $${params.length} OR p.sku ILIKE $${params.length})`,
+    );
   }
 
   return { params, where: `WHERE ${conditions.join(" AND ")}` };
@@ -57,7 +63,7 @@ function buildFilters({ productId, status, search, tenantId }) {
 export async function countProductSerials(client, { productId, status, search, tenantId } = {}) {
   const { params, where } = buildFilters({ productId, status, search, tenantId });
   const result = await client.query(
-    `SELECT COUNT(*)::INTEGER AS count FROM product_serials ps ${where}`,
+    `SELECT COUNT(*)::INTEGER AS count FROM product_serials ps LEFT JOIN products p ON p.id = ps.product_id ${where}`,
     params,
   );
   return result.rows[0].count;
@@ -117,8 +123,8 @@ export function findProductSerialsForUpdate(client, ids, tenantId) {
 // excluding the row being updated). Checked against product_serial_identifiers rather than
 // product_serials directly so a value can't be reused across *different* identifier columns
 // either (see the unique index on that table for the DB-level half of this guarantee).
-export async function findDuplicateProductSerial(client, { tenantId, serialNumber, imei1, imei2, excludeId }) {
-  const values = [serialNumber, imei1, imei2].filter(Boolean);
+export async function findDuplicateProductSerial(client, { tenantId, serialNumber, imei1, imei2, barcode, excludeId }) {
+  const values = [serialNumber, imei1, imei2, barcode].filter(Boolean);
   if (!values.length) {
     return null;
   }
@@ -150,6 +156,7 @@ async function syncProductSerialIdentifiers(client, serial) {
     ["SERIAL_NUMBER", serial.serialNumber],
     ["IMEI1", serial.imei1],
     ["IMEI2", serial.imei2],
+    ["BARCODE", serial.barcode],
   ].filter(([, value]) => value);
 
   for (const [identifierType, identifierValue] of identifiers) {
@@ -165,11 +172,11 @@ export async function insertProductSerial(client, serial) {
   const result = await client.query(
     `WITH inserted AS (
       INSERT INTO product_serials (
-        id, tenant_id, product_id, serial_number, imei1, imei2, status,
+        id, tenant_id, product_id, serial_number, imei1, imei2, barcode, status,
         purchase_receipt_id, purchase_receipt_item_id, sales_invoice_id, sales_invoice_item_id,
-        warranty_start_date, warranty_end_date
+        warranty_start_date, warranty_end_date, purchase_price, sale_price
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
       RETURNING *
      )
      SELECT inserted.*, p.name AS product_name FROM inserted LEFT JOIN products p ON p.id = inserted.product_id`,
@@ -180,6 +187,7 @@ export async function insertProductSerial(client, serial) {
       serial.serialNumber,
       serial.imei1,
       serial.imei2,
+      serial.barcode,
       serial.status,
       serial.purchaseReceiptId,
       serial.purchaseReceiptItemId,
@@ -187,6 +195,8 @@ export async function insertProductSerial(client, serial) {
       serial.salesInvoiceItemId,
       serial.warrantyStartDate,
       serial.warrantyEndDate,
+      serial.purchasePrice,
+      serial.salePrice,
     ],
   );
 
@@ -198,9 +208,10 @@ export async function updateProductSerial(client, serial) {
   const result = await client.query(
     `WITH updated AS (
        UPDATE product_serials
-       SET serial_number = $3, imei1 = $4, imei2 = $5, status = $6,
-           sales_invoice_id = $7, sales_invoice_item_id = $8,
-           warranty_start_date = $9, warranty_end_date = $10, updated_at = NOW()
+       SET serial_number = $3, imei1 = $4, imei2 = $5, barcode = $6, status = $7,
+           sales_invoice_id = $8, sales_invoice_item_id = $9,
+           warranty_start_date = $10, warranty_end_date = $11,
+           purchase_price = $12, sale_price = $13, updated_at = NOW()
        WHERE id = $1 AND tenant_id = $2
        RETURNING *
      )
@@ -211,16 +222,31 @@ export async function updateProductSerial(client, serial) {
       serial.serialNumber,
       serial.imei1,
       serial.imei2,
+      serial.barcode,
       serial.status,
       serial.salesInvoiceId,
       serial.salesInvoiceItemId,
       serial.warrantyStartDate,
       serial.warrantyEndDate,
+      serial.purchasePrice,
+      serial.salePrice,
     ],
   );
 
   await syncProductSerialIdentifiers(client, serial);
   return result;
+}
+
+// Used by the POS/sales-invoice barcode scanner: a serial's own barcode resolves
+// directly to the exact unit (and its product), skipping the "pick from a list"
+// flow entirely when the scanned code isn't a product-level barcode.
+export function findProductSerialByBarcode(client, barcode, tenantId) {
+  return client.query(
+    `SELECT ps.*, p.name AS product_name FROM product_serials ps
+     LEFT JOIN products p ON p.id = ps.product_id
+     WHERE ps.barcode = $1 AND ps.tenant_id = $2 AND ps.deleted_at IS NULL`,
+    [barcode, tenantId],
+  );
 }
 
 export async function softDeleteProductSerial(client, id, tenantId, { deletedById, deleteReason } = {}) {

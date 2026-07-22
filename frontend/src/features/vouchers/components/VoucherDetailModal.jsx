@@ -1,4 +1,5 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { vt } from '../voucherTranslations.js';
 import { Download, Paperclip, Upload } from 'lucide-react';
 import { Badge, CopyableText, Modal } from '../../../components/ui.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
@@ -52,9 +53,9 @@ export default function VoucherDetailModal({ voucher, onClose, onRefresh }) {
     try {
       await uploadMutation.mutateAsync({ voucherId: voucher.id, file });
       await reloadAttachments();
-      pushToast('success', 'Voucher Attachment', 'Attachment uploaded.');
+      pushToast('success', vt(language, 'Voucher Attachment'), vt(language, 'Attachment uploaded.'));
     } catch (error) {
-      pushToast('error', 'Voucher Attachment', error?.message || 'Failed to upload attachment.');
+      pushToast('error', vt(language, 'Voucher Attachment'), error?.message || vt(language, 'Failed to upload attachment.'));
     } finally {
       setUploading(false);
       event.target.value = '';
@@ -63,47 +64,47 @@ export default function VoucherDetailModal({ voucher, onClose, onRefresh }) {
 
   async function handleDeleteAttachment(attachment) {
     const { confirmed, reason } = await confirm({
-      title: 'Delete attachment',
+      title: vt(language, 'Delete attachment'),
       description: `Delete ${attachment.title || attachment.originalFilename}?`,
-      confirmLabel: 'Delete',
+      confirmLabel: vt(language, 'Delete'),
       tone: 'rose',
       requireReason: true,
-      reasonLabel: 'Reason',
-      reasonPlaceholder: 'Optional note for the audit trail',
+      reasonLabel: vt(language, 'Reason'),
+      reasonPlaceholder: vt(language, 'Optional note for the audit trail'),
     });
     if (!confirmed) return;
     try {
       await deleteAttachmentMutation.mutateAsync({ voucherId: voucher.id, attachmentId: attachment.id, reason });
       await reloadAttachments();
-      pushToast('success', 'Voucher Attachment', 'Attachment deleted.');
+      pushToast('success', vt(language, 'Voucher Attachment'), vt(language, 'Attachment deleted.'));
     } catch (error) {
-      pushToast('error', 'Voucher Attachment', error?.message || 'Failed to delete attachment.');
+      pushToast('error', vt(language, 'Voucher Attachment'), error?.message || vt(language, 'Failed to delete attachment.'));
     }
   }
 
   return (
-    <Modal title={`Voucher ${voucher.voucherNumber}`} description={`${voucher.voucherType} voucher details`} onClose={onClose} width="max-w-5xl">
+    <Modal title={`Voucher ${voucher.voucherNumber}`} description={`${vt(language, voucher.voucherType)} voucher details`} onClose={onClose} width="max-w-5xl">
       <div className="space-y-5">
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           <div className="rounded-xl border border-slate-200 p-4">
-            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Voucher</div>
+            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">{vt(language, 'Voucher')}</div>
             <div className="mt-2"><CopyableText value={voucher.voucherNumber} displayValue={voucher.voucherNumber} copyLabel="voucher number" textClassName="font-semibold text-slate-950" /></div>
             <div className="mt-2 text-sm text-slate-500">{formatDate(voucher.voucherDate, language)}</div>
           </div>
           <div className="rounded-xl border border-slate-200 p-4">
-            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Status</div>
-            <div className="mt-2"><Badge tone={toneForStatus(voucher.status)}>{voucher.status}</Badge></div>
+            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">{vt(language, 'Status')}</div>
+            <div className="mt-2"><Badge tone={toneForStatus(voucher.status)}>{vt(language, voucher.status)}</Badge></div>
             <div className="mt-2 text-sm text-slate-500">Created {formatDateTime(voucher.createdAt, language)}</div>
           </div>
           <div className="rounded-xl border border-slate-200 p-4">
-            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Journal Entry</div>
+            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">{vt(language, 'Journal Entry')}</div>
             <div className="mt-2">
               <CopyableText value={voucher.journalEntryId} displayValue={voucher.journalEntryId ? voucher.journalEntryId.slice(0, 16) : '-'} copyLabel="journal entry id" textClassName="font-mono text-sm text-slate-950" />
             </div>
             {voucher.reversalJournalEntryId ? <div className="mt-2"><CopyableText value={voucher.reversalJournalEntryId} displayValue={voucher.reversalJournalEntryId.slice(0, 16)} copyLabel="reversal journal entry id" textClassName="font-mono text-xs text-rose-700" /></div> : null}
           </div>
           <div className="rounded-xl border border-slate-200 p-4">
-            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Totals</div>
+            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">{vt(language, 'Totals')}</div>
             <div className="mt-2 text-sm text-slate-700">Debit: {formatCurrency(voucher.totalDebit, language)}</div>
             <div className="text-sm text-slate-700">Credit: {formatCurrency(voucher.totalCredit, language)}</div>
           </div>
@@ -111,15 +112,15 @@ export default function VoucherDetailModal({ voucher, onClose, onRefresh }) {
 
         <div className="grid gap-4 lg:grid-cols-2">
           <div className="rounded-xl border border-slate-200 p-4">
-            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Reference</div>
+            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">{vt(language, 'Reference')}</div>
             <div className="mt-2 text-sm text-slate-700">{voucher.referenceNumber || '-'}</div>
-            <div className="mt-4 text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Counterparty</div>
+            <div className="mt-4 text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">{vt(language, 'Counterparty')}</div>
             <div className="mt-2 text-sm text-slate-700">{voucher.counterpartyName || '-'}</div>
           </div>
           <div className="rounded-xl border border-slate-200 p-4">
-            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Narration</div>
+            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">{vt(language, 'Narration')}</div>
             <div className="mt-2 text-sm text-slate-700 whitespace-pre-wrap">{voucher.narration || '-'}</div>
-            <div className="mt-4 text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Notes</div>
+            <div className="mt-4 text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">{vt(language, 'Notes')}</div>
             <div className="mt-2 text-sm text-slate-700 whitespace-pre-wrap">{voucher.notes || '-'}</div>
           </div>
         </div>
@@ -129,11 +130,11 @@ export default function VoucherDetailModal({ voucher, onClose, onRefresh }) {
             <thead className="table-head">
               <tr>
                 <th className="px-4 py-3 text-left">#</th>
-                <th className="px-4 py-3 text-left">Account</th>
-                <th className="px-4 py-3 text-left">Reference</th>
-                <th className="px-4 py-3 text-left">Note</th>
-                <th className="px-4 py-3 text-right">Debit</th>
-                <th className="px-4 py-3 text-right">Credit</th>
+                <th className="px-4 py-3 text-left">{vt(language, 'Account')}</th>
+                <th className="px-4 py-3 text-left">{vt(language, 'Reference')}</th>
+                <th className="px-4 py-3 text-left">{vt(language, 'Note')}</th>
+                <th className="px-4 py-3 text-right">{vt(language, 'Debit')}</th>
+                <th className="px-4 py-3 text-right">{vt(language, 'Credit')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 bg-white">
@@ -154,18 +155,18 @@ export default function VoucherDetailModal({ voucher, onClose, onRefresh }) {
         <div className="rounded-xl border border-slate-200 p-4">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
             <div>
-              <div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Attachments</div>
-              <div className="text-sm text-slate-500">Invoice, slip, cheque, receipt, or supporting document.</div>
+              <div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">{vt(language, 'Attachments')}</div>
+              <div className="text-sm text-slate-500">{vt(language, 'Invoice, slip, cheque, receipt, or supporting document.')}</div>
             </div>
             <div className="flex items-center gap-2">
               {editableAttachments ? (
                 <label className="btn-secondary cursor-pointer">
                   <Upload size={16} />
-                  {uploading ? 'Uploading...' : 'Upload'}
+                  {uploading ? vt(language, 'Uploading...') : vt(language, 'Upload')}
                   <input type="file" className="hidden" onChange={handleUpload} disabled={uploading} />
                 </label>
               ) : null}
-              <button type="button" className="btn-secondary" onClick={() => window.print()}>Print</button>
+              <button type="button" className="btn-secondary" onClick={() => window.print()}>{vt(language, 'Print')}</button>
             </div>
           </div>
           {attachments.length ? (
@@ -177,14 +178,14 @@ export default function VoucherDetailModal({ voucher, onClose, onRefresh }) {
                     <div className="mt-1 text-xs text-slate-500">{attachment.originalFilename} • {formatDateTime(attachment.createdAt, language)}</div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <button type="button" className="btn-secondary" onClick={() => inventoryApi.downloadVoucherAttachment(voucher.id, attachment.id)}><Download size={16} /> Download</button>
-                    {editableAttachments ? <button type="button" className="btn-secondary text-rose-600" onClick={() => handleDeleteAttachment(attachment)}>Delete</button> : null}
+                    <button type="button" className="btn-secondary" onClick={() => inventoryApi.downloadVoucherAttachment(voucher.id, attachment.id)}><Download size={16} /> {vt(language, 'Download')}</button>
+                    {editableAttachments ? <button type="button" className="btn-secondary text-rose-600" onClick={() => handleDeleteAttachment(attachment)}>{vt(language, vt(language, 'Delete'))}</button> : null}
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="text-sm text-slate-500">No attachments added.</div>
+            <div className="text-sm text-slate-500">{vt(language, 'No attachments added.')}</div>
           )}
         </div>
       </div>

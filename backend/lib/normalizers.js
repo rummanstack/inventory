@@ -86,12 +86,16 @@ export function normalizeProductSerial(input) {
     ? String(input.status).trim().toUpperCase()
     : PRODUCT_SERIAL_STATUSES.IN_STOCK;
 
+  const hasPurchasePrice = input.purchasePrice !== undefined && input.purchasePrice !== null && String(input.purchasePrice).trim() !== "";
+  const hasSalePrice = input.salePrice !== undefined && input.salePrice !== null && String(input.salePrice).trim() !== "";
+
   return {
     id: input.id || createId("serial"),
     productId: String(input.productId || "").trim(),
     serialNumber: String(input.serialNumber || "").trim(),
     imei1: String(input.imei1 || "").trim(),
     imei2: String(input.imei2 || "").trim(),
+    barcode: String(input.barcode || "").trim(),
     status,
     purchaseReceiptId: String(input.purchaseReceiptId || "").trim() || null,
     purchaseReceiptItemId: String(input.purchaseReceiptItemId || "").trim() || null,
@@ -99,6 +103,8 @@ export function normalizeProductSerial(input) {
     salesInvoiceItemId: String(input.salesInvoiceItemId || "").trim() || null,
     warrantyStartDate: String(input.warrantyStartDate || "").trim() || null,
     warrantyEndDate: String(input.warrantyEndDate || "").trim() || null,
+    purchasePrice: hasPurchasePrice ? cleanMoney(input.purchasePrice) : null,
+    salePrice: hasSalePrice ? cleanMoney(input.salePrice) : null,
   };
 }
 
@@ -317,8 +323,28 @@ export function normalizePurchaseReceipt(input) {
           const lineTotal = Math.max(0, quantityPieces * purchasePrice - lineDiscount);
           const taxRate = Math.min(Math.max(0, cleanMoney(item.taxRate)), 100);
 
+          // Each entry is either a plain string (legacy shape — just a serial number,
+          // barcode/price auto-filled downstream) or an object carrying its own
+          // barcode/purchasePrice/salePrice. De-duplicated by serial number only —
+          // barcode/price collisions are caught later where the tenant-wide identifier
+          // uniqueness check actually lives.
+          const seenSerialNumbers = new Set();
           const serials = Array.isArray(item.serials)
-            ? [...new Set(item.serials.map((serial) => String(serial || "").trim()).filter(Boolean))]
+            ? item.serials
+                .map((serial) => (typeof serial === "object" && serial !== null
+                  ? {
+                      serialNumber: String(serial.serialNumber || "").trim(),
+                      barcode: String(serial.barcode || "").trim(),
+                      purchasePrice: serial.purchasePrice != null && String(serial.purchasePrice).trim() !== "" ? cleanMoney(serial.purchasePrice) : null,
+                      salePrice: serial.salePrice != null && String(serial.salePrice).trim() !== "" ? cleanMoney(serial.salePrice) : null,
+                    }
+                  : { serialNumber: String(serial || "").trim(), barcode: "", purchasePrice: null, salePrice: null }))
+                .filter((serial) => serial.serialNumber)
+                .filter((serial) => {
+                  if (seenSerialNumbers.has(serial.serialNumber)) return false;
+                  seenSerialNumbers.add(serial.serialNumber);
+                  return true;
+                })
             : [];
 
           return {

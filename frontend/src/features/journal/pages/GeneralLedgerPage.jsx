@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { at } from '../../accounting-foundation/accountingTranslations.js';
 import { BookOpen } from 'lucide-react';
 import TableReportActions from '../../../components/TableReportActions.jsx';
 import { Alert, CopyableText, EmptyState, MobileCardList, MobileListCard, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
@@ -32,7 +33,7 @@ function LedgerPage({ title, endpoint }) {
 
   return (
     <div>
-      <SectionHeader eyebrow="Accounting" title={title} description="Journal-driven ledger with opening balance, transaction flow, and running balance." />
+      <SectionHeader eyebrow={at('Accounting')} title={title} description={at('Journal-driven ledger with opening balance, transaction flow, and running balance.')} />
       <div className="surface overflow-hidden">
         <div className="flex flex-wrap items-end justify-between gap-3 border-b border-slate-100 p-5 no-print">
           <div className="grid flex-1 gap-3 md:grid-cols-3 xl:grid-cols-7">
@@ -40,16 +41,16 @@ function LedgerPage({ title, endpoint }) {
               <option value="">{requiresAccount ? 'Select account' : 'All accounts'}</option>
               {accounts.map((account) => <option key={account.code} value={account.code}>{account.code} - {account.name}</option>)}
             </select>
-            <DatePickerField value={filters.dateFrom} onChange={(value) => setFilters((current) => ({ ...current, dateFrom: value }))} placeholder="Date from" />
-            <DatePickerField value={filters.dateTo} onChange={(value) => setFilters((current) => ({ ...current, dateTo: value }))} placeholder="Date to" min={filters.dateFrom || null} />
-            <input className="input" placeholder="Voucher" value={filters.voucherNumber} onChange={(event) => setFilters((current) => ({ ...current, voucherNumber: event.target.value }))} />
-            <input className="input" placeholder="Reference" value={filters.reference} onChange={(event) => setFilters((current) => ({ ...current, reference: event.target.value }))} />
+            <DatePickerField value={filters.dateFrom} onChange={(value) => setFilters((current) => ({ ...current, dateFrom: value }))} placeholder={at('Date from')} />
+            <DatePickerField value={filters.dateTo} onChange={(value) => setFilters((current) => ({ ...current, dateTo: value }))} placeholder={at('Date to')} min={filters.dateFrom || null} />
+            <input className="input" placeholder={at('Voucher')} value={filters.voucherNumber} onChange={(event) => setFilters((current) => ({ ...current, voucherNumber: event.target.value }))} />
+            <input className="input" placeholder={at('Reference')} value={filters.reference} onChange={(event) => setFilters((current) => ({ ...current, reference: event.target.value }))} />
             <select className="input" value={filters.customerId} onChange={(event) => setFilters((current) => ({ ...current, customerId: event.target.value }))}>
-              <option value="">All customers</option>
+              <option value="">{at('All customers')}</option>
               {customers.map((customer) => <option key={customer.id} value={customer.id}>{customer.name}</option>)}
             </select>
             <select className="input" value={filters.supplierId} onChange={(event) => setFilters((current) => ({ ...current, supplierId: event.target.value }))}>
-              <option value="">All suppliers</option>
+              <option value="">{at('All suppliers')}</option>
               {suppliers.map((supplier) => <option key={supplier.id} value={supplier.id}>{supplier.name}</option>)}
             </select>
           </div>
@@ -63,8 +64,8 @@ function LedgerPage({ title, endpoint }) {
           <div id={`${endpoint}-ledger-report`} className="overflow-x-auto">
             {data.openingBalance !== null && data.openingBalance !== undefined ? (
               <div className="grid gap-4 border-b border-slate-100 bg-slate-50 px-5 py-4 md:grid-cols-3">
-                <div><div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Opening Balance</div><div className="mt-1 text-lg font-semibold text-slate-950">{formatCurrency(data.openingBalance || 0, language)}</div></div>
-                {data.closingBalance !== null && data.closingBalance !== undefined ? <div><div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Closing Balance</div><div className="mt-1 text-lg font-semibold text-slate-950">{formatCurrency(data.closingBalance || 0, language)}</div></div> : <div />}
+                <div><div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">{at('Opening Balance')}</div><div className="mt-1 text-lg font-semibold text-slate-950">{formatCurrency(data.openingBalance || 0, language)}</div></div>
+                {data.closingBalance !== null && data.closingBalance !== undefined ? <div><div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">{at('Closing Balance')}</div><div className="mt-1 text-lg font-semibold text-slate-950">{formatCurrency(data.closingBalance || 0, language)}</div></div> : <div />}
               </div>
             ) : null}
             <MobileCardList>
@@ -83,15 +84,15 @@ function LedgerPage({ title, endpoint }) {
             <table className="w-full min-w-[1320px]">
               <thead className="table-head">
                 <tr>
-                  <th className="px-4 py-3 text-left">Date</th>
-                  <th className="px-4 py-3 text-left">Voucher</th>
-                  <th className="px-4 py-3 text-left">Type</th>
-                  <th className="px-4 py-3 text-left">Account</th>
-                  <th className="px-4 py-3 text-left">Reference</th>
-                  <th className="px-4 py-3 text-left">Narration</th>
-                  <th className="px-4 py-3 text-right">Debit</th>
-                  <th className="px-4 py-3 text-right">Credit</th>
-                  <th className="px-4 py-3 text-right">Balance</th>
+                  <th className="px-4 py-3 text-left">{at('Date')}</th>
+                  <th className="px-4 py-3 text-left">{at('Voucher')}</th>
+                  <th className="px-4 py-3 text-left">{at('Type')}</th>
+                  <th className="px-4 py-3 text-left">{at('Account')}</th>
+                  <th className="px-4 py-3 text-left">{at('Reference')}</th>
+                  <th className="px-4 py-3 text-left">{at('Narration')}</th>
+                  <th className="px-4 py-3 text-right">{at('Debit')}</th>
+                  <th className="px-4 py-3 text-right">{at('Credit')}</th>
+                  <th className="px-4 py-3 text-right">{at('Balance')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -119,9 +120,9 @@ function LedgerPage({ title, endpoint }) {
 }
 
 export default function GeneralLedgerPage() {
-  return <LedgerPage title="General Ledger" endpoint="general" />;
+  return <LedgerPage title={at('General Ledger')} endpoint="general" />;
 }
 
 export function AccountLedgerPage() {
-  return <LedgerPage title="Account Ledger" endpoint="account" />;
+  return <LedgerPage title={at('Account Ledger')} endpoint="account" />;
 }

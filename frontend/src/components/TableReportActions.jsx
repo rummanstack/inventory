@@ -17,7 +17,8 @@ export default function TableReportActions({
   showPrint = true,
   shortcuts = {},
 }) {
-  const { tenant } = useInventoryApp();
+  const { tenant, t: appT } = useInventoryApp();
+  const tr = t || appT;
   const [downloadingPdf, downloadPdf] = useAsyncAction();
   const [sharingPdf, sharePdf] = useAsyncAction();
   const pdfFileName = fileName.endsWith('.pdf') ? fileName : `${fileName}.pdf`;
@@ -56,6 +57,9 @@ export default function TableReportActions({
     tenantName: tenant?.name || '',
     tenantAddress: tenant?.address || '',
     tenantLogoUrl: tenant?.logoUrl || '',
+    generatedLabel: tr('common.generated'),
+    pageLabel: tr('common.page'),
+    ofLabel: tr('common.of'),
   };
 
   const handleDownloadPdf = () => downloadPdf(async () => {
@@ -117,7 +121,7 @@ export default function TableReportActions({
         disabled={downloadingPdf}
       >
         {downloadingPdf ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
-        {t?.('common.downloadPdf') || 'Download as PDF'}
+        {tr('common.downloadPdf')}
         {shortcutBadge(shortcuts.pdf)}
       </button>
       <button
@@ -127,7 +131,7 @@ export default function TableReportActions({
         disabled={sharingPdf}
       >
         {sharingPdf ? <Loader2 size={14} className="animate-spin" /> : <Share2 size={14} />}
-        {t?.('common.share') || 'Share'}
+        {tr('common.share')}
       </button>
       <button
         type="button"
@@ -135,7 +139,7 @@ export default function TableReportActions({
         onClick={handleExportExcel}
       >
         <FileSpreadsheet size={14} />
-        {t?.('common.exportExcel') || 'Export as Excel'}
+        {tr('common.exportExcel')}
         {shortcutBadge(shortcuts.excel)}
       </button>
       <button
@@ -144,7 +148,7 @@ export default function TableReportActions({
         onClick={handleExportCsv}
       >
         <FileSpreadsheet size={14} />
-        {t?.('common.exportCsv') || 'Export as CSV'}
+        {tr('common.exportCsv')}
         {shortcutBadge(shortcuts.csv)}
       </button>
       {showPrint ? (
@@ -154,7 +158,7 @@ export default function TableReportActions({
           onClick={handlePrint}
         >
           <Printer size={14} />
-          {t?.('common.print') || 'Print'}
+          {tr('common.print')}
           {shortcutBadge(shortcuts.print)}
         </button>
       ) : null}

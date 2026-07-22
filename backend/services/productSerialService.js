@@ -2,10 +2,12 @@ import { assert } from "../lib/errors.js";
 import { parsePagination, buildPageResult } from "../lib/pagination.js";
 import { normalizeProductSerial } from "../lib/normalizers.js";
 import { PRODUCT_SERIAL_ACTIONS } from "../lib/auditActions.js";
+import { generateUniqueSerialBarcode } from "../lib/productSerials.js";
 import {
   countProductSerials,
   countTrashedProductSerials,
   findDuplicateProductSerial,
+  findProductSerialByBarcode,
   findProductSerialById,
   findProductSerialForUpdate,
   insertProductSerial,
@@ -18,6 +20,18 @@ import {
 } from "../repositories/productSerialRepository.js";
 import { findProductForUpdate } from "../repositories/productRepository.js";
 import { logActivity } from "./shared/inventoryHelpers.js";
+
+// Assigns a barcode to a serial that wasn't given one, retrying on the rare
+// collision with another unit's barcode already in this tenant.
+async function assignBarcodeIfMissing(client, tenantId, serial) {
+  if (serial.barcode) return;
+
+  const barcode = await generateUniqueSerialBarcode((candidate) =>
+    findDuplicateProductSerial(client, { tenantId, barcode: candidate }),
+  );
+  assert(barcode, "Could not generate a unique barcode. Please try again.");
+  serial.barcode = barcode;
+}
 
 function isSerialRequired(product) {
   return product?.serial_required === true || product?.serial_required === "t";
@@ -68,9 +82,9 @@ export class ProductSerialService {
     }));
   }
 
-  async assertUnique(client, tenantId, { serialNumber, imei1, imei2 }, excludeId) {
-    const duplicate = await findDuplicateProductSerial(client, { tenantId, serialNumber, imei1, imei2, excludeId });
-    assert(!duplicate, "This serial/IMEI already exists in inventory.", 400);
+  async assertUnique(client, tenantId, { serialNumber, imei1, imei2, barcode }, excludeId) {
+    const duplicate = await findDuplicateProductSerial(client, { tenantId, serialNumber, imei1, imei2, barcode, excludeId });
+    assert(!duplicate, "This serial/IMEI or barcode already exists in inventory.", 400);
   }
 
   async createSerial(input, actor) {
@@ -85,6 +99,7 @@ export class ProductSerialService {
       assert(isSerialRequired(productResult.rows[0]), "This product is not marked as serial/IMEI required.", 400);
 
       await this.assertUnique(client, actor.tenantId, serial);
+      await assignBarcodeIfMissing(client, actor.tenantId, serial);
 
       const result = await insertProductSerial(client, serial);
       await this.recordActivity(client, actor, {
@@ -153,6 +168,67 @@ export class ProductSerialService {
       ]);
 
       return buildPageResult({ items, total, page, pageSize });
+    });
+  }
+
+  // POS/sales-invoice barcode scanner: resolve a scanned code straight to the
+  // exact unit. Returns null (not a 404) so callers can fall back to a normal
+  // product-barcode lookup without a try/catch — a miss here just means the
+  // scanned code wasn't a serial barcode.
+  async findByBarcode(barcode, actor) {
+    const cleanBarcode = String(barcode || "").trim();
+    if (!cleanBarcode) return null;
+
+    return this.databaseManager.withClient(async (client) => {
+      const result = await findProductSerialByBarcode(client, cleanBarcode, actor.tenantId);
+      return result.rowCount > 0 ? mapProductSerial(result.rows[0]) : null;
+    });
+  }
+
+  // Bulk-creates IN_STOCK serials for one product in a single transaction — the
+  // CSV-import path. Each row may carry its own barcode/purchasePrice/salePrice;
+  // a missing barcode is auto-generated exactly like a single manual add. Fails
+  // the whole batch on the first bad/duplicate row rather than partially
+  // importing, so a re-upload after fixing the CSV can't create partial dupes.
+  async bulkImport(input, actor) {
+    const productId = String(input.productId || "").trim();
+    assert(productId, "Product is required.");
+    const rows = Array.isArray(input.rows) ? input.rows : [];
+    assert(rows.length > 0, "No rows to import.");
+    assert(rows.length <= 500, "Import is limited to 500 rows at a time.");
+
+    return this.databaseManager.withTransaction(async (client) => {
+      const productResult = await findProductForUpdate(client, productId, actor.tenantId);
+      assert(productResult.rowCount > 0, "Product not found.", 404);
+      assert(isSerialRequired(productResult.rows[0]), "This product is not marked as serial/IMEI required.", 400);
+
+      const seen = new Set();
+      const created = [];
+      for (const row of rows) {
+        const serial = normalizeProductSerial({ ...row, productId });
+        assert(serial.serialNumber || serial.imei1 || serial.imei2, "Every row needs a serial number or IMEI.");
+
+        const dedupeKey = serial.serialNumber || serial.imei1 || serial.imei2;
+        assert(!seen.has(dedupeKey), `"${dedupeKey}" appears more than once in this import.`);
+        seen.add(dedupeKey);
+
+        serial.tenantId = actor.tenantId;
+        await this.assertUnique(client, actor.tenantId, serial);
+        await assignBarcodeIfMissing(client, actor.tenantId, serial);
+
+        const result = await insertProductSerial(client, serial);
+        created.push(mapProductSerial(result.rows[0]));
+      }
+
+      await this.recordActivity(client, actor, {
+        actionType: PRODUCT_SERIAL_ACTIONS.CREATE,
+        entityType: "product_serial",
+        entityId: productId,
+        description: `${actor.name} bulk-imported ${created.length} serial/IMEI record(s) for ${productResult.rows[0].name}`,
+        metadata: { productId, count: created.length },
+      });
+
+      return { items: created, count: created.length };
     });
   }
 }

@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cx } from './ui.jsx';
 import { formatDate, formatMonth } from '../utils/calculations.js';
+import { useInventoryApp } from '../app/useInventoryApp.jsx';
 
 function toDateValue(value) {
   if (!value) {
@@ -146,7 +147,8 @@ function PickerFrame({ open, anchorRef, panelRef, children, className = '', pane
   );
 }
 
-export function DatePickerField({ value, onChange, placeholder = 'Select date', className = '', disabled = false, min = null, max = null }) {
+export function DatePickerField({ value, onChange, placeholder, className = '', disabled = false, min = null, max = null }) {
+  const { t, language } = useInventoryApp();
   const wrapperRef = useRef(null);
   const panelRef = useRef(null);
   const [open, setOpen] = useState(false);
@@ -204,8 +206,9 @@ export function DatePickerField({ value, onChange, placeholder = 'Select date', 
   const prevMonthDisabled = minDate ? addMonths(viewMonth, -1) < startOfMonth(minDate) : false;
   const nextMonthDisabled = maxDate ? addMonths(viewMonth, 1) > startOfMonth(maxDate) : false;
 
-  const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  const displayValue = selectedDate ? formatDate(selectedDate) : '';
+  const weekdays = t('common.weekdaysShort');
+  const displayValue = selectedDate ? formatDate(selectedDate, language) : '';
+  const placeholderText = placeholder || t('common.selectDate');
 
   return (
     <div ref={wrapperRef} className={cx('relative', className)}>
@@ -216,7 +219,7 @@ export function DatePickerField({ value, onChange, placeholder = 'Select date', 
         disabled={disabled}
       >
         <span className={cx('truncate', displayValue ? 'text-slate-950' : 'text-slate-400')}>
-          {displayValue || placeholder}
+          {displayValue || placeholderText}
         </span>
         <CalendarDays size={16} className="shrink-0 text-slate-400" />
       </button>
@@ -292,7 +295,8 @@ export function DatePickerField({ value, onChange, placeholder = 'Select date', 
   );
 }
 
-export function DateRangePickerField({ from, to, onChange, placeholder = 'Select date range', className = '', disabled = false, min = null, max = null }) {
+export function DateRangePickerField({ from, to, onChange, placeholder, className = '', disabled = false, min = null, max = null }) {
+  const { t, language } = useInventoryApp();
   const wrapperRef = useRef(null);
   const panelRef = useRef(null);
   const [open, setOpen] = useState(false);
@@ -354,14 +358,16 @@ export function DateRangePickerField({ from, to, onChange, placeholder = 'Select
   const prevMonthDisabled = minDate ? addMonths(viewMonth, -1) < startOfMonth(minDate) : false;
   const nextMonthDisabled = maxDate ? addMonths(viewMonth, 1) > startOfMonth(maxDate) : false;
 
-  const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const weekdays = t('common.weekdaysShort');
   const rangeStart = pendingFrom || fromDate;
   const rangeEnd = pendingFrom ? null : toDate;
   const displayValue = fromDate && toDate
-    ? `${formatDate(fromDate)} - ${formatDate(toDate)}`
+    ? `${formatDate(fromDate, language)} - ${formatDate(toDate, language)}`
     : pendingFrom
-      ? `${formatDate(pendingFrom)} - …`
+      ? `${formatDate(pendingFrom, language)} - …`
       : '';
+
+  const placeholderText = placeholder || t('common.selectDateRange');
 
   function handleDayClick(day) {
     if (!rangeStart || (rangeStart && toDate && !pendingFrom)) {
@@ -389,7 +395,7 @@ export function DateRangePickerField({ from, to, onChange, placeholder = 'Select
         disabled={disabled}
       >
         <span className={cx('truncate', displayValue ? 'text-slate-950' : 'text-slate-400')}>
-          {displayValue || placeholder}
+          {displayValue || placeholderText}
         </span>
         <CalendarDays size={16} className="shrink-0 text-slate-400" />
       </button>
@@ -418,7 +424,7 @@ export function DateRangePickerField({ from, to, onChange, placeholder = 'Select
         </div>
 
         <p className="mt-2 px-1 text-[11px] font-semibold text-slate-400">
-          {pendingFrom ? 'Pick the end date' : 'Pick the start date'}
+          {pendingFrom ? t('common.pickEndDate') : t('common.pickStartDate')}
         </p>
 
         <div className="mt-2 grid grid-cols-7 gap-1 px-1 text-center text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">
@@ -469,7 +475,8 @@ export function DateRangePickerField({ from, to, onChange, placeholder = 'Select
   );
 }
 
-export function MonthPickerField({ value, onChange, placeholder = 'Select month', className = '', disabled = false }) {
+export function MonthPickerField({ value, onChange, placeholder, className = '', disabled = false }) {
+  const { t, language } = useInventoryApp();
   const wrapperRef = useRef(null);
   const panelRef = useRef(null);
   const [open, setOpen] = useState(false);
@@ -508,8 +515,9 @@ export function MonthPickerField({ value, onChange, placeholder = 'Select month'
     };
   }, []);
 
-  const monthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  const displayValue = selectedMonth ? formatMonth(selectedMonth) : '';
+  const monthLabels = t('common.monthsShort');
+  const displayValue = selectedMonth ? formatMonth(selectedMonth, language) : '';
+  const placeholderText = placeholder || t('common.selectMonth');
 
   return (
     <div ref={wrapperRef} className={cx('relative', className)}>
@@ -520,7 +528,7 @@ export function MonthPickerField({ value, onChange, placeholder = 'Select month'
         disabled={disabled}
       >
         <span className={cx('truncate', displayValue ? 'text-slate-950' : 'text-slate-400')}>
-          {displayValue || placeholder}
+          {displayValue || placeholderText}
         </span>
         <CalendarDays size={16} className="shrink-0 text-slate-400" />
       </button>

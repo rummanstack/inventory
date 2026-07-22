@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { Check, ChevronDown, Search, X } from 'lucide-react';
 import { createPortal } from 'react-dom';
+import { useInventoryApp } from '../app/useInventoryApp.jsx';
 
 /**
  * SearchableSelect - accessible combobox with keyboard nav and search.
@@ -28,7 +29,10 @@ export function SearchableSelect({
   className = '',
   ...triggerProps
 }) {
+  const { t } = useInventoryApp();
   const id = useId();
+  const placeholderText = placeholder || t('common.select');
+  const searchPlaceholderText = searchPlaceholder || t('common.search');
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [activeIndex, setActiveIndex] = useState(-1);
@@ -198,7 +202,7 @@ export function SearchableSelect({
                 setActiveIndex(0);
               }}
               onKeyDown={handleSearchKey}
-              placeholder={searchPlaceholder}
+              placeholder={searchPlaceholderText}
               className="flex-1 bg-transparent text-sm font-medium text-slate-900 outline-none placeholder:text-slate-400"
             />
             {query && (
@@ -224,7 +228,7 @@ export function SearchableSelect({
             style={{ maxHeight: menuPosition.maxListHeight }}
           >
             {filtered.length === 0 ? (
-              <li className="px-4 py-3 text-center text-sm text-slate-400">No results found</li>
+              <li className="px-4 py-3 text-center text-sm text-slate-400">{t('common.noResults')}</li>
             ) : (
               filtered.map((option, index) => {
                 const isSelected = option.value === value;
@@ -294,7 +298,7 @@ export function SearchableSelect({
               )}
             </span>
           ) : (
-            <span className="text-slate-400">{placeholder}</span>
+            <span className="text-slate-400">{placeholderText}</span>
           )}
         </span>
         <span className="flex shrink-0 items-center gap-0.5">

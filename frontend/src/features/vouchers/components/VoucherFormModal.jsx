@@ -1,5 +1,7 @@
-﻿import { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
+import { vt } from '../voucherTranslations.js';
 import { Alert, Modal } from '../../../components/ui.jsx';
+import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 
 const REFERENCE_TYPE_OPTIONS = [
   { value: '', label: 'No reference' },
@@ -36,7 +38,7 @@ function JournalLineEditor({ lines, setLines, accounts, directories }) {
           return (
             <div key={index} className="space-y-2 rounded-2xl border border-slate-200 bg-slate-50 p-3">
               <select className="input" value={line.accountCode} onChange={(event) => updateLine(index, { accountCode: event.target.value })}>
-                <option value="">Select account</option>
+                <option value="">{vt(language, 'Select account')}</option>
                 {accounts.map((account) => <option key={account.code} value={account.code}>{account.code} - {account.name}</option>)}
               </select>
               <div className="grid grid-cols-2 gap-2">
@@ -44,16 +46,16 @@ function JournalLineEditor({ lines, setLines, accounts, directories }) {
                   {REFERENCE_TYPE_OPTIONS.map((option) => <option key={option.value || 'none'} value={option.value}>{option.label}</option>)}
                 </select>
                 <select className="input" value={line.referenceId} onChange={(event) => updateLine(index, { referenceId: event.target.value })} disabled={!line.referenceType}>
-                  <option value="">Select reference</option>
+                  <option value="">{vt(language, 'Select reference')}</option>
                   {referenceOptions.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
                 </select>
               </div>
               <div className="grid grid-cols-2 gap-2">
-                <input type="number" min="0" step="0.01" placeholder="Debit" className="input text-right" value={line.debit} onChange={(event) => updateLine(index, { debit: event.target.value, credit: event.target.value ? '' : line.credit })} />
-                <input type="number" min="0" step="0.01" placeholder="Credit" className="input text-right" value={line.credit} onChange={(event) => updateLine(index, { credit: event.target.value, debit: event.target.value ? '' : line.debit })} />
+                <input type="number" min="0" step="0.01" placeholder={vt(language, 'Debit')} className="input text-right" value={line.debit} onChange={(event) => updateLine(index, { debit: event.target.value, credit: event.target.value ? '' : line.credit })} />
+                <input type="number" min="0" step="0.01" placeholder={vt(language, 'Credit')} className="input text-right" value={line.credit} onChange={(event) => updateLine(index, { credit: event.target.value, debit: event.target.value ? '' : line.debit })} />
               </div>
-              <input placeholder="Note" className="input" value={line.note} onChange={(event) => updateLine(index, { note: event.target.value })} />
-              <button type="button" className="btn-secondary w-full justify-center" onClick={() => removeLine(index)} disabled={lines.length <= 2}>Remove</button>
+              <input placeholder={vt(language, 'Note')} className="input" value={line.note} onChange={(event) => updateLine(index, { note: event.target.value })} />
+              <button type="button" className="btn-secondary w-full justify-center" onClick={() => removeLine(index)} disabled={lines.length <= 2}>{vt(language, 'Remove')}</button>
             </div>
           );
         })}
@@ -62,13 +64,13 @@ function JournalLineEditor({ lines, setLines, accounts, directories }) {
         <table className="w-full min-w-[840px]">
           <thead className="table-head">
             <tr>
-              <th className="px-4 py-3 text-left">Account</th>
-              <th className="px-4 py-3 text-left">Reference Type</th>
-              <th className="px-4 py-3 text-left">Reference</th>
-              <th className="px-4 py-3 text-right">Debit</th>
-              <th className="px-4 py-3 text-right">Credit</th>
-              <th className="px-4 py-3 text-left">Note</th>
-              <th className="px-4 py-3 text-right">Action</th>
+              <th className="px-4 py-3 text-left">{vt(language, 'Account')}</th>
+              <th className="px-4 py-3 text-left">{vt(language, 'Reference Type')}</th>
+              <th className="px-4 py-3 text-left">{vt(language, 'Reference')}</th>
+              <th className="px-4 py-3 text-right">{vt(language, 'Debit')}</th>
+              <th className="px-4 py-3 text-right">{vt(language, 'Credit')}</th>
+              <th className="px-4 py-3 text-left">{vt(language, 'Note')}</th>
+              <th className="px-4 py-3 text-right">{vt(language, 'Action')}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 bg-white">
@@ -78,7 +80,7 @@ function JournalLineEditor({ lines, setLines, accounts, directories }) {
                 <tr key={index}>
                   <td className="p-2">
                     <select className="input min-w-[220px]" value={line.accountCode} onChange={(event) => updateLine(index, { accountCode: event.target.value })}>
-                      <option value="">Select account</option>
+                      <option value="">{vt(language, 'Select account')}</option>
                       {accounts.map((account) => <option key={account.code} value={account.code}>{account.code} - {account.name}</option>)}
                     </select>
                   </td>
@@ -89,21 +91,21 @@ function JournalLineEditor({ lines, setLines, accounts, directories }) {
                   </td>
                   <td className="p-2">
                     <select className="input min-w-[170px]" value={line.referenceId} onChange={(event) => updateLine(index, { referenceId: event.target.value })} disabled={!line.referenceType}>
-                      <option value="">Select reference</option>
+                      <option value="">{vt(language, 'Select reference')}</option>
                       {referenceOptions.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
                     </select>
                   </td>
                   <td className="p-2"><input type="number" min="0" step="0.01" className="input text-right" value={line.debit} onChange={(event) => updateLine(index, { debit: event.target.value, credit: event.target.value ? '' : line.credit })} /></td>
                   <td className="p-2"><input type="number" min="0" step="0.01" className="input text-right" value={line.credit} onChange={(event) => updateLine(index, { credit: event.target.value, debit: event.target.value ? '' : line.debit })} /></td>
                   <td className="p-2"><input className="input min-w-[180px]" value={line.note} onChange={(event) => updateLine(index, { note: event.target.value })} /></td>
-                  <td className="p-2 text-right"><button type="button" className="btn-secondary" onClick={() => removeLine(index)} disabled={lines.length <= 2}>Remove</button></td>
+                  <td className="p-2 text-right"><button type="button" className="btn-secondary" onClick={() => removeLine(index)} disabled={lines.length <= 2}>{vt(language, 'Remove')}</button></td>
                 </tr>
               );
             })}
           </tbody>
         </table>
       </div>
-      <div className="flex justify-end"><button type="button" className="btn-secondary" onClick={addLine}>Add Line</button></div>
+      <div className="flex justify-end"><button type="button" className="btn-secondary" onClick={addLine}>{vt(language, 'Add Line')}</button></div>
     </div>
   );
 }
@@ -137,13 +139,13 @@ function AllocationLineEditor({ lines, setLines, accounts, directories, sideLabe
                   {REFERENCE_TYPE_OPTIONS.map((option) => <option key={option.value || 'none'} value={option.value}>{option.label}</option>)}
                 </select>
                 <select className="input" value={line.referenceId} onChange={(event) => updateLine(index, { referenceId: event.target.value })} disabled={!line.referenceType}>
-                  <option value="">Select reference</option>
+                  <option value="">{vt(language, 'Select reference')}</option>
                   {referenceOptions.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
                 </select>
               </div>
-              <input type="number" min="0" step="0.01" placeholder="Amount" className="input text-right" value={line.amount} onChange={(event) => updateLine(index, { amount: event.target.value })} />
-              <input placeholder="Note" className="input" value={line.note} onChange={(event) => updateLine(index, { note: event.target.value })} />
-              <button type="button" className="btn-secondary w-full justify-center" onClick={() => removeLine(index)} disabled={lines.length <= 1}>Remove</button>
+              <input type="number" min="0" step="0.01" placeholder={vt(language, 'Amount')} className="input text-right" value={line.amount} onChange={(event) => updateLine(index, { amount: event.target.value })} />
+              <input placeholder={vt(language, 'Note')} className="input" value={line.note} onChange={(event) => updateLine(index, { note: event.target.value })} />
+              <button type="button" className="btn-secondary w-full justify-center" onClick={() => removeLine(index)} disabled={lines.length <= 1}>{vt(language, 'Remove')}</button>
             </div>
           );
         })}
@@ -153,11 +155,11 @@ function AllocationLineEditor({ lines, setLines, accounts, directories, sideLabe
           <thead className="table-head">
             <tr>
               <th className="px-4 py-3 text-left">{sideLabel} Account</th>
-              <th className="px-4 py-3 text-left">Reference Type</th>
-              <th className="px-4 py-3 text-left">Reference</th>
-              <th className="px-4 py-3 text-right">Amount</th>
-              <th className="px-4 py-3 text-left">Note</th>
-              <th className="px-4 py-3 text-right">Action</th>
+              <th className="px-4 py-3 text-left">{vt(language, 'Reference Type')}</th>
+              <th className="px-4 py-3 text-left">{vt(language, 'Reference')}</th>
+              <th className="px-4 py-3 text-right">{vt(language, 'Amount')}</th>
+              <th className="px-4 py-3 text-left">{vt(language, 'Note')}</th>
+              <th className="px-4 py-3 text-right">{vt(language, 'Action')}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 bg-white">
@@ -167,7 +169,7 @@ function AllocationLineEditor({ lines, setLines, accounts, directories, sideLabe
                 <tr key={index}>
                   <td className="p-2">
                     <select className="input min-w-[240px]" value={line.accountCode} onChange={(event) => updateLine(index, { accountCode: event.target.value })}>
-                      <option value="">Select account</option>
+                      <option value="">{vt(language, 'Select account')}</option>
                       {accounts.map((account) => <option key={account.code} value={account.code}>{account.code} - {account.name}</option>)}
                     </select>
                   </td>
@@ -178,20 +180,20 @@ function AllocationLineEditor({ lines, setLines, accounts, directories, sideLabe
                   </td>
                   <td className="p-2">
                     <select className="input min-w-[170px]" value={line.referenceId} onChange={(event) => updateLine(index, { referenceId: event.target.value })} disabled={!line.referenceType}>
-                      <option value="">Select reference</option>
+                      <option value="">{vt(language, 'Select reference')}</option>
                       {referenceOptions.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
                     </select>
                   </td>
                   <td className="p-2"><input type="number" min="0" step="0.01" className="input text-right" value={line.amount} onChange={(event) => updateLine(index, { amount: event.target.value })} /></td>
                   <td className="p-2"><input className="input min-w-[180px]" value={line.note} onChange={(event) => updateLine(index, { note: event.target.value })} /></td>
-                  <td className="p-2 text-right"><button type="button" className="btn-secondary" onClick={() => removeLine(index)} disabled={lines.length <= 1}>Remove</button></td>
+                  <td className="p-2 text-right"><button type="button" className="btn-secondary" onClick={() => removeLine(index)} disabled={lines.length <= 1}>{vt(language, 'Remove')}</button></td>
                 </tr>
               );
             })}
           </tbody>
         </table>
       </div>
-      <div className="flex justify-end"><button type="button" className="btn-secondary" onClick={addLine}>Add Line</button></div>
+      <div className="flex justify-end"><button type="button" className="btn-secondary" onClick={addLine}>{vt(language, 'Add Line')}</button></div>
     </div>
   );
 }
@@ -214,6 +216,7 @@ export default function VoucherFormModal({
   onClose,
   onSave,
 }) {
+  const { language } = useInventoryApp();
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
@@ -304,24 +307,24 @@ export default function VoucherFormModal({
   }
 
   return (
-    <Modal title={voucher ? `Edit ${voucherType} Voucher` : `New ${voucherType} Voucher`} description="All voucher types post through the shared journal service." onClose={onClose} width="max-w-6xl">
+    <Modal title={voucher ? `Edit ${voucherType} Voucher` : `New ${voucherType} Voucher`} description={vt(language, 'All voucher types post through the shared journal service.')} onClose={onClose} width="max-w-6xl">
       <form className="space-y-5" onSubmit={handleSubmit}>
         {error ? <Alert type="error">{error}</Alert> : null}
 
         <div className="grid gap-4 lg:grid-cols-2">
           <label>
-            <span className="label">Voucher Date</span>
+            <span className="label">{vt(language, 'Voucher Date')}</span>
             <input type="date" className="input" value={form.voucherDate} onChange={(event) => setForm((current) => ({ ...current, voucherDate: event.target.value }))} required />
           </label>
           <label>
-            <span className="label">Reference Number</span>
+            <span className="label">{vt(language, 'Reference Number')}</span>
             <input className="input" value={form.referenceNumber} onChange={(event) => setForm((current) => ({ ...current, referenceNumber: event.target.value }))} />
           </label>
           {(voucherType === 'RECEIPT' || voucherType === 'PAYMENT') ? (
             <label>
-              <span className="label">Cash / Bank Account</span>
+              <span className="label">{vt(language, 'Cash / Bank Account')}</span>
               <select className="input" value={form.cashBankAccountCode} onChange={(event) => setForm((current) => ({ ...current, cashBankAccountCode: event.target.value }))}>
-                <option value="">Select account</option>
+                <option value="">{vt(language, 'Select account')}</option>
                 {cashBankAccounts.map((account) => <option key={account.code} value={account.code}>{account.code} - {account.name}</option>)}
               </select>
             </label>
@@ -329,35 +332,35 @@ export default function VoucherFormModal({
           {voucherType === 'CONTRA' ? (
             <>
               <label>
-                <span className="label">From Account</span>
+                <span className="label">{vt(language, 'From Account')}</span>
                 <select className="input" value={form.fromAccountCode} onChange={(event) => setForm((current) => ({ ...current, fromAccountCode: event.target.value }))}>
-                  <option value="">Select account</option>
+                  <option value="">{vt(language, 'Select account')}</option>
                   {cashBankAccounts.map((account) => <option key={account.code} value={account.code}>{account.code} - {account.name}</option>)}
                 </select>
               </label>
               <label>
-                <span className="label">To Account</span>
+                <span className="label">{vt(language, 'To Account')}</span>
                 <select className="input" value={form.toAccountCode} onChange={(event) => setForm((current) => ({ ...current, toAccountCode: event.target.value }))}>
-                  <option value="">Select account</option>
+                  <option value="">{vt(language, 'Select account')}</option>
                   {cashBankAccounts.map((account) => <option key={account.code} value={account.code}>{account.code} - {account.name}</option>)}
                 </select>
               </label>
               <label>
-                <span className="label">Amount</span>
+                <span className="label">{vt(language, 'Amount')}</span>
                 <input type="number" min="0" step="0.01" className="input" value={form.amount} onChange={(event) => setForm((current) => ({ ...current, amount: event.target.value }))} />
               </label>
             </>
           ) : null}
           <label className={voucherType === 'CONTRA' ? '' : 'lg:col-span-2'}>
-            <span className="label">Counterparty / Received From / Paid To</span>
+            <span className="label">{vt(language, 'Counterparty / Received From / Paid To')}</span>
             <input className="input" value={form.counterpartyName} onChange={(event) => setForm((current) => ({ ...current, counterpartyName: event.target.value }))} />
           </label>
           <label className="lg:col-span-2">
-            <span className="label">Narration</span>
+            <span className="label">{vt(language, 'Narration')}</span>
             <textarea className="input min-h-[88px]" value={form.narration} onChange={(event) => setForm((current) => ({ ...current, narration: event.target.value }))} />
           </label>
           <label className="lg:col-span-2">
-            <span className="label">Notes</span>
+            <span className="label">{vt(language, 'Notes')}</span>
             <textarea className="input min-h-[88px]" value={form.notes} onChange={(event) => setForm((current) => ({ ...current, notes: event.target.value }))} />
           </label>
         </div>
@@ -368,8 +371,8 @@ export default function VoucherFormModal({
 
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm">
           <div className="flex flex-wrap items-center gap-4">
-            <span><strong>Debit:</strong> {debitTotal.toFixed(2)}</span>
-            <span><strong>Credit:</strong> {creditTotal.toFixed(2)}</span>
+            <span><strong>{vt(language, 'Debit:')}</strong> {debitTotal.toFixed(2)}</span>
+            <span><strong>{vt(language, 'Credit:')}</strong> {creditTotal.toFixed(2)}</span>
           </div>
           <div className={Math.abs(debitTotal - creditTotal) < 0.001 ? 'font-semibold text-emerald-700' : 'font-semibold text-rose-600'}>
             {Math.abs(debitTotal - creditTotal) < 0.001 ? 'Balanced' : 'Not balanced'}
@@ -377,8 +380,8 @@ export default function VoucherFormModal({
         </div>
 
         <div className="flex justify-end gap-2">
-          <button type="button" className="btn-secondary" onClick={onClose}>Cancel</button>
-          <button type="submit" className="btn-primary" disabled={saving}>{saving ? 'Saving...' : 'Save Voucher'}</button>
+          <button type="button" className="btn-secondary" onClick={onClose}>{vt(language, 'Cancel')}</button>
+          <button type="submit" className="btn-primary" disabled={saving}>{saving ? vt(language, 'Saving...') : vt(language, 'Save Voucher')}</button>
         </div>
       </form>
     </Modal>

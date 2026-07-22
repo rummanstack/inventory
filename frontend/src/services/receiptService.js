@@ -72,7 +72,7 @@ function lineTotalText(item, language) {
 }
 
 function buildLineItemHtml(item, t, language, invoiceDate) {
-  const name = escapeHtml(item?.productName || 'Item');
+  const name = escapeHtml(item?.productName || labelFor(t, 'retailer.shared.itemLabel', 'Item'));
   const brandModel = [item?.brandSnapshot, item?.modelSnapshot].filter(Boolean).join(' / ');
   const quantity = formatQuantity(item?.quantityPieces, language);
   const origPrice = Number(item?.originalSalePrice || 0);
@@ -100,7 +100,7 @@ function buildLineItemHtml(item, t, language, invoiceDate) {
         <div class="name">${name}</div>
         ${brandModel ? `<div class="meta">${escapeHtml(brandModel)}</div>` : ''}
         <div class="meta">${quantity} x ${price}${discount > 0 ? ` &middot; ${escapeHtml(discountLabel)} ${formatLocalizedCurrency(discount, language)}` : ''}</div>
-        ${hasPromo ? `<div class="meta" style="color:#059669;font-weight:700">&#10022; Promo &middot; saved ${escapeHtml(formatLocalizedCurrency(promoSaving, language))}</div>` : ''}
+        ${hasPromo ? `<div class="meta" style="color:#059669;font-weight:700">&#10022; ${escapeHtml(labelFor(t, 'retailer.shared.promoLabel', 'Promo'))} &middot; ${escapeHtml(labelFor(t, 'retailer.shared.savedLabel', 'saved'))} ${escapeHtml(formatLocalizedCurrency(promoSaving, language))}</div>` : ''}
         ${serials.length ? `<div class="meta">${escapeHtml(serialLabel)}: ${escapeHtml(serials.join(', '))}</div>` : ''}
         ${warrantyText ? `<div class="meta">${escapeHtml(warrantyText)}</div>` : ''}
       </td>
@@ -157,11 +157,12 @@ export function buildReceiptHtml(invoice, {
   businessAddress = '',
   businessPhone = '',
   businessEmail = '',
-  title = 'Receipt',
+  title = '',
   language = 'en',
   widthMm = 80,
 } = {}) {
   const t = createTranslator(language);
+  const receiptTitle = title || labelFor(t, 'retailer.shared.receiptTitle', 'Receipt');
   const items = Array.isArray(invoice?.items) ? invoice.items : [];
   const safeWidth = Number(widthMm) === 58 ? 58 : 80;
   const businessLines = [businessAddress, businessPhone, businessEmail].filter(Boolean);
@@ -182,13 +183,16 @@ export function buildReceiptHtml(invoice, {
   const noteLabel = labelFor(t, 'purchaseReceive.noteLabel', 'Note');
   const receiptThankYou = labelFor(t, 'retailer.shared.receiptThankYou', 'Thank you for your purchase.');
   const receiptKeepForRecords = labelFor(t, 'retailer.shared.receiptKeepForRecords', 'Please keep this receipt for records.');
+  const promotionsLabel = labelFor(t, 'retailer.shared.promotionsLabel', 'Promotions');
+  const itemDiscountsLabel = labelFor(t, 'retailer.shared.itemDiscountsLabel', 'Item Discounts');
+  const businessReceiptLabel = labelFor(t, 'retailer.shared.businessReceiptLabel', 'Business Receipt');
 
   return `<!doctype html>
 <html>
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>${escapeHtml(title)}</title>
+  <title>${escapeHtml(receiptTitle)}</title>
   <style>
     :root {
       color-scheme: light;
@@ -337,8 +341,8 @@ export function buildReceiptHtml(invoice, {
 <body>
   <main class="receipt">
     <div class="center">
-      <div class="business-name">${escapeHtml(businessName || 'Business Receipt')}</div>
-      <div class="small" style="margin-top: 2px; font-weight: 700;">${escapeHtml(title)}</div>
+      <div class="business-name">${escapeHtml(businessName || businessReceiptLabel)}</div>
+      <div class="small" style="margin-top: 2px; font-weight: 700;">${escapeHtml(receiptTitle)}</div>
       ${businessLines.length ? `<div class="small">${businessLines.map(compactText).join('<br>')}</div>` : ''}
     </div>
 
@@ -381,8 +385,8 @@ export function buildReceiptHtml(invoice, {
             </tr>` : '';
           return `
             ${buildMoneyRow(subtotalLabel, originalSubtotal, language)}
-            ${deductRow('&#10022; Promotions', promoSavingsTotal)}
-            ${deductRow('- Item Discounts', lineDiscountTotal)}
+            ${deductRow(`&#10022; ${escapeHtml(promotionsLabel)}`, promoSavingsTotal)}
+            ${deductRow(`- ${escapeHtml(itemDiscountsLabel)}`, lineDiscountTotal)}
             ${deductRow(`- ${escapeHtml(discountLabel)}`, Number(invoice?.discount || 0))}
             ${buildOptionalMoneyRow(loyaltyRedeemLabel, invoice?.loyaltyRedeemAmount, language)}
             ${Number(invoice?.taxRate || 0) > 0 ? buildMoneyRow(`${taxLabel} (${formatPercent(invoice.taxRate || 0, language)}%)`, invoice?.taxAmount, language) : ''}
@@ -437,11 +441,22 @@ export function buildInvoiceHtml(invoice, {
   const cashierLabel = labelFor(t, 'retailer.shared.cashierLabel', 'Cashier');
   const noteLabel = labelFor(t, 'purchaseReceive.noteLabel', 'Note');
   const receiptThankYou = labelFor(t, 'retailer.shared.receiptThankYou', 'Thank you for your business.');
+  const invoiceTitle = labelFor(t, 'retailer.shared.invoiceTitle', 'Invoice');
+  const billToLabel = labelFor(t, 'retailer.shared.billToLabel', 'Bill To');
+  const walkInLabel = labelFor(t, 'retailer.shared.customerTypes.WALK_IN', 'Walk-in Customer');
+  const productDescriptionLabel = labelFor(t, 'retailer.shared.descriptionLabel', 'Product Description');
+  const unitPriceLabel = labelFor(t, 'retailer.shared.unitPriceLabel', 'Unit Price');
+  const quantityLabel = labelFor(t, 'retailer.shared.quantityShortLabel', 'Qty');
+  const amountLabel = labelFor(t, 'retailer.shared.amountLabel', 'Amount');
+  const promotionsLabel = labelFor(t, 'retailer.shared.promotionsLabel', 'Promotions');
+  const itemsLabel = labelFor(t, 'retailer.shared.itemsLabel', 'items');
+  const authorizedSignatureLabel = labelFor(t, 'retailer.shared.authorizedSignatureLabel', 'Authorised Signature');
+  const businessLabel = labelFor(t, 'retailer.shared.businessLabel', 'Business');
 
   const bizContact = [businessAddress, businessPhone, businessEmail].filter(Boolean).join('&nbsp;&nbsp;|&nbsp;&nbsp;');
 
   const itemRows = items.map((item, index) => {
-    const name = escapeHtml(item?.productName || 'Item');
+    const name = escapeHtml(item?.productName || labelFor(t, 'retailer.shared.itemLabel', 'Item'));
     const brandModel = [item?.brandSnapshot, item?.modelSnapshot].filter(Boolean).join(' / ');
     const serials = (item?.serials || []).map((s) => s?.serialNumber || s?.imei1 || s?.imei2).filter(Boolean);
     const warrantyMonths = Number(item?.warrantyMonthsSnapshot || 0);
@@ -469,7 +484,7 @@ export function buildInvoiceHtml(invoice, {
         ${brandModel ? `<div class="imeta">${escapeHtml(brandModel)}</div>` : ''}
         ${serials.length ? `<div class="iserial">${escapeHtml(serialLabel)}: <strong>${escapeHtml(serials.join(', '))}</strong></div>` : ''}
         ${lineDiscount > 0 ? `<div class="imeta">${escapeHtml(discountLabel)}: ${escapeHtml(formatLocalizedCurrency(lineDiscount, language))}</div>` : ''}
-        ${hasPromo ? `<div class="imeta" style="color:#059669;font-weight:700">&#10022; Promo &middot; saved ${escapeHtml(formatLocalizedCurrency(promoSavingAmt, language))}</div>` : ''}
+        ${hasPromo ? `<div class="imeta" style="color:#059669;font-weight:700">&#10022; ${escapeHtml(labelFor(t, 'retailer.shared.promoLabel', 'Promo'))} &middot; ${escapeHtml(labelFor(t, 'retailer.shared.savedLabel', 'saved'))} ${escapeHtml(formatLocalizedCurrency(promoSavingAmt, language))}</div>` : ''}
         ${warrantyText ? `<div class="imeta">${escapeHtml(warrantyText)}</div>` : ''}
       </td>
       <td class="al-r muted">${priceCell}</td>
@@ -488,9 +503,9 @@ export function buildInvoiceHtml(invoice, {
   const originalSubtotal = Number(invoice?.subtotal || 0) + lineDiscountTotal + promoSavingsTotal;
 
   const promoSavingsRow = promoSavingsTotal > 0
-    ? `<tr><td class="tl" style="color:#059669">&#10022; Promotions</td><td class="tr" style="color:#059669">&minus; ${escapeHtml(formatLocalizedCurrency(promoSavingsTotal, language))}</td></tr>` : '';
+    ? `<tr><td class="tl" style="color:#059669">&#10022; ${escapeHtml(promotionsLabel)}</td><td class="tr" style="color:#059669">&minus; ${escapeHtml(formatLocalizedCurrency(promoSavingsTotal, language))}</td></tr>` : '';
   const lineDiscountRow = lineDiscountTotal > 0
-    ? `<tr><td class="tl">- ${escapeHtml(discountLabel)} (items)</td><td class="tr">&minus; ${escapeHtml(formatLocalizedCurrency(lineDiscountTotal, language))}</td></tr>` : '';
+    ? `<tr><td class="tl">- ${escapeHtml(discountLabel)} (${escapeHtml(itemsLabel)})</td><td class="tr">&minus; ${escapeHtml(formatLocalizedCurrency(lineDiscountTotal, language))}</td></tr>` : '';
   const discountRow = Number(invoice?.discount || 0) > 0
     ? `<tr><td class="tl">- ${escapeHtml(discountLabel)}</td><td class="tr">&minus; ${escapeHtml(formatLocalizedCurrency(invoice.discount, language))}</td></tr>` : '';
   const taxRow = Number(invoice?.taxRate || 0) > 0
@@ -502,7 +517,7 @@ export function buildInvoiceHtml(invoice, {
 <html>
 <head>
 <meta charset="utf-8">
-<title>Invoice #${escapeHtml(String(invoice?.invoiceNumber || ''))}</title>
+<title>${escapeHtml(invoiceTitle)} #${escapeHtml(String(invoice?.invoiceNumber || ''))}</title>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 @page { size: A4; margin: 0; }
@@ -588,11 +603,11 @@ body {
   <div class="hdr">
     <table class="hdr-tbl"><tr>
       <td>
-        <div class="biz-name">${escapeHtml(businessName || 'Business')}</div>
+        <div class="biz-name">${escapeHtml(businessName || businessLabel)}</div>
         ${bizContact ? `<div class="biz-contact">${bizContact}</div>` : ''}
       </td>
       <td>
-        <div class="inv-heading">INVOICE</div>
+        <div class="inv-heading">${escapeHtml(invoiceTitle)}</div>
         ${invoice?.invoiceNumber ? `<div class="inv-num"># ${escapeHtml(String(invoice.invoiceNumber))}</div>` : ''}
       </td>
     </tr></table>
@@ -601,12 +616,12 @@ body {
   <div class="info">
     <table class="info-tbl"><tr>
       <td style="width:58%">
-        <div class="lbl">Bill To</div>
-        <div class="cust-name">${escapeHtml(invoice?.customerName || 'Walk-in Customer')}</div>
+        <div class="lbl">${escapeHtml(billToLabel)}</div>
+        <div class="cust-name">${escapeHtml(invoice?.customerName || walkInLabel)}</div>
         ${invoice?.createdByName ? `<div class="cust-sub">${escapeHtml(cashierLabel)}: ${escapeHtml(invoice.createdByName)}</div>` : ''}
       </td>
       <td>
-        <div class="due-lbl">Balance Due</div>
+        <div class="due-lbl">${escapeHtml(dueLabel)}</div>
         <div class="due-amt">${escapeHtml(formatLocalizedCurrency(invoice?.dueAmount, language))}</div>
         <div class="due-sub">${escapeHtml(formatDate(invoiceDate, language))}</div>
       </td>
@@ -617,10 +632,10 @@ body {
     <table class="itbl">
       <thead><tr>
         <th>#</th>
-        <th>Product Description</th>
-        <th class="al-r">Unit Price</th>
-        <th class="al-r">Qty</th>
-        <th class="al-r">Amount</th>
+        <th>${escapeHtml(productDescriptionLabel)}</th>
+        <th class="al-r">${escapeHtml(unitPriceLabel)}</th>
+        <th class="al-r">${escapeHtml(quantityLabel)}</th>
+        <th class="al-r">${escapeHtml(amountLabel)}</th>
       </tr></thead>
       <tbody>${itemRows}</tbody>
     </table>
@@ -653,7 +668,7 @@ body {
         <div class="ty-sub">${escapeHtml(labelFor(t, 'retailer.shared.receiptKeepForRecords', 'Please keep this invoice for your records.'))}</div>
       </td>
       <td class="sig-cell">
-        <div class="sig-line">Authorised Signature</div>
+        <div class="sig-line">${escapeHtml(authorizedSignatureLabel)}</div>
       </td>
     </tr></table>
   </div>

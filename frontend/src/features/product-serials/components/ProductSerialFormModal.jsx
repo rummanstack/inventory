@@ -16,6 +16,9 @@ export default function ProductSerialFormModal({ serial, onClose, onSave }) {
     serialNumber: serial?.serialNumber || '',
     imei1: serial?.imei1 || '',
     imei2: serial?.imei2 || '',
+    barcode: serial?.barcode || '',
+    purchasePrice: serial?.purchasePrice ?? '',
+    salePrice: serial?.salePrice ?? '',
     status: serial?.status || 'IN_STOCK',
   });
 
@@ -37,6 +40,9 @@ export default function ProductSerialFormModal({ serial, onClose, onSave }) {
       serialNumber: form.serialNumber.trim(),
       imei1: form.imei1.trim(),
       imei2: form.imei2.trim(),
+      barcode: form.barcode.trim(),
+      purchasePrice: form.purchasePrice === '' ? null : form.purchasePrice,
+      salePrice: form.salePrice === '' ? null : form.salePrice,
       status: form.status,
       // Pass through link/warranty fields untouched so editing serial/IMEI text or status
       // doesn't wipe out the sale link this serial already carries.
@@ -84,6 +90,18 @@ export default function ProductSerialFormModal({ serial, onClose, onSave }) {
           <div>
             <label className="label">{t('productSerials.imei2Label')}</label>
             <input className="input" value={form.imei2} onChange={(event) => updateField('imei2', event.target.value)} />
+          </div>
+          <div>
+            <label className="label">{t('productSerials.barcodeLabel')}</label>
+            <input className="input" value={form.barcode} onChange={(event) => updateField('barcode', event.target.value)} placeholder={isEdit ? '' : t('productSerials.barcodeAutoHint')} />
+          </div>
+          <div>
+            <label className="label">{t('productSerials.purchasePriceLabel')}</label>
+            <input className="input" type="number" min="0" step="0.01" value={form.purchasePrice} onChange={(event) => updateField('purchasePrice', event.target.value)} />
+          </div>
+          <div>
+            <label className="label">{t('productSerials.salePriceLabel')}</label>
+            <input className="input" type="number" min="0" step="0.01" value={form.salePrice} onChange={(event) => updateField('salePrice', event.target.value)} />
           </div>
           <div>
             <label className="label">{t('productSerials.statusLabel')}</label>

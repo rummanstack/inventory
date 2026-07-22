@@ -1078,6 +1078,17 @@ export async function createSchema(pool) {
     CREATE INDEX IF NOT EXISTS idx_product_serials_imei2 ON product_serials(tenant_id, imei2);
     CREATE INDEX IF NOT EXISTS idx_product_serials_sale ON product_serials(tenant_id, sales_invoice_id);
 
+    -- Generic serialized-inventory support: each individual unit can carry its own
+    -- scannable barcode (distinct from the product-level barcode) plus its own
+    -- purchase/sale price, so unit-level economics aren't forced through the
+    -- product's blended average cost. All optional/additive — a unit with no
+    -- barcode or price behaves exactly as it did before these columns existed.
+    ALTER TABLE product_serials ADD COLUMN IF NOT EXISTS barcode TEXT NOT NULL DEFAULT '';
+    ALTER TABLE product_serials ADD COLUMN IF NOT EXISTS purchase_price NUMERIC;
+    ALTER TABLE product_serials ADD COLUMN IF NOT EXISTS sale_price NUMERIC;
+
+    CREATE INDEX IF NOT EXISTS idx_product_serials_barcode ON product_serials(tenant_id, barcode);
+
     -- Electronics retail: one row per non-blank serial_number/imei1/imei2 value, so a single
     -- unique index can enforce that an identifier value is never reused across *any* of those
     -- three columns Ã¢â‚¬â€ not just within the same column (which per-column unique indexes can't do,
@@ -1104,7 +1115,7 @@ export async function createSchema(pool) {
     SELECT 'serial-identifier-' || md5(ps.id || ':' || src.identifier_type), ps.tenant_id, ps.id, src.identifier_type, src.identifier_value, ps.deleted_at
     FROM product_serials ps
     CROSS JOIN LATERAL (
-      VALUES ('SERIAL_NUMBER', ps.serial_number), ('IMEI1', ps.imei1), ('IMEI2', ps.imei2)
+      VALUES ('SERIAL_NUMBER', ps.serial_number), ('IMEI1', ps.imei1), ('IMEI2', ps.imei2), ('BARCODE', ps.barcode)
     ) AS src(identifier_type, identifier_value)
     WHERE src.identifier_value <> ''
       AND NOT EXISTS (

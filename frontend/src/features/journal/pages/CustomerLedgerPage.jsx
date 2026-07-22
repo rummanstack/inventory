@@ -1,4 +1,5 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { at } from '../../accounting-foundation/accountingTranslations.js';
 import TableReportActions from '../../../components/TableReportActions.jsx';
 import { Alert, CopyableText, EmptyState, MobileCardList, MobileListCard, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
 import { DatePickerField } from '../../../components/DatePicker.jsx';
@@ -27,7 +28,7 @@ function PartyLedgerPage({ title, partyKey, loader, reportId }) {
 
   return (
     <div>
-      <SectionHeader eyebrow="Accounting" title={title} description="Party ledger generated from journal activity affecting receivable or payable accounts." />
+      <SectionHeader eyebrow={at('Accounting')} title={title} description={at('Party ledger generated from journal activity affecting receivable or payable accounts.')} />
       <div className="surface overflow-hidden">
         <div className="flex flex-wrap items-end justify-between gap-3 border-b border-slate-100 p-5 no-print">
           <div className="grid flex-1 gap-3 md:grid-cols-3">
@@ -35,20 +36,20 @@ function PartyLedgerPage({ title, partyKey, loader, reportId }) {
               <option value="">Select {partyKey === 'customerId' ? 'customer' : 'supplier'}</option>
               {options.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
             </select>
-            <DatePickerField value={filters.dateFrom} onChange={(value) => setFilters((current) => ({ ...current, dateFrom: value }))} placeholder="Date from" />
-            <DatePickerField value={filters.dateTo} onChange={(value) => setFilters((current) => ({ ...current, dateTo: value }))} placeholder="Date to" min={filters.dateFrom || null} />
+            <DatePickerField value={filters.dateFrom} onChange={(value) => setFilters((current) => ({ ...current, dateFrom: value }))} placeholder={at('Date from')} />
+            <DatePickerField value={filters.dateTo} onChange={(value) => setFilters((current) => ({ ...current, dateTo: value }))} placeholder={at('Date to')} min={filters.dateFrom || null} />
           </div>
           <TableReportActions targetId={reportId} title={title} fileName={reportId} entityType={reportId} t={(key) => key} />
         </div>
         {refError ? <div className="p-5"><Alert type="error">{refError}</Alert></div> : null}
         {error ? <div className="p-5"><Alert type="error">{error}</Alert></div> : null}
         {loading || refLoading ? <div className="p-5"><TableSkeleton columns={7} /></div> : null}
-        {!loading && !refLoading && !data ? <div className="p-10"><EmptyState icon={Users} title={`Select a ${partyKey === 'customerId' ? 'customer' : 'supplier'}`} description="The ledger will load once a party is selected." /></div> : null}
+        {!loading && !refLoading && !data ? <div className="p-10"><EmptyState icon={Users} title={`Select a ${partyKey === 'customerId' ? 'customer' : 'supplier'}`} description={at('The ledger will load once a party is selected.')} /></div> : null}
         {!loading && !refLoading && data ? (
           <div id={reportId} className="overflow-x-auto">
             <div className="grid gap-4 border-b border-slate-100 bg-slate-50 px-5 py-4 md:grid-cols-3">
-              <div><div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Opening Balance</div><div className="mt-1 text-lg font-semibold text-slate-950">{formatCurrency(data.openingBalance || 0, language)}</div></div>
-              <div><div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Outstanding</div><div className="mt-1 text-lg font-semibold text-slate-950">{formatCurrency(data.outstanding || 0, language)}</div></div>
+              <div><div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">{at('Opening Balance')}</div><div className="mt-1 text-lg font-semibold text-slate-950">{formatCurrency(data.openingBalance || 0, language)}</div></div>
+              <div><div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">{at('Outstanding')}</div><div className="mt-1 text-lg font-semibold text-slate-950">{formatCurrency(data.outstanding || 0, language)}</div></div>
             </div>
             <MobileCardList>
               {data.lines.map((line) => (
@@ -66,13 +67,13 @@ function PartyLedgerPage({ title, partyKey, loader, reportId }) {
             <table className="w-full min-w-[1120px]">
               <thead className="table-head">
                 <tr>
-                  <th className="px-4 py-3 text-left">Date</th>
-                  <th className="px-4 py-3 text-left">Voucher</th>
-                  <th className="px-4 py-3 text-left">Type</th>
-                  <th className="px-4 py-3 text-left">Reference</th>
-                  <th className="px-4 py-3 text-right">Debit</th>
-                  <th className="px-4 py-3 text-right">Credit</th>
-                  <th className="px-4 py-3 text-right">Balance</th>
+                  <th className="px-4 py-3 text-left">{at('Date')}</th>
+                  <th className="px-4 py-3 text-left">{at('Voucher')}</th>
+                  <th className="px-4 py-3 text-left">{at('Type')}</th>
+                  <th className="px-4 py-3 text-left">{at('Reference')}</th>
+                  <th className="px-4 py-3 text-right">{at('Debit')}</th>
+                  <th className="px-4 py-3 text-right">{at('Credit')}</th>
+                  <th className="px-4 py-3 text-right">{at('Balance')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -98,9 +99,9 @@ function PartyLedgerPage({ title, partyKey, loader, reportId }) {
 }
 
 export default function CustomerLedgerPage() {
-  return <PartyLedgerPage title="Customer Ledger" partyKey="customerId" loader={inventoryApi.getCustomerLedger} reportId="customer-ledger-report" />;
+  return <PartyLedgerPage title={at('Customer Ledger')} partyKey="customerId" loader={inventoryApi.getCustomerLedger} reportId="customer-ledger-report" />;
 }
 
 export function SupplierLedgerPage() {
-  return <PartyLedgerPage title="Supplier Ledger" partyKey="supplierId" loader={inventoryApi.getSupplierLedger} reportId="supplier-ledger-report" />;
+  return <PartyLedgerPage title={at('Supplier Ledger')} partyKey="supplierId" loader={inventoryApi.getSupplierLedger} reportId="supplier-ledger-report" />;
 }

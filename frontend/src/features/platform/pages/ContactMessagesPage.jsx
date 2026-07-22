@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { pt } from '../../platformProductTranslations.js';
 import { RefreshCw } from 'lucide-react';
 import { EmptyState, SectionHeader } from '../../../components/ui.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
@@ -31,18 +32,18 @@ export default function ContactMessagesPage() {
   const items = Array.isArray(messagesQuery.data?.items) ? messagesQuery.data.items : [];
   const loading = messagesQuery.isLoading || messagesQuery.isFetching;
   const load = () => messagesQuery.refetch().catch((error) => {
-    pushToast('error', 'Failed to load', error?.message || 'Could not load contact messages.');
+    pushToast('error', pt('Failed to load'), error?.message || pt('Could not load contact messages.'));
   });
 
   return (
     <div className="page-container">
       <SectionHeader
-        title="Contact Messages"
-        description="Everyone who reached out via the landing page contact form."
+        title={pt('Contact Messages')}
+        description={pt('Everyone who reached out via the landing page contact form.')}
         actions={
           <button type="button" className="btn-secondary" onClick={load} disabled={loading}>
             <RefreshCw size={15} className={loading ? 'animate-spin' : ''} />
-            Refresh
+            {pt('Refresh')}
           </button>
         }
       />
@@ -52,7 +53,7 @@ export default function ContactMessagesPage() {
           <RefreshCw size={20} className="animate-spin text-slate-400" />
         </div>
       ) : items.length === 0 ? (
-        <EmptyState title="No messages yet" description="Contact form submissions will appear here." />
+        <EmptyState title={pt('No messages yet')} description={pt('Contact form submissions will appear here.')} />
       ) : (
         <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {items.map((item) => (

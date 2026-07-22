@@ -149,7 +149,7 @@ export default function SrPage() {
               <MobileListCard
                 key={sr.id}
                 title={sr.name}
-                badge={<Badge tone={statusTone(sr.status)}>{sr.status}</Badge>}
+                badge={<Badge tone={statusTone(sr.status)}>{t(sr.status === 'Active' ? 'srs.statusActive' : 'srs.statusInactive')}</Badge>}
                 subtitle={sr.phone}
                 value={formatCurrency(sr.currentDue || 0)}
                 valueClass={Number(sr.currentDue) > 0 ? 'text-rose-700' : undefined}
@@ -203,7 +203,7 @@ export default function SrPage() {
                       </span>
                     </td>
                     <td className="table-cell no-print">
-                      <Badge tone={statusTone(sr.status)}>{sr.status}</Badge>
+                      <Badge tone={statusTone(sr.status)}>{t(sr.status === 'Active' ? 'srs.statusActive' : 'srs.statusInactive')}</Badge>
                     </td>
                     <td className="table-cell text-right">
                       <span className={`font-bold ${Number(sr.currentDue) > 0 ? 'text-rose-700' : 'text-slate-500'}`}>

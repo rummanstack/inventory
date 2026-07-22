@@ -5,6 +5,7 @@ import { formatCurrency } from '../../../../utils/calculations.js';
 import { inventoryApi } from '../../../../services/inventoryApi.js';
 import RetailCustomerFormModal from '../../../retail-customers/components/RetailCustomerFormModal.jsx';
 import { Select } from '../../../../components/ui.jsx';
+import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
 import { useQueries } from '@tanstack/react-query';
 import { getActiveTenantId } from '../../../../services/api/client.js';
 import { productKeys } from '../../../products/queries/productQueries.js';
@@ -50,10 +51,13 @@ function PromoBadge({ promotion, size = 'md' }) {
 }
 
 export default function SalesInvoiceFormFields({ vm, t, productDirectory, retailCustomerDirectory, saving, saveRetailCustomer, isPharmacy }) {
+  const { pushToast } = useInventoryApp();
   const [showAddCustomer, setShowAddCustomer] = useState(false);
   const [productPickerRowId, setProductPickerRowId] = useState(null);
   const [productQueries, setProductQueries] = useState({});
   const [highlightedIndexes, setHighlightedIndexes] = useState({});
+  const [serialScanValues, setSerialScanValues] = useState({});
+  const [scanningRowId, setScanningRowId] = useState(null);
   const searchRefs = useRef({});
   const prevRowCount = useRef(0);
   const tenantId = getActiveTenantId() || 'session-tenant';
@@ -89,6 +93,40 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, retail
   const batchInfoByProductId = Object.fromEntries(
     batchProductIds.map((productId, index) => [productId, batchQueries[index]?.data || []]),
   );
+
+  // Scanning a unit's own barcode selects it directly, skipping the checklist —
+  // the common case at a real counter where a scanner gun feeds this input.
+  async function handleScanSerial(row) {
+    const barcode = (serialScanValues[row.rowId] || '').trim();
+    if (!barcode) return;
+
+    setScanningRowId(row.rowId);
+    try {
+      const { serial } = await inventoryApi.findProductSerialByBarcode(barcode);
+      if (!serial) {
+        pushToast('error', t('retailer.shared.serialScanNotFound'));
+        return;
+      }
+      if (serial.productId !== row.productId) {
+        pushToast('error', t('retailer.shared.serialScanWrongProduct'));
+        return;
+      }
+      if (serial.status !== 'IN_STOCK') {
+        pushToast('error', t('retailer.shared.serialScanNotAvailable'));
+        return;
+      }
+      if (row.serialIds.includes(serial.id)) {
+        pushToast('info', t('retailer.shared.serialScanAlreadySelected'));
+        return;
+      }
+      vm.toggleItemSerial(row.rowId, serial.id);
+      setSerialScanValues((current) => ({ ...current, [row.rowId]: '' }));
+    } catch (err) {
+      pushToast('error', err?.message || t('retailer.shared.serialScanNotFound'));
+    } finally {
+      setScanningRowId(null);
+    }
+  }
 
   useEffect(() => {
     if (vm.lineRows.length > prevRowCount.current) {
@@ -438,6 +476,29 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, retail
                           {t('retailer.shared.serialsSelectedCount', { count: row.serialIds.length })}
                         </span>
                       </p>
+                      <div className="mb-3 flex gap-2">
+                        <input
+                          className="input"
+                          value={serialScanValues[row.rowId] || ''}
+                          onChange={(event) => setSerialScanValues((current) => ({ ...current, [row.rowId]: event.target.value }))}
+                          onKeyDown={(event) => {
+                            if (event.key === 'Enter') {
+                              event.preventDefault();
+                              handleScanSerial(row);
+                            }
+                          }}
+                          placeholder={t('retailer.shared.scanSerialBarcodePlaceholder')}
+                          disabled={saving || scanningRowId === row.rowId}
+                        />
+                        <button
+                          type="button"
+                          className="btn-secondary shrink-0"
+                          onClick={() => handleScanSerial(row)}
+                          disabled={saving || scanningRowId === row.rowId || !(serialScanValues[row.rowId] || '').trim()}
+                        >
+                          {t('retailer.shared.scanSerialButton')}
+                        </button>
+                      </div>
                       {availableSerials.length ? (
                         <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                           {availableSerials.map((serial) => (

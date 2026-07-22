@@ -27,9 +27,26 @@ export class ProductSerialController {
     }
   };
 
+  getByBarcode = async (req, res, next) => {
+    try {
+      const serial = await this.productSerialService.findByBarcode(req.params.barcode, req.currentUser);
+      res.json({ serial });
+    } catch (error) {
+      next(error);
+    }
+  };
+
   create = async (req, res, next) => {
     try {
       res.status(201).json(await this.productSerialService.createSerial(req.body, req.currentUser));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  bulkCreate = async (req, res, next) => {
+    try {
+      res.status(201).json(await this.productSerialService.bulkImport(req.body, req.currentUser));
     } catch (error) {
       next(error);
     }

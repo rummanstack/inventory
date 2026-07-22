@@ -1,0 +1,46 @@
+CLI LANGUAGE TEST GUIDE
+=======================
+
+1. Open PowerShell and go to the project:
+
+cd C:\Users\ASUS\Desktop\inventory
+
+
+2. Run the English/Bangla key-parity and hardcoded-copy audit:
+
+npm --prefix frontend run audit:i18n
+
+Expected result:
+- English and Bangla bundles have identical key and value shapes
+- Hardcoded-copy audit passed (440 source files checked)
+
+
+3. Run the production build:
+
+npm --prefix frontend run build
+
+The production build automatically runs the language audit first.
+
+
+4. Start the application for a manual language-toggle test:
+
+npm --prefix frontend run dev -- --host 127.0.0.1
+
+Open the URL printed by Vite, usually:
+
+http://127.0.0.1:5173
+
+
+5. Switch the application language to Bangla and check:
+
+- Landing page and navigation
+- Dashboard headings and buttons
+- Forms, labels, placeholders, and validation messages
+- Modals, alerts, and toast notifications
+- Date picker text and date formatting
+- Reports, receipts, invoices, and print previews
+
+
+6. Stop the development server:
+
+Press Ctrl+C in PowerShell.

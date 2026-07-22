@@ -168,7 +168,7 @@ function getColumnSizingStyle(headerText = '') {
   }
   return '';
 }
-function buildReportHtml({ title, tables, tenantName, tenantAddress, tenantLogoUrl }) {
+function buildReportHtml({ title, tables, tenantName, tenantAddress, tenantLogoUrl, generatedLabel = 'Generated', pageLabel = 'Page', ofLabel = 'of' }) {
   const generatedAt = new Date().toLocaleString();
   const pages = buildPageDefinitions(tables);
 
@@ -185,12 +185,12 @@ function buildReportHtml({ title, tables, tenantName, tenantAddress, tenantLogoU
           </td>
           <td align="right" style="vertical-align:top;">
             <div style="font-size:16px;font-weight:800;line-height:1.2;color:#0f172a;text-transform:uppercase;">${escapeHtml(title)}</div>
-            <div style="margin-top:4px;font-size:10px;color:#475569;">Generated: ${escapeHtml(generatedAt)}</div>
+            <div style="margin-top:4px;font-size:10px;color:#475569;">${escapeHtml(generatedLabel)}: ${escapeHtml(generatedAt)}</div>
           </td>
         </tr>
       </table>
 
-      <div style="margin-top:12px;font-size:10px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;color:#64748b;">${escapeHtml(page.title)}${page.pageCount > 1 ? ` | Page ${page.pageNumber} of ${page.pageCount}` : ''}</div>
+      <div style="margin-top:12px;font-size:10px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;color:#64748b;">${escapeHtml(page.title)}${page.pageCount > 1 ? ` | ${escapeHtml(pageLabel)} ${page.pageNumber} ${escapeHtml(ofLabel)} ${page.pageCount}` : ''}</div>
 
       <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:8px;border-collapse:collapse;font-size:10.5px;line-height:1.3;table-layout:fixed;font-weight:700;">
         ${page.rows.map((row, rowIndex) => {
@@ -380,7 +380,7 @@ export async function downloadSheetPdf(targetId, fileName, options = {}) {
     ...tenantInfo,
   }, fileName, async () => {
     const [{ default: html2canvas }, { jsPDF }] = await Promise.all([import('html2canvas'), import('jspdf')]);
-    const host = createReportHost(buildReportHtml({ title, tables, ...tenantInfo }));
+    const host = createReportHost(buildReportHtml({ title, tables, ...tenantInfo, generatedLabel: options.generatedLabel, pageLabel: options.pageLabel, ofLabel: options.ofLabel }));
 
     try {
       const pageNodes = [...host.querySelectorAll('[data-report-page="true"]')];

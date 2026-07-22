@@ -6,6 +6,7 @@ import { inventoryApi } from '../../../services/inventoryApi.js';
 import { useMutation } from '@tanstack/react-query';
 import { useTenantApiQuery } from '../../../queries/useTenantApiQuery.js';
 import { APP_ROUTES } from '../../../app/routes.js';
+import { PERMISSION_PRESETS } from '../permissionPresets.js';
 
 // Mirrors the sidebar structure so the permission matrix reads like the app.
 // (Just grouping/labels for display — the permission-to-feature ceiling map
@@ -397,6 +398,25 @@ export default function PermissionsPage() {
     return groups;
   }, [visiblePermissions]);
 
+  // Replaces (not merges) a role's unsaved checkbox state with a preset's
+  // permission list. Preset entries whose feature isn't enabled for this
+  // tenant are dropped silently rather than left to fail validation on save.
+  function applyPreset(role, presetId) {
+    const preset = PERMISSION_PRESETS.find((entry) => entry.id === presetId);
+    if (!preset) return;
+
+    let permissions = [];
+    for (const permission of preset.permissions) {
+      if (!visiblePermissions.includes(permission)) continue;
+      permissions = addPermissionWithDependencies(permissions, permission, permissionDependencies, knownPermissionSet);
+    }
+
+    setRolePermissions((current) =>
+      current.map((entry) => (entry.role === role ? { ...entry, permissions } : entry)),
+    );
+    pushToast('info', t(`permissions.roles.${role}`), t('permissions.presetApplied'));
+  }
+
   function handleTenantChange(event) {
     const nextTenantId = event.target.value;
     if (nextTenantId === selectedTenantId) return;
@@ -458,19 +478,37 @@ export default function PermissionsPage() {
       {error ? <Alert type="error">{error}</Alert> : null}
 
       <div className="grid gap-6 lg:grid-cols-2">
-        {rolePermissions.map((entry) => (
+        {rolePermissions.map((entry) => {
+          const presetsForRole = PERMISSION_PRESETS.filter((preset) => preset.role === entry.role);
+          return (
           <div key={entry.role} className="panel-strong space-y-4 p-6">
-            <div className="flex items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center justify-between gap-3">
               <h2 className="section-title">{t(`permissions.roles.${entry.role}`)}</h2>
-              <button
-                type="button"
-                className="btn-primary h-9 px-3"
-                onClick={() => handleSave(entry.role)}
-                disabled={savingRole === entry.role}
-              >
-                {savingRole === entry.role ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-                {t('common.save')}
-              </button>
+              <div className="flex items-center gap-2">
+                {presetsForRole.length > 0 ? (
+                  <Select
+                    className="h-9 max-w-[220px] text-sm"
+                    value=""
+                    onChange={(event) => applyPreset(entry.role, event.target.value)}
+                    disabled={savingRole === entry.role}
+                    aria-label={t('permissions.applyPreset')}
+                  >
+                    <option value="">{t('permissions.selectPresetPlaceholder')}</option>
+                    {presetsForRole.map((preset) => (
+                      <option key={preset.id} value={preset.id}>{t(preset.labelKey)}</option>
+                    ))}
+                  </Select>
+                ) : null}
+                <button
+                  type="button"
+                  className="btn-primary h-9 px-3"
+                  onClick={() => handleSave(entry.role)}
+                  disabled={savingRole === entry.role}
+                >
+                  {savingRole === entry.role ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+                  {t('common.save')}
+                </button>
+              </div>
             </div>
 
             <div className="space-y-4">
@@ -519,7 +557,8 @@ export default function PermissionsPage() {
               })}
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

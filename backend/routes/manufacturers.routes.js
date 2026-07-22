@@ -6,7 +6,8 @@ import { PERMISSIONS } from "../lib/permissions.js";
 export function createManufacturersRoutes(manufacturerController) {
   const router = Router();
 
-  router.use(requireFeature("batch-tracking"));
+  // Lookups used only from inside the Products page's form — no page of their own.
+  router.use(requireFeature("products"));
 
   router.get("/", requirePermission(PERMISSIONS.MANAGE_PRODUCTS), manufacturerController.list);
   router.get("/active", requirePermission(PERMISSIONS.MANAGE_PRODUCTS), manufacturerController.listActive);

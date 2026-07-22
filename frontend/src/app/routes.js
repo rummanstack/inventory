@@ -166,11 +166,11 @@ export const APP_ROUTES = [
   { id: 'retailer-due-collection', path: '/retailer/due-collection', labelKey: 'nav.retailerDueCollection', icon: HandCoins, component: DueCollectionPage, group: 'customers', permission: 'view_retail_due_collection', feature: 'retailer-due-collection' },
 
   // 3.5 Retail Installments
-  { id: 'installment-plans', path: '/installment-sales', labelKey: 'nav.installmentPlans', icon: CreditCard, component: InstallmentPlansPage, group: 'installment-sales', permission: 'view_installment_plans', feature: 'installment-sales' },
-  { id: 'installment-plan-detail', path: '/installment-sales/:id', labelKey: 'nav.installmentPlanDetail', icon: CreditCard, component: InstallmentPlanDetailPage, group: 'hidden', permission: 'view_installment_plans', feature: 'installment-sales' },
-  { id: 'installment-reports', path: '/installment-sales/reports', labelKey: 'nav.installmentReports', icon: FileText, component: InstallmentReportsPage, group: 'installment-sales', permission: 'view_installment_plans', feature: 'installment-sales' },
-  { id: 'installment-dashboard', path: '/installment-sales/dashboard', labelKey: 'nav.installmentDashboard', icon: LayoutDashboard, component: InstallmentDashboardPage, group: 'installment-sales', permission: 'view_installment_plans', feature: 'installment-sales' },
-  { id: 'installment-late-fee-rules', path: '/installment-sales/late-fee-rules', labelKey: 'nav.installmentLateFeeRules', icon: Gift, component: LateFeeRulesPage, group: 'installment-sales', permission: 'manage_installment_plans', feature: 'installment-sales' },
+  { id: 'installment-plans', path: '/installment-sales', labelKey: 'nav.installmentPlans', icon: CreditCard, component: InstallmentPlansPage, group: 'installment-sales', permission: 'view_installment_plans', feature: 'installment-plans' },
+  { id: 'installment-plan-detail', path: '/installment-sales/:id', labelKey: 'nav.installmentPlanDetail', icon: CreditCard, component: InstallmentPlanDetailPage, group: 'hidden', permission: 'view_installment_plans', feature: 'installment-plans' },
+  { id: 'installment-reports', path: '/installment-sales/reports', labelKey: 'nav.installmentReports', icon: FileText, component: InstallmentReportsPage, group: 'installment-sales', permission: 'view_installment_plans', feature: 'installment-reports' },
+  { id: 'installment-dashboard', path: '/installment-sales/dashboard', labelKey: 'nav.installmentDashboard', icon: LayoutDashboard, component: InstallmentDashboardPage, group: 'installment-sales', permission: 'view_installment_plans', feature: 'installment-dashboard' },
+  { id: 'installment-late-fee-rules', path: '/installment-sales/late-fee-rules', labelKey: 'nav.installmentLateFeeRules', icon: Gift, component: LateFeeRulesPage, group: 'installment-sales', permission: 'manage_installment_plans', feature: 'installment-late-fee-rules' },
 
   // 4. Inventory
   { id: 'products', path: '/products', labelKey: 'nav.products', icon: Boxes, component: ProductsPage, group: 'inventory', permission: 'view_products', feature: 'products' },
@@ -188,10 +188,10 @@ export const APP_ROUTES = [
   { id: 'supplier-statement', path: '/supplier-statement', labelKey: 'nav.supplierStatement', icon: FileText, component: SupplierStatementPage, group: 'purchases', permission: 'view_supplier_statement', feature: 'supplier-statement' },
 
   // 5.5 Trade Promotions
-  { id: 'trade-promotion-rules', path: '/trade-promotions/rules', labelKey: 'nav.tradePromotionRules', icon: Gift, component: TradePromotionRulesPage, group: 'trade-promotions', permission: 'manage_trade_promotion_rules', feature: 'trade-promotions' },
-  { id: 'trade-promotion-earnings', path: '/trade-promotions/earnings', labelKey: 'nav.tradePromotionEarnings', icon: HandCoins, component: TradePromotionEarningsPage, group: 'trade-promotions', permission: 'view_trade_promotions', feature: 'trade-promotions' },
-  { id: 'trade-promotion-settlements', path: '/trade-promotions/settlements', labelKey: 'nav.tradePromotionSettlements', icon: CircleDollarSign, component: TradePromotionSettlementsPage, group: 'trade-promotions', permission: 'manage_trade_promotion_settlements', feature: 'trade-promotions' },
-  { id: 'trade-promotion-reports', path: '/trade-promotions/reports', labelKey: 'nav.tradePromotionReports', icon: BarChart3, component: TradePromotionReportsPage, group: 'trade-promotions', permission: 'view_trade_promotions', feature: 'trade-promotions' },
+  { id: 'trade-promotion-rules', path: '/trade-promotions/rules', labelKey: 'nav.tradePromotionRules', icon: Gift, component: TradePromotionRulesPage, group: 'trade-promotions', permission: 'manage_trade_promotion_rules', feature: 'trade-promotion-rules' },
+  { id: 'trade-promotion-earnings', path: '/trade-promotions/earnings', labelKey: 'nav.tradePromotionEarnings', icon: HandCoins, component: TradePromotionEarningsPage, group: 'trade-promotions', permission: 'view_trade_promotions', feature: 'trade-promotion-earnings' },
+  { id: 'trade-promotion-settlements', path: '/trade-promotions/settlements', labelKey: 'nav.tradePromotionSettlements', icon: CircleDollarSign, component: TradePromotionSettlementsPage, group: 'trade-promotions', permission: 'manage_trade_promotion_settlements', feature: 'trade-promotion-settlements' },
+  { id: 'trade-promotion-reports', path: '/trade-promotions/reports', labelKey: 'nav.tradePromotionReports', icon: BarChart3, component: TradePromotionReportsPage, group: 'trade-promotions', permission: 'view_trade_promotions', feature: 'trade-promotion-reports' },
 
   // 6a. DSR Operations
   { id: 'dsrs', path: '/dsrs', labelKey: 'nav.dsrs', icon: Users, component: DsrPage, group: 'dsr', permission: 'view_dsrs', feature: 'dsrs' },
@@ -242,8 +242,8 @@ export const APP_ROUTES = [
   { id: 'retailer-daily-sales-report', path: '/retailer/daily-sales-report', labelKey: 'nav.retailerDailySalesReport', icon: FileText, component: DailySalesReportPage, group: 'reports', permission: 'manage_retail_daily_sales_report', feature: 'retailer-daily-sales-report' },
   { id: 'reports', path: '/reports', labelKey: 'nav.reports', icon: FileText, component: DailyReportsPage, group: 'reports', permission: 'view_state', feature: 'reports' },
   { id: 'history', path: '/history', labelKey: 'nav.history', icon: RotateCcw, component: HistoryPage, group: 'reports', permission: 'view_state', feature: 'history' },
-  { id: 'batch-sales-report', path: '/reports/batch-sales', labelKey: 'nav.batchSalesReport', icon: ClipboardList, component: BatchSalesReportPage, group: 'reports', permission: 'manage_batch_tracking', feature: 'batch-tracking' },
-  { id: 'expiry-alerts', path: '/reports/expiry-alerts', labelKey: 'nav.expiryAlerts', icon: AlertTriangle, component: ExpiryAlertsPage, group: 'reports', permission: 'view_expiry_alerts', feature: 'batch-tracking' },
+  { id: 'batch-sales-report', path: '/reports/batch-sales', labelKey: 'nav.batchSalesReport', icon: ClipboardList, component: BatchSalesReportPage, group: 'reports', permission: 'manage_batch_tracking', feature: 'batch-sales-report' },
+  { id: 'expiry-alerts', path: '/reports/expiry-alerts', labelKey: 'nav.expiryAlerts', icon: AlertTriangle, component: ExpiryAlertsPage, group: 'reports', permission: 'view_expiry_alerts', feature: 'expiry-alerts' },
   { id: 'activity-logs', path: '/activity-logs', labelKey: 'nav.activityLogs', icon: ClipboardList, component: ActivityLogsPage, group: 'reports', permission: 'view_activity_logs', feature: 'activity-logs' },
 
   // 10. System & Settings

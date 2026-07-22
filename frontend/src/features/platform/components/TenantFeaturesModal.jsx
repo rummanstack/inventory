@@ -109,7 +109,8 @@ const FEATURE_DESCRIPTIONS = {
   'customer-due-report': 'Retail customer due balances with aging buckets.',
   'cash-session-report': 'Retail cash session audit with open/close times and variance.',
   'damaged-stock-report': 'Damaged stock register with value impact by reason and date.',
-  'batch-tracking': 'Pharmacy batch/lot tracking for sales by manufacturer and expiry date.',
+  'batch-sales-report': 'Pharmacy batch/lot sales report by manufacturer and expiry date.',
+  'expiry-alerts': 'Batches expired or expiring soon, so stock is cleared before it goes to waste.',
   history: 'Combined chronological log of all morning issues and evening settlements.',
   'activity-logs': 'Full audit trail of all user actions with before/after data snapshots.',
 

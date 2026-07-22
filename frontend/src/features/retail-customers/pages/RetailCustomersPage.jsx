@@ -30,7 +30,7 @@ export default function RetailCustomersPage() {
   const [formModal, setFormModal] = useState(null);
   const [creditSettingsCustomer, setCreditSettingsCustomer] = useState(null);
   const canManage = can('manage_retail_customers_write');
-  const canManageInstallmentCredit = hasFeature('installment-sales') && can('manage_installment_credit_settings');
+  const canManageInstallmentCredit = hasFeature('installment-plans') && can('manage_installment_credit_settings');
   const [downloadingPdf, downloadPdf] = useAsyncAction();
   const tenantId = getActiveTenantId() || 'session-tenant';
   const saveCustomerMutation = useMutation({

@@ -4475,13 +4475,12 @@ const en = {
       },
       hero: {
         eyebrow: 'Complete business management platform',
-        title: 'Run your whole business from one connected system.',
-        subtitle: 'Bring sales, inventory, accounting, HR and payroll, customers, field operations, reporting, and administration into one secure workspace.',
+        title: 'Know your stock, cash, dues, and profit—without switching systems.',
+        subtitle: 'Run sales, inventory, accounting, payroll, and field operations from one secure workspace built for everyday business control.',
         points: [
-          'Finance and full accounting',
-          'HR, attendance, and payroll',
-          'Sales, customers, and inventory',
-          'Roles, security, and reporting',
+          'One connected workspace',
+          'Real-time business visibility',
+          'Secure roles and reporting',
         ],
         bookDemo: 'Book Demo',
         seePricing: 'See Pricing',

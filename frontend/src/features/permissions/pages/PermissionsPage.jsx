@@ -58,6 +58,19 @@ const PERMISSION_GROUPS = [
     permissions: ['view_products', 'manage_products', 'view_product_serials', 'manage_product_serials', 'view_expiry_alerts'],
   },
   {
+    section: 'dsr',
+    permissions: [
+      'view_dsrs',
+      'manage_dsrs',
+      'create_issues',
+      'update_issues',
+      'create_settlements',
+      'update_settlements',
+      'manage_dsr_finance',
+    ],
+  },
+  { section: 'shops', permissions: ['view_customers', 'manage_customers', 'view_srs', 'manage_srs'] },
+  {
     section: 'purchases',
     permissions: [
       'view_suppliers',
@@ -79,19 +92,6 @@ const PERMISSION_GROUPS = [
       'manage_trade_promotion_settlements',
     ],
   },
-  {
-    section: 'dsr',
-    permissions: [
-      'view_dsrs',
-      'manage_dsrs',
-      'create_issues',
-      'update_issues',
-      'create_settlements',
-      'update_settlements',
-      'manage_dsr_finance',
-    ],
-  },
-  { section: 'shops', permissions: ['view_customers', 'manage_customers', 'view_srs', 'manage_srs'] },
   {
     section: 'warranty',
     permissions: ['view_warranty_claims', 'manage_warranty_claims', 'view_repair_jobs', 'manage_repair_jobs'],

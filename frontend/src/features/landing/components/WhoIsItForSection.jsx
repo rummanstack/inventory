@@ -4,9 +4,9 @@ import { roleStoryImages } from '../constants.js';
 
 const ICONS = [BriefcaseBusiness, ScanLine, Calculator, BadgeDollarSign, Users, Headset];
 const IMAGE_SETTINGS = [
-  { fit: 'cover', position: 'center', heightClass: 'aspect-[16/10]' },
-  { fit: 'cover', position: 'center', heightClass: 'aspect-[16/10]' },
-  { fit: 'cover', position: 'center', heightClass: 'aspect-[4/3]' },
+  { fit: 'contain', position: 'center', heightClass: 'aspect-[16/10]' },
+  { fit: 'contain', position: 'center', heightClass: 'aspect-[16/10]' },
+  { fit: 'contain', position: 'center', heightClass: 'aspect-[4/3]' },
 ];
 
 export default function WhoIsItForSection({ t }) {

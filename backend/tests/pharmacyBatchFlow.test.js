@@ -117,22 +117,34 @@ test("a sale consumes batches FEFO across two batches, snapshots the earliest-ex
   assert.equal(lateRow.lotNumber, "L-LATE");
 });
 
-test("the batch-tracking feature flag actually gates the batch sales report and expiry alerts routes", async () => {
-  const withoutBatchTracking = TENANT_FEATURES.filter((key) => key !== "batch-tracking");
+test("batch-sales-report and expiry-alerts are gated by independent feature flags, not a shared module flag", async () => {
+  const withoutEither = TENANT_FEATURES.filter((key) => key !== "batch-sales-report" && key !== "expiry-alerts");
 
-  const disableResponse = await devAgent.patch(`/api/platform/tenants/${tenant.tenantId}/features`).send({ features: withoutBatchTracking });
+  const disableResponse = await devAgent.patch(`/api/platform/tenants/${tenant.tenantId}/features`).send({ features: withoutEither });
   assert.equal(disableResponse.status, 200);
 
   const reportResponse = await tenant.agent.get("/api/drug-batches/batch-sales-report");
-  assert.equal(reportResponse.status, 403, "batch sales report must be blocked once batch-tracking is disabled for the tenant");
+  assert.equal(reportResponse.status, 403, "batch sales report must be blocked once its own flag is disabled");
 
   const alertsResponse = await tenant.agent.get("/api/drug-batches/expiry-alerts");
-  assert.equal(alertsResponse.status, 403, "expiry alerts must be blocked once batch-tracking is disabled for the tenant");
+  assert.equal(alertsResponse.status, 403, "expiry alerts must be blocked once its own flag is disabled");
 
-  // Re-enable so the feature isn't left off for any later test reusing this tenant.
+  // Enabling only batch-sales-report must not also unlock expiry-alerts —
+  // proving these are two independent flags, not one shared module flag.
+  const onlyBatchSalesReport = [...withoutEither, "batch-sales-report"];
+  const partialEnableResponse = await devAgent.patch(`/api/platform/tenants/${tenant.tenantId}/features`).send({ features: onlyBatchSalesReport });
+  assert.equal(partialEnableResponse.status, 200);
+
+  const reportAfterPartialEnable = await tenant.agent.get("/api/drug-batches/batch-sales-report");
+  assert.equal(reportAfterPartialEnable.status, 200, "batch sales report must work once its own flag is enabled");
+
+  const alertsAfterPartialEnable = await tenant.agent.get("/api/drug-batches/expiry-alerts");
+  assert.equal(alertsAfterPartialEnable.status, 403, "expiry alerts must stay blocked — enabling batch-sales-report alone must not unlock it");
+
+  // Re-enable everything so the feature isn't left off for any later test reusing this tenant.
   const restoreResponse = await devAgent.patch(`/api/platform/tenants/${tenant.tenantId}/features`).send({ features: [...TENANT_FEATURES] });
   assert.equal(restoreResponse.status, 200);
 
-  const reportAfterRestore = await tenant.agent.get("/api/drug-batches/batch-sales-report");
-  assert.equal(reportAfterRestore.status, 200, "batch sales report must work again once the feature is re-enabled");
+  const alertsAfterRestore = await tenant.agent.get("/api/drug-batches/expiry-alerts");
+  assert.equal(alertsAfterRestore.status, 200, "expiry alerts must work again once its flag is re-enabled");
 });

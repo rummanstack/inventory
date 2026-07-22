@@ -12,13 +12,18 @@ export const TENANT_FEATURES = [
   'trade-ins',
   'retailer-sales-invoices',
   'retailer-sales-return',
-  'installment-sales',
 
   // Customers
   'retail-customers',
   'retail-customer-retention',
   'retailer-customer-due',
   'retailer-due-collection',
+
+  // Retail Installments
+  'installment-plans',
+  'installment-reports',
+  'installment-dashboard',
+  'installment-late-fee-rules',
 
   // Inventory
   'products',
@@ -47,7 +52,12 @@ export const TENANT_FEATURES = [
   'supplier-payments',
   'supplier-discounts',
   'supplier-statement',
-  'trade-promotions',
+
+  // Trade Promotions
+  'trade-promotion-rules',
+  'trade-promotion-earnings',
+  'trade-promotion-settlements',
+  'trade-promotion-reports',
 
   // Warranty & Repair
   'warranty-claims',
@@ -93,7 +103,8 @@ export const TENANT_FEATURES = [
   'customer-due-report',
   'cash-session-report',
   'damaged-stock-report',
-  'batch-tracking',
+  'batch-sales-report',
+  'expiry-alerts',
   'history',
   'activity-logs',
 

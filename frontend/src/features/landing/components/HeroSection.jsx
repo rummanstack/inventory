@@ -1,4 +1,4 @@
-import { ArrowRight, Lock, MessageCircle } from 'lucide-react';
+import { ArrowRight, Check, Lock, MessageCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { buildLocalizedPath } from '../../../app/hooks/usePublicLanguage.js';
 import ImagePlaceholder from './shared/ImagePlaceholder.jsx';
@@ -29,7 +29,7 @@ export default function HeroSection({ t, language }) {
           <div className="hero-proof-grid">
             {points.map((point) => (
               <div key={point} className="hero-proof-pill">
-                <span className="hero-proof-dot" />
+                <Check className="hero-proof-check" aria-hidden="true" />
                 <span>{point}</span>
               </div>
             ))}

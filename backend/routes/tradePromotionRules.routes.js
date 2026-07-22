@@ -5,7 +5,7 @@ import { PERMISSIONS } from "../lib/permissions.js";
 
 export function createTradePromotionRulesRoutes(tradePromotionRuleController) {
   const router = Router();
-  router.use(requireFeature("trade-promotions"));
+  router.use(requireFeature("trade-promotion-rules"));
 
   router.get("/trash", requirePermission(PERMISSIONS.MANAGE_TRADE_PROMOTION_RULES), tradePromotionRuleController.listTrash);
   router.get("/", requirePermission(PERMISSIONS.VIEW_TRADE_PROMOTIONS), tradePromotionRuleController.list);

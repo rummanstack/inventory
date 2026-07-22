@@ -84,7 +84,12 @@ test("permission metadata covers feature alternatives and exposes structural dep
     "damaged-stock",
   ]);
   assert.deepEqual(response.body.permissionDependencies[PERMISSIONS.MANAGE_PRODUCTS], [PERMISSIONS.VIEW_PRODUCTS]);
-  assert.equal(PERMISSION_REQUIRED_FEATURES[PERMISSIONS.VIEW_INSTALLMENT_PLANS], "installment-sales");
+  assert.deepEqual(PERMISSION_REQUIRED_FEATURES[PERMISSIONS.VIEW_INSTALLMENT_PLANS], [
+    "installment-plans",
+    "installment-reports",
+    "installment-dashboard",
+    "installment-late-fee-rules",
+  ]);
   assert.equal(PERMISSION_REQUIRED_FEATURES[PERMISSIONS.REPORT_CASH_FLOW], "cash-flow");
   assert.deepEqual(PERMISSION_DEPENDENCIES[PERMISSIONS.APPROVE_PAYROLL], [PERMISSIONS.VIEW_PAYROLL]);
   assert.equal(permissionMatchesEnabledFeatures(PERMISSIONS.VIEW_PRODUCTS, ["damaged-stock"]), true);

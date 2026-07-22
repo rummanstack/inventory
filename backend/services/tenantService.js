@@ -82,8 +82,13 @@ const DEALER_DISTRIBUTION_FEATURES = ["dsrs", "customers", "morning-issue", "set
 const ELECTRONICS_ONLY_FEATURES = ["product-serials", "warranty-claims", "repair-jobs", "trade-ins"];
 const PHARMACY_EXCLUDED_FEATURES = ["product-serials", "warranty-claims", "repair-jobs", "trade-ins"];
 const FEATURE_ALIASES = new Map([
-  ["controlled-drug-register", "batch-tracking"],
-  ["expiry-alerts", "batch-tracking"],
+  // batch-tracking was split into per-page flags — any tenant that already
+  // had it enabled keeps both pages it used to cover. expiry-alerts is no
+  // longer a legacy alias, it's the real flag for the Expiry Alerts page.
+  // controlled-drug-register was never its own page; redirect it to the
+  // closest surviving compliance page.
+  ["controlled-drug-register", "expiry-alerts"],
+  ["batch-tracking", ["batch-sales-report", "expiry-alerts"]],
   ["payslips", "payroll"],
   ["retailer-profit-report", "profit"],
   ["salary-reports", "hr-reports"],
@@ -93,7 +98,7 @@ const FEATURE_ALIASES = new Map([
 export const FEATURE_DEPENDENCIES = {
   "retailer-quick-sale": ["products", "retailer-cash-sessions"],
   "retailer-sales-return": ["retailer-sales-invoices"],
-  "installment-sales": ["products", "retail-customers", "retailer-sales-invoices"],
+  "installment-plans": ["products", "retail-customers", "retailer-sales-invoices"],
   "product-serials": ["products"],
   "purchase-returns": ["purchase-receive"],
   "supplier-discounts": ["supplier-payments"],
@@ -102,11 +107,13 @@ export const FEATURE_DEPENDENCIES = {
 };
 
 function normalizeTenantFeature(feature) {
-  return FEATURE_ALIASES.get(feature) || feature;
+  const alias = FEATURE_ALIASES.get(feature);
+  if (!alias) return [feature];
+  return Array.isArray(alias) ? alias : [alias];
 }
 
 function normalizeTenantFeatures(features) {
-  return [...new Set(features.map((feature) => normalizeTenantFeature(String(feature))))];
+  return [...new Set(features.flatMap((feature) => normalizeTenantFeature(String(feature))))];
 }
 
 export function defaultFeaturesForBusinessType(businessType) {

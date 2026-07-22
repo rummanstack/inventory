@@ -87,13 +87,13 @@ test("legacy feature rows normalize to current feature keys on read and save", a
   const tenantService = new TenantService(databaseManager);
   const legacyFeatures = [
     "controlled-drug-register",
-    "expiry-alerts",
+    "batch-tracking",
     "payslips",
     "retailer-profit-report",
     "salary-reports",
     "salary-structure",
   ];
-  const expectedFeatures = ["batch-tracking", "dashboard", "hr-reports", "payroll", "profit"];
+  const expectedFeatures = ["batch-sales-report", "dashboard", "expiry-alerts", "hr-reports", "payroll", "profit"];
 
   await databaseManager.withTransaction(async (client) => {
     await replaceTenantFeatures(client, tenant.tenantId, ["dashboard", ...legacyFeatures]);

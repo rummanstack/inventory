@@ -9,3 +9,4 @@ export * from './ui/DataDisplay.jsx';
 export * from './ui/MobileList.jsx';
 
 export * from './ui/CopyableText.jsx';
+export * from './ui/BarcodeScannerModal.jsx';

@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
-import { Minus, Plus, Tag, Trash2 } from 'lucide-react';
+import { Camera, Minus, Plus, Tag, Trash2 } from 'lucide-react';
 import { DatePickerField } from '../../../../components/DatePicker.jsx';
 import { formatCurrency } from '../../../../utils/calculations.js';
 import { inventoryApi } from '../../../../services/inventoryApi.js';
 import RetailCustomerFormModal from '../../../retail-customers/components/RetailCustomerFormModal.jsx';
-import { Select } from '../../../../components/ui.jsx';
+import { Select, BarcodeScannerModal } from '../../../../components/ui.jsx';
 import { useInventoryApp } from '../../../../app/useInventoryApp.jsx';
 import { useQueries } from '@tanstack/react-query';
 import { getActiveTenantId } from '../../../../services/api/client.js';
@@ -58,6 +58,7 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, retail
   const [highlightedIndexes, setHighlightedIndexes] = useState({});
   const [serialScanValues, setSerialScanValues] = useState({});
   const [scanningRowId, setScanningRowId] = useState(null);
+  const [cameraScanRowId, setCameraScanRowId] = useState(null);
   const searchRefs = useRef({});
   const prevRowCount = useRef(0);
   const tenantId = getActiveTenantId() || 'session-tenant';
@@ -96,8 +97,10 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, retail
 
   // Scanning a unit's own barcode selects it directly, skipping the checklist —
   // the common case at a real counter where a scanner gun feeds this input.
-  async function handleScanSerial(row) {
-    const barcode = (serialScanValues[row.rowId] || '').trim();
+  // barcodeOverride lets the camera scanner (BarcodeScannerModal) feed a code
+  // straight in, without waiting on the serialScanValues state update.
+  async function handleScanSerial(row, barcodeOverride) {
+    const barcode = (barcodeOverride ?? serialScanValues[row.rowId] ?? '').trim();
     if (!barcode) return;
 
     setScanningRowId(row.rowId);
@@ -498,6 +501,15 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, retail
                         >
                           {t('retailer.shared.scanSerialButton')}
                         </button>
+                        <button
+                          type="button"
+                          className="icon-btn shrink-0"
+                          title={t('common.scan')}
+                          onClick={() => setCameraScanRowId(row.rowId)}
+                          disabled={saving || scanningRowId === row.rowId}
+                        >
+                          <Camera size={16} />
+                        </button>
                       </div>
                       {availableSerials.length ? (
                         <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
@@ -660,6 +672,18 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, retail
             setShowAddCustomer(false);
           }
           return result;
+        }}
+      />
+    )}
+
+    {cameraScanRowId && (
+      <BarcodeScannerModal
+        title={t('retailer.shared.scanSerialButton')}
+        onClose={() => setCameraScanRowId(null)}
+        onDetected={(code) => {
+          const row = vm.lineRows.find((r) => r.rowId === cameraScanRowId);
+          setCameraScanRowId(null);
+          if (row) handleScanSerial(row, code);
         }}
       />
     )}

@@ -1,5 +1,6 @@
-import { Save } from 'lucide-react';
-import { Alert, Modal, Select } from '../../../components/ui.jsx';
+import { useState } from 'react';
+import { Camera, Save } from 'lucide-react';
+import { Alert, BarcodeScannerModal, Modal, Select } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { useFormState } from '../../../hooks/useFormState';
 
@@ -11,6 +12,7 @@ export default function ProductSerialFormModal({ serial, onClose, onSave }) {
   const serialRequiredProducts = productDirectory.filter(
     (product) => product.serialRequired || product.id === serial?.productId,
   );
+  const [showScanner, setShowScanner] = useState(false);
   const { form, updateField, error, setError, saving, setSaving } = useFormState({
     productId: serial?.productId || serialRequiredProducts[0]?.id || '',
     serialNumber: serial?.serialNumber || '',
@@ -93,7 +95,12 @@ export default function ProductSerialFormModal({ serial, onClose, onSave }) {
           </div>
           <div>
             <label className="label">{t('productSerials.barcodeLabel')}</label>
-            <input className="input" value={form.barcode} onChange={(event) => updateField('barcode', event.target.value)} placeholder={isEdit ? '' : t('productSerials.barcodeAutoHint')} />
+            <div className="flex gap-2">
+              <input className="input" value={form.barcode} onChange={(event) => updateField('barcode', event.target.value)} placeholder={isEdit ? '' : t('productSerials.barcodeAutoHint')} />
+              <button type="button" className="icon-btn shrink-0" title={t('common.scan')} onClick={() => setShowScanner(true)}>
+                <Camera size={16} />
+              </button>
+            </div>
           </div>
           <div>
             <label className="label">{t('productSerials.purchasePriceLabel')}</label>
@@ -122,6 +129,16 @@ export default function ProductSerialFormModal({ serial, onClose, onSave }) {
           </button>
         </div>
       </form>
+
+      {showScanner && (
+        <BarcodeScannerModal
+          onClose={() => setShowScanner(false)}
+          onDetected={(code) => {
+            updateField('barcode', code);
+            setShowScanner(false);
+          }}
+        />
+      )}
     </Modal>
   );
 }

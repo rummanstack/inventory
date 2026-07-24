@@ -12,6 +12,7 @@ const BUSINESS_TYPE_LABELS = {
   ELECTRONICS: 'Electronics',
   GROCERY: 'Grocery / FMCG',
   DRUG_PHARMACY: 'Pharmacy',
+  VEHICLE: 'Vehicle Shop',
 };
 
 function RegistrationCard({ item, language, busy, onApprove, onReject }) {

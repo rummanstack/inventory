@@ -55,6 +55,7 @@ export default function TenantEditModal({ tenant, onClose, onSave }) {
             <option value="ELECTRONICS">{t('organizations.businessTypeElectronics')}</option>
             <option value="GROCERY">{t('organizations.businessTypeGrocery')}</option>
             <option value="DRUG_PHARMACY">{t('organizations.businessTypeDrugPharmacy')}</option>
+            <option value="VEHICLE">{t('organizations.businessTypeVehicle')}</option>
           </Select>
         </label>
         <label className="block">

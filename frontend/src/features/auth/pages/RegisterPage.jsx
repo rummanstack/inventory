@@ -4,6 +4,7 @@ import {
   ArrowLeft,
   ArrowRight,
   BarChart3,
+  Car,
   CheckCircle2,
   Lock,
   Mail,
@@ -25,6 +26,7 @@ const BUSINESS_TYPE_OPTIONS = [
   { value: 'ELECTRONICS', labelKey: 'auth.register.typeElectronics', icon: Smartphone },
   { value: 'GROCERY', labelKey: 'auth.register.typeGrocery', icon: ShoppingBasket },
   { value: 'DRUG_PHARMACY', labelKey: 'auth.register.typePharmacy', icon: Pill },
+  { value: 'VEHICLE', labelKey: 'auth.register.typeVehicle', icon: Car },
 ];
 
 export default function RegisterPage() {
@@ -111,7 +113,7 @@ function RegisterForm({ t, onDone }) {
       {/* Business type selector */}
       <fieldset className="auth-business-types mt-6">
         <legend className="label">{t('auth.register.businessType')}</legend>
-        <div className="auth-business-grid mt-1.5 grid grid-cols-3 gap-2">
+        <div className="auth-business-grid mt-1.5 grid grid-cols-2 gap-2">
           {BUSINESS_TYPE_OPTIONS.map(({ value, labelKey, icon: Icon }) => {
             const active = businessType === value;
             return (

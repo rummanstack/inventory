@@ -106,6 +106,7 @@ export default function OrgSettingsPage() {
             <option value="ELECTRONICS">{t('orgSettings.businessTypeElectronics')}</option>
             <option value="GROCERY">{t('orgSettings.businessTypeGrocery')}</option>
             <option value="DRUG_PHARMACY">{t('orgSettings.businessTypeDrugPharmacy')}</option>
+            <option value="VEHICLE">{t('orgSettings.businessTypeVehicle')}</option>
           </Select>
           <p className="mt-1 text-xs text-slate-500">{t('orgSettings.businessTypeHelp')}</p>
         </label>

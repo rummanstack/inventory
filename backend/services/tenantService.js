@@ -116,6 +116,10 @@ function normalizeTenantFeatures(features) {
   return [...new Set(features.flatMap((feature) => normalizeTenantFeature(String(feature))))];
 }
 
+// VEHICLE (car/motorcycle/bicycle dealers) falls through to the default branch below,
+// same as ELECTRONICS: it's unit/serial-tracked retail, not DSR distribution, so it
+// keeps product-serials (chassis/engine no.), warranty-claims, repair-jobs, trade-ins,
+// and installment-plans on by default.
 export function defaultFeaturesForBusinessType(businessType) {
   let excluded = DEALER_DISTRIBUTION_FEATURES;
   if (businessType === BUSINESS_TYPES.GROCERY) excluded = ELECTRONICS_ONLY_FEATURES;

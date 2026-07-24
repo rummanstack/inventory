@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Plus, Save, Trash2 } from 'lucide-react';
+import { Plus, Save } from 'lucide-react';
 import { Alert, Modal, Select } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { cleanNumber } from '../../../utils/calculations.js';
@@ -250,27 +250,18 @@ export default function ProductFormModal({ product, onClose, onSave }) {
             <label className="label">{t('products.galleryImages')}</label>
             <div className="grid gap-3 sm:grid-cols-3">
               {form.images.map((url, index) => (
-                <div key={index} className="relative">
-                  <PhotoUploadField
-                    value={url}
-                    onChange={(nextUrl) => updateGalleryImage(index, nextUrl)}
-                    shape="square"
-                    disabled={saving}
-                  />
-                  <button
-                    type="button"
-                    className="icon-btn absolute right-1 top-1 bg-white/90 text-rose-600"
-                    title={t('common.delete')}
-                    onClick={() => removeGalleryImage(index)}
-                    disabled={saving}
-                  >
-                    <Trash2 size={14} />
-                  </button>
-                </div>
+                <PhotoUploadField
+                  key={index}
+                  value={url}
+                  onChange={(nextUrl) => updateGalleryImage(index, nextUrl)}
+                  compact
+                  onRemoveSlot={() => removeGalleryImage(index)}
+                  disabled={saving}
+                />
               ))}
               <button
                 type="button"
-                className="btn-secondary flex h-full min-h-[96px] items-center justify-center"
+                className="flex aspect-square flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-slate-300 text-xs font-semibold text-slate-500 transition duration-200 ease-out hover:border-[var(--secondary-soft)] hover:bg-[var(--secondary-soft)] hover:text-[var(--secondary-strong)] disabled:cursor-not-allowed disabled:text-slate-400"
                 onClick={addGalleryImage}
                 disabled={saving}
               >

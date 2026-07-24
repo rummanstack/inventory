@@ -1,0 +1,146 @@
+AWS CLI commands used to fix the S3 upload issue (stockledger-s3 profile)
+===========================================================================
+
+Context: PHOTO_STORAGE_DRIVER=s3 / BACKUP_STORAGE_DRIVER=s3 in .env pointed to
+AWS_PROFILE=stockledger-s3, but that IAM user/profile never existed. Below is
+every command run to diagnose and fix it, in order, with an explanation of
+what each one does.
+
+
+1. Check what AWS profiles exist locally
+-----------------------------------------
+aws configure list-profiles
+
+Lists the named profiles in ~/.aws/credentials. Showed only "default" existed
+-- confirming "stockledger-s3" (referenced in .env) was missing.
+
+
+2. Check who the default profile is
+-------------------------------------
+aws sts get-caller-identity
+
+Asks AWS "who am I with these credentials?" Returns the IAM user ARN and
+account ID. Told us default = stockledger-deployer, an admin user.
+
+
+3. List IAM users in the account
+------------------------------------
+aws iam list-users --query "Users[].UserName" --output text
+
+--query uses JMESPath to pull just the UserName field out of the JSON
+response instead of dumping the whole object -- trims CLI output to what you
+actually need.
+
+
+4. Check what permissions that admin user has
+-------------------------------------------------
+aws iam list-attached-user-policies --user-name stockledger-deployer
+aws iam list-user-policies --user-name stockledger-deployer
+
+Two different policy types in IAM: attached (managed policies, reusable,
+shown by the first command) vs inline (embedded directly on one user, shown
+by the second). Confirmed stockledger-deployer has AdministratorAccess.
+
+
+5. Confirm the S3 buckets actually exist
+--------------------------------------------
+aws s3api head-bucket --bucket <name>
+aws s3api get-bucket-location --bucket <name>
+
+head-bucket just checks existence/access without downloading anything (cheap
+sanity check). get-bucket-location confirms the region matches what .env
+expects -- a region mismatch is a classic silent S3 failure.
+
+
+6. Create the missing IAM user
+-----------------------------------
+aws iam create-user --user-name stockledger-s3
+
+
+7. Create a least-privilege policy
+---------------------------------------
+aws iam create-policy --policy-name stockledger-uploader --policy-document file://path/to/policy.json
+
+file:// tells the CLI to read the JSON policy document from disk rather than
+inline on the command line (inline JSON gets painful with shell quoting).
+
+Policy document used:
+{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Effect": "Allow",
+    "Action": "s3:PutObject",
+    "Resource": [
+      "arn:aws:s3:::stockledger-720718980561-ap-south-1-an/photos/*",
+      "arn:aws:s3:::stockledger-db-backups-720718980561-ap-south-1-an/database-backups/*"
+    ]
+  }]
+}
+
+
+8. Attach the policy to the user
+-------------------------------------
+aws iam attach-user-policy --user-name stockledger-s3 --policy-arn arn:aws:iam::<account-id>:policy/stockledger-uploader
+
+Note the two-step: a policy is just a standalone document until you attach it
+to a user/role/group.
+
+
+9. Generate an access key for that user
+---------------------------------------------
+aws iam create-access-key --user-name stockledger-s3
+
+Returns an AccessKeyId + SecretAccessKey pair -- this is the actual
+credential the SDK will use. Printed once; AWS never shows the secret again
+after this.
+
+
+10. Store those keys as a local named profile
+----------------------------------------------------
+aws configure set aws_access_key_id <key> --profile stockledger-s3
+aws configure set aws_secret_access_key <secret> --profile stockledger-s3
+aws configure set region ap-south-1 --profile stockledger-s3
+
+This writes into ~/.aws/credentials under a [stockledger-s3] section -- the
+same file "aws configure list-profiles" reads from in step 1.
+
+
+11. Verify the new profile works
+--------------------------------------
+aws sts get-caller-identity --profile stockledger-s3
+
+Same command as step 2, but targeting the new profile -- confirms the keys
+are valid. (Fresh IAM keys can take a few seconds to propagate, so this may
+need a retry.)
+
+
+12. Prove the permissions are actually scoped correctly
+----------------------------------------------------------
+aws s3api put-object --bucket <bucket> --key "photos/permission-test.txt" --body <file> --profile stockledger-s3
+   -> succeeds (allowed prefix)
+
+aws s3api put-object --bucket <bucket> --key "not-photos/permission-test.txt" --body <file> --profile stockledger-s3
+   -> AccessDenied (outside allowed prefix)
+
+Testing both an allowed path and a disallowed path is the real proof -- a
+single successful upload doesn't rule out "it secretly has admin access."
+Getting AccessDenied on the second call is what confirms least-privilege is
+actually enforced, not just configured.
+
+
+13. Clean up the test object
+----------------------------------
+aws s3api delete-object --bucket <bucket> --key "photos/permission-test.txt"
+
+Ran with the default (admin) profile since the test object was just scratch
+data, not something to leave sitting in the bucket.
+
+
+General pattern to remember
+================================
+For "create a scoped service credential" in AWS, the pattern is always:
+
+    user -> policy -> attach -> access key -> configure locally
+
+...then verify with get-caller-identity and a real permissions test (one
+allowed call, one denied call).

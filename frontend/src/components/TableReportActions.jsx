@@ -21,6 +21,8 @@ export default function TableReportActions({
   const tr = t || appT;
   const [downloadingPdf, downloadPdf] = useAsyncAction();
   const [sharingPdf, sharePdf] = useAsyncAction();
+  const [downloadingExcel, downloadExcel] = useAsyncAction();
+  const [downloadingCsv, downloadCsv] = useAsyncAction();
   const pdfFileName = fileName.endsWith('.pdf') ? fileName : `${fileName}.pdf`;
   const excelFileName = fileName.endsWith('.xlsx') ? fileName : `${fileName}.xlsx`;
   const csvFileName = fileName.endsWith('.csv') ? fileName : `${fileName}.csv`;
@@ -72,15 +74,15 @@ export default function TableReportActions({
     await downloadSheetPdf(targetId, pdfFileName, { ...pdfOptions, share: true });
   });
 
-  function handleExportExcel() {
+  const handleExportExcel = () => downloadExcel(async () => {
     record('excel');
-    exportTableElementToExcel(targetId, excelFileName, title, { entityType, entityId });
-  }
+    await exportTableElementToExcel(targetId, excelFileName, title, { entityType, entityId });
+  });
 
-  function handleExportCsv() {
+  const handleExportCsv = () => downloadCsv(async () => {
     record('csv');
-    exportTableElementToCsv(targetId, csvFileName, title, { entityType, entityId });
-  }
+    await exportTableElementToCsv(targetId, csvFileName, title, { entityType, entityId });
+  });
 
   function handlePrint() {
     record('print');
@@ -92,10 +94,10 @@ export default function TableReportActions({
       if (matchesShortcut(event, shortcuts.pdf) && !downloadingPdf) {
         event.preventDefault();
         handleDownloadPdf();
-      } else if (matchesShortcut(event, shortcuts.excel)) {
+      } else if (matchesShortcut(event, shortcuts.excel) && !downloadingExcel) {
         event.preventDefault();
         handleExportExcel();
-      } else if (matchesShortcut(event, shortcuts.csv)) {
+      } else if (matchesShortcut(event, shortcuts.csv) && !downloadingCsv) {
         event.preventDefault();
         handleExportCsv();
       } else if (showPrint && matchesShortcut(event, shortcuts.print)) {
@@ -110,7 +112,7 @@ export default function TableReportActions({
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [downloadingPdf, shortcuts, showPrint, targetId, pdfFileName, excelFileName, csvFileName, title, entityType, entityId]);
+  }, [downloadingPdf, downloadingExcel, downloadingCsv, shortcuts, showPrint, targetId, pdfFileName, excelFileName, csvFileName, title, entityType, entityId]);
 
   return (
     <div className={className}>
@@ -135,19 +137,21 @@ export default function TableReportActions({
       </button>
       <button
         type="button"
-        className="btn-secondary py-1.5 text-xs"
+        className="btn-secondary py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-60"
         onClick={handleExportExcel}
+        disabled={downloadingExcel}
       >
-        <FileSpreadsheet size={14} />
+        {downloadingExcel ? <Loader2 size={14} className="animate-spin" /> : <FileSpreadsheet size={14} />}
         {tr('common.exportExcel')}
         {shortcutBadge(shortcuts.excel)}
       </button>
       <button
         type="button"
-        className="btn-secondary py-1.5 text-xs"
+        className="btn-secondary py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-60"
         onClick={handleExportCsv}
+        disabled={downloadingCsv}
       >
-        <FileSpreadsheet size={14} />
+        {downloadingCsv ? <Loader2 size={14} className="animate-spin" /> : <FileSpreadsheet size={14} />}
         {tr('common.exportCsv')}
         {shortcutBadge(shortcuts.csv)}
       </button>

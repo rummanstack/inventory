@@ -1,12 +1,12 @@
 import { useRef } from 'react';
-import { Camera, Loader2, X } from 'lucide-react';
+import { Camera, Loader2, Trash2, X } from 'lucide-react';
 import { useInventoryApp } from '../app/useInventoryApp.jsx';
 import { inventoryApi } from '../services/inventoryApi.js';
 import { useMutation } from '@tanstack/react-query';
 
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;
 
-export default function PhotoUploadField({ label, value, onChange, shape = 'circle', disabled = false }) {
+export default function PhotoUploadField({ label, value, onChange, shape = 'circle', disabled = false, compact = false, onRemoveSlot }) {
   const { t, pushToast } = useInventoryApp();
   const inputRef = useRef(null);
   const uploadMutation = useMutation({
@@ -37,6 +37,43 @@ export default function PhotoUploadField({ label, value, onChange, shape = 'circ
   }
 
   const shapeClass = shape === 'square' ? 'rounded-xl' : 'rounded-full';
+
+  if (compact) {
+    return (
+      <div className="relative aspect-square overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
+        {value ? (
+          <img src={value} alt="" className="h-full w-full object-cover" />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center">
+            <Camera size={20} className="text-slate-400" />
+          </div>
+        )}
+        <div className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-1 bg-slate-900/60 py-1">
+          <button
+            type="button"
+            className="rounded p-1 text-white hover:bg-white/20 disabled:opacity-50"
+            title={t('photoUpload.changePhoto')}
+            onClick={() => inputRef.current?.click()}
+            disabled={disabled || uploading}
+          >
+            {uploading ? <Loader2 size={14} className="animate-spin" /> : <Camera size={14} />}
+          </button>
+          {onRemoveSlot ? (
+            <button
+              type="button"
+              className="rounded p-1 text-white hover:bg-white/20 disabled:opacity-50"
+              title={t('common.delete')}
+              onClick={onRemoveSlot}
+              disabled={disabled || uploading}
+            >
+              <Trash2 size={14} />
+            </button>
+          ) : null}
+        </div>
+        <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
+      </div>
+    );
+  }
 
   return (
     <div>

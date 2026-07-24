@@ -91,8 +91,8 @@ export default function AppSidebar({ mobileOpen, setMobileOpen, user, tenant, la
               isActive
                 ? collapsed
                   ? 'pl-4 lg:pl-0'
-                  : 'bg-[linear-gradient(135deg,var(--secondary-strong),var(--brand-strong))] pl-4 text-white shadow-[0_1px_2px_var(--secondary-shadow)] before:absolute before:left-0 before:top-1/2 before:h-6 before:w-1 before:-translate-y-1/2 before:rounded-full before:bg-white'
-                : 'pl-3 text-slate-700 hover:bg-white/80 hover:text-slate-950',
+                  : 'bg-[var(--brand-strong)] pl-4 text-white shadow-[0_1px_2px_var(--secondary-shadow-strong)] before:absolute before:left-0 before:top-1/2 before:h-6 before:w-1 before:-translate-y-1/2 before:rounded-full before:bg-white'
+                : 'pl-3 text-slate-700 hover:bg-[var(--brand-soft)] hover:text-[var(--brand-strong)]',
             )
           }
         >
@@ -102,9 +102,9 @@ export default function AppSidebar({ mobileOpen, setMobileOpen, user, tenant, la
                 'flex h-8 w-8 shrink-0 items-center justify-center rounded-md transition',
                 isActive
                   ? collapsed
-                    ? 'bg-[linear-gradient(135deg,var(--secondary-strong),var(--brand-strong))] text-white shadow-[0_6px_16px_var(--secondary-shadow)]'
+                    ? 'bg-[var(--brand-strong)] text-white shadow-[0_6px_16px_var(--secondary-shadow-strong)]'
                     : 'bg-white/20 text-white'
-                  : 'bg-white/70 text-slate-500 group-hover/link:bg-white group-hover/link:text-slate-900',
+                  : 'bg-white/70 text-slate-500 group-hover/link:bg-[var(--brand-soft)] group-hover/link:text-[var(--brand-strong)]',
               )}>
                 <Icon size={17} />
               </span>

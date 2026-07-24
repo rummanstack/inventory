@@ -1,5 +1,4 @@
 import {
-  Activity,
   AlertTriangle,
   ArrowUpRight,
   Boxes,
@@ -56,11 +55,12 @@ function formatDelta(value, t) {
 
 function KpiCard({ label, value, helper, delta, icon: Icon, tone = 'slate' }) {
   const positive = Number(delta) >= 0;
+  const hasDelta = delta !== null && delta !== undefined && Number.isFinite(Number(delta));
   return (
     <div className="group relative overflow-hidden rounded-card bg-white p-5 shadow-card ring-1 ring-slate-200/70 transition hover:-translate-y-0.5 hover:shadow-lg">
       <div className="flex items-start justify-between gap-3">
         <div className={cx('rounded-xl p-2.5 ring-1', KPI_STYLES[tone])}><Icon size={18} /></div>
-        {delta !== undefined ? (
+        {hasDelta ? (
           <span className={cx('inline-flex items-center gap-1 rounded-full px-2 py-1 text-[10px] font-bold', positive ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700')}>
             {positive ? <TrendingUp size={12} /> : <TrendingDown size={12} />}{helper}
           </span>
@@ -140,8 +140,8 @@ function FinancialHealth({ financial, language, t }) {
           </div>
         ))}
       </div>
-      <div className="mt-5 flex items-center justify-between rounded-xl bg-slate-950 px-4 py-3 text-white">
-        <span className="text-xs font-bold uppercase tracking-[0.14em] text-slate-300">{t('dashboard.netPosition')}</span>
+      <div className="mt-5 flex items-center justify-between rounded-xl bg-[var(--secondary-soft)] px-4 py-3 text-[var(--secondary-strong)] ring-1 ring-[color-mix(in_srgb,var(--secondary)_18%,transparent)]">
+        <span className="text-xs font-bold uppercase tracking-[0.14em]">{t('dashboard.netPosition')}</span>
         <span className="text-lg font-semibold tabular-nums">{formatCurrency(financial.netPosition, language)}</span>
       </div>
     </div>
@@ -265,7 +265,7 @@ function ProductPerformance({ rows, language, t }) {
 }
 
 export default function DashboardPage() {
-  const { today, t, language, tenant } = useInventoryApp();
+  const { today, t, language } = useInventoryApp();
   const navigate = useNavigate();
   const vm = useDashboardViewModel({ today });
 
@@ -281,14 +281,13 @@ export default function DashboardPage() {
     profit: row.totalProfit,
   }));
   const isDealer = meta.profile === 'DEALER';
-  const generatedTime = new Intl.DateTimeFormat(language === 'bn' ? 'bn-BD' : 'en-GB', { hour: '2-digit', minute: '2-digit' }).format(new Date(meta.generatedAt));
 
   const kpis = [
     { label: t('dashboard.monthlySalesChart'), value: formatCurrency(shared.kpis.monthlySales, language), delta: shared.comparisons.salesVsLastMonth, icon: TrendingUp, tone: 'emerald' },
     { label: t('dashboard.monthlyProfit'), value: formatCurrency(shared.kpis.monthlyProfit, language), delta: shared.comparisons.profitVsLastMonth, icon: CircleDollarSign, tone: shared.kpis.monthlyProfit >= 0 ? 'indigo' : 'rose' },
-    { label: t('dashboard.totalCashBalance'), value: formatCurrency(shared.kpis.cashAvailable, language), helper: t('dashboard.totalCashBalanceHelper'), icon: Landmark, tone: 'slate' },
-    { label: isDealer ? t('dashboard.dsrDueTotal') : t('dashboard.customerDueTotal'), value: formatCurrency(shared.kpis.receivables, language), helper: t('dashboard.receivables'), icon: HandCoins, tone: 'amber' },
-    { label: t('dashboard.inventoryRisk'), value: formatNumber(shared.inventory.lowStockCount, language), helper: t('dashboard.inventoryRiskHelper', { count: shared.inventory.outOfStockCount }), icon: Boxes, tone: shared.inventory.outOfStockCount ? 'rose' : 'emerald' },
+    { label: t('dashboard.totalCashBalance'), value: formatCurrency(shared.kpis.cashAvailable, language), icon: Landmark, tone: 'slate' },
+    { label: isDealer ? t('dashboard.dsrDueTotal') : t('dashboard.customerDueTotal'), value: formatCurrency(shared.kpis.receivables, language), icon: HandCoins, tone: 'amber' },
+    { label: t('dashboard.inventoryRisk'), value: formatNumber(shared.inventory.lowStockCount, language), icon: Boxes, tone: shared.inventory.outOfStockCount ? 'rose' : 'emerald' },
   ];
 
   return (
@@ -304,14 +303,6 @@ export default function DashboardPage() {
           </div>
         )}
       />
-
-      <div className="relative overflow-hidden rounded-[1.35rem] bg-slate-950 px-6 py-5 text-white shadow-xl sm:px-7">
-        <div className="absolute -right-24 -top-24 h-64 w-64 rounded-full bg-[var(--brand)]/20 blur-3xl" />
-        <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div><p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">{t('dashboard.commandCenter')}</p><h1 className="mt-2 text-xl font-semibold tracking-tight sm:text-2xl">{tenant?.name || t('dashboard.title')}</h1><p className="mt-1 text-sm font-medium text-slate-400">{t('dashboard.executiveBriefing')}</p></div>
-          <div className="flex items-center gap-3 rounded-xl bg-white/5 px-4 py-3 ring-1 ring-white/10"><Activity size={16} className="text-emerald-400" /><div><p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">{t('dashboard.lastUpdated')}</p><p className="text-sm font-bold">{generatedTime}</p></div></div>
-        </div>
-      </div>
 
       <div className="grid gap-3 max-sm:flex max-sm:snap-x max-sm:snap-mandatory max-sm:overflow-x-auto max-sm:pb-2 sm:grid-cols-2 xl:grid-cols-5">
         {kpis.map((item) => <div key={item.label} className="max-sm:min-w-[78%] max-sm:snap-start"><KpiCard {...item} helper={item.delta !== undefined ? formatDelta(item.delta, t) : item.helper} /></div>)}

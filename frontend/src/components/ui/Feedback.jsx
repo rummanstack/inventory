@@ -178,7 +178,7 @@ export function ToastViewport({ toasts, onDismiss }) {
       msg: 'text-amber-800',
     },
     info: {
-      shell: 'border-indigo-200 bg-white text-slate-900',
+      shell: 'border-[var(--brand-soft)] bg-white text-slate-900',
       icon: 'bg-[var(--brand)] text-white',
       bar: 'bg-[var(--brand)]',
       msg: 'text-slate-600',

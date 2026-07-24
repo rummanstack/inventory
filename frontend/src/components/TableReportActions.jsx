@@ -13,7 +13,7 @@ export default function TableReportActions({
   entityType = 'table_report',
   entityId = null,
   t,
-  className = 'flex gap-2',
+  className = 'flex w-full flex-wrap justify-end gap-2',
   showPrint = true,
   shortcuts = {},
 }) {

@@ -1492,6 +1492,10 @@ html [data-sonner-toaster] [data-sonner-toast] [data-description] {
     background: white !important;
   }
 
+  body.printing-active > #root {
+    display: none !important;
+  }
+
   body * {
     visibility: hidden;
   }

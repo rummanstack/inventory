@@ -260,6 +260,7 @@ export function printElementById(targetId) {
   const printRoot = document.createElement('div');
   printRoot.className = 'print-session-root';
   const clone = element.cloneNode(true);
+  clone.classList.add('print-target');
   syncClonedFormState(element, clone);
   printRoot.appendChild(clone);
   document.body.appendChild(printRoot);

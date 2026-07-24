@@ -100,15 +100,14 @@ export default function OrgSettingsPage() {
           <Select
             className="input"
             value={form.businessType}
-            onChange={(e) => handleChange('businessType', e.target.value)}
-            disabled={!canEdit}
+            disabled
           >
             <option value="ELECTRONICS">{t('orgSettings.businessTypeElectronics')}</option>
             <option value="GROCERY">{t('orgSettings.businessTypeGrocery')}</option>
             <option value="DRUG_PHARMACY">{t('orgSettings.businessTypeDrugPharmacy')}</option>
             <option value="VEHICLE">{t('orgSettings.businessTypeVehicle')}</option>
           </Select>
-          <p className="mt-1 text-xs text-slate-500">{t('orgSettings.businessTypeHelp')}</p>
+          <p className="mt-1 text-xs text-slate-500">{t('orgSettings.businessTypeLocked')}</p>
         </label>
 
         <PhotoUploadField

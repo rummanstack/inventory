@@ -3327,7 +3327,7 @@ const en = {
       businessTypeGrocery: 'Grocery / Super Shop',
       businessTypeDrugPharmacy: 'Drug & Pharmacy',
       businessTypeVehicle: 'Vehicle Shop (Car/Bike/Cycle)',
-      businessTypeHelp: 'What kind of business this organization runs. This is separate from the menus and permissions below.',
+      businessTypeLocked: 'Business type is set at signup and controls which industry-specific modules you get. Contact support to change it.',
       taxHelp: 'This is the company default. Individual products can override it.',
       loyaltyEnabled: 'Enable Loyalty / Membership',
       loyaltyEnabledHelp: 'When enabled, retail customers can earn and redeem points.',

@@ -5,7 +5,11 @@ export class OrgController {
 
   update = async (req, res, next) => {
     try {
-      const tenant = await this.tenantService.updateTenant(req.currentUser.tenantId, req.body, req.currentUser);
+      // businessType (and sellerType) drive which industry-specific modules a tenant
+      // gets by default and are set at onboarding — only a platform admin can change
+      // them (via /platform/tenants/:id), never the tenant owner through org settings.
+      const { businessType, sellerType, ...allowedFields } = req.body;
+      const tenant = await this.tenantService.updateTenant(req.currentUser.tenantId, allowedFields, req.currentUser);
       res.json({ tenant });
     } catch (error) {
       next(error);

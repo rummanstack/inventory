@@ -152,27 +152,27 @@ export default function StockLedgerPanel({ products, t, refreshKey = 0, fixedTyp
               {printTarget ? (
                 <button
                   type="button"
-                  className="btn-secondary disabled:cursor-not-allowed disabled:opacity-60"
+                  className="btn-secondary h-10 gap-1.5 px-3 text-xs disabled:cursor-not-allowed disabled:opacity-60"
                   onClick={handleDownloadPdf}
                   disabled={downloadingPdf}
                 >
-                  {downloadingPdf ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
+                  {downloadingPdf ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
                   {t('purchaseReceive.downloadPdf')}
                   {shortcuts ? <kbd className="ml-1 rounded border border-slate-300 bg-white/70 px-1 py-0.5 font-mono text-[10px] text-slate-500">Alt+{downloadPdfShortcutKey.toUpperCase()}</kbd> : null}
                 </button>
               ) : null}
-              <button type="button" className="btn-secondary" onClick={handleExportExcel}>
-                <FileSpreadsheet size={16} />
+              <button type="button" className="btn-secondary h-10 gap-1.5 px-3 text-xs" onClick={handleExportExcel}>
+                <FileSpreadsheet size={14} />
                 {t('common.exportExcel')}
                 {shortcuts ? <kbd className="ml-1 rounded border border-slate-300 bg-white/70 px-1 py-0.5 font-mono text-[10px] text-slate-500">Alt+{exportShortcutKey.toUpperCase()}</kbd> : null}
               </button>
               {printTarget ? (
                 <button
                   type="button"
-                  className="btn-secondary"
+                  className="btn-secondary h-10 gap-1.5 px-3 text-xs"
                   onClick={handlePrint}
                 >
-                  <Printer size={16} />
+                  <Printer size={14} />
                   {t('common.print')}
                   {shortcuts ? <kbd className="ml-1 rounded border border-slate-300 bg-white/70 px-1 py-0.5 font-mono text-[10px] text-slate-500">Alt+{printShortcutKey.toUpperCase()}</kbd> : null}
                 </button>
@@ -186,11 +186,11 @@ export default function StockLedgerPanel({ products, t, refreshKey = 0, fixedTyp
           </div>
         )}
 
-        <div className={`flex flex-col gap-4 lg:flex-row lg:items-end ${hideHeader ? '' : 'mt-5'}`}>
-          <div className="grid flex-1 gap-4 sm:grid-cols-2">
-            <div>
+        <div className={hideHeader ? 'grid items-end gap-3 sm:grid-cols-2 xl:grid-cols-12' : 'mt-5 flex flex-col gap-4 lg:flex-row lg:items-end'}>
+          <div className={hideHeader ? 'contents' : 'grid flex-1 gap-4 sm:grid-cols-2'}>
+            <div className={hideHeader ? 'sm:col-span-2 xl:col-span-2' : ''}>
               <label className="label">{t('stockLedger.product')}</label>
-              <Select className="input" value={productId} onChange={(event) => setProductId(event.target.value)}>
+              <Select className="input w-full" value={productId} onChange={(event) => setProductId(event.target.value)}>
                 <option value="">{t('stockLedger.allProducts')}</option>
                 {products.map((product) => (
                   <option key={product.id} value={product.id}>
@@ -199,37 +199,37 @@ export default function StockLedgerPanel({ products, t, refreshKey = 0, fixedTyp
                 ))}
               </Select>
             </div>
-            <div>
+            <div className={hideHeader ? 'sm:col-span-2 xl:col-span-2' : ''}>
               <label className="label">{t('stockLedger.dateFrom')} - {t('stockLedger.dateTo')}</label>
               <DateRangePickerField from={dateFrom} to={dateTo} onChange={(from, to) => { setDateFrom(from); setDateTo(to); }} />
             </div>
           </div>
           {hideHeader ? (
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 sm:col-span-2 sm:justify-self-end xl:col-span-8">
               {printTarget ? (
                 <button
                   type="button"
-                  className="btn-secondary disabled:cursor-not-allowed disabled:opacity-60"
+                  className="btn-secondary h-10 gap-1.5 px-3 text-xs disabled:cursor-not-allowed disabled:opacity-60"
                   onClick={handleDownloadPdf}
                   disabled={downloadingPdf}
                 >
-                  {downloadingPdf ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
+                  {downloadingPdf ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
                   {t('purchaseReceive.downloadPdf')}
                   {shortcuts ? <kbd className="ml-1 rounded border border-slate-300 bg-white/70 px-1 py-0.5 font-mono text-[10px] text-slate-500">Alt+{downloadPdfShortcutKey.toUpperCase()}</kbd> : null}
                 </button>
               ) : null}
-              <button type="button" className="btn-secondary" onClick={handleExportExcel}>
-                <FileSpreadsheet size={16} />
+              <button type="button" className="btn-secondary h-10 gap-1.5 px-3 text-xs" onClick={handleExportExcel}>
+                <FileSpreadsheet size={14} />
                 {t('common.exportExcel')}
                 {shortcuts ? <kbd className="ml-1 rounded border border-slate-300 bg-white/70 px-1 py-0.5 font-mono text-[10px] text-slate-500">Alt+{exportShortcutKey.toUpperCase()}</kbd> : null}
               </button>
               {printTarget ? (
                 <button
                   type="button"
-                  className="btn-secondary"
+                  className="btn-secondary h-10 gap-1.5 px-3 text-xs"
                   onClick={handlePrint}
                 >
-                  <Printer size={16} />
+                  <Printer size={14} />
                   {t('common.print')}
                   {shortcuts ? <kbd className="ml-1 rounded border border-slate-300 bg-white/70 px-1 py-0.5 font-mono text-[10px] text-slate-500">Alt+{printShortcutKey.toUpperCase()}</kbd> : null}
                 </button>

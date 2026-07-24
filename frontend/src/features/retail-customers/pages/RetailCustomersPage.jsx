@@ -166,17 +166,19 @@ export default function RetailCustomersPage() {
       />
 
       <div id={RETAIL_CUSTOMERS_PRINT_ID} className="surface overflow-hidden print-target">
-        <div className="flex flex-col gap-3 border-b border-slate-100 p-5 sm:flex-row sm:items-center">
-          <div className="relative w-full max-w-md flex-1">
+        <div className="grid gap-3 border-b border-slate-100 p-4 sm:grid-cols-2 xl:grid-cols-12">
+          <div className="relative w-full sm:col-span-2 xl:col-span-3">
             <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
             <input className="input pl-10" value={vm.search} onChange={(event) => vm.setSearch(event.target.value)} placeholder={t('retailCustomers.searchPlaceholder')} />
           </div>
-          <Select className="input w-full sm:w-48" value={vm.status} onChange={(event) => vm.setStatus(event.target.value)}>
+          <div className="xl:col-span-2">
+            <Select className="input w-full" value={vm.status} onChange={(event) => vm.setStatus(event.target.value)}>
             <option value="">{t('retailCustomers.allStatuses')}</option>
             <option value="ACTIVE">{t('retailCustomers.statusActive')}</option>
             <option value="INACTIVE">{t('retailCustomers.statusInactive')}</option>
-          </Select>
-          <div className="flex flex-wrap items-center gap-2 text-sm font-bold sm:ml-auto">
+            </Select>
+          </div>
+          <div className="flex flex-wrap items-center gap-2 text-sm font-bold sm:col-span-2 sm:justify-self-end xl:col-span-12">
             <button
               type="button"
               className="btn-secondary no-print h-10 gap-1.5 px-3 text-xs disabled:cursor-not-allowed disabled:opacity-60"

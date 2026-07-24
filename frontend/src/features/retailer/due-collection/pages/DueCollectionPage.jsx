@@ -105,21 +105,23 @@ export default function DueCollectionPage() {
       />
 
       <div id={DUE_COLLECTION_PRINT_ID} className="surface overflow-hidden print-target">
-        <div className="flex flex-col gap-3 border-b border-slate-100 p-5 sm:flex-row sm:flex-wrap sm:items-center">
-          <Select className="input w-full sm:w-56" value={vm.customerId} onChange={(event) => vm.setCustomerId(event.target.value)}>
-            <option value="">{t('retailer.shared.allCustomers')}</option>
-            {retailCustomerDirectory.map((customer) => (
-              <option key={customer.id} value={customer.id}>{customer.name}</option>
-            ))}
-          </Select>
+        <div className="grid items-center gap-3 border-b border-slate-100 p-4 sm:grid-cols-2 xl:grid-cols-12">
+          <div className="sm:col-span-2 xl:col-span-2">
+            <Select className="input w-full" value={vm.customerId} onChange={(event) => vm.setCustomerId(event.target.value)}>
+              <option value="">{t('retailer.shared.allCustomers')}</option>
+              {retailCustomerDirectory.map((customer) => (
+                <option key={customer.id} value={customer.id}>{customer.name}</option>
+              ))}
+            </Select>
+          </div>
           <DateRangePickerField
             from={vm.dateFrom}
             to={vm.dateTo}
             onChange={(from, to) => { vm.setDateFrom(from); vm.setDateTo(to); }}
             placeholder={`${t('supplierPayments.dateFrom')} - ${t('supplierPayments.dateTo')}`}
-            className="w-full min-w-[260px] sm:w-auto"
+            className="w-full sm:col-span-2 xl:col-span-2"
           />
-          <div className="flex flex-wrap items-center gap-2 text-sm font-bold sm:ml-auto">
+          <div className="flex flex-wrap items-center gap-2 text-sm font-bold sm:col-span-2 sm:justify-self-end xl:col-span-8">
             <button
               type="button"
               className="btn-secondary no-print h-10 gap-1.5 px-3 text-xs disabled:cursor-not-allowed disabled:opacity-60"

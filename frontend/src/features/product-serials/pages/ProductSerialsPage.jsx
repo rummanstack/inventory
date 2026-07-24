@@ -123,24 +123,28 @@ export default function ProductSerialsPage() {
       />
 
       <div id={PRODUCT_SERIALS_PRINT_ID} className="surface overflow-hidden print-target">
-        <div className="flex flex-col gap-3 border-b border-slate-100 p-5 sm:flex-row sm:flex-wrap sm:items-center">
-          <div className="relative w-full flex-1 sm:min-w-[200px]">
+        <div className="grid items-center gap-3 border-b border-slate-100 p-4 sm:grid-cols-2 xl:grid-cols-12">
+          <div className="relative w-full sm:col-span-2 xl:col-span-3">
             <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
             <input className="input pl-10" value={vm.search} onChange={(event) => vm.setSearch(event.target.value)} placeholder={t('productSerials.searchPlaceholder')} />
           </div>
-          <Select className="input w-full sm:w-52" value={vm.productId} onChange={(event) => vm.setProductId(event.target.value)}>
-            <option value="">{t('productSerials.allProducts')}</option>
-            {productDirectory.map((product) => (
-              <option key={product.id} value={product.id}>{product.name}</option>
-            ))}
-          </Select>
-          <Select className="input w-full sm:w-44" value={vm.status} onChange={(event) => vm.setStatus(event.target.value)}>
-            <option value="">{t('productSerials.allStatuses')}</option>
-            {STATUS_VALUES.map((value) => (
-              <option key={value} value={value}>{t(`productSerials.statuses.${value}`)}</option>
-            ))}
-          </Select>
-          <div className="flex flex-wrap items-center gap-2 text-sm font-bold sm:ml-auto">
+          <div className="xl:col-span-2">
+            <Select className="input w-full" value={vm.productId} onChange={(event) => vm.setProductId(event.target.value)}>
+              <option value="">{t('productSerials.allProducts')}</option>
+              {productDirectory.map((product) => (
+                <option key={product.id} value={product.id}>{product.name}</option>
+              ))}
+            </Select>
+          </div>
+          <div className="xl:col-span-2">
+            <Select className="input w-full" value={vm.status} onChange={(event) => vm.setStatus(event.target.value)}>
+              <option value="">{t('productSerials.allStatuses')}</option>
+              {STATUS_VALUES.map((value) => (
+                <option key={value} value={value}>{t(`productSerials.statuses.${value}`)}</option>
+              ))}
+            </Select>
+          </div>
+          <div className="flex flex-wrap items-center gap-2 text-sm font-bold sm:col-span-2 sm:justify-self-end xl:col-span-5">
             <button
               type="button"
               className="btn-secondary no-print h-10 gap-1.5 px-3 text-xs disabled:cursor-not-allowed disabled:opacity-60"

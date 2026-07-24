@@ -104,18 +104,18 @@ export default function CustomerDuePage() {
     <div>
       <SectionHeader title={t('retailer.customerDue.title')} compact />
 
-      <div className="surface p-5">
-        <div className="flex flex-wrap items-end gap-3">
-          <div className="w-72">
+      <div className="surface p-4">
+        <div className="grid items-end gap-3 sm:grid-cols-2 xl:grid-cols-12">
+          <div className="sm:col-span-2 xl:col-span-2">
             <label className="label">{t('retailer.shared.customerLabel')}</label>
-            <Select className="input" value={vm.customerId} onChange={(event) => vm.setCustomerId(event.target.value)}>
+            <Select className="input w-full" value={vm.customerId} onChange={(event) => vm.setCustomerId(event.target.value)}>
               <option value="">{t('retailer.shared.selectCustomer')}</option>
               {retailCustomerDirectory.map((customer) => (
                 <option key={customer.id} value={customer.id}>{customer.name}</option>
               ))}
             </Select>
           </div>
-          <div className="min-w-[320px]">
+          <div className="sm:col-span-2 xl:col-span-2">
             <label className="label">{t('supplierStatement.dateRangeLabel')}</label>
             <DateRangePickerField
               from={vm.dateFrom}
@@ -124,7 +124,7 @@ export default function CustomerDuePage() {
               placeholder={`${t('supplierStatement.dateFrom')} - ${t('supplierStatement.dateTo')}`}
             />
           </div>
-          <div className="flex flex-wrap items-center gap-2 text-sm font-bold sm:ml-auto">
+          <div className="flex flex-wrap items-center gap-2 text-sm font-bold sm:col-span-2 sm:justify-self-end xl:col-span-8">
             {vm.statement ? (
               <>
                 <button

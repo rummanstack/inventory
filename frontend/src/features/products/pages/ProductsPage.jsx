@@ -165,17 +165,19 @@ export default function ProductsPage() {
               <Alert type="error">{t('products.noStockAlert', { count: formatNumber(outOfStockCount, language) })}</Alert>
             </div>
           ) : null}
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <div className="relative max-w-md flex-1">
+          <div className="grid items-center gap-3 sm:grid-cols-2 xl:grid-cols-12">
+            <div className="relative w-full sm:col-span-2 xl:col-span-3">
               <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
               <input className="input pl-10" value={vm.search} onChange={(event) => vm.setSearch(event.target.value)} placeholder={t('products.searchPlaceholder')} />
             </div>
-            <Select className="input sm:w-48" value={vm.categoryId} onChange={(event) => vm.setCategoryId(event.target.value)}>
-              <option value="">{t('categories.allCategories')}</option>
-              {categoryOptions.map((category) => (
-                <option key={category.id} value={category.id}>{category.name}</option>
-              ))}
-            </Select>
+            <div className="xl:col-span-2">
+              <Select className="input w-full" value={vm.categoryId} onChange={(event) => vm.setCategoryId(event.target.value)}>
+                <option value="">{t('categories.allCategories')}</option>
+                {categoryOptions.map((category) => (
+                  <option key={category.id} value={category.id}>{category.name}</option>
+                ))}
+              </Select>
+            </div>
             <div className="no-print flex h-10 shrink-0 items-center gap-1 self-start rounded-xl border border-slate-200 bg-white p-1">
               <button
                 type="button"
@@ -196,7 +198,7 @@ export default function ProductsPage() {
                 <LayoutGrid size={16} />
               </button>
             </div>
-            <div className="no-print flex flex-wrap gap-2 sm:ml-auto">
+            <div className="no-print flex flex-wrap gap-2 sm:col-span-2 sm:justify-self-end xl:col-span-6">
               <button type="button" className="btn-secondary h-10 gap-1.5 px-3 text-xs disabled:cursor-not-allowed disabled:opacity-60" onClick={handleDownloadPdf} disabled={downloadingPdf}>
                 {downloadingPdf ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
                 {t('purchaseReceive.downloadPdf')}

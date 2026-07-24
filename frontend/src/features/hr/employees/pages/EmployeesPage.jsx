@@ -121,8 +121,8 @@ export default function EmployeesPage() {
       />
 
       <div id={EMPLOYEES_REPORT_ID} className="surface overflow-hidden">
-        <div className="flex flex-col gap-3 border-b border-slate-100 p-5 xl:flex-row xl:items-center xl:flex-wrap">
-          <input className="input w-full sm:w-56" placeholder={t('common.search')} value={vm.search} onChange={(e) => vm.setSearch(e.target.value)} />
+        <div className="flex flex-col gap-3 border-b border-slate-100 p-5 sm:flex-row sm:items-center sm:flex-wrap">
+          <input className="input w-full sm:w-72" placeholder={t('common.search')} value={vm.search} onChange={(e) => vm.setSearch(e.target.value)} />
           <Select className="input w-full sm:w-48" value={vm.departmentId} onChange={(e) => vm.setDepartmentId(e.target.value)}>
             <option value="">{t('employees.allDepartments')}</option>
             {departments.map((department) => <option key={department.id} value={department.id}>{department.name}</option>)}
@@ -131,7 +131,7 @@ export default function EmployeesPage() {
             <option value="">{t('employees.allDesignations')}</option>
             {designations.map((designation) => <option key={designation.id} value={designation.id}>{designation.name}</option>)}
           </Select>
-          <div className="flex flex-wrap gap-2 xl:ml-auto">
+          <div className="flex flex-wrap gap-2 sm:ml-auto">
             <TableReportActions targetId={EMPLOYEES_REPORT_ID} title={t('employees.title')} fileName="employees" entityType="employees" t={t} shortcuts={EMPLOYEES_REPORT_SHORTCUTS} />
           </div>
         </div>

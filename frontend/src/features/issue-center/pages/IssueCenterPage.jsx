@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, Activity, Box, ClipboardList, ExternalLink, Search, Truck, RotateCcw, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import AuditHistory from '../../../components/AuditHistory.jsx';
-import { Alert, Badge, EmptyState, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton } from '../../../components/ui.jsx';
+import { Alert, Badge, EmptyState, SectionHeader, StatCard, StatCardSkeleton, TableSkeleton, cx } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { formatDateTime, formatNumber } from '../../../utils/calculations.js';
 import { actionTone } from '../../../models/inventoryViewData.js';
@@ -89,6 +89,7 @@ export default function IssueCenterPage() {
   const logsVm = useActivityLogsViewModel();
   const canOpenActivityLogs = hasFeature('activity-logs');
   const [selectedLog, setSelectedLog] = useState(null);
+  const [activeTab, setActiveTab] = useState('alerts');
   const smartAlertsQuery = useTenantApiQuery({
     scope: 'issue-center-smart-alerts',
     params: { today },
@@ -132,6 +133,26 @@ export default function IssueCenterPage() {
 
   const cashSessionOpen = Boolean(currentCashSession?.session?.isOpen);
   const cashSessionVariance = Number(currentCashSession?.session?.variance || 0);
+  const issueTabs = [
+    {
+      id: 'alerts',
+      label: t('issueCenter.smartAlertsTitle'),
+      icon: AlertTriangle,
+      count: duplicateInvoiceGroups.length + settlementMismatchRows.length + (cashSessionOpen ? 1 : 0),
+    },
+    {
+      id: 'critical',
+      label: t('issueCenter.criticalTitle'),
+      icon: Box,
+      count: lowStockProducts.length + pendingDsrs.length,
+    },
+    {
+      id: 'fixes',
+      label: t('issueCenter.recentFixes'),
+      icon: Sparkles,
+      count: recentFixes.length,
+    },
+  ];
 
   useEffect(() => {
     if (!selectedLog && recentFixes.length) {
@@ -200,6 +221,39 @@ export default function IssueCenterPage() {
         />
       </div>
 
+      <div className="no-print overflow-x-auto">
+        <div className="inline-flex min-w-full gap-1 rounded-lg border border-slate-200 bg-slate-50 p-1 sm:min-w-0">
+          {issueTabs.map((tab) => {
+            const Icon = tab.icon;
+            const selected = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                className={cx(
+                  'flex min-h-10 flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-md px-3 text-sm font-bold transition sm:flex-none',
+                  selected
+                    ? 'border border-indigo-200 bg-indigo-50 text-indigo-800 shadow-sm ring-2 ring-indigo-100'
+                    : 'border border-transparent text-slate-500 hover:bg-white/70 hover:text-slate-800',
+                )}
+                aria-pressed={selected}
+                onClick={() => setActiveTab(tab.id)}
+              >
+                <Icon size={16} />
+                {tab.label}
+                <span className={cx(
+                  'rounded-full px-2 py-0.5 text-xs font-black',
+                  selected ? 'bg-indigo-600 text-white' : 'bg-slate-200 text-slate-600',
+                )}>
+                  {formatNumber(tab.count, language)}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {activeTab === 'alerts' ? (
       <div className="surface overflow-hidden">
         <div className="border-b border-slate-100 px-5 py-4">
           <h2 className="section-title">{t('issueCenter.smartAlertsTitle')}</h2>
@@ -281,9 +335,12 @@ export default function IssueCenterPage() {
           </div>
         </div>
       </div>
+      ) : null}
 
+      {activeTab !== 'alerts' ? (
       <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
         <div className="space-y-6">
+          {activeTab === 'critical' ? (
           <div className="surface overflow-hidden">
             <div className="border-b border-slate-100 px-5 py-4">
               <div className="flex items-center justify-between gap-3">
@@ -345,7 +402,9 @@ export default function IssueCenterPage() {
               </div>
             </div>
           </div>
+          ) : null}
 
+          {activeTab === 'fixes' ? (
           <div className="surface overflow-hidden">
             <div className="border-b border-slate-100 px-5 py-4">
               <div className="flex items-center justify-between gap-3">
@@ -402,9 +461,11 @@ export default function IssueCenterPage() {
               </div>
             )}
           </div>
+          ) : null}
         </div>
 
         <div className="space-y-6">
+          {activeTab === 'critical' ? (
           <div className="surface overflow-hidden">
             <div className="border-b border-slate-100 px-5 py-4">
               <h2 className="section-title">{t('issueCenter.quickActions')}</h2>
@@ -431,7 +492,9 @@ export default function IssueCenterPage() {
               ) : null}
             </div>
           </div>
+          ) : null}
 
+          {activeTab === 'fixes' ? (
           <div className="surface overflow-hidden">
             <div className="border-b border-slate-100 px-5 py-4">
               <h2 className="section-title">{t('issueCenter.selectedTitle')}</h2>
@@ -479,8 +542,10 @@ export default function IssueCenterPage() {
               )}
             </div>
           </div>
+          ) : null}
         </div>
       </div>
+      ) : null}
     </div>
   );
 }

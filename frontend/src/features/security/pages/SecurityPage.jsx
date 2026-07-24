@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import { Copy, KeyRound, LogOut, ShieldCheck } from 'lucide-react';
-import { Alert, Badge, CopyableText, EmptyState, MobileCardList, MobileListCard, SectionHeader } from '../../../components/ui.jsx';
+import { useEffect, useState } from 'react';
+import { Copy, History, KeyRound, LogOut, MonitorSmartphone, RotateCcw, ShieldCheck } from 'lucide-react';
+import { Alert, Badge, CopyableText, EmptyState, MobileCardList, MobileListCard, SectionHeader, cx } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi.js';
 import { formatDateTime } from '../../../utils/calculations.js';
@@ -10,6 +10,7 @@ import { useTenantApiQuery } from '../../../queries/useTenantApiQuery.js';
 export default function SecurityPage() {
   const { t, can, confirm, pushToast } = useInventoryApp();
   const canManageUsers = can('manage_users');
+  const [activeTab, setActiveTab] = useState('sessions');
 
   const securityQuery = useTenantApiQuery({
     scope: 'security-overview',
@@ -38,6 +39,20 @@ export default function SecurityPage() {
   const loading = securityQuery.isLoading;
   const error = securityQuery.error?.message || '';
   const busyId = revokeMutation.isPending ? revokeMutation.variables : '';
+  const securityTabs = [
+    { id: 'sessions', label: t('security.sessionsTitle'), icon: MonitorSmartphone, count: sessions.length },
+    { id: 'history', label: t('security.recentSignInTab'), icon: History, count: history.length },
+    { id: 'password', label: t('security.passwordRulesTab'), icon: KeyRound },
+    ...(canManageUsers
+      ? [{ id: 'resets', label: t('security.pendingResetTab'), icon: RotateCcw, count: resetRequests.length }]
+      : []),
+  ];
+
+  useEffect(() => {
+    if (activeTab === 'resets' && !canManageUsers) {
+      setActiveTab('sessions');
+    }
+  }, [activeTab, canManageUsers]);
 
   async function handleRevoke(sessionId) {
     try {
@@ -89,13 +104,48 @@ export default function SecurityPage() {
 
       {error ? <Alert type="error">{error}</Alert> : null}
 
+      <div className="no-print overflow-x-auto">
+        <div className="inline-flex min-w-full gap-1 rounded-lg border border-slate-200 bg-slate-50 p-1 sm:min-w-0">
+          {securityTabs.map((tab) => {
+            const Icon = tab.icon;
+            const selected = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                className={cx(
+                  'flex min-h-10 flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-md px-3 text-sm font-bold transition sm:flex-none',
+                  selected
+                    ? 'border border-indigo-200 bg-indigo-50 text-indigo-800 shadow-sm ring-2 ring-indigo-100'
+                    : 'border border-transparent text-slate-500 hover:bg-white/70 hover:text-slate-800',
+                )}
+                aria-pressed={selected}
+                onClick={() => setActiveTab(tab.id)}
+              >
+                <Icon size={16} />
+                {tab.label}
+                {typeof tab.count === 'number' ? (
+                  <span className={cx(
+                    'rounded-full px-2 py-0.5 text-xs font-black',
+                    selected ? 'bg-indigo-600 text-white' : 'bg-slate-200 text-slate-600',
+                  )}>
+                    {tab.count}
+                  </span>
+                ) : null}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {activeTab === 'sessions' ? (
       <div className="surface overflow-hidden">
-        <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-4">
+        <div className="flex flex-col gap-3 border-b border-slate-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="section-title">{t('security.sessionsTitle')}</h2>
             <p className="mt-1 text-sm text-slate-500">{t('security.sessionsDescription')}</p>
           </div>
-          <button type="button" className="btn-secondary" onClick={handleRevokeOthers} disabled={busyId === 'others'}>
+          <button type="button" className="btn-secondary w-full justify-center sm:w-auto" onClick={handleRevokeOthers} disabled={busyId === 'others'}>
             <LogOut size={16} />
             {t('security.revokeOthers')}
           </button>
@@ -165,7 +215,9 @@ export default function SecurityPage() {
           </>
         )}
       </div>
+      ) : null}
 
+      {activeTab === 'history' ? (
       <div className="surface overflow-hidden">
         <div className="border-b border-slate-100 px-5 py-4">
           <h2 className="section-title">{t('security.loginHistoryTitle')}</h2>
@@ -219,7 +271,9 @@ export default function SecurityPage() {
           </>
         )}
       </div>
+      ) : null}
 
+      {activeTab === 'password' ? (
       <div className="surface p-5">
         <div className="flex items-start gap-3">
           <div className="rounded-2xl bg-[var(--secondary-soft)] p-2.5 text-[var(--secondary-strong)]">
@@ -234,8 +288,9 @@ export default function SecurityPage() {
           </div>
         </div>
       </div>
+      ) : null}
 
-      {canManageUsers ? (
+      {canManageUsers && activeTab === 'resets' ? (
         <div className="surface overflow-hidden">
           <div className="border-b border-slate-100 px-5 py-4">
             <h2 className="section-title">{t('security.pendingResetTitle')}</h2>

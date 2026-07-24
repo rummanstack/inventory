@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { ClipboardList, Download } from 'lucide-react';
-import { Alert, Badge, EmptyState, MobileCardList, MobileListCard, Pagination, SectionHeader, TableSkeleton } from '../../../components/ui.jsx';
+import { ClipboardList, Download, Loader2 } from 'lucide-react';
+import { Alert, Badge, EmptyState, MobileCardList, MobileListCard, Pagination, SectionHeader, TableSkeleton, cx } from '../../../components/ui.jsx';
 import TableReportActions from '../../../components/TableReportActions.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { inventoryApi } from '../../../services/inventoryApi';
@@ -31,6 +31,7 @@ export default function DatabaseBackupPage() {
   const { t, pushToast } = useInventoryApp();
   const [loadingFormat, setLoadingFormat] = useState(null);
   const [error, setError] = useState('');
+  const [activeTab, setActiveTab] = useState('create');
   const { page, setPage, pageSize, resetPage } = usePagination();
   const historyQuery = useTenantApiQuery({
     scope: 'database-backup-history',
@@ -45,6 +46,10 @@ export default function DatabaseBackupPage() {
   const historyLoading = historyQuery.isLoading || historyQuery.isFetching;
   const historyError = historyQuery.error?.message || '';
   const loadHistory = () => historyQuery.refetch();
+  const backupTabs = [
+    { id: 'create', label: t('backup.download'), icon: Download },
+    { id: 'history', label: t('backup.history.title'), icon: ClipboardList, count: historyTotal },
+  ];
 
   async function handleDownload(format) {
     try {
@@ -62,6 +67,7 @@ export default function DatabaseBackupPage() {
       window.URL.revokeObjectURL(url);
       resetPage();
       await loadHistory();
+      setActiveTab('history');
       pushToast('success', t('backup.title'), filename);
     } catch (requestError) {
       const message = requestError.message || t('backup.failed');
@@ -74,7 +80,13 @@ export default function DatabaseBackupPage() {
 
   useEffect(() => {
     function handleKeyDown(event) {
-      if (matchesShortcut(event, BACKUP_SQL_SHORTCUT) && !loadingFormat) {
+      if (event.altKey && !event.ctrlKey && !event.metaKey && event.key === '1') {
+        event.preventDefault();
+        setActiveTab('create');
+      } else if (event.altKey && !event.ctrlKey && !event.metaKey && event.key === '2') {
+        event.preventDefault();
+        setActiveTab('history');
+      } else if (matchesShortcut(event, BACKUP_SQL_SHORTCUT) && !loadingFormat) {
         event.preventDefault();
         handleDownload('sql');
       } else if (matchesShortcut(event, BACKUP_JSON_SHORTCUT) && !loadingFormat) {
@@ -89,25 +101,46 @@ export default function DatabaseBackupPage() {
   }, [loadingFormat]);
 
   return (
-    <div>
-      <SectionHeader
-        title={t('backup.title')}
-        compact
-        action={(
-          <div className="flex items-center gap-2">
-            <button type="button" className="btn-primary" onClick={() => handleDownload('sql')} disabled={Boolean(loadingFormat)}>
-              <Download size={18} />
-              {loadingFormat === 'sql' ? t('backup.downloading') : t('backup.exportSql')}
-              <kbd className="ml-1 rounded border border-white/40 bg-white/20 px-1 py-0.5 font-mono text-[10px] text-white">Alt+S</kbd>
-            </button>
-            <button type="button" className="btn-secondary" onClick={() => handleDownload('json')} disabled={Boolean(loadingFormat)}>
-              <Download size={18} />
-              {loadingFormat === 'json' ? t('backup.downloading') : t('backup.exportJson')}
-              <kbd className="ml-1 rounded border border-slate-300 bg-white/70 px-1 py-0.5 font-mono text-[10px] text-slate-500">Alt+J</kbd>
-            </button>
-          </div>
-        )}
-      />
+    <div className="space-y-6">
+      <SectionHeader title={t('backup.title')} compact />
+
+      <div className="no-print overflow-x-auto">
+        <div className="inline-flex min-w-full gap-1 rounded-lg border border-slate-200 bg-slate-50 p-1 sm:min-w-0">
+          {backupTabs.map((tab, index) => {
+            const Icon = tab.icon;
+            const selected = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                className={cx(
+                  'flex min-h-10 flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-md px-3 text-sm font-bold transition sm:flex-none',
+                  selected
+                    ? 'border border-indigo-200 bg-indigo-50 text-indigo-800 shadow-sm ring-2 ring-indigo-100'
+                    : 'border border-transparent text-slate-500 hover:bg-white/70 hover:text-slate-800',
+                )}
+                aria-pressed={selected}
+                onClick={() => setActiveTab(tab.id)}
+              >
+                <Icon size={16} />
+                {tab.label}
+                {typeof tab.count === 'number' ? (
+                  <span className={cx(
+                    'rounded-full px-2 py-0.5 text-xs font-black',
+                    selected ? 'bg-indigo-600 text-white' : 'bg-slate-200 text-slate-600',
+                  )}>
+                    {tab.count}
+                  </span>
+                ) : null}
+                <kbd className={cx(
+                  'rounded border px-1.5 py-0.5 text-[10px] font-black',
+                  selected ? 'border-indigo-200 bg-white text-indigo-700' : 'border-slate-200 bg-white text-slate-400',
+                )}>Alt+{index + 1}</kbd>
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
       {error ? (
         <div className="mb-6">
@@ -115,9 +148,42 @@ export default function DatabaseBackupPage() {
         </div>
       ) : null}
 
+      {activeTab === 'create' ? (
+        <div className="surface p-5 sm:p-6">
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+            <div className="max-w-2xl">
+              <div className="flex items-start gap-3">
+                <div className="rounded-2xl bg-indigo-50 p-2.5 text-indigo-700">
+                  <Download size={20} />
+                </div>
+                <div>
+                  <h2 className="section-title">{t('backup.download')}</h2>
+                  <p className="mt-1 text-sm text-slate-500">{t('backup.description')}</p>
+                  <p className="mt-2 text-sm font-semibold text-slate-700">{t('backup.helper')}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex w-full flex-col gap-2 sm:w-auto sm:min-w-64">
+              <button type="button" className="btn-primary w-full justify-center" onClick={() => handleDownload('sql')} disabled={Boolean(loadingFormat)}>
+                {loadingFormat === 'sql' ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />}
+                {loadingFormat === 'sql' ? t('backup.downloading') : t('backup.exportSql')}
+                <kbd className="ml-1 rounded border border-white/40 bg-white/20 px-1 py-0.5 font-mono text-[10px] text-white">Alt+S</kbd>
+              </button>
+              <button type="button" className="btn-secondary w-full justify-center" onClick={() => handleDownload('json')} disabled={Boolean(loadingFormat)}>
+                {loadingFormat === 'json' ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />}
+                {loadingFormat === 'json' ? t('backup.downloading') : t('backup.exportJson')}
+                <kbd className="ml-1 rounded border border-slate-300 bg-white/70 px-1 py-0.5 font-mono text-[10px] text-slate-500">Alt+J</kbd>
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {activeTab === 'history' ? (
       <div id={BACKUP_HISTORY_REPORT_ID} className="surface overflow-hidden">
         <div className="border-b border-slate-100 px-5 py-4">
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
             <h2 className="section-title">{t('backup.history.title')}</h2>
             <div className="flex flex-wrap items-center justify-end gap-2 no-print">
               <span className="muted-chip">{historyTotal} {t('common.records')}</span>
@@ -197,6 +263,7 @@ export default function DatabaseBackupPage() {
           </div>
         ) : null}
       </div>
+      ) : null}
     </div>
   );
 }

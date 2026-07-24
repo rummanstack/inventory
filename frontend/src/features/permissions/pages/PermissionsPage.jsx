@@ -398,6 +398,15 @@ export default function PermissionsPage() {
     return groups;
   }, [visiblePermissions]);
 
+  function resolvePresetPermissions(preset) {
+    let permissions = [];
+    for (const permission of preset.permissions) {
+      if (!visiblePermissions.includes(permission)) continue;
+      permissions = addPermissionWithDependencies(permissions, permission, permissionDependencies, knownPermissionSet);
+    }
+    return permissions;
+  }
+
   // Replaces (not merges) a role's unsaved checkbox state with a preset's
   // permission list. Preset entries whose feature isn't enabled for this
   // tenant are dropped silently rather than left to fail validation on save.
@@ -405,11 +414,7 @@ export default function PermissionsPage() {
     const preset = PERMISSION_PRESETS.find((entry) => entry.id === presetId);
     if (!preset) return;
 
-    let permissions = [];
-    for (const permission of preset.permissions) {
-      if (!visiblePermissions.includes(permission)) continue;
-      permissions = addPermissionWithDependencies(permissions, permission, permissionDependencies, knownPermissionSet);
-    }
+    const permissions = resolvePresetPermissions(preset);
 
     setRolePermissions((current) =>
       current.map((entry) => (entry.role === role ? { ...entry, permissions } : entry)),
@@ -480,15 +485,18 @@ export default function PermissionsPage() {
       <div className="grid gap-6 lg:grid-cols-2">
         {rolePermissions.map((entry) => {
           const presetsForRole = PERMISSION_PRESETS.filter((preset) => preset.role === entry.role);
+          const selectedPresetId = presetsForRole.find((preset) => (
+            arePermissionListsEqual(entry.permissions, resolvePresetPermissions(preset))
+          ))?.id || '';
           return (
           <div key={entry.role} className="panel-strong space-y-4 p-6">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <h2 className="section-title">{t(`permissions.roles.${entry.role}`)}</h2>
-              <div className="flex items-center gap-2">
+              <div className="flex w-full flex-wrap items-center justify-end gap-2 sm:w-auto sm:flex-nowrap">
                 {presetsForRole.length > 0 ? (
                   <Select
-                    className="h-9 max-w-[220px] text-sm"
-                    value=""
+                    className="h-9 w-full text-sm sm:w-64"
+                    value={selectedPresetId}
                     onChange={(event) => applyPreset(entry.role, event.target.value)}
                     disabled={savingRole === entry.role}
                     aria-label={t('permissions.applyPreset')}

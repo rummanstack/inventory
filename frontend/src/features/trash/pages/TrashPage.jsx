@@ -203,8 +203,8 @@ export default function TrashPage() {
     <div>
       <SectionHeader title={t('trash.title')} compact />
 
-      <div className="no-print mb-4">
-        <div className="flex flex-wrap gap-1 rounded-lg border border-slate-200 bg-slate-50 p-1">
+      <div className="no-print mb-4 overflow-x-auto">
+        <div className="inline-flex min-w-full gap-1 rounded-lg border border-slate-200 bg-slate-50 p-1 sm:min-w-0">
           {visibleTabs.map((tab, index) => {
             const Icon = tab.icon;
             const selected = activeKey === tab.key;
@@ -213,7 +213,7 @@ export default function TrashPage() {
                 key={tab.key}
                 type="button"
                 className={cx(
-                  'flex min-h-10 items-center justify-center gap-2 whitespace-nowrap rounded-md px-3 text-sm font-bold transition',
+                  'flex min-h-10 flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-md px-3 text-sm font-bold transition sm:flex-none',
                   selected ? 'border border-indigo-200 bg-indigo-50 text-indigo-800 shadow-sm ring-2 ring-indigo-100' : 'border border-transparent text-slate-500 hover:bg-white/70 hover:text-slate-800',
                 )}
                 aria-pressed={selected}

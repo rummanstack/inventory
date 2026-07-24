@@ -104,7 +104,7 @@ export default function DesignationsPage() {
 
       <div id={DESIGNATIONS_REPORT_ID} className="surface overflow-hidden">
         <div className="flex flex-col gap-3 border-b border-slate-100 p-5 sm:flex-row sm:items-center sm:flex-wrap">
-          <input className="input w-full sm:w-56" placeholder={t('common.search')} value={vm.search} onChange={(e) => vm.setSearch(e.target.value)} />
+          <input className="input w-full sm:w-72" placeholder={t('common.search')} value={vm.search} onChange={(e) => vm.setSearch(e.target.value)} />
           <Select className="input w-full sm:w-40" value={vm.status} onChange={(e) => vm.setStatus(e.target.value)}>
             <option value="">{t('designations.allStatuses')}</option>
             <option value="ACTIVE">{t('designations.active')}</option>

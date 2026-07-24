@@ -1,5 +1,5 @@
 import { cx } from '../../../components/ui.jsx';
-import { formatCasePiece, formatCurrency, formatNumber } from '../../../utils/calculations.js';
+import { formatCasePiece, formatCurrency, formatDateTime, formatNumber } from '../../../utils/calculations.js';
 
 export default function ProductsPrintSheet({ products, businessName, printTarget = false, targetId, t, language = 'en', isElectronics = false }) {
   return (
@@ -54,7 +54,7 @@ export default function ProductsPrintSheet({ products, businessName, printTarget
           {formatNumber(products.filter((p) => p.stockPieces === 0).length, language)} {t('products.outShort')} · {formatNumber(products.filter((p) => p.stockPieces > 0 && p.stockPieces <= p.piecesPerCase).length, language)} {t('products.lowShort')}
         </span>
         <span>
-          {t('products.generatedOn')} {new Date().toLocaleDateString(language === 'bn' ? 'bn-BD' : 'en-GB')}
+          {t('products.generatedOn')} {formatDateTime(new Date(), language)}
         </span>
       </div>
     </div>

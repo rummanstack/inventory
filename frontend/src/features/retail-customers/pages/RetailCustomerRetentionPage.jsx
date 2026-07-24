@@ -5,7 +5,7 @@ import { DatePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../services/printService.js';
 import { inventoryApi } from '../../../services/inventoryApi.js';
-import { formatCurrency, formatDate, formatNumber, todayISO } from '../../../utils/calculations.js';
+import { formatCurrency, formatDateTime, formatNumber, todayISO } from '../../../utils/calculations.js';
 import { useAsyncAction } from '../../../hooks/useAsyncAction.js';
 import { useTenantApiQuery } from '../../../queries/useTenantApiQuery.js';
 
@@ -110,7 +110,7 @@ export default function RetailCustomerRetentionPage() {
       customer.phone || '',
       Number(customer.purchaseCount || 0),
       Number(customer.totalSpent || 0),
-      customer.lastPurchaseAt ? formatDate(customer.lastPurchaseAt) : '',
+      customer.lastPurchaseAt ? formatDateTime(customer.lastPurchaseAt) : '',
       Number(customer.pointsBalance || 0),
       t(`retailCustomers.retention.tiers.${customer.customerTier}`),
     ]);
@@ -123,7 +123,7 @@ export default function RetailCustomerRetentionPage() {
       customer.name,
       customer.phone || '',
       customer.daysSinceLastPurchase ?? '',
-      customer.lastPurchaseAt ? formatDate(customer.lastPurchaseAt) : '',
+      customer.lastPurchaseAt ? formatDateTime(customer.lastPurchaseAt) : '',
       Number(customer.pointsBalance || 0),
     ]);
     const inactiveWs = utils.aoa_to_sheet([inactiveHeader, ...inactiveData]);
@@ -305,7 +305,7 @@ export default function RetailCustomerRetentionPage() {
                   onClick={() => setSelectedCustomerId(customer.id)}
                   title={customer.name}
                   badge={<Badge tone={retentionTone(customer)}>{t(`retailCustomers.retention.tiers.${customer.customerTier}`)}</Badge>}
-                  subtitle={`${customer.phone || '-'} · ${customer.lastPurchaseAt ? formatDate(customer.lastPurchaseAt, language) : t('retailCustomers.retention.neverPurchased')}`}
+                  subtitle={`${customer.phone || '-'} · ${customer.lastPurchaseAt ? formatDateTime(customer.lastPurchaseAt, language) : t('retailCustomers.retention.neverPurchased')}`}
                   value={formatCurrency(customer.totalSpent || 0, language)}
                   valueSub={formatNumber(customer.pointsBalance || 0, language)}
                 />
@@ -332,7 +332,7 @@ export default function RetailCustomerRetentionPage() {
                       </td>
                       <td className="table-cell text-right font-semibold text-slate-950">{formatNumber(customer.purchaseCount || 0, language)}</td>
                       <td className="table-cell text-right font-semibold text-slate-950">{formatCurrency(customer.totalSpent || 0, language)}</td>
-                      <td className="table-cell text-sm font-semibold text-slate-700">{customer.lastPurchaseAt ? formatDate(customer.lastPurchaseAt, language) : t('retailCustomers.retention.neverPurchased')}</td>
+                      <td className="table-cell text-sm font-semibold text-slate-700">{customer.lastPurchaseAt ? formatDateTime(customer.lastPurchaseAt, language) : t('retailCustomers.retention.neverPurchased')}</td>
                       <td className="table-cell text-right font-semibold text-emerald-700">{formatNumber(customer.pointsBalance || 0, language)}</td>
                       <td className="table-cell">
                         <Badge tone={retentionTone(customer)}>{t(`retailCustomers.retention.tiers.${customer.customerTier}`)}</Badge>
@@ -360,7 +360,7 @@ export default function RetailCustomerRetentionPage() {
                   key={customer.id}
                   onClick={() => setSelectedCustomerId(customer.id)}
                   title={customer.name}
-                  subtitle={`${customer.phone || '-'} · ${customer.lastPurchaseAt ? formatDate(customer.lastPurchaseAt, language) : t('retailCustomers.retention.neverPurchased')}`}
+                  subtitle={`${customer.phone || '-'} · ${customer.lastPurchaseAt ? formatDateTime(customer.lastPurchaseAt, language) : t('retailCustomers.retention.neverPurchased')}`}
                   value={formatDays(customer.daysSinceLastPurchase, t, language)}
                   valueClass="text-rose-700"
                   valueSub={formatNumber(customer.pointsBalance || 0, language)}
@@ -386,7 +386,7 @@ export default function RetailCustomerRetentionPage() {
                         <p className="text-xs text-slate-500">{customer.phone || '-'}</p>
                       </td>
                       <td className="table-cell text-right font-semibold text-rose-700">{formatDays(customer.daysSinceLastPurchase, t, language)}</td>
-                      <td className="table-cell text-sm font-semibold text-slate-700">{customer.lastPurchaseAt ? formatDate(customer.lastPurchaseAt, language) : t('retailCustomers.retention.neverPurchased')}</td>
+                      <td className="table-cell text-sm font-semibold text-slate-700">{customer.lastPurchaseAt ? formatDateTime(customer.lastPurchaseAt, language) : t('retailCustomers.retention.neverPurchased')}</td>
                       <td className="table-cell text-right font-semibold text-slate-950">{formatNumber(customer.pointsBalance || 0, language)}</td>
                       <td className="table-cell text-sm font-semibold text-slate-600">{t(`retailCustomers.retention.actions.${selectedFollowUpKey(customer).split('.').pop()}`)}</td>
                     </tr>
@@ -426,11 +426,11 @@ export default function RetailCustomerRetentionPage() {
                     </div>
                     <div className="flex items-center justify-between gap-3">
                       <span className="font-semibold text-slate-600">{t('retailCustomers.retention.firstPurchase')}</span>
-                      <span className="font-semibold text-slate-950">{selectedCustomer.firstPurchaseAt ? formatDate(selectedCustomer.firstPurchaseAt, language) : t('retailCustomers.retention.neverPurchased')}</span>
+                      <span className="font-semibold text-slate-950">{selectedCustomer.firstPurchaseAt ? formatDateTime(selectedCustomer.firstPurchaseAt, language) : t('retailCustomers.retention.neverPurchased')}</span>
                     </div>
                     <div className="flex items-center justify-between gap-3">
                       <span className="font-semibold text-slate-600">{t('retailCustomers.retention.lastPurchase')}</span>
-                      <span className="font-semibold text-slate-950">{selectedCustomer.lastPurchaseAt ? formatDate(selectedCustomer.lastPurchaseAt, language) : t('retailCustomers.retention.neverPurchased')}</span>
+                      <span className="font-semibold text-slate-950">{selectedCustomer.lastPurchaseAt ? formatDateTime(selectedCustomer.lastPurchaseAt, language) : t('retailCustomers.retention.neverPurchased')}</span>
                     </div>
                     <div className="flex items-center justify-between gap-3">
                       <span className="font-semibold text-slate-600">{t('retailCustomers.retention.totalSpent')}</span>

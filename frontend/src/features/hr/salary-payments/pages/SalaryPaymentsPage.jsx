@@ -239,7 +239,8 @@ export default function SalaryPaymentsPage() {
         ) : (
           <>
             {/* Column headers */}
-            <div className="hidden grid-cols-[1fr_auto_auto_auto_auto_auto_auto] gap-4 border-b border-slate-100 px-5 py-2.5 sm:grid">
+            <div className="hidden grid-cols-[2.25rem_minmax(12rem,1fr)_8rem_7rem_6rem_6rem_5rem] gap-4 border-b border-slate-100 px-4 py-2.5 xl:grid">
+              <span aria-hidden="true" />
               <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">{t('employees.name')}</p>
               <p className="w-32 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400 text-center">{t('salary.activeDaysColumn')}</p>
               <p className="w-28 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400 text-right">{t('salary.earnedColumn')}</p>
@@ -258,7 +259,7 @@ export default function SalaryPaymentsPage() {
 
                 return (
                   <div key={emp.employeeId}>
-                    <div className="flex flex-wrap items-center gap-4 px-4 py-4 transition-colors hover:bg-slate-50 sm:flex-nowrap">
+                    <div className="flex flex-wrap items-center gap-4 px-4 py-4 transition-colors hover:bg-slate-50 xl:flex-nowrap">
                       {/* Expand icon — only this triggers expand */}
                       <button
                         type="button"
@@ -274,18 +275,24 @@ export default function SalaryPaymentsPage() {
                         <div className="flex flex-wrap items-center gap-2">
                           <span className="font-semibold text-slate-900">{emp.employeeName}</span>
                           <PaymentStatusBadge emp={emp} t={t} />
-                          <span className="muted-chip hidden sm:inline-flex">{t(`salary.payType.${emp.payType}`)}</span>
+                          <span className="muted-chip hidden xl:inline-flex">{t(`salary.payType.${emp.payType}`)}</span>
                         </div>
                         {emp.department && <div className="mt-0.5 text-xs text-slate-400">{emp.department}</div>}
                       </div>
 
-                      <div className="order-3 grid basis-full grid-cols-3 gap-2 sm:hidden">
+                      <div className="order-3 grid basis-full grid-cols-2 gap-2 sm:grid-cols-4 xl:hidden">
+                        <div className="rounded-lg bg-slate-50 p-2">
+                          <p className="text-[9px] font-black uppercase tracking-wide text-slate-400">{t('salary.activeDaysColumn')}</p>
+                          <div className="mt-1">
+                            <ActiveDaysInput emp={emp} month={vm.month} onSaved={vm.reload} canManage={canManage} t={t} />
+                          </div>
+                        </div>
                         <div className="rounded-lg bg-slate-50 p-2"><p className="text-[9px] font-black uppercase tracking-wide text-slate-400">{t('salary.earnedColumn')}</p><p className="mt-1 text-xs font-bold text-slate-800">{earned !== null ? formatCurrency(earned, language) : '-'}</p></div>
                         <div className="rounded-lg bg-slate-50 p-2"><p className="text-[9px] font-black uppercase tracking-wide text-slate-400">{t('salary.paid')}</p><p className="mt-1 text-xs font-bold text-emerald-700">{formatCurrency(emp.totalPaid, language)}</p></div>
                         <div className="rounded-lg bg-slate-50 p-2"><p className="text-[9px] font-black uppercase tracking-wide text-slate-400">{t('salary.balance')}</p><p className="mt-1 text-xs font-bold text-slate-800">{remaining !== null ? formatCurrency(Math.abs(remaining), language) : '-'}</p></div>
                       </div>
                       {/* Active days input */}
-                      <div className="hidden w-32 justify-center sm:flex">
+                      <div className="hidden w-32 justify-center xl:flex">
                         <ActiveDaysInput
                           emp={emp}
                           month={vm.month}
@@ -296,7 +303,7 @@ export default function SalaryPaymentsPage() {
                       </div>
 
                       {/* Earned */}
-                      <div className="hidden w-28 text-right sm:block">
+                      <div className="hidden w-28 text-right xl:block">
                         {earned !== null ? (
                           <>
                             <span className="block text-sm font-semibold text-slate-800">{formatCurrency(earned, language)}</span>
@@ -312,7 +319,7 @@ export default function SalaryPaymentsPage() {
                       </div>
 
                       {/* Paid */}
-                      <div className="hidden w-24 text-right sm:block">
+                      <div className="hidden w-24 text-right xl:block">
                         <span className={`block text-sm font-semibold ${emp.totalPaid > 0 ? 'text-emerald-700' : 'text-slate-400'}`}>
                           {formatCurrency(emp.totalPaid, language)}
                         </span>
@@ -320,13 +327,13 @@ export default function SalaryPaymentsPage() {
 
                       {/* Balance */}
                       {remaining !== null ? (
-                        <div className="hidden w-24 text-right sm:block">
+                        <div className="hidden w-24 text-right xl:block">
                           <span className={`block text-sm font-bold ${overpaid ? 'text-rose-600' : fullyPaid ? 'text-emerald-600' : 'text-slate-700'}`}>
                             {overpaid ? '−' : ''}{formatCurrency(Math.abs(remaining), language)}
                           </span>
                         </div>
                       ) : (
-                        <div className="hidden w-24 sm:block" />
+                        <div className="hidden w-24 xl:block" />
                       )}
 
                       {/* Pay button */}

@@ -3,7 +3,7 @@ import { Alert, Modal, Select } from '../../../components/ui.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import AuditHistory from '../../../components/AuditHistory.jsx';
 import { useFormState } from '../../../hooks/useFormState';
-import { formatCurrency, formatDate, formatNumber } from '../../../utils/calculations.js';
+import { formatCurrency, formatDateTime, formatNumber } from '../../../utils/calculations.js';
 
 export default function RetailCustomerFormModal({ retailCustomer, onClose, onSave }) {
   const { t, pushToast } = useInventoryApp();
@@ -97,7 +97,7 @@ export default function RetailCustomerFormModal({ retailCustomer, onClose, onSav
               </div>
               <div>
                 <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">{t('retailCustomers.retention.lastPurchase')}</p>
-                <p className="mt-1 text-sm font-semibold text-slate-700">{retailCustomer.lastPurchaseAt ? formatDate(retailCustomer.lastPurchaseAt) : t('retailCustomers.retention.neverPurchased')}</p>
+                <p className="mt-1 text-sm font-semibold text-slate-700">{retailCustomer.lastPurchaseAt ? formatDateTime(retailCustomer.lastPurchaseAt) : t('retailCustomers.retention.neverPurchased')}</p>
               </div>
               <div>
                 <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">{t('retailCustomers.retention.totalSpent')}</p>

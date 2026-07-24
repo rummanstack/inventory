@@ -14,6 +14,7 @@ export default function DailySalesReportPage() {
   const printTargetId = 'daily-sales-report-print';
   const rows = vm.report?.rows || [];
   const [downloadingPdf, downloadPdf] = useAsyncAction();
+  const [exportingExcel, exportExcel] = useAsyncAction();
 
   async function handleExportExcel() {
     const { utils, writeFile } = await import('xlsx');
@@ -74,7 +75,7 @@ export default function DailySalesReportPage() {
           ) : null}
 
           <div className="surface mb-6 flex flex-col gap-4 p-5 sm:flex-row sm:items-end sm:flex-wrap">
-            <div className="min-w-[260px]">
+            <div className="w-full sm:w-80">
               <label className="label">{t('profit.dateFrom')} - {t('profit.dateTo')}</label>
               <DateRangePickerField
                 from={vm.dateFrom}
@@ -83,32 +84,32 @@ export default function DailySalesReportPage() {
                 placeholder={`${t('profit.dateFrom')} - ${t('profit.dateTo')}`}
               />
             </div>
-            <div>
+            <div className="w-full sm:w-56">
               <label className="label">{t('retailer.shared.saleTypeLabel')}</label>
-              <Select className="input" value={vm.saleType} onChange={(event) => vm.setSaleType(event.target.value)}>
+              <Select className="input w-full" value={vm.saleType} onChange={(event) => vm.setSaleType(event.target.value)}>
                 <option value="">{t('retailer.shared.allSaleTypes')}</option>
                 <option value="RETAIL">{t('retailer.shared.saleTypes.RETAIL')}</option>
                 <option value="WHOLESALE">{t('retailer.shared.saleTypes.WHOLESALE')}</option>
                 <option value="QUICK_SALE">{t('retailer.shared.saleTypes.QUICK_SALE')}</option>
               </Select>
             </div>
-            <div className="flex flex-wrap gap-2 no-print sm:ml-auto">
+            <div className="flex w-full flex-wrap gap-2 no-print sm:ml-auto sm:w-auto">
               <button
                 type="button"
-                className="btn-secondary h-10 gap-1.5 px-3 text-xs disabled:cursor-not-allowed disabled:opacity-60"
+                className="btn-secondary h-10 flex-1 justify-center gap-1.5 px-3 text-xs disabled:cursor-not-allowed disabled:opacity-60 sm:flex-none"
                 onClick={() => downloadPdf(async () => { await inventoryApi.recordPrint({ entityType: 'daily_sales_report', entityId: null, label: 'pdf' }).catch(() => {}); await downloadSheetPdf(printTargetId, `daily-sales-report-${vm.dateFrom}-${vm.dateTo}.pdf`); })}
                 disabled={downloadingPdf}
               >
                 {downloadingPdf ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
                 {t('purchaseReceive.downloadPdf')}
               </button>
-              <button type="button" className="btn-secondary h-10 gap-1.5 px-3 text-xs" onClick={handleExportExcel}>
-                <FileSpreadsheet size={14} />
+              <button type="button" className="btn-secondary h-10 flex-1 justify-center gap-1.5 px-3 text-xs disabled:cursor-not-allowed disabled:opacity-60 sm:flex-none" onClick={() => exportExcel(handleExportExcel)} disabled={exportingExcel}>
+                {exportingExcel ? <Loader2 size={14} className="animate-spin" /> : <FileSpreadsheet size={14} />}
                 {t('common.exportExcel')}
               </button>
               <button
                 type="button"
-                className="btn-secondary h-10 gap-1.5 px-3 text-xs"
+                className="btn-secondary h-10 flex-1 justify-center gap-1.5 px-3 text-xs sm:flex-none"
                 onClick={() => { inventoryApi.recordPrint({ entityType: 'daily_sales_report', entityId: null, label: 'print' }).catch(() => {}); window.print(); }}
               >
                 <Printer size={14} />

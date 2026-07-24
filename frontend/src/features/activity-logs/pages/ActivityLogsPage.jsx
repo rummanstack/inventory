@@ -1,5 +1,5 @@
 import { ClipboardList, Download, FileSpreadsheet, Loader2, Printer, Search } from 'lucide-react';
-import { Alert, Badge, EmptyState, MobileCardList, MobileListCard, Pagination, SectionHeader, TableSkeleton, Select } from '../../../components/ui.jsx';
+import { Alert, Badge, EmptyState, MobileCardList, MobileListCard, Pagination, SectionHeader, TableSkeleton, Select, cx } from '../../../components/ui.jsx';
 import { DateRangePickerField } from '../../../components/DatePicker.jsx';
 import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
 import { downloadSheetPdf } from '../../../services/printService.js';
@@ -38,6 +38,7 @@ export default function ActivityLogsPage() {
   const { t } = useInventoryApp();
   const vm = useActivityLogsViewModel();
   const [downloadingPdf, downloadPdf] = useAsyncAction();
+  const [exportingExcel, exportExcel] = useAsyncAction();
 
   async function handleExportExcel() {
     const { utils, writeFile } = await import('xlsx');
@@ -69,7 +70,7 @@ export default function ActivityLogsPage() {
 
       <div className="mb-6">
         <div className="surface p-5">
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
+          <div className={cx('grid gap-4 sm:grid-cols-2 lg:grid-cols-2', vm.canFilterByOrg ? 'xl:grid-cols-7' : 'xl:grid-cols-6')}>
             <div className="lg:col-span-2">
               <label className="label">{t('activityLogs.searchLabel')}</label>
               <div className="relative">
@@ -124,14 +125,16 @@ export default function ActivityLogsPage() {
       </div>
 
       <div id={ACTIVITY_LOGS_PRINT_ID} className="surface mt-6 overflow-hidden print-target">
-        <div className="border-b border-slate-100 px-5 py-4">
-          <div className="flex items-center justify-between gap-3">
-            <h2 className="section-title">{t('activityLogs.tableTitle')}</h2>
-            <div className="flex items-center gap-2 no-print">
-              <span className="muted-chip">{formatNumber(vm.total)} {t('common.records')}</span>
+        <div className="border-b border-slate-100 px-4 py-4 sm:px-5">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 className="section-title">{t('activityLogs.tableTitle')}</h2>
+              <span className="muted-chip no-print">{formatNumber(vm.total)} {t('common.records')}</span>
+            </div>
+            <div className="flex w-full flex-wrap gap-2 no-print lg:w-auto">
               <button
                 type="button"
-                className="btn-secondary h-10 gap-1.5 px-3 text-xs disabled:cursor-not-allowed disabled:opacity-60"
+                className="btn-secondary h-10 flex-1 justify-center gap-1.5 px-3 text-xs disabled:cursor-not-allowed disabled:opacity-60 sm:flex-none"
                 onClick={() => downloadPdf(async () => {
                   await inventoryApi.recordPrint({ entityType: 'activity_logs', entityId: null, label: 'pdf' }).catch(() => {});
                   await downloadSheetPdf(ACTIVITY_LOGS_PRINT_ID, 'activity-logs.pdf');
@@ -141,13 +144,18 @@ export default function ActivityLogsPage() {
                 {downloadingPdf ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
                 {t('purchaseReceive.downloadPdf')}
               </button>
-              <button type="button" className="btn-secondary h-10 gap-1.5 px-3 text-xs" onClick={handleExportExcel}>
-                <FileSpreadsheet size={14} />
+              <button
+                type="button"
+                className="btn-secondary h-10 flex-1 justify-center gap-1.5 px-3 text-xs disabled:cursor-not-allowed disabled:opacity-60 sm:flex-none"
+                onClick={() => exportExcel(handleExportExcel)}
+                disabled={exportingExcel}
+              >
+                {exportingExcel ? <Loader2 size={14} className="animate-spin" /> : <FileSpreadsheet size={14} />}
                 {t('common.exportExcel')}
               </button>
               <button
                 type="button"
-                className="btn-secondary h-10 gap-1.5 px-3 text-xs"
+                className="btn-secondary h-10 flex-1 justify-center gap-1.5 px-3 text-xs sm:flex-none"
                 onClick={() => { inventoryApi.recordPrint({ entityType: 'activity_logs', entityId: null, label: 'print' }).catch(() => {}); window.print(); }}
               >
                 <Printer size={14} />
@@ -167,7 +175,7 @@ export default function ActivityLogsPage() {
                 key={log.id}
                 title={log.description || log.actionType}
                 badge={<Badge tone={actionTone(log.actionType)}>{log.actionType}</Badge>}
-                subtitle={`${log.userName || '-'} · ${formatDateTime(log.createdAt)}`}
+                subtitle={`${log.userName || '-'} - ${formatDateTime(log.createdAt)}`}
               />
             ))}
           </MobileCardList>
@@ -238,7 +246,7 @@ export default function ActivityLogsPage() {
           </div>
         ) : null}
         {!vm.loading && !vm.error && vm.logs.length ? (
-          <div className="border-t border-slate-100 p-4">
+          <div className="border-t border-slate-100 p-4 no-print">
             <Pagination page={vm.page} totalPages={vm.totalPages} onPageChange={vm.setPage} />
           </div>
         ) : null}

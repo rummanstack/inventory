@@ -25,6 +25,7 @@ export default function DailyReportsPage() {
   const vm = useDailyReportsViewModel({ products: productDirectory, dsrs: dsrDirectory, today, t, tenantName: tenant?.name });
   const [downloadingSheetPdf, downloadSheetPdfAction] = useAsyncAction();
   const [sharingSheetPdf, shareSheetPdfAction] = useAsyncAction();
+  const [exportingSheetExcel, exportSheetExcelAction] = useAsyncAction();
   const [activeTab, setActiveTab] = useState('dsr');
   const dueCollectedTotal = vm.dueCollectionRows.reduce((sum, r) => sum + r.total, 0);
   const reportFileSuffix = vm.isSingleDay ? vm.dateFrom : `${vm.dateFrom}-to-${vm.dateTo}`;
@@ -96,7 +97,7 @@ export default function DailyReportsPage() {
       <div>
         <SectionHeader title={t('nav.reports')} compact />
         <div className="surface mb-6 p-5">
-          <div className="max-w-xs space-y-2">
+          <div className="max-w-sm space-y-2">
             <div className="h-4 w-24 animate-pulse rounded-full bg-slate-200" />
             <div className="h-11 animate-pulse rounded-2xl bg-slate-100" />
           </div>
@@ -119,7 +120,7 @@ export default function DailyReportsPage() {
 
       {/* Date range picker */}
       <div className="surface mb-6 p-5">
-        <div className="max-w-xs">
+        <div className="w-full max-w-sm">
           <label className="label">{t('profit.dateFrom')} - {t('profit.dateTo')}</label>
           <DateRangePickerField
             from={vm.dateFrom}
@@ -700,12 +701,12 @@ export default function DailyReportsPage() {
           {/* Printable Sheet - single-day mode only */}
           {vm.selectedSheet && vm.isSingleDay ? (
             <div className="mt-6">
-              <div className="mb-3 flex items-center justify-between gap-3 no-print">
+              <div className="mb-3 flex flex-col items-stretch justify-between gap-3 no-print sm:flex-row sm:items-center">
                 <div>
                   <h2 className="section-title">{t('reports.printableSheet')}</h2>
                   <p className="text-sm text-slate-500">{vm.selectedSheet.dsrName} - {formatDate(vm.selectedSheet.date)}</p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <button
                     type="button"
                     className="btn-secondary disabled:cursor-not-allowed disabled:opacity-60"
@@ -730,8 +731,8 @@ export default function DailyReportsPage() {
                     {sharingSheetPdf ? <Loader2 size={18} className="animate-spin" /> : <Share2 size={18} />}
                     {t('common.share')}
                   </button>
-                  <button type="button" className="btn-secondary" onClick={handleExportSheetExcel}>
-                    <FileSpreadsheet size={18} />
+                  <button type="button" className="btn-secondary disabled:cursor-not-allowed disabled:opacity-60" onClick={() => exportSheetExcelAction(handleExportSheetExcel)} disabled={exportingSheetExcel}>
+                    {exportingSheetExcel ? <Loader2 size={18} className="animate-spin" /> : <FileSpreadsheet size={18} />}
                     {t('common.exportExcel')}
                   </button>
                   <button type="button" className="btn-primary" onClick={() => { recordReportPrint('print'); window.print(); }}>

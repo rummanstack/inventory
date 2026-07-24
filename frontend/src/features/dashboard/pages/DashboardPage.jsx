@@ -162,6 +162,7 @@ export default function DashboardPage() {
 
   const { financeDashboard, retailPos, retailCashSession, dsrLeaderboard, noSaleToday, todayPnl, monthlyTrend } = vm;
   const secondary = getCssVar("--secondary", "#5e5b8e");
+  const isRetailer = tenant?.sellerType === "RETAILER";
 
   const cashInHand = financeDashboard?.accounts?.filter((a) => a.type === "CASH").reduce((s, a) => s + a.balance, 0) ?? 0;
   const cashInBank = financeDashboard?.accounts?.filter((a) => a.type === "BANK").reduce((s, a) => s + a.balance, 0) ?? 0;
@@ -489,7 +490,36 @@ export default function DashboardPage() {
           />
         </ChartPanel>
 
-        {financeDashboard ? (
+        {isRetailer && financeDashboard ? (
+          <div className="surface overflow-hidden p-5">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="px-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-600">
+                  {t("dashboard.customerDueTotal")}
+                </p>
+                <p className="mt-1 px-1 text-xs font-medium leading-5 text-slate-500 max-lg:hidden">
+                  {t("dashboard.customerDueTotalHelper")}
+                </p>
+              </div>
+              <div className="rounded-xl bg-emerald-50 p-2.5 text-emerald-700">
+                <UserCheck size={17} />
+              </div>
+            </div>
+            <p className="mt-6 px-1 text-2xl font-semibold tabular-nums tracking-tight text-emerald-700">
+              {formatCurrency(financeDashboard.totalCustomerDue, language)}
+            </p>
+          </div>
+        ) : isRetailer ? (
+          <div className="surface overflow-hidden p-5">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-600">
+              {t("dashboard.customerDueTotal")}
+            </p>
+            <div className="mt-6 flex flex-col items-center justify-center gap-2 py-8 text-center">
+              <Lock size={20} className="text-slate-300" />
+              <p className="text-xs font-medium text-slate-500">{t('dashboard.financeUnavailable')}</p>
+            </div>
+          </div>
+        ) : financeDashboard ? (
           <div className="surface overflow-hidden p-5">
             <p className="px-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-600">
               {t("dashboard.receivablesPayables")}
@@ -504,13 +534,6 @@ export default function DashboardPage() {
                 label={t("dashboard.dsrDueTotal")}
                 sub={t("dashboard.dsrDueTotalHelper")}
                 value={formatCurrency(financeDashboard.totalDsrDue, language)}
-              />
-              <DueRow
-                icon={UserCheck}
-                iconClass="bg-emerald-50 text-emerald-700"
-                label={t("dashboard.customerDueTotal")}
-                sub={t("dashboard.customerDueTotalHelper")}
-                value={formatCurrency(financeDashboard.totalCustomerDue, language)}
               />
               <DueRow
                 icon={HandCoins}
@@ -554,9 +577,9 @@ export default function DashboardPage() {
 
       {/* ── 6. RETAIL POS TODAY + DSR CASH LEADERBOARD ── */}
       <DashboardWidget id="retail" {...widgetProps}>
-      <div className="grid gap-6 xl:grid-cols-2">
-        {/* Retail POS Today */}
-        <ChartPanel title={t("dashboard.retailPosToday")} description={t("dashboard.retailPosTodayDescription")}>
+      <div className="grid gap-6">
+        {isRetailer ? (
+          <ChartPanel title={t("dashboard.retailPosToday")} description={t("dashboard.retailPosTodayDescription")}>
           <div className="grid gap-3 max-sm:flex max-sm:snap-x max-sm:snap-mandatory max-sm:overflow-x-auto max-sm:pb-1 sm:grid-cols-3">
             <MetricPill
               label={t("dashboard.retailRevenue")}
@@ -612,10 +635,9 @@ export default function DashboardPage() {
               />
             </div>
           )}
-        </ChartPanel>
-
-        {/* DSR Cash Leaderboard */}
-        <ChartPanel title={t("dashboard.dsrLeaderboard")} description={t("dashboard.dsrLeaderboardDescription")}>
+          </ChartPanel>
+        ) : (
+          <ChartPanel title={t("dashboard.dsrLeaderboard")} description={t("dashboard.dsrLeaderboardDescription")}>
           {dsrLeaderboard.length ? (
             <div className="space-y-2.5">
               {dsrLeaderboard.map((dsr, index) => {
@@ -651,7 +673,8 @@ export default function DashboardPage() {
               icon={HandCoins}
             />
           )}
-        </ChartPanel>
+          </ChartPanel>
+        )}
       </div>
 
             </DashboardWidget>

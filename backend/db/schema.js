@@ -204,6 +204,32 @@ export async function createSchema(pool) {
     ALTER TABLE tenants ADD COLUMN IF NOT EXISTS business_type TEXT NOT NULL DEFAULT 'ELECTRONICS';
     ALTER TABLE tenants ADD COLUMN IF NOT EXISTS seller_type TEXT NOT NULL DEFAULT 'DEALER';
     ALTER TABLE tenants ADD COLUMN IF NOT EXISTS phone TEXT NOT NULL DEFAULT '';
+    -- Extended business profile fields (org settings), all optional/blank by default.
+    ALTER TABLE tenants ADD COLUMN IF NOT EXISTS trade_license_number TEXT NOT NULL DEFAULT '';
+    ALTER TABLE tenants ADD COLUMN IF NOT EXISTS bin_number TEXT NOT NULL DEFAULT '';
+    ALTER TABLE tenants ADD COLUMN IF NOT EXISTS tin_number TEXT NOT NULL DEFAULT '';
+    ALTER TABLE tenants ADD COLUMN IF NOT EXISTS whatsapp_phone TEXT NOT NULL DEFAULT '';
+    ALTER TABLE tenants ADD COLUMN IF NOT EXISTS district TEXT NOT NULL DEFAULT '';
+    ALTER TABLE tenants ADD COLUMN IF NOT EXISTS website_url TEXT NOT NULL DEFAULT '';
+    ALTER TABLE tenants ADD COLUMN IF NOT EXISTS facebook_url TEXT NOT NULL DEFAULT '';
+    ALTER TABLE tenants ADD COLUMN IF NOT EXISTS bank_name TEXT NOT NULL DEFAULT '';
+    ALTER TABLE tenants ADD COLUMN IF NOT EXISTS bank_account_name TEXT NOT NULL DEFAULT '';
+    ALTER TABLE tenants ADD COLUMN IF NOT EXISTS bank_account_number TEXT NOT NULL DEFAULT '';
+    ALTER TABLE tenants ADD COLUMN IF NOT EXISTS bank_branch TEXT NOT NULL DEFAULT '';
+    ALTER TABLE tenants ADD COLUMN IF NOT EXISTS bkash_number TEXT NOT NULL DEFAULT '';
+    ALTER TABLE tenants ADD COLUMN IF NOT EXISTS nagad_number TEXT NOT NULL DEFAULT '';
+    ALTER TABLE tenants ADD COLUMN IF NOT EXISTS invoice_footer_note TEXT NOT NULL DEFAULT '';
+    ALTER TABLE tenants ADD COLUMN IF NOT EXISTS signature_image_url TEXT NOT NULL DEFAULT '';
+    ALTER TABLE tenants ADD COLUMN IF NOT EXISTS receipt_footer_message TEXT NOT NULL DEFAULT '';
+    ALTER TABLE tenants ADD COLUMN IF NOT EXISTS drug_license_number TEXT NOT NULL DEFAULT '';
+    ALTER TABLE tenants ADD COLUMN IF NOT EXISTS dealer_registration_number TEXT NOT NULL DEFAULT '';
+    -- Scanned/photographed copies of the documents above (uploaded via the same
+    -- S3-backed photo pipeline as the logo/signature — see photoStorageService.js).
+    ALTER TABLE tenants ADD COLUMN IF NOT EXISTS trade_license_file_url TEXT NOT NULL DEFAULT '';
+    ALTER TABLE tenants ADD COLUMN IF NOT EXISTS bin_certificate_file_url TEXT NOT NULL DEFAULT '';
+    ALTER TABLE tenants ADD COLUMN IF NOT EXISTS tin_certificate_file_url TEXT NOT NULL DEFAULT '';
+    ALTER TABLE tenants ADD COLUMN IF NOT EXISTS drug_license_file_url TEXT NOT NULL DEFAULT '';
+    ALTER TABLE tenants ADD COLUMN IF NOT EXISTS dealer_registration_file_url TEXT NOT NULL DEFAULT '';
     ALTER TABLE purchase_receipts ADD COLUMN IF NOT EXISTS tax_rate NUMERIC NOT NULL DEFAULT 0;
     ALTER TABLE purchase_receipts ADD COLUMN IF NOT EXISTS tax_amount NUMERIC NOT NULL DEFAULT 0;
     ALTER TABLE sales_invoices ADD COLUMN IF NOT EXISTS tax_rate NUMERIC NOT NULL DEFAULT 0;

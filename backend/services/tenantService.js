@@ -50,6 +50,39 @@ function normalizeLoyaltyPointValue(value) {
   return Math.min(Math.max(0, parsed), 1000000);
 }
 
+// Optional free-text business profile fields (trade license, BIN/TIN, bank/mobile
+// banking details, etc.) — trimmed, never required.
+function normalizeOptionalText(value) {
+  return String(value ?? "").trim();
+}
+
+const OPTIONAL_TEXT_FIELDS = [
+  "phone",
+  "tradeLicenseNumber",
+  "binNumber",
+  "tinNumber",
+  "whatsappPhone",
+  "district",
+  "websiteUrl",
+  "facebookUrl",
+  "bankName",
+  "bankAccountName",
+  "bankAccountNumber",
+  "bankBranch",
+  "bkashNumber",
+  "nagadNumber",
+  "invoiceFooterNote",
+  "signatureImageUrl",
+  "receiptFooterMessage",
+  "drugLicenseNumber",
+  "dealerRegistrationNumber",
+  "tradeLicenseFileUrl",
+  "binCertificateFileUrl",
+  "tinCertificateFileUrl",
+  "drugLicenseFileUrl",
+  "dealerRegistrationFileUrl",
+];
+
 // business_type drives which industry-specific fields/flows (electronics serials &
 // warranty vs. grocery expiry/batch) apply later — it's independent of tenant_features
 // (which menus are on) and role_permissions (what a role can do).
@@ -220,6 +253,12 @@ export class TenantService {
         loyaltyPointValue: fields.loyaltyPointValue !== undefined ? normalizeLoyaltyPointValue(fields.loyaltyPointValue) : existing.loyaltyPointValue ?? 1,
         businessType: fields.businessType !== undefined ? normalizeBusinessType(fields.businessType) : existing.businessType ?? BUSINESS_TYPES.ELECTRONICS,
         sellerType: fields.sellerType !== undefined ? normalizeSellerType(fields.sellerType) : existing.sellerType ?? SELLER_TYPES.DEALER,
+        ...Object.fromEntries(
+          OPTIONAL_TEXT_FIELDS.map((field) => [
+            field,
+            fields[field] !== undefined ? normalizeOptionalText(fields[field]) : existing[field] ?? "",
+          ]),
+        ),
       };
       const saved = await updateTenant(client, updated);
       await logActivity(this.auditService, client, actor, {

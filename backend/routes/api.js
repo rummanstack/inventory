@@ -60,6 +60,7 @@ import { createVisitorChatAdminRoutes } from "./visitorChatAdmin.routes.js";
 import { createContactMessagesRoutes } from "./contactMessages.routes.js";
 import { createFinanceAccountsRoutes } from "./financeAccounts.routes.js";
 import { createFinanceDashboardRoutes } from "./financeDashboard.routes.js";
+import { createDashboardRoutes } from "./dashboard.routes.js";
 import { createRetailCashSessionsRoutes } from "./retailCashSessions.routes.js";
 import { createQuotationsRoutes } from "./quotations.routes.js";
 import { createTradePromotionRulesRoutes } from "./tradePromotionRules.routes.js";
@@ -115,6 +116,7 @@ export function createApiRouter({ controllers, authService, env, auditService })
       tradeInController,
     },
     operations: {
+      dashboardController,
       expenseController,
       helpDeskController,
       installmentController,
@@ -208,6 +210,7 @@ export function createApiRouter({ controllers, authService, env, auditService })
   router.use("/audit", createAuditRoutes(auditController));
   router.use("/report-exports", createReportExportsRoutes(reportExportController));
   router.use("/ai-insights", createAiInsightsRoutes(aiInsightController));
+  router.use("/dashboard", createDashboardRoutes(dashboardController));
   router.use("/expenses", createExpensesRoutes(expenseController));
   router.use("/profit-report", createProfitReportRoutes(profitController));
   router.use("/journal", createJournalRoutes(journalController));

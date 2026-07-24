@@ -20,6 +20,7 @@ import { DrugBatchService } from "../services/drugBatchService.js";
 import { DsrDueLedgerService } from "../services/dsrDueLedgerService.js";
 import { DsrService } from "../services/dsrService.js";
 import { DsrTargetService } from "../services/dsrTargetService.js";
+import { DashboardService } from "../services/dashboardService.js";
 import { DepartmentService } from "../services/departmentService.js";
 import { DesignationService } from "../services/designationService.js";
 import { EmployeeService } from "../services/employeeService.js";
@@ -212,6 +213,7 @@ export function createServiceRegistry({ databaseManager, env }) {
   });
 
   const operations = {
+    dashboardService: null,
     authService: new AuthService(databaseManager, {
       sessionDays: env.SESSION_DAYS,
       auditService: platform.auditService,
@@ -320,6 +322,19 @@ export function createServiceRegistry({ databaseManager, env }) {
   finance.financeDashboardService = new FinanceDashboardService(databaseManager, {
     financeAccountService: finance.financeAccountService,
     profitService: finance.profitService,
+  });
+  operations.dashboardService = new DashboardService(databaseManager, {
+    financeDashboardService: finance.financeDashboardService,
+    profitService: finance.profitService,
+    productService: catalog.productService,
+    salesInvoiceService: operations.salesInvoiceService,
+    salesReturnService: operations.salesReturnService,
+    retailCashSessionService: operations.retailCashSessionService,
+    expenseService: operations.expenseService,
+    dsrService: field.dsrService,
+    issueService: field.issueService,
+    settlementService: field.settlementService,
+    dsrDueLedgerService: field.dsrDueLedgerService,
   });
 
   const ai = {

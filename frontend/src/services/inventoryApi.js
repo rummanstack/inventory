@@ -10,6 +10,7 @@ import { manufacturersApi } from './api/manufacturersApi.js';
 import { genericMedicinesApi } from './api/genericMedicinesApi.js';
 import { customersApi } from './api/customersApi.js';
 import { databaseBackupApi } from './api/databaseBackupApi.js';
+import { dashboardApi } from './api/dashboardApi.js';
 import { dsrFinanceApi } from './api/dsrFinanceApi.js';
 import { dsrsApi } from './api/dsrsApi.js';
 import { expensesApi } from './api/expensesApi.js';
@@ -68,6 +69,7 @@ import { tradePromotionSettlementsApi } from './api/tradePromotionSettlementsApi
 import { installmentsApi } from './api/installmentsApi.js';
 
 export const inventoryApi = {
+  ...dashboardApi,
   ...installmentsApi,
   ...aiInsightsApi,
   ...authApi,

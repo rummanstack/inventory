@@ -19,6 +19,7 @@ import { DrugBatchController } from "../controllers/drugBatchController.js";
 import { DsrController } from "../controllers/dsrController.js";
 import { DsrDueLedgerController } from "../controllers/dsrDueLedgerController.js";
 import { DsrTargetController } from "../controllers/dsrTargetController.js";
+import { DashboardController } from "../controllers/dashboardController.js";
 import { DepartmentController } from "../controllers/departmentController.js";
 import { DesignationController } from "../controllers/designationController.js";
 import { EmployeeController } from "../controllers/employeeController.js";
@@ -132,6 +133,7 @@ export function createControllerRegistry({ services, env, databaseManager }) {
       tradeInController: new TradeInController(services.customers.tradeInService),
     },
     operations: {
+      dashboardController: new DashboardController(services.operations.dashboardService),
       expenseController: new ExpenseController(services.operations.expenseService),
       helpDeskController: new HelpDeskController(services.operations.helpDeskService),
       installmentController: new InstallmentController(services.operations.installmentPlanService),

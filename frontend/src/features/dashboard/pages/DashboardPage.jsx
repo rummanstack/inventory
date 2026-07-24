@@ -1,29 +1,26 @@
 import {
+  Activity,
   AlertTriangle,
+  ArrowUpRight,
   Boxes,
-  ChevronLeft,
-  ChevronRight,
+  Building2,
   CircleDollarSign,
-  ArrowDown,
-  ArrowUp,
-  Check,
-  GripVertical,
+  Clock3,
+  CreditCard,
   HandCoins,
   Landmark,
-  Lock,
   PackageCheck,
-  PackageX,
   Receipt,
-  RotateCcw,
-  Settings2,
-  ShoppingCart,
+  RefreshCw,
+  ShoppingBag,
   Store,
   TrendingDown,
   TrendingUp,
   Truck,
   UserCheck,
   Wallet,
-} from "lucide-react";
+} from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import {
   Alert,
   ChartPanel,
@@ -32,797 +29,325 @@ import {
   SectionHeader,
   TrendChart,
   cx,
-} from "../../../components/ui.jsx";
-import { ActivityCalendar } from "../components/ActivityCalendar.jsx";
-import { formatCurrency, formatNumber } from "../../../utils/calculations.js";
-import { useEffect, useState } from "react";
-import { useInventoryApp } from "../../../app/useInventoryApp.jsx";
-import DashboardSkeleton from "../components/DashboardSkeleton";
-import { useDashboardViewModel } from "../viewmodels/useDashboardViewModel";
-import { getCssVar } from "../../../utils/theme.js";
+} from '../../../components/ui.jsx';
+import { useInventoryApp } from '../../../app/useInventoryApp.jsx';
+import { formatCurrency, formatNumber } from '../../../utils/calculations.js';
+import { getCssVar } from '../../../utils/theme.js';
+import { ActivityCalendar } from '../components/ActivityCalendar.jsx';
+import DashboardSkeleton from '../components/DashboardSkeleton.jsx';
+import { useDashboardViewModel } from '../viewmodels/useDashboardViewModel.js';
 
-/* ─── small reusable pieces ─── */
+const KPI_STYLES = {
+  emerald: 'bg-emerald-50 text-emerald-700 ring-emerald-100',
+  indigo: 'bg-indigo-50 text-indigo-700 ring-indigo-100',
+  amber: 'bg-amber-50 text-amber-700 ring-amber-100',
+  rose: 'bg-rose-50 text-rose-700 ring-rose-100',
+  slate: 'bg-slate-100 text-slate-700 ring-slate-200',
+};
 
-function MetricPill({ label, value, sub, icon: Icon, iconClass = "bg-slate-100 text-slate-500" }) {
-  return (
-    <div className="flex flex-col gap-1.5 rounded-card bg-white px-5 py-4 shadow-card ring-1 ring-slate-200/60 max-sm:min-w-[70%] max-sm:snap-start max-lg:px-4 max-lg:py-3">
-      <div className={cx("w-fit rounded-xl p-2", iconClass)}>
-        <Icon size={15} />
-      </div>
-      <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-600">{label}</p>
-      <p className="text-2xl font-semibold tabular-nums tracking-tight text-slate-950 max-lg:text-lg">{value}</p>
-      {sub && <p className="text-xs font-medium text-slate-500 max-lg:hidden">{sub}</p>}
-    </div>
-  );
+function formatDelta(value, t) {
+  if (value === null || value === undefined || !Number.isFinite(Number(value))) return t('dashboard.noComparison');
+  const absolute = Math.abs(Number(value)).toFixed(1);
+  if (Number(value) === 0) return t('dashboard.noChange');
+  return Number(value) > 0
+    ? t('dashboard.comparisonUp', { value: absolute })
+    : t('dashboard.comparisonDown', { value: absolute });
 }
 
-function DueRow({ icon: Icon, iconClass, label, sub, value, valueClass = "text-slate-950" }) {
+function KpiCard({ label, value, helper, delta, icon: Icon, tone = 'slate' }) {
+  const positive = Number(delta) >= 0;
   return (
-    <div className="flex items-center gap-4 rounded-card bg-white px-5 py-4 shadow-card ring-1 ring-slate-200/50">
-      <div className={cx("shrink-0 rounded-xl p-2.5", iconClass)}>
-        <Icon size={17} />
-      </div>
-      <div className="min-w-0 flex-1">
-        <p className="text-xs font-semibold uppercase tracking-[0.13em] text-slate-600">{label}</p>
-        {sub && <p className="mt-0.5 text-xs font-medium text-slate-500 max-lg:hidden">{sub}</p>}
-      </div>
-      <p className={cx("shrink-0 text-base font-semibold tabular-nums", valueClass)}>{value}</p>
-    </div>
-  );
-}
-
-/* ─── main page ─── */
-
-const DEFAULT_WIDGET_ORDER = ['financial', 'today', 'monthly', 'inventory', 'trading', 'retail', 'cashflow', 'products', 'activity'];
-
-function DashboardWidget({ id, order, editing, onMove, children, t }) {
-  const position = order.indexOf(id);
-  return (
-    <section
-      className={cx('relative min-w-0 rounded-card transition', editing && 'ring-2 ring-dashed ring-indigo-200 ring-offset-2')}
-      style={{ order: position < 0 ? 999 : position }}
-      onDragOver={(event) => { if (editing) event.preventDefault(); }}
-      onDrop={(event) => {
-        if (!editing) return;
-        event.preventDefault();
-        const source = event.dataTransfer.getData('text/dashboard-widget');
-        if (source) onMove(source, id);
-      }}
-    >
-      {editing ? (
-        <div className="mb-2 flex items-center justify-end gap-1 rounded-lg bg-indigo-50 px-2 py-1.5">
-          <span draggable onDragStart={(event) => { event.dataTransfer.effectAllowed = 'move'; event.dataTransfer.setData('text/dashboard-widget', id); }} className="mr-auto inline-flex cursor-grab items-center gap-1.5 rounded-md px-2 py-1 text-xs font-black text-indigo-700 active:cursor-grabbing">
-            <GripVertical size={15} /> {t('dashboard.dragWidget')}
+    <div className="group relative overflow-hidden rounded-card bg-white p-5 shadow-card ring-1 ring-slate-200/70 transition hover:-translate-y-0.5 hover:shadow-lg">
+      <div className="flex items-start justify-between gap-3">
+        <div className={cx('rounded-xl p-2.5 ring-1', KPI_STYLES[tone])}><Icon size={18} /></div>
+        {delta !== undefined ? (
+          <span className={cx('inline-flex items-center gap-1 rounded-full px-2 py-1 text-[10px] font-bold', positive ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700')}>
+            {positive ? <TrendingUp size={12} /> : <TrendingDown size={12} />}{helper}
           </span>
-          <button type="button" className="icon-btn h-8 w-8" disabled={position <= 0} title={t('dashboard.moveEarlier')} onClick={() => onMove(id, -1)}><ArrowUp size={14} /></button>
-          <button type="button" className="icon-btn h-8 w-8" disabled={position >= order.length - 1} title={t('dashboard.moveLater')} onClick={() => onMove(id, 1)}><ArrowDown size={14} /></button>
+        ) : null}
+      </div>
+      <p className="mt-5 text-[11px] font-bold uppercase tracking-[0.16em] text-slate-500">{label}</p>
+      <p className="mt-2 text-[clamp(1.35rem,2vw,1.8rem)] font-semibold tabular-nums tracking-tight text-slate-950">{value}</p>
+      {delta === undefined && helper ? <p className="mt-2 text-xs font-medium text-slate-500">{helper}</p> : null}
+      <div className="absolute inset-x-0 bottom-0 h-0.5 origin-left scale-x-0 bg-[var(--brand)] transition group-hover:scale-x-100" />
+    </div>
+  );
+}
+
+function SurfaceHeader({ eyebrow, title, description, icon: Icon }) {
+  return (
+    <div className="flex items-start gap-3">
+      <div className="rounded-xl bg-[var(--secondary-soft)] p-2.5 text-[var(--secondary-strong)]"><Icon size={17} /></div>
+      <div>
+        {eyebrow ? <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">{eyebrow}</p> : null}
+        <h2 className="text-base font-bold tracking-tight text-slate-950">{title}</h2>
+        {description ? <p className="mt-1 text-xs font-medium leading-5 text-slate-500">{description}</p> : null}
+      </div>
+    </div>
+  );
+}
+
+function ActionCenter({ actions, t, onOpen }) {
+  const severityClass = {
+    critical: 'bg-rose-50 text-rose-700 ring-rose-100',
+    warning: 'bg-amber-50 text-amber-700 ring-amber-100',
+    info: 'bg-blue-50 text-blue-700 ring-blue-100',
+  };
+  return (
+    <div className="surface h-full p-5">
+      <SurfaceHeader icon={AlertTriangle} eyebrow={t('dashboard.liveBriefing')} title={t('dashboard.actionCenter')} description={t('dashboard.actionCenterDescription')} />
+      <div className="mt-5 space-y-2.5">
+        {actions.length ? actions.map((action) => (
+          <button key={action.type} type="button" onClick={() => onOpen(action.route)} className="flex w-full items-center gap-3 rounded-xl bg-white px-3.5 py-3 text-left ring-1 ring-slate-200/70 transition hover:bg-slate-50">
+            <span className={cx('flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-xs font-bold ring-1', severityClass[action.severity] || severityClass.info)}>
+              {action.count || '!'}
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-sm font-bold text-slate-800">{t(`dashboard.actionTypes.${action.type}`)}</span>
+              <span className="mt-0.5 block text-xs font-medium text-slate-500">
+                {action.value !== undefined ? formatCurrency(action.value) : t(`dashboard.actionDescriptions.${action.type}`, { count: action.count || 0 })}
+              </span>
+            </span>
+            <ArrowUpRight size={15} className="shrink-0 text-slate-400" />
+          </button>
+        )) : (
+          <EmptyState title={t('dashboard.allClear')} description={t('dashboard.allClearDescription')} icon={PackageCheck} />
+        )}
+      </div>
+    </div>
+  );
+}
+
+function FinancialHealth({ financial, language, t }) {
+  const rows = [
+    { label: t('dashboard.cashInHand'), value: financial.cashInHand, color: 'bg-emerald-500' },
+    { label: t('dashboard.cashInBank'), value: financial.cashInBank, color: 'bg-indigo-500' },
+    { label: t('dashboard.receivables'), value: financial.receivables, color: 'bg-sky-500' },
+    { label: t('dashboard.supplierDueTotal'), value: -financial.supplierPayables, color: 'bg-rose-500' },
+  ];
+  const scale = Math.max(...rows.map((row) => Math.abs(row.value)), 1);
+  return (
+    <div className="surface h-full p-5">
+      <SurfaceHeader icon={Landmark} eyebrow={t('dashboard.financialHealth')} title={t('dashboard.liquidityPosition')} description={t('dashboard.financialHealthDescription')} />
+      <div className="mt-5 space-y-3">
+        {rows.map((row) => (
+          <div key={row.label}>
+            <div className="mb-1.5 flex items-center justify-between gap-3 text-xs">
+              <span className="font-semibold text-slate-600">{row.label}</span>
+              <span className={cx('font-bold tabular-nums', row.value < 0 ? 'text-rose-700' : 'text-slate-900')}>{formatCurrency(Math.abs(row.value), language)}</span>
+            </div>
+            <div className="h-2 overflow-hidden rounded-full bg-slate-100"><div className={cx('h-full rounded-full', row.color)} style={{ width: `${Math.max(4, Math.abs(row.value) / scale * 100)}%` }} /></div>
+          </div>
+        ))}
+      </div>
+      <div className="mt-5 flex items-center justify-between rounded-xl bg-slate-950 px-4 py-3 text-white">
+        <span className="text-xs font-bold uppercase tracking-[0.14em] text-slate-300">{t('dashboard.netPosition')}</span>
+        <span className="text-lg font-semibold tabular-nums">{formatCurrency(financial.netPosition, language)}</span>
+      </div>
+    </div>
+  );
+}
+
+function DealerOperations({ operations, language, t }) {
+  const maxCollected = Math.max(...operations.leaderboard.map((row) => row.collected), 1);
+  return (
+    <>
+      <div className="surface p-5 xl:col-span-2">
+        <SurfaceHeader icon={Truck} eyebrow={t('dashboard.dealerOperations')} title={t('dashboard.distributionPipeline')} description={t('dashboard.distributionPipelineDescription')} />
+        <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {operations.pipeline.map((stage, index) => (
+            <div key={stage.key} className="relative rounded-card bg-slate-50 px-4 py-4 ring-1 ring-slate-200/70">
+              <div className="flex items-center justify-between"><span className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500">{t(`dashboard.pipeline.${stage.key}`)}</span><span className="text-xs font-bold text-slate-300">0{index + 1}</span></div>
+              <p className="mt-3 text-2xl font-semibold tabular-nums text-slate-950">{stage.monetary ? formatCurrency(stage.value, language) : formatNumber(stage.value, language)}</p>
+              {index < operations.pipeline.length - 1 ? <ArrowUpRight size={15} className="absolute -right-2.5 top-1/2 z-10 hidden rounded-full bg-white p-0.5 text-slate-400 ring-1 ring-slate-200 xl:block" /> : null}
+            </div>
+          ))}
         </div>
-      ) : null}
-      {children}
-    </section>
+        <div className="mt-4 grid gap-3 sm:grid-cols-3">
+          <KpiCard label={t('dashboard.issuedToday')} value={formatNumber(operations.today.issuedPieces, language)} helper={t('dashboard.issuedTodayHelper')} icon={Boxes} tone="indigo" />
+          <KpiCard label={t('dashboard.soldToday')} value={formatNumber(operations.today.soldPieces, language)} helper={t('dashboard.soldTodayHelper')} icon={ShoppingBag} tone="emerald" />
+          <KpiCard label={t('dashboard.pendingSettlement')} value={formatNumber(operations.today.pendingSettlements, language)} helper={t('dashboard.pendingSettlementHelper')} icon={Clock3} tone={operations.today.pendingSettlements ? 'amber' : 'slate'} />
+        </div>
+      </div>
+
+      <div className="surface overflow-hidden p-5 xl:col-span-2">
+        <SurfaceHeader icon={HandCoins} eyebrow={t('dashboard.performance')} title={t('dashboard.dsrLeaderboard')} description={t('dashboard.dsrLeaderboardDescription')} />
+        <div className="mt-5 overflow-x-auto">
+          {operations.leaderboard.length ? (
+            <table className="w-full min-w-[680px] text-left">
+              <thead><tr className="border-b border-slate-200 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400"><th className="pb-3">{t('common.dsr')}</th><th className="pb-3 text-right">{t('dashboard.salesSeriesLabel')}</th><th className="pb-3 text-right">{t('dashboard.collected')}</th><th className="pb-3 text-right">{t('dashboard.collectionEfficiency')}</th><th className="pb-3 text-right">{t('dashboard.dsrDueTotal')}</th></tr></thead>
+              <tbody>{operations.leaderboard.map((row, index) => (
+                <tr key={row.dsrId} className="border-b border-slate-100 last:border-0">
+                  <td className="py-3.5"><div className="flex items-center gap-3"><span className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-100 text-xs font-bold text-slate-500">{index + 1}</span><div><p className="text-sm font-bold text-slate-800">{row.name}</p><p className="text-[11px] font-medium text-slate-400">{row.area}</p></div></div></td>
+                  <td className="py-3.5 text-right text-sm font-semibold tabular-nums text-slate-700">{formatCurrency(row.sales, language)}</td>
+                  <td className="py-3.5 text-right"><p className="text-sm font-bold tabular-nums text-emerald-700">{formatCurrency(row.collected, language)}</p><div className="ml-auto mt-1 h-1.5 w-24 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-emerald-500" style={{ width: `${row.collected / maxCollected * 100}%` }} /></div></td>
+                  <td className="py-3.5 text-right text-sm font-bold tabular-nums text-slate-700">{numberPercent(row.collectionEfficiency)}</td>
+                  <td className="py-3.5 text-right text-sm font-semibold tabular-nums text-rose-600">{formatCurrency(row.due, language)}</td>
+                </tr>
+              ))}</tbody>
+            </table>
+          ) : <EmptyState title={t('dashboard.noDsrCashToday')} description={t('dashboard.noDsrCashTodayDescription')} icon={HandCoins} />}
+        </div>
+      </div>
+    </>
+  );
+}
+
+function numberPercent(value) {
+  return `${Number(value || 0).toFixed(1)}%`;
+}
+
+function RetailOperations({ operations, language, t }) {
+  const hourlyMax = Math.max(...operations.hourlySales.map((row) => row.revenue), 1);
+  const paymentTotal = operations.paymentMix.reduce((total, row) => total + Number(row.value || 0), 0) || 1;
+  const paymentColors = ['bg-emerald-500', 'bg-indigo-500', 'bg-amber-500', 'bg-sky-500', 'bg-rose-500'];
+  return (
+    <>
+      <div className="surface p-5 xl:col-span-2">
+        <SurfaceHeader icon={Store} eyebrow={t('dashboard.retailOperations')} title={t('dashboard.retailPosToday')} description={t('dashboard.retailPosTodayDescription')} />
+        <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <KpiCard label={t('dashboard.netSales')} value={formatCurrency(operations.today.netSales, language)} helper={t('dashboard.today')} icon={ShoppingBag} tone="emerald" />
+          <KpiCard label={t('dashboard.retailInvoices')} value={formatNumber(operations.today.invoiceCount, language)} helper={t('dashboard.retailInvoicesHelper')} icon={Receipt} tone="indigo" />
+          <KpiCard label={t('dashboard.retailAvgBasket')} value={formatCurrency(operations.today.averageBasket, language)} helper={t('dashboard.retailAvgBasketHelper')} icon={Wallet} tone="amber" />
+          <KpiCard label={t('dashboard.customerDueTotal')} value={formatCurrency(operations.customerDues.outstanding, language)} helper={t('dashboard.customerDueTotalHelper')} icon={UserCheck} tone="rose" />
+        </div>
+      </div>
+
+      <div className="surface p-5">
+        <SurfaceHeader icon={Clock3} title={t('dashboard.hourlySales')} description={t('dashboard.hourlySalesDescription')} />
+        <div className="mt-5 flex h-48 items-end gap-1 rounded-xl bg-slate-50 px-3 pb-3 pt-6 ring-1 ring-slate-100">
+          {operations.hourlySales.map((row) => (
+            <div key={row.hour} className="group relative flex h-full min-w-0 flex-1 items-end">
+              <div className="w-full rounded-t-sm bg-[var(--secondary)] opacity-70 transition hover:opacity-100" style={{ height: `${Math.max(row.revenue ? 5 : 1, row.revenue / hourlyMax * 100)}%` }} title={`${String(row.hour).padStart(2, '0')}:00 · ${formatCurrency(row.revenue, language)}`} />
+              {row.hour % 4 === 0 ? <span className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[8px] font-semibold text-slate-400">{String(row.hour).padStart(2, '0')}</span> : null}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="surface p-5">
+        <SurfaceHeader icon={CreditCard} title={t('dashboard.paymentMix')} description={t('dashboard.paymentMixDescription')} />
+        <div className="mt-6 flex h-4 overflow-hidden rounded-full bg-slate-100">
+          {operations.paymentMix.map((row, index) => <div key={row.method} className={paymentColors[index % paymentColors.length]} style={{ width: `${row.value / paymentTotal * 100}%` }} title={`${row.method}: ${formatCurrency(row.value, language)}`} />)}
+        </div>
+        <div className="mt-5 grid gap-2 sm:grid-cols-2">
+          {operations.paymentMix.map((row, index) => (
+            <div key={row.method} className="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2.5">
+              <span className="flex items-center gap-2 text-xs font-bold text-slate-600"><span className={cx('h-2 w-2 rounded-full', paymentColors[index % paymentColors.length])} />{t(`dashboard.paymentMethods.${row.method}`)}</span>
+              <span className="text-xs font-bold tabular-nums text-slate-900">{formatCurrency(row.value, language)}</span>
+            </div>
+          ))}
+        </div>
+        <div className={cx('mt-5 rounded-xl px-4 py-3 ring-1', operations.cashSession ? 'bg-emerald-50 text-emerald-800 ring-emerald-100' : 'bg-amber-50 text-amber-800 ring-amber-100')}>
+          <div className="flex items-center justify-between gap-3"><span className="text-xs font-bold uppercase tracking-[0.12em]">{t('dashboard.cashSession')}</span><span className="text-sm font-bold">{operations.cashSession ? t('common.open') : t('common.closed')}</span></div>
+          {operations.cashSession ? <p className="mt-2 text-xs font-medium">{t('dashboard.expectedCash')}: {formatCurrency(operations.cashSession.expectedCash, language)}</p> : null}
+        </div>
+      </div>
+    </>
+  );
+}
+
+function ProductPerformance({ rows, language, t }) {
+  return (
+    <div className="surface p-5">
+      <SurfaceHeader icon={ShoppingBag} title={t('dashboard.productPerformance')} description={t('dashboard.productPerformanceDescription')} />
+      <div className="mt-5 space-y-2.5">
+        {rows.length ? rows.slice(0, 6).map((row, index) => (
+          <div key={row.productId} className="flex items-center gap-3 rounded-xl bg-slate-50 px-3.5 py-3 ring-1 ring-slate-100">
+            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-white text-xs font-bold text-slate-500 ring-1 ring-slate-200">{index + 1}</span>
+            <div className="min-w-0 flex-1"><p className="truncate text-sm font-bold text-slate-800">{row.name}</p><p className="mt-0.5 text-[11px] font-medium text-slate-400">{formatNumber(row.quantity, language)} {t('common.pcs')} · {numberPercent(row.margin)} {t('dashboard.margin')}</p></div>
+            <div className="text-right"><p className="text-sm font-bold tabular-nums text-slate-950">{formatCurrency(row.revenue, language)}</p><p className="text-[11px] font-semibold tabular-nums text-emerald-700">{formatCurrency(row.profit, language)}</p></div>
+          </div>
+        )) : <EmptyState title={t('dashboard.topSellingEmpty')} description={t('dashboard.topSellingEmptyDesc')} icon={ShoppingBag} />}
+      </div>
+    </div>
   );
 }
 
 export default function DashboardPage() {
-  const { productDirectory, dsrDirectory, today, t, language, user, tenant } = useInventoryApp();
-  const vm = useDashboardViewModel({ products: productDirectory, dsrs: dsrDirectory, today, t, language });
-  const [noSalePage, setNoSalePage] = useState(1);
-  const [layoutEditing, setLayoutEditing] = useState(false);
-  const layoutStorageKey = `dashboard-widget-order:${tenant?.id || user?.tenantId || 'default'}:${user?.id || 'user'}`;
-  const [widgetOrder, setWidgetOrder] = useState(DEFAULT_WIDGET_ORDER);
-  const NO_SALE_PAGE_SIZE = 6;
+  const { today, t, language, tenant } = useInventoryApp();
+  const navigate = useNavigate();
+  const vm = useDashboardViewModel({ today });
 
-  useEffect(() => {
-    try {
-      const saved = JSON.parse(localStorage.getItem(layoutStorageKey) || 'null');
-      const valid = Array.isArray(saved) ? saved.filter((id) => DEFAULT_WIDGET_ORDER.includes(id)) : [];
-      setWidgetOrder([...valid, ...DEFAULT_WIDGET_ORDER.filter((id) => !valid.includes(id))]);
-    } catch {
-      setWidgetOrder(DEFAULT_WIDGET_ORDER);
-    }
-  }, [layoutStorageKey]);
+  if (vm.loading) return <div><SectionHeader title={t('dashboard.title')} compact /><DashboardSkeleton /></div>;
+  if (vm.error || !vm.data) return <div><SectionHeader title={t('dashboard.title')} compact /><Alert type="error">{vm.error || t('dashboard.financeUnavailable')}</Alert></div>;
 
-  function persistWidgetOrder(next) {
-    setWidgetOrder(next);
-    try { localStorage.setItem(layoutStorageKey, JSON.stringify(next)); } catch { /* Keep the in-session layout when storage is unavailable. */ }
-  }
+  const { meta, shared, operations, actions } = vm.data;
+  const months = t('common.monthsShort');
+  const monthlyTrend = shared.monthlyTrend.map((row) => ({
+    ...row,
+    label: months[Number(row.month?.slice(5, 7)) - 1] || row.month,
+    sales: row.totalSales,
+    profit: row.totalProfit,
+  }));
+  const isDealer = meta.profile === 'DEALER';
+  const generatedTime = new Intl.DateTimeFormat(language === 'bn' ? 'bn-BD' : 'en-GB', { hour: '2-digit', minute: '2-digit' }).format(new Date(meta.generatedAt));
 
-  function moveWidget(source, target) {
-    const from = widgetOrder.indexOf(source);
-    if (from < 0) return;
-    const to = typeof target === 'number' ? Math.max(0, Math.min(widgetOrder.length - 1, from + target)) : widgetOrder.indexOf(target);
-    if (to < 0 || from === to) return;
-    const next = [...widgetOrder];
-    next.splice(from, 1);
-    next.splice(to, 0, source);
-    persistWidgetOrder(next);
-  }
-
-  function resetWidgetOrder() {
-    persistWidgetOrder(DEFAULT_WIDGET_ORDER);
-  }
-
-  if (vm.loading) {
-    return (
-      <div>
-        <SectionHeader title={t("dashboard.title")} compact />
-        <DashboardSkeleton />
-      </div>
-    );
-  }
-
-  if (vm.error) {
-    return (
-      <div>
-        <SectionHeader title={t("dashboard.title")} compact />
-        <Alert type="error">{vm.error}</Alert>
-      </div>
-    );
-  }
-
-  const { financeDashboard, retailPos, retailCashSession, dsrLeaderboard, noSaleToday, todayPnl, monthlyTrend } = vm;
-  const secondary = getCssVar("--secondary", "#5e5b8e");
-  const isRetailer = tenant?.sellerType === "RETAILER";
-
-  const cashInHand = financeDashboard?.accounts?.filter((a) => a.type === "CASH").reduce((s, a) => s + a.balance, 0) ?? 0;
-  const cashInBank = financeDashboard?.accounts?.filter((a) => a.type === "BANK").reduce((s, a) => s + a.balance, 0) ?? 0;
-
-  const inventoryValue = productDirectory.reduce((s, p) => s + p.stockPieces * Number(p.purchasePrice || 0), 0);
-  const damagedValue = productDirectory.reduce((s, p) => s + Number(p.damagedPieces || 0) * Number(p.purchasePrice || 0), 0);
-  const totalDue = (financeDashboard?.totalDsrDue ?? 0) + (financeDashboard?.totalCustomerDue ?? 0);
-  const totalOwe = financeDashboard?.totalSupplierDue ?? 0;
-
-  const todaySales = todayPnl.grossRevenue + retailPos.revenue;
-  const todayDue = Math.max(0, todayPnl.grossRevenue - vm.payableToday) + retailPos.dueAmount;
-  const todayProfit = todayPnl.netProfit + retailPos.profit;
-  const widgetProps = { order: widgetOrder, editing: layoutEditing, onMove: moveWidget, t };
+  const kpis = [
+    { label: t('dashboard.monthlySalesChart'), value: formatCurrency(shared.kpis.monthlySales, language), delta: shared.comparisons.salesVsLastMonth, icon: TrendingUp, tone: 'emerald' },
+    { label: t('dashboard.monthlyProfit'), value: formatCurrency(shared.kpis.monthlyProfit, language), delta: shared.comparisons.profitVsLastMonth, icon: CircleDollarSign, tone: shared.kpis.monthlyProfit >= 0 ? 'indigo' : 'rose' },
+    { label: t('dashboard.totalCashBalance'), value: formatCurrency(shared.kpis.cashAvailable, language), helper: t('dashboard.totalCashBalanceHelper'), icon: Landmark, tone: 'slate' },
+    { label: isDealer ? t('dashboard.dsrDueTotal') : t('dashboard.customerDueTotal'), value: formatCurrency(shared.kpis.receivables, language), helper: t('dashboard.receivables'), icon: HandCoins, tone: 'amber' },
+    { label: t('dashboard.inventoryRisk'), value: formatNumber(shared.inventory.lowStockCount, language), helper: t('dashboard.inventoryRiskHelper', { count: shared.inventory.outOfStockCount }), icon: Boxes, tone: shared.inventory.outOfStockCount ? 'rose' : 'emerald' },
+  ];
 
   return (
-    <div className="flex flex-col gap-6 max-lg:gap-4">
+    <div className="flex flex-col gap-6 pb-8 max-lg:gap-4">
       <SectionHeader
-        title={t("dashboard.title")}
+        title={t('dashboard.title')}
+        description={t(isDealer ? 'dashboard.dealerDashboardDescription' : 'dashboard.retailerDashboardDescription')}
         compact
         action={(
-          <>
-            {layoutEditing ? <button type="button" className="btn-secondary" onClick={resetWidgetOrder}><RotateCcw size={16} />{t('dashboard.resetLayout')}</button> : null}
-            <button type="button" className={layoutEditing ? 'btn-primary' : 'btn-secondary'} onClick={() => setLayoutEditing((value) => !value)}>
-              {layoutEditing ? <Check size={16} /> : <Settings2 size={16} />}
-              {layoutEditing ? t('dashboard.doneCustomizing') : t('dashboard.customizeLayout')}
-            </button>
-          </>
+          <div className="flex items-center gap-2">
+            <span className="hidden rounded-full bg-[var(--secondary-soft)] px-3 py-1.5 text-xs font-bold text-[var(--secondary-strong)] sm:inline-flex">{t(isDealer ? 'dashboard.dealerProfile' : 'dashboard.retailerProfile')}</span>
+            <button type="button" className="btn-secondary" disabled={vm.refreshing} onClick={() => vm.refresh()}><RefreshCw size={15} className={vm.refreshing ? 'animate-spin' : ''} />{t('common.reload')}</button>
+          </div>
         )}
       />
 
-      {/* ── 1. FINANCIAL HEALTH ── */}
-      <DashboardWidget id="financial" {...widgetProps}>
-      {financeDashboard ? (
-        <div className="overflow-hidden rounded-card border border-slate-200/80 bg-white shadow-card ring-1 ring-slate-900/[0.03]">
-          <div className="px-7 pb-4 pt-6 max-lg:px-4 max-lg:pb-3 max-lg:pt-4">
-            <div className="flex items-center gap-2">
-              <div className="rounded-lg bg-[var(--secondary-soft)] p-1.5">
-                <Landmark size={13} className="text-[var(--secondary-strong)]" />
-              </div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-600">
-                {t("dashboard.financialHealth")}
-              </p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-px bg-slate-100/80 lg:grid-cols-4">
-            {[
-              {
-                label: t("dashboard.cashInHand"),
-                value: formatCurrency(cashInHand, language),
-                sub: t("dashboard.cashInHandHelper"),
-                icon: Wallet,
-                iconClass: "bg-emerald-50 text-emerald-700",
-                valueClass: "text-slate-950",
-              },
-              {
-                label: t("dashboard.cashInBank"),
-                value: formatCurrency(cashInBank, language),
-                sub: t("dashboard.cashInBankHelper"),
-                icon: Landmark,
-                iconClass: "bg-[var(--secondary-soft)] text-[var(--secondary-strong)]",
-                valueClass: "text-slate-950",
-              },
-              {
-                label: t("dashboard.monthlyProfit"),
-                value: formatCurrency(financeDashboard.monthlyProfit, language),
-                sub: t("dashboard.monthlyProfitHelper"),
-                icon: financeDashboard.monthlyProfit >= 0 ? TrendingUp : TrendingDown,
-                iconClass:
-                  financeDashboard.monthlyProfit >= 0 ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-600",
-                valueClass: financeDashboard.monthlyProfit >= 0 ? "text-emerald-700" : "text-rose-600",
-              },
-              {
-                label: t("dashboard.netPosition"),
-                value: formatCurrency(financeDashboard.netPosition, language),
-                sub: t("dashboard.netPositionHelper"),
-                icon: CircleDollarSign,
-                iconClass:
-                  financeDashboard.netPosition >= 0 ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-600",
-                valueClass: financeDashboard.netPosition >= 0 ? "text-emerald-700" : "text-rose-600",
-              },
-            ].map((item) => {
-              const Icon = item.icon;
-              return (
-                <div key={item.label} className="bg-white px-7 py-6 max-lg:px-4 max-lg:py-4">
-                  <div className={cx("w-fit rounded-xl p-2.5", item.iconClass)}>
-                    <Icon size={16} />
-                  </div>
-                  <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-600 max-lg:mt-2">{item.label}</p>
-                  <p
-                    className={cx(
-                      "mt-2 text-lg lg:text-[clamp(1.4rem,2.5vw,1.875rem)] font-semibold tabular-nums tracking-tight leading-none",
-                      item.valueClass,
-                    )}
-                  >
-                    {item.value}
-                  </p>
-                  <p className="mt-2 text-xs font-medium text-slate-500 max-lg:hidden">{item.sub}</p>
-                </div>
-              );
-            })}
-          </div>
-
-          <div className="grid grid-cols-2 gap-px bg-slate-100/80 lg:grid-cols-4">
-            {[
-              {
-                label: t("dashboard.valueInInventory"),
-                value: formatCurrency(inventoryValue, language),
-                sub: t("dashboard.valueInInventoryHelper"),
-                icon: Boxes,
-                iconClass: "bg-indigo-50 text-indigo-700",
-                valueClass: "text-slate-950",
-              },
-              {
-                label: t("dashboard.valueInDamaged"),
-                value: formatCurrency(damagedValue, language),
-                sub: t("dashboard.valueInDamagedHelper"),
-                icon: AlertTriangle,
-                iconClass: "bg-amber-50 text-amber-700",
-                valueClass: damagedValue > 0 ? "text-amber-700" : "text-slate-950",
-              },
-              {
-                label: t("dashboard.totalDue"),
-                value: formatCurrency(totalDue, language),
-                sub: t("dashboard.totalDueHelper"),
-                icon: TrendingUp,
-                iconClass: "bg-emerald-50 text-emerald-700",
-                valueClass: "text-emerald-700",
-              },
-              {
-                label: totalOwe < 0 ? t("dashboard.totalOweAdvance") : t("dashboard.totalOwe"),
-                value: formatCurrency(Math.abs(totalOwe), language),
-                sub: totalOwe < 0 ? t("dashboard.totalOweAdvanceHelper") : t("dashboard.totalOweHelper"),
-                icon: totalOwe < 0 ? TrendingUp : TrendingDown,
-                iconClass: totalOwe < 0 ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-600",
-                valueClass: totalOwe > 0 ? "text-rose-600" : totalOwe < 0 ? "text-emerald-700" : "text-slate-950",
-              },
-            ].map((item) => {
-              const Icon = item.icon;
-              return (
-                <div key={item.label} className="bg-slate-50/60 px-7 py-5 max-lg:px-4 max-lg:py-4">
-                  <div className={cx("w-fit rounded-xl p-2.5", item.iconClass)}>
-                    <Icon size={16} />
-                  </div>
-                  <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-600 max-lg:mt-2">{item.label}</p>
-                  <p className={cx("mt-2 text-lg lg:text-[clamp(1.4rem,2.5vw,1.875rem)] font-semibold tabular-nums tracking-tight leading-none", item.valueClass)}>
-                    {item.value}
-                  </p>
-                  <p className="mt-2 text-xs font-medium text-slate-500 max-lg:hidden">{item.sub}</p>
-                </div>
-              );
-            })}
-          </div>
-
-        </div>
-      ) : (
-        <div className="flex items-center gap-4 rounded-card border border-slate-200/80 bg-white/80 px-6 py-5 shadow-card">
-          <div className="rounded-2xl bg-slate-100 p-3 text-slate-400">
-            <Lock size={18} />
-          </div>
-          <div>
-            <p className="text-sm font-semibold text-slate-700">{t("dashboard.financialHealth")}</p>
-            <p className="text-xs font-medium text-slate-500">
-              {t("dashboard.financePermissionRequired")}
-            </p>
-          </div>
-        </div>
-      )}
-
-            </DashboardWidget>
-
-      {/* ── 2. TODAY'S PROFIT REPORT ── */}
-      <DashboardWidget id="today" {...widgetProps}>
-      <div className="overflow-hidden rounded-card border border-slate-200/80 bg-white shadow-card ring-1 ring-slate-900/[0.03]">
-        <div className="px-7 pb-4 pt-6">
-          <div className="flex items-center gap-2">
-            <div className="rounded-lg bg-emerald-50 p-1.5">
-              <TrendingUp size={13} className="text-emerald-700" />
-            </div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-600">
-              {t("dashboard.todaysProfitReport")}
-            </p>
-          </div>
-        </div>
-
-        <div className="grid gap-px bg-slate-100/80 sm:grid-cols-2 lg:grid-cols-4">
-          {[
-            {
-              label: t("dashboard.todaysSales"),
-              value: formatCurrency(todaySales, language),
-              sub: t("dashboard.todaysSalesHelper"),
-              icon: ShoppingCart,
-              iconClass: "bg-blue-50 text-blue-700",
-              valueClass: "text-slate-950",
-            },
-            {
-              label: t("dashboard.todaysDue"),
-              value: formatCurrency(todayDue, language),
-              sub: t("dashboard.todaysDueHelper"),
-              icon: HandCoins,
-              iconClass: todayDue > 0 ? "bg-amber-50 text-amber-700" : "bg-emerald-50 text-emerald-700",
-              valueClass: todayDue > 0 ? "text-amber-700" : "text-slate-950",
-            },
-            {
-              label: t("dashboard.todaysExpense"),
-              value: formatCurrency(todayPnl.expenseTotal, language),
-              sub: t("dashboard.todaysExpenseHelper"),
-              icon: Receipt,
-              iconClass: todayPnl.expenseTotal > 0 ? "bg-rose-50 text-rose-600" : "bg-slate-50 text-slate-500",
-              valueClass: todayPnl.expenseTotal > 0 ? "text-rose-600" : "text-slate-950",
-            },
-            {
-              label: t("dashboard.todaysProfit"),
-              value: formatCurrency(todayProfit, language),
-              sub: t("dashboard.todaysProfitHelper"),
-              icon: todayProfit >= 0 ? TrendingUp : TrendingDown,
-              iconClass: todayProfit >= 0 ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-600",
-              valueClass: todayProfit >= 0 ? "text-emerald-700" : "text-rose-600",
-            },
-          ].map((item) => {
-            const Icon = item.icon;
-            return (
-              <div key={item.label} className="bg-white px-7 py-6">
-                <div className={cx("w-fit rounded-xl p-2.5", item.iconClass)}>
-                  <Icon size={16} />
-                </div>
-                <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-600">{item.label}</p>
-                <p className={cx("mt-2 text-lg lg:text-[clamp(1.4rem,2.5vw,1.875rem)] font-semibold tabular-nums tracking-tight leading-none", item.valueClass)}>
-                  {item.value}
-                </p>
-                <p className="mt-2 text-xs font-medium text-slate-500 max-lg:hidden">{item.sub}</p>
-              </div>
-            );
-          })}
+      <div className="relative overflow-hidden rounded-[1.35rem] bg-slate-950 px-6 py-5 text-white shadow-xl sm:px-7">
+        <div className="absolute -right-24 -top-24 h-64 w-64 rounded-full bg-[var(--brand)]/20 blur-3xl" />
+        <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div><p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">{t('dashboard.commandCenter')}</p><h1 className="mt-2 text-xl font-semibold tracking-tight sm:text-2xl">{tenant?.name || t('dashboard.title')}</h1><p className="mt-1 text-sm font-medium text-slate-400">{t('dashboard.executiveBriefing')}</p></div>
+          <div className="flex items-center gap-3 rounded-xl bg-white/5 px-4 py-3 ring-1 ring-white/10"><Activity size={16} className="text-emerald-400" /><div><p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">{t('dashboard.lastUpdated')}</p><p className="text-sm font-bold">{generatedTime}</p></div></div>
         </div>
       </div>
 
-            </DashboardWidget>
+      <div className="grid gap-3 max-sm:flex max-sm:snap-x max-sm:snap-mandatory max-sm:overflow-x-auto max-sm:pb-2 sm:grid-cols-2 xl:grid-cols-5">
+        {kpis.map((item) => <div key={item.label} className="max-sm:min-w-[78%] max-sm:snap-start"><KpiCard {...item} helper={item.delta !== undefined ? formatDelta(item.delta, t) : item.helper} /></div>)}
+      </div>
 
-      {/* ── 3. MONTHLY ANALYTICS ── */}
-      <DashboardWidget id="monthly" {...widgetProps}>
+      <div className="grid gap-6 xl:grid-cols-[1.35fr_1fr]">
+        <ActionCenter actions={actions} t={t} onOpen={navigate} />
+        <FinancialHealth financial={shared.financial} language={language} t={t} />
+      </div>
+
       <div className="grid gap-6 xl:grid-cols-2">
-        <ChartPanel
-          title={t("dashboard.monthlySalesChart")}
-          description={t("dashboard.monthlySalesChartDescription")}
-        >
-          <TrendChart
-            data={monthlyTrend.length > 0 ? monthlyTrend : Array.from({ length: 12 }, (_, i) => ({ label: t('common.monthsShort')[i], sales: 0, profit: 0 }))}
-            valueFormatter={(v) => formatCurrency(v, language)}
-            series={[
-              { key: 'sales', label: t('dashboard.salesSeriesLabel'), color: getCssVar('--secondary', '#5e5b8e'), fill: true },
-            ]}
-            height={220}
-          />
-        </ChartPanel>
-
-        <ChartPanel
-          title={t("dashboard.monthlyProfitChart")}
-          description={t("dashboard.monthlyProfitChartDescription")}
-        >
-          <TrendChart
-            data={monthlyTrend.length > 0 ? monthlyTrend : Array.from({ length: 12 }, (_, i) => ({ label: t('common.monthsShort')[i], sales: 0, profit: 0 }))}
-            valueFormatter={(v) => formatCurrency(v, language)}
-            series={[
-              { key: 'profit', label: t('dashboard.profitSeriesLabel'), color: getCssVar('--success', '#37a864'), fill: true },
-            ]}
-            height={220}
-          />
-        </ChartPanel>
+        <ChartPanel title={t('dashboard.monthlySalesChart')} description={t('dashboard.monthlySalesChartDescription')}><TrendChart data={monthlyTrend} valueFormatter={(value) => formatCurrency(value, language)} series={[{ key: 'sales', label: t('dashboard.salesSeriesLabel'), color: getCssVar('--secondary', '#5e5b8e'), fill: true }]} height={250} /></ChartPanel>
+        <ChartPanel title={t('dashboard.monthlyProfitChart')} description={t('dashboard.monthlyProfitChartDescription')}><TrendChart data={monthlyTrend} valueFormatter={(value) => formatCurrency(value, language)} series={[{ key: 'profit', label: t('dashboard.profitSeriesLabel'), color: getCssVar('--success', '#37a864'), fill: true }]} height={250} /></ChartPanel>
       </div>
 
-            </DashboardWidget>
-
-      {/* ── 4. INVENTORY BY CATEGORY + TOP PRODUCTS BY CASH ── */}
-      <DashboardWidget id="inventory" {...widgetProps}>
       <div className="grid gap-6 xl:grid-cols-2">
-        <ChartPanel
-          title={t("dashboard.inventoryByCategory")}
-          description={t("dashboard.inventoryByCategoryDescription")}
-        >
-          {vm.inventoryByCategory.length ? (
-            <HorizontalBarChart
-              data={vm.inventoryByCategory.slice(0, 6)}
-              valueFormatter={(v) => formatCurrency(v, language)}
-            />
-          ) : (
-            <EmptyState
-              title={t("dashboard.noInventoryTitle")}
-              description={t("dashboard.noInventoryDescription")}
-              icon={Boxes}
-            />
-          )}
+        <ChartPanel title={t('dashboard.inventoryByCategory')} description={t('dashboard.inventoryByCategoryDescription')}>
+          {shared.inventory.byCategory.length ? <HorizontalBarChart data={shared.inventory.byCategory.slice(0, 8)} valueFormatter={(value) => formatCurrency(value, language)} /> : <EmptyState title={t('dashboard.noInventoryTitle')} description={t('dashboard.noInventoryDescription')} icon={Boxes} />}
         </ChartPanel>
-
-        <ChartPanel title={t("dashboard.topProductsByCash")} description={t("dashboard.topProductsByCashDescription")}>
-          {vm.topPayableProducts.length ? (
-            <HorizontalBarChart
-              data={vm.topPayableProducts}
-              valueFormatter={(v) => formatCurrency(v, language)}
-              trackClassName="bg-success-soft"
-            />
-          ) : (
-            <EmptyState
-              title={t("dashboard.noSoldProductsTitle")}
-              description={t("dashboard.noSoldProductsDescription")}
-              icon={PackageCheck}
-            />
-          )}
-        </ChartPanel>
+        <div className="surface p-5">
+          <SurfaceHeader icon={AlertTriangle} title={t('dashboard.inventoryIntelligence')} description={t('dashboard.inventoryIntelligenceDescription')} />
+          <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {[{ label: t('dashboard.valueInInventory'), value: formatCurrency(shared.inventory.inventoryValue, language), icon: Boxes }, { label: t('dashboard.lowStock'), value: formatNumber(shared.inventory.lowStockCount, language), icon: AlertTriangle }, { label: t('dashboard.outOfStock'), value: formatNumber(shared.inventory.outOfStockCount, language), icon: PackageCheck }, { label: t('dashboard.valueInDamaged'), value: formatCurrency(shared.inventory.damagedValue, language), icon: Building2 }].map(({ label, value, icon: Icon }) => <div key={label} className="rounded-xl bg-slate-50 p-3.5 ring-1 ring-slate-100"><Icon size={15} className="text-slate-400" /><p className="mt-3 text-[10px] font-bold uppercase tracking-[0.12em] text-slate-400">{label}</p><p className="mt-1.5 text-sm font-bold tabular-nums text-slate-900">{value}</p></div>)}
+          </div>
+          <div className="mt-4 space-y-2">{shared.inventory.lowStock.slice(0, 4).map((item) => <button type="button" key={item.id} onClick={() => navigate('/low-stock-alerts')} className="flex w-full items-center justify-between rounded-xl bg-white px-3.5 py-2.5 text-left ring-1 ring-slate-200/70 hover:bg-slate-50"><span><span className="block text-sm font-bold text-slate-800">{item.name}</span><span className="text-[11px] font-medium text-slate-400">{item.category}</span></span><span className="text-xs font-bold tabular-nums text-rose-600">{formatNumber(item.stockPieces, language)} / {formatNumber(item.threshold, language)}</span></button>)}</div>
+        </div>
       </div>
 
-            </DashboardWidget>
-
-      {/* ── 5. TRADING TREND + RECEIVABLES & PAYABLES ── */}
-      <DashboardWidget id="trading" {...widgetProps}>
-      <div className="grid gap-6 xl:grid-cols-[2fr_1fr]">
-        <ChartPanel title={t("dashboard.tradingTrend")} description={t("dashboard.tradingTrendDescription")}>
-          <TrendChart
-            data={vm.tradingTrend}
-            valueFormatter={(v) => formatCurrency(v, language)}
-            series={[
-              { key: "paid", label: t("dashboard.revenue"), color: getCssVar("--success", "#37a864"), fill: true },
-              { key: "sold", label: t("dashboard.unitsSold"), color: getCssVar("--accent-orange", "#f5820f") },
-            ]}
-          />
-        </ChartPanel>
-
-        {isRetailer && financeDashboard ? (
-          <div className="surface overflow-hidden p-5">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="px-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-600">
-                  {t("dashboard.customerDueTotal")}
-                </p>
-                <p className="mt-1 px-1 text-xs font-medium leading-5 text-slate-500 max-lg:hidden">
-                  {t("dashboard.customerDueTotalHelper")}
-                </p>
-              </div>
-              <div className="rounded-xl bg-emerald-50 p-2.5 text-emerald-700">
-                <UserCheck size={17} />
-              </div>
-            </div>
-            <p className="mt-6 px-1 text-2xl font-semibold tabular-nums tracking-tight text-emerald-700">
-              {formatCurrency(financeDashboard.totalCustomerDue, language)}
-            </p>
-          </div>
-        ) : isRetailer ? (
-          <div className="surface overflow-hidden p-5">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-600">
-              {t("dashboard.customerDueTotal")}
-            </p>
-            <div className="mt-6 flex flex-col items-center justify-center gap-2 py-8 text-center">
-              <Lock size={20} className="text-slate-300" />
-              <p className="text-xs font-medium text-slate-500">{t('dashboard.financeUnavailable')}</p>
-            </div>
-          </div>
-        ) : financeDashboard ? (
-          <div className="surface overflow-hidden p-5">
-            <p className="px-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-600">
-              {t("dashboard.receivablesPayables")}
-            </p>
-            <p className="mt-1 px-1 text-xs font-medium leading-5 text-slate-500 max-lg:hidden">
-              {t("dashboard.receivablesPayablesDescription")}
-            </p>
-            <div className="mt-4 space-y-2.5">
-              <DueRow
-                icon={Truck}
-                iconClass="bg-[var(--secondary-soft)] text-[var(--secondary-strong)]"
-                label={t("dashboard.dsrDueTotal")}
-                sub={t("dashboard.dsrDueTotalHelper")}
-                value={formatCurrency(financeDashboard.totalDsrDue, language)}
-              />
-              <DueRow
-                icon={HandCoins}
-                iconClass="bg-rose-50 text-rose-600"
-                label={t("dashboard.supplierDueTotal")}
-                sub={t("dashboard.supplierDueTotalHelper")}
-                value={formatCurrency(financeDashboard.totalSupplierDue, language)}
-                valueClass="text-rose-600"
-              />
-            </div>
-            <div className="mt-4 rounded-xl bg-slate-50 px-5 py-3">
-              <div className="flex items-center justify-between">
-                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-600">
-                  {t("dashboard.netPosition")}
-                </p>
-                <p
-                  className={cx(
-                    "text-sm font-semibold tabular-nums",
-                    financeDashboard.netPosition >= 0 ? "text-emerald-700" : "text-rose-600",
-                  )}
-                >
-                  {formatCurrency(financeDashboard.netPosition, language)}
-                </p>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className="surface overflow-hidden p-5">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-600">
-              {t("dashboard.receivablesPayables")}
-            </p>
-            <div className="mt-6 flex flex-col items-center justify-center gap-2 py-8 text-center">
-              <Lock size={20} className="text-slate-300" />
-              <p className="text-xs font-medium text-slate-500">{t('dashboard.financeUnavailable')}</p>
-            </div>
-          </div>
-        )}
-      </div>
-
-            </DashboardWidget>
-
-      {/* ── 6. RETAIL POS TODAY + DSR CASH LEADERBOARD ── */}
-      <DashboardWidget id="retail" {...widgetProps}>
-      <div className="grid gap-6">
-        {isRetailer ? (
-          <ChartPanel title={t("dashboard.retailPosToday")} description={t("dashboard.retailPosTodayDescription")}>
-          <div className="grid gap-3 max-sm:flex max-sm:snap-x max-sm:snap-mandatory max-sm:overflow-x-auto max-sm:pb-1 sm:grid-cols-3">
-            <MetricPill
-              label={t("dashboard.retailRevenue")}
-              value={formatCurrency(retailPos.revenue, language)}
-              sub={t("dashboard.retailRevenueHelper")}
-              icon={Store}
-              iconClass="bg-[var(--secondary-soft)] text-[var(--secondary-strong)]"
-            />
-            <MetricPill
-              label={t("dashboard.retailInvoices")}
-              value={formatNumber(retailPos.invoiceCount, language)}
-              sub={t("dashboard.retailInvoicesHelper")}
-              icon={ShoppingCart}
-              iconClass="bg-emerald-50 text-emerald-700"
-            />
-            <MetricPill
-              label={t("dashboard.retailAvgBasket")}
-              value={formatCurrency(retailPos.avgBasket, language)}
-              sub={t("dashboard.retailAvgBasketHelper")}
-              icon={Wallet}
-              iconClass="bg-amber-50 text-amber-700"
-            />
-          </div>
-
-          {retailCashSession !== undefined && (
-            <div
-              className={cx(
-                "mt-3 flex items-center gap-3 rounded-card px-5 py-3.5 transition-colors",
-                retailCashSession ? "bg-emerald-50 ring-1 ring-emerald-200/60" : "bg-slate-50 ring-1 ring-slate-200/50",
-              )}
-            >
-              <div
-                className={cx(
-                  "rounded-xl p-2",
-                  retailCashSession ? "bg-emerald-100 text-emerald-700" : "bg-slate-200 text-slate-500",
-                )}
-              >
-                <Landmark size={15} />
-              </div>
-              <div>
-                <p className={cx("text-sm font-bold", retailCashSession ? "text-emerald-800" : "text-slate-700")}>
-                  {retailCashSession ? t("dashboard.cashSessionOpen") : t("dashboard.cashSessionClosed")}
-                </p>
-                <p className="text-xs font-medium text-slate-500 max-lg:hidden">
-                  {retailCashSession ? t("dashboard.cashSessionOpenDetail") : t("dashboard.cashSessionClosedDetail")}
-                </p>
-              </div>
-              <div
-                className={cx(
-                  "ml-auto h-2 w-2 shrink-0 rounded-full",
-                  retailCashSession ? "bg-emerald-500 shadow-[0_0_8px_rgba(52,211,153,0.7)]" : "bg-slate-300",
-                )}
-              />
-            </div>
-          )}
-          </ChartPanel>
-        ) : (
-          <ChartPanel title={t("dashboard.dsrLeaderboard")} description={t("dashboard.dsrLeaderboardDescription")}>
-          {dsrLeaderboard.length ? (
-            <div className="space-y-2.5">
-              {dsrLeaderboard.map((dsr, index) => {
-                const pct = dsrLeaderboard[0].value > 0 ? Math.round((dsr.value / dsrLeaderboard[0].value) * 100) : 0;
-                return (
-                  <div
-                    key={dsr.label}
-                    className="flex items-center gap-3 rounded-card bg-white/60 px-4 py-3.5 ring-1 ring-slate-200/50 transition-colors"
-                  >
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-xs font-semibold text-slate-500">
-                      {index + 1}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center justify-between gap-2">
-                        <p className="truncate text-sm font-bold text-slate-800">{dsr.label}</p>
-                        <p className="shrink-0 text-sm font-semibold tabular-nums text-slate-950">{formatCurrency(dsr.value, language)}</p>
-                      </div>
-                      <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
-                        <div
-                          className="h-full rounded-full bg-[var(--secondary)] transition-all duration-300"
-                          style={{ width: `${pct}%` }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <EmptyState
-              title={t("dashboard.noDsrCashToday")}
-              description={t("dashboard.noDsrCashTodayDescription")}
-              icon={HandCoins}
-            />
-          )}
-          </ChartPanel>
-        )}
-      </div>
-
-            </DashboardWidget>
-
-      {/* ── 7. CASH FLOW FORECAST + IDLE TODAY ── */}
-      <DashboardWidget id="cashflow" {...widgetProps}>
       <div className="grid gap-6 xl:grid-cols-2">
-        {/* Cash Flow Forecast */}
-        {financeDashboard ? (
-          <ChartPanel title={t("dashboard.cashFlowForecast")} description={t("dashboard.cashFlowForecastDescription")}>
-            {(() => {
-              const available = cashInHand + cashInBank;
-              const inflow = (financeDashboard.totalDsrDue ?? 0) + (financeDashboard.totalCustomerDue ?? 0);
-              const outflow = financeDashboard.totalSupplierDue ?? 0;
-              const net = available + inflow - outflow;
-              const rows = [
-                { label: t('dashboard.cashInHand'), value: cashInHand, icon: Wallet, cls: 'bg-slate-100 text-slate-600' },
-                { label: t('dashboard.cashInBank'), value: cashInBank, icon: Landmark, cls: 'bg-blue-50 text-blue-700' },
-                { label: t('dashboard.expectedInDues'), value: inflow, icon: TrendingUp, cls: 'bg-emerald-50 text-emerald-700' },
-                { label: t('dashboard.expectedOutSupplier'), value: outflow, icon: TrendingDown, cls: 'bg-rose-50 text-rose-600', negative: true },
-              ];
-              return (
-                <div className="space-y-2.5">
-                  {rows.map((r) => (
-                    <div key={r.label} className="flex items-center gap-3 rounded-xl bg-slate-50/60 px-4 py-2.5 ring-1 ring-slate-200/40">
-                      <div className={cx('flex h-8 w-8 shrink-0 items-center justify-center rounded-xl', r.cls)}>
-                        <r.icon size={14} />
-                      </div>
-                      <p className="min-w-0 flex-1 truncate text-sm font-medium text-slate-700">{r.label}</p>
-                      <p className={cx('shrink-0 text-sm font-semibold tabular-nums', r.negative ? 'text-rose-600' : 'text-slate-950')}>
-                        {r.negative ? '− ' : ''}{formatCurrency(r.value, language)}
-                      </p>
-                    </div>
-                  ))}
-                  <div className="mt-2 flex items-center justify-between rounded-xl bg-slate-100 px-5 py-3">
-                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">{t("dashboard.netCashPosition")}</p>
-                    <p className={cx('text-sm font-semibold tabular-nums', net >= 0 ? 'text-emerald-600' : 'text-rose-500')}>
-                      {formatCurrency(net, language)}
-                    </p>
-                  </div>
-                </div>
-              );
-            })()}
-          </ChartPanel>
-        ) : null}
-
-        {/* Idle Today */}
-        {(() => {
-          const totalPages = Math.max(1, Math.ceil(noSaleToday.length / NO_SALE_PAGE_SIZE));
-          const safePage = Math.min(noSalePage, totalPages);
-          const pageItems = noSaleToday.slice((safePage - 1) * NO_SALE_PAGE_SIZE, safePage * NO_SALE_PAGE_SIZE);
-          return (
-            <ChartPanel title={t("dashboard.idleToday")} description={t("dashboard.idleTodayDescription", { count: formatNumber(noSaleToday.length, language), plural: noSaleToday.length === 1 ? '' : 's' })}>
-              {noSaleToday.length === 0 ? (
-                <EmptyState title={t("dashboard.idleTodayAllClear")} description={t("dashboard.idleTodayAllClearDescription")} icon={PackageCheck} />
-              ) : (
-                <div className="flex flex-col gap-3">
-                  <div className="space-y-1.5">
-                    {pageItems.map((p) => (
-                      <div key={p.id} className="flex items-center gap-2.5 rounded-xl bg-slate-50/70 px-3.5 py-2.5 ring-1 ring-slate-200/40">
-                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-rose-50">
-                          <PackageX size={13} className="text-rose-400" />
-                        </div>
-                        <p className="min-w-0 flex-1 truncate text-xs font-semibold text-slate-800">{p.name}</p>
-                      </div>
-                    ))}
-                  </div>
-                  {totalPages > 1 && (
-                    <div className="flex items-center justify-between pt-1">
-                      <button
-                        type="button"
-                        className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-100 text-slate-600 disabled:opacity-30"
-                        disabled={safePage === 1}
-                        onClick={() => setNoSalePage((p) => p - 1)}
-                      >
-                        <ChevronLeft size={14} />
-                      </button>
-                      <p className="text-[11px] font-medium text-slate-500">{safePage} / {totalPages}</p>
-                      <button
-                        type="button"
-                        className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-100 text-slate-600 disabled:opacity-30"
-                        disabled={safePage === totalPages}
-                        onClick={() => setNoSalePage((p) => p + 1)}
-                      >
-                        <ChevronRight size={14} />
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
-            </ChartPanel>
-          );
-        })()}
-
+        {isDealer ? <DealerOperations operations={operations} language={language} t={t} /> : <RetailOperations operations={operations} language={language} t={t} />}
       </div>
 
-            </DashboardWidget>
-
-      {/* ── 8. TOP SELLS + LEAST SELLS ── */}
-      <DashboardWidget id="products" {...widgetProps}>
-      <div className="grid gap-6 xl:grid-cols-2">
-        <ChartPanel
-          title={t('dashboard.topSellingTitle')}
-          description={t('dashboard.topSellingDesc')}
-        >
-          {vm.topSellingProducts.length ? (
-            <HorizontalBarChart
-              data={vm.topSellingProducts}
-              valueFormatter={(v) => `${formatNumber(v, language)} pcs`}
-            />
-          ) : (
-            <EmptyState
-              title={t('dashboard.topSellingEmpty')}
-              description={t('dashboard.topSellingEmptyDesc')}
-              icon={PackageCheck}
-            />
-          )}
-        </ChartPanel>
-
-        <ChartPanel
-          title={t('dashboard.leastSellingTitle')}
-          description={t('dashboard.leastSellingDesc')}
-        >
-          {vm.leastSellingProducts.length ? (
-            <HorizontalBarChart
-              data={vm.leastSellingProducts}
-              valueFormatter={(v) => `${formatNumber(v, language)} pcs`}
-              trackClassName="bg-danger-soft"
-            />
-          ) : (
-            <EmptyState
-              title={t('dashboard.topSellingEmpty')}
-              description={t('dashboard.topSellingEmptyDesc')}
-              icon={Boxes}
-            />
-          )}
-        </ChartPanel>
+      <div className="grid gap-6 xl:grid-cols-[0.85fr_1.15fr]">
+        <ProductPerformance rows={operations.topProducts || []} language={language} t={t} />
+        <ChartPanel title={t('dashboard.activityHeatmap')} description={t('dashboard.activityHeatmapDescription')}><ActivityCalendar cells={shared.activity} today={meta.date} language={language} t={t} /></ChartPanel>
       </div>
-
-            </DashboardWidget>
-
-      {/* ── 9. ACTIVITY CALENDAR ── */}
-      <DashboardWidget id="activity" {...widgetProps}>
-      <ChartPanel title={t("dashboard.activityHeatmap")} description={t("dashboard.activityHeatmapDescription")}>
-        <ActivityCalendar cells={vm.activityHeatmap} today={today} language={language} t={t} />
-      </ChartPanel>
-      </DashboardWidget>
-
     </div>
   );
 }

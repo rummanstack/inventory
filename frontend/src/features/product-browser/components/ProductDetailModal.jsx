@@ -25,15 +25,15 @@ export default function ProductDetailModal({ productId, tenantId, compared, onCl
   const attributes = attributesQuery.data || [];
 
   return (
-    <Modal title={product?.name || t('productBrowser.title')} onClose={onClose} width="max-w-3xl">
+    <Modal title={product?.name || t('productBrowser.title')} onClose={onClose} width="max-w-4xl">
       {productQuery.isPending || !product ? (
         <TableSkeleton columns={1} rows={5} showHeader={false} />
       ) : (
-        <div className="grid gap-6 sm:grid-cols-2">
-          <div>
-            <div className="aspect-square w-full overflow-hidden rounded-2xl bg-slate-100">
+        <div className="grid gap-5 md:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] md:gap-6">
+          <div className="min-w-0">
+            <div className="group aspect-[4/3] w-full cursor-zoom-in overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 p-4">
               {product.images?.length ? (
-                <img src={product.images[activeImage] || product.images[0]} alt={product.name} className="h-full w-full object-cover" />
+                <img src={product.images[activeImage] || product.images[0]} alt={product.name} className="h-full w-full object-contain transition duration-500 ease-out group-hover:scale-110" />
               ) : (
                 <div className="flex h-full w-full items-center justify-center text-sm font-medium text-slate-400">
                   {t('products.noImage')}
@@ -46,29 +46,31 @@ export default function ProductDetailModal({ productId, tenantId, compared, onCl
                   <button
                     key={url + index}
                     type="button"
-                    className={`h-14 w-14 shrink-0 overflow-hidden rounded-lg border-2 ${index === activeImage ? 'border-brand' : 'border-transparent'}`}
+                    className={`h-14 w-14 shrink-0 overflow-hidden rounded-lg border bg-slate-50 p-1 transition ${index === activeImage ? 'border-brand ring-2 ring-brand-soft' : 'border-slate-200 hover:border-slate-300'}`}
                     onClick={() => setActiveImage(index)}
                   >
-                    <img src={url} alt="" className="h-full w-full object-cover" />
+                    <img src={url} alt="" className="h-full w-full object-contain" />
                   </button>
                 ))}
               </div>
             ) : null}
           </div>
-          <div className="flex flex-col gap-3">
+          <div className="flex min-w-0 flex-col items-start gap-3">
             {product.category ? <Badge tone="slate">{product.category}</Badge> : null}
-            {product.brand ? <p className="text-sm text-slate-500">{product.brand}{product.model ? ` · ${product.model}` : ''}</p> : null}
-            <p className="text-2xl font-bold text-slate-950">{formatCurrency(product.retailPrice, language)}</p>
-            <Badge tone={product.inStock ? 'emerald' : 'rose'}>
-              {product.inStock ? t('productBrowser.inStock') : t('productBrowser.outOfStock')}
-            </Badge>
+            {product.brand ? <p className="text-sm text-slate-500">{product.brand}{product.model ? ` - ${product.model}` : ''}</p> : null}
+            <div className="flex w-full flex-wrap items-center justify-between gap-2">
+              <p className="text-2xl font-bold text-slate-950">{formatCurrency(product.retailPrice, language)}</p>
+              <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-bold ring-1 ${product.inStock ? 'bg-success-soft text-success-strong ring-success-line' : 'bg-danger-soft text-danger-strong ring-danger-line'}`}>
+                {product.inStock ? t('productBrowser.inStock') : t('productBrowser.outOfStock')}
+              </span>
+            </div>
             {product.warrantyMonths > 0 ? (
               <p className="text-sm text-slate-600">{t('productBrowser.warrantyMonths').replace('{count}', product.warrantyMonths)}</p>
             ) : null}
-            {product.description ? <p className="text-sm text-slate-600">{product.description}</p> : null}
+            {product.description ? <p className="text-sm leading-6 text-slate-600">{product.description}</p> : null}
 
             {attributes.length > 0 ? (
-              <div className="mt-2 rounded-2xl border border-slate-200">
+              <div className="mt-2 w-full overflow-hidden rounded-2xl border border-slate-200">
                 <table className="w-full text-sm">
                   <tbody>
                     {attributes.map((attribute) => {
@@ -86,10 +88,10 @@ export default function ProductDetailModal({ productId, tenantId, compared, onCl
               </div>
             ) : null}
 
-            <div className="mt-auto flex gap-2 pt-3">
+            <div className="mt-auto flex w-full gap-2 pt-3">
               <button
                 type="button"
-                className={`icon-btn ${compared ? 'bg-brand-soft text-brand' : ''}`}
+                className={`icon-btn h-10 w-10 shrink-0 ${compared ? 'bg-brand-soft text-brand' : ''}`}
                 title={t('productBrowser.addToCompare')}
                 onClick={() => onToggleCompare(product.id)}
               >

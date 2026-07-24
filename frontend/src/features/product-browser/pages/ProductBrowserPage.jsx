@@ -14,13 +14,12 @@ export default function ProductBrowserPage() {
   return (
     <div className="pb-24">
       <SectionHeader
-        eyebrow={t('navGroups.pos')}
         title={t('productBrowser.title')}
-        description={t('productBrowser.description')}
+        compact
       />
 
-      <div className="mb-4 flex flex-col gap-3 sm:flex-row">
-        <div className="relative flex-1">
+      <div className="surface mb-4 grid gap-3 p-4 sm:grid-cols-2 xl:grid-cols-12">
+        <div className="relative min-w-0 sm:col-span-2 xl:col-span-3">
           <Search size={18} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             className="input pl-9"
@@ -29,7 +28,7 @@ export default function ProductBrowserPage() {
             placeholder={t('productBrowser.searchPlaceholder')}
           />
         </div>
-        <select className="input sm:w-56" value={vm.categoryId} onChange={(event) => vm.selectCategory(event.target.value)}>
+        <select className="input w-full xl:col-span-2" value={vm.categoryId} onChange={(event) => vm.selectCategory(event.target.value)}>
           <option value="">{t('categories.allCategories')}</option>
           {vm.categories.map((category) => (
             <option key={category.id} value={category.id}>{category.name}</option>
@@ -38,11 +37,11 @@ export default function ProductBrowserPage() {
       </div>
 
       {vm.categoryAttributes.length > 0 ? (
-        <div className="surface mb-4 flex flex-wrap gap-3 p-3">
+        <div className="surface mb-4 grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {vm.categoryAttributes
             .filter((attribute) => attribute.dataType !== 'boolean')
             .map((attribute) => (
-              <div key={attribute.id} className="min-w-[140px]">
+              <div key={attribute.id} className="min-w-0">
                 <label className="label">{attribute.label}{attribute.unit ? ` (${attribute.unit})` : ''}</label>
                 {attribute.dataType === 'select' ? (
                   <select
@@ -85,7 +84,7 @@ export default function ProductBrowserPage() {
       ) : null}
 
       {vm.loading ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
           {Array.from({ length: 8 }).map((_, index) => (
             <div key={index} className="surface aspect-[3/4] animate-pulse bg-slate-100" />
           ))}
@@ -94,7 +93,7 @@ export default function ProductBrowserPage() {
         <EmptyState title={t('productBrowser.noneTitle')} description={t('productBrowser.noneDescription')} />
       ) : (
         <>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
             {vm.items.map((product) => (
               <ProductBrowserCard
                 key={product.id}
@@ -106,7 +105,7 @@ export default function ProductBrowserPage() {
               />
             ))}
           </div>
-          <Pagination page={vm.page} totalPages={vm.totalPages} onPageChange={vm.setPage} className="mt-4" />
+          <Pagination page={vm.page} totalPages={vm.totalPages} onPageChange={vm.setPage} className="mt-6" />
         </>
       )}
 

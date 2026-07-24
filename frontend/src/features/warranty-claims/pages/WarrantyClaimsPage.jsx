@@ -26,14 +26,14 @@ function WarrantyKanban({ items, loading, error, canManage, t, onEdit, onMove })
   if (error) return <div className="p-5"><Alert type="error">{error}</Alert></div>;
 
   return (
-    <div className="overflow-x-auto bg-slate-50/60 p-4">
+    <div className="overflow-x-auto bg-slate-50/60 p-3 sm:p-4">
       <div className="flex min-w-max items-start gap-4">
         {STATUS_VALUES.map((status) => {
           const claims = items.filter((claim) => claim.status === status);
           return (
             <section
               key={status}
-              className="w-[300px] shrink-0 rounded-card border border-slate-200 bg-slate-100/80 p-3"
+              className="w-[min(300px,calc(100vw-3rem))] shrink-0 rounded-card border border-slate-200 bg-slate-100/80 p-3"
               onDragOver={(event) => { if (canManage) event.preventDefault(); }}
               onDrop={(event) => {
                 if (!canManage) return;
@@ -60,7 +60,7 @@ function WarrantyKanban({ items, loading, error, canManage, t, onEdit, onMove })
                         {canManage ? <GripVertical size={15} className="mt-0.5 shrink-0 text-slate-400" /> : null}
                       </div>
                       <p className="mt-2 truncate text-sm font-bold text-slate-700">{claim.productName || '-'}</p>
-                      <p className="mt-1 truncate text-xs font-medium text-slate-500">{claim.customerName || '-'} · {formatDate(claim.receivedDate)}</p>
+                      <p className="mt-1 truncate text-xs font-medium text-slate-500">{claim.customerName || '-'} - {formatDate(claim.receivedDate)}</p>
                       {claim.problemNote ? <p className="mt-2 line-clamp-2 text-xs leading-5 text-slate-600">{claim.problemNote}</p> : null}
                     </button>
                     {canManage ? (
@@ -174,7 +174,7 @@ export default function WarrantyClaimsPage() {
   }
 
   function shortcutBadge(shortcut) {
-    return <kbd className="ml-1 rounded border border-slate-300 bg-white/70 px-1 py-0.5 font-mono text-[10px] text-slate-500">{shortcut.label}</kbd>;
+    return <kbd className="ml-1 hidden rounded border border-slate-300 bg-white/70 px-1 py-0.5 font-mono text-[10px] text-slate-500 sm:inline-flex">{shortcut.label}</kbd>;
   }
 
   function matchesShortcut(event, shortcut) {
@@ -222,7 +222,7 @@ export default function WarrantyClaimsPage() {
               <button type="button" className="btn-primary" onClick={() => setFormModal({ mode: 'add' })}>
                 <Plus size={18} />
                 {t('warrantyClaims.add')}
-                <kbd className="ml-1 rounded border border-indigo-400/40 bg-indigo-500/20 px-1 py-0.5 font-mono text-[10px] text-indigo-200">Alt+A</kbd>
+                <kbd className="ml-1 hidden rounded border border-indigo-400/40 bg-indigo-500/20 px-1 py-0.5 font-mono text-[10px] text-indigo-200 sm:inline-flex">Alt+A</kbd>
               </button>
             ) : null}
           </>
@@ -231,7 +231,7 @@ export default function WarrantyClaimsPage() {
 
       {view === 'table' ? (
       <section className="surface no-print mb-6 overflow-hidden">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-4 py-3">
+        <div className="flex flex-col items-stretch gap-3 border-b border-slate-100 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-3">
             <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-indigo-50 text-indigo-700"><ShieldCheck size={20} /></span>
             <div>
@@ -266,50 +266,54 @@ export default function WarrantyClaimsPage() {
       ) : null}
 
       <div id={WARRANTY_CLAIMS_PRINT_ID} className="surface overflow-hidden print-target">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-4 py-3">
+        <div className="flex flex-col items-stretch gap-3 border-b border-slate-100 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="section-title">{t(view === 'board' ? 'warrantyClaims.boardTitle' : 'warrantyClaims.registerTitle')}</h2>
           </div>
           <span className="muted-chip">{vm.total} {t('common.records')}</span>
         </div>
-        <div className="no-print flex flex-col gap-3 border-b border-slate-100 bg-slate-50/60 p-4 sm:flex-row sm:flex-wrap sm:items-center">
-          <div className="relative w-full flex-1 sm:min-w-[200px]">
+        <div className="no-print grid gap-3 border-b border-slate-100 bg-slate-50/60 p-4 sm:grid-cols-2 xl:grid-cols-10">
+          <div className="relative w-full sm:col-span-2 xl:col-span-2">
             <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
             <input className="input pl-10" value={vm.search} onChange={(event) => vm.setSearch(event.target.value)} placeholder={t('warrantyClaims.searchPlaceholder')} />
           </div>
-          <Select className="input w-full sm:w-44" value={vm.productId} onChange={(event) => vm.setProductId(event.target.value)}>
+          <div className="xl:col-span-2">
+            <Select className="input w-full" value={vm.productId} onChange={(event) => vm.setProductId(event.target.value)}>
             <option value="">{t('productSerials.allProducts')}</option>
             {productDirectory.map((product) => (
               <option key={product.id} value={product.id}>{product.name}</option>
             ))}
-          </Select>
-          <Select className="input w-full sm:w-44" value={vm.supplierId} onChange={(event) => vm.setSupplierId(event.target.value)}>
+            </Select>
+          </div>
+          <div className="xl:col-span-2">
+            <Select className="input w-full" value={vm.supplierId} onChange={(event) => vm.setSupplierId(event.target.value)}>
             <option value="">{t('warrantyClaims.allSuppliers')}</option>
             {supplierDirectory.map((supplier) => (
               <option key={supplier.id} value={supplier.id}>{supplier.name}</option>
             ))}
-          </Select>
+            </Select>
+          </div>
           <DateRangePickerField
             from={vm.dateFrom}
             to={vm.dateTo}
             max={todayISO()}
             onChange={(from, to) => { vm.setDateFrom(from); vm.setDateTo(to); }}
             placeholder={`${t('purchaseReceive.dateFrom')} - ${t('purchaseReceive.dateTo')}`}
-            className="w-full min-w-[260px] sm:w-auto"
+            className="w-full sm:col-span-2 xl:col-span-2"
           />
           <button
             type="button"
-            className="btn-secondary h-10 gap-1.5 px-3 text-xs disabled:cursor-not-allowed disabled:opacity-50"
+            className="btn-secondary h-10 w-full justify-center gap-1.5 px-3 text-xs disabled:cursor-not-allowed disabled:opacity-50 xl:col-span-2"
             disabled={!hasFilters}
             onClick={vm.resetFilters}
           >
             <RotateCcw size={14} />
             {t('warrantyClaims.resetFilters')}
           </button>
-          <div className="flex flex-wrap items-center gap-2 text-sm font-bold sm:ml-auto">
+          <div className="flex w-full flex-wrap items-center justify-end gap-2 text-sm font-bold sm:col-span-2 xl:col-span-10">
             <button
               type="button"
-              className="btn-secondary no-print h-10 gap-1.5 px-3 text-xs disabled:cursor-not-allowed disabled:opacity-60"
+              className="btn-secondary no-print h-10 flex-1 justify-center gap-1.5 px-3 text-xs disabled:cursor-not-allowed disabled:opacity-60 sm:flex-none"
               onClick={handleDownloadPdf}
               disabled={downloadingPdf}
             >
@@ -317,12 +321,12 @@ export default function WarrantyClaimsPage() {
               {t('purchaseReceive.downloadPdf')}
               {shortcutBadge(WARRANTY_CLAIMS_SHORTCUTS.pdf)}
             </button>
-            <button type="button" className="btn-secondary no-print h-10 gap-1.5 px-3 text-xs" onClick={handleExportExcel}>
-              <FileSpreadsheet size={14} />
+            <button type="button" className="btn-secondary no-print h-10 flex-1 justify-center gap-1.5 px-3 text-xs disabled:cursor-not-allowed disabled:opacity-60 sm:flex-none" onClick={handleExportExcel} disabled={exportingExcel}>
+              {exportingExcel ? <Loader2 size={14} className="animate-spin" /> : <FileSpreadsheet size={14} />}
               {t('common.exportExcel')}
               {shortcutBadge(WARRANTY_CLAIMS_SHORTCUTS.excel)}
             </button>
-            <button type="button" className="btn-secondary no-print h-10 gap-1.5 px-3 text-xs" onClick={handlePrint}>
+            <button type="button" className="btn-secondary no-print h-10 flex-1 justify-center gap-1.5 px-3 text-xs sm:flex-none" onClick={handlePrint}>
               <Printer size={14} />
               {t('common.print')}
               {shortcutBadge(WARRANTY_CLAIMS_SHORTCUTS.print)}
@@ -356,7 +360,7 @@ export default function WarrantyClaimsPage() {
               onClick={canManage ? () => setFormModal({ mode: 'edit', claim }) : undefined}
               title={claim.claimNumber}
               badge={<Badge tone={warrantyClaimStatusTone(claim.status)}>{t(`warrantyClaims.statuses.${claim.status}`)}</Badge>}
-              subtitle={(claim.productName || '-') + ' · ' + (claim.customerName || '-')}
+              subtitle={(claim.productName || '-') + ' - ' + (claim.customerName || '-')}
               value={formatDate(claim.receivedDate)}
               valueSub={claim.serialNumber || claim.imei1 || claim.imei2 || null}
               action={(

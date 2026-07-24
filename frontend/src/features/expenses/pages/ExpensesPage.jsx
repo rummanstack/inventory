@@ -41,6 +41,8 @@ export default function ExpensesPage() {
   const canManageExpenses = can('manage_expenses');
   const [downloadingDailyPdf, downloadDailyPdf] = useAsyncAction();
   const [downloadingMonthlyPdf, downloadMonthlyPdf] = useAsyncAction();
+  const [exportingDailyExcel, exportDailyExcel] = useAsyncAction();
+  const [exportingMonthlyExcel, exportMonthlyExcel] = useAsyncAction();
 
   useEffect(() => { setDailyPage(1); }, [vm.date]);
   useEffect(() => { setMonthlyPage(1); }, [vm.month]);
@@ -238,13 +240,13 @@ export default function ExpensesPage() {
             {/* Daily list */}
             <div id="expenses-daily-print" className="surface overflow-hidden">
               <div className="border-b border-slate-100 px-5 py-4">
-                <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <h2 className="section-title">{t('expenses.dailyExpenseList', { date: formatDate(vm.date) })}</h2>
-                  <div className="flex flex-wrap items-center gap-2">
+                  <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
                     <span className="muted-chip">{formatNumber(dailyAll.length)} {t('common.records')}</span>
                     <button
                       type="button"
-                      className="btn-secondary no-print py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-60"
+                      className="btn-secondary no-print flex-1 justify-center py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-60 sm:flex-none"
                       onClick={() => downloadDailyPdf(async () => {
                         await inventoryApi.recordPrint({ entityType: 'expenses_daily', entityId: null, label: 'pdf' }).catch(() => {});
                         await downloadSheetPdf('expenses-daily-print', `expenses-daily-${vm.date}.pdf`);
@@ -254,8 +256,8 @@ export default function ExpensesPage() {
                       {downloadingDailyPdf ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
                       {t('purchaseReceive.downloadPdf')}
                     </button>
-                    <button type="button" className="btn-secondary no-print py-1.5 text-xs" onClick={handleExportDailyExcel}>
-                      <FileSpreadsheet size={14} />
+                    <button type="button" className="btn-secondary no-print flex-1 justify-center py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-60 sm:flex-none" onClick={() => exportDailyExcel(handleExportDailyExcel)} disabled={exportingDailyExcel}>
+                      {exportingDailyExcel ? <Loader2 size={14} className="animate-spin" /> : <FileSpreadsheet size={14} />}
                       {t('common.exportExcel')}
                     </button>
                   </div>
@@ -286,7 +288,7 @@ export default function ExpensesPage() {
                   <MobileListCard
                     key={expense.id}
                     title={tCategory(expense.category)}
-                    subtitle={`${formatDate(expense.date)}${expense.note ? ` · ${expense.note}` : ''}`}
+                    subtitle={`${formatDate(expense.date)}${expense.note ? ` - ${expense.note}` : ''}`}
                     value={formatCurrency(expense.amount)}
                     valueClass="text-rose-600"
                     valueSub={expense.createdByName || null}
@@ -312,7 +314,7 @@ export default function ExpensesPage() {
                       <th className="px-4 py-3">{t('expenses.amount')}</th>
                       <th className="px-4 py-3">{t('expenses.note')}</th>
                       <th className="px-4 py-3">{t('expenses.createdBy')}</th>
-                      {canManageExpenses ? <th className="px-4 py-3 text-right">{t('common.actions')}</th> : null}
+                      {canManageExpenses ? <th className="px-4 py-3 text-right no-print">{t('common.actions')}</th> : null}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
@@ -329,7 +331,7 @@ export default function ExpensesPage() {
                           <p className="text-xs text-slate-500">{expense.createdByRole || ''}</p>
                         </td>
                         {canManageExpenses ? (
-                          <td className="table-cell">
+                          <td className="table-cell no-print">
                             <div className="row-actions flex justify-end gap-2">
                               <button type="button" className="icon-btn" title={t('common.edit')} onClick={() => setModal(expense)}>
                                 <Pencil size={16} />
@@ -351,7 +353,7 @@ export default function ExpensesPage() {
                 </div>
               ) : null}
               {dailyTotalPages > 1 ? (
-                <div className="border-t border-slate-100 px-5 py-4">
+                <div className="border-t border-slate-100 px-5 py-4 no-print">
                   <Pagination page={dailyPage} totalPages={dailyTotalPages} onPageChange={setDailyPage} />
                 </div>
               ) : null}
@@ -374,13 +376,13 @@ export default function ExpensesPage() {
             {/* Monthly list */}
             <div id="expenses-monthly-print" className="surface overflow-hidden">
               <div className="border-b border-slate-100 px-5 py-4">
-                <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <h2 className="section-title">{t('expenses.monthlyExpenseList', { month: vm.month })}</h2>
-                  <div className="flex flex-wrap items-center gap-2">
+                  <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
                     <span className="muted-chip">{formatNumber(monthlyAll.length)} {t('common.records')}</span>
                     <button
                       type="button"
-                      className="btn-secondary no-print py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-60"
+                      className="btn-secondary no-print flex-1 justify-center py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-60 sm:flex-none"
                       onClick={() => downloadMonthlyPdf(async () => {
                         await inventoryApi.recordPrint({ entityType: 'expenses_monthly', entityId: null, label: 'pdf' }).catch(() => {});
                         await downloadSheetPdf('expenses-monthly-print', `expenses-monthly-${vm.month}.pdf`);
@@ -390,8 +392,8 @@ export default function ExpensesPage() {
                       {downloadingMonthlyPdf ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
                       {t('purchaseReceive.downloadPdf')}
                     </button>
-                    <button type="button" className="btn-secondary no-print py-1.5 text-xs" onClick={handleExportMonthlyExcel}>
-                      <FileSpreadsheet size={14} />
+                    <button type="button" className="btn-secondary no-print flex-1 justify-center py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-60 sm:flex-none" onClick={() => exportMonthlyExcel(handleExportMonthlyExcel)} disabled={exportingMonthlyExcel}>
+                      {exportingMonthlyExcel ? <Loader2 size={14} className="animate-spin" /> : <FileSpreadsheet size={14} />}
                       {t('common.exportExcel')}
                     </button>
                   </div>
@@ -422,7 +424,7 @@ export default function ExpensesPage() {
                   <MobileListCard
                     key={expense.id}
                     title={tCategory(expense.category)}
-                    subtitle={`${formatDate(expense.date)}${expense.note ? ` · ${expense.note}` : ''}`}
+                    subtitle={`${formatDate(expense.date)}${expense.note ? ` - ${expense.note}` : ''}`}
                     value={formatCurrency(expense.amount)}
                     valueClass="text-rose-600"
                     valueSub={expense.createdByName || null}
@@ -444,7 +446,7 @@ export default function ExpensesPage() {
                       <th className="px-4 py-3">{t('expenses.amount')}</th>
                       <th className="px-4 py-3">{t('expenses.note')}</th>
                       <th className="px-4 py-3">{t('expenses.createdBy')}</th>
-                      {canManageExpenses ? <th className="px-4 py-3 text-right">{t('common.actions')}</th> : null}
+                      {canManageExpenses ? <th className="px-4 py-3 text-right no-print">{t('common.actions')}</th> : null}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
@@ -461,7 +463,7 @@ export default function ExpensesPage() {
                           <p className="text-xs text-slate-500">{expense.createdByRole || ''}</p>
                         </td>
                         {canManageExpenses ? (
-                          <td className="table-cell">
+                          <td className="table-cell no-print">
                             <div className="row-actions flex justify-end gap-2">
                               <button type="button" className="icon-btn" title={t('common.edit')} onClick={() => setModal(expense)}><Pencil size={16} /></button>
                               <button type="button" className="icon-btn text-rose-600 hover:text-rose-700" title={t('common.delete')} onClick={() => handleDelete(expense.id)}><Trash2 size={16} /></button>
@@ -479,7 +481,7 @@ export default function ExpensesPage() {
                 </div>
               ) : null}
               {monthlyTotalPages > 1 ? (
-                <div className="border-t border-slate-100 px-5 py-4">
+                <div className="border-t border-slate-100 px-5 py-4 no-print">
                   <Pagination page={monthlyPage} totalPages={monthlyTotalPages} onPageChange={setMonthlyPage} />
                 </div>
               ) : null}

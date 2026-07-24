@@ -299,25 +299,27 @@ export default function RetailPromotionsPage() {
           <button type="button" className="btn-primary" onClick={() => setPromotionModal({ mode: 'add' })}>
             <Plus size={18} />
             {t('retailer.promotions.add')}
-            <kbd className="ml-1 rounded border border-indigo-400/40 bg-indigo-500/20 px-1 py-0.5 font-mono text-[10px] text-indigo-200">Alt+A</kbd>
+            <kbd className="ml-1 hidden rounded border border-indigo-400/40 bg-indigo-500/20 px-1 py-0.5 font-mono text-[10px] text-indigo-200 sm:inline-flex">Alt+A</kbd>
           </button>
         ) : null}
       />
 
       <div id={RETAIL_PROMOTIONS_REPORT_ID} className="surface overflow-hidden">
-        <div className="border-b border-slate-100 p-5">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="relative max-w-md flex-1">
+        <div className="border-b border-slate-100 p-4">
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-12">
+            <div className="relative w-full sm:col-span-2 xl:col-span-3">
               <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
               <input className="input pl-10" value={search} onChange={(event) => setSearch(event.target.value)} placeholder={t('retailer.promotions.searchPlaceholder')} />
             </div>
-            <TableReportActions targetId={RETAIL_PROMOTIONS_REPORT_ID} title={t('retailer.promotions.title')} fileName="retail-promotions" entityType="retail_promotions" t={t} shortcuts={RETAIL_PROMOTIONS_REPORT_SHORTCUTS} />
+            <div className="flex justify-end sm:col-span-2 xl:col-span-9">
+              <TableReportActions targetId={RETAIL_PROMOTIONS_REPORT_ID} title={t('retailer.promotions.title')} fileName="retail-promotions" entityType="retail_promotions" t={t} shortcuts={RETAIL_PROMOTIONS_REPORT_SHORTCUTS} />
+            </div>
           </div>
         </div>
 
         {loading ? (
           <div className="p-5">
-            <TableSkeleton columns={7} showHeader={false} />
+            <TableSkeleton columns={6} showHeader={false} />
           </div>
         ) : error ? (
           <div className="p-5">
@@ -331,7 +333,7 @@ export default function RetailPromotionsPage() {
                 key={promotion.id}
                 title={promotion.name}
                 badge={<Badge tone={promotion.active ? 'emerald' : 'slate'}>{promotion.active ? t('retailer.promotions.active') : t('retailer.promotions.inactive')}</Badge>}
-                subtitle={`${promotionTargetName(promotion)} · ${t(`retailer.promotions.saleTypes.${promotion.saleType}`)}`}
+                subtitle={`${promotionTargetName(promotion)} - ${t(`retailer.promotions.saleTypes.${promotion.saleType}`)}`}
                 value={promotion.discountType === 'PERCENT' ? `${promotion.discountValue}%` : formatCurrency(promotion.discountValue)}
                 action={canManageRetailers ? (
                   <>
@@ -361,7 +363,7 @@ export default function RetailPromotionsPage() {
               <tbody className="divide-y divide-slate-100">
                 {filteredPromotions.map((promotion) => (
                   <tr key={promotion.id} className="hover:bg-slate-50">
-                    <td className="table-cell no-print">
+                    <td className="table-cell">
                       <div className="flex items-start gap-2">
                         <div>
                           <p className="font-semibold text-slate-950">{promotion.name}</p>

@@ -36,14 +36,14 @@ function RepairJobsKanban({ items, loading, error, canManage, t, onEdit, onMove 
   if (error) return <div className="p-5"><Alert type="error">{error}</Alert></div>;
 
   return (
-    <div className="overflow-x-auto bg-slate-50/60 p-4">
+    <div className="overflow-x-auto bg-slate-50/60 p-3 sm:p-4">
       <div className="flex min-w-max items-start gap-4">
         {JOB_STATUS_VALUES.map((status) => {
           const jobs = items.filter((job) => job.status === status);
           return (
             <section
               key={status}
-              className="w-[300px] shrink-0 rounded-card border border-slate-200 bg-slate-100/80 p-3"
+              className="w-[min(300px,calc(100vw-3rem))] shrink-0 rounded-card border border-slate-200 bg-slate-100/80 p-3"
               onDragOver={(event) => { if (canManage) event.preventDefault(); }}
               onDrop={(event) => {
                 if (!canManage) return;
@@ -75,7 +75,7 @@ function RepairJobsKanban({ items, loading, error, canManage, t, onEdit, onMove 
                       <p className="mt-2 truncate text-sm font-bold text-slate-700">{job.customerName || '-'}</p>
                       <p className="mt-1 truncate text-xs font-medium text-slate-500">{job.productName || job.serialNumber || '-'}</p>
                       <p className="mt-2 truncate text-xs font-medium text-slate-500">
-                        {formatDate(job.receivedDate)} · {job.technicianName || t('repairJobs.noTechnician')}
+                        {formatDate(job.receivedDate)} - {job.technicianName || t('repairJobs.noTechnician')}
                       </p>
                     </button>
                     {canManage ? (
@@ -206,7 +206,7 @@ const boardQuery = useTenantApiQuery({
               <button type="button" className="btn-primary" onClick={() => setFormModal({ mode: 'add' })}>
                 <Plus size={18} />
                 {t('repairJobs.add')}
-                <kbd className="ml-1 rounded border border-indigo-400/40 bg-indigo-500/20 px-1 py-0.5 font-mono text-[10px] text-indigo-200">Alt+A</kbd>
+                <kbd className="ml-1 hidden rounded border border-indigo-400/40 bg-indigo-500/20 px-1 py-0.5 font-mono text-[10px] text-indigo-200 sm:inline-flex">Alt+A</kbd>
               </button>
             ) : null}
           </>
@@ -215,7 +215,7 @@ const boardQuery = useTenantApiQuery({
 
       {viewMode === 'table' ? (
         <section className="surface no-print mb-6 overflow-hidden">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-4 py-3">
+          <div className="flex flex-col items-stretch gap-3 border-b border-slate-100 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-start gap-3">
               <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-[var(--secondary-soft)] text-[var(--secondary)]"><Wrench size={20} /></span>
               <div><h2 className="section-title">{t('repairJobs.workflowTitle')}</h2></div>
@@ -223,11 +223,11 @@ const boardQuery = useTenantApiQuery({
             <span className="muted-chip">{vm.total} {t('repairJobs.jobCount')}</span>
           </div>
           <div className="flex gap-2 overflow-x-auto p-3">
-            <button type="button" className={vm.status ? 'min-h-10 shrink-0 rounded-full border border-slate-200 bg-white px-4 text-sm font-bold text-slate-600 transition hover:border-[rgba(var(--brand),0.35)] hover:text-[var(--secondary)]' : 'min-h-10 shrink-0 rounded-full border border-[rgba(var(--brand),0.38)] bg-[var(--secondary-soft)] px-4 text-sm font-black text-[var(--text-strong)] ring-2 ring-[rgba(var(--brand),0.12)]'} onClick={() => vm.setStatus('')}>
+            <button type="button" className={vm.status ? 'min-h-10 shrink-0 rounded-full border border-slate-200 bg-white px-4 text-sm font-bold text-slate-600 transition hover:border-indigo-200 hover:text-indigo-700' : 'min-h-10 shrink-0 rounded-full border border-indigo-300 bg-indigo-50 px-4 text-sm font-black text-indigo-800 ring-2 ring-indigo-100'} onClick={() => vm.setStatus('')}>
               {t('repairJobs.allStatuses')}
             </button>
             {JOB_STATUS_VALUES.map((status) => (
-              <button key={status} type="button" className={vm.status === status ? 'min-h-10 shrink-0 rounded-full border border-[rgba(var(--brand),0.38)] bg-[var(--secondary-soft)] px-4 text-sm font-black text-[var(--text-strong)] ring-2 ring-[rgba(var(--brand),0.12)]' : 'min-h-10 shrink-0 rounded-full border border-slate-200 bg-white px-4 text-sm font-bold text-slate-600 transition hover:border-[rgba(var(--brand),0.35)] hover:text-[var(--secondary)]'} onClick={() => vm.setStatus(status)}>
+              <button key={status} type="button" className={vm.status === status ? 'min-h-10 shrink-0 rounded-full border border-indigo-300 bg-indigo-50 px-4 text-sm font-black text-indigo-800 ring-2 ring-indigo-100' : 'min-h-10 shrink-0 rounded-full border border-slate-200 bg-white px-4 text-sm font-bold text-slate-600 transition hover:border-indigo-200 hover:text-indigo-700'} onClick={() => vm.setStatus(status)}>
                 {t('repairJobs.statuses.' + status)}
               </button>
             ))}
@@ -236,24 +236,26 @@ const boardQuery = useTenantApiQuery({
       ) : null}
 
       <div id={REPAIR_JOBS_REPORT_ID} className="surface overflow-hidden print-target">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-4 py-3">
+        <div className="flex flex-col items-stretch gap-3 border-b border-slate-100 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
           <div><h2 className="section-title">{t(viewMode === 'board' ? 'repairJobs.boardTitle' : 'repairJobs.registerTitle')}</h2></div>
           <span className="muted-chip">{viewMode === 'board' ? boardJobs.length : vm.total} {t('common.records')}</span>
         </div>
-        <div className="no-print flex flex-col gap-3 border-b border-slate-100 bg-slate-50/60 p-4 sm:flex-row sm:flex-wrap sm:items-center">
-          <div className="relative w-full flex-1 sm:min-w-[200px]">
+        <div className="no-print grid gap-3 border-b border-slate-100 bg-slate-50/60 p-4 sm:grid-cols-2 xl:grid-cols-7">
+          <div className="relative w-full sm:col-span-2 xl:col-span-2">
             <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
             <input className="input pl-10" value={vm.search} onChange={(event) => vm.setSearch(event.target.value)} placeholder={t('repairJobs.searchPlaceholder')} />
           </div>
-          <Select className="input w-full sm:w-44" value={vm.technicianId} onChange={(event) => vm.setTechnicianId(event.target.value)}>
-            <option value="">{t('repairJobs.allTechnicians')}</option>
-            {technicians.map((user) => <option key={user.id} value={user.id}>{user.name}</option>)}
-          </Select>
-          <DateRangePickerField from={vm.dateFrom} to={vm.dateTo} max={todayISO()} onChange={(from, to) => { vm.setDateFrom(from); vm.setDateTo(to); }} placeholder={t('purchaseReceive.dateFrom') + ' - ' + t('purchaseReceive.dateTo')} className="w-full min-w-[260px] sm:w-auto" />
-          <button type="button" className="btn-secondary h-10 gap-1.5 px-3 text-xs disabled:cursor-not-allowed disabled:opacity-50" disabled={!hasFilters} onClick={vm.resetFilters}>
+          <div className="xl:col-span-1">
+            <Select className="input w-full" value={vm.technicianId} onChange={(event) => vm.setTechnicianId(event.target.value)}>
+              <option value="">{t('repairJobs.allTechnicians')}</option>
+              {technicians.map((user) => <option key={user.id} value={user.id}>{user.name}</option>)}
+            </Select>
+          </div>
+          <DateRangePickerField from={vm.dateFrom} to={vm.dateTo} max={todayISO()} onChange={(from, to) => { vm.setDateFrom(from); vm.setDateTo(to); }} placeholder={t('purchaseReceive.dateFrom') + ' - ' + t('purchaseReceive.dateTo')} className="w-full sm:col-span-2 xl:col-span-2" />
+          <button type="button" className="btn-secondary h-10 w-full justify-center gap-1.5 px-3 text-xs disabled:cursor-not-allowed disabled:opacity-50 xl:col-span-2" disabled={!hasFilters} onClick={vm.resetFilters}>
             <RotateCcw size={14} />{t('repairJobs.resetFilters')}
           </button>
-          <div className="sm:ml-auto">
+          <div className="flex justify-end sm:col-span-2 xl:col-span-7">
             <TableReportActions targetId={REPAIR_JOBS_REPORT_ID} title={t('repairJobs.title')} fileName="repair-jobs" entityType="repair_jobs" t={t} shortcuts={REPAIR_JOBS_REPORT_SHORTCUTS} />
           </div>
         </div>
@@ -284,7 +286,7 @@ const boardQuery = useTenantApiQuery({
                   onClick={canManage ? () => setFormModal({ mode: 'edit', job }) : undefined}
                   title={job.jobNumber}
                   badge={<Badge tone={repairJobStatusTone(job.status)}>{t('repairJobs.statuses.' + job.status)}</Badge>}
-                  subtitle={(job.customerName || '-') + ' · ' + formatDateTime(job.receivedDate)}
+                  subtitle={(job.customerName || '-') + ' - ' + formatDateTime(job.receivedDate)}
                   value={job.technicianName || '-'}
                   valueSub={t('repairJobs.approvalStatuses.' + job.approvalStatus)}
                   action={canManage ? (

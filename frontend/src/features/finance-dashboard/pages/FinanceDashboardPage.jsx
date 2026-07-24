@@ -25,13 +25,13 @@ function BreakdownList({ items, language }) {
           <div
             key={label}
             className={cx(
-              'flex items-center justify-between px-5 py-3',
+              'flex items-start justify-between gap-4 px-4 py-3 sm:px-5',
               bold && 'bg-slate-50',
               pinToBottom && 'mt-auto',
             )}
           >
-            <span className={cx('text-sm', bold ? 'font-bold text-slate-950' : 'text-slate-600')}>{label}</span>
-            <span className={cx('text-sm font-semibold', valueClass || 'text-slate-800', bold && 'font-bold')}>{formatCurrency(value, language)}</span>
+            <span className={cx('min-w-0 break-words text-sm', bold ? 'font-bold text-slate-950' : 'text-slate-600')}>{label}</span>
+            <span className={cx('shrink-0 text-right text-sm font-semibold', valueClass || 'text-slate-800', bold && 'font-bold')}>{formatCurrency(value, language)}</span>
           </div>
         );
       })}
@@ -154,7 +154,7 @@ export default function FinanceDashboardPage() {
       <SectionHeader title={t('financeDashboard.title')} compact />
 
       <div>
-        <div className="surface mb-6 flex flex-wrap items-end gap-4 p-5">
+        <div className="surface mb-6 flex flex-col gap-4 p-4 sm:flex-row sm:items-end sm:p-5">
           <div className="w-full sm:w-80">
             <label className="label">{t('financeDashboard.from')} - {t('financeDashboard.to')}</label>
             <DateRangePickerField
@@ -176,10 +176,10 @@ export default function FinanceDashboardPage() {
             {t('financeDashboard.generateReport')}
           </button>
           {rr.data ? (
-            <div className="no-print flex w-full flex-wrap gap-2 lg:ml-auto lg:w-auto">
+            <div className="no-print flex w-full flex-wrap gap-2 xl:ml-auto xl:w-auto">
               <button
                 type="button"
-                className="btn-secondary h-10 gap-1.5 px-3 text-xs disabled:cursor-not-allowed disabled:opacity-60"
+                className="btn-secondary h-10 flex-1 justify-center gap-1.5 px-3 text-xs disabled:cursor-not-allowed disabled:opacity-60 sm:flex-none"
                 onClick={() => downloadRangePdf(async () => {
                   await inventoryApi.recordPrint({ entityType: 'finance_dashboard', entityId: null, label: 'pdf' }).catch(() => {});
                   await downloadSheetPdf(RANGE_REPORT_PRINT_ID, `finance-dashboard-${rr.dateFrom}-${rr.dateTo}.pdf`);
@@ -191,7 +191,7 @@ export default function FinanceDashboardPage() {
               </button>
               <button
                 type="button"
-                className="btn-secondary h-10 gap-1.5 px-3 text-xs disabled:cursor-not-allowed disabled:opacity-60"
+                className="btn-secondary h-10 flex-1 justify-center gap-1.5 px-3 text-xs disabled:cursor-not-allowed disabled:opacity-60 sm:flex-none"
                 onClick={() => exportRangeExcel(handleExportRangeReportExcel)}
                 disabled={exportingRangeExcel}
               >
@@ -200,7 +200,7 @@ export default function FinanceDashboardPage() {
               </button>
               <button
                 type="button"
-                className="btn-secondary h-10 gap-1.5 px-3 text-xs"
+                className="btn-secondary h-10 flex-1 justify-center gap-1.5 px-3 text-xs sm:flex-none"
                 onClick={() => printSection('range', 'finance_dashboard')}
               >
                 <Printer size={14} />
@@ -214,20 +214,20 @@ export default function FinanceDashboardPage() {
           <Alert type="error">{rr.error}</Alert>
         ) : rr.loading ? (
           <div className="space-y-6">
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5">
               {Array.from({ length: 5 }).map((_, i) => <StatCardSkeleton key={i} />)}
             </div>
-            <div className="grid gap-6 xl:grid-cols-2">
+            <div className="grid min-w-0 gap-6 2xl:grid-cols-2">
               <ChartPanelSkeleton height="h-[300px]" />
               <ChartPanelSkeleton height="h-[300px]" />
             </div>
-            <div className="grid gap-6 lg:grid-cols-3">
+            <div className="grid gap-6 md:grid-cols-2 2xl:grid-cols-3">
               {Array.from({ length: 6 }).map((_, i) => <BreakdownPanelSkeleton key={i} />)}
             </div>
           </div>
         ) : rr.data ? (
           <div id={RANGE_REPORT_PRINT_ID} className={cx('space-y-6', printingSection === 'range' && 'print-target')}>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5">
               <StatCard title={t('financeDashboard.totalRevenue')} value={formatCurrency(rr.data.revenue, language)} icon={TrendingUp} tone="blue" />
               <StatCard title={t('financeDashboard.costOfGoods')} value={formatCurrency(rr.data.cogs, language)} icon={CircleDollarSign} tone="amber" />
               <StatCard title={t('financeDashboard.totalExpenses')} value={formatCurrency(rr.data.totalExpenses, language)} icon={CircleDollarSign} tone="slate" />
@@ -240,7 +240,7 @@ export default function FinanceDashboardPage() {
               />
             </div>
 
-            <div className="grid gap-6 xl:grid-cols-2">
+            <div className="grid min-w-0 gap-6 2xl:grid-cols-2">
               <ChartPanel
                 title={t('financeDashboard.profitComparisonTitle')}
                 description={t('financeDashboard.profitComparisonDescription')}
@@ -270,7 +270,7 @@ export default function FinanceDashboardPage() {
               </ChartPanel>
             </div>
 
-            <div className="grid gap-6 lg:grid-cols-3">
+            <div className="grid gap-6 md:grid-cols-2 2xl:grid-cols-3">
               <div className="surface flex h-full flex-col overflow-hidden">
                 <div className="border-b border-slate-100 px-5 py-4">
                   <h3 className="text-sm font-bold text-slate-950">{t('financeDashboard.profitBreakdown')}</h3>

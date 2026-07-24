@@ -140,8 +140,8 @@ function BreakdownTable({ t, language, columns, rows, emptyIcon, fileName, sheet
       ) : null}
 
       <div className="surface overflow-hidden">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-5 py-4">
-          <h2 className="section-title">{t('profit.tableTitle')}</h2>
+        <div className="flex flex-col items-stretch gap-3 border-b border-slate-100 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+          <h2 className="section-title whitespace-nowrap">{t('profit.tableTitle')}</h2>
           {rows.length ? (
             <TableReportActions targetId={printId} title={sheetName} fileName={fileName} entityType="profit_breakdown" t={t} shortcuts={PROFIT_REPORT_SHORTCUTS} />
           ) : null}
@@ -292,7 +292,7 @@ export default function ProfitPage() {
         </div>
       ) : null}
 
-      <div className="no-print mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+      <div className="no-print mb-6 flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
         <div className="overflow-x-auto">
           <div className="inline-flex min-w-full gap-1 rounded-lg border border-slate-200 bg-slate-50 p-1 sm:min-w-0">
             {tabs.map((entry, index) => {
@@ -315,7 +315,7 @@ export default function ProfitPage() {
             })}
           </div>
         </div>
-        <div className="sm:w-72">
+        <div className="w-full xl:w-80">
           <label className="label">{t('profit.dateRangeLabel')}</label>
           <DateRangePickerField
             from={vm.dateFrom}
@@ -327,7 +327,7 @@ export default function ProfitPage() {
         </div>
       </div>
 
-      <div className="no-print -mt-3 mb-6 flex flex-wrap justify-end gap-2">
+      <div className="no-print -mt-3 mb-6 flex flex-wrap justify-start gap-2 sm:justify-end">
         {datePresets.map((preset) => {
           const selected = vm.dateFrom === preset.from && vm.dateTo === preset.to;
           return (
@@ -349,7 +349,7 @@ export default function ProfitPage() {
 
       {showSkeleton ? (
         <>
-          <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+          <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5">
             {Array.from({ length: 5 }).map((_, i) => <StatCardSkeleton key={i} />)}
           </div>
           <div className="mb-6">
@@ -364,7 +364,7 @@ export default function ProfitPage() {
 
       {vm.tab === 'overview' ? (
         <>
-          <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+          <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5">
             <StatCard title={t('profit.revenue')} value={formatCurrency(totals.revenue)} icon={Wallet} tone="blue" />
             <StatCard title={t('profit.cost')} value={formatCurrency(totals.cost)} icon={BadgeDollarSign} tone="amber" />
             <StatCard title={t('profit.grossProfit')} value={formatCurrency(totals.grossProfit)} icon={grossIsProfit ? TrendingUp : TrendingDown} tone={grossIsProfit ? 'emerald' : 'rose'} />
@@ -386,7 +386,7 @@ export default function ProfitPage() {
             )}
           </ChartPanel>
 
-          <div className="no-print mt-6 inline-flex gap-1 rounded-lg border border-slate-200 bg-slate-50 p-1">
+          <div className="no-print mt-6 flex gap-1 overflow-x-auto rounded-lg border border-slate-200 bg-slate-50 p-1 sm:inline-flex">
             {VIEWS.map((entry) => {
               const selected = entry.key === vm.view;
               return (
@@ -394,7 +394,7 @@ export default function ProfitPage() {
                   key={entry.key}
                   type="button"
                   className={cx(
-                    'min-h-10 rounded-md px-3 text-sm font-bold transition',
+                    'min-h-10 flex-1 whitespace-nowrap rounded-md px-3 text-sm font-bold transition sm:flex-none',
                     selected ? 'border border-indigo-200 bg-indigo-50 text-indigo-800 shadow-sm ring-2 ring-indigo-100' : 'border border-transparent text-slate-500 hover:bg-white/70 hover:text-slate-800',
                   )}
                   aria-pressed={selected}
@@ -407,8 +407,8 @@ export default function ProfitPage() {
           </div>
           <div id="profit-report-table" className="mt-6 surface overflow-hidden">
             <div className="border-b border-slate-100 px-5 py-4">
-              <div className="flex items-center justify-between gap-3">
-                <h2 className="section-title">{t('profit.tableTitle')}</h2>
+              <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <h2 className="section-title whitespace-nowrap">{t('profit.tableTitle')}</h2>
                 <TableReportActions targetId="profit-report-table" title={t('profit.tableTitle')} fileName={`profit-report-${vm.dateFrom}-to-${vm.dateTo}`} entityType="profit_report" t={t} shortcuts={PROFIT_REPORT_SHORTCUTS} />
               </div>
             </div>
@@ -417,7 +417,7 @@ export default function ProfitPage() {
                 <MobileListCard
                   key={getPeriodLabel(row, activeView.key)}
                   title={getPeriodLabel(row, activeView.key)}
-                  subtitle={`${t('profit.revenue')}: ${formatCurrency(row.revenue)} · ${t('profit.cost')}: ${formatCurrency(row.cost)}`}
+                  subtitle={`${t('profit.revenue')}: ${formatCurrency(row.revenue)} - ${t('profit.cost')}: ${formatCurrency(row.cost)}`}
                   value={formatCurrency(row.profit)}
                   valueClass={row.profit >= 0 ? 'text-emerald-600' : 'text-rose-600'}
                   valueSub={formatCurrency(row.grossProfit)}

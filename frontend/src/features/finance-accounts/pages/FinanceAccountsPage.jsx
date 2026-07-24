@@ -79,7 +79,7 @@ export default function FinanceAccountsPage() {
         </div>
       ) : null}
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5">
         {vm.accountsLoading ? (
           <>
             <StatCardSkeleton />
@@ -125,7 +125,7 @@ export default function FinanceAccountsPage() {
       </div>
 
       <div id={FINANCE_ACCOUNTS_PRINT_ID} className="surface mt-6 overflow-hidden print-target">
-        <div className="flex flex-col gap-3 border-b border-slate-100 p-5 no-print sm:flex-row sm:items-center sm:flex-wrap">
+        <div className="flex flex-col gap-3 border-b border-slate-100 p-4 no-print sm:flex-row sm:flex-wrap sm:items-end sm:p-5">
           <Select className="input sm:w-72" value={vm.accountType} onChange={(event) => vm.setAccountType(event.target.value)}>
             <option value="">{t('financeAccounts.allAccounts')}</option>
             {vm.accounts.map((account) => (
@@ -142,17 +142,17 @@ export default function FinanceAccountsPage() {
           />
           <button
             type="button"
-            className="btn-secondary h-10 gap-1.5 px-3 text-xs disabled:cursor-not-allowed disabled:opacity-60"
+            className="btn-secondary h-10 flex-1 justify-center gap-1.5 px-3 text-xs disabled:cursor-not-allowed disabled:opacity-60 sm:flex-none"
             onClick={vm.resetFilters}
             disabled={!vm.hasActiveFilters}
           >
             <RotateCcw size={14} />
             {t('financeAccounts.resetFilters')}
           </button>
-          <div className="flex flex-wrap gap-2 sm:ml-auto">
+          <div className="flex w-full flex-wrap gap-2 xl:ml-auto xl:w-auto">
             <button
               type="button"
-              className="btn-secondary h-10 gap-1.5 px-3 text-xs disabled:cursor-not-allowed disabled:opacity-60"
+              className="btn-secondary h-10 flex-1 justify-center gap-1.5 px-3 text-xs disabled:cursor-not-allowed disabled:opacity-60 sm:flex-none"
               onClick={() => downloadPdf(async () => {
                 await inventoryApi.recordPrint({ entityType: 'finance_accounts', entityId: null, label: 'pdf' }).catch(() => {});
                 await downloadSheetPdf(FINANCE_ACCOUNTS_PRINT_ID, 'finance-accounts.pdf');
@@ -164,7 +164,7 @@ export default function FinanceAccountsPage() {
             </button>
             <button
               type="button"
-              className="btn-secondary h-10 gap-1.5 px-3 text-xs disabled:cursor-not-allowed disabled:opacity-60"
+              className="btn-secondary h-10 flex-1 justify-center gap-1.5 px-3 text-xs disabled:cursor-not-allowed disabled:opacity-60 sm:flex-none"
               onClick={() => exportExcel(handleExportExcel)}
               disabled={exportingExcel}
             >
@@ -173,7 +173,7 @@ export default function FinanceAccountsPage() {
             </button>
             <button
               type="button"
-              className="btn-secondary h-10 gap-1.5 px-3 text-xs"
+              className="btn-secondary h-10 flex-1 justify-center gap-1.5 px-3 text-xs sm:flex-none"
               onClick={() => { inventoryApi.recordPrint({ entityType: 'finance_accounts', entityId: null, label: 'print' }).catch(() => {}); window.print(); }}
             >
               <Printer size={14} />
@@ -198,7 +198,7 @@ export default function FinanceAccountsPage() {
                 key={transaction.id}
                 title={transaction.accountName}
                 badge={<Badge tone={TYPE_TONES[transaction.type] || 'slate'}>{t(`financeAccounts.${transaction.type === 'DEPOSIT' ? 'deposit' : transaction.type === 'WITHDRAWAL' ? 'withdrawal' : transaction.type === 'TRANSFER_IN' ? 'transferIn' : 'transferOut'}`)}</Badge>}
-                subtitle={`${formatDateTime(transaction.transactionDate)}${transaction.note ? ` · ${transaction.note}` : ''}`}
+                subtitle={`${formatDateTime(transaction.transactionDate)}${transaction.note ? ` - ${transaction.note}` : ''}`}
                 value={transaction.debit > 0 ? `+${formatCurrency(transaction.debit)}` : `-${formatCurrency(transaction.credit)}`}
                 valueClass={transaction.debit > 0 ? 'text-emerald-700' : 'text-rose-600'}
                 valueSub={formatCurrency(transaction.balanceAfter)}

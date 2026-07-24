@@ -251,7 +251,7 @@ function QuickSaleForm({ onSaved }) {
     <form ref={formRef} className="space-y-4" onSubmit={submitForm}>
       {error ? <Alert type="error">{error}</Alert> : null}
       <SalesInvoiceFormFields vm={vm} t={t} productDirectory={productDirectory} retailCustomerDirectory={retailCustomerDirectory} saving={saving} saveRetailCustomer={saveRetailCustomer} />
-      <div className="flex items-center justify-between gap-3 pt-2 max-lg:sticky max-lg:bottom-[calc(3.75rem+env(safe-area-inset-bottom))] max-lg:z-10 max-lg:-mx-5 max-lg:mt-2 max-lg:border-t max-lg:border-slate-200 max-lg:bg-[rgb(var(--white))] max-lg:px-4 max-lg:py-3">
+      <div className="flex items-center justify-between gap-3 pt-2 max-lg:sticky max-lg:bottom-[calc(3.75rem+env(safe-area-inset-bottom))] max-lg:z-10 max-lg:-mx-4 max-lg:mt-2 max-lg:border-t max-lg:border-slate-200 max-lg:bg-[rgb(var(--white))] max-lg:px-4 max-lg:py-3 sm:max-lg:-mx-5">
         <p className="text-xs text-slate-400 select-none max-lg:hidden">
           <kbd className="rounded border border-slate-200 bg-slate-100 px-1.5 py-0.5 font-mono text-[10px] text-slate-500">/</kbd> {t('retailer.quickSale.shortcutSearch')} &nbsp;
           <kbd className="rounded border border-slate-200 bg-slate-100 px-1.5 py-0.5 font-mono text-[10px] text-slate-500">Alt+I</kbd> {t('retailer.quickSale.shortcutAddItem')} &nbsp;
@@ -446,11 +446,11 @@ export default function QuickSalePage() {
   const expectedCash = session?.expectedCash || 0;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <SectionHeader title={t('retailer.quickSale.title')} compact />
 
-      {cashSessionEnabled && <div className="surface p-5">
-        <div className="flex flex-wrap items-start justify-between gap-4">
+      {cashSessionEnabled && <div className="surface p-4 sm:p-5">
+        <div className="flex flex-col items-stretch gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="max-w-2xl">
             <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">
               {t('retailer.cashSession.eyebrow')}
@@ -459,7 +459,7 @@ export default function QuickSalePage() {
               {t('retailer.cashSession.title')}
             </h2>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             {session ? (
               <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3.5 py-2 text-sm font-bold tabular-nums text-slate-700">
                 <Clock3 size={15} className="text-slate-400" />
@@ -468,7 +468,7 @@ export default function QuickSalePage() {
             ) : null}
             <button
               type="button"
-              className="btn-primary"
+              className="btn-primary flex-1 justify-center sm:flex-none"
               onClick={() => {
                 if (session) {
                   setStopCashInput(String(session.expectedCash || 0));
@@ -488,7 +488,7 @@ export default function QuickSalePage() {
                 : session
                   ? t('retailer.cashSession.stop')
                   : t('retailer.cashSession.start')}
-              <kbd className="ml-1 rounded border border-indigo-400/40 bg-indigo-500/20 px-1 py-0.5 font-mono text-[10px] text-indigo-200">Alt+S</kbd>
+              <kbd className="ml-1 hidden rounded border border-indigo-400/40 bg-indigo-500/20 px-1 py-0.5 font-mono text-[10px] text-indigo-200 sm:inline-flex">Alt+S</kbd>
             </button>
           </div>
         </div>
@@ -496,7 +496,7 @@ export default function QuickSalePage() {
         {sessionError ? <Alert type="error" className="mt-4">{sessionError}</Alert> : null}
 
         {sessionLoading && !session ? (
-          <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {Array.from({ length: 4 }).map((_, index) => (
               <div key={index} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                 <div className="h-3 w-24 animate-pulse rounded-full bg-slate-200" />
@@ -507,7 +507,7 @@ export default function QuickSalePage() {
         ) : null}
 
         {session ? (
-          <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
               <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">{t('retailer.cashSession.openedAt')}</p>
               <p className="mt-2 text-sm font-bold text-slate-950">{formatDateTime(session.startedAt)}</p>
@@ -545,7 +545,7 @@ export default function QuickSalePage() {
                   {t('retailer.cashSession.openingCash')}: {formatCurrency(lastClosedSession.openingCash)}
                 </p>
               </div>
-              <div className="text-right">
+              <div className="sm:text-right">
                 <p className="text-sm font-semibold text-slate-600">
                   {t('retailer.cashSession.variance')}: {formatCurrency(lastClosedSession.variance)}
                 </p>
@@ -560,18 +560,18 @@ export default function QuickSalePage() {
 
       {lastInvoice ? (
         <Alert type="success">
-          <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
             <span>{t('retailer.quickSale.lastInvoice', { number: lastInvoice.invoiceNumber })}</span>
-            <button type="button" className="btn-secondary" onClick={handlePrintReceipt}>
+            <button type="button" className="btn-secondary justify-center sm:justify-start" onClick={handlePrintReceipt}>
               <Printer size={18} />
               {t('retailer.shared.printReceipt')}
-              <kbd className="ml-1 rounded border border-slate-300 bg-white/70 px-1 py-0.5 font-mono text-[10px] text-slate-500">Ctrl+P</kbd>
+              <kbd className="ml-1 hidden rounded border border-slate-300 bg-white/70 px-1 py-0.5 font-mono text-[10px] text-slate-500 sm:inline-flex">Ctrl+P</kbd>
             </button>
           </div>
         </Alert>
       ) : null}
 
-      <div className="surface p-5">
+      <div className="surface p-4 sm:p-5">
         <QuickSaleForm
           key={formKey}
           onSaved={async (invoice) => {

@@ -171,7 +171,7 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, retail
   return (
     <>
     <div className="space-y-4">
-      <div className="grid gap-4 sm:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <div>
           <label className="label">{t('retailer.shared.saleTypeLabel')}</label>
           <Select className="input" value={vm.saleType} onChange={(e) => vm.setSaleType(e.target.value)} disabled={saving}>
@@ -270,7 +270,7 @@ export default function SalesInvoiceFormFields({ vm, t, productDirectory, retail
                       : 'border-slate-200 bg-slate-50'
                   }`}
                 >
-                  <div className="grid gap-3 lg:grid-cols-[minmax(0,1.8fr)_minmax(110px,0.6fr)_minmax(110px,0.6fr)_minmax(110px,0.6fr)_minmax(110px,0.6fr)_auto]">
+                  <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-[minmax(0,1.8fr)_minmax(110px,0.6fr)_minmax(110px,0.6fr)_minmax(110px,0.6fr)_minmax(110px,0.6fr)_auto]">
                     {/* Product search */}
                     <div className="relative">
                       <label className="label">{t('products.product')}</label>

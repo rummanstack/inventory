@@ -98,7 +98,7 @@ export default function CashSessionsPage() {
   }
 
   function shortcutBadge(shortcut) {
-    return <kbd className="ml-1 rounded border border-slate-300 bg-white/70 px-1 py-0.5 font-mono text-[10px] text-slate-500">{shortcut.label}</kbd>;
+    return <kbd className="ml-1 hidden rounded border border-slate-300 bg-white/70 px-1 py-0.5 font-mono text-[10px] text-slate-500 2xl:inline-flex">{shortcut.label}</kbd>;
   }
 
   function matchesShortcut(event, shortcut) {
@@ -133,15 +133,15 @@ export default function CashSessionsPage() {
       <SectionHeader title={t('cashSessions.title')} compact />
 
       <div id={PRINT_ID} className="surface overflow-hidden print-target">
-        <div className="flex flex-col gap-3 border-b border-slate-100 p-5 sm:flex-row sm:items-center">
+        <div className="grid gap-3 border-b border-slate-100 p-4 sm:grid-cols-2 xl:grid-cols-12">
           <DateRangePickerField
             from={vm.dateFrom}
             to={vm.dateTo}
             onChange={(from, to) => { vm.setDateFrom(from); vm.setDateTo(to); }}
             placeholder={`${t('purchaseReceive.dateFrom')} - ${t('purchaseReceive.dateTo')}`}
-            className="w-full min-w-[260px] sm:w-auto"
+            className="w-full sm:col-span-2 xl:col-span-2"
           />
-          <div className="flex flex-wrap items-center gap-2 text-sm font-bold sm:ml-auto">
+          <div className="flex flex-wrap items-center gap-2 text-sm font-bold sm:col-span-2 xl:col-span-10">
             <span className="muted-chip">{formatNumber(vm.total)} {t('cashSessions.sessionCount')}</span>
             <span className="muted-chip">{formatNumber(totals.cashSalesCount)} {t('cashSessions.salesCountLabel')}</span>
             <span className="muted-chip">{formatCurrency(totals.cashSalesAmount)} {t('cashSessions.totalSalesLabel')}</span>
@@ -150,9 +150,11 @@ export default function CashSessionsPage() {
                 {varianceLabel(totals.variance)} {t('cashSessions.netVariance')}
               </span>
             ) : null}
+          </div>
+          <div className="grid grid-cols-1 gap-2 sm:col-span-2 sm:grid-cols-3 xl:col-span-12 xl:justify-self-end">
             <button
               type="button"
-              className="btn-secondary no-print h-10 gap-1.5 px-3 text-xs disabled:cursor-not-allowed disabled:opacity-60"
+              className="btn-secondary no-print h-10 w-full justify-center gap-1.5 px-2 text-xs disabled:cursor-not-allowed disabled:opacity-60"
               onClick={handleDownloadPdf}
               disabled={downloadingPdf}
             >
@@ -160,14 +162,14 @@ export default function CashSessionsPage() {
               {t('purchaseReceive.downloadPdf')}
               {shortcutBadge(CASH_SESSIONS_SHORTCUTS.pdf)}
             </button>
-            <button type="button" className="btn-secondary no-print h-10 gap-1.5 px-3 text-xs" onClick={handleExportExcel}>
+            <button type="button" className="btn-secondary no-print h-10 w-full justify-center gap-1.5 px-2 text-xs" onClick={handleExportExcel}>
               <FileSpreadsheet size={14} />
               {t('common.exportExcel')}
               {shortcutBadge(CASH_SESSIONS_SHORTCUTS.excel)}
             </button>
             <button
               type="button"
-              className="btn-secondary no-print h-10 gap-1.5 px-3 text-xs"
+              className="btn-secondary no-print h-10 w-full justify-center gap-1.5 px-2 text-xs"
               onClick={handlePrint}
             >
               <Printer size={14} />
@@ -179,7 +181,7 @@ export default function CashSessionsPage() {
 
         {vm.loading ? (
           <div className="p-5">
-            <TableSkeleton columns={8} showHeader={false} />
+            <TableSkeleton columns={9} showHeader={false} />
           </div>
         ) : vm.error ? (
           <div className="p-5">
@@ -225,7 +227,6 @@ export default function CashSessionsPage() {
                     <td className="table-cell">
                       <div className="font-semibold text-slate-950">{formatDateTime(session.startedAt)}</div>
                       <div className="mt-1"><CopyableText value={session.id} copyLabel="session ID" displayValue={session.id.slice(0, 10)} textClassName="text-xs font-medium text-slate-500" buttonClassName="h-5 w-5" /></div>
-                      {session.openedByName ? <div className="text-xs text-slate-500">{session.openedByName}</div> : null}
                     </td>
                     <td className="table-cell text-slate-600">
                       {session.closedAt ? (
